@@ -5,7 +5,8 @@ import type { CreateMemoryParams, UpdateMemoryParams } from './types';
 import { getMemoryQuery } from './core';
 
 export const createMemory = async (params: CreateMemoryParams): Promise<Memory> => {
-  const { data, error } = await getMemoryQuery()
+  const { data, error } = await supabase
+    .from('memories')
     .insert({
       userId: params.userId,
       title: params.title,
@@ -17,7 +18,7 @@ export const createMemory = async (params: CreateMemoryParams): Promise<Memory> 
       tags: params.tags || [],
       metadata: params.metadata
     })
-    .select()
+    .select('*, media(*)')
     .single();
 
   if (error) throw new Error(`Failed to create memory: ${error.message}`);
@@ -36,10 +37,11 @@ export const updateMemory = async (params: UpdateMemoryParams): Promise<Memory> 
   if (params.tags !== undefined) updates.tags = params.tags;
   if (params.metadata !== undefined) updates.metadata = params.metadata;
 
-  const { data, error } = await getMemoryQuery()
+  const { data, error } = await supabase
+    .from('memories')
     .update(updates)
     .eq('id', params.id)
-    .select()
+    .select('*, media(*)')
     .single();
 
   if (error) throw new Error(`Failed to update memory: ${error.message}`);
@@ -47,4 +49,3 @@ export const updateMemory = async (params: UpdateMemoryParams): Promise<Memory> 
 
   return data as Memory;
 };
-

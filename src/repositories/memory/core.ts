@@ -10,4 +10,3 @@ export const getMemoryQuery = () => {
     .from('memories')
     .select('*, media(*)');
 };
-
