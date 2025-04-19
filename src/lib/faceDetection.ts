@@ -54,15 +54,23 @@ export const detectFaces = async (imageFile: File): Promise<DetectedFace[]> => {
       .withFaceLandmarks()
       .withFaceExpressions();
 
-    return detections.map(detection => ({
-      x: detection.detection.box.x,
-      y: detection.detection.box.y,
-      width: detection.detection.box.width,
-      height: detection.detection.box.height,
-      confidence: detection.detection.score,
-      landmarks: detection.landmarks.positions,
-      expressions: detection.expressions
-    }));
+    return detections.map(detection => {
+      // Convert FaceExpressions to Record<string, number>
+      const expressionsObj: Record<string, number> = {};
+      Object.entries(detection.expressions).forEach(([key, value]) => {
+        expressionsObj[key] = value;
+      });
+
+      return {
+        x: detection.detection.box.x,
+        y: detection.detection.box.y,
+        width: detection.detection.box.width,
+        height: detection.detection.box.height,
+        confidence: detection.detection.score,
+        landmarks: detection.landmarks.positions,
+        expressions: expressionsObj
+      };
+    });
   } catch (error) {
     console.error('Error detecting faces:', error);
     throw new Error('Failed to detect faces in image');
