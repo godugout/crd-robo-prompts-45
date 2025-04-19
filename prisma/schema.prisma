@@ -1,0 +1,205 @@
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Visibility {
+  public
+  private
+  shared
+}
+
+enum MediaType {
+  image
+  video
+  audio
+}
+
+model User {
+  id           String         @id @default(uuid())
+  username     String         @unique
+  email        String         @unique
+  profileImage String?
+  bio          String?
+  createdAt    DateTime       @default(now())
+  preferences  Json?
+  memories     Memory[]
+  collections  Collection[]
+  comments     Comment[]
+  reactions    Reaction[]
+  followers    Follow[]       @relation("UserFollowers")
+  following    Follow[]       @relation("UserFollowing")
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model Team {
+  id             String    @id @default(uuid())
+  name           String    @unique
+  abbreviation   String    @unique
+  primaryColor   String?
+  secondaryColor String?
+  logoUrl        String?
+  stadiumInfo    Json?
+  memories       Memory[]
+
+  @@map("teams")
+}
+
+model Memory {
+  id          String       @id @default(uuid())
+  userId      String
+  title       String
+  description String?
+  teamId      String
+  gameId      String?      @db.Uuid
+  location    Json?
+  visibility  Visibility   @default(private)
+  createdAt   DateTime     @default(now())
+  tags        String[]
+  metadata    Json?
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team        Team         @relation(fields: [teamId], references: [id])
+  media       Media[]
+  collectionItems CollectionItem[]
+  comments    Comment[]    @relation("MemoryComments")
+  reactions   Reaction[]   @relation("MemoryReactions")
+
+  @@index([userId])
+  @@index([teamId])
+  @@map("memories")
+}
+
+model Media {
+  id               String       @id @default(uuid())
+  memoryId         String
+  type             MediaType
+  url              String
+  thumbnailUrl     String?
+  originalFilename String?
+  size             Int?
+  mimeType         String?
+  width            Int?
+  height           Int?
+  duration         Float?
+  metadata         Json?
+  createdAt        DateTime     @default(now())
+  memory           Memory       @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  coverForCollections Collection[] @relation("CoverMedia")
+
+  @@index([memoryId])
+  @@map("media")
+}
+
+model Collection {
+  id           String           @id @default(uuid())
+  userId       String
+  title        String
+  description  String?
+  coverMediaId String?
+  visibility   Visibility       @default(private)
+  createdAt    DateTime         @default(now())
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coverMedia   Media?           @relation("CoverMedia", fields: [coverMediaId], references: [id])
+  items        CollectionItem[]
+  comments     Comment[]        @relation("CollectionComments")
+  reactions    Reaction[]       @relation("CollectionReactions")
+
+  @@index([userId])
+  @@index([coverMediaId])
+  @@map("collections")
+}
+
+model CollectionItem {
+  id           String     @id @default(uuid())
+  collectionId String
+  memoryId     String
+  displayOrder Int        @default(0)
+  addedAt      DateTime   @default(now())
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  memory       Memory     @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+
+  @@index([collectionId])
+  @@index([memoryId])
+  @@map("collection_items")
+}
+
+model Comment {
+  id              String    @id @default(uuid())
+  userId          String
+  memoryId        String?
+  collectionId    String?
+  parentCommentId String?
+  content         String    @db.Text
+  createdAt       DateTime  @default(now())
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memory          Memory?   @relation("MemoryComments", fields: [memoryId], references: [id], onDelete: Cascade)
+  collection      Collection? @relation("CollectionComments", fields: [collectionId], references: [id], onDelete: Cascade)
+  parentComment   Comment?  @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: SetNull)
+  replies         Comment[] @relation("CommentReplies")
+  reactions       Reaction[] @relation("CommentReactions")
+
+  @@index([userId])
+  @@index([memoryId])
+  @@index([collectionId])
+  @@index([parentCommentId])
+  @@map("comments")
+}
+
+model Reaction {
+  id           String     @id @default(uuid())
+  userId       String
+  memoryId     String?
+  collectionId String?
+  commentId    String?
+  type         String
+  createdAt    DateTime   @default(now())
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memory       Memory?    @relation("MemoryReactions", fields: [memoryId], references: [id], onDelete: Cascade)
+  collection   Collection? @relation("CollectionReactions", fields: [collectionId], references: [id], onDelete: Cascade)
+  comment      Comment?   @relation("CommentReactions", fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, memoryId, collectionId, commentId, type])
+  @@index([userId])
+  @@index([memoryId])
+  @@index([collectionId])
+  @@index([commentId])
+  @@map("reactions")
+}
+
+model Follow {
+  id         String   @id @default(uuid())
+  followerId String
+  followedId String
+  createdAt  DateTime @default(now())
+  follower   User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  followed   User     @relation("UserFollowers", fields: [followedId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followedId])
+  @@index([followerId])
+  @@index([followedId])
+  @@map("follows")
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     String
+  type       String
+  sourceId   String   @db.Uuid
+  sourceType String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notifications")
+}
