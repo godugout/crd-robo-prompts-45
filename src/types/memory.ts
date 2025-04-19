@@ -1,7 +1,6 @@
 
 import type { MediaItem } from './media';
-
-export type Visibility = 'public' | 'private' | 'shared';
+import type { Visibility, Location } from './common';
 
 export interface Memory {
   id: string;
@@ -10,10 +9,7 @@ export interface Memory {
   description?: string;
   teamId: string;
   gameId?: string;
-  location?: {
-    latitude: number;
-    longitude: number;
-  } | null;
+  location?: Location | null;
   visibility: Visibility;
   createdAt: string;
   tags: string[];

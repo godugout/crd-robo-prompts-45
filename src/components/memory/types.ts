@@ -1,5 +1,4 @@
-
-import { Visibility } from '@/types/memory';
+import { Visibility } from '@/types/common';
 
 export interface MemoryCreatorProps {
   onCreated?: (memoryId: string) => void;
