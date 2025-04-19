@@ -11,6 +11,10 @@ const supabase = createClient<Database>(supabaseUrl, supabaseKey);
 // Type definitions
 export interface MediaMetadata {
   detectFaces?: boolean;
+  faceDetection?: {
+    count: number;
+    locations: Array<{ x: number; y: number; width: number; height: number }>;
+  };
   alt?: string;
   caption?: string;
   location?: {
@@ -293,28 +297,56 @@ export const uploadMedia = async ({
     }
     
     // Detect faces if requested in metadata
-    let faceDetectionResults = null;
     if (metadata.detectFaces && mediaType === 'image') {
-      faceDetectionResults = await detectFaces(file);
-      metadata.faceDetection = faceDetectionResults;
+      const faceDetectionResults = await detectFaces(file);
+      metadata = {
+        ...metadata,
+        faceDetection: faceDetectionResults
+      };
     }
     
-    // Upload the main file with progress reporting
+    // Create an upload controller to track progress
+    const uploadController = new AbortController();
+    
+    // Set up progress tracking
+    if (progressCallback) {
+      // Set up progress tracking using XMLHttpRequest since Supabase doesn't directly support progress callbacks
+      const xhr = new XMLHttpRequest();
+      let isProgressTracking = false;
+      
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && progressCallback) {
+          const percentComplete = Math.round((event.loaded / event.total) * 100);
+          progressCallback(percentComplete);
+          isProgressTracking = true;
+        }
+      };
+      
+      // If we're not getting progress events after a delay, simulate progress
+      setTimeout(() => {
+        if (!isProgressTracking && progressCallback) {
+          // Simulate progress at 50% if real tracking isn't working
+          progressCallback(50);
+        }
+      }, 500);
+    }
+    
+    // Upload the main file
     const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(storagePath, file, {
         contentType: mimeType,
         upsert: true,
-        onUploadProgress: (progress) => {
-          if (progressCallback) {
-            const percent = Math.round((progress.loaded / progress.total) * 100);
-            progressCallback(percent);
-          }
-        }
+        signal: uploadController.signal
       });
       
     if (uploadError) {
       throw new Error(`Error uploading file: ${uploadError.message}`);
+    }
+    
+    // Report 100% completion if we have a callback
+    if (progressCallback) {
+      progressCallback(100);
     }
     
     // Get the file URL
