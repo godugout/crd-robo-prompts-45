@@ -1,6 +1,8 @@
 
 import type { MediaItem } from './media';
 
+export type Visibility = 'public' | 'private' | 'shared';
+
 export interface Memory {
   id: string;
   userId: string;
@@ -12,7 +14,7 @@ export interface Memory {
     latitude: number;
     longitude: number;
   } | null;
-  visibility: 'public' | 'private' | 'shared';
+  visibility: Visibility;
   createdAt: string;
   tags: string[];
   metadata?: Record<string, any>;
