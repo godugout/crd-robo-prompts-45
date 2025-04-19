@@ -27,7 +27,7 @@ export const useTeams = () => {
 
   return {
     teams,
-    loading: isLoading,
+    isLoading,
     error,
     getTeamById
   };
