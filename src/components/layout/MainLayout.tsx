@@ -20,12 +20,7 @@ export const MainLayout = () => {
   const isHomePage = location.pathname === '/';
 
   if (isHomePage) {
-    return (
-      <>
-        <Navbar />
-        <Outlet />
-      </>
-    );
+    return <Outlet />;
   }
 
   return (
@@ -84,6 +79,7 @@ export const MainLayout = () => {
         </Sidebar>
 
         <main className="flex-1">
+          <Navbar />
           <Outlet />
         </main>
       </div>

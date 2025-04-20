@@ -1,8 +1,13 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { CardItem } from "../shared/CardItem";
+import { useCards } from "@/hooks/useCards";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const DiscoverSection: React.FC = () => {
+  const [selectedCategory, setSelectedCategory] = useState("All Categories");
+  const { trendingCards, loading } = useCards();
+  
   const categories = [
     "All Categories",
     "Art",
@@ -12,35 +17,8 @@ export const DiscoverSection: React.FC = () => {
     "Video",
   ];
   
-  const cards = [
-    {
-      title: "Magic Mushroom #3241",
-      price: "1.5 ETH",
-      image: "https://cdn.builder.io/api/v1/image/assets/55d1eea1cc5a43f6bced987c3407a299/d8f82b9c8c741a51de3f5c8f0ec3bfb7a8ce2357?placeholderIfAbsent=true",
-      stock: "3 in stock",
-      highestBid: "0.001 ETH",
-    },
-    {
-      title: "Happy Robot 032",
-      price: "1.5 ETH",
-      image: "https://cdn.builder.io/api/v1/image/assets/55d1eea1cc5a43f6bced987c3407a299/f77e9a2f29b3d6ca3e2ef7eb58bb96f8f61ae2e3?placeholderIfAbsent=true",
-      stock: "3 in stock",
-      highestBid: "0.001 ETH",
-    },
-    {
-      title: "Happy Robot 024",
-      price: "1.5 ETH",
-      image: "https://cdn.builder.io/api/v1/image/assets/55d1eea1cc5a43f6bced987c3407a299/bbddb7b98ca0d36e27c86999c1ba359a0f28d302?placeholderIfAbsent=true",
-      stock: "3 in stock",
-      highestBid: "0.001 ETH",
-    },
-    {
-      title: "Happy Robot 029",
-      price: "1.5 ETH",
-      image: "https://cdn.builder.io/api/v1/image/assets/55d1eea1cc5a43f6bced987c3407a299/47ecad8cb0d55baf48a07b5a5ad0aec67e4ab9f9?placeholderIfAbsent=true",
-      stock: "3 in stock",
-      highestBid: "0.001 ETH",
-    },
+  // Fallback data
+  const fallbackCards = [
     {
       title: "Magic Mushroom #3241",
       price: "1.5 ETH",
@@ -70,6 +48,26 @@ export const DiscoverSection: React.FC = () => {
       highestBid: "0.001 ETH",
     },
   ];
+
+  // Use real data or fallback
+  let displayCards = trendingCards.length > 0 
+    ? trendingCards.map(card => ({
+        title: card.title,
+        price: card.price ? `${card.price} ETH` : "1.5 ETH",
+        image: card.image_url || card.thumbnail_url || fallbackCards[0].image,
+        stock: "3 in stock",
+        highestBid: "0.001 ETH",
+      }))
+    : fallbackCards;
+
+  // Duplicate cards to have 8 items for display
+  if (displayCards.length < 8) {
+    const additionalCards = [...displayCards];
+    while (displayCards.length + additionalCards.length < 8) {
+      additionalCards.push(...displayCards);
+    }
+    displayCards = [...displayCards, ...additionalCards.slice(0, 8 - displayCards.length)];
+  }
 
   return (
     <div className="bg-[#141416] flex flex-col overflow-hidden pt-32 pb-12 px-[352px] max-md:max-w-full max-md:px-5">
@@ -83,10 +81,11 @@ export const DiscoverSection: React.FC = () => {
               <button
                 key={index}
                 className={`px-4 py-2 rounded-lg text-sm font-semibold ${
-                  index === 0
+                  category === selectedCategory
                     ? "bg-[#353945] text-[#FCFCFD]"
                     : "text-[#777E90]"
                 }`}
+                onClick={() => setSelectedCategory(category)}
               >
                 {category}
               </button>
@@ -104,16 +103,29 @@ export const DiscoverSection: React.FC = () => {
       </div>
       
       <div className="self-stretch flex flex-wrap w-full items-stretch justify-between gap-8 max-md:max-w-full">
-        {cards.map((card, index) => (
-          <CardItem
-            key={index}
-            title={card.title}
-            price={card.price}
-            image={card.image}
-            stock={card.stock}
-            highestBid={card.highestBid}
-          />
-        ))}
+        {loading ? (
+          // Loading state
+          Array(8).fill(0).map((_, index) => (
+            <div key={index} className="w-[270px] h-[366px]">
+              <Skeleton className="w-full h-[270px] rounded-t-2xl" />
+              <div className="bg-[#23262F] p-5 rounded-b-2xl">
+                <Skeleton className="w-3/4 h-6 mb-2" />
+                <Skeleton className="w-1/2 h-4" />
+              </div>
+            </div>
+          ))
+        ) : (
+          displayCards.map((card, index) => (
+            <CardItem
+              key={index}
+              title={card.title}
+              price={card.price}
+              image={card.image}
+              stock={card.stock}
+              highestBid={card.highestBid}
+            />
+          ))
+        )}
       </div>
       
       <button className="self-center text-[#FCFCFD] font-extrabold text-lg border-2 border-[#353945] px-6 py-4 rounded-[90px] mt-16">

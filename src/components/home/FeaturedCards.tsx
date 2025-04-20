@@ -1,9 +1,14 @@
 
 import React from "react";
 import { CardItem } from "../shared/CardItem";
+import { useCards } from "@/hooks/useCards";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const FeaturedCards: React.FC = () => {
-  const cards = [
+  const { featuredCards, loading } = useCards();
+
+  // Fallback data in case the API returns empty
+  const fallbackCards = [
     {
       title: "Magic Mushroom #3241",
       price: "1.5 ETH",
@@ -34,6 +39,15 @@ export const FeaturedCards: React.FC = () => {
     },
   ];
 
+  // Use real data if available, otherwise fallback to mock data
+  const cards = featuredCards.length > 0 ? featuredCards.map(card => ({
+    title: card.title,
+    price: card.price ? `${card.price} ETH` : "1.5 ETH",
+    image: card.image_url || card.thumbnail_url || fallbackCards[0].image,
+    stock: "3 in stock",
+    highestBid: "0.001 ETH",
+  })) : fallbackCards;
+
   return (
     <div className="bg-[#141416] flex flex-col overflow-hidden pt-32 pb-12 px-[352px] max-md:max-w-full max-md:px-5">
       <div className="self-stretch flex w-full justify-between items-center gap-5 max-md:max-w-full max-md:flex-wrap">
@@ -58,16 +72,29 @@ export const FeaturedCards: React.FC = () => {
         </div>
       </div>
       <div className="self-stretch flex flex-wrap w-full items-stretch justify-between gap-8 mt-10 max-md:max-w-full">
-        {cards.map((card, index) => (
-          <CardItem
-            key={index}
-            title={card.title}
-            price={card.price}
-            image={card.image}
-            stock={card.stock}
-            highestBid={card.highestBid}
-          />
-        ))}
+        {loading ? (
+          // Loading state
+          Array(4).fill(0).map((_, index) => (
+            <div key={index} className="w-[270px] h-[366px]">
+              <Skeleton className="w-full h-[270px] rounded-t-2xl" />
+              <div className="bg-[#23262F] p-5 rounded-b-2xl">
+                <Skeleton className="w-3/4 h-6 mb-2" />
+                <Skeleton className="w-1/2 h-4" />
+              </div>
+            </div>
+          ))
+        ) : (
+          cards.map((card, index) => (
+            <CardItem
+              key={index}
+              title={card.title}
+              price={card.price}
+              image={card.image}
+              stock={card.stock}
+              highestBid={card.highestBid}
+            />
+          ))
+        )}
       </div>
     </div>
   );

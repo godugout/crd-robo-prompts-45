@@ -1,9 +1,14 @@
 
 import React from "react";
 import { CreatorBox } from "../shared/CreatorBox";
+import { useCreators } from "@/hooks/useCreators";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const CreatorSection: React.FC = () => {
-  const creators = [
+  const { popularCreators, loading } = useCreators();
+
+  // Fallback data
+  const fallbackCreators = [
     {
       rank: 1,
       name: "@randomdash",
@@ -34,6 +39,17 @@ export const CreatorSection: React.FC = () => {
     },
   ];
 
+  // Map real data or use fallback
+  const creators = popularCreators.length > 0 
+    ? popularCreators.map((creator, index) => ({
+        rank: index + 1,
+        name: creator.username ? `@${creator.username}` : `@${creator.full_name?.toLowerCase().replace(/\s+/g, '') || 'user'}`,
+        avatar: creator.avatar_url || fallbackCreators[index % fallbackCreators.length].avatar,
+        eth: "2.456", // Placeholder
+        badgeColor: fallbackCreators[index % fallbackCreators.length].badgeColor,
+      }))
+    : fallbackCreators;
+
   return (
     <div className="bg-[#141416] flex flex-col overflow-hidden pt-32 pb-12 px-[352px] max-md:max-w-full max-md:px-5">
       <div className="self-stretch flex w-full justify-between items-center gap-5 max-md:max-w-full max-md:flex-wrap">
@@ -58,16 +74,32 @@ export const CreatorSection: React.FC = () => {
         </div>
       </div>
       <div className="self-stretch flex flex-wrap w-full items-stretch justify-between gap-8 mt-10 max-md:max-w-full">
-        {creators.map((creator, index) => (
-          <CreatorBox
-            key={index}
-            rank={creator.rank}
-            name={creator.name}
-            avatar={creator.avatar}
-            eth={creator.eth}
-            badgeColor={creator.badgeColor}
-          />
-        ))}
+        {loading ? (
+          // Loading state
+          Array(4).fill(0).map((_, index) => (
+            <div key={index} className="w-[270px] bg-[#23262F] p-6 rounded-2xl">
+              <div className="flex items-center gap-3 mb-4">
+                <Skeleton className="w-10 h-10 rounded-full" />
+                <div>
+                  <Skeleton className="w-20 h-5 mb-1" />
+                  <Skeleton className="w-12 h-3" />
+                </div>
+              </div>
+              <Skeleton className="w-full h-4 mt-2" />
+            </div>
+          ))
+        ) : (
+          creators.map((creator, index) => (
+            <CreatorBox
+              key={index}
+              rank={creator.rank}
+              name={creator.name}
+              avatar={creator.avatar}
+              eth={creator.eth}
+              badgeColor={creator.badgeColor}
+            />
+          ))
+        )}
       </div>
     </div>
   );

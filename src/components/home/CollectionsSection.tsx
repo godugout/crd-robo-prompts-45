@@ -1,8 +1,13 @@
 
 import React from "react";
+import { useHotCollections } from "@/hooks/useCollections";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const CollectionsSection: React.FC = () => {
-  const collections = [
+  const { hotCollections, loading } = useHotCollections();
+
+  // Fallback data
+  const fallbackCollections = [
     {
       title: "Awesome Collection",
       owner: "@randomdash",
@@ -25,6 +30,17 @@ export const CollectionsSection: React.FC = () => {
       avatar: "https://cdn.builder.io/api/v1/image/assets/55d1eea1cc5a43f6bced987c3407a299/61c3d18b79da00e4d4a71ab2c4f04cf9a7da8c20?placeholderIfAbsent=true",
     },
   ];
+
+  // Map real data or use fallback
+  const collections = hotCollections.length > 0 
+    ? hotCollections.map((collection, index) => ({
+        title: collection.title || "Unnamed Collection",
+        owner: collection.profiles ? `@${collection.profiles.full_name?.toLowerCase().replace(/\s+/g, '') || 'user'}` : "@user",
+        items: 28, // Placeholder
+        image: collection.cover_image_url || fallbackCollections[index % fallbackCollections.length].image,
+        avatar: collection.profiles?.avatar_url || fallbackCollections[index % fallbackCollections.length].avatar,
+      }))
+    : fallbackCollections;
 
   return (
     <div className="bg-[#141416] flex flex-col overflow-hidden pt-32 pb-12 px-[352px] max-md:max-w-full max-md:px-5">
@@ -51,42 +67,64 @@ export const CollectionsSection: React.FC = () => {
       </div>
       
       <div className="self-stretch flex flex-wrap w-full items-stretch justify-between gap-8 mt-10 max-md:max-w-full">
-        {collections.map((collection, index) => (
-          <div key={index} className="flex flex-col bg-[#23262F] overflow-hidden rounded-2xl">
-            <div className="bg-[#141416] flex flex-col">
-              <img
-                src={collection.image}
-                className="aspect-[1.33] object-cover w-full"
-                alt={collection.title}
-              />
+        {loading ? (
+          // Loading state
+          Array(3).fill(0).map((_, index) => (
+            <div key={index} className="flex flex-col bg-[#23262F] overflow-hidden rounded-2xl w-[370px]">
+              <Skeleton className="w-full h-[240px]" />
+              <div className="flex flex-col p-6 gap-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <div className="flex flex-col">
+                    <Skeleton className="w-32 h-5 mb-1" />
+                    <Skeleton className="w-24 h-3" />
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <Skeleton className="w-12 h-4" />
+                  <Skeleton className="w-8 h-4" />
+                </div>
+              </div>
             </div>
-            <div className="flex flex-col p-6 gap-4">
-              <div className="flex items-center gap-3">
+          ))
+        ) : (
+          collections.map((collection, index) => (
+            <div key={index} className="flex flex-col bg-[#23262F] overflow-hidden rounded-2xl">
+              <div className="bg-[#141416] flex flex-col">
                 <img
-                  src={collection.avatar}
-                  className="aspect-[1] object-contain w-10 rounded-full"
-                  alt="Avatar"
+                  src={collection.image}
+                  className="aspect-[1.33] object-cover w-full"
+                  alt={collection.title}
                 />
-                <div className="flex flex-col">
-                  <div className="text-[#FCFCFD] text-base font-semibold">
-                    {collection.title}
-                  </div>
-                  <div className="text-[#777E90] text-xs">
-                    {collection.owner}
-                  </div>
-                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <div className="text-[#777E90] text-xs">
-                  Items
+              <div className="flex flex-col p-6 gap-4">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={collection.avatar}
+                    className="aspect-[1] object-contain w-10 rounded-full"
+                    alt="Avatar"
+                  />
+                  <div className="flex flex-col">
+                    <div className="text-[#FCFCFD] text-base font-semibold">
+                      {collection.title}
+                    </div>
+                    <div className="text-[#777E90] text-xs">
+                      {collection.owner}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-[#FCFCFD] text-sm font-semibold">
-                  {collection.items}
+                <div className="flex justify-between items-center">
+                  <div className="text-[#777E90] text-xs">
+                    Items
+                  </div>
+                  <div className="text-[#FCFCFD] text-sm font-semibold">
+                    {collection.items}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
