@@ -1,9 +1,13 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { CanvasToolbar } from './canvas/CanvasToolbar';
 import { CanvasPreview } from './canvas/CanvasPreview';
 import { CanvasControls } from './canvas/CanvasControls';
 import { CanvasCreator } from './canvas/CanvasCreator';
+import { Button } from '@/components/ui/button';
+import { PaintBucket, Palette } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface CanvasProps {
   zoom: number;
