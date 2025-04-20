@@ -1,14 +1,13 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useCardEditor } from '@/hooks/useCardEditor';
-import { CanvasToolbar } from './canvas/CanvasToolbar';
-import { CanvasPreview } from './canvas/CanvasPreview';
-import { CanvasControls } from './canvas/CanvasControls';
-import { CanvasCreator } from './canvas/CanvasCreator';
+import { toast } from 'sonner';
 import { CanvasWrapper } from './canvas/CanvasWrapper';
 import { CanvasDragArea } from './canvas/CanvasDragArea';
 import { CanvasPreviewArea } from './canvas/CanvasPreviewArea';
-import { toast } from 'sonner';
+import { CanvasToolbar } from './canvas/CanvasToolbar';
+import { CanvasControls } from './canvas/CanvasControls';
+import { CanvasCreator } from './canvas/CanvasCreator';
 
 interface CanvasProps {
   zoom: number;
@@ -29,33 +28,6 @@ export const Canvas = ({ zoom, cardEditor }: CanvasProps) => {
 
   const title = cardEditor?.cardData.title || 'No roads needed';
   const description = cardEditor?.cardData.description || 'Where we\'re going, there are only cards. An original digital art piece inspired by BTTF.';
-
-  useEffect(() => {
-    if (cardEditor) {
-      cardEditor.updateDesignMetadata('canvasSettings', {
-        rotation,
-        brightness, 
-        contrast,
-        showEffects
-      });
-    }
-  }, [rotation, brightness, contrast, showEffects, cardEditor]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (showEffects && cardRef.current) {
-        const particles = document.createElement('div');
-        particles.className = 'absolute w-2 h-2 bg-cardshow-orange rounded-full opacity-70 animate-fade-out';
-        particles.style.left = `${Math.random() * 320}px`;
-        particles.style.top = `${Math.random() * 420}px`;
-        cardRef.current.appendChild(particles);
-        
-        setTimeout(() => particles.remove(), 1500);
-      }
-    }, 200);
-    
-    return () => clearInterval(interval);
-  }, [showEffects]);
 
   const handleRotate = () => {
     setRotation(prev => (prev + 90) % 360);
@@ -81,7 +53,11 @@ export const Canvas = ({ zoom, cardEditor }: CanvasProps) => {
   };
 
   return (
-    <CanvasWrapper title={title} description={description} onActionClick={() => {}}>
+    <CanvasWrapper 
+      title={title} 
+      description={description} 
+      onActionClick={() => {}}
+    >
       <CanvasToolbar 
         showGrid={showGrid}
         showEffects={showEffects}
