@@ -3,7 +3,14 @@ import { useState, useEffect } from 'react';
 import { syncOfflineData, initializeAutoSync } from '@/lib/syncService';
 import { getPendingUploads, getPendingMemories } from '@/lib/offlineStorage';
 import { toast } from '@/hooks/use-toast';
-import type { SyncProgress } from '@/types';
+
+export interface SyncProgress {
+  total: number;
+  completed: number;
+  current?: string;
+  success: number;
+  failed: number;
+}
 
 export const useOfflineSync = () => {
   const [isSyncing, setIsSyncing] = useState(false);
