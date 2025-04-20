@@ -2,9 +2,10 @@
 import type { Memory } from '@/types/memory';
 import type { MemoryListOptions, PaginatedMemories } from './types';
 import { getMemoryQuery, calculateOffset } from './core';
+import { getAppId } from '@/integrations/supabase/client';
 
 export const getMemoryById = async (id: string): Promise<Memory | null> => {
-  const queryBuilder = await getMemoryQuery();
+  const queryBuilder = getMemoryQuery();
   
   // Now chain the conditions and execute the query
   const { data, error } = await queryBuilder
@@ -30,7 +31,7 @@ export const getMemoriesByUserId = async (
     teamId,
   } = options;
 
-  const queryBuilder = await getMemoryQuery();
+  const queryBuilder = getMemoryQuery();
   
   // Chain conditions to the query builder
   let finalQuery = queryBuilder
@@ -71,7 +72,7 @@ export const getPublicMemories = async (
     search
   } = options;
 
-  const queryBuilder = await getMemoryQuery();
+  const queryBuilder = getMemoryQuery();
   
   // Chain conditions to the query builder
   let finalQuery = queryBuilder

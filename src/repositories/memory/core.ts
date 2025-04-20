@@ -5,12 +5,10 @@ export const calculateOffset = (page = 1, pageSize = 10): number => {
   return (page - 1) * pageSize;
 };
 
-export const getMemoryQuery = async () => {
-  const appId = await getAppId();
-  
-  // Return the query builder directly, not the executed query
+export const getMemoryQuery = () => {
+  // Return the query builder directly without awaiting
   return supabase
     .from('memories')
     .select('*, media(*)');
-    // Don't execute the query here with .eq() since we want to chain more conditions
 };
+
