@@ -1,10 +1,9 @@
-
+import React, { useEffect, useState } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
 import Index from "./pages/Index";
 import CardDetail from "./pages/CardDetail";
 import NotFound from "./pages/NotFound";
@@ -18,7 +17,6 @@ import Memories from "./pages/Memories";
 import { MainLayout } from "./components/layout/MainLayout";
 import Collections from "./pages/Collections";
 
-// Route logging component to help debug routing issues
 const RouteLogger = () => {
   const location = useLocation();
   
@@ -29,7 +27,6 @@ const RouteLogger = () => {
   return null;
 };
 
-// Create a new query client with proper error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
