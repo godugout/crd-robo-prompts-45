@@ -32,10 +32,10 @@ export const useFeed = (userId?: string) => {
       const mockMemories: Memory[] = Array(5).fill(null).map((_, i) => ({
         id: `mock-${i}-${Date.now()}`,
         title: `Mock Memory ${i + 1}`,
-        content: 'This is a mock memory for testing when the database is empty',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        user_id: 'mock-user',
+        description: 'This is a mock memory for testing when the database is empty',
+        userId: 'mock-user', // Changed from user_id to userId
+        teamId: 'mock-team', // Added required teamId property
+        createdAt: new Date().toISOString(), // Changed from created_at to createdAt
         visibility: 'public',
         user: {
           id: 'mock-user',
@@ -112,7 +112,31 @@ export const useFeed = (userId?: string) => {
       console.log('useFeed: fetched data', { count, dataLength: data?.length });
       
       // Use mock data if we don't have any real data
-      const newMemories = (data && data.length > 0 ? data : mockMemories) as unknown as Memory[];
+      let newMemories: Memory[] = [];
+      
+      if (data && data.length > 0) {
+        // Convert the Supabase response to match our Memory type
+        newMemories = data.map(item => ({
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          userId: item.user_id, // Map from snake_case to camelCase
+          teamId: item.team_id, // Map from snake_case to camelCase
+          gameId: item.game_id,
+          location: item.location,
+          visibility: item.visibility,
+          createdAt: item.created_at, // Map from snake_case to camelCase
+          tags: item.tags || [],
+          metadata: item.metadata,
+          user: item.user,
+          media: item.media || [],
+          reactions: item.reactions || [],
+          commentCount: item.comments?.[0]?.count || 0
+        })) as Memory[];
+      } else {
+        // Use mock data if no real data is available
+        newMemories = mockMemories;
+      }
       
       setMemories(prev => 
         currentPage === 1 ? newMemories : [...prev, ...newMemories]

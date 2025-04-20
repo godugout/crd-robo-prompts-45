@@ -32,9 +32,9 @@ export const FeedPage = () => {
   }, [activeTab, user, resetFeed, fetchMemories]);
 
   useEffect(() => {
-    console.log('FeedPage mounted');
+    console.log('FeedPage mounted with memories:', memories);
     return () => console.log('FeedPage unmounted');
-  }, []);
+  }, [memories]);
 
   console.log('FeedPage render state:', { user, memories, loading, hasMore });
 
