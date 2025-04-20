@@ -2,6 +2,15 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Settings, User } from "lucide-react";
 
 export const NavActions = () => {
   return (
@@ -19,17 +28,39 @@ export const NavActions = () => {
         className="aspect-[1] object-contain w-10 shrink-0"
         alt="Notification"
       />
-      <div className="flex items-center gap-3 text-sm text-[#FCFCFD] font-extrabold leading-none justify-center">
+      <div className="flex items-center gap-3">
         <Link to="/editor">
-          <Button className="self-stretch bg-[#27AE60] gap-3 my-auto px-4 py-3 rounded-[90px]">
+          <Button className="bg-[#27AE60] gap-3 px-4 py-3 rounded-[90px]">
             Create card
           </Button>
         </Link>
-        <Link to="/profile">
-          <Button className="self-stretch gap-3 my-auto px-4 py-3 rounded-[90px]">
-            Sign in
-          </Button>
-        </Link>
+        <DropdownMenu>
+          <DropdownMenuTrigger className="outline-none">
+            <Avatar className="h-10 w-10 border-2 border-[#27AE60]">
+              <AvatarFallback className="bg-[#27AE60] text-white">
+                U
+              </AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem asChild>
+              <Link to="/profile" className="flex items-center">
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/settings" className="flex items-center">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-red-600">
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
