@@ -95,6 +95,56 @@
   }
 }
 
+@layer components {
+  .card-item {
+    @apply bg-editor-darker rounded-xl overflow-hidden flex flex-col;
+  }
+  
+  .card-item-preview {
+    @apply aspect-[3/4] overflow-hidden relative;
+  }
+  
+  .card-item-info {
+    @apply p-4 flex flex-col gap-2;
+  }
+  
+  .card-tag {
+    @apply inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-medium;
+  }
+  
+  .price-tag {
+    @apply bg-cardshow-green/10 text-cardshow-green card-tag;
+  }
+  
+  .stock-tag {
+    @apply bg-cardshow-mediumGray text-cardshow-lightGray card-tag;
+  }
+  
+  .bid-info {
+    @apply flex items-center gap-1 text-xs text-cardshow-lightGray;
+  }
+  
+  .btn-primary {
+    @apply bg-cardshow-orange hover:bg-cardshow-orange/90 text-white font-semibold rounded-full px-6 py-3 transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-transparent hover:bg-cardshow-mediumGray/30 border border-cardshow-mediumGray text-cardshow-white font-semibold rounded-full px-6 py-3 transition-colors;
+  }
+  
+  .input-dark {
+    @apply bg-editor-darker border border-editor-border text-cardshow-white rounded-lg px-4 py-3 w-full focus:ring-1 focus:ring-cardshow-blue focus:outline-none;
+  }
+  
+  .template-item {
+    @apply border-2 border-transparent hover:border-cardshow-blue rounded-xl overflow-hidden cursor-pointer transition-all;
+  }
+  
+  .template-item.active {
+    @apply border-cardshow-blue;
+  }
+}
+
 /* Custom styles for the editor */
 ::-webkit-scrollbar {
   width: 8px;
@@ -102,7 +152,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0F1118;
+  background: #0D0E14;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -112,4 +162,13 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #3F4675;
+}
+
+/* Card item animation */
+.card-hover-effect {
+  transition: transform 0.3s ease;
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-8px);
 }

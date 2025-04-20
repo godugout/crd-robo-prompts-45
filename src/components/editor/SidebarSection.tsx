@@ -1,34 +1,30 @@
 
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface SidebarSectionProps {
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
   defaultOpen?: boolean;
-  className?: string;
 }
 
-export const SidebarSection = ({ 
-  title, 
-  children, 
-  defaultOpen = true,
-  className
-}: SidebarSectionProps) => {
+export const SidebarSection = ({ title, children, defaultOpen = true }: SidebarSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className={cn("border-b border-editor-border", className)}>
+    <div className="border-b border-editor-border">
       <button
-        className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-white hover:bg-editor-tool"
+        className="flex items-center justify-between w-full p-4 text-left focus:outline-none"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {title}
-        {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        <span className="text-white font-semibold">{title}</span>
+        {isOpen ? 
+          <ChevronDown className="w-4 h-4 text-gray-400" /> : 
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+        }
       </button>
       {isOpen && (
-        <div className="px-4 py-3">
+        <div className="px-4 pb-4">
           {children}
         </div>
       )}

@@ -64,13 +64,28 @@ export default {
           ring: 'hsl(var(--sidebar-ring))'
         },
         editor: {
-          dark: '#0F1118',
-          darker: '#080A0F',
-          border: '#222436',
-          tool: '#1A1D2A',
-          highlight: '#2E3458',
-          canvas: '#fff',
-          grid: 'rgba(0, 0, 0, 0.1)'
+          dark: '#0D0E14', // Darker background
+          darker: '#09090D', // Darkest background
+          border: '#282A3A', // Subtle border
+          tool: '#1A1D2A', // Tool panel background
+          highlight: '#2E3458', // Highlighted elements
+          canvas: '#fff', // Canvas background (white)
+          grid: 'rgba(0, 0, 0, 0.1)', // Grid lines
+          accent: '#EA6E48', // Orange accent from screenshots
+          blue: '#3772FF', // Blue accent
+          green: '#45B26B', // Green accent
+          purple: '#9757D7' // Purple accent 
+        },
+        cardshow: {
+          orange: '#EA6E48',
+          blue: '#3772FF',
+          green: '#45B26B',
+          purple: '#9757D7',
+          darkBlue: '#141416',
+          darkGray: '#23262F',
+          mediumGray: '#353945',
+          lightGray: '#777E90',
+          white: '#FCFCFD'
         }
       },
       borderRadius: {
@@ -104,6 +119,9 @@ export default {
         'orbitron': ['Orbitron', 'sans-serif'],
         'poppins': ['Poppins', 'sans-serif'],
         'raleway': ['Raleway', 'sans-serif'],
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
       }
     }
   },
