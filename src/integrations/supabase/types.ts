@@ -47,6 +47,68 @@ export type Database = {
           },
         ]
       }
+      app_registry: {
+        Row: {
+          app_key: string
+          app_name: string
+          app_version: string
+          created_at: string
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          app_key: string
+          app_name: string
+          app_version: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          app_key?: string
+          app_name?: string
+          app_version?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      app_settings: {
+        Row: {
+          app_id: string
+          created_at: string
+          id: string
+          settings: Json
+          updated_at: string
+        }
+        Insert: {
+          app_id: string
+          created_at?: string
+          id?: string
+          settings?: Json
+          updated_at?: string
+        }
+        Update: {
+          app_id?: string
+          created_at?: string
+          id?: string
+          settings?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_settings_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "app_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artists: {
         Row: {
           bio: string | null
@@ -297,6 +359,7 @@ export type Database = {
       collections: {
         Row: {
           allow_comments: boolean | null
+          app_id: string | null
           cover_image_url: string | null
           created_at: string
           description: string | null
@@ -310,6 +373,7 @@ export type Database = {
         }
         Insert: {
           allow_comments?: boolean | null
+          app_id?: string | null
           cover_image_url?: string | null
           created_at?: string
           description?: string | null
@@ -323,6 +387,7 @@ export type Database = {
         }
         Update: {
           allow_comments?: boolean | null
+          app_id?: string | null
           cover_image_url?: string | null
           created_at?: string
           description?: string | null
@@ -335,6 +400,13 @@ export type Database = {
           visibility?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "collections_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "app_registry"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "collections_team_id_fkey"
             columns: ["team_id"]
@@ -648,6 +720,7 @@ export type Database = {
       }
       memories: {
         Row: {
+          app_id: string | null
           created_at: string
           description: string | null
           game_id: string | null
@@ -662,6 +735,7 @@ export type Database = {
           visibility: string
         }
         Insert: {
+          app_id?: string | null
           created_at?: string
           description?: string | null
           game_id?: string | null
@@ -676,6 +750,7 @@ export type Database = {
           visibility?: string
         }
         Update: {
+          app_id?: string | null
           created_at?: string
           description?: string | null
           game_id?: string | null
@@ -690,6 +765,13 @@ export type Database = {
           visibility?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "memories_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "app_registry"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "memories_team_id_fkey"
             columns: ["team_id"]
@@ -1779,6 +1861,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_app_id: {
+        Args: { p_app_key: string }
+        Returns: string
+      }
       get_user_team_role: {
         Args: { team_id: string; user_id: string }
         Returns: string
