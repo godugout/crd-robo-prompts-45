@@ -1,13 +1,6 @@
 
 import React, { useState } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle,
-  CardDescription,
-  CardFooter
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,111 +8,108 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MediaUploader } from '@/components/media/MediaUploader';
 import { MediaGallery } from '@/components/media/MediaGallery';
 import { v4 as uuidv4 } from 'uuid';
-import type { MediaItem } from '@/types/media';
+import { ImageIcon, Wand2, Layers, Palette } from 'lucide-react';
 
 const Editor = () => {
   const [activeTab, setActiveTab] = useState('create');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedMedia, setSelectedMedia] = useState<MediaItem[]>([]);
+  const [selectedMedia, setSelectedMedia] = useState([]);
   const [memoryId] = useState(uuidv4());
 
-  const handleUploadComplete = (mediaItem: MediaItem) => {
+  const handleUploadComplete = (mediaItem) => {
     setSelectedMedia(prev => [...prev, mediaItem]);
   };
 
-  const handleMediaDeletion = async (mediaId: string) => {
+  const handleMediaDeletion = async (mediaId) => {
     setSelectedMedia(prev => prev.filter(item => item.id !== mediaId));
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-5xl">
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Card Editor</CardTitle>
-          <CardDescription>Create and customize your cards</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-6 grid w-full grid-cols-3">
-              <TabsTrigger value="create">Create New</TabsTrigger>
-              <TabsTrigger value="templates">Use Template</TabsTrigger>
-              <TabsTrigger value="drafts">My Drafts</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="create">
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label htmlFor="title" className="text-sm font-medium">Card Title</label>
-                  <Input 
-                    id="title" 
-                    placeholder="Enter a title for your card" 
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                  />
+    <div className="min-h-screen bg-[#141416]">
+      <div className="container mx-auto p-6 max-w-7xl">
+        <Card className="bg-[#23262F] border-[#353945]">
+          <CardHeader className="border-b border-[#353945]">
+            <CardTitle className="text-[#FCFCFD] text-2xl">Create New Card</CardTitle>
+            <CardDescription className="text-[#777E90]">Design and customize your digital card</CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Preview Section */}
+              <div className="lg:col-span-7 space-y-6">
+                <div className="aspect-w-4 aspect-h-3 bg-[#353945] rounded-2xl overflow-hidden">
+                  {selectedMedia.length > 0 ? (
+                    <MediaGallery mediaItems={selectedMedia} onDelete={handleMediaDeletion} />
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center space-y-4">
+                        <ImageIcon className="w-16 h-16 mx-auto text-[#777E90]" />
+                        <p className="text-[#777E90]">Upload your card artwork</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                
-                <div className="space-y-2">
-                  <label htmlFor="description" className="text-sm font-medium">Description</label>
-                  <Textarea 
-                    id="description" 
-                    placeholder="Describe your card" 
-                    rows={3}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
+                <div className="grid grid-cols-3 gap-4">
+                  <Button variant="outline" className="border-[#353945] text-[#FCFCFD]">
+                    <Wand2 className="w-4 h-4 mr-2" />
+                    AI Enhance
+                  </Button>
+                  <Button variant="outline" className="border-[#353945] text-[#FCFCFD]">
+                    <Layers className="w-4 h-4 mr-2" />
+                    Add Layer
+                  </Button>
+                  <Button variant="outline" className="border-[#353945] text-[#FCFCFD]">
+                    <Palette className="w-4 h-4 mr-2" />
+                    Effects
+                  </Button>
                 </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Card Media</label>
-                  <MediaUploader 
-                    memoryId={memoryId}
-                    userId="demo-user"
-                    onUploadComplete={handleUploadComplete}
-                  />
-                </div>
-                
-                {selectedMedia.length > 0 && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Selected Media</label>
-                    <MediaGallery 
-                      mediaItems={selectedMedia}
-                      onDelete={handleMediaDeletion}
+              </div>
+
+              {/* Settings Section */}
+              <div className="lg:col-span-5 space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-[#FCFCFD] mb-2 block">Card Title</label>
+                    <Input 
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="bg-[#353945] border-[#353945] text-[#FCFCFD]"
+                      placeholder="Enter card title"
                     />
                   </div>
-                )}
-                
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button variant="outline">Save Draft</Button>
-                  <Button>Publish Card</Button>
+                  <div>
+                    <label className="text-sm font-medium text-[#FCFCFD] mb-2 block">Description</label>
+                    <Textarea 
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="bg-[#353945] border-[#353945] text-[#FCFCFD]"
+                      placeholder="Describe your card"
+                      rows={4}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-[#FCFCFD] mb-2 block">Upload Media</label>
+                    <MediaUploader 
+                      memoryId={memoryId}
+                      userId="demo-user"
+                      onUploadComplete={handleUploadComplete}
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-[#353945] space-y-4">
+                  <Button className="w-full bg-[#3772FF] hover:bg-[#3772FF]/90">
+                    Publish Card
+                  </Button>
+                  <Button variant="outline" className="w-full border-[#353945] text-[#FCFCFD]">
+                    Save as Draft
+                  </Button>
                 </div>
               </div>
-            </TabsContent>
-            
-            <TabsContent value="templates">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[1, 2, 3, 4, 5, 6].map((template) => (
-                  <Card key={template} className="cursor-pointer hover:shadow-md transition-shadow">
-                    <div className="aspect-w-4 aspect-h-3 bg-gray-100 rounded-t-lg"></div>
-                    <CardContent className="p-4">
-                      <h3 className="font-medium">Template {template}</h3>
-                      <p className="text-sm text-gray-500">Description of template {template}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="drafts">
-              <div className="text-center py-16">
-                <h3 className="text-xl font-medium mb-2">No drafts found</h3>
-                <p className="text-gray-500 mb-6">You haven't saved any drafts yet</p>
-                <Button onClick={() => setActiveTab('create')}>Start Creating</Button>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

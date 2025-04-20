@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Filter, Search, Grid, List } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface Deck {
   id: string;
@@ -48,49 +49,76 @@ const Decks = () => {
   }, []);
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">My Decks</h1>
-          <p className="text-gray-500">Manage your card collections</p>
-        </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          New Deck
-        </Button>
-      </div>
+    <div className="min-h-screen bg-[#141416]">
+      <div className="container mx-auto p-6 max-w-7xl">
+        {/* Header Section */}
+        <div className="flex flex-col gap-6 mb-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-[#FCFCFD]">My Collections</h1>
+              <p className="text-[#777E90]">Organize and manage your card collections</p>
+            </div>
+            <Button className="bg-[#3772FF] hover:bg-[#3772FF]/90">
+              <Plus className="mr-2 h-4 w-4" />
+              New Collection
+            </Button>
+          </div>
 
-      {decks.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center py-16">
-            <h3 className="text-xl font-medium mb-2">No decks yet</h3>
-            <p className="text-gray-500 mb-6">Create your first deck to organize your cards</p>
-            <Button>Create New Deck</Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {decks.map((deck) => (
-            <Card key={deck.id} className="overflow-hidden transition-all hover:shadow-lg">
-              <div 
-                className="h-48 bg-cover bg-center" 
-                style={{ backgroundImage: `url(${deck.coverImage || ''})` }}
+          <div className="flex gap-4 flex-wrap">
+            <div className="flex-1 min-w-[200px]">
+              <Input 
+                placeholder="Search collections..." 
+                className="bg-[#353945] border-[#353945] text-[#FCFCFD]"
+                prefix={<Search className="text-[#777E90]" />}
               />
-              <CardHeader>
-                <CardTitle>{deck.title}</CardTitle>
-                <CardDescription>{deck.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm">{deck.cardCount} cards</p>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button variant="outline" size="sm">View</Button>
-                <Button variant="outline" size="sm">Edit</Button>
-              </CardFooter>
-            </Card>
-          ))}
+            </div>
+            <Button variant="outline" className="border-[#353945] text-[#FCFCFD]">
+              <Filter className="mr-2 h-4 w-4" />
+              Filter
+            </Button>
+            <div className="flex rounded-md overflow-hidden border border-[#353945]">
+              <Button variant="ghost" className="rounded-none px-3 text-[#FCFCFD]">
+                <Grid className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" className="rounded-none px-3 text-[#777E90]">
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
-      )}
+
+        {decks.length === 0 ? (
+          <Card className="bg-[#23262F] border-[#353945]">
+            <CardContent className="flex flex-col items-center py-16">
+              <h3 className="text-xl font-medium text-[#FCFCFD] mb-2">No collections yet</h3>
+              <p className="text-[#777E90] mb-6">Create your first collection to organize your cards</p>
+              <Button className="bg-[#3772FF] hover:bg-[#3772FF]/90">Create New Collection</Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {decks.map((deck) => (
+              <Card key={deck.id} className="bg-[#23262F] border-[#353945] overflow-hidden hover:border-[#3772FF] transition-all">
+                <div 
+                  className="h-48 bg-cover bg-center" 
+                  style={{ backgroundImage: `url(${deck.coverImage || ''})` }}
+                />
+                <CardHeader>
+                  <CardTitle className="text-[#FCFCFD]">{deck.title}</CardTitle>
+                  <CardDescription className="text-[#777E90]">{deck.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-[#777E90]">{deck.cardCount} cards</p>
+                </CardContent>
+                <CardFooter className="flex justify-between border-t border-[#353945] pt-4">
+                  <Button variant="outline" size="sm" className="border-[#353945] text-[#FCFCFD]">View</Button>
+                  <Button variant="outline" size="sm" className="border-[#353945] text-[#FCFCFD]">Edit</Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
