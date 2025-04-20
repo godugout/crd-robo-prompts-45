@@ -14,7 +14,7 @@ import {
   SidebarMenuButton
 } from '@/components/ui/sidebar';
 import { useUser } from '@/hooks/use-user';
-import { Home, Gallery, Image, Camera, MessageSquare, Settings, User } from 'lucide-react';
+import { Home, Image, Camera, MessageSquare, Settings, User } from 'lucide-react';
 
 export const MainLayout = () => {
   const location = useLocation();
@@ -51,7 +51,7 @@ export const MainLayout = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={location.pathname === '/feed'}>
                       <Link to="/feed">
-                        <Gallery />
+                        <Image />
                         <span>Feed</span>
                       </Link>
                     </SidebarMenuButton>

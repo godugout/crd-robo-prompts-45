@@ -16,13 +16,24 @@ import { MediaUploader } from '@/components/media/MediaUploader';
 import { MediaGallery } from '@/components/media/MediaGallery';
 import { useUser } from '@/hooks/use-user';
 import { Loader } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
+import type { MediaItem } from '@/types/media';
 
 const Editor = () => {
   const { user, loading } = useUser();
   const [activeTab, setActiveTab] = useState('create');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedMedia, setSelectedMedia] = useState<any[]>([]);
+  const [selectedMedia, setSelectedMedia] = useState<MediaItem[]>([]);
+  const [memoryId] = useState(uuidv4());
+
+  const handleUploadComplete = (mediaItem: MediaItem) => {
+    setSelectedMedia(prev => [...prev, mediaItem]);
+  };
+
+  const handleMediaDeletion = async (mediaId: string) => {
+    setSelectedMedia(prev => prev.filter(item => item.id !== mediaId));
+  };
 
   if (loading) {
     return (
@@ -91,13 +102,20 @@ const Editor = () => {
                 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Card Media</label>
-                  <MediaUploader />
+                  <MediaUploader 
+                    memoryId={memoryId}
+                    userId={user.id}
+                    onUploadComplete={handleUploadComplete}
+                  />
                 </div>
                 
                 {selectedMedia.length > 0 && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Selected Media</label>
-                    <MediaGallery media={selectedMedia} />
+                    <MediaGallery 
+                      mediaItems={selectedMedia}
+                      onDelete={handleMediaDeletion}
+                    />
                   </div>
                 )}
                 

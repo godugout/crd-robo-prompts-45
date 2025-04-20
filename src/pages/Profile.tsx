@@ -12,7 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Loader, Settings, Edit, Gallery } from 'lucide-react';
+import { Loader, Settings, Edit, Image } from 'lucide-react';
 import { useFeed } from '@/hooks/use-feed';
 import { MemoryCard } from '@/components/memory/MemoryCard';
 import { Link } from 'react-router-dom';
@@ -141,7 +141,7 @@ const Profile = () => {
             </div>
           ) : memories.length === 0 ? (
             <div className="text-center py-16">
-              <Gallery className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+              <Image className="h-12 w-12 mx-auto text-gray-300 mb-4" />
               <h3 className="text-xl font-medium mb-2">No cards yet</h3>
               <p className="text-gray-500 mb-6">Start creating beautiful cards to share with the world</p>
               <Button asChild>
