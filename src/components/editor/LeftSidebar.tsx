@@ -7,6 +7,13 @@ import { TemplatesSection } from './sidebar/TemplatesSection';
 import { AssetsSection } from './sidebar/AssetsSection';
 import { DesignElements } from './sidebar/DesignElements';
 import { LayersPanel } from './sidebar/LayersPanel';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface TemplateProps {
   selectedTemplate: string;
@@ -59,14 +66,35 @@ export const LeftSidebar = ({ selectedTemplate, onSelectTemplate }: TemplateProp
   };
   
   return (
-    <div className="w-80 h-full bg-editor-dark border-r border-editor-border overflow-y-auto">
+    <div className="h-full bg-editor-dark border-r border-editor-border overflow-hidden flex flex-col w-full">
       <SearchBar value={searchQuery} onChange={setSearchQuery} />
       <TabNavigation selectedTab={selectedTab} onTabSelect={setSelectedTab} />
-      <div className="p-6 space-y-6">
-        {renderTabContent()}
-      </div>
-      <DesignElements />
-      <LayersPanel />
+      
+      <ScrollArea className="flex-1 px-2">
+        <div className="p-4 space-y-4">
+          {renderTabContent()}
+        </div>
+        
+        <Accordion type="multiple" defaultValue={["design-elements"]} className="px-2">
+          <AccordionItem value="design-elements" className="border-b border-editor-border">
+            <AccordionTrigger className="text-sm font-medium text-white py-2 hover:no-underline">
+              Design Elements
+            </AccordionTrigger>
+            <AccordionContent>
+              <DesignElements />
+            </AccordionContent>
+          </AccordionItem>
+          
+          <AccordionItem value="layers" className="border-b border-editor-border">
+            <AccordionTrigger className="text-sm font-medium text-white py-2 hover:no-underline">
+              Layers
+            </AccordionTrigger>
+            <AccordionContent>
+              <LayersPanel />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </ScrollArea>
     </div>
   );
 };
