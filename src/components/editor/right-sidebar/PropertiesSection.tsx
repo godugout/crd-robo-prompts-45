@@ -4,7 +4,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
-import { toast } from 'sonner';
 import { 
   Select,
   SelectContent,
@@ -15,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SidebarSection } from '../SidebarSection';
+import { useTags } from '@/components/memory/hooks/useTags';
 
 interface CardProperty {
   name: string;
@@ -28,32 +28,23 @@ export const PropertiesSection = () => {
     { name: 'Series', value: '80s VCR', options: ['80s VCR', 'Neon Dreams', 'Retro Wave', 'Cyberpunk', 'Vaporwave'] },
     { name: 'Category', value: 'Movies', options: ['Movies', 'Music', 'Art', 'Sports', 'Gaming', 'Collectibles'] },
   ]);
-  
-  const [tags, setTags] = useState(['MOVIES', 'HANDCRAFTED', '80sVCR']);
-  const [newTag, setNewTag] = useState('');
+
+  const { 
+    tags, 
+    handleTagInput, 
+    removeTag, 
+    hasMaxTags 
+  } = useTags(['MOVIES', 'HANDCRAFTED', '80sVCR'], {
+    maxTags: 10,
+    validateTag: (tag) => tag.length <= 20,
+    onTagAdded: (tag) => console.log('Tag added:', tag),
+    onTagRemoved: (tag) => console.log('Tag removed:', tag)
+  });
 
   const handlePropertyChange = (name: string, value: string) => {
     setProperties(prev => prev.map(prop => 
       prop.name === name ? { ...prop, value } : prop
     ));
-    toast.success(`${name} updated to ${value}`);
-  };
-
-  const handleAddTag = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && newTag.trim() !== '') {
-      if (!tags.includes(newTag.trim().toUpperCase())) {
-        setTags([...tags, newTag.trim().toUpperCase()]);
-        setNewTag('');
-        toast.success(`Tag "${newTag.trim().toUpperCase()}" added`);
-      } else {
-        toast.error('Tag already exists');
-      }
-    }
-  };
-  
-  const handleRemoveTag = (tag: string) => {
-    setTags(tags.filter(t => t !== tag));
-    toast(`Tag "${tag}" removed`);
   };
 
   return (
@@ -85,7 +76,11 @@ export const PropertiesSection = () => {
           {tags.map((tag) => (
             <Badge key={tag} className="bg-editor-darker text-cardshow-white hover:bg-editor-darker">
               #{tag}
-              <button onClick={() => handleRemoveTag(tag)} className="ml-1 text-cardshow-lightGray hover:text-cardshow-white">
+              <button 
+                onClick={() => removeTag(tag)} 
+                className="ml-1 text-cardshow-lightGray hover:text-cardshow-white"
+                aria-label={`Remove tag ${tag}`}
+              >
                 <X size={12} />
               </button>
             </Badge>
@@ -94,13 +89,12 @@ export const PropertiesSection = () => {
         <Input 
           id="tags"
           className="input-dark mt-2"
-          placeholder="Add a tag and press Enter" 
-          value={newTag}
-          onChange={(e) => setNewTag(e.target.value)}
-          onKeyDown={handleAddTag}
+          placeholder={hasMaxTags ? "Maximum tags reached" : "Add a tag and press Enter"} 
+          onKeyDown={handleTagInput}
+          disabled={hasMaxTags}
+          aria-label="Add tag"
         />
       </div>
     </SidebarSection>
   );
 };
-
