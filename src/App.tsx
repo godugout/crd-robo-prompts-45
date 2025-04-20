@@ -13,6 +13,7 @@ import Templates from "./pages/Templates";
 import Decks from "./pages/Decks";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
+import { MainLayout } from "./components/layout/MainLayout";
 
 const queryClient = new QueryClient();
 
@@ -23,14 +24,16 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/feed" element={<FeedPage />} />
-          <Route path="/card/:id" element={<CardDetail />} />
-          <Route path="/editor" element={<Editor />} />
-          <Route path="/templates" element={<Templates />} />
-          <Route path="/decks" element={<Decks />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Index />} />
+            <Route path="/feed" element={<FeedPage />} />
+            <Route path="/card/:id" element={<CardDetail />} />
+            <Route path="/editor" element={<Editor />} />
+            <Route path="/templates" element={<Templates />} />
+            <Route path="/decks" element={<Decks />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/profile" element={<Profile />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
