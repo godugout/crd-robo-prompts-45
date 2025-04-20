@@ -1,0 +1,403 @@
+
+# Sidebar Component Documentation
+
+The Sidebar component system provides a flexible way to create various sidebar layouts and navigation patterns in your application.
+
+## Basic Usage
+
+The most basic sidebar implementation requires wrapping your application with the `SidebarProvider` and including the `Sidebar` component:
+
+```tsx
+// Basic sidebar implementation
+import { SidebarProvider, Sidebar } from "@/components/ui/sidebar";
+
+export function Layout({ children }) {
+  return (
+    <SidebarProvider>
+      <div className="flex w-full min-h-screen">
+        <Sidebar>
+          {/* Sidebar content goes here */}
+        </Sidebar>
+        <main className="flex-1">
+          {children}
+        </main>
+      </div>
+    </SidebarProvider>
+  );
+}
+```
+
+## Common Patterns
+
+### Navigation Sidebar
+
+A typical navigation sidebar with menu items:
+
+```tsx
+import { Home, Settings, Users } from "lucide-react";
+import {
+  Sidebar,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from "@/components/ui/sidebar";
+
+export function NavigationSidebar() {
+  return (
+    <Sidebar>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton tooltipContent="Home">
+            <Home />
+            <span>Home</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton tooltipContent="Users">
+            <Users />
+            <span>Users</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton tooltipContent="Settings">
+            <Settings />
+            <span>Settings</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </Sidebar>
+  );
+}
+```
+
+### Grouped Navigation
+
+Organize menu items into logical groups:
+
+```tsx
+import {
+  Sidebar,
+  SidebarSection,
+  SidebarSectionTitle,
+  SidebarSectionContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from "@/components/ui/sidebar";
+import { Home, Settings, Users, Calendar, Mail } from "lucide-react";
+
+export function GroupedNavigationSidebar() {
+  return (
+    <Sidebar>
+      <SidebarSection>
+        <SidebarSectionTitle>Main Navigation</SidebarSectionTitle>
+        <SidebarSectionContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltipContent="Home">
+                <Home />
+                <span>Home</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltipContent="Calendar">
+                <Calendar />
+                <span>Calendar</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarSectionContent>
+      </SidebarSection>
+      
+      <SidebarSection>
+        <SidebarSectionTitle>Administration</SidebarSectionTitle>
+        <SidebarSectionContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltipContent="Users">
+                <Users />
+                <span>Users</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltipContent="Settings">
+                <Settings />
+                <span>Settings</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarSectionContent>
+      </SidebarSection>
+    </Sidebar>
+  );
+}
+```
+
+### Collapsible Sidebar
+
+A sidebar that can be collapsed to icons only:
+
+```tsx
+import { 
+  SidebarProvider, 
+  Sidebar, 
+  SidebarTrigger,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton 
+} from "@/components/ui/sidebar";
+import { Home, Settings, Menu } from "lucide-react";
+
+export function CollapsibleSidebarLayout({ children }) {
+  return (
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex min-h-screen w-full">
+        <Sidebar collapsible="icon">
+          <div className="p-4 flex items-center justify-between">
+            <h2 className="font-bold text-lg">My App</h2>
+            <SidebarTrigger />
+          </div>
+          
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltipContent="Home">
+                <Home />
+                <span>Home</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltipContent="Settings">
+                <Settings />
+                <span>Settings</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </Sidebar>
+        
+        <main className="flex-1 p-4">
+          <div className="md:hidden">
+            <SidebarTrigger>
+              <Menu />
+            </SidebarTrigger>
+          </div>
+          {children}
+        </main>
+      </div>
+    </SidebarProvider>
+  );
+}
+```
+
+### Mobile-Friendly Sidebar
+
+A responsive sidebar that adapts to mobile screens:
+
+```tsx
+import { 
+  SidebarProvider, 
+  Sidebar, 
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton 
+} from "@/components/ui/sidebar";
+import { Home, Settings, Users } from "lucide-react";
+
+export function ResponsiveSidebarLayout({ children }) {
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <Sidebar>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltipContent="Home">
+                <Home />
+                <span>Home</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltipContent="Users">
+                <Users />
+                <span>Users</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltipContent="Settings">
+                <Settings />
+                <span>Settings</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </Sidebar>
+        
+        <main className="flex-1 p-4">
+          {children}
+        </main>
+      </div>
+    </SidebarProvider>
+  );
+}
+```
+
+## Customization Options
+
+### Sidebar Variants
+
+The Sidebar component supports multiple variants:
+
+```tsx
+// Standard sidebar
+<Sidebar variant="sidebar" />
+
+// Floating sidebar with shadow and rounded corners
+<Sidebar variant="floating" />
+
+// Inset sidebar that doesn't take full height
+<Sidebar variant="inset" />
+```
+
+### Collapsible Options
+
+Different collapse behaviors:
+
+```tsx
+// Collapsible as icons-only
+<Sidebar collapsible="icon" />
+
+// Collapsible off-canvas (hidden when collapsed)
+<Sidebar collapsible="offcanvas" />
+
+// Not collapsible at all
+<Sidebar collapsible="none" />
+```
+
+### Side Options
+
+Position the sidebar on either side:
+
+```tsx
+// Left sidebar (default)
+<Sidebar side="left" />
+
+// Right sidebar
+<Sidebar side="right" />
+```
+
+### Styling the Sidebar Menu Button
+
+The `SidebarMenuButton` component accepts variants and sizes:
+
+```tsx
+// Default style
+<SidebarMenuButton>Button Text</SidebarMenuButton>
+
+// Outline variant
+<SidebarMenuButton variant="outline">Button Text</SidebarMenuButton>
+
+// Size options
+<SidebarMenuButton size="sm">Small Button</SidebarMenuButton>
+<SidebarMenuButton size="default">Default Button</SidebarMenuButton>
+<SidebarMenuButton size="lg">Large Button</SidebarMenuButton>
+```
+
+## Keyboard Shortcuts
+
+The sidebar can be toggled with keyboard shortcuts:
+
+- `Ctrl+B` (Windows/Linux) or `Cmd+B` (Mac) to toggle the sidebar
+
+## Accessibility Features
+
+The sidebar components include several accessibility features:
+
+- ARIA roles and attributes for screen reader support
+- Keyboard navigation for menu items
+- Tooltips for collapsed sidebar items
+- Focus management for keyboard users
+- Proper labeling for screen readers
+
+## Theming
+
+The sidebar uses CSS variables for theming. You can customize these in your global CSS:
+
+```css
+:root {
+  --sidebar-width: 16rem;
+  --sidebar-width-icon: 3rem;
+  --sidebar-background: #1e1e1e;
+  --sidebar-foreground: #ffffff;
+  --sidebar-border: #333333;
+  --sidebar-accent: #2c2c2c;
+  --sidebar-accent-foreground: #ffffff;
+}
+```
+
+## Advanced: Creating a Multi-Level Sidebar
+
+For more complex navigation needs, you can nest menus:
+
+```tsx
+import {
+  Sidebar,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarSection,
+  SidebarSectionTitle,
+  SidebarSectionContent,
+} from "@/components/ui/sidebar";
+import { ChevronDown, Home, Settings, Users, Mail, Calendar } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
+export function MultiLevelSidebar() {
+  return (
+    <Sidebar>
+      <SidebarSection>
+        <SidebarSectionTitle>Main Navigation</SidebarSectionTitle>
+        <SidebarSectionContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltipContent="Home">
+                <Home />
+                <span>Home</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            
+            <SidebarMenuItem>
+              <Collapsible>
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton tooltipContent="Users Management">
+                    <Users />
+                    <span className="flex-1">Users</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenu className="pl-6 mt-1">
+                    <SidebarMenuItem>
+                      <SidebarMenuButton size="sm">
+                        <span>Profile</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton size="sm">
+                        <span>Permissions</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </CollapsibleContent>
+              </Collapsible>
+            </SidebarMenuItem>
+            
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltipContent="Settings">
+                <Settings />
+                <span>Settings</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarSectionContent>
+      </SidebarSection>
+    </Sidebar>
+  );
+}
+```
