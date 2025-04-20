@@ -4,6 +4,25 @@ import type { MemoryListOptions, PaginatedMemories } from './types';
 import { getMemoryQuery, calculateOffset } from './core';
 import { getAppId } from '@/integrations/supabase/client';
 
+// Helper function to transform database record to Memory type
+const transformToMemory = (record: any): Memory => {
+  return {
+    id: record.id,
+    userId: record.user_id,
+    title: record.title,
+    description: record.description,
+    teamId: record.team_id,
+    gameId: record.game_id,
+    location: record.location,
+    visibility: record.visibility,
+    createdAt: record.created_at,
+    tags: record.tags || [],
+    metadata: record.metadata,
+    media: record.media,
+    app_id: record.app_id
+  };
+};
+
 export const getMemoryById = async (id: string): Promise<Memory | null> => {
   const queryBuilder = getMemoryQuery();
   
@@ -17,7 +36,7 @@ export const getMemoryById = async (id: string): Promise<Memory | null> => {
     throw new Error(`Failed to fetch memory: ${error.message}`);
   }
 
-  return data as Memory | null;
+  return data ? transformToMemory(data) : null;
 };
 
 export const getMemoriesByUserId = async (
@@ -35,11 +54,11 @@ export const getMemoriesByUserId = async (
   
   // Chain conditions to the query builder
   let finalQuery = queryBuilder
-    .eq('userId', userId)
-    .order('createdAt', { ascending: false });
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
 
   if (visibility) finalQuery = finalQuery.eq('visibility', visibility);
-  if (teamId) finalQuery = finalQuery.eq('teamId', teamId);
+  if (teamId) finalQuery = finalQuery.eq('team_id', teamId);
   
   // Now add app_id filter
   const appId = await getAppId();
@@ -56,7 +75,7 @@ export const getMemoriesByUserId = async (
   if (error) throw new Error(`Failed to fetch memories: ${error.message}`);
   
   return {
-    memories: (data || []) as Memory[],
+    memories: data ? data.map(transformToMemory) : [],
     total: count || 0
   };
 };
@@ -77,13 +96,13 @@ export const getPublicMemories = async (
   // Chain conditions to the query builder
   let finalQuery = queryBuilder
     .eq('visibility', 'public')
-    .order('createdAt', { ascending: false });
+    .order('created_at', { ascending: false });
 
   // Add app_id filter if available  
   const appId = await getAppId();
   if (appId) finalQuery = finalQuery.eq('app_id', appId);
 
-  if (teamId) finalQuery = finalQuery.eq('teamId', teamId);
+  if (teamId) finalQuery = finalQuery.eq('team_id', teamId);
   if (tags && tags.length > 0) {
     finalQuery = finalQuery.contains('tags', tags);
   }
@@ -102,7 +121,7 @@ export const getPublicMemories = async (
   if (error) throw new Error(`Failed to fetch public memories: ${error.message}`);
   
   return {
-    memories: (data || []) as Memory[],
+    memories: data ? data.map(transformToMemory) : [],
     total: count || 0
   };
 };

@@ -23,4 +23,5 @@ export interface Memory {
   comments?: {
     count: number;
   };
+  app_id?: string; // Add this field to match Supabase structure
 }
