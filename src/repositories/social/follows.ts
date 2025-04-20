@@ -37,7 +37,9 @@ export const getUserFollowers = async (userId: string): Promise<User[]> => {
     .eq('followedId', userId);
 
   if (error) throw error;
-  return data.map(item => item.follower);
+  
+  // Properly extract and map the follower users from the nested data
+  return data.map(item => item.follower as User);
 };
 
 export const getUserFollowing = async (userId: string): Promise<User[]> => {
@@ -47,5 +49,7 @@ export const getUserFollowing = async (userId: string): Promise<User[]> => {
     .eq('followerId', userId);
 
   if (error) throw error;
-  return data.map(item => item.followed);
+  
+  // Properly extract and map the followed users from the nested data
+  return data.map(item => item.followed as User);
 };
