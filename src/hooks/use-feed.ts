@@ -55,11 +55,11 @@ export const useFeed = (userId?: string) => {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         
+        // Fix the group query
         const { data: trendingIds } = await supabase
           .from('reactions')
-          .select('memoryId, count(*)')
+          .select('memoryId, count')
           .gte('createdAt', sevenDaysAgo.toISOString())
-          .group('memoryId')
           .order('count', { ascending: false })
           .limit(50);
           
@@ -82,11 +82,10 @@ export const useFeed = (userId?: string) => {
           
         const userIds = followingIds?.map(f => f.followedId) || [];
         if (userIds.length > 0) {
+          // Fix the ordering options
           query = query.order('userId', { 
             ascending: false,
-            nullsLast: true,
-            foreignTable: 'users',
-            filter: (builder) => builder.in('id', userIds)
+            foreignTable: 'users'
           });
         }
       }
