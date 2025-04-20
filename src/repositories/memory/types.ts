@@ -2,7 +2,7 @@
 import type { Visibility } from '@/types/common';
 import type { Memory } from '@/types/memory';
 
-export { Memory }; // Ensure Memory is properly exported
+export type { Memory }; // Ensure Memory is properly exported
 
 export interface CreateMemoryParams {
   userId: string;

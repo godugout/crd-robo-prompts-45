@@ -2,7 +2,7 @@
 import type { MediaItem } from './media';
 import type { Visibility, Location } from './common';
 import type { User } from './user';
-import type { Reaction } from './social';
+import type { Reaction, ReactionCount } from './social';
 
 export interface Memory {
   id: string;
@@ -17,11 +17,9 @@ export interface Memory {
   tags: string[];
   metadata?: Record<string, any>;
   media?: MediaItem[];
-  // Add missing properties that are used in MemoryCard
+  // Include required properties used in components
   user?: User;
-  reactions?: Reaction[];
-  comments?: {
-    count: number;
-  };
+  reactions?: ReactionCount[]; // Renamed from reactionCounts to match what's used
+  commentCount?: number; // Use this instead of nested comments object
   app_id?: string; // Add this field to match Supabase structure
 }

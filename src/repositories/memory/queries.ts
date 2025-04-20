@@ -1,7 +1,8 @@
 
 import { supabase } from '@/lib/supabase-client';
 import { getAppId } from '@/integrations/supabase/client';
-import type { Memory, MemoryListOptions, PaginatedMemories } from '@/types/memory';
+import type { Memory } from '@/types/memory';
+import type { MemoryListOptions, PaginatedMemories } from './types';
 import { calculateOffset } from './core';
 
 export const getMemoryById = async (id: string): Promise<Memory | null> => {
@@ -52,8 +53,8 @@ export const getMemoryById = async (id: string): Promise<Memory | null> => {
       tags: data.tags,
       metadata: data.metadata,
       media: data.media,
-      reactionCounts: Object.entries(reactionCounts).map(([type, count]) => ({ type, count })),
-      commentCount: commentCount || 0
+      commentCount: commentCount || 0,
+      reactions: Object.entries(reactionCounts).map(([type, count]) => ({ type, count }))
     };
   } catch (error) {
     console.error('Error in getMemoryById:', error);
