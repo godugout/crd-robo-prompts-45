@@ -55,7 +55,7 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) =>
           
           <Button variant="ghost" size="sm" className="flex gap-1 items-center">
             <MessageCircle className="h-4 w-4" />
-            <span>{memory.comments?.count || 0}</span>
+            <span>{memory.commentCount || 0}</span>
           </Button>
           
           <Button variant="ghost" size="sm" className="flex gap-1 items-center">
@@ -66,4 +66,3 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) =>
     </Card>
   );
 };
-

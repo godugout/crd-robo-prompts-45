@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import type { User } from '@/types/user';
 import type { Team } from '@/types/team';
@@ -69,7 +68,7 @@ export const memories: Memory[] = [
     metadata: { certification: 'PSA 10', edition: 'First Edition' },
     user: users[0],
     reactions: [],
-    comments: { count: 2 }
+    commentCount: 2
   },
   {
     id: '2',
@@ -83,7 +82,7 @@ export const memories: Memory[] = [
     metadata: { certification: 'BGS 9.5', edition: 'Limited' },
     user: users[1],
     reactions: [],
-    comments: { count: 1 }
+    commentCount: 1
   }
 ];
 
@@ -141,7 +140,7 @@ export const comments: Comment[] = [
   {
     id: '1',
     userId: '2',
-    cardId: '1', // Changed from memoryId to cardId
+    cardId: '1',
     content: 'Incredible collection! Love the mint condition.',
     createdAt: getRecentDate(),
     updatedAt: getRecentDate(),
@@ -151,7 +150,7 @@ export const comments: Comment[] = [
   {
     id: '2',
     userId: '1',
-    cardId: '2', // Changed from memoryId to cardId
+    cardId: '2',
     content: 'These championship cards are amazing!',
     createdAt: getRecentDate(),
     updatedAt: getRecentDate(),
