@@ -98,16 +98,13 @@ export const SidebarAccordionContent = React.forwardRef<
 ))
 SidebarAccordionContent.displayName = "SidebarAccordionContent"
 
-export const SidebarDrawer = React.forwardRef<
-  React.ElementRef<typeof Drawer>,
-  React.ComponentPropsWithoutRef<typeof Drawer>
->(({ ...props }, ref) => (
-  <Drawer 
-    ref={ref}
+// Fix for the SidebarDrawer component - don't forward the ref directly
+export const SidebarDrawer = (props: React.ComponentProps<typeof Drawer>) => (
+  <Drawer
     data-sidebar="drawer" 
     {...props} 
   />
-))
+)
 SidebarDrawer.displayName = "SidebarDrawer"
 
 export const SidebarDrawerTrigger = React.forwardRef<
