@@ -1,5 +1,6 @@
 
 import React from "react";
+import { Button } from "@/components/ui/button";
 
 export const CardBidInfo = () => {
   return (
@@ -29,12 +30,15 @@ export const CardBidInfo = () => {
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="flex-1 px-5 py-4 text-lg font-raleway font-extrabold text-white text-center bg-[#3772FF] rounded-[90px]">
+        <Button className="flex-1 bg-[#3772FF] hover:bg-[#3772FF]/90 text-lg font-raleway font-extrabold rounded-[90px]">
           Purchase now
-        </span>
-        <span className="flex-1 px-5 py-4 text-lg font-raleway font-extrabold text-white text-center border-2 border-[#353945] rounded-[90px]">
+        </Button>
+        <Button 
+          variant="outline" 
+          className="flex-1 border-2 border-[#353945] text-lg font-raleway font-extrabold rounded-[90px]"
+        >
           Place a bid
-        </span>
+        </Button>
       </div>
 
       <div className="flex items-center gap-2">
