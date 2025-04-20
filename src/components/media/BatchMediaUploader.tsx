@@ -1,20 +1,13 @@
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { X, Upload, Loader } from 'lucide-react';
+import { Upload, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { uploadMedia } from '@/lib/mediaManager';
 import { toast } from '@/hooks/use-toast';
-import type { BatchMediaUploaderProps } from './types';
-import type { MediaItem } from '@/types/media';
-
-interface UploadingFile {
-  file: File;
-  preview: string;
-  progress: number;
-  status: 'pending' | 'uploading' | 'completed' | 'error';
-}
+import { FilePreview } from './uploaders/FilePreview';
+import { useBatchUpload } from './uploaders/useBatchUpload';
+import type { BatchUploaderProps } from './uploaders/types';
 
 export const BatchMediaUploader = ({
   onUploadComplete,
@@ -22,19 +15,19 @@ export const BatchMediaUploader = ({
   memoryId,
   userId,
   maxFiles = 10
-}: BatchMediaUploaderProps) => {
-  const [files, setFiles] = useState<UploadingFile[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
+}: BatchUploaderProps) => {
+  const {
+    files,
+    isUploading,
+    addFiles,
+    removeFile,
+    startUpload
+  } = useBatchUpload(memoryId, userId, onUploadComplete, onError);
 
   const handleDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles = acceptedFiles.slice(0, maxFiles - files.length).map(file => ({
-      file,
-      preview: URL.createObjectURL(file),
-      progress: 0,
-      status: 'pending' as const
-    }));
-    setFiles(prev => [...prev, ...newFiles].slice(0, maxFiles));
-  }, [files.length, maxFiles]);
+    const newFiles = acceptedFiles.slice(0, maxFiles - files.length);
+    addFiles(newFiles);
+  }, [files.length, maxFiles, addFiles]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: handleDrop,
@@ -46,86 +39,18 @@ export const BatchMediaUploader = ({
     maxFiles: maxFiles - files.length
   });
 
-  const uploadFile = async (uploadingFile: UploadingFile): Promise<MediaItem> => {
-    return new Promise((resolve, reject) => {
-      const progressCallback = (progress: number) => {
-        setFiles(prev => prev.map(f => 
-          f.file === uploadingFile.file 
-            ? { ...f, progress, status: 'uploading' }
-            : f
-        ));
-      };
-
-      uploadMedia({
-        file: uploadingFile.file,
-        memoryId,
-        userId,
-        progressCallback
-      })
-        .then(mediaItem => {
-          setFiles(prev => prev.map(f =>
-            f.file === uploadingFile.file
-              ? { ...f, progress: 100, status: 'completed' }
-              : f
-          ));
-          resolve(mediaItem);
-        })
-        .catch(error => {
-          setFiles(prev => prev.map(f =>
-            f.file === uploadingFile.file
-              ? { ...f, status: 'error' }
-              : f
-          ));
-          reject(error);
-        });
-    });
-  };
-
-  const uploadInBatches = async () => {
-    const pendingFiles = files.filter(f => f.status === 'pending');
-    const results: MediaItem[] = [];
-    const batchSize = 3;
-
-    for (let i = 0; i < pendingFiles.length; i += batchSize) {
-      const batch = pendingFiles.slice(i, i + batchSize);
-      try {
-        const batchResults = await Promise.all(batch.map(uploadFile));
-        results.push(...batchResults);
-      } catch (error) {
-        if (error instanceof Error) onError?.(error);
-      }
-    }
-
-    return results;
-  };
-
   const handleUpload = async () => {
-    if (files.length === 0) return;
-    
-    setIsUploading(true);
     try {
-      const mediaItems = await uploadInBatches();
-      if (mediaItems.length > 0) {
-        onUploadComplete(mediaItems);
-        setFiles([]);
-      }
+      await startUpload();
     } catch (error) {
       if (error instanceof Error) {
-        onError?.(error);
         toast({
           title: "Upload Error",
           description: error.message,
           variant: "destructive"
         });
       }
-    } finally {
-      setIsUploading(false);
     }
-  };
-
-  const removeFile = (fileToRemove: UploadingFile) => {
-    URL.revokeObjectURL(fileToRemove.preview);
-    setFiles(files => files.filter(f => f.file !== fileToRemove.file));
   };
 
   const totalProgress = files.length > 0
@@ -155,40 +80,12 @@ export const BatchMediaUploader = ({
         <div className="space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {files.map((file, index) => (
-              <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-secondary">
-                {file.file.type.startsWith('image/') ? (
-                  <img
-                    src={file.preview}
-                    alt={`Preview ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : file.file.type.startsWith('video/') ? (
-                  <video
-                    src={file.preview}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-muted-foreground text-sm">Audio file</p>
-                  </div>
-                )}
-                
-                {file.status === 'uploading' && (
-                  <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-                    <Progress value={file.progress} className="w-2/3" />
-                  </div>
-                )}
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2"
-                  onClick={() => removeFile(file)}
-                  disabled={isUploading}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+              <FilePreview
+                key={index}
+                file={file}
+                onRemove={() => removeFile(file)}
+                disabled={isUploading}
+              />
             ))}
           </div>
 
@@ -219,4 +116,3 @@ export const BatchMediaUploader = ({
       )}
     </div>
   );
-};
