@@ -101,8 +101,12 @@ SidebarAccordionContent.displayName = "SidebarAccordionContent"
 export const SidebarDrawer = React.forwardRef<
   React.ElementRef<typeof Drawer>,
   React.ComponentPropsWithoutRef<typeof Drawer>
->(({ className, ...props }, ref) => (
-  <Drawer data-sidebar="drawer" {...props} />
+>(({ ...props }, ref) => (
+  <Drawer 
+    ref={ref}
+    data-sidebar="drawer" 
+    {...props} 
+  />
 ))
 SidebarDrawer.displayName = "SidebarDrawer"
 
