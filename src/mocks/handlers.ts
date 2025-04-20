@@ -36,6 +36,40 @@ const paginateAndFilter = <T extends { id: string }>(
   };
 };
 
+// Mock decks data
+const decks = [
+  {
+    id: '1',
+    title: 'Sports Collection',
+    description: 'My favorite sports cards',
+    ownerId: '1',
+    cardCount: 12,
+    coverImage: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=500&q=80',
+    createdAt: '2023-01-01T00:00:00.000Z',
+    cards: ['1', '2', '3']
+  },
+  {
+    id: '2',
+    title: 'Art Collection',
+    description: 'Beautiful art cards',
+    ownerId: '1',
+    cardCount: 8,
+    coverImage: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=500&q=80',
+    createdAt: '2023-02-01T00:00:00.000Z',
+    cards: ['4', '5']
+  },
+  {
+    id: '3',
+    title: 'Travel Memories',
+    description: 'Cards from my travels',
+    ownerId: '2',
+    cardCount: 15,
+    coverImage: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=500&q=80',
+    createdAt: '2023-03-01T00:00:00.000Z',
+    cards: ['6', '7', '8']
+  }
+];
+
 export const handlers = [
   // Memories (Cards) endpoints
   http.get('/api/cards', ({ request }) => {
@@ -166,4 +200,106 @@ export const handlers = [
     const result = paginateAndFilter(reactions, page, limit, searchParams);
     return Response.json(result);
   }),
+
+  // Decks endpoints
+  http.get('/api/decks', ({ request }) => {
+    const url = new URL(request.url);
+    const searchParams = Object.fromEntries(url.searchParams);
+    const page = parseInt(searchParams.page || '1');
+    const limit = parseInt(searchParams.limit || '10');
+    
+    // Filter decks by owner if userId is provided
+    let filteredDecks = [...decks];
+    if (searchParams.userId) {
+      filteredDecks = decks.filter(deck => deck.ownerId === searchParams.userId);
+    }
+    
+    const result = paginateAndFilter(filteredDecks, page, limit, searchParams);
+    return Response.json(result);
+  }),
+
+  http.get('/api/decks/:id', ({ params }) => {
+    const { id } = params;
+    const deck = decks.find(d => d.id === id);
+    
+    if (!deck) {
+      return new Response('Deck not found', { status: 404 });
+    }
+
+    // Enhance deck with card details
+    const enhancedDeck = {
+      ...deck,
+      cards: deck.cards.map(cardId => memories.find(m => m.id === cardId)).filter(Boolean)
+    };
+
+    return Response.json(enhancedDeck);
+  }),
+
+  http.post('/api/decks', async ({ request }) => {
+    const body = await request.json();
+    const newDeck = {
+      id: String(decks.length + 1),
+      createdAt: new Date().toISOString(),
+      cardCount: body.cards?.length || 0,
+      ...body
+    };
+    
+    decks.push(newDeck);
+    return Response.json(newDeck, { status: 201 });
+  }),
+
+  http.put('/api/decks/:id', async ({ params, request }) => {
+    const { id } = params;
+    const body = await request.json();
+    const index = decks.findIndex(d => d.id === id);
+    
+    if (index === -1) {
+      return new Response('Deck not found', { status: 404 });
+    }
+    
+    decks[index] = { 
+      ...decks[index], 
+      ...body,
+      cardCount: body.cards?.length || decks[index].cardCount
+    };
+    
+    return Response.json(decks[index]);
+  }),
+
+  http.delete('/api/decks/:id', ({ params }) => {
+    const { id } = params;
+    const index = decks.findIndex(d => d.id === id);
+    
+    if (index === -1) {
+      return new Response('Deck not found', { status: 404 });
+    }
+    
+    decks.splice(index, 1);
+    return new Response(null, { status: 204 });
+  }),
+
+  // User endpoints
+  http.get('/api/users/:id', ({ params }) => {
+    const { id } = params;
+    const user = users.find(u => u.id === id);
+    
+    if (!user) {
+      return new Response('User not found', { status: 404 });
+    }
+    
+    return Response.json(user);
+  }),
+
+  http.put('/api/users/:id', async ({ params, request }) => {
+    const { id } = params;
+    const body = await request.json();
+    const index = users.findIndex(u => u.id === id);
+    
+    if (index === -1) {
+      return new Response('User not found', { status: 404 });
+    }
+    
+    users[index] = { ...users[index], ...body };
+    return Response.json(users[index]);
+  })
 ];

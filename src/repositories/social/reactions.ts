@@ -1,77 +1,160 @@
 
 import { supabase } from '@/lib/supabase-client';
-import type { ReactionResponse, Reaction } from '@/types/social';
+import type { Reaction } from '@/types/social';
 
-export const addReaction = async (
-  userId: string,
-  type: Reaction['type'],
-  target: { memoryId?: string; collectionId?: string; commentId?: string }
-): Promise<Reaction> => {
-  const { memoryId, collectionId, commentId } = target;
-  
-  const { data, error } = await supabase
-    .from('reactions')
-    .insert([
-      {
-        userId,
-        type,
-        memoryId,
-        collectionId,
-        commentId
+export interface AddReactionParams {
+  userId: string;
+  memoryId?: string;
+  collectionId?: string;
+  commentId?: string;
+  type: string;
+}
+
+export const addReaction = async (params: AddReactionParams): Promise<Reaction> => {
+  try {
+    // Check if the reaction already exists
+    const { data: existingReaction } = await supabase
+      .from('reactions')
+      .select('*')
+      .eq('user_id', params.userId)
+      .eq('type', params.type)
+      .eq('card_id', params.memoryId || null)
+      .eq('collection_id', params.collectionId || null)
+      .eq('comment_id', params.commentId || null)
+      .maybeSingle();
+      
+    if (existingReaction) {
+      // Remove the existing reaction
+      await supabase
+        .from('reactions')
+        .delete()
+        .eq('id', existingReaction.id);
+        
+      return {
+        id: existingReaction.id,
+        userId: existingReaction.user_id,
+        memoryId: existingReaction.card_id,
+        collectionId: existingReaction.collection_id,
+        commentId: existingReaction.comment_id,
+        type: existingReaction.type,
+        createdAt: existingReaction.created_at,
+        removed: true
+      };
+    }
+    
+    // Create a new reaction
+    const { data, error } = await supabase
+      .from('reactions')
+      .insert({
+        user_id: params.userId,
+        card_id: params.memoryId,
+        collection_id: params.collectionId,
+        comment_id: params.commentId,
+        type: params.type
+      })
+      .select()
+      .single();
+      
+    if (error) {
+      throw new Error(`Failed to add reaction: ${error.message}`);
+    }
+    
+    return {
+      id: data.id,
+      userId: data.user_id,
+      memoryId: data.card_id,
+      collectionId: data.collection_id,
+      commentId: data.comment_id,
+      type: data.type,
+      createdAt: data.created_at
+    };
+  } catch (error) {
+    console.error('Error in addReaction:', error);
+    
+    // Try using the mock API as a fallback
+    try {
+      const response = await fetch('/api/reactions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: params.userId,
+          memoryId: params.memoryId,
+          collectionId: params.collectionId,
+          commentId: params.commentId,
+          type: params.type
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Mock API error: ${response.status}`);
       }
-    ])
-    .select('*, user:users(*)')
-    .single();
-
-  if (error) throw error;
-  return data;
+      
+      return await response.json();
+    } catch (e) {
+      console.error('Mock API fallback failed:', e);
+      throw error;
+    }
+  }
 };
 
-export const removeReaction = async (
-  userId: string,
-  type: string,
-  target: { memoryId?: string; collectionId?: string; commentId?: string }
-) => {
-  const { memoryId, collectionId, commentId } = target;
-  const { error } = await supabase
-    .from('reactions')
-    .delete()
-    .match({ userId, type, memoryId, collectionId, commentId });
-
-  if (error) throw error;
-};
-
-export const getReactions = async (
-  target: { memoryId?: string; collectionId?: string; commentId?: string }
-): Promise<ReactionResponse> => {
-  const { memoryId, collectionId, commentId } = target;
-
-  // Fetch reactions with user data
-  const { data: reactions, error: reactionsError } = await supabase
-    .from('reactions')
-    .select('*, user:users(*)')
-    .match({ memoryId, collectionId, commentId });
-
-  if (reactionsError) throw reactionsError;
-
-  // Count reactions by type
-  const { data: countsData, error: countsError } = await supabase
-    .rpc('count_reactions_by_type', { 
-      memory_id: memoryId, 
-      collection_id: collectionId, 
-      comment_id: commentId 
-    });
-
-  if (countsError) throw countsError;
-
-  // Transform the counts into the expected format
-  const counts = countsData.map(item => ({
-    type: item.type,
-    count: item.count
-  }));
-
-  return {
-    reactions,
-    counts
-  };
+export const getReactionsByContentId = async (
+  contentType: 'memory' | 'collection' | 'comment',
+  contentId: string
+): Promise<Reaction[]> => {
+  try {
+    let query = supabase.from('reactions').select('*');
+    
+    if (contentType === 'memory') {
+      query = query.eq('card_id', contentId);
+    } else if (contentType === 'collection') {
+      query = query.eq('collection_id', contentId);
+    } else if (contentType === 'comment') {
+      query = query.eq('comment_id', contentId);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      throw new Error(`Failed to get reactions: ${error.message}`);
+    }
+    
+    return (data || []).map(reaction => ({
+      id: reaction.id,
+      userId: reaction.user_id,
+      memoryId: reaction.card_id,
+      collectionId: reaction.collection_id,
+      commentId: reaction.comment_id,
+      type: reaction.type,
+      createdAt: reaction.created_at
+    }));
+  } catch (error) {
+    console.error('Error in getReactionsByContentId:', error);
+    
+    // Try using the mock API as a fallback
+    try {
+      const queryParams = new URLSearchParams();
+      
+      if (contentType === 'memory') {
+        queryParams.append('memoryId', contentId);
+      } else if (contentType === 'collection') {
+        queryParams.append('collectionId', contentId);
+      } else if (contentType === 'comment') {
+        queryParams.append('commentId', contentId);
+      }
+      
+      const response = await fetch(`/api/reactions?${queryParams.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error(`Mock API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data.items || [];
+    } catch (e) {
+      console.error('Mock API fallback failed:', e);
+      return [];
+    }
+  }
 };
