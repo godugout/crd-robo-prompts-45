@@ -65,12 +65,12 @@ const Decks = () => {
           </div>
 
           <div className="flex gap-4 flex-wrap">
-            <div className="flex-1 min-w-[200px]">
+            <div className="flex-1 min-w-[200px] relative">
               <Input 
                 placeholder="Search collections..." 
-                className="bg-[#353945] border-[#353945] text-[#FCFCFD]"
-                prefix={<Search className="text-[#777E90]" />}
+                className="bg-[#353945] border-[#353945] text-[#FCFCFD] pl-10"
               />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#777E90] h-4 w-4" />
             </div>
             <Button variant="outline" className="border-[#353945] text-[#FCFCFD]">
               <Filter className="mr-2 h-4 w-4" />
