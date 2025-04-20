@@ -72,24 +72,31 @@ export const ReactionBar = ({
     setLoading(true);
     try {
       const hasReacted = userReactions.some((r) => r.type === type);
+      
       if (hasReacted) {
-        await socialRepository.removeReaction({
-          userId: user.id,
-          type,
-          memoryId,
-          collectionId,
-          commentId,
-        });
-        setUserReactions(userReactions.filter((r) => r.type !== type));
-        setCounts({ ...counts, [type]: (counts[type] || 0) - 1 });
+        // Find the reaction to remove
+        const reactionToRemove = userReactions.find(r => r.type === type);
+        if (reactionToRemove) {
+          await socialRepository.removeReaction(reactionToRemove.id);
+          setUserReactions(userReactions.filter((r) => r.type !== type));
+          setCounts({ ...counts, [type]: (counts[type] || 0) - 1 });
+        }
       } else {
+        // Determine which ID to use based on what was provided
+        const targetId = memoryId || collectionId || commentId;
+        const targetType = memoryId ? 'memory' : collectionId ? 'collection' : 'comment';
+        
+        if (!targetId) {
+          throw new Error('No target ID provided');
+        }
+        
         const newReaction = await socialRepository.addReaction({
           userId: user.id,
           type,
-          memoryId,
-          collectionId,
-          commentId,
+          targetId,
+          targetType: targetType as 'memory' | 'comment' | 'collection'
         });
+        
         setUserReactions([...userReactions, newReaction]);
         setCounts({ ...counts, [type]: (counts[type] || 0) + 1 });
       }

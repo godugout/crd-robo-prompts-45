@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { MemoryGrid } from '@/components/memory/MemoryGrid';
 import { useMemories } from '@/hooks/useMemories';
-import { SocialRepository } from '@/repositories/social';
+import * as socialRepository from '@/repositories/social';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PlusCircle, Search, Filter, RefreshCw } from 'lucide-react';
@@ -43,7 +43,7 @@ const Memories = () => {
 
   const handleReaction = async (memoryId: string, reactionType: 'heart' | 'thumbs-up' | 'party' | 'baseball') => {
     try {
-      await SocialRepository.addReaction({
+      await socialRepository.addReaction({
         targetId: memoryId,
         targetType: 'memory',
         type: reactionType
