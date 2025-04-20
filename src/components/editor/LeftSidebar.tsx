@@ -1,7 +1,10 @@
-
 import React, { useState } from 'react';
+import { 
+  Upload, Image, Type, Plus, Square, LayoutGrid, Layers, Move, Pencil, Star, 
+  Copy, 
+  X
+} from 'lucide-react';
 import { SidebarSection } from './SidebarSection';
-import { Upload, Image, Type, Plus, Square, LayoutGrid, Layers, Move, Pencil, Star } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -378,10 +381,7 @@ export const LeftSidebar = ({ selectedTemplate, onSelectTemplate }: TemplateProp
                 <Plus size={14} />
               </Button>
               <Button variant="ghost" size="icon" className="h-5 w-5 p-0 text-cardshow-lightGray hover:text-cardshow-white" onClick={() => toast('Delete background')}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 6 6 18"/>
-                  <path d="m6 6 12 12"/>
-                </svg>
+                <X size={14} />
               </Button>
             </div>
           </div>
