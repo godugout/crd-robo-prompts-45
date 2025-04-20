@@ -39,8 +39,8 @@ if (!supabaseUrl || !supabaseKey) {
     rpc: () => Promise.resolve({ data: [], error: null }),
   };
   
-  // @ts-ignore - We're intentionally creating a partial mock
-  export const supabase = mockClient;
+  // We need to export the mock client properly
+  export const supabase = mockClient as unknown as ReturnType<typeof createClient<Database>>;
 } else {
   // Create the actual Supabase client
   export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
