@@ -1,12 +1,12 @@
+
 import React, { useState, useCallback } from 'react';
-import { Upload } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { uploadCardImage } from '@/lib/cardImageUploader';
-import { useCardEditor } from '@/hooks/useCardEditor';
 import { useDropzone } from 'react-dropzone';
 import { supabase } from '@/lib/supabase-client';
+import { uploadCardImage } from '@/lib/cardImageUploader';
+import { useCardEditor } from '@/hooks/useCardEditor';
+import { DropZone } from '../upload/DropZone';
+import { FilePreview } from '../upload/FilePreview';
 
 interface UploadSectionProps {
   cardEditor?: ReturnType<typeof useCardEditor>;
@@ -51,7 +51,7 @@ export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
       handleFileSelection(e.target.files[0]);
     }
   };
-  
+
   const handleUpload = async () => {
     if (!fileToUpload || !cardEditor) {
       toast.error('Please select a file to upload');
@@ -62,14 +62,12 @@ export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
     setUploadProgress(0);
 
     try {
-      // Check if user is logged in through Supabase
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error('Please log in to upload images');
         return;
       }
 
-      // Upload the file
       const result = await uploadCardImage({
         file: fileToUpload,
         cardId: cardEditor.cardData.id,
@@ -78,7 +76,6 @@ export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
       });
 
       if (result) {
-        // Update card with image URL
         cardEditor.updateCardField('image_url', result.url);
         cardEditor.updateDesignMetadata('thumbnailUrl', result.thumbnailUrl);
         
@@ -90,9 +87,7 @@ export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
           }
         });
 
-        // Clear the form
-        setFileToUpload(null);
-        setUploadPreview(null);
+        cancelUpload();
       }
     } catch (error) {
       console.error('Upload error:', error);
@@ -112,74 +107,21 @@ export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
   return (
     <div className="space-y-4">
       {!fileToUpload ? (
-        <div 
-          {...getRootProps()}
-          className={`p-4 border-2 border-dashed ${isDragActive ? 'border-cardshow-green bg-editor-tool/30' : 'border-editor-border'} rounded-lg text-center transition-colors`}
-        >
-          <div className="flex flex-col items-center justify-center py-8">
-            <Upload className="w-10 h-10 text-cardshow-lightGray mb-3" />
-            <p className="text-cardshow-white font-medium">Upload Card Art</p>
-            <p className="text-xs text-cardshow-lightGray mt-1">
-              {isDragActive ? 'Drop the file here' : 'Drag or choose your file to upload'}
-            </p>
-            <Input 
-              {...getInputProps()}
-              type="file" 
-              className="hidden" 
-              id="file-upload" 
-              onChange={handleFileChange} 
-              accept="image/*"
-            />
-            <label 
-              htmlFor="file-upload" 
-              className="mt-4 px-4 py-2 bg-editor-dark border border-editor-border rounded-lg text-cardshow-white text-sm hover:bg-editor-tool cursor-pointer"
-            >
-              Browse Files
-            </label>
-          </div>
-        </div>
+        <DropZone
+          isDragActive={isDragActive}
+          getRootProps={getRootProps}
+          getInputProps={getInputProps}
+          onFileChange={handleFileChange}
+        />
       ) : (
-        <div className="p-4 border-2 border-editor-border rounded-lg">
-          <div className="flex flex-col items-center">
-            <div className="relative w-full aspect-square mb-4 bg-editor-darker rounded-lg overflow-hidden">
-              <img 
-                src={uploadPreview || ''} 
-                alt="Upload preview" 
-                className="w-full h-full object-contain"
-              />
-              {isUploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                  <div className="w-16 h-16 rounded-full border-4 border-cardshow-green border-t-transparent animate-spin"></div>
-                  <div className="absolute text-white font-bold">{uploadProgress}%</div>
-                </div>
-              )}
-            </div>
-            <p className="text-cardshow-white font-medium text-center truncate w-full">
-              {fileToUpload.name}
-            </p>
-            <p className="text-xs text-cardshow-lightGray">
-              {(fileToUpload.size / 1024 / 1024).toFixed(2)} MB
-            </p>
-            <div className="flex gap-2 mt-4 w-full">
-              <Button 
-                variant="outline" 
-                className="flex-1 text-cardshow-lightGray"
-                onClick={cancelUpload}
-                disabled={isUploading}
-              >
-                Cancel
-              </Button>
-              <Button 
-                variant="default" 
-                className="flex-1 bg-cardshow-green text-white"
-                onClick={handleUpload}
-                disabled={isUploading}
-              >
-                {isUploading ? `Uploading (${uploadProgress}%)` : 'Upload'}
-              </Button>
-            </div>
-          </div>
-        </div>
+        <FilePreview
+          file={fileToUpload}
+          uploadPreview={uploadPreview}
+          isUploading={isUploading}
+          uploadProgress={uploadProgress}
+          onCancel={cancelUpload}
+          onUpload={handleUpload}
+        />
       )}
     </div>
   );
