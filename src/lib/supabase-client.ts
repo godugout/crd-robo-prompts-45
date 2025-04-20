@@ -6,6 +6,9 @@ import { Database } from '@/types/supabase';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Declare the supabase client outside the conditional blocks
+let supabase: ReturnType<typeof createClient<Database>>;
+
 // Check if the environment variables are defined
 if (!supabaseUrl || !supabaseKey) {
   console.error(
@@ -40,9 +43,12 @@ if (!supabaseUrl || !supabaseKey) {
     rpc: () => Promise.resolve({ data: [], error: null }),
   };
   
-  // Export the mock client with proper typing
-  export const supabase = mockClient as unknown as ReturnType<typeof createClient<Database>>;
+  // Assign the mock client to the supabase variable
+  supabase = mockClient as unknown as ReturnType<typeof createClient<Database>>;
 } else {
   // Create the actual Supabase client
-  export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+  supabase = createClient<Database>(supabaseUrl, supabaseKey);
 }
+
+// Export the client
+export { supabase };
