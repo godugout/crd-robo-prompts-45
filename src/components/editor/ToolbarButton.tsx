@@ -8,22 +8,41 @@ interface ToolbarButtonProps {
   tooltip: string;
   active?: boolean;
   onClick?: () => void;
+  disabled?: boolean;
+  badge?: string | number;
 }
 
-export const ToolbarButton = ({ icon, tooltip, active = false, onClick }: ToolbarButtonProps) => {
+export const ToolbarButton = ({ 
+  icon, 
+  tooltip, 
+  active = false, 
+  onClick, 
+  disabled = false,
+  badge
+}: ToolbarButtonProps) => {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className={`h-8 w-8 p-1.5 ${active 
-            ? 'bg-editor-tool text-white' 
-            : 'text-gray-400 hover:text-white'}`}
-          onClick={onClick}
-        >
-          {icon}
-        </Button>
+        <div className="relative">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={`h-8 w-8 p-1.5 ${
+              active 
+                ? 'bg-editor-tool text-white' 
+                : 'text-gray-400 hover:text-white'
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={onClick}
+            disabled={disabled}
+          >
+            {icon}
+          </Button>
+          {badge !== undefined && (
+            <span className="absolute -top-1 -right-1 bg-cardshow-orange text-white text-[10px] rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+              {badge}
+            </span>
+          )}
+        </div>
       </TooltipTrigger>
       <TooltipContent side="bottom" className="py-1 px-2 text-xs">
         {tooltip}

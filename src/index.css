@@ -3,172 +3,128 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 47.4% 11.2%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 47.4% 11.2%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 47.4% 11.2%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 100% 50%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221.2 83.2% 53.3%;
+  --radius: 0.5rem;
+}
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+.dark {
+  --background: 222.2 47.4% 11.2%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 47.4% 11.2%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 47.4% 11.2%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 224.3 76.3% 48%;
 }
 
 @layer base {
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
   }
 }
 
-@layer components {
-  .card-item {
-    @apply bg-editor-darker rounded-xl overflow-hidden flex flex-col;
+/* Custom colors for Cardshow */
+:root {
+  --cardshow-green: #10b981;
+  --cardshow-orange: #f97316;
+  --cardshow-purple: #9b87f5;
+  --cardshow-blue: #3b82f6;
+  --cardshow-white: #ffffff;
+  --cardshow-lightGray: #a1a1aa;
+  --cardshow-mediumGray: #52525b;
+  --cardshow-darkGray: #18181b;
+  --editor-dark: #1a1a1a;
+  --editor-darker: #121212;
+  --editor-tool: #2a2a2a;
+  --editor-border: #333333;
+  --editor-canvas: #2c2c2c;
+}
+
+/* Editor dark input styles */
+.input-dark {
+  @apply w-full bg-editor-darker border border-editor-border rounded-md px-3 py-2 text-cardshow-white placeholder:text-cardshow-lightGray focus:outline-none focus:ring-1 focus:ring-cardshow-blue focus:border-cardshow-blue;
+}
+
+.btn-primary {
+  @apply bg-cardshow-blue text-white rounded-lg py-2 px-4 hover:bg-opacity-90 transition-all;
+}
+
+/* Template item styles */
+.template-item {
+  @apply rounded-lg cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-cardshow-blue;
+}
+
+.template-item.active {
+  @apply ring-2 ring-cardshow-green;
+}
+
+/* Particle effect animation */
+@keyframes particle-animation {
+  0% {
+    transform: translate(0, 0);
+    opacity: 1;
   }
-  
-  .card-item-preview {
-    @apply aspect-[3/4] overflow-hidden relative;
-  }
-  
-  .card-item-info {
-    @apply p-4 flex flex-col gap-2;
-  }
-  
-  .card-tag {
-    @apply inline-flex items-center justify-center px-2.5 py-0.5 rounded-md text-xs font-medium;
-  }
-  
-  .price-tag {
-    @apply bg-cardshow-green/10 text-cardshow-green card-tag;
-  }
-  
-  .stock-tag {
-    @apply bg-cardshow-mediumGray text-cardshow-lightGray card-tag;
-  }
-  
-  .bid-info {
-    @apply flex items-center gap-1 text-xs text-cardshow-lightGray;
-  }
-  
-  .btn-primary {
-    @apply bg-cardshow-orange hover:bg-cardshow-orange/90 text-white font-semibold rounded-full px-6 py-3 transition-colors;
-  }
-  
-  .btn-secondary {
-    @apply bg-transparent hover:bg-cardshow-mediumGray/30 border border-cardshow-mediumGray text-cardshow-white font-semibold rounded-full px-6 py-3 transition-colors;
-  }
-  
-  .input-dark {
-    @apply bg-editor-darker border border-editor-border text-cardshow-white rounded-lg px-4 py-3 w-full focus:ring-1 focus:ring-cardshow-blue focus:outline-none;
-  }
-  
-  .template-item {
-    @apply border-2 border-transparent hover:border-cardshow-blue rounded-xl overflow-hidden cursor-pointer transition-all;
-  }
-  
-  .template-item.active {
-    @apply border-cardshow-blue;
+  100% {
+    transform: translate(var(--x, 20px), var(--y, -50px));
+    opacity: 0;
   }
 }
 
-/* Custom styles for the editor */
-::-webkit-scrollbar {
+.animate-fade-out {
+  animation: particle-animation 1.5s ease-out forwards;
+  --x: calc(random() * 60px - 30px);
+  --y: calc(random() * -70px - 20px);
+}
+
+/* Custom sidebar scroll */
+.editor-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--editor-tool) var(--editor-darker);
+}
+
+.editor-sidebar::-webkit-scrollbar {
   width: 8px;
-  height: 8px;
 }
 
-::-webkit-scrollbar-track {
-  background: #0D0E14;
+.editor-sidebar::-webkit-scrollbar-track {
+  background: var(--editor-darker);
 }
 
-::-webkit-scrollbar-thumb {
-  background: #2E3458;
+.editor-sidebar::-webkit-scrollbar-thumb {
+  background-color: var(--editor-tool);
   border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #3F4675;
-}
-
-/* Card item animation */
-.card-hover-effect {
-  transition: transform 0.3s ease;
-}
-
-.card-hover-effect:hover {
-  transform: translateY(-8px);
 }
