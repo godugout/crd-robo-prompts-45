@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
-import { Wifi, WifiOff, CloudSync } from 'lucide-react';
+import { Wifi, WifiOff, CloudSun } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -92,7 +91,7 @@ export const NetworkStatus = () => {
                   className="h-8 w-8 p-0"
                   onClick={handleSync}
                 >
-                  <CloudSync className="h-5 w-5" />
+                  <CloudSun className="h-5 w-5" />
                 </Button>
               </>
             )}
@@ -117,4 +116,3 @@ export const NetworkStatus = () => {
     </div>
   );
 };
-
