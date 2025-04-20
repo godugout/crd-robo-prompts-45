@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -10,7 +11,6 @@ import NotFound from "./pages/NotFound";
 import { FeedPage } from "./components/feed/FeedPage";
 import Editor from "./pages/Editor";
 import Templates from "./pages/Templates";
-import Decks from "./pages/Decks";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Memories from "./pages/Memories";
@@ -67,7 +67,6 @@ const App = () => {
                 <Route path="/card/:id" element={<CardDetail />} />
                 <Route path="/editor" element={<Editor />} />
                 <Route path="/templates" element={<Templates />} />
-                <Route path="/decks" element={<Decks />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/collections" element={<Collections />} />
