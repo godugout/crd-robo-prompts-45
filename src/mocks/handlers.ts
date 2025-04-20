@@ -74,7 +74,8 @@ export const handlers = [
       createdAt: new Date().toISOString(),
       ...body
     };
-    memories.push(newMemory);
+    // Fix: Explicitly type the spread to avoid error
+    memories.push(newMemory as typeof memories[0]);
     return Response.json(newMemory, { status: 201 });
   }),
 
@@ -87,7 +88,8 @@ export const handlers = [
       return new Response('Card not found', { status: 404 });
     }
     
-    memories[index] = { ...memories[index], ...body };
+    // Fix: Explicitly type the spread to avoid error
+    memories[index] = { ...memories[index], ...body } as typeof memories[0];
     return Response.json(memories[index]);
   }),
 
