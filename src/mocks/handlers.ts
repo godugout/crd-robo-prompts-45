@@ -1,5 +1,5 @@
 
-import { rest } from 'msw';
+import { http } from 'msw';
 import { memories, users, teams, mediaItems, reactions, comments } from './data';
 
 // Helper function for pagination and filtering
@@ -38,21 +38,22 @@ const paginateAndFilter = <T extends { id: string }>(
 
 export const handlers = [
   // Memories (Cards) endpoints
-  rest.get('/api/cards', (req, res, ctx) => {
-    const searchParams = Object.fromEntries(req.url.searchParams);
+  http.get('/api/cards', ({ request }) => {
+    const url = new URL(request.url);
+    const searchParams = Object.fromEntries(url.searchParams);
     const page = parseInt(searchParams.page || '1');
     const limit = parseInt(searchParams.limit || '10');
     
     const result = paginateAndFilter(memories, page, limit, searchParams);
-    return res(ctx.status(200), ctx.json(result));
+    return Response.json(result);
   }),
 
-  rest.get('/api/cards/:id', (req, res, ctx) => {
-    const { id } = req.params;
+  http.get('/api/cards/:id', ({ params }) => {
+    const { id } = params;
     const memory = memories.find(m => m.id === id);
     
     if (!memory) {
-      return res(ctx.status(404), ctx.json({ error: 'Card not found' }));
+      return new Response('Card not found', { status: 404 });
     }
 
     // Enhance memory with related data
@@ -63,72 +64,104 @@ export const handlers = [
       comments: comments.filter(c => c.memoryId === id)
     };
 
-    return res(ctx.status(200), ctx.json(enhancedMemory));
+    return Response.json(enhancedMemory);
   }),
 
-  rest.post('/api/cards', async (req, res, ctx) => {
-    const body = await req.json();
+  http.post('/api/cards', async ({ request }) => {
+    const body = await request.json();
     const newMemory = {
       id: String(memories.length + 1),
       createdAt: new Date().toISOString(),
       ...body
     };
     memories.push(newMemory);
-    return res(ctx.status(201), ctx.json(newMemory));
+    return Response.json(newMemory, { status: 201 });
   }),
 
-  rest.put('/api/cards/:id', async (req, res, ctx) => {
-    const { id } = req.params;
-    const body = await req.json();
+  http.put('/api/cards/:id', async ({ params, request }) => {
+    const { id } = params;
+    const body = await request.json();
     const index = memories.findIndex(m => m.id === id);
     
     if (index === -1) {
-      return res(ctx.status(404), ctx.json({ error: 'Card not found' }));
+      return new Response('Card not found', { status: 404 });
     }
     
     memories[index] = { ...memories[index], ...body };
-    return res(ctx.status(200), ctx.json(memories[index]));
+    return Response.json(memories[index]);
   }),
 
-  rest.delete('/api/cards/:id', (req, res, ctx) => {
-    const { id } = req.params;
+  http.delete('/api/cards/:id', ({ params }) => {
+    const { id } = params;
     const index = memories.findIndex(m => m.id === id);
     
     if (index === -1) {
-      return res(ctx.status(404), ctx.json({ error: 'Card not found' }));
+      return new Response('Card not found', { status: 404 });
     }
     
     memories.splice(index, 1);
-    return res(ctx.status(204));
+    return new Response(null, { status: 204 });
   }),
 
-  // Feed endpoint
-  rest.get('/api/feed', (req, res, ctx) => {
-    const searchParams = Object.fromEntries(req.url.searchParams);
+  // Feed endpoints
+  http.get('/api/feed/for-you', ({ request }) => {
+    const url = new URL(request.url);
+    const searchParams = Object.fromEntries(url.searchParams);
     const page = parseInt(searchParams.page || '1');
     const limit = parseInt(searchParams.limit || '10');
     
     const result = paginateAndFilter(memories, page, limit, searchParams);
-    return res(ctx.status(200), ctx.json(result));
+    return Response.json(result);
+  }),
+
+  http.get('/api/feed/following', ({ request }) => {
+    const url = new URL(request.url);
+    const searchParams = Object.fromEntries(url.searchParams);
+    const page = parseInt(searchParams.page || '1');
+    const limit = parseInt(searchParams.limit || '10');
+    
+    // Simulating following feed by filtering memories
+    const followingMemories = memories.filter(m => m.userId === '2'); // Example filter
+    const result = paginateAndFilter(followingMemories, page, limit, searchParams);
+    return Response.json(result);
+  }),
+
+  http.get('/api/feed/trending', ({ request }) => {
+    const url = new URL(request.url);
+    const searchParams = Object.fromEntries(url.searchParams);
+    const page = parseInt(searchParams.page || '1');
+    const limit = parseInt(searchParams.limit || '10');
+    
+    // Simulating trending by sorting by reaction count
+    const trendingMemories = [...memories].sort((a, b) => {
+      const aReactions = reactions.filter(r => r.memoryId === a.id).length;
+      const bReactions = reactions.filter(r => r.memoryId === b.id).length;
+      return bReactions - aReactions;
+    });
+    
+    const result = paginateAndFilter(trendingMemories, page, limit, searchParams);
+    return Response.json(result);
   }),
 
   // Comments endpoints
-  rest.get('/api/comments', (req, res, ctx) => {
-    const searchParams = Object.fromEntries(req.url.searchParams);
+  http.get('/api/comments', ({ request }) => {
+    const url = new URL(request.url);
+    const searchParams = Object.fromEntries(url.searchParams);
     const page = parseInt(searchParams.page || '1');
     const limit = parseInt(searchParams.limit || '10');
     
     const result = paginateAndFilter(comments, page, limit, searchParams);
-    return res(ctx.status(200), ctx.json(result));
+    return Response.json(result);
   }),
 
   // Reactions endpoints
-  rest.get('/api/reactions', (req, res, ctx) => {
-    const searchParams = Object.fromEntries(req.url.searchParams);
+  http.get('/api/reactions', ({ request }) => {
+    const url = new URL(request.url);
+    const searchParams = Object.fromEntries(url.searchParams);
     const page = parseInt(searchParams.page || '1');
     const limit = parseInt(searchParams.limit || '10');
     
     const result = paginateAndFilter(reactions, page, limit, searchParams);
-    return res(ctx.status(200), ctx.json(result));
+    return Response.json(result);
   }),
 ];
