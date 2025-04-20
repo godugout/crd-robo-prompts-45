@@ -1,9 +1,12 @@
 
 import React from 'react';
 import type { Memory } from '@/types/memory';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, Share } from 'lucide-react';
+import { Heart, MessageCircle, Share, Bookmark, MoreHorizontal } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { toast } from '@/hooks/use-toast';
 
 interface MemoryCardProps {
   memory: Memory;
@@ -14,24 +17,58 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) =>
   const handleReaction = () => {
     if (onReaction) {
       onReaction(memory.id, 'heart');
+      toast({
+        title: "Reaction added",
+        description: "You liked this card",
+      });
     }
   };
 
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.origin + '/card/' + memory.id);
+    toast({
+      title: "Link copied",
+      description: "Card link copied to clipboard",
+    });
+  };
+
+  // Format date to more readable format
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    }).format(date);
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{memory.title}</CardTitle>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>{memory.user?.username || 'Anonymous'}</span>
-          <span>•</span>
-          <span>{new Date(memory.createdAt).toLocaleDateString()}</span>
+    <Card className="overflow-hidden hover:shadow-md transition-shadow duration-300">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={memory.user?.profileImage} alt={memory.user?.username || 'User'} />
+              <AvatarFallback>{memory.user?.username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-sm font-medium">{memory.user?.username || 'Anonymous'}</p>
+              <p className="text-xs text-muted-foreground">{formatDate(memory.createdAt)}</p>
+            </div>
+          </div>
+          <Button variant="ghost" size="icon">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
         </div>
+        <CardTitle className="text-lg">{memory.title}</CardTitle>
+        {memory.description && (
+          <CardDescription className="line-clamp-2">{memory.description}</CardDescription>
+        )}
       </CardHeader>
-      <CardContent>
-        <p className="mb-4">{memory.description}</p>
-        
+      
+      <CardContent className="pt-0">
         {memory.media && memory.media.length > 0 && (
-          <div className="mb-4 rounded-md overflow-hidden">
+          <div className="mb-3 rounded-md overflow-hidden bg-muted/20">
             <img 
               src={memory.media[0].thumbnailUrl || memory.media[0].url} 
               alt={memory.title}
@@ -39,30 +76,61 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) =>
             />
           </div>
         )}
+        
+        {memory.tags && memory.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {memory.tags.map(tag => (
+              <Badge key={tag} variant="secondary" className="px-2 py-0.5 text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </CardContent>
 
-        <div className="flex items-center gap-4 pt-2">
+      <CardFooter className="pt-0 flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <Button 
             variant="ghost" 
             size="sm" 
-            className="flex gap-1 items-center"
+            className="flex gap-1 items-center text-muted-foreground hover:text-primary"
             onClick={handleReaction}
           >
-            <Heart className="h-4 w-4" />
+            <Heart className={`h-4 w-4 ${(memory.reactions?.filter(r => r.type === 'heart').length || 0) > 0 ? 'fill-primary text-primary' : ''}`} />
             <span>
               {memory.reactions?.filter(r => r.type === 'heart').length || 0}
             </span>
           </Button>
           
-          <Button variant="ghost" size="sm" className="flex gap-1 items-center">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex gap-1 items-center text-muted-foreground hover:text-primary"
+          >
             <MessageCircle className="h-4 w-4" />
             <span>{memory.commentCount || 0}</span>
           </Button>
-          
-          <Button variant="ghost" size="sm" className="flex gap-1 items-center">
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex gap-1 items-center text-muted-foreground hover:text-primary"
+            onClick={handleShare}
+          >
             <Share className="h-4 w-4" />
           </Button>
+          
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex gap-1 items-center text-muted-foreground hover:text-primary"
+          >
+            <Bookmark className="h-4 w-4" />
+          </Button>
         </div>
-      </CardContent>
+      </CardFooter>
     </Card>
   );
 };

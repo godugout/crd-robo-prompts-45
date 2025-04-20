@@ -13,6 +13,7 @@ import Templates from "./pages/Templates";
 import Decks from "./pages/Decks";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
+import Memories from "./pages/Memories";
 import { MainLayout } from "./components/layout/MainLayout";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route element={<MainLayout />}>
             <Route path="/" element={<Index />} />
             <Route path="/feed" element={<FeedPage />} />
+            <Route path="/memories" element={<Memories />} />
             <Route path="/card/:id" element={<CardDetail />} />
             <Route path="/editor" element={<Editor />} />
             <Route path="/templates" element={<Templates />} />
