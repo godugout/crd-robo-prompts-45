@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useUser } from '@/hooks/use-user';
+import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/lib/supabase-client';
 import { 
   Card, 
@@ -16,12 +17,19 @@ import { Loader, Settings, Edit, Image } from 'lucide-react';
 import { useFeed } from '@/hooks/use-feed';
 import { MemoryCard } from '@/components/memory/MemoryCard';
 import { Link } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
+import { getUserFollowers, getUserFollowing } from '@/repositories/social/follows';
 
 const Profile = () => {
   const { user, loading: userLoading } = useUser();
   const [activeTab, setActiveTab] = useState('memories');
-  const [profile, setProfile] = useState<any>(null);
-  const [loadingProfile, setLoadingProfile] = useState(true);
+  const { 
+    profile, 
+    isLoading: profileLoading, 
+    updateProfile 
+  } = useProfile(user?.id);
+  const [followers, setFollowers] = useState<number>(0);
+  const [following, setFollowing] = useState<number>(0);
   
   const {
     memories,
@@ -33,29 +41,27 @@ const Profile = () => {
   } = useFeed(user?.id);
 
   useEffect(() => {
-    const getProfile = async () => {
-      if (!user) return;
+    const getFollowerAndFollowingCounts = async () => {
+      if (!user?.id) return;
       
       try {
-        setLoadingProfile(true);
+        const followerData = await getUserFollowers(user.id);
+        const followingData = await getUserFollowing(user.id);
         
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) throw error;
-        setProfile(data);
+        setFollowers(followerData.length);
+        setFollowing(followingData.length);
       } catch (error) {
-        console.error('Error fetching profile:', error);
-      } finally {
-        setLoadingProfile(false);
+        console.error('Error fetching follower/following data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load social data',
+          variant: 'destructive'
+        });
       }
     };
     
-    getProfile();
-  }, [user]);
+    getFollowerAndFollowingCounts();
+  }, [user?.id]);
 
   const handleLoadMore = () => {
     const nextPage = page + 1;
@@ -63,7 +69,9 @@ const Profile = () => {
     fetchMemories(nextPage, 'forYou');
   };
 
-  if (userLoading || loadingProfile) {
+  const isLoading = userLoading || profileLoading;
+
+  if (isLoading) {
     return (
       <div className="container mx-auto p-6 flex items-center justify-center min-h-[60vh]">
         <Loader className="h-10 w-10 animate-spin text-gray-500" />
@@ -88,7 +96,7 @@ const Profile = () => {
         <CardHeader className="flex flex-row items-center space-y-0 pb-2">
           <div className="flex flex-1 space-x-4 items-center">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={profile?.profileImage || ''} alt={profile?.username || user.email} />
+              <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || user.email} />
               <AvatarFallback className="text-2xl">{(profile?.username?.[0] || user.email?.[0] || '').toUpperCase()}</AvatarFallback>
             </Avatar>
             <div>
@@ -114,11 +122,11 @@ const Profile = () => {
               <p className="text-sm text-gray-500">Cards</p>
             </div>
             <div className="text-center">
-              <p className="font-bold text-xl">0</p>
+              <p className="font-bold text-xl">{followers}</p>
               <p className="text-sm text-gray-500">Followers</p>
             </div>
             <div className="text-center">
-              <p className="font-bold text-xl">0</p>
+              <p className="font-bold text-xl">{following}</p>
               <p className="text-sm text-gray-500">Following</p>
             </div>
           </div>
@@ -176,7 +184,9 @@ const Profile = () => {
           <div className="text-center py-16">
             <h3 className="text-xl font-medium mb-2">No collections yet</h3>
             <p className="text-gray-500 mb-6">Create collections to organize your cards</p>
-            <Button>Create Collection</Button>
+            <Button asChild>
+              <Link to="/collections">Create Collection</Link>
+            </Button>
           </div>
         </TabsContent>
         

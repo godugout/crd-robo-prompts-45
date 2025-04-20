@@ -35,28 +35,45 @@ export const useProfile = (userId?: string) => {
     queryFn: async () => {
       if (!userId) return null;
       
-      // Fetch the profile data
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      try {
+        // Fetch the profile data
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+          
+        if (error) {
+          // If the error is a "not found" error, we'll create a profile
+          if (error.code === 'PGRST116') {
+            console.log('Profile not found, you might want to create one');
+            return null;
+          }
+          throw error;
+        }
         
-      if (error) throw error;
-      
-      // Try to get user preferences
-      const { data: prefsData } = await supabase
-        .from('ui_preferences')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
+        // Try to get user preferences
+        const { data: prefsData, error: prefsError } = await supabase
+          .from('ui_preferences')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+          
+        if (prefsError && prefsError.code !== 'PGRST116') {
+          console.error('Error fetching preferences:', prefsError);
+        }
         
-      return {
-        ...data,
-        preferences: prefsData || {}
-      };
+        return {
+          ...data,
+          preferences: prefsData || {}
+        };
+      } catch (err) {
+        console.error('Error in useProfile hook:', err);
+        throw err;
+      }
     },
-    enabled: !!userId
+    enabled: !!userId,
+    retry: 1
   });
 
   // Update profile
@@ -64,48 +81,53 @@ export const useProfile = (userId?: string) => {
     mutationFn: async ({ profileData, preferences }: { profileData: ProfileData, preferences?: UserPreferences }) => {
       if (!userId) throw new Error('User ID is required');
       
-      // Update the profile
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          username: profileData.username,
-          full_name: profileData.fullName,
-          bio: profileData.bio,
-          avatar_url: profileData.avatarUrl
-        })
-        .eq('id', userId);
-        
-      if (error) throw error;
-      
-      // Update preferences if provided
-      if (preferences) {
-        const uiPrefs = {
-          theme_variant: preferences.darkMode ? 'dark' : 'default',
-          reduced_motion: preferences.compactView || false
-        };
-        
-        const { data: existingPrefs } = await supabase
-          .from('ui_preferences')
-          .select('id')
-          .eq('user_id', userId)
-          .single();
+      try {
+        // Update the profile
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            username: profileData.username,
+            full_name: profileData.fullName,
+            bio: profileData.bio,
+            avatar_url: profileData.avatarUrl
+          })
+          .eq('id', userId);
           
-        if (existingPrefs) {
-          await supabase
+        if (error) throw error;
+        
+        // Update preferences if provided
+        if (preferences) {
+          const uiPrefs = {
+            theme_variant: preferences.darkMode ? 'dark' : 'default',
+            reduced_motion: preferences.compactView || false
+          };
+          
+          const { data: existingPrefs } = await supabase
             .from('ui_preferences')
-            .update(uiPrefs)
-            .eq('id', existingPrefs.id);
-        } else {
-          await supabase
-            .from('ui_preferences')
-            .insert({
-              user_id: userId,
-              ...uiPrefs
-            });
+            .select('id')
+            .eq('user_id', userId)
+            .single();
+            
+          if (existingPrefs) {
+            await supabase
+              .from('ui_preferences')
+              .update(uiPrefs)
+              .eq('id', existingPrefs.id);
+          } else {
+            await supabase
+              .from('ui_preferences')
+              .insert({
+                user_id: userId,
+                ...uiPrefs
+              });
+          }
         }
+        
+        return true;
+      } catch (err) {
+        console.error('Error updating profile:', err);
+        throw err;
       }
-      
-      return true;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile', userId] });

@@ -16,6 +16,7 @@ import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Memories from "./pages/Memories";
 import { MainLayout } from "./components/layout/MainLayout";
+import Collections from "./pages/Collections";
 
 // Route logging component to help debug routing issues
 const RouteLogger = () => {
@@ -72,6 +73,7 @@ const App = () => {
                 <Route path="/decks" element={<Decks />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/collections" element={<Collections />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
