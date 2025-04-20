@@ -19,6 +19,7 @@ import { MemoryCard } from '@/components/memory/MemoryCard';
 import { Link } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { getUserFollowers, getUserFollowing } from '@/repositories/social/follows';
+import { LoadingState } from '@/components/common/LoadingState';
 
 const Profile = () => {
   const { user, loading: userLoading } = useUser();
@@ -72,11 +73,7 @@ const Profile = () => {
   const isLoading = userLoading || profileLoading;
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto p-6 flex items-center justify-center min-h-[60vh]">
-        <Loader className="h-10 w-10 animate-spin text-gray-500" />
-      </div>
-    );
+    return <LoadingState message="Loading profile..." fullPage size="lg" />;
   }
 
   if (!user) {
@@ -90,28 +87,37 @@ const Profile = () => {
     );
   }
 
+  // Extract bio from profile data, considering both formats
+  const bioText = profile?.bio || profile?.full_name || 'No bio set yet';
+  const displayName = profile?.username || profile?.full_name || user.email;
+  const avatarUrl = profile?.avatar_url || profile?.profileImage || '';
+
   return (
     <div className="container mx-auto p-6 max-w-5xl">
       <Card className="mb-8">
         <CardHeader className="flex flex-row items-center space-y-0 pb-2">
           <div className="flex flex-1 space-x-4 items-center">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={profile?.avatar_url || ''} alt={profile?.username || user.email} />
-              <AvatarFallback className="text-2xl">{(profile?.username?.[0] || user.email?.[0] || '').toUpperCase()}</AvatarFallback>
+              <AvatarImage src={avatarUrl} alt={displayName} />
+              <AvatarFallback className="text-2xl">{(displayName?.[0] || '').toUpperCase()}</AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-2xl">{profile?.username || user.email}</CardTitle>
-              <CardDescription>{profile?.bio || 'No bio set yet'}</CardDescription>
+              <CardTitle className="text-2xl">{displayName}</CardTitle>
+              <CardDescription>{bioText}</CardDescription>
             </div>
           </div>
           <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Profile
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/settings">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Profile
+              </Link>
             </Button>
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/settings">
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Link>
             </Button>
           </div>
         </CardHeader>

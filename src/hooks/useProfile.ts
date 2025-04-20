@@ -7,9 +7,9 @@ import type { User } from '@/types/user';
 
 interface ProfileData {
   username?: string;
-  fullName?: string;
+  full_name?: string;
   bio?: string;
-  avatarUrl?: string;
+  avatar_url?: string;
 }
 
 interface UserPreferences {
@@ -87,9 +87,9 @@ export const useProfile = (userId?: string) => {
           .from('profiles')
           .update({
             username: profileData.username,
-            full_name: profileData.fullName,
+            full_name: profileData.full_name,
             bio: profileData.bio,
-            avatar_url: profileData.avatarUrl
+            avatar_url: profileData.avatar_url
           })
           .eq('id', userId);
           
