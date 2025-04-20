@@ -1,6 +1,5 @@
 
 import React from "react";
-import { Navbar } from "@/components/home/Navbar";
 import { Hero } from "@/components/home/Hero";
 import { AuctionSection } from "@/components/home/AuctionSection";
 import { FeaturedCards } from "@/components/home/FeaturedCards";
@@ -11,6 +10,8 @@ import { CTASection } from "@/components/home/CTASection";
 import { Footer } from "@/components/home/Footer";
 
 export default function Index() {
+  console.log('Index page rendering');
+  
   return (
     <div className="bg-[#141416] min-h-screen flex flex-col overflow-hidden items-center">
       <main className="w-full">

@@ -11,6 +11,8 @@ import { MemoryCard } from '@/components/memory/MemoryCard';
 type FeedType = 'forYou' | 'following' | 'trending';
 
 export const FeedPage = () => {
+  console.log('FeedPage component rendering');
+  
   const { user } = useUser();
   const [activeTab, setActiveTab] = React.useState<FeedType>('forYou');
   const {
@@ -24,9 +26,17 @@ export const FeedPage = () => {
   } = useFeed(user?.id);
 
   useEffect(() => {
+    console.log('FeedPage useEffect triggered', { activeTab, userId: user?.id });
     resetFeed();
     fetchMemories(1, activeTab);
   }, [activeTab, user, resetFeed, fetchMemories]);
+
+  useEffect(() => {
+    console.log('FeedPage mounted');
+    return () => console.log('FeedPage unmounted');
+  }, []);
+
+  console.log('FeedPage render state:', { user, memories, loading, hasMore });
 
   const handleLoadMore = () => {
     const nextPage = page + 1;
@@ -40,6 +50,7 @@ export const FeedPage = () => {
   };
 
   if (!user) {
+    console.log('No user, showing sign-in prompt');
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 p-8">
         <h2 className="text-2xl font-bold text-gray-800">Join the Community</h2>

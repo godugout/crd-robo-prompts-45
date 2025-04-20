@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Navbar } from '@/components/home/Navbar';
 import { 
@@ -18,8 +18,15 @@ import { Home, Image, Camera, Settings } from 'lucide-react';
 export const MainLayout = () => {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+  
+  console.log('MainLayout rendering, path:', location.pathname);
+
+  useEffect(() => {
+    console.log('MainLayout mounted, isHomePage:', isHomePage);
+  }, [isHomePage]);
 
   if (isHomePage) {
+    console.log('Rendering homepage layout');
     return (
       <>
         <Navbar />
@@ -28,6 +35,7 @@ export const MainLayout = () => {
     );
   }
 
+  console.log('Rendering standard layout');
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">

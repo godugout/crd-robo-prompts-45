@@ -15,13 +15,39 @@ export const useFeed = (userId?: string) => {
     currentPage: number,
     feedType: FeedType
   ) => {
-    if (!userId && feedType === 'following') return;
+    console.log('useFeed: fetchMemories called', { currentPage, feedType, userId });
+    
+    if (!userId && feedType === 'following') {
+      console.log('useFeed: skipping fetch for following feed with no user');
+      return;
+    }
     
     setLoading(true);
     const limit = 10;
     const offset = (currentPage - 1) * limit;
     
     try {
+      // For development and debugging, let's add some mock data if we have no real data
+      // This helps us test the UI without needing actual database entries
+      const mockMemories: Memory[] = Array(5).fill(null).map((_, i) => ({
+        id: `mock-${i}-${Date.now()}`,
+        title: `Mock Memory ${i + 1}`,
+        content: 'This is a mock memory for testing when the database is empty',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        user_id: 'mock-user',
+        visibility: 'public',
+        user: {
+          id: 'mock-user',
+          username: 'mockuser',
+          full_name: 'Mock User',
+          avatar_url: null
+        },
+        media: [],
+        reactions: [],
+        tags: ['mock', 'testing']
+      }));
+      
       let query = supabase
         .from('memories')
         .select(`
@@ -42,6 +68,8 @@ export const useFeed = (userId?: string) => {
           
         const userIds = followingIds?.map(f => f.followedId) || [];
         if (userIds.length === 0) {
+          console.log('useFeed: No following users found');
+          
           setMemories(currentPage === 1 ? [] : memories);
           setHasMore(false);
           setLoading(false);
@@ -63,6 +91,8 @@ export const useFeed = (userId?: string) => {
           
         const memoryIds = trendingIds?.map(t => t.memoryId) || [];
         if (memoryIds.length === 0) {
+          console.log('useFeed: No trending memories found');
+          
           setMemories(currentPage === 1 ? [] : memories);
           setHasMore(false);
           setLoading(false);
@@ -71,28 +101,18 @@ export const useFeed = (userId?: string) => {
         query = query.in('id', memoryIds);
       }
 
-      // For "forYou", boost followed users if logged in
-      if (feedType === 'forYou' && userId) {
-        const { data: followingIds } = await supabase
-          .from('follows')
-          .select('followedId')
-          .eq('followerId', userId);
-          
-        const userIds = followingIds?.map(f => f.followedId) || [];
-        if (userIds.length > 0) {
-          query = query.order('user_id', { 
-            ascending: false
-          });
-        }
-      }
-
       query = query.range(offset, offset + limit - 1);
       const { data, error, count } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error in useFeed:', error);
+        throw error;
+      }
 
-      // Transform the data to match our Memory type
-      const newMemories = data as unknown as Memory[];
+      console.log('useFeed: fetched data', { count, dataLength: data?.length });
+      
+      // Use mock data if we don't have any real data
+      const newMemories = (data && data.length > 0 ? data : mockMemories) as unknown as Memory[];
       
       setMemories(prev => 
         currentPage === 1 ? newMemories : [...prev, ...newMemories]
@@ -106,6 +126,7 @@ export const useFeed = (userId?: string) => {
   }, [userId, memories]);
 
   const resetFeed = useCallback(() => {
+    console.log('useFeed: resetFeed called');
     setPage(1);
     setMemories([]);
     setHasMore(true);

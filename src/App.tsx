@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Index from "./pages/Index";
 import CardDetail from "./pages/CardDetail";
 import NotFound from "./pages/NotFound";
@@ -15,6 +15,18 @@ import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Memories from "./pages/Memories";
 import { MainLayout } from "./components/layout/MainLayout";
+import { useEffect } from "react";
+
+// Route logging component to help debug routing issues
+const RouteLogger = () => {
+  const location = useLocation();
+  
+  useEffect(() => {
+    console.log('Route changed:', location.pathname);
+  }, [location]);
+  
+  return null;
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +46,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <RouteLogger />
           <Routes>
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
