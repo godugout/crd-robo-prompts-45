@@ -23,13 +23,10 @@ export const Canvas = ({ zoom }: CanvasProps) => {
         <div 
           className="absolute inset-0"
           style={{
-            backgroundImage: `linear-gradient(to right, var(--tw-gradient-stops)), linear-gradient(to bottom, var(--tw-gradient-stops))`,
+            backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`,
             backgroundSize: '20px 20px',
             backgroundPosition: '0 0, 0 0',
             backgroundBlendMode: 'normal',
-            '--tw-gradient-from': 'transparent',
-            '--tw-gradient-to': 'transparent',
-            '--tw-gradient-stops': 'var(--tw-gradient-from), var(--tw-gradient-to), editor-grid 1px',
           }}
         />
       </div>
