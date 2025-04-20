@@ -24,7 +24,18 @@ export const MemoryCreator = ({
   const [memoryId, setMemoryId] = useState<string>();
   const [isCreating, setIsCreating] = useState(false);
   const [showForm, setShowForm] = useState(true);
-  const { tags, handleTagInput, removeTag } = useTags();
+  
+  const { 
+    tags, 
+    handleTagInput, 
+    removeTag,
+    hasMaxTags 
+  } = useTags([], {
+    maxTags: 20,
+    validateTag: (tag) => tag.length <= 50 && /^[A-Za-z0-9\s-]+$/.test(tag),
+    onTagAdded: (tag) => console.log('Memory tag added:', tag),
+    onTagRemoved: (tag) => console.log('Memory tag removed:', tag)
+  });
 
   const handleCreateMemory = async (data: any) => {
     if (!user) return;
@@ -117,6 +128,7 @@ export const MemoryCreator = ({
             tags={tags}
             onTagAdd={handleTagInput}
             onTagRemove={removeTag}
+            disabled={hasMaxTags}
           />
         </div>
       </CardContent>

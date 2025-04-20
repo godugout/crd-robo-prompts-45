@@ -8,16 +8,18 @@ interface TagInputProps {
   tags: string[];
   onTagAdd: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   onTagRemove: (tag: string) => void;
+  disabled?: boolean;
 }
 
-export const TagInput = ({ tags, onTagAdd, onTagRemove }: TagInputProps) => {
+export const TagInput = ({ tags, onTagAdd, onTagRemove, disabled }: TagInputProps) => {
   return (
     <FormItem>
       <FormLabel>Tags</FormLabel>
       <div className="space-y-2">
         <Input
-          placeholder="Add tags (press Enter or comma to add)"
+          placeholder={disabled ? "Maximum tags reached" : "Add tags (press Enter or comma to add)"}
           onKeyDown={onTagAdd}
+          disabled={disabled}
         />
         <div className="flex flex-wrap gap-2">
           {tags.map(tag => (
