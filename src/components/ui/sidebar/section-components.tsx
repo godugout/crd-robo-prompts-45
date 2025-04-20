@@ -9,6 +9,8 @@ export const SidebarContent = React.forwardRef<
   <div
     ref={ref}
     data-sidebar="content"
+    role="region"
+    aria-label="Sidebar content"
     className={cn(
       "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
       className
@@ -25,10 +27,10 @@ export const SidebarHeader = React.forwardRef<
   <div
     ref={ref}
     data-sidebar="header"
+    role="banner"
+    aria-label="Sidebar header"
     className={cn("flex flex-col gap-2 p-2", className)}
     {...props}
   />
 ))
 SidebarHeader.displayName = "SidebarHeader"
-
-// ... Additional section-related components

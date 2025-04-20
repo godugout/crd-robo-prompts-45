@@ -32,11 +32,14 @@ export const Sidebar = React.forwardRef<
     if (collapsible === "none") {
       return (
         <div
+          ref={ref}
+          data-sidebar="sidebar"
+          role="complementary"
+          aria-label={`${side} sidebar`}
           className={cn(
             "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
             className
           )}
-          ref={ref}
           {...props}
         >
           {children}
@@ -50,6 +53,8 @@ export const Sidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
+            role="complementary"
+            aria-label={`${side} sidebar`}
             className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
             style={
               {
@@ -75,6 +80,8 @@ export const Sidebar = React.forwardRef<
         data-collapsible={state === "collapsed" ? collapsible : ""}
         data-variant={variant}
         data-side={side}
+        role="complementary"
+        aria-label={`${side} sidebar`}
       >
         <div
           className={cn(
@@ -114,7 +121,7 @@ export const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, state } = useSidebar()
 
   return (
     <Button
@@ -127,6 +134,8 @@ export const SidebarTrigger = React.forwardRef<
         onClick?.(event)
         toggleSidebar()
       }}
+      aria-expanded={state === "expanded"}
+      aria-label={state === "expanded" ? "Collapse sidebar" : "Expand sidebar"}
       {...props}
     >
       <PanelLeft />
@@ -135,5 +144,3 @@ export const SidebarTrigger = React.forwardRef<
   )
 })
 SidebarTrigger.displayName = "SidebarTrigger"
-
-// ... Additional base components like SidebarRail, SidebarInput, etc.

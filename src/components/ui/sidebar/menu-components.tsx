@@ -35,6 +35,7 @@ export const SidebarMenu = React.forwardRef<
   <ul
     ref={ref}
     data-sidebar="menu"
+    role="menu"
     className={cn("flex w-full min-w-0 flex-col gap-1", className)}
     {...props}
   />
@@ -48,10 +49,68 @@ export const SidebarMenuItem = React.forwardRef<
   <li
     ref={ref}
     data-sidebar="menu-item"
+    role="menuitem"
+    tabIndex={0}
     className={cn("group/menu-item relative", className)}
     {...props}
   />
 ))
 SidebarMenuItem.displayName = "SidebarMenuItem"
 
-// ... Additional menu-related components
+export const SidebarMenuButton = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentPropsWithoutRef<"button"> &
+    VariantProps<typeof sidebarMenuButtonVariants> & {
+      asChild?: boolean
+      tooltipContent?: React.ReactNode
+    }
+>(
+  (
+    {
+      className,
+      variant,
+      size,
+      asChild = false,
+      tooltipContent,
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    const { state } = useSidebar()
+    const Comp = asChild ? Slot : "button"
+    const isCollapsed = state === "collapsed"
+
+    if (isCollapsed && tooltipContent) {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Comp
+              ref={ref}
+              className={cn(sidebarMenuButtonVariants({ variant, size, className }))}
+              role="menuitem"
+              {...props}
+            >
+              {children}
+            </Comp>
+          </TooltipTrigger>
+          <TooltipContent side="right" sideOffset={20}>
+            {tooltipContent}
+          </TooltipContent>
+        </Tooltip>
+      )
+    }
+
+    return (
+      <Comp
+        ref={ref}
+        className={cn(sidebarMenuButtonVariants({ variant, size, className }))}
+        role="menuitem"
+        {...props}
+      >
+        {children}
+      </Comp>
+    )
+  }
+)
+SidebarMenuButton.displayName = "SidebarMenuButton"
