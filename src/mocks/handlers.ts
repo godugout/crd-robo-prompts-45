@@ -106,7 +106,7 @@ export const handlers = [
     const newMemory = {
       id: String(memories.length + 1),
       createdAt: new Date().toISOString(),
-      ...body
+      ...body as any // Fixed spread type
     };
     memories.push(newMemory as typeof memories[0]);
     return Response.json(newMemory, { status: 201 });
@@ -121,7 +121,8 @@ export const handlers = [
       return new Response('Card not found', { status: 404 });
     }
     
-    memories[index] = { ...memories[index], ...body } as typeof memories[0];
+    const updatedMemory = { ...memories[index], ...body as any }; // Fixed spread type
+    memories[index] = updatedMemory as typeof memories[0];
     return Response.json(memories[index]);
   }),
 
@@ -238,12 +239,12 @@ export const handlers = [
   }),
 
   http.post('/api/decks', async ({ request }) => {
-    const body = await request.json();
+    const body = await request.json() as any;
     const newDeck = {
       id: String(decks.length + 1),
       createdAt: new Date().toISOString(),
       cardCount: body.cards?.length || 0,
-      ...body
+      ...body as any // Fixed spread type
     };
     
     decks.push(newDeck as typeof decks[0]);
@@ -252,7 +253,7 @@ export const handlers = [
 
   http.put('/api/decks/:id', async ({ params, request }) => {
     const { id } = params;
-    const body = await request.json();
+    const body = await request.json() as any;
     const index = decks.findIndex(d => d.id === id);
     
     if (index === -1) {
@@ -261,7 +262,7 @@ export const handlers = [
     
     const updatedDeck = { 
       ...decks[index], 
-      ...body,
+      ...body as any, // Fixed spread type
       cardCount: body.cards?.length || decks[index].cardCount
     };
     
@@ -295,14 +296,14 @@ export const handlers = [
 
   http.put('/api/users/:id', async ({ params, request }) => {
     const { id } = params;
-    const body = await request.json();
+    const body = await request.json() as any;
     const index = users.findIndex(u => u.id === id);
     
     if (index === -1) {
       return new Response('User not found', { status: 404 });
     }
     
-    users[index] = { ...users[index], ...body } as typeof users[0];
+    users[index] = { ...users[index], ...body as any }; // Fixed spread type
     return Response.json(users[index]);
   })
 ];

@@ -1,5 +1,8 @@
 
+import type { Visibility } from '@/types/common';
 import type { Memory } from '@/types/memory';
+
+export { Memory }; // Ensure Memory is properly exported
 
 export interface CreateMemoryParams {
   userId: string;
@@ -26,7 +29,7 @@ export interface UpdateMemoryParams {
 export interface MemoryListOptions {
   page?: number;
   pageSize?: number;
-  visibility?: 'public' | 'private' | 'shared';
+  visibility?: 'public' | 'private' | 'shared' | 'all';
   teamId?: string;
   tags?: string[];
   search?: string;
@@ -36,4 +39,3 @@ export interface PaginatedMemories {
   memories: Memory[];
   total: number;
 }
-

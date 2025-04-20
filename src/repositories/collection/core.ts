@@ -11,9 +11,9 @@ export const getCollectionQuery = () => {
     .select('*, media(*)');
 };
 
+// We need to modify this function since collection_items table doesn't exist in the schema
+// Instead, we'll use the collection_cards table which serves the same purpose
 export const getCollectionItemsQuery = () => {
-  // We'll manually build the query instead of using collection_items
-  // since it seems to have typing issues
   return supabase
-    .from('collection_items');
+    .from('collection_cards');
 };

@@ -1,7 +1,7 @@
 
 import { supabase } from '@/lib/supabase-client';
 import { getAppId } from '@/integrations/supabase/client';
-import type { Memory, MemoryListOptions, PaginatedMemories } from './types';
+import type { Memory, MemoryListOptions, PaginatedMemories } from '@/types/memory';
 import { calculateOffset } from './core';
 
 export const getMemoryById = async (id: string): Promise<Memory | null> => {
@@ -19,12 +19,19 @@ export const getMemoryById = async (id: string): Promise<Memory | null> => {
     
     if (!data) return null;
     
-    // Get reaction counts
-    const reactionCounts = await supabase
+    // Get reaction counts manually since we can't use group
+    const { data: reactionData } = await supabase
       .from('reactions')
-      .select('type, count(*)')
-      .eq('card_id', id)
-      .then(({ data }) => data || []);
+      .select('type')
+      .eq('card_id', id);
+      
+    // Count reactions by type manually
+    const reactionCounts: Record<string, number> = {};
+    if (reactionData) {
+      reactionData.forEach(reaction => {
+        reactionCounts[reaction.type] = (reactionCounts[reaction.type] || 0) + 1;
+      });
+    }
       
     // Count comments
     const { count: commentCount } = await supabase
@@ -45,7 +52,7 @@ export const getMemoryById = async (id: string): Promise<Memory | null> => {
       tags: data.tags,
       metadata: data.metadata,
       media: data.media,
-      reactionCounts: reactionCounts,
+      reactionCounts: Object.entries(reactionCounts).map(([type, count]) => ({ type, count })),
       commentCount: commentCount || 0
     };
   } catch (error) {

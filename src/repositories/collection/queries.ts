@@ -26,7 +26,7 @@ export const getCollectionById = async (id: string): Promise<Collection | null> 
       coverImageUrl: data.cover_image_url,
       visibility: data.visibility as Visibility,
       createdAt: data.created_at,
-      cardCount: data.card_count || 0
+      cardCount: 0 // Default to 0 since card_count doesn't exist
     };
   } catch (error) {
     console.error('Error in getCollectionById:', error);
@@ -45,36 +45,53 @@ export const getCollectionById = async (id: string): Promise<Collection | null> 
 
 export const getCollectionItems = async (collectionId: string): Promise<CollectionItem[]> => {
   try {
+    // Use collection_cards table instead of collection_items
     const { data, error } = await getCollectionItemsQuery()
-      .select(`*, memory:memories(*)`)
-      .eq('collection_id', collectionId)
-      .order('display_order', { ascending: true });
+      .select()
+      .eq('collection_id', collectionId);
     
     if (error) {
       throw new Error(`Failed to fetch collection items: ${error.message}`);
     }
     
-    return (data || []).map(item => ({
-      id: item.id,
-      collectionId: item.collection_id,
-      memoryId: item.memory_id,
-      displayOrder: item.display_order,
-      addedAt: item.added_at,
-      memory: item.memory ? {
-        id: item.memory.id,
-        userId: item.memory.user_id,
-        title: item.memory.title,
-        description: item.memory.description,
-        teamId: item.memory.team_id,
-        gameId: item.memory.game_id,
-        location: item.memory.location,
-        visibility: item.memory.visibility,
-        createdAt: item.memory.created_at,
-        tags: item.memory.tags,
-        metadata: item.memory.metadata,
-        media: item.memory.media
-      } : undefined
-    }));
+    if (!data || data.length === 0) return [];
+    
+    // Get memories for these cards
+    const cardIds = data.map(item => item.card_id);
+    const { data: memoriesData, error: memoriesError } = await supabase
+      .from('memories')
+      .select('*, media(*)')
+      .in('id', cardIds);
+      
+    if (memoriesError) {
+      throw new Error(`Failed to fetch memories: ${memoriesError.message}`);
+    }
+    
+    // Map the data to our expected format
+    return data.map(item => {
+      const memory = memoriesData?.find(m => m.id === item.card_id);
+      return {
+        id: item.id,
+        collectionId: item.collection_id,
+        memoryId: item.card_id,
+        displayOrder: 0, // Default value since we don't have display_order
+        addedAt: item.created_at,
+        memory: memory ? {
+          id: memory.id,
+          userId: memory.user_id,
+          title: memory.title,
+          description: memory.description,
+          teamId: memory.team_id,
+          gameId: memory.game_id,
+          location: memory.location,
+          visibility: memory.visibility,
+          createdAt: memory.created_at,
+          tags: memory.tags,
+          metadata: memory.metadata,
+          media: memory.media
+        } : undefined
+      };
+    });
   } catch (error) {
     console.error('Error in getCollectionItems:', error);
     
@@ -131,7 +148,7 @@ export const getCollectionsByUserId = async (
       coverImageUrl: collection.cover_image_url,
       visibility: collection.visibility as Visibility,
       createdAt: collection.created_at,
-      cardCount: collection.card_count || 0
+      cardCount: 0 // Default to 0 since card_count doesn't exist
     }));
     
     return {
@@ -205,7 +222,7 @@ export const getPublicCollections = async (
       coverImageUrl: collection.cover_image_url,
       visibility: collection.visibility as Visibility,
       createdAt: collection.created_at,
-      cardCount: collection.card_count || 0
+      cardCount: 0 // Default to 0 since card_count doesn't exist
     }));
     
     return {
