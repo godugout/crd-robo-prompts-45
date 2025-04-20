@@ -14,6 +14,7 @@ if (!supabaseUrl || !supabaseKey) {
     '- VITE_SUPABASE_ANON_KEY\n\n' +
     'For local development, create a .env file in the root directory with these variables.'
   );
+  
   // Provide placeholder client with mock methods to prevent runtime errors
   // This allows the app to at least render without crashing
   const mockClient = {
@@ -39,7 +40,7 @@ if (!supabaseUrl || !supabaseKey) {
     rpc: () => Promise.resolve({ data: [], error: null }),
   };
   
-  // We need to export the mock client properly
+  // Export the mock client with proper typing
   export const supabase = mockClient as unknown as ReturnType<typeof createClient<Database>>;
 } else {
   // Create the actual Supabase client
