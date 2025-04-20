@@ -15,7 +15,7 @@ export interface GetCommentsParams {
   cardId?: string;
   collectionId?: string;
   teamId?: string;
-  parentCommentId?: string;
+  parentId?: string; // Changed from parentCommentId to parentId
   page?: number;
   limit?: number;
 }
@@ -113,8 +113,8 @@ export const getComments = async (params: GetCommentsParams): Promise<CommentsRe
       query = query.eq('team_id', params.teamId);
     }
     
-    if (params.parentCommentId) {
-      query = query.eq('parent_id', params.parentCommentId);
+    if (params.parentId) {
+      query = query.eq('parent_id', params.parentId);
     } else {
       query = query.is('parent_id', null);
     }
@@ -181,8 +181,8 @@ export const getComments = async (params: GetCommentsParams): Promise<CommentsRe
         queryParams.append('teamId', params.teamId);
       }
       
-      if (params.parentCommentId) {
-        queryParams.append('parentId', params.parentCommentId);
+      if (params.parentId) {
+        queryParams.append('parentId', params.parentId);
       }
       
       if (params.page) {

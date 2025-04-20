@@ -3,6 +3,7 @@ import type { Collection, CollectionItem, CollectionListOptions, PaginatedCollec
 import { getCollectionQuery, getCollectionItemsQuery, calculateOffset } from './core';
 import { supabase } from '@/lib/supabase-client';
 import { getAppId } from '@/integrations/supabase/client';
+import type { Visibility } from '@/types/common';
 
 export const getCollectionById = async (id: string): Promise<Collection | null> => {
   try {
@@ -23,9 +24,9 @@ export const getCollectionById = async (id: string): Promise<Collection | null> 
       description: data.description,
       ownerId: data.owner_id,
       coverImageUrl: data.cover_image_url,
-      visibility: data.visibility,
+      visibility: data.visibility as Visibility,
       createdAt: data.created_at,
-      cardCount: data.card_count
+      cardCount: data.card_count || 0
     };
   } catch (error) {
     console.error('Error in getCollectionById:', error);
@@ -44,7 +45,10 @@ export const getCollectionById = async (id: string): Promise<Collection | null> 
 
 export const getCollectionItems = async (collectionId: string): Promise<CollectionItem[]> => {
   try {
-    const { data, error } = await getCollectionItemsQuery(collectionId);
+    const { data, error } = await getCollectionItemsQuery()
+      .select(`*, memory:memories(*)`)
+      .eq('collection_id', collectionId)
+      .order('display_order', { ascending: true });
     
     if (error) {
       throw new Error(`Failed to fetch collection items: ${error.message}`);
@@ -119,15 +123,15 @@ export const getCollectionsByUserId = async (
 
     if (error) throw new Error(`Failed to fetch collections: ${error.message}`);
     
-    const collections = (data || []).map(collection => ({
+    const collections: Collection[] = (data || []).map(collection => ({
       id: collection.id,
       title: collection.title,
       description: collection.description,
       ownerId: collection.owner_id,
       coverImageUrl: collection.cover_image_url,
-      visibility: collection.visibility,
+      visibility: collection.visibility as Visibility,
       createdAt: collection.created_at,
-      cardCount: collection.card_count
+      cardCount: collection.card_count || 0
     }));
     
     return {
@@ -193,15 +197,15 @@ export const getPublicCollections = async (
 
     if (error) throw new Error(`Failed to fetch public collections: ${error.message}`);
     
-    const collections = (data || []).map(collection => ({
+    const collections: Collection[] = (data || []).map(collection => ({
       id: collection.id,
       title: collection.title,
       description: collection.description,
       ownerId: collection.owner_id,
       coverImageUrl: collection.cover_image_url,
-      visibility: collection.visibility,
+      visibility: collection.visibility as Visibility,
       createdAt: collection.created_at,
-      cardCount: collection.card_count
+      cardCount: collection.card_count || 0
     }));
     
     return {

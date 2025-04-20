@@ -73,7 +73,9 @@ export const ReactionBar = ({
     try {
       const hasReacted = userReactions.some((r) => r.type === type);
       if (hasReacted) {
-        await socialRepository.removeReaction(user.id, type, {
+        await socialRepository.removeReaction({
+          userId: user.id,
+          type,
           memoryId,
           collectionId,
           commentId,
@@ -81,7 +83,9 @@ export const ReactionBar = ({
         setUserReactions(userReactions.filter((r) => r.type !== type));
         setCounts({ ...counts, [type]: (counts[type] || 0) - 1 });
       } else {
-        const newReaction = await socialRepository.addReaction(user.id, type, {
+        const newReaction = await socialRepository.addReaction({
+          userId: user.id,
+          type,
           memoryId,
           collectionId,
           commentId,

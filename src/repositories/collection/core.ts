@@ -11,11 +11,9 @@ export const getCollectionQuery = () => {
     .select('*, media(*)');
 };
 
-export const getCollectionItemsQuery = (collectionId: string) => {
-  // Use string interpolation to avoid type issues
+export const getCollectionItemsQuery = () => {
+  // We'll manually build the query instead of using collection_items
+  // since it seems to have typing issues
   return supabase
-    .from('collection_items')
-    .select(`*, memory:memories(*)`)
-    .eq('collection_id', collectionId)
-    .order('display_order', { ascending: true });
+    .from('collection_items');
 };
