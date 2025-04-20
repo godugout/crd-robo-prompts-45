@@ -1,0 +1,67 @@
+
+import { useState } from 'react';
+import { uploadMedia } from '@/lib/mediaManager';
+import { saveForOfflineUpload } from '@/lib/offlineStorage';
+import { toast } from '@/hooks/use-toast';
+import type { MediaItem } from '@/types/media';
+
+interface UseMediaUploadOptions {
+  memoryId: string;
+  userId: string;
+  isPrivate?: boolean;
+  detectFaces?: boolean;
+}
+
+export const useMediaUpload = ({ memoryId, userId, isPrivate, detectFaces }: UseMediaUploadOptions) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  const upload = async (file: File): Promise<MediaItem | null> => {
+    setIsUploading(true);
+    setProgress(0);
+
+    try {
+      if (!navigator.onLine) {
+        const uploadId = await saveForOfflineUpload(file, memoryId, userId, { detectFaces }, isPrivate);
+        toast({
+          title: "Saved for offline upload",
+          description: "Your file will be uploaded when you're back online"
+        });
+        return null;
+      }
+
+      const mediaItem = await uploadMedia({
+        file,
+        memoryId,
+        userId,
+        isPrivate,
+        metadata: { detectFaces },
+        progressCallback: (progress) => setProgress(progress)
+      });
+
+      toast({
+        title: "Upload complete",
+        description: "Your file has been uploaded successfully"
+      });
+
+      return mediaItem;
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Failed to upload file",
+        variant: "destructive"
+      });
+      return null;
+    } finally {
+      setIsUploading(false);
+      setProgress(0);
+    }
+  };
+
+  return {
+    upload,
+    isUploading,
+    progress
+  };
+};
