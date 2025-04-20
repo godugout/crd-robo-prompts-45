@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
-import { ThumbsUp, Heart, PartyPopper, Baseball } from 'lucide-react';
+import { ThumbsUp, Heart, PartyPopper, Medal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/hooks/use-user';
-import * as socialRepository from '@/repositories/socialRepository';
+import * as socialRepository from '@/repositories/social';
 import type { Reaction, ReactionCounts } from '@/types/social';
 
 interface ReactionBarProps {
@@ -19,7 +18,7 @@ const REACTION_TYPES = [
   { type: 'thumbs-up', Icon: ThumbsUp },
   { type: 'heart', Icon: Heart },
   { type: 'party', Icon: PartyPopper },
-  { type: 'baseball', Icon: Baseball },
+  { type: 'baseball', Icon: Medal },
 ];
 
 export const ReactionBar = ({
@@ -123,4 +122,3 @@ export const ReactionBar = ({
     </div>
   );
 };
-
