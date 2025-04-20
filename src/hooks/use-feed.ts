@@ -26,14 +26,13 @@ export const useFeed = (userId?: string) => {
         .from('memories')
         .select(`
           *,
-          user:users(*),
+          user:profiles(*),
           media(*),
           reactions(*),
-          comments(count),
-          _count
+          comments(count)
         `)
         .eq('visibility', 'public')
-        .order('createdAt', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (feedType === 'following' && userId) {
         const { data: followingIds } = await supabase
@@ -48,18 +47,17 @@ export const useFeed = (userId?: string) => {
           setLoading(false);
           return;
         }
-        query = query.in('userId', userIds);
+        query = query.in('user_id', userIds);
       }
       
       if (feedType === 'trending') {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
         
-        // Fix the group query
         const { data: trendingIds } = await supabase
           .from('reactions')
           .select('memoryId, count')
-          .gte('createdAt', sevenDaysAgo.toISOString())
+          .gte('created_at', sevenDaysAgo.toISOString())
           .order('count', { ascending: false })
           .limit(50);
           
@@ -82,10 +80,8 @@ export const useFeed = (userId?: string) => {
           
         const userIds = followingIds?.map(f => f.followedId) || [];
         if (userIds.length > 0) {
-          // Fix the ordering options
-          query = query.order('userId', { 
-            ascending: false,
-            foreignTable: 'users'
+          query = query.order('user_id', { 
+            ascending: false
           });
         }
       }
@@ -95,7 +91,9 @@ export const useFeed = (userId?: string) => {
 
       if (error) throw error;
 
-      const newMemories = data as Memory[];
+      // Transform the data to match our Memory type
+      const newMemories = data as unknown as Memory[];
+      
       setMemories(prev => 
         currentPage === 1 ? newMemories : [...prev, ...newMemories]
       );

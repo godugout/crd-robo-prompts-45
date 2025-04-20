@@ -4,10 +4,9 @@ import { useUser } from '@/hooks/use-user';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader, AlertCircle } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import { useFeed } from '@/hooks/use-feed';
 import { MemoryCard } from '@/components/memory/MemoryCard';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 type FeedType = 'forYou' | 'following' | 'trending';
 
@@ -24,14 +23,7 @@ export const FeedPage = () => {
     resetFeed
   } = useFeed(user?.id);
 
-  const [missingEnvVars, setMissingEnvVars] = React.useState(false);
-
   useEffect(() => {
-    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-      setMissingEnvVars(true);
-      return;
-    }
-    
     resetFeed();
     fetchMemories(1, activeTab);
   }, [activeTab, user, resetFeed, fetchMemories]);
@@ -46,26 +38,6 @@ export const FeedPage = () => {
     // Update local memory state when a reaction changes
     // This would be implemented in the MemoryCard component
   };
-
-  if (missingEnvVars) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-6">
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Missing Supabase configuration. Please set the VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY 
-            environment variables to connect to Supabase.
-          </AlertDescription>
-        </Alert>
-        <div className="p-8 text-center border rounded-lg">
-          <h2 className="text-xl font-semibold mb-4">Configuration Required</h2>
-          <p className="text-muted-foreground mb-4">
-            The feed requires Supabase connection to display memories. Please check the console for more information.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   if (!user) {
     return (
