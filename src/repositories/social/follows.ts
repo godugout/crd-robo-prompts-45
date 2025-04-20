@@ -38,8 +38,19 @@ export const getUserFollowers = async (userId: string): Promise<User[]> => {
 
   if (error) throw error;
   
-  // Extract the follower object and ensure it matches the User type
-  return data.map(item => item.follower) as User[];
+  // Correctly extract the nested user objects from the Supabase response
+  if (!data || data.length === 0) return [];
+  
+  // Map through the data and extract the follower objects
+  const followers = data.map(item => {
+    // Ensure follower exists and has the expected structure
+    if (item && item.follower) {
+      return item.follower as User;
+    }
+    return null;
+  }).filter((user): user is User => user !== null);
+  
+  return followers;
 };
 
 export const getUserFollowing = async (userId: string): Promise<User[]> => {
@@ -50,6 +61,17 @@ export const getUserFollowing = async (userId: string): Promise<User[]> => {
 
   if (error) throw error;
   
-  // Extract the followed object and ensure it matches the User type
-  return data.map(item => item.followed) as User[];
+  // Correctly extract the nested user objects from the Supabase response
+  if (!data || data.length === 0) return [];
+  
+  // Map through the data and extract the followed objects
+  const following = data.map(item => {
+    // Ensure followed exists and has the expected structure
+    if (item && item.followed) {
+      return item.followed as User;
+    }
+    return null;
+  }).filter((user): user is User => user !== null);
+  
+  return following;
 };
