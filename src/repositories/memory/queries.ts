@@ -4,9 +4,10 @@ import type { MemoryListOptions, PaginatedMemories } from './types';
 import { getMemoryQuery, calculateOffset } from './core';
 
 export const getMemoryById = async (id: string): Promise<Memory | null> => {
-  const query = await getMemoryQuery();
+  const queryBuilder = await getMemoryQuery();
   
-  const { data, error } = await query
+  // Now chain the conditions and execute the query
+  const { data, error } = await queryBuilder
     .eq('id', id)
     .single();
 
@@ -29,21 +30,27 @@ export const getMemoriesByUserId = async (
     teamId,
   } = options;
 
-  const query = await getMemoryQuery();
+  const queryBuilder = await getMemoryQuery();
   
-  let queryBuilder = query
+  // Chain conditions to the query builder
+  let finalQuery = queryBuilder
     .eq('userId', userId)
     .order('createdAt', { ascending: false });
 
-  if (visibility) queryBuilder = queryBuilder.eq('visibility', visibility);
-  if (teamId) queryBuilder = queryBuilder.eq('teamId', teamId);
+  if (visibility) finalQuery = finalQuery.eq('visibility', visibility);
+  if (teamId) finalQuery = finalQuery.eq('teamId', teamId);
   
-  queryBuilder = queryBuilder.range(
+  // Now add app_id filter
+  const appId = await getAppId();
+  if (appId) finalQuery = finalQuery.eq('app_id', appId);
+  
+  finalQuery = finalQuery.range(
     calculateOffset(page, pageSize),
     calculateOffset(page, pageSize) + pageSize - 1
   );
 
-  const { data, error, count } = await queryBuilder;
+  // Execute the query
+  const { data, error, count } = await finalQuery;
 
   if (error) throw new Error(`Failed to fetch memories: ${error.message}`);
   
@@ -64,26 +71,32 @@ export const getPublicMemories = async (
     search
   } = options;
 
-  const query = await getMemoryQuery();
+  const queryBuilder = await getMemoryQuery();
   
-  let queryBuilder = query
+  // Chain conditions to the query builder
+  let finalQuery = queryBuilder
     .eq('visibility', 'public')
     .order('createdAt', { ascending: false });
 
-  if (teamId) queryBuilder = queryBuilder.eq('teamId', teamId);
+  // Add app_id filter if available  
+  const appId = await getAppId();
+  if (appId) finalQuery = finalQuery.eq('app_id', appId);
+
+  if (teamId) finalQuery = finalQuery.eq('teamId', teamId);
   if (tags && tags.length > 0) {
-    queryBuilder = queryBuilder.contains('tags', tags);
+    finalQuery = finalQuery.contains('tags', tags);
   }
   if (search) {
-    queryBuilder = queryBuilder.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+    finalQuery = finalQuery.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
   }
 
-  queryBuilder = queryBuilder.range(
+  finalQuery = finalQuery.range(
     calculateOffset(page, pageSize),
     calculateOffset(page, pageSize) + pageSize - 1
   );
 
-  const { data, error, count } = await queryBuilder;
+  // Execute the query
+  const { data, error, count } = await finalQuery;
 
   if (error) throw new Error(`Failed to fetch public memories: ${error.message}`);
   

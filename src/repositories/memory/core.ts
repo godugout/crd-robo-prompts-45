@@ -8,9 +8,9 @@ export const calculateOffset = (page = 1, pageSize = 10): number => {
 export const getMemoryQuery = async () => {
   const appId = await getAppId();
   
-  // Return the query builder, not a Promise with the executed query
+  // Return the query builder directly, not the executed query
   return supabase
     .from('memories')
-    .select('*, media(*)')
-    .eq('app_id', appId);
+    .select('*, media(*)');
+    // Don't execute the query here with .eq() since we want to chain more conditions
 };
