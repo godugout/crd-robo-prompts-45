@@ -1,182 +1,239 @@
 
-import React, { useCallback, useState } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { Camera, Image, Upload, X, Loader } from 'lucide-react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { Trash, Upload, Camera } from 'lucide-react';
 import { uploadMedia } from '@/lib/mediaManager';
+import type { MediaItem } from '@/types/media';
 import { toast } from '@/hooks/use-toast';
-import type { MediaUploaderProps } from './types';
 
-export const MediaUploader = ({ onUploadComplete, onError, memoryId, userId }: MediaUploaderProps) => {
-  const [file, setFile] = useState<File | null>(null);
+interface MediaUploaderProps {
+  memoryId: string;
+  userId: string;
+  onUploadComplete: (mediaItem: MediaItem) => void;
+  onError?: (error: Error) => void;
+  isPrivate?: boolean;
+  detectFaces?: boolean;
+}
+
+export const MediaUploader: React.FC<MediaUploaderProps> = ({
+  memoryId,
+  userId,
+  onUploadComplete,
+  onError,
+  isPrivate = false,
+  detectFaces = false
+}) => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [progress, setProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
-
-  const handleProgressCallback = useCallback((progress: number) => {
-    setProgress(progress);
-  }, []);
-
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      const file = acceptedFiles[0];
-      setFile(file);
-      const objectUrl = URL.createObjectURL(file);
-      setPreview(objectUrl);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      
+      // Create a preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    maxFiles: 1,
-    accept: {
-      'image/*': [],
-      'video/*': [],
-      'audio/*': []
+  };
+  
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      setSelectedFile(file);
+      
+      // Create a preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  });
-
-  const handleCapture = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      await video.play();
-
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d')?.drawImage(video, 0, 0);
-
-      canvas.toBlob(async (blob) => {
-        if (blob) {
-          const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
-          setFile(file);
-          setPreview(URL.createObjectURL(file));
-        }
-        stream.getTracks().forEach(track => track.stop());
-      }, 'image/jpeg');
-    } catch (error) {
-      toast({
-        title: "Camera Error",
-        description: "Could not access camera",
-        variant: "destructive"
-      });
+  };
+  
+  const handleCameraClick = () => {
+    // Open camera on mobile
+    if (fileInputRef.current) {
+      fileInputRef.current.setAttribute('capture', 'environment');
+      fileInputRef.current.click();
     }
-  }, []);
-
+  };
+  
+  const handleBrowseClick = () => {
+    // Remove capture attribute for regular file browsing
+    if (fileInputRef.current) {
+      fileInputRef.current.removeAttribute('capture');
+      fileInputRef.current.click();
+    }
+  };
+  
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setPreview(null);
+    setUploadProgress(0);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+  
   const handleUpload = async () => {
-    if (!file) return;
+    if (!selectedFile) return;
     
     setIsUploading(true);
+    setUploadProgress(0);
+    
     try {
+      const metadata = {
+        detectFaces: detectFaces
+      };
+      
       const mediaItem = await uploadMedia({
-        file,
+        file: selectedFile,
         memoryId,
         userId,
-        progressCallback: handleProgressCallback
+        isPrivate,
+        metadata,
+        progressCallback: (progress) => {
+          setUploadProgress(progress);
+        }
       });
+      
       onUploadComplete(mediaItem);
-      setFile(null);
+      
+      // Reset the component
+      setSelectedFile(null);
       setPreview(null);
+      setUploadProgress(0);
+      
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (error) {
-      if (error instanceof Error) {
-        onError?.(error);
+      console.error('Error uploading file:', error);
+      if (onError && error instanceof Error) {
+        onError(error);
+      } else {
         toast({
           title: "Upload Error",
-          description: error.message,
+          description: "Failed to upload media",
           variant: "destructive"
         });
       }
     } finally {
       setIsUploading(false);
-      setProgress(0);
     }
   };
-
-  const handleRemove = () => {
-    if (preview) URL.revokeObjectURL(preview);
-    setFile(null);
-    setPreview(null);
-    setProgress(0);
-  };
-
+  
   return (
-    <div className="w-full max-w-md mx-auto">
-      {!file ? (
-        <div className="space-y-4">
-          <div
-            {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors
-              ${isDragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'}`}
-          >
-            <input {...getInputProps()} />
-            <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
-            <p className="mt-2 text-sm text-muted-foreground">
-              Drag & drop a file here, or click to select
-            </p>
-          </div>
-          <div className="flex justify-center gap-2">
-            <Button onClick={() => document.querySelector('input')?.click()} variant="outline">
-              <Image className="mr-2 h-4 w-4" />
-              Browse
-            </Button>
-            <Button onClick={handleCapture} variant="outline">
-              <Camera className="mr-2 h-4 w-4" />
-              Capture
-            </Button>
+    <div className="w-full">
+      <input
+        type="file"
+        className="hidden"
+        ref={fileInputRef}
+        accept="image/*,video/*"
+        onChange={handleFileChange}
+      />
+      
+      {!selectedFile ? (
+        <div
+          className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center gap-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          <div className="text-center">
+            <p className="text-gray-700 mb-2">Drag and drop files here, or</p>
+            <div className="flex gap-2 justify-center">
+              <Button 
+                variant="outline" 
+                onClick={handleBrowseClick}
+                size="sm"
+                className="flex items-center gap-1"
+              >
+                <Upload size={16} />
+                Browse
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={handleCameraClick}
+                size="sm"
+                className="flex items-center gap-1"
+              >
+                <Camera size={16} />
+                Camera
+              </Button>
+            </div>
           </div>
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="relative aspect-video rounded-lg overflow-hidden bg-secondary">
-            {preview && (
-              file.type.startsWith('image/') ? (
-                <img
-                  src={preview}
-                  alt="Upload preview"
-                  className="w-full h-full object-contain"
+        <div className="rounded-lg overflow-hidden border border-gray-200">
+          {preview && (
+            <div className="aspect-video bg-black flex items-center justify-center">
+              {selectedFile.type.startsWith('image/') ? (
+                <img 
+                  src={preview} 
+                  alt="Preview" 
+                  className="max-h-full max-w-full object-contain"
                 />
-              ) : file.type.startsWith('video/') ? (
-                <video
-                  src={preview}
-                  controls
-                  className="w-full h-full"
+              ) : selectedFile.type.startsWith('video/') ? (
+                <video 
+                  src={preview} 
+                  controls 
+                  className="max-h-full max-w-full"
                 />
               ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-muted-foreground">Audio file selected</p>
-                </div>
-              )
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-2 right-2"
-              onClick={handleRemove}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {isUploading ? (
-            <div className="space-y-2">
-              <Progress value={progress} className="w-full" />
-              <p className="text-sm text-center text-muted-foreground">
-                Uploading... {progress.toFixed(0)}%
-              </p>
-            </div>
-          ) : (
-            <Button onClick={handleUpload} className="w-full">
-              {isUploading ? (
-                <Loader className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Upload className="mr-2 h-4 w-4" />
+                <div className="text-white">Unsupported file type</div>
               )}
-              Upload
-            </Button>
+            </div>
           )}
+          
+          <div className="p-3 bg-white">
+            <div className="flex justify-between items-center mb-2">
+              <div className="text-sm truncate">{selectedFile.name}</div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleRemoveFile}
+                disabled={isUploading}
+              >
+                <Trash size={16} className="text-gray-500" />
+              </Button>
+            </div>
+            
+            {isUploading ? (
+              <div className="space-y-2">
+                <Progress value={uploadProgress} />
+                <div className="text-xs text-gray-500 text-right">
+                  {Math.round(uploadProgress)}%
+                </div>
+              </div>
+            ) : (
+              <Button 
+                onClick={handleUpload} 
+                size="sm" 
+                className="w-full"
+              >
+                Upload
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </div>

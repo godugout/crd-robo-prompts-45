@@ -6,6 +6,8 @@ export interface MediaUploaderProps {
   onError?: (error: Error) => void;
   memoryId: string;
   userId: string;
+  isPrivate?: boolean;
+  detectFaces?: boolean;
 }
 
 export interface BatchMediaUploaderProps extends Omit<MediaUploaderProps, 'onUploadComplete'> {
