@@ -7,13 +7,13 @@ import { Heart, MessageCircle, Share } from 'lucide-react';
 
 interface MemoryCardProps {
   memory: Memory;
-  onReaction?: (memoryId: string, reactionType: string) => void;
+  onReaction?: (memoryId: string, reactionType: 'heart' | 'thumbs-up' | 'party' | 'baseball') => void;
 }
 
 export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) => {
   const handleReaction = () => {
     if (onReaction) {
-      onReaction(memory.id, 'like');
+      onReaction(memory.id, 'heart');
     }
   };
 
@@ -49,7 +49,7 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) =>
           >
             <Heart className="h-4 w-4" />
             <span>
-              {memory.reactions?.filter(r => r.type === 'like').length || 0}
+              {memory.reactions?.filter(r => r.type === 'heart').length || 0}
             </span>
           </Button>
           
@@ -66,3 +66,4 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) =>
     </Card>
   );
 };
+
