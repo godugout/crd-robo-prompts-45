@@ -7,13 +7,15 @@ import { TemplatesSection } from './sidebar/TemplatesSection';
 import { AssetsSection } from './sidebar/AssetsSection';
 import { DesignElements } from './sidebar/DesignElements';
 import { LayersPanel } from './sidebar/LayersPanel';
+import { useCardEditor } from '@/hooks/useCardEditor';
 
-interface TemplateProps {
+interface LeftSidebarProps {
   selectedTemplate: string;
   onSelectTemplate: (template: string) => void;
+  cardEditor?: ReturnType<typeof useCardEditor>;
 }
 
-export const LeftSidebar = ({ selectedTemplate, onSelectTemplate }: TemplateProps) => {
+export const LeftSidebar = ({ selectedTemplate, onSelectTemplate, cardEditor }: LeftSidebarProps) => {
   const [selectedTab, setSelectedTab] = useState('upload');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -36,7 +38,7 @@ export const LeftSidebar = ({ selectedTemplate, onSelectTemplate }: TemplateProp
   const renderTabContent = () => {
     switch (selectedTab) {
       case 'upload':
-        return <UploadSection />;
+        return <UploadSection cardEditor={cardEditor} />;
       case 'templates':
         return (
           <TemplatesSection

@@ -1,41 +1,72 @@
 
-import React, { useState } from 'react';
-import { Switch } from '@/components/ui/switch';
+import React from 'react';
+import { Globe, Lock, Users } from 'lucide-react';
+import { 
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from '@/components/ui/label';
 import { SidebarSection } from '../SidebarSection';
+import { useCardEditor } from '@/hooks/useCardEditor';
 
-export const PublishingSection = () => {
-  const [isAvailableForPrinting, setIsAvailableForPrinting] = useState(true);
-  const [isForSale, setIsForSale] = useState(false);
-  const [isInCatalog, setIsInCatalog] = useState(false);
+interface PublishingSectionProps {
+  cardEditor: ReturnType<typeof useCardEditor>;
+}
 
+export const PublishingSection = ({ cardEditor }: PublishingSectionProps) => {
+  const { cardData, updateCardField } = cardEditor;
+  
   return (
-    <SidebarSection title="Publishing Options">
-      <div className="space-y-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h4 className="text-cardshow-white font-medium">Make available for printing</h4>
-            <p className="text-xs text-cardshow-lightGray mt-1">See if there is any fan interest in prints of your card.</p>
-          </div>
-          <Switch checked={isAvailableForPrinting} onCheckedChange={setIsAvailableForPrinting} />
+    <SidebarSection title="Publishing">
+      <div className="space-y-4">
+        <div>
+          <Label className="text-sm text-cardshow-lightGray uppercase">Visibility</Label>
+          <Select 
+            value={cardData.visibility} 
+            onValueChange={(value: 'private' | 'public' | 'shared') => updateCardField('visibility', value)}
+          >
+            <SelectTrigger className="input-dark mt-1">
+              <SelectValue placeholder="Select visibility" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="private">
+                  <div className="flex items-center">
+                    <Lock className="h-4 w-4 mr-2" />
+                    <span>Private</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="public">
+                  <div className="flex items-center">
+                    <Globe className="h-4 w-4 mr-2" />
+                    <span>Public</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="shared">
+                  <div className="flex items-center">
+                    <Users className="h-4 w-4 mr-2" />
+                    <span>Shared</span>
+                  </div>
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
         
-        <div className="flex items-start justify-between">
+        <div className="flex items-center justify-between px-4 py-3 bg-editor-darker rounded-lg">
           <div>
-            <h4 className="text-cardshow-white font-medium">Add to the market for sale</h4>
-            <p className="text-xs text-cardshow-lightGray mt-1">Put up for purchase as a digital download.</p>
+            <p className="text-cardshow-white font-medium">Publish Status</p>
+            <p className="text-cardshow-lightGray text-xs">Card is currently a draft</p>
           </div>
-          <Switch checked={isForSale} onCheckedChange={setIsForSale} />
-        </div>
-        
-        <div className="flex items-start justify-between">
-          <div>
-            <h4 className="text-cardshow-white font-medium">Include in CRD Catalog</h4>
-            <p className="text-xs text-cardshow-lightGray mt-1">Contribute to our official CRD Catalog.</p>
+          <div className="px-2 py-1 bg-cardshow-mediumGray rounded-full text-xs text-cardshow-lightGray">
+            Draft
           </div>
-          <Switch checked={isInCatalog} onCheckedChange={setIsInCatalog} />
         </div>
       </div>
     </SidebarSection>
   );
 };
-

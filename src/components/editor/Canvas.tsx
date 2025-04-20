@@ -1,19 +1,19 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { RotateCw, Share, Grid3x3, Zap, Sparkles, PaintBucket, Palette } from 'lucide-react';
+import { RotateCw, Share, Grid3x3, Sparkles, PaintBucket, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useCardEditor } from '@/hooks/useCardEditor';
 import { toast } from 'sonner';
 
 interface CanvasProps {
   zoom: number;
+  cardEditor?: ReturnType<typeof useCardEditor>;
 }
 
-export const Canvas = ({ zoom }: CanvasProps) => {
+export const Canvas = ({ zoom, cardEditor }: CanvasProps) => {
   const scale = zoom / 100;
-  const [title, setTitle] = useState('No roads needed');
-  const [description, setDescription] = useState('Where we\'re going, there are only cards. An original digital art piece inspired by BTTF.');
   const [rotation, setRotation] = useState(0);
   const [showGrid, setShowGrid] = useState(true);
   const [showEffects, setShowEffects] = useState(false);
@@ -23,6 +23,22 @@ export const Canvas = ({ zoom }: CanvasProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   const [cardPos, setCardPos] = useState({ x: 0, y: 0 });
+
+  // Connect to cardEditor if available
+  const title = cardEditor?.cardData.title || 'No roads needed';
+  const description = cardEditor?.cardData.description || 'Where we\'re going, there are only cards. An original digital art piece inspired by BTTF.';
+
+  // Update design metadata when canvas settings change
+  useEffect(() => {
+    if (cardEditor) {
+      cardEditor.updateDesignMetadata('canvasSettings', {
+        rotation,
+        brightness, 
+        contrast,
+        showEffects
+      });
+    }
+  }, [rotation, brightness, contrast, showEffects, cardEditor]);
 
   // Card animation effect
   useEffect(() => {
@@ -80,6 +96,20 @@ export const Canvas = ({ zoom }: CanvasProps) => {
   
   const handleMouseUp = () => {
     setIsDragging(false);
+  };
+
+  const handleBrightnessChange = (values: number[]) => {
+    setBrightness(values[0]);
+    if (cardEditor) {
+      cardEditor.updateDesignMetadata('brightness', values[0]);
+    }
+  };
+
+  const handleContrastChange = (values: number[]) => {
+    setContrast(values[0]);
+    if (cardEditor) {
+      cardEditor.updateDesignMetadata('contrast', values[0]);
+    }
   };
   
   return (
@@ -174,6 +204,14 @@ export const Canvas = ({ zoom }: CanvasProps) => {
                 {/* Particles are added dynamically via JS */}
               </div>
             )}
+
+            {/* Card Title Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-4 backdrop-blur-sm">
+              <h3 className="text-white text-xl font-bold">{title}</h3>
+              <p className="text-gray-200 text-sm mt-1 line-clamp-2">
+                {description}
+              </p>
+            </div>
           </div>
           
           <div className="mt-6 text-left">
@@ -188,7 +226,7 @@ export const Canvas = ({ zoom }: CanvasProps) => {
                 </div>
                 <Slider 
                   value={[brightness]} 
-                  onValueChange={(val) => setBrightness(val[0])} 
+                  onValueChange={handleBrightnessChange} 
                   min={50} 
                   max={150} 
                   step={5}
@@ -203,7 +241,7 @@ export const Canvas = ({ zoom }: CanvasProps) => {
                 </div>
                 <Slider 
                   value={[contrast]} 
-                  onValueChange={(val) => setContrast(val[0])} 
+                  onValueChange={handleContrastChange} 
                   min={50} 
                   max={150} 
                   step={5}

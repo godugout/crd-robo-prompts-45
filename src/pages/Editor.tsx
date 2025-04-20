@@ -1,24 +1,63 @@
 
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Topbar } from '@/components/editor/Topbar';
 import { Toolbar } from '@/components/editor/Toolbar';
 import { LeftSidebar } from '@/components/editor/LeftSidebar';
 import { RightSidebar } from '@/components/editor/RightSidebar';
 import { Canvas } from '@/components/editor/Canvas';
 import { toast } from 'sonner';
+import { useCardEditor } from '@/hooks/useCardEditor';
+import { CardRepository } from '@/repositories/cardRepository';
 
 const Editor = () => {
+  const { cardId } = useParams<{ cardId?: string }>();
   const [zoom, setZoom] = useState(100);
   const [selectedTemplate, setSelectedTemplate] = useState("template1");
   const [isLoading, setIsLoading] = useState(true);
-  const [cardData, setCardData] = useState({
-    title: "No roads needed",
-    description: "Where we're going, there are only cards. An original digital art piece inspired by BTTF.",
-    category: "Movies",
-    type: "Handcrafted",
-    series: "80s VCR",
-    tags: ["MOVIES", "HANDCRAFTED", "80sVCR"]
+
+  // Initialize card editor
+  const cardEditor = useCardEditor({
+    autoSave: true,
+    autoSaveInterval: 30000, // 30 seconds
   });
+
+  // Load card data if editing an existing card
+  useEffect(() => {
+    const loadCardData = async () => {
+      if (!cardId) {
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        const card = await CardRepository.getCardById(cardId);
+        if (card) {
+          // Update card editor with loaded data
+          cardEditor.updateCardField('id', card.id);
+          cardEditor.updateCardField('title', card.title);
+          cardEditor.updateCardField('description', card.description || '');
+          cardEditor.updateCardField('rarity', card.rarity as any);
+          cardEditor.updateCardField('tags', card.tags || []);
+          cardEditor.updateCardField('design_metadata', card.design_metadata);
+          cardEditor.updateCardField('image_url', card.image_url);
+          cardEditor.updateCardField('visibility', card.is_public ? 'public' : 'private');
+          
+          // Set template based on design metadata
+          if (card.design_metadata?.templateId) {
+            setSelectedTemplate(card.design_metadata.templateId);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading card:', error);
+        toast.error('Failed to load card data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadCardData();
+  }, [cardId]);
 
   useEffect(() => {
     // Simulate loading of editor resources
@@ -34,29 +73,18 @@ const Editor = () => {
 
   const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplate(templateId);
+    cardEditor.updateDesignMetadata('templateId', templateId);
     
     // Different template presets based on selection
     if (templateId === 'template1') {
-      setCardData({
-        ...cardData,
-        series: '80s VCR'
-      });
+      cardEditor.updateCardField('series', '80s VCR');
     } else if (templateId === 'template2') {
-      setCardData({
-        ...cardData,
-        series: 'Classic Cardboard'
-      });
+      cardEditor.updateCardField('series', 'Classic Cardboard');
     } else if (templateId === 'template3') {
-      setCardData({
-        ...cardData,
-        series: 'Nifty Framework'
-      });
+      cardEditor.updateCardField('series', 'Nifty Framework');
     } else if (templateId === 'template4') {
-      setCardData({
-        ...cardData,
-        series: 'Synthwave Dreams',
-        category: 'Music'
-      });
+      cardEditor.updateCardField('series', 'Synthwave Dreams');
+      cardEditor.updateCardField('category', 'Music');
     }
   };
 
@@ -76,14 +104,15 @@ const Editor = () => {
 
   return (
     <div className="flex flex-col h-screen bg-editor-darker">
-      <Topbar />
+      <Topbar cardEditor={cardEditor} />
       <Toolbar onZoomChange={setZoom} currentZoom={zoom} />
       <div className="flex-1 flex overflow-hidden">
         <LeftSidebar 
           selectedTemplate={selectedTemplate}
           onSelectTemplate={handleTemplateSelect}
+          cardEditor={cardEditor}
         />
-        <Canvas zoom={zoom} />
+        <Canvas zoom={zoom} cardEditor={cardEditor} />
         <RightSidebar />
       </div>
     </div>

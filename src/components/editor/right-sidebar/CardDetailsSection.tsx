@@ -1,13 +1,17 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useCardEditor } from '@/hooks/useCardEditor';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { SidebarSection } from '../SidebarSection';
 
-export const CardDetailsSection = () => {
-  const [title, setTitle] = useState('No roads needed');
-  const [description, setDescription] = useState('Where we\'re going, there are only cards. An original digital art piece inspired by BTTF.');
+interface CardDetailsSectionProps {
+  cardEditor: ReturnType<typeof useCardEditor>;
+}
+
+export const CardDetailsSection = ({ cardEditor }: CardDetailsSectionProps) => {
+  const { cardData, updateCardField } = cardEditor;
 
   return (
     <SidebarSection title="Card Details">
@@ -18,8 +22,8 @@ export const CardDetailsSection = () => {
             id="title"
             className="input-dark mt-1"
             placeholder="Card title" 
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            value={cardData.title}
+            onChange={(e) => updateCardField('title', e.target.value)}
           />
         </div>
         
@@ -29,12 +33,11 @@ export const CardDetailsSection = () => {
             id="description"
             className="input-dark mt-1 min-h-[80px] resize-none"
             placeholder="Card description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={cardData.description}
+            onChange={(e) => updateCardField('description', e.target.value)}
           />
         </div>
       </div>
     </SidebarSection>
   );
 };
-

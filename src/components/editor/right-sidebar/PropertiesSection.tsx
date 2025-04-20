@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { 
   Select,
   SelectContent,
@@ -14,60 +14,80 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SidebarSection } from '../SidebarSection';
-import { useTags } from '@/components/memory/hooks/useTags';
+import { useCardEditor } from '@/hooks/useCardEditor';
 
-interface CardProperty {
-  name: string;
-  value: string;
-  options: string[];
+interface PropertiesSectionProps {
+  cardEditor: ReturnType<typeof useCardEditor>;
 }
 
-export const PropertiesSection = () => {
-  const [properties, setProperties] = useState<CardProperty[]>([
-    { name: 'Type', value: 'Handcrafted', options: ['Handcrafted', 'Digital', 'Hybrid', 'AI Generated', 'Photography'] },
-    { name: 'Series', value: '80s VCR', options: ['80s VCR', 'Neon Dreams', 'Retro Wave', 'Cyberpunk', 'Vaporwave'] },
-    { name: 'Category', value: 'Movies', options: ['Movies', 'Music', 'Art', 'Sports', 'Gaming', 'Collectibles'] },
-  ]);
-
+export const PropertiesSection = ({ cardEditor }: PropertiesSectionProps) => {
   const { 
+    cardData, 
+    updateCardField, 
     tags, 
     handleTagInput, 
     removeTag, 
     hasMaxTags 
-  } = useTags(['MOVIES', 'HANDCRAFTED', '80sVCR'], {
-    maxTags: 10,
-    validateTag: (tag) => tag.length <= 20,
-    onTagAdded: (tag) => console.log('Tag added:', tag),
-    onTagRemoved: (tag) => console.log('Tag removed:', tag)
-  });
+  } = cardEditor;
 
-  const handlePropertyChange = (name: string, value: string) => {
-    setProperties(prev => prev.map(prop => 
-      prop.name === name ? { ...prop, value } : prop
-    ));
-  };
+  // Card property types
+  const typeOptions = ['Handcrafted', 'Digital', 'Hybrid', 'AI Generated', 'Photography'];
+  const seriesOptions = ['80s VCR', 'Neon Dreams', 'Retro Wave', 'Cyberpunk', 'Vaporwave'];
+  const categoryOptions = ['Movies', 'Music', 'Art', 'Sports', 'Gaming', 'Collectibles'];
 
   return (
     <SidebarSection title="Properties">
       <div className="grid grid-cols-2 gap-4">
-        {properties.map((prop, index) => (
-          <div key={index} className="col-span-1">
-            <Label htmlFor={`prop-${index}`} className="text-xs text-cardshow-lightGray uppercase">{prop.name}</Label>
-            <Select value={prop.value} onValueChange={(value) => handlePropertyChange(prop.name, value)}>
-              <SelectTrigger className="input-dark mt-1 text-sm">
-                <SelectValue placeholder={`Select ${prop.name}`} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>{prop.name}</SelectLabel>
-                  {prop.options.map((option) => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        ))}
+        <div className="col-span-1">
+          <Label htmlFor="type" className="text-xs text-cardshow-lightGray uppercase">Type</Label>
+          <Select value={cardData.type} onValueChange={(value) => updateCardField('type', value)}>
+            <SelectTrigger className="input-dark mt-1 text-sm">
+              <SelectValue placeholder="Select Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Type</SelectLabel>
+                {typeOptions.map((option) => (
+                  <SelectItem key={option} value={option}>{option}</SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="col-span-1">
+          <Label htmlFor="series" className="text-xs text-cardshow-lightGray uppercase">Series</Label>
+          <Select value={cardData.series} onValueChange={(value) => updateCardField('series', value)}>
+            <SelectTrigger className="input-dark mt-1 text-sm">
+              <SelectValue placeholder="Select Series" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Series</SelectLabel>
+                {seriesOptions.map((option) => (
+                  <SelectItem key={option} value={option}>{option}</SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="col-span-1">
+          <Label htmlFor="category" className="text-xs text-cardshow-lightGray uppercase">Category</Label>
+          <Select value={cardData.category} onValueChange={(value) => updateCardField('category', value)}>
+            <SelectTrigger className="input-dark mt-1 text-sm">
+              <SelectValue placeholder="Select Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Category</SelectLabel>
+                {categoryOptions.map((option) => (
+                  <SelectItem key={option} value={option}>{option}</SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       
       <div className="mt-4">
