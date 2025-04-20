@@ -1,5 +1,7 @@
 
 import React from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export const CTASection: React.FC = () => {
   return (
@@ -12,12 +14,16 @@ export const CTASection: React.FC = () => {
           Card art is the easiest way to collect and display your digital assets. Join thousands of collectors from around the world.
         </div>
         <div className="flex gap-4">
-          <button className="bg-[#EA6E48] text-[#FCFCFD] font-extrabold text-lg px-6 py-4 rounded-[90px]">
-            Create Card
-          </button>
-          <button className="border-2 border-[#353945] text-[#FCFCFD] font-extrabold text-lg px-6 py-4 rounded-[90px]">
-            Discover more
-          </button>
+          <Link to="/editor">
+            <Button className="bg-[#EA6E48] text-[#FCFCFD] font-extrabold text-lg px-6 py-4 rounded-[90px]">
+              Create Card
+            </Button>
+          </Link>
+          <Link to="/feed">
+            <Button className="border-2 border-[#353945] text-[#FCFCFD] font-extrabold text-lg px-6 py-4 rounded-[90px]">
+              Discover more
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

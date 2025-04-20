@@ -1,4 +1,7 @@
+
 import React from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export const Hero: React.FC = () => {
   return (
@@ -14,9 +17,11 @@ export const Hero: React.FC = () => {
             card art and digital collectibles.
           </h1>
         </div>
-        <button className="self-stretch bg-[#2D9CDB] gap-3 text-lg text-[#FCFCFD] font-extrabold leading-none mt-6 px-6 py-4 rounded-[90px] max-md:px-5">
-          Get started
-        </button>
+        <Link to="/editor">
+          <Button className="self-stretch bg-[#2D9CDB] gap-3 text-lg text-[#FCFCFD] font-extrabold leading-none mt-6 px-6 py-4 rounded-[90px] max-md:px-5">
+            Get started
+          </Button>
+        </Link>
       </div>
     </div>
   );
