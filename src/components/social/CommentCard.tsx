@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { format } from 'date-fns';
 import { formatDistanceToNow } from 'date-fns';
 import { useUser } from '@/hooks/use-user';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -32,7 +31,7 @@ export const CommentCard = ({ comment, onUpdate, onDelete }: CommentCardProps) =
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [showReplies, setShowReplies] = useState(false);
-  const [replies, setReplies] = useState<Comment[]>([]);
+  const [replies, setReplies] = useState<Comment[]>(comment.replies || []);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,7 +41,7 @@ export const CommentCard = ({ comment, onUpdate, onDelete }: CommentCardProps) =
     try {
       setLoading(true);
       const response = await socialRepository.getComments({
-        parentCommentId: comment.id,
+        parentId: comment.id,
         page: 1,
         limit: 10
       });
@@ -71,7 +70,7 @@ export const CommentCard = ({ comment, onUpdate, onDelete }: CommentCardProps) =
         user.id,
         editContent
       );
-      onUpdate?.(updatedComment);
+      if (onUpdate) onUpdate(updatedComment);
       setIsEditing(false);
       toast({
         description: "Comment updated successfully",
@@ -92,7 +91,7 @@ export const CommentCard = ({ comment, onUpdate, onDelete }: CommentCardProps) =
 
     try {
       await socialRepository.deleteComment(comment.id, user.id);
-      onDelete?.(comment.id);
+      if (onDelete) onDelete(comment.id);
       toast({
         description: "Comment deleted successfully",
       });
@@ -110,21 +109,25 @@ export const CommentCard = ({ comment, onUpdate, onDelete }: CommentCardProps) =
 
     try {
       setSubmitting(true);
-      const newReply = await socialRepository.addComment(
-        user.id,
-        replyContent,
-        { parentCommentId: comment.id }
-      );
+      const newReply = await socialRepository.addComment({
+        userId: user.id,
+        content: replyContent,
+        parentId: comment.id,
+        cardId: comment.cardId,
+        collectionId: comment.collectionId
+      });
       
       setReplies(prev => [newReply, ...prev]);
       setReplyContent('');
       setIsReplying(false);
       
       // Update parent comment's reply count
-      onUpdate?.({
-        ...comment,
-        replyCount: comment.replyCount + 1
-      });
+      if (onUpdate && comment.replyCount !== undefined) {
+        onUpdate({
+          ...comment,
+          replyCount: comment.replyCount + 1
+        });
+      }
       
       toast({
         description: "Reply added successfully",
@@ -144,14 +147,14 @@ export const CommentCard = ({ comment, onUpdate, onDelete }: CommentCardProps) =
     <div className="space-y-2">
       <div className="flex items-start gap-3">
         <Avatar className="h-8 w-8">
-          <AvatarImage src={comment.user.profileImage || undefined} alt={comment.user.username} />
-          <AvatarFallback>{comment.user.username[0]}</AvatarFallback>
+          <AvatarImage src={comment.user?.profileImage || undefined} alt={comment.user?.username} />
+          <AvatarFallback>{comment.user?.username?.[0] || '?'}</AvatarFallback>
         </Avatar>
         
         <div className="flex-1 space-y-1">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-medium">{comment.user.username}</span>
+              <span className="font-medium">{comment.user?.username || 'Anonymous'}</span>
               <span className="text-sm text-muted-foreground">
                 {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
               </span>
@@ -239,7 +242,7 @@ export const CommentCard = ({ comment, onUpdate, onDelete }: CommentCardProps) =
         </div>
       </div>
 
-      {comment.replyCount > 0 && (
+      {comment.replyCount && comment.replyCount > 0 && (
         <div className="pl-11">
           <Button
             variant="ghost"

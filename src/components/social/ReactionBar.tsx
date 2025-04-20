@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { ThumbsUp, Heart, PartyPopper, Medal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/hooks/use-user';
 import * as socialRepository from '@/repositories/social';
-import type { Reaction, ReactionCounts } from '@/types/social';
+import type { Reaction, ReactionCount } from '@/types/social';
 
 interface ReactionBarProps {
   memoryId?: string;
@@ -39,18 +40,18 @@ export const ReactionBar = ({
     if (!initialReactions && (memoryId || collectionId || commentId)) {
       const fetchReactions = async () => {
         try {
-          const { reactions: fetchedReactions, counts } = await socialRepository.getReactions({
+          const result = await socialRepository.getReactions({
             memoryId,
             collectionId,
             commentId,
           });
-          setReactions(fetchedReactions);
+          setReactions(result.reactions);
           setCounts(
-            counts.reduce((acc, { type, count }) => ({ ...acc, [type]: count }), {})
+            result.counts.reduce((acc, { type, count }) => ({ ...acc, [type]: count }), {})
           );
           if (user) {
             setUserReactions(
-              fetchedReactions.filter((reaction) => reaction.userId === user.id)
+              result.reactions.filter((reaction) => reaction.userId === user.id)
             );
           }
         } catch (error) {
@@ -80,7 +81,7 @@ export const ReactionBar = ({
         setUserReactions(userReactions.filter((r) => r.type !== type));
         setCounts({ ...counts, [type]: (counts[type] || 0) - 1 });
       } else {
-        const newReaction = await socialRepository.addReaction(user.id, type as Reaction['type'], {
+        const newReaction = await socialRepository.addReaction(user.id, type, {
           memoryId,
           collectionId,
           commentId,

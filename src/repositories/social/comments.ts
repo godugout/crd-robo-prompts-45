@@ -4,11 +4,26 @@ import type { Comment } from '@/types/social';
 
 export interface AddCommentParams {
   userId: string;
+  content: string;
   cardId?: string;
   collectionId?: string;
   teamId?: string;
   parentId?: string;
-  content: string;
+}
+
+export interface GetCommentsParams {
+  cardId?: string;
+  collectionId?: string;
+  teamId?: string;
+  parentCommentId?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface CommentsResponse {
+  comments: Comment[];
+  total: number;
+  hasMore: boolean;
 }
 
 export const addComment = async (params: AddCommentParams): Promise<Comment> => {
@@ -44,7 +59,8 @@ export const addComment = async (params: AddCommentParams): Promise<Comment> => 
         id: data.user.id,
         username: data.user.username,
         profileImage: data.user.avatar_url
-      } : undefined
+      } : undefined,
+      replyCount: 0
     };
   } catch (error) {
     console.error('Error in addComment:', error);
@@ -78,34 +94,40 @@ export const addComment = async (params: AddCommentParams): Promise<Comment> => 
   }
 };
 
-export const getCommentsByContentId = async (
-  contentType: 'card' | 'collection' | 'team',
-  contentId: string
-): Promise<Comment[]> => {
+export const getComments = async (params: GetCommentsParams): Promise<CommentsResponse> => {
   try {
+    const page = params.page || 1;
+    const limit = params.limit || 10;
+    const offset = (page - 1) * limit;
+    
     let query = supabase
       .from('comments')
-      .select('*, user:profiles(*), replies:comments(*, user:profiles(*))')
+      .select('*, user:profiles(*), replies:comments!parent_id(*, user:profiles(*))', { count: 'exact' })
       .order('created_at', { ascending: false });
     
-    if (contentType === 'card') {
-      query = query.eq('card_id', contentId);
-    } else if (contentType === 'collection') {
-      query = query.eq('collection_id', contentId);
-    } else if (contentType === 'team') {
-      query = query.eq('team_id', contentId);
+    if (params.cardId) {
+      query = query.eq('card_id', params.cardId);
+    } else if (params.collectionId) {
+      query = query.eq('collection_id', params.collectionId);
+    } else if (params.teamId) {
+      query = query.eq('team_id', params.teamId);
     }
     
-    // Only get top-level comments
-    query = query.is('parent_id', null);
+    if (params.parentCommentId) {
+      query = query.eq('parent_id', params.parentCommentId);
+    } else {
+      query = query.is('parent_id', null);
+    }
     
-    const { data, error } = await query;
+    query = query.range(offset, offset + limit - 1);
+    
+    const { data, error, count } = await query;
     
     if (error) {
       throw new Error(`Failed to get comments: ${error.message}`);
     }
     
-    return (data || []).map(comment => ({
+    const comments = (data || []).map(comment => ({
       id: comment.id,
       userId: comment.user_id,
       cardId: comment.card_id,
@@ -120,7 +142,8 @@ export const getCommentsByContentId = async (
         username: comment.user.username,
         profileImage: comment.user.avatar_url
       } : undefined,
-      replies: comment.replies ? comment.replies.map((reply: any) => ({
+      replyCount: (comment.replies || []).length,
+      replies: (comment.replies || []).map((reply: any) => ({
         id: reply.id,
         userId: reply.user_id,
         cardId: reply.card_id,
@@ -135,21 +158,39 @@ export const getCommentsByContentId = async (
           username: reply.user.username,
           profileImage: reply.user.avatar_url
         } : undefined
-      })) : []
+      }))
     }));
+    
+    return {
+      comments,
+      total: count || 0,
+      hasMore: count ? offset + limit < count : false
+    };
   } catch (error) {
-    console.error('Error in getCommentsByContentId:', error);
+    console.error('Error in getComments:', error);
     
     // Try using the mock API as a fallback
     try {
       const queryParams = new URLSearchParams();
       
-      if (contentType === 'card') {
-        queryParams.append('cardId', contentId);
-      } else if (contentType === 'collection') {
-        queryParams.append('collectionId', contentId);
-      } else if (contentType === 'team') {
-        queryParams.append('teamId', contentId);
+      if (params.cardId) {
+        queryParams.append('cardId', params.cardId);
+      } else if (params.collectionId) {
+        queryParams.append('collectionId', params.collectionId);
+      } else if (params.teamId) {
+        queryParams.append('teamId', params.teamId);
+      }
+      
+      if (params.parentCommentId) {
+        queryParams.append('parentId', params.parentCommentId);
+      }
+      
+      if (params.page) {
+        queryParams.append('page', params.page.toString());
+      }
+      
+      if (params.limit) {
+        queryParams.append('limit', params.limit.toString());
       }
       
       const response = await fetch(`/api/comments?${queryParams.toString()}`);
@@ -159,10 +200,111 @@ export const getCommentsByContentId = async (
       }
       
       const data = await response.json();
-      return data.items || [];
+      return {
+        comments: data.items || [],
+        total: data.total || 0,
+        hasMore: data.hasMore || false
+      };
     } catch (e) {
       console.error('Mock API fallback failed:', e);
-      return [];
+      return {
+        comments: [],
+        total: 0,
+        hasMore: false
+      };
+    }
+  }
+};
+
+export const updateComment = async (commentId: string, userId: string, content: string): Promise<Comment> => {
+  try {
+    const { data, error } = await supabase
+      .from('comments')
+      .update({ content })
+      .eq('id', commentId)
+      .eq('user_id', userId) // Ensure user owns the comment
+      .select('*, user:profiles(*)')
+      .single();
+    
+    if (error) {
+      throw new Error(`Failed to update comment: ${error.message}`);
+    }
+    
+    return {
+      id: data.id,
+      userId: data.user_id,
+      cardId: data.card_id,
+      collectionId: data.collection_id,
+      teamId: data.team_id,
+      parentId: data.parent_id,
+      content: data.content,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      user: data.user ? {
+        id: data.user.id,
+        username: data.user.username,
+        profileImage: data.user.avatar_url
+      } : undefined,
+      replyCount: data.reply_count || 0
+    };
+  } catch (error) {
+    console.error('Error in updateComment:', error);
+    
+    // Try using the mock API as a fallback
+    try {
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId,
+          content
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Mock API error: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (e) {
+      console.error('Mock API fallback failed:', e);
+      throw error;
+    }
+  }
+};
+
+export const deleteComment = async (commentId: string, userId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', commentId)
+      .eq('user_id', userId); // Ensure user owns the comment
+    
+    if (error) {
+      throw new Error(`Failed to delete comment: ${error.message}`);
+    }
+  } catch (error) {
+    console.error('Error in deleteComment:', error);
+    
+    // Try using the mock API as a fallback
+    try {
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Mock API error: ${response.status}`);
+      }
+    } catch (e) {
+      console.error('Mock API fallback failed:', e);
+      throw error;
     }
   }
 };

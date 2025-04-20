@@ -10,6 +10,7 @@ export interface Reaction {
   type: string;
   createdAt: string;
   removed?: boolean;
+  user?: Partial<User>; // Add user property
 }
 
 export interface ReactionCount {
@@ -20,7 +21,7 @@ export interface ReactionCount {
 export interface Comment {
   id: string;
   userId: string;
-  cardId?: string;
+  cardId?: string; // Changed from memoryId to cardId to match existing code
   collectionId?: string;
   teamId?: string;
   parentId?: string;
@@ -29,4 +30,6 @@ export interface Comment {
   updatedAt: string;
   user?: Partial<User>;
   replies?: Comment[];
+  replyCount?: number; // Add replyCount property
+  reactions?: Reaction[]; // Add reactions property
 }

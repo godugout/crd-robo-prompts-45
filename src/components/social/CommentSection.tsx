@@ -31,7 +31,7 @@ export const CommentSection = ({ memoryId, collectionId, expanded = false }: Com
     try {
       setLoading(true);
       const response = await socialRepository.getComments({
-        memoryId,
+        cardId: memoryId, // Changed memoryId to cardId
         collectionId,
         page: pageNum,
         limit: 10
@@ -45,6 +45,7 @@ export const CommentSection = ({ memoryId, collectionId, expanded = false }: Com
       
       setTotalComments(response.total);
       setHasMore(response.hasMore);
+      setPage(pageNum);
     } catch (error) {
       toast({
         title: "Error",
@@ -70,11 +71,12 @@ export const CommentSection = ({ memoryId, collectionId, expanded = false }: Com
 
     try {
       setSubmitting(true);
-      const comment = await socialRepository.addComment(
-        user.id,
-        newComment,
-        { memoryId, collectionId }
-      );
+      const comment = await socialRepository.addComment({
+        userId: user.id,
+        content: newComment,
+        cardId: memoryId, // Changed memoryId to cardId
+        collectionId
+      });
       
       setComments(prev => [comment, ...prev]);
       setTotalComments(prev => prev + 1);

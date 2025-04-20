@@ -1,112 +1,237 @@
 
-import type { Collection, CollectionListOptions, PaginatedCollections } from './types';
+import type { Collection, CollectionItem, CollectionListOptions, PaginatedCollections } from './types';
 import { getCollectionQuery, getCollectionItemsQuery, calculateOffset } from './core';
+import { supabase } from '@/lib/supabase-client';
 import { getAppId } from '@/integrations/supabase/client';
 
-// Helper function to transform database record to Collection type
-const transformToCollection = (record: any): Collection => {
-  return {
-    id: record.id,
-    title: record.title,
-    description: record.description,
-    ownerId: record.owner_id,
-    visibility: record.visibility,
-    coverImageUrl: record.cover_image_url,
-    createdAt: record.created_at,
-    cardCount: record.card_count || 0
-  };
+export const getCollectionById = async (id: string): Promise<Collection | null> => {
+  try {
+    const { data, error } = await getCollectionQuery()
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') return null; // Record not found
+      throw new Error(`Failed to fetch collection: ${error.message}`);
+    }
+    
+    if (!data) return null;
+    
+    return {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      ownerId: data.owner_id,
+      coverImageUrl: data.cover_image_url,
+      visibility: data.visibility,
+      createdAt: data.created_at,
+      cardCount: data.card_count
+    };
+  } catch (error) {
+    console.error('Error in getCollectionById:', error);
+    
+    // Try using the mock API as a fallback
+    try {
+      const response = await fetch(`/api/decks/${id}`);
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (e) {
+      console.error('Mock API fallback failed:', e);
+      return null;
+    }
+  }
 };
 
-export const getCollectionById = async (id: string): Promise<Collection | null> => {
-  const queryBuilder = getCollectionQuery();
-  
-  const { data, error } = await queryBuilder
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    if (error.code === 'PGRST116') return null; // Record not found
-    throw new Error(`Failed to fetch collection: ${error.message}`);
+export const getCollectionItems = async (collectionId: string): Promise<CollectionItem[]> => {
+  try {
+    const { data, error } = await getCollectionItemsQuery(collectionId);
+    
+    if (error) {
+      throw new Error(`Failed to fetch collection items: ${error.message}`);
+    }
+    
+    return (data || []).map(item => ({
+      id: item.id,
+      collectionId: item.collection_id,
+      memoryId: item.memory_id,
+      displayOrder: item.display_order,
+      addedAt: item.added_at,
+      memory: item.memory ? {
+        id: item.memory.id,
+        userId: item.memory.user_id,
+        title: item.memory.title,
+        description: item.memory.description,
+        teamId: item.memory.team_id,
+        gameId: item.memory.game_id,
+        location: item.memory.location,
+        visibility: item.memory.visibility,
+        createdAt: item.memory.created_at,
+        tags: item.memory.tags,
+        metadata: item.memory.metadata,
+        media: item.memory.media
+      } : undefined
+    }));
+  } catch (error) {
+    console.error('Error in getCollectionItems:', error);
+    
+    // Try using the mock API as a fallback
+    try {
+      const response = await fetch(`/api/decks/${collectionId}/items`);
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.items || [];
+    } catch (e) {
+      console.error('Mock API fallback failed:', e);
+      return [];
+    }
   }
-
-  if (!data) return null;
-  
-  // Get collection items
-  const collection = transformToCollection(data);
-  
-  const { data: itemsData, error: itemsError } = await getCollectionItemsQuery(id);
-  
-  if (!itemsError && itemsData) {
-    collection.cards = itemsData.map(item => item.memory);
-    collection.cardCount = itemsData.length;
-  }
-  
-  return collection;
 };
 
 export const getCollectionsByUserId = async (
-  userId: string, 
+  userId: string,
   options: CollectionListOptions = {}
 ): Promise<PaginatedCollections> => {
-  const {
-    page = 1,
-    pageSize = 10,
-    search
-  } = options;
+  try {
+    const {
+      page = 1,
+      pageSize = 10,
+      search
+    } = options;
 
-  const queryBuilder = getCollectionQuery();
-  
-  // Chain conditions to the query builder
-  let finalQuery = queryBuilder
-    .eq('owner_id', userId)
-    .order('created_at', { ascending: false });
+    let query = getCollectionQuery()
+      .eq('owner_id', userId)
+      .order('created_at', { ascending: false });
 
-  // Add app_id filter if available  
-  const appId = await getAppId();
-  if (appId) finalQuery = finalQuery.eq('app_id', appId);
+    // Add app_id filter
+    const appId = await getAppId();
+    if (appId) query = query.eq('app_id', appId);
+    
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+    }
+    
+    query = query.range(
+      calculateOffset(page, pageSize),
+      calculateOffset(page, pageSize) + pageSize - 1
+    );
 
-  if (search) {
-    finalQuery = finalQuery.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
-  }
+    const { data, error, count } = await query;
 
-  finalQuery = finalQuery.range(
-    calculateOffset(page, pageSize),
-    calculateOffset(page, pageSize) + pageSize - 1
-  );
-
-  // Execute the query
-  const { data, error, count } = await finalQuery;
-
-  if (error) throw new Error(`Failed to fetch collections: ${error.message}`);
-  
-  // Transform data and get card counts
-  const collections = data ? data.map(transformToCollection) : [];
-  
-  // Try to get card counts for each collection
-  if (collections.length > 0) {
-    const collectionIds = collections.map(c => c.id);
-    const { data: countData } = await supabase
-      .from('collection_items')
-      .select('collection_id, count')
-      .in('collection_id', collectionIds)
-      .group('collection_id');
+    if (error) throw new Error(`Failed to fetch collections: ${error.message}`);
+    
+    const collections = (data || []).map(collection => ({
+      id: collection.id,
+      title: collection.title,
+      description: collection.description,
+      ownerId: collection.owner_id,
+      coverImageUrl: collection.cover_image_url,
+      visibility: collection.visibility,
+      createdAt: collection.created_at,
+      cardCount: collection.card_count
+    }));
+    
+    return {
+      collections,
+      total: count || 0
+    };
+  } catch (error) {
+    console.error('Error in getCollectionsByUserId:', error);
+    
+    // Try using the mock API as a fallback
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append('userId', userId);
+      queryParams.append('page', options.page?.toString() || '1');
+      queryParams.append('limit', options.pageSize?.toString() || '10');
+      if (options.search) queryParams.append('search', options.search);
       
-    if (countData) {
-      const countMap = new Map();
-      countData.forEach(item => {
-        countMap.set(item.collection_id, parseInt(item.count));
-      });
+      const response = await fetch(`/api/decks?${queryParams.toString()}`);
+      const data = await response.json();
       
-      collections.forEach(collection => {
-        if (countMap.has(collection.id)) {
-          collection.cardCount = countMap.get(collection.id);
-        }
-      });
+      return {
+        collections: data.items || [],
+        total: data.total || 0
+      };
+    } catch (e) {
+      console.error('Mock API fallback failed:', e);
+      return {
+        collections: [],
+        total: 0
+      };
     }
   }
-  
-  return {
-    collections,
-    total: count || 0
-  };
+};
+
+export const getPublicCollections = async (
+  options: CollectionListOptions = {}
+): Promise<PaginatedCollections> => {
+  try {
+    const {
+      page = 1,
+      pageSize = 10,
+      search
+    } = options;
+
+    let query = getCollectionQuery()
+      .eq('visibility', 'public')
+      .order('created_at', { ascending: false });
+
+    // Add app_id filter if available  
+    const appId = await getAppId();
+    if (appId) query = query.eq('app_id', appId);
+
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+    }
+
+    query = query.range(
+      calculateOffset(page, pageSize),
+      calculateOffset(page, pageSize) + pageSize - 1
+    );
+
+    const { data, error, count } = await query;
+
+    if (error) throw new Error(`Failed to fetch public collections: ${error.message}`);
+    
+    const collections = (data || []).map(collection => ({
+      id: collection.id,
+      title: collection.title,
+      description: collection.description,
+      ownerId: collection.owner_id,
+      coverImageUrl: collection.cover_image_url,
+      visibility: collection.visibility,
+      createdAt: collection.created_at,
+      cardCount: collection.card_count
+    }));
+    
+    return {
+      collections,
+      total: count || 0
+    };
+  } catch (error) {
+    console.error('Error in getPublicCollections:', error);
+    
+    // Try using the mock API as a fallback
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append('visibility', 'public');
+      queryParams.append('page', options.page?.toString() || '1');
+      queryParams.append('limit', options.pageSize?.toString() || '10');
+      if (options.search) queryParams.append('search', options.search);
+      
+      const response = await fetch(`/api/decks?${queryParams.toString()}`);
+      const data = await response.json();
+      
+      return {
+        collections: data.items || [],
+        total: data.total || 0
+      };
+    } catch (e) {
+      console.error('Mock API fallback failed:', e);
+      return {
+        collections: [],
+        total: 0
+      };
+    }
+  }
 };

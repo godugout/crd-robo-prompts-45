@@ -95,7 +95,7 @@ export const handlers = [
       ...memory,
       media: mediaItems.filter(m => m.memoryId === id),
       reactions: reactions.filter(r => r.memoryId === id),
-      comments: comments.filter(c => c.memoryId === id)
+      comments: comments.filter(c => c.cardId === id) // Changed from memoryId to cardId
     };
 
     return Response.json(enhancedMemory);
@@ -107,9 +107,8 @@ export const handlers = [
       id: String(memories.length + 1),
       createdAt: new Date().toISOString(),
       ...body
-    };
-    // Fix: Explicitly type the spread to avoid error
-    memories.push(newMemory as typeof memories[0]);
+    } as typeof memories[0]; // Added type assertion
+    memories.push(newMemory);
     return Response.json(newMemory, { status: 201 });
   }),
 
@@ -122,8 +121,7 @@ export const handlers = [
       return new Response('Card not found', { status: 404 });
     }
     
-    // Fix: Explicitly type the spread to avoid error
-    memories[index] = { ...memories[index], ...body } as typeof memories[0];
+    memories[index] = { ...memories[index], ...body } as typeof memories[0]; // Added type assertion
     return Response.json(memories[index]);
   }),
 
@@ -242,7 +240,7 @@ export const handlers = [
       createdAt: new Date().toISOString(),
       cardCount: body.cards?.length || 0,
       ...body
-    };
+    } as typeof decks[0]; // Added type assertion
     
     decks.push(newDeck);
     return Response.json(newDeck, { status: 201 });
@@ -261,7 +259,7 @@ export const handlers = [
       ...decks[index], 
       ...body,
       cardCount: body.cards?.length || decks[index].cardCount
-    };
+    } as typeof decks[0]; // Added type assertion
     
     return Response.json(decks[index]);
   }),
@@ -299,7 +297,7 @@ export const handlers = [
       return new Response('User not found', { status: 404 });
     }
     
-    users[index] = { ...users[index], ...body };
+    users[index] = { ...users[index], ...body } as typeof users[0]; // Added type assertion
     return Response.json(users[index]);
   })
 ];

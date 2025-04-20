@@ -12,9 +12,10 @@ export const getCollectionQuery = () => {
 };
 
 export const getCollectionItemsQuery = (collectionId: string) => {
+  // Use string interpolation to avoid type issues
   return supabase
     .from('collection_items')
-    .select('*, memory:memories(*)')
+    .select(`*, memory:memories(*)`)
     .eq('collection_id', collectionId)
     .order('display_order', { ascending: true });
 };

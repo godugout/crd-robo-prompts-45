@@ -1,4 +1,3 @@
-
 import type { Memory } from '@/types/memory';
 import type { MemoryListOptions, PaginatedMemories } from './types';
 import { getMemoryQuery, calculateOffset } from './core';
@@ -47,27 +46,26 @@ export const getMemoryById = async (id: string): Promise<Memory | null> => {
       // Get reactions count
       const { data: reactionsData } = await supabase
         .from('reactions')
-        .select('type, count')
+        .select('type, count(*)')
         .eq('card_id', id)
         .group('type');
         
       if (reactionsData) {
         memory.reactions = reactionsData.map(r => ({
           type: r.type,
-          count: parseInt(r.count)
+          count: parseInt(r.count as string)
         }));
       }
       
       // Get comments count
-      const { data: commentsData } = await supabase
+      const { count: commentCount } = await supabase
         .from('comments')
-        .select('count')
-        .eq('card_id', id)
-        .single();
+        .select('*', { count: 'exact', head: true })
+        .eq('card_id', id);
         
-      if (commentsData) {
+      if (commentCount !== null) {
         memory.comments = {
-          count: parseInt(commentsData.count)
+          count: commentCount
         };
       }
     } catch (e) {

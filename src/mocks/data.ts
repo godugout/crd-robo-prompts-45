@@ -126,16 +126,14 @@ export const reactions: Reaction[] = [
     userId: '2',
     memoryId: '1',
     type: 'heart',
-    createdAt: getRecentDate(),
-    user: users[1]
+    createdAt: getRecentDate()
   },
   {
     id: '2',
     userId: '1',
     memoryId: '2',
     type: 'thumbs-up',
-    createdAt: getRecentDate(),
-    user: users[0]
+    createdAt: getRecentDate()
   }
 ];
 
@@ -143,21 +141,21 @@ export const comments: Comment[] = [
   {
     id: '1',
     userId: '2',
-    memoryId: '1',
+    cardId: '1', // Changed from memoryId to cardId
     content: 'Incredible collection! Love the mint condition.',
     createdAt: getRecentDate(),
+    updatedAt: getRecentDate(),
     user: users[1],
-    reactions: [],
     replyCount: 0
   },
   {
     id: '2',
     userId: '1',
-    memoryId: '2',
+    cardId: '2', // Changed from memoryId to cardId
     content: 'These championship cards are amazing!',
     createdAt: getRecentDate(),
+    updatedAt: getRecentDate(),
     user: users[0],
-    reactions: [],
     replyCount: 0
   }
 ];

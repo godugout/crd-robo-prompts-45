@@ -1,6 +1,6 @@
 
 import type { Visibility } from '@/types/common';
-import type { Card } from '@/types/memory';
+import type { Memory } from '@/types/memory';
 
 export interface Collection {
   id: string;
@@ -10,7 +10,7 @@ export interface Collection {
   coverImageUrl?: string;
   visibility: Visibility;
   createdAt: string;
-  cards?: Card[];
+  cards?: Memory[]; // Changed from Card to Memory
   cardCount?: number;
 }
 
@@ -20,6 +20,7 @@ export interface CollectionItem {
   memoryId: string;
   displayOrder: number;
   addedAt: string;
+  memory?: Memory; // Add memory field
 }
 
 export interface CreateCollectionParams {
