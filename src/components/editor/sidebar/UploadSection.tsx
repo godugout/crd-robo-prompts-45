@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Upload } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -7,6 +6,7 @@ import { toast } from 'sonner';
 import { uploadCardImage } from '@/lib/cardImageUploader';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { useDropzone } from 'react-dropzone';
+import { supabase } from '@/lib/supabase-client';
 
 interface UploadSectionProps {
   cardEditor?: ReturnType<typeof useCardEditor>;

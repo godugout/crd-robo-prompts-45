@@ -1,12 +1,9 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { PaintBucket, Palette } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useCardEditor } from '@/hooks/useCardEditor';
-import { toast } from 'sonner';
 import { CanvasToolbar } from './canvas/CanvasToolbar';
 import { CanvasPreview } from './canvas/CanvasPreview';
 import { CanvasControls } from './canvas/CanvasControls';
+import { CanvasCreator } from './canvas/CanvasCreator';
 
 interface CanvasProps {
   zoom: number;
@@ -136,32 +133,7 @@ export const Canvas = ({ zoom, cardEditor }: CanvasProps) => {
           </div>
         </div>
         
-        <div className="bg-editor-dark rounded-xl p-6 w-[400px]">
-          <div className="flex flex-col gap-5">
-            <div>
-              <h2 className="text-white text-xl font-bold mb-3">Creator</h2>
-              <div className="flex items-center gap-3">
-                <img 
-                  src="public/lovable-uploads/4db063a6-f43a-42c6-8670-41f27f772be8.png" 
-                  alt="Creator avatar" 
-                  className="w-16 h-16 rounded-full"
-                />
-                <div>
-                  <div className="text-white font-semibold">@jaybhai</div>
-                  <div className="text-cardshow-lightGray text-sm">Jay Patel</div>
-                  <div className="text-cardshow-lightGray text-xs mt-1">CRD Maker and Collector</div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-4 bg-editor-darker rounded-xl">
-              <div className="text-cardshow-lightGray text-sm mb-2">IS THIS A FAN SUBMISSION?</div>
-              <Button variant="default" className="w-full bg-editor-dark hover:bg-editor-dark/90 border border-editor-border text-cardshow-green">
-                Add the original creator now.
-              </Button>
-            </div>
-          </div>
-        </div>
+        <CanvasCreator />
       </div>
     </div>
   );
