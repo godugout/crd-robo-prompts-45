@@ -20,7 +20,12 @@ export const MainLayout = () => {
   const isHomePage = location.pathname === '/';
 
   if (isHomePage) {
-    return <Outlet />;
+    return (
+      <>
+        <Navbar />
+        <Outlet />
+      </>
+    );
   }
 
   return (

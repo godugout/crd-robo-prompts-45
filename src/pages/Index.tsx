@@ -12,9 +12,8 @@ import { Footer } from "@/components/home/Footer";
 
 export default function Index() {
   return (
-    <div className="bg-white flex flex-col overflow-hidden items-center">
-      <Navbar />
-      <main>
+    <div className="bg-[#141416] min-h-screen flex flex-col overflow-hidden items-center">
+      <main className="w-full">
         <Hero />
         <AuctionSection />
         <FeaturedCards />

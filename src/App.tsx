@@ -16,31 +16,42 @@ import Profile from "./pages/Profile";
 import Memories from "./pages/Memories";
 import { MainLayout } from "./components/layout/MainLayout";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/feed" element={<FeedPage />} />
-            <Route path="/memories" element={<Memories />} />
-            <Route path="/card/:id" element={<CardDetail />} />
-            <Route path="/editor" element={<Editor />} />
-            <Route path="/templates" element={<Templates />} />
-            <Route path="/decks" element={<Decks />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/profile" element={<Profile />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  console.log('App is rendering');
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/feed" element={<FeedPage />} />
+              <Route path="/memories" element={<Memories />} />
+              <Route path="/card/:id" element={<CardDetail />} />
+              <Route path="/editor" element={<Editor />} />
+              <Route path="/templates" element={<Templates />} />
+              <Route path="/decks" element={<Decks />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/profile" element={<Profile />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
