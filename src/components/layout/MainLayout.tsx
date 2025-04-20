@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Navbar } from '@/components/home/Navbar';
 import { 
@@ -13,24 +13,46 @@ import {
   SidebarMenuItem,
   SidebarMenuButton
 } from '@/components/ui/sidebar';
-import { Home, Image, Camera, Settings } from 'lucide-react';
+import { Home, Image, Camera, Settings, Loader } from 'lucide-react';
 
 export const MainLayout = () => {
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+  const [isLoading, setIsLoading] = useState(true);
   
-  console.log('MainLayout rendering, path:', location.pathname);
+  console.log('MainLayout rendering, path:', location.pathname, 'isHomePage:', isHomePage);
 
   useEffect(() => {
-    console.log('MainLayout mounted, isHomePage:', isHomePage);
-  }, [isHomePage]);
+    console.log('MainLayout mounted');
+    
+    // Simulate checking for any required resources
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      console.log('MainLayout finished loading');
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      console.log('MainLayout unmounted');
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (isHomePage) {
     console.log('Rendering homepage layout');
     return (
       <>
         <Navbar />
-        <Outlet />
+        <div className="outlet-container">
+          <Outlet />
+        </div>
       </>
     );
   }
@@ -93,7 +115,9 @@ export const MainLayout = () => {
 
         <main className="flex-1">
           <Navbar />
-          <Outlet />
+          <div className="outlet-container p-4">
+            <Outlet />
+          </div>
         </main>
       </div>
     </SidebarProvider>

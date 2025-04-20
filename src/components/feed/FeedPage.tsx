@@ -4,22 +4,24 @@ import { useUser } from '@/hooks/use-user';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader } from 'lucide-react';
+import { Loader, AlertCircle } from 'lucide-react';
 import { useFeed } from '@/hooks/use-feed';
 import { MemoryCard } from '@/components/memory/MemoryCard';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type FeedType = 'forYou' | 'following' | 'trending';
 
 export const FeedPage = () => {
   console.log('FeedPage component rendering');
   
-  const { user } = useUser();
+  const { user, loading: userLoading } = useUser();
   const [activeTab, setActiveTab] = React.useState<FeedType>('forYou');
   const {
     memories,
     loading,
     page,
     hasMore,
+    error,
     setPage,
     fetchMemories,
     resetFeed
@@ -36,18 +38,28 @@ export const FeedPage = () => {
     return () => console.log('FeedPage unmounted');
   }, [memories]);
 
-  console.log('FeedPage render state:', { user, memories, loading, hasMore });
+  console.log('FeedPage render state:', { user, memories, loading, hasMore, userLoading });
 
   const handleLoadMore = () => {
+    console.log('FeedPage: Loading more memories');
     const nextPage = page + 1;
     setPage(nextPage);
     fetchMemories(nextPage, activeTab);
   };
 
   const handleReaction = (memoryId: string, reactionType: string) => {
+    console.log('FeedPage: Reaction triggered', { memoryId, reactionType });
     // Update local memory state when a reaction changes
     // This would be implemented in the MemoryCard component
   };
+
+  if (userLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <Loader className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!user) {
     console.log('No user, showing sign-in prompt');
@@ -76,7 +88,15 @@ export const FeedPage = () => {
           <TabsTrigger value="trending" className="flex-1">Trending</TabsTrigger>
         </TabsList>
 
-        {loading && memories.length === 0 ? (
+        {error ? (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>
+              {error.message || 'There was an error loading the feed.'}
+            </AlertDescription>
+          </Alert>
+        ) : loading && memories.length === 0 ? (
           <div className="space-y-4">
             {[1, 2, 3].map((n) => (
               <Skeleton key={n} className="h-[300px] w-full rounded-lg" />
