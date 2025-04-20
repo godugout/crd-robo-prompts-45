@@ -14,13 +14,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MediaUploader } from '@/components/media/MediaUploader';
 import { MediaGallery } from '@/components/media/MediaGallery';
-import { useUser } from '@/hooks/use-user';
-import { Loader } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import type { MediaItem } from '@/types/media';
 
 const Editor = () => {
-  const { user, loading } = useUser();
   const [activeTab, setActiveTab] = useState('create');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -34,33 +31,6 @@ const Editor = () => {
   const handleMediaDeletion = async (mediaId: string) => {
     setSelectedMedia(prev => prev.filter(item => item.id !== mediaId));
   };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6 flex items-center justify-center min-h-[60vh]">
-        <Loader className="h-10 w-10 animate-spin text-gray-500" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Card Editor</CardTitle>
-            <CardDescription>Please sign in to create cards</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p>You need to be logged in to create and edit cards.</p>
-          </CardContent>
-          <CardFooter>
-            <Button>Sign In</Button>
-          </CardFooter>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto p-6 max-w-5xl">
@@ -104,7 +74,7 @@ const Editor = () => {
                   <label className="text-sm font-medium">Card Media</label>
                   <MediaUploader 
                     memoryId={memoryId}
-                    userId={user.id}
+                    userId="demo-user"
                     onUploadComplete={handleUploadComplete}
                   />
                 </div>

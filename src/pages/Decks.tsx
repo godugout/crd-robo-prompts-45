@@ -2,8 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useUser } from '@/hooks/use-user';
-import { Loader, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface Deck {
   id: string;
@@ -14,70 +13,39 @@ interface Deck {
 }
 
 const Decks = () => {
-  const { user, loading: userLoading } = useUser();
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Mock data for demonstration
   useEffect(() => {
-    if (user) {
-      setLoading(true);
-      // In a real app, fetch data from Supabase here
-      setTimeout(() => {
-        setDecks([
-          {
-            id: '1',
-            title: 'Sports Collection',
-            description: 'My favorite sports cards',
-            cardCount: 12,
-            coverImage: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=500&q=80'
-          },
-          {
-            id: '2',
-            title: 'Art Collection',
-            description: 'Beautiful art cards',
-            cardCount: 8,
-            coverImage: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=500&q=80'
-          },
-          {
-            id: '3',
-            title: 'Travel Memories',
-            description: 'Cards from my travels',
-            cardCount: 15,
-            coverImage: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=500&q=80'
-          }
-        ]);
-        setLoading(false);
-      }, 1000);
-    }
-  }, [user]);
-
-  if (userLoading || loading) {
-    return (
-      <div className="container mx-auto p-6 flex items-center justify-center min-h-[60vh]">
-        <Loader className="h-10 w-10 animate-spin text-gray-500" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>My Decks</CardTitle>
-            <CardDescription>Please sign in to view your decks</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p>You need to be logged in to view and manage your card decks.</p>
-          </CardContent>
-          <CardFooter>
-            <Button>Sign In</Button>
-          </CardFooter>
-        </Card>
-      </div>
-    );
-  }
+    setLoading(true);
+    // Mock data for demonstration
+    setTimeout(() => {
+      setDecks([
+        {
+          id: '1',
+          title: 'Sports Collection',
+          description: 'My favorite sports cards',
+          cardCount: 12,
+          coverImage: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=500&q=80'
+        },
+        {
+          id: '2',
+          title: 'Art Collection',
+          description: 'Beautiful art cards',
+          cardCount: 8,
+          coverImage: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=500&q=80'
+        },
+        {
+          id: '3',
+          title: 'Travel Memories',
+          description: 'Cards from my travels',
+          cardCount: 15,
+          coverImage: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=500&q=80'
+        }
+      ]);
+      setLoading(false);
+    }, 1000);
+  }, []);
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
