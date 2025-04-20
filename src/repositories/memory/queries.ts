@@ -4,7 +4,9 @@ import type { MemoryListOptions, PaginatedMemories } from './types';
 import { getMemoryQuery, calculateOffset } from './core';
 
 export const getMemoryById = async (id: string): Promise<Memory | null> => {
-  const { data, error } = await getMemoryQuery()
+  const query = await getMemoryQuery();
+  
+  const { data, error } = await query
     .eq('id', id)
     .single();
 
@@ -27,19 +29,21 @@ export const getMemoriesByUserId = async (
     teamId,
   } = options;
 
-  let query = getMemoryQuery()
+  const query = await getMemoryQuery();
+  
+  let queryBuilder = query
     .eq('userId', userId)
     .order('createdAt', { ascending: false });
 
-  if (visibility) query = query.eq('visibility', visibility);
-  if (teamId) query = query.eq('teamId', teamId);
+  if (visibility) queryBuilder = queryBuilder.eq('visibility', visibility);
+  if (teamId) queryBuilder = queryBuilder.eq('teamId', teamId);
   
-  query = query.range(
+  queryBuilder = queryBuilder.range(
     calculateOffset(page, pageSize),
     calculateOffset(page, pageSize) + pageSize - 1
   );
 
-  const { data, error, count } = await query;
+  const { data, error, count } = await queryBuilder;
 
   if (error) throw new Error(`Failed to fetch memories: ${error.message}`);
   
@@ -60,24 +64,26 @@ export const getPublicMemories = async (
     search
   } = options;
 
-  let query = getMemoryQuery()
+  const query = await getMemoryQuery();
+  
+  let queryBuilder = query
     .eq('visibility', 'public')
     .order('createdAt', { ascending: false });
 
-  if (teamId) query = query.eq('teamId', teamId);
+  if (teamId) queryBuilder = queryBuilder.eq('teamId', teamId);
   if (tags && tags.length > 0) {
-    query = query.contains('tags', tags);
+    queryBuilder = queryBuilder.contains('tags', tags);
   }
   if (search) {
-    query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+    queryBuilder = queryBuilder.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
   }
 
-  query = query.range(
+  queryBuilder = queryBuilder.range(
     calculateOffset(page, pageSize),
     calculateOffset(page, pageSize) + pageSize - 1
   );
 
-  const { data, error, count } = await query;
+  const { data, error, count } = await queryBuilder;
 
   if (error) throw new Error(`Failed to fetch public memories: ${error.message}`);
   
@@ -86,4 +92,3 @@ export const getPublicMemories = async (
     total: count || 0
   };
 };
-

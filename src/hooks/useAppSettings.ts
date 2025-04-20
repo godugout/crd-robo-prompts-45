@@ -1,5 +1,5 @@
 
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, getAppId } from '@/integrations/supabase/client';
 
 export interface AppSettings {
@@ -9,6 +9,8 @@ export interface AppSettings {
 }
 
 export const useAppSettings = () => {
+  const queryClient = useQueryClient();
+  
   const fetchSettings = async () => {
     const appId = await getAppId();
     if (!appId) throw new Error('Could not determine app ID');
