@@ -44,8 +44,18 @@ export const getUserFollowers = async (userId: string): Promise<User[]> => {
   // Map through the data and extract the follower objects
   const followers = data.map(item => {
     // Ensure follower exists and has the expected structure
-    if (item && item.follower) {
-      return item.follower as User;
+    if (item && item.follower && typeof item.follower === 'object' && !Array.isArray(item.follower)) {
+      // Convert to User type with proper type checking
+      const user = item.follower as Record<string, any>;
+      return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        profileImage: user.profileImage,
+        bio: user.bio,
+        createdAt: user.createdAt,
+        preferences: user.preferences
+      } as User;
     }
     return null;
   }).filter((user): user is User => user !== null);
@@ -67,8 +77,18 @@ export const getUserFollowing = async (userId: string): Promise<User[]> => {
   // Map through the data and extract the followed objects
   const following = data.map(item => {
     // Ensure followed exists and has the expected structure
-    if (item && item.followed) {
-      return item.followed as User;
+    if (item && item.followed && typeof item.followed === 'object' && !Array.isArray(item.followed)) {
+      // Convert to User type with proper type checking
+      const user = item.followed as Record<string, any>;
+      return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        profileImage: user.profileImage,
+        bio: user.bio,
+        createdAt: user.createdAt,
+        preferences: user.preferences
+      } as User;
     }
     return null;
   }).filter((user): user is User => user !== null);
