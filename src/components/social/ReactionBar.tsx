@@ -1,0 +1,126 @@
+
+import React, { useState, useEffect } from 'react';
+import { ThumbsUp, Heart, PartyPopper, Baseball } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/hooks/use-user';
+import * as socialRepository from '@/repositories/socialRepository';
+import type { Reaction, ReactionCounts } from '@/types/social';
+
+interface ReactionBarProps {
+  memoryId?: string;
+  collectionId?: string;
+  commentId?: string;
+  initialReactions?: Reaction[];
+  initialUserReactions?: Reaction[];
+}
+
+const REACTION_TYPES = [
+  { type: 'thumbs-up', Icon: ThumbsUp },
+  { type: 'heart', Icon: Heart },
+  { type: 'party', Icon: PartyPopper },
+  { type: 'baseball', Icon: Baseball },
+];
+
+export const ReactionBar = ({
+  memoryId,
+  collectionId,
+  commentId,
+  initialReactions,
+  initialUserReactions,
+}: ReactionBarProps) => {
+  const { user } = useUser();
+  const { toast } = useToast();
+  const [reactions, setReactions] = useState<Reaction[]>(initialReactions || []);
+  const [userReactions, setUserReactions] = useState<Reaction[]>(initialUserReactions || []);
+  const [loading, setLoading] = useState(false);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (!initialReactions && (memoryId || collectionId || commentId)) {
+      const fetchReactions = async () => {
+        try {
+          const { reactions: fetchedReactions, counts } = await socialRepository.getReactions({
+            memoryId,
+            collectionId,
+            commentId,
+          });
+          setReactions(fetchedReactions);
+          setCounts(
+            counts.reduce((acc, { type, count }) => ({ ...acc, [type]: count }), {})
+          );
+          if (user) {
+            setUserReactions(
+              fetchedReactions.filter((reaction) => reaction.userId === user.id)
+            );
+          }
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to load reactions',
+            variant: 'destructive',
+          });
+        }
+      };
+      fetchReactions();
+    }
+  }, [memoryId, collectionId, commentId, initialReactions, user, toast]);
+
+  const handleReactionClick = async (type: string) => {
+    if (!user || loading) return;
+
+    setLoading(true);
+    try {
+      const hasReacted = userReactions.some((r) => r.type === type);
+      if (hasReacted) {
+        await socialRepository.removeReaction(user.id, type, {
+          memoryId,
+          collectionId,
+          commentId,
+        });
+        setUserReactions(userReactions.filter((r) => r.type !== type));
+        setCounts({ ...counts, [type]: (counts[type] || 0) - 1 });
+      } else {
+        const newReaction = await socialRepository.addReaction(user.id, type as Reaction['type'], {
+          memoryId,
+          collectionId,
+          commentId,
+        });
+        setUserReactions([...userReactions, newReaction]);
+        setCounts({ ...counts, [type]: (counts[type] || 0) + 1 });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update reaction',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {REACTION_TYPES.map(({ type, Icon }) => {
+        const hasReacted = userReactions.some((r) => r.type === type);
+        const count = counts[type] || 0;
+
+        return (
+          <Button
+            key={type}
+            variant={hasReacted ? 'default' : 'outline'}
+            size="sm"
+            className="gap-2"
+            onClick={() => handleReactionClick(type)}
+            disabled={!user || loading}
+          >
+            <Icon className="h-4 w-4" />
+            <span className="text-sm">{count}</span>
+          </Button>
+        );
+      })}
+    </div>
+  );
+};
+
