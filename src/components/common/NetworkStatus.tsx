@@ -3,7 +3,7 @@ import React from 'react';
 import { useOfflineSync } from '@/hooks/useOfflineSync';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Wifi, WifiOff, CloudSync } from 'lucide-react';
+import { Wifi, WifiOff, Upload } from 'lucide-react';
 
 export const NetworkStatus = () => {
   const { sync, isSyncing, pendingCount, progress } = useOfflineSync();
@@ -27,7 +27,7 @@ export const NetworkStatus = () => {
             onClick={sync}
             className="h-8 w-8 p-0"
           >
-            <CloudSync className="h-5 w-5" />
+            <Upload className="h-5 w-5" />
           </Button>
         </>
       )}
