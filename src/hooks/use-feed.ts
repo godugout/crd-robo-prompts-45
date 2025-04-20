@@ -33,15 +33,18 @@ export const useFeed = (userId?: string) => {
         id: `mock-${i}-${Date.now()}`,
         title: `Mock Memory ${i + 1}`,
         description: 'This is a mock memory for testing when the database is empty',
-        userId: 'mock-user', // Changed from user_id to userId
-        teamId: 'mock-team', // Added required teamId property
-        createdAt: new Date().toISOString(), // Changed from created_at to createdAt
+        userId: 'mock-user', 
+        teamId: 'mock-team',
+        createdAt: new Date().toISOString(),
         visibility: 'public',
         user: {
           id: 'mock-user',
           username: 'mockuser',
-          full_name: 'Mock User',
-          avatar_url: null
+          email: 'mock@example.com', // Add required email property
+          profileImage: null,
+          bio: null,
+          createdAt: new Date().toISOString(), // Add required createdAt property
+          preferences: null
         },
         media: [],
         reactions: [],
@@ -128,7 +131,15 @@ export const useFeed = (userId?: string) => {
           createdAt: item.created_at, // Map from snake_case to camelCase
           tags: item.tags || [],
           metadata: item.metadata,
-          user: item.user,
+          user: item.user ? {
+            id: item.user.id,
+            username: item.user.username || 'anonymous',
+            email: item.user.email || 'unknown@example.com', // Ensure email is present
+            profileImage: item.user.avatar_url,
+            bio: item.user.bio || null,
+            createdAt: item.user.created_at || new Date().toISOString(), // Ensure createdAt is present
+            preferences: item.user.preferences || null
+          } : undefined,
           media: item.media || [],
           reactions: item.reactions || [],
           commentCount: item.comments?.[0]?.count || 0
