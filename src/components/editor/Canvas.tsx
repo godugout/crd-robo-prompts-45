@@ -5,8 +5,9 @@ import { CanvasToolbar } from './canvas/CanvasToolbar';
 import { CanvasPreview } from './canvas/CanvasPreview';
 import { CanvasControls } from './canvas/CanvasControls';
 import { CanvasCreator } from './canvas/CanvasCreator';
-import { Button } from '@/components/ui/button';
-import { PaintBucket, Palette } from 'lucide-react';
+import { CanvasWrapper } from './canvas/CanvasWrapper';
+import { CanvasDragArea } from './canvas/CanvasDragArea';
+import { CanvasPreviewArea } from './canvas/CanvasPreviewArea';
 import { toast } from 'sonner';
 
 interface CanvasProps {
@@ -61,10 +62,6 @@ export const Canvas = ({ zoom, cardEditor }: CanvasProps) => {
     toast.success('Card rotated!');
   };
   
-  const handleShare = () => {
-    toast.success('Sharing options coming soon!');
-  };
-  
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
     setStartPos({ x: e.clientX, y: e.clientY });
@@ -84,61 +81,47 @@ export const Canvas = ({ zoom, cardEditor }: CanvasProps) => {
   };
 
   return (
-    <div 
-      className="flex-1 bg-editor-darker overflow-auto flex items-start justify-center py-8"
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-    >
-      <div className="flex flex-col gap-8">
-        <div className="bg-editor-dark rounded-xl p-6 w-[400px]">
-          <CanvasToolbar 
-            showGrid={showGrid}
-            showEffects={showEffects}
-            onToggleGrid={() => setShowGrid(!showGrid)}
-            onToggleEffects={() => setShowEffects(!showEffects)}
-            onRotate={handleRotate}
-            onShare={handleShare}
-          />
-          
-          <CanvasPreview 
-            cardRef={cardRef}
-            scale={scale}
-            rotation={rotation}
-            brightness={brightness}
-            contrast={contrast}
-            cardPos={cardPos}
-            showGrid={showGrid}
-            showEffects={showEffects}
-            onMouseDown={handleMouseDown}
-            title={title}
-            description={description}
-          />
-          
-          <CanvasControls 
-            brightness={brightness}
-            contrast={contrast}
-            onBrightnessChange={(values) => setBrightness(values[0])}
-            onContrastChange={(values) => setContrast(values[0])}
-            title={title}
-            description={description}
-          />
-          
-          <div className="flex gap-2 mt-4">
-            <Button variant="outline" className="flex-1 rounded-full border border-editor-border text-cardshow-white">
-              Add back
-            </Button>
-            <Button variant="outline" className="rounded-full border border-editor-border text-cardshow-green">
-              <PaintBucket size={16} />
-            </Button>
-            <Button variant="outline" className="rounded-full border border-editor-border text-cardshow-purple">
-              <Palette size={16} />
-            </Button>
-          </div>
-        </div>
-        
-        <CanvasCreator />
-      </div>
-    </div>
+    <CanvasWrapper title={title} description={description} onActionClick={() => {}}>
+      <CanvasToolbar 
+        showGrid={showGrid}
+        showEffects={showEffects}
+        onToggleGrid={() => setShowGrid(!showGrid)}
+        onToggleEffects={() => setShowEffects(!showEffects)}
+        onRotate={handleRotate}
+        onShare={() => toast.success('Sharing options coming soon!')}
+      />
+      
+      <CanvasDragArea
+        isDragging={isDragging}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
+        <CanvasPreviewArea
+          cardRef={cardRef}
+          scale={scale}
+          rotation={rotation}
+          brightness={brightness}
+          contrast={contrast}
+          cardPos={cardPos}
+          showGrid={showGrid}
+          showEffects={showEffects}
+          title={title}
+          description={description}
+        />
+      </CanvasDragArea>
+      
+      <CanvasControls 
+        brightness={brightness}
+        contrast={contrast}
+        onBrightnessChange={(values) => setBrightness(values[0])}
+        onContrastChange={(values) => setContrast(values[0])}
+        title={title}
+        description={description}
+      />
+      
+      <CanvasCreator />
+    </CanvasWrapper>
   );
 };
