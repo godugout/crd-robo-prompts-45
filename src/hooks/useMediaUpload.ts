@@ -30,6 +30,47 @@ export const useMediaUpload = ({ memoryId, userId, isPrivate, detectFaces }: Use
         return null;
       }
 
+      // For testing without authentication, we'll generate a mock media item
+      if (process.env.NODE_ENV === 'development') {
+        // Simulate progress
+        const interval = setInterval(() => {
+          setProgress(prev => {
+            if (prev >= 95) {
+              clearInterval(interval);
+              return 95;
+            }
+            return prev + 5;
+          });
+        }, 100);
+        
+        // Simulate upload completion
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        clearInterval(interval);
+        setProgress(100);
+        
+        // Create mock media item
+        const mockMediaItem: MediaItem = {
+          id: 'mock-' + Date.now(),
+          memoryId,
+          type: file.type.startsWith('image/') ? 'image' : 'video',
+          url: URL.createObjectURL(file),
+          thumbnailUrl: URL.createObjectURL(file),
+          originalFilename: file.name,
+          size: file.size,
+          mimeType: file.type,
+          width: 800,
+          height: 600,
+          created_at: new Date().toISOString()
+        };
+        
+        toast({
+          title: "Upload complete",
+          description: "Your file has been uploaded successfully"
+        });
+        
+        return mockMediaItem;
+      }
+
       const mediaItem = await uploadMedia({
         file,
         memoryId,
