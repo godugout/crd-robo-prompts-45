@@ -97,6 +97,11 @@
     border-color: var(--editor-border);
   }
   
+  /* Added missing text-cardshow-white definition */
+  .text-cardshow-white {
+    color: var(--cardshow-white);
+  }
+  
   /* Button Variants */
   .crd-button-primary {
     @apply bg-crd-blue text-white rounded-md hover:bg-opacity-90 transition-all px-4 py-2 flex items-center gap-2;
