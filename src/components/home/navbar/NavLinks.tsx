@@ -19,7 +19,7 @@ function randomInt(n: number) {
 }
 
 const ShowroomLink: React.FC<{active: boolean}> = ({active}) => {
-  const bulbsRef = useRef<HTMLDivElement[]>([]);
+  const bulbsRef = useRef<HTMLSpanElement[]>([]);
 
   // Setup flashing animation for bulbs
   useEffect(() => {
@@ -148,3 +148,4 @@ export const NavLinks = () => {
     </div>
   );
 };
+
