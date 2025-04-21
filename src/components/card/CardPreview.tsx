@@ -2,9 +2,13 @@
 import React from "react";
 import { CardActionButton } from "./buttons/CardActionButton";
 
+// 2.5in x 3.5in = 216 x 302px at 96dpi (browser default 1in = 96px)
+const CARD_WIDTH = 240; // slightly larger to work well visually on screen
+const CARD_HEIGHT = 336;
+
 export const CardPreview = () => {
   return (
-    <div className="relative w-full md:w-[311px] h-[420px] bg-[#353945] rounded-2xl">
+    <div className="relative bg-[#353945] rounded-2xl" style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}>
       <div className="absolute top-6 left-6 flex gap-2">
         <span className="px-2 py-2 text-xs font-raleway font-semibold uppercase bg-white text-[#23262F] rounded">
           Art
@@ -16,9 +20,10 @@ export const CardPreview = () => {
       <img
         src="https://cdn.builder.io/api/v1/image/assets/TEMP/2e3fccaef4a8c8a85ab1b25e96634ffea6707d7f"
         alt="Card Art"
-        className="absolute w-full h-[553px] -top-[67px]"
+        className="absolute w-full h-full object-cover"
+        style={{ borderRadius: "1rem" }}
       />
-      <div className="absolute bottom-8 left-[52px] flex gap-6">
+      <div className="absolute bottom-8 left-[40px] flex gap-6">
         <CardActionButton
           icon={
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
