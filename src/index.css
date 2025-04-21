@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -91,6 +90,11 @@
   /* Added missing bg-editor-darker definition */
   .bg-editor-darker {
     background-color: var(--editor-darker);
+  }
+
+  /* Added missing border-editor-border definition */
+  .border-editor-border {
+    border-color: var(--editor-border);
   }
   
   /* Button Variants */
