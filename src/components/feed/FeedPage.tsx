@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useUser } from '@/hooks/use-user';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -61,19 +60,6 @@ export const FeedPage = () => {
     );
   }
 
-  if (!user) {
-    console.log('No user, showing sign-in prompt');
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 p-8">
-        <h2 className="text-2xl font-bold text-gray-800">Join the Community</h2>
-        <p className="text-gray-600 text-center max-w-md">
-          Sign in to see personalized content, follow your favorite creators, and share your memories.
-        </p>
-        <Button>Sign In</Button>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       <Tabs
@@ -121,7 +107,7 @@ export const FeedPage = () => {
                 onReaction={handleReaction}
               />
             ))}
-            
+
             {hasMore && (
               <div className="flex justify-center pt-4">
                 <Button
