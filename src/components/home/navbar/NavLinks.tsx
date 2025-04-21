@@ -9,21 +9,29 @@ export const NavLinks = () => {
     return location.pathname === path;
   };
 
-  // Custom style for the Gallery link
+  // Base styles for all nav links
+  const baseStyle = "relative font-bold px-3 py-1 transition-all duration-200";
+  
+  // Custom style for active and inactive states
+  const activeStyle = "text-[#EA6E48] underline underline-offset-4";
+  const inactiveStyle = "text-[#777E90] hover:text-[#EA6E48]";
+  
+  // Custom style for the Gallery link (golden special styling)
   const galleryBase = "relative font-extrabold px-2 transition-all duration-200";
   const galleryActive =
     "text-[#FFD700] underline underline-offset-4 after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-gradient-to-r after:from-yellow-400 after:to-orange-400 after:rounded-full";
   const galleryInactive =
-    "text-[#b1b5c3] hover:text-[#FFD700] hover:scale-105 hover:brightness-125";
+    "text-[#777E90] hover:text-[#FFD700] hover:scale-105 hover:brightness-125";
 
   return (
-    <div className="text-[#b1b5c3] text-center text-sm font-extrabold leading-none self-stretch my-auto">
+    <div className="text-center flex space-x-6 items-center">
       <Link
         to="/cards"
-        className={isActive('/cards') ? "underline text-[#EA6E48]" : "font-semibold text-[#BDBDBD] hover:text-[#EA6E48]"}
+        className={`${baseStyle} ${isActive('/cards') ? activeStyle : inactiveStyle}`}
       >
         CARDS
-      </Link>{" "}
+      </Link>
+      
       <Link
         to="/gallery"
         className={
@@ -40,16 +48,18 @@ export const NavLinks = () => {
         }}
       >
         GALLERY
-      </Link>{" "}
+      </Link>
+      
       <Link
         to="/creators"
-        className={isActive('/creators') ? "underline text-[#EA6E48]" : "font-semibold text-[#BDBDBD] hover:text-[#EA6E48]"}
+        className={`${baseStyle} ${isActive('/creators') ? activeStyle : inactiveStyle}`}
       >
         CREATORS
-      </Link>{" "}
+      </Link>
+      
       <Link
         to="/collections"
-        className={isActive('/collections') ? "underline text-[#EA6E48]" : "font-semibold text-[#BDBDBD] hover:text-[#EA6E48]"}
+        className={`${baseStyle} ${isActive('/collections') ? activeStyle : inactiveStyle}`}
       >
         COLLECTIONS
       </Link>

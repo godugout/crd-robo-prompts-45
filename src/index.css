@@ -54,19 +54,22 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-color: #121212;
+    color: #FCFCFD;
   }
 }
 
 /* Custom colors for Cardshow */
 :root {
   --cardshow-green: #10b981;
-  --cardshow-orange: #f97316;
+  --cardshow-orange: #EA6E48;
   --cardshow-purple: #9b87f5;
-  --cardshow-blue: #3b82f6;
+  --cardshow-blue: #3772FF;
   --cardshow-white: #ffffff;
-  --cardshow-lightGray: #a1a1aa;
-  --cardshow-mediumGray: #52525b;
-  --cardshow-darkGray: #18181b;
+  --cardshow-lightGray: #777E90;
+  --cardshow-mediumGray: #353945;
+  --cardshow-darkGray: #23262F;
+  --cardshow-darkest: #121212;
   --editor-dark: #1a1a1a;
   --editor-darker: #121212;
   --editor-tool: #2a2a2a;
@@ -90,6 +93,44 @@
 
 .template-item.active {
   @apply ring-2 ring-cardshow-green;
+}
+
+/* Card styles for CRD app */
+.card-item {
+  @apply bg-cardshow-darkGray border border-cardshow-mediumGray rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg;
+}
+
+.card-price-tag {
+  @apply bg-cardshow-darkGray/80 text-cardshow-green text-sm font-semibold py-1 px-3 rounded-full;
+}
+
+.card-bid-tag {
+  @apply bg-cardshow-darkGray/80 text-cardshow-orange text-sm py-1 px-3 rounded-full;
+}
+
+.card-stock-tag {
+  @apply text-cardshow-lightGray text-xs font-medium;
+}
+
+/* Custom tabs and buttons */
+.tab-button {
+  @apply px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200;
+}
+
+.tab-button.active {
+  @apply bg-cardshow-blue text-white;
+}
+
+.tab-button.inactive {
+  @apply text-cardshow-lightGray hover:text-white;
+}
+
+.filter-button {
+  @apply bg-cardshow-blue text-white rounded-md px-4 py-2 flex items-center gap-2 transition-colors duration-200 hover:bg-opacity-90;
+}
+
+.outline-button {
+  @apply bg-transparent border border-cardshow-mediumGray text-white rounded-md px-4 py-2 transition-colors duration-200 hover:bg-cardshow-mediumGray/50;
 }
 
 /* Particle effect animation */
