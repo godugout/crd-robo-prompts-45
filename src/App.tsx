@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -10,7 +9,7 @@ import CardDetail from "./pages/CardDetail";
 import NotFound from "./pages/NotFound";
 import { FeedPage } from "./components/feed/FeedPage";
 import Editor from "./pages/Editor";
-import Templates from "./pages/Templates";
+import Creators from "./pages/Creators";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Memories from "./pages/Memories";
@@ -66,7 +65,7 @@ const App = () => {
                 <Route path="/memories" element={<Memories />} />
                 <Route path="/card/:id" element={<CardDetail />} />
                 <Route path="/editor" element={<Editor />} />
-                <Route path="/templates" element={<Templates />} />
+                <Route path="/creators" element={<Creators />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/collections" element={<Collections />} />

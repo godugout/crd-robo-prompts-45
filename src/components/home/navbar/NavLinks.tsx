@@ -8,7 +8,7 @@ export const NavLinks = () => {
       <Link to="/feed" className="underline text-[#EA6E48]">CARDS</Link>{" "}
       <Link to="/decks" className="font-semibold text-[#BDBDBD] hover:text-[#EA6E48]">MARKET</Link>{" "}
       <Link to="/collections" className="font-semibold text-[#BDBDBD] hover:text-[#EA6E48]">COLLECTIONS</Link>{" "}
-      <Link to="/templates" className="font-semibold text-[#BDBDBD] hover:text-[#EA6E48]">SHOPS</Link>
+      <Link to="/creators" className="font-semibold text-[#BDBDBD] hover:text-[#EA6E48]">FRAMES</Link>
     </div>
   );
 };
