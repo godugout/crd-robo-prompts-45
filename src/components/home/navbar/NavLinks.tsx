@@ -9,7 +9,7 @@ export const NavLinks = () => {
     return location.pathname === path;
   };
 
-  // Custom style for the SHOWROOM link
+  // Custom style for the SHOWROOM (now GALLERY) link
   const showroomBase = "relative font-extrabold px-2 transition-all duration-200";
   const showroomActive =
     "text-[#FFD700] underline underline-offset-4 after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-gradient-to-r after:from-yellow-400 after:to-orange-400 after:rounded-full";
@@ -25,19 +25,19 @@ export const NavLinks = () => {
         CARDS
       </Link>{" "}
       <Link 
-        to="/shop" 
+        to="/gallery" 
         className={
           showroomBase +
           " " +
-          (isActive('/shop') 
+          (isActive('/gallery') 
             ? showroomActive 
             : showroomInactive)
         }
         style={{
-          textShadow: isActive('/shop') ? "0 0 10px #FFD700, 0 1px 24px #fff2, 0 0 2px #FFA500" : undefined
+          textShadow: isActive('/gallery') ? "0 0 10px #FFD700, 0 1px 24px #fff2, 0 0 2px #FFA500" : undefined
         }}
       >
-        SHOWROOM
+        GALLERY
       </Link>{" "}
       <Link 
         to="/creators" 
