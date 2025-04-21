@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -67,12 +68,11 @@ const App = () => {
                 <Route path="/card/:id" element={<CardDetail />} />
                 <Route path="/editor" element={<Editor />} />
                 <Route path="/creators" element={<Creators />} />
-                <Route path="/gallery" element={<Navigate to="/collections" replace />} />
-                <Route path="/collections" element={<Collections />} />
-                <Route path="/shop" element={<Navigate to="/gallery" replace />} />
-                <Route path="/decks" element={<Navigate to="/collections" replace />} />
+                <Route path="/shop" element={<Navigate to="/decks" replace />} />
+                <Route path="/decks" element={<Navigate to="/shop" replace />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/collections" element={<Collections />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
