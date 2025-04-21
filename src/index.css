@@ -88,6 +88,11 @@
     @apply text-crd-orange;
   }
   
+  /* Added missing bg-editor-darker definition */
+  .bg-editor-darker {
+    background-color: var(--editor-darker);
+  }
+  
   /* Button Variants */
   .crd-button-primary {
     @apply bg-crd-blue text-white rounded-md hover:bg-opacity-90 transition-all px-4 py-2 flex items-center gap-2;
