@@ -60,6 +60,8 @@ export const useMediaUpload = ({ memoryId, userId, isPrivate, detectFaces }: Use
           mimeType: file.type,
           width: 800,
           height: 600,
+          duration: file.type.startsWith('video/') ? 0 : null, // Add duration property (0 for videos, null otherwise)
+          metadata: null, // Add metadata property (null is valid according to the interface)
           createdAt: new Date().toISOString()
         };
 
