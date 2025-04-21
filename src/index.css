@@ -53,19 +53,123 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
-    background-color: #121212;
-    color: #FCFCFD;
+    @apply bg-crd-darkest text-crd-white;
+  }
+  
+  h1 {
+    @apply text-4xl font-bold mb-4;
+  }
+  
+  h2 {
+    @apply text-3xl font-bold mb-3;
+  }
+  
+  h3 {
+    @apply text-2xl font-bold mb-2;
+  }
+}
+
+/* CRD Design System */
+@layer components {
+  /* Layout Components */
+  .crd-container {
+    @apply container mx-auto p-6 max-w-7xl;
+  }
+  
+  .crd-section {
+    @apply mb-10;
+  }
+  
+  .crd-header {
+    @apply text-4xl font-bold text-crd-white mb-8;
+  }
+  
+  .crd-accent {
+    @apply text-crd-orange;
+  }
+  
+  /* Button Variants */
+  .crd-button-primary {
+    @apply bg-crd-blue text-white rounded-md hover:bg-opacity-90 transition-all px-4 py-2 flex items-center gap-2;
+  }
+  
+  .crd-button-secondary {
+    @apply bg-transparent border border-crd-mediumGray text-crd-white rounded-md px-4 py-2 hover:bg-crd-mediumGray/50 transition-all;
+  }
+  
+  .crd-button-outline {
+    @apply bg-crd-dark text-crd-white border border-crd-mediumGray rounded-md px-3 py-2 hover:border-crd-blue hover:text-crd-blue transition-all;
+  }
+  
+  /* Filter Controls */
+  .crd-filter-group {
+    @apply flex rounded-md overflow-hidden;
+  }
+  
+  .crd-filter-button {
+    @apply bg-transparent text-crd-lightGray border-crd-mediumGray px-3 py-2 hover:text-crd-white transition-all;
+  }
+  
+  .crd-filter-button-active {
+    @apply bg-crd-blue text-crd-white;
+  }
+  
+  /* Card Components */
+  .crd-card {
+    @apply bg-crd-darkGray border border-crd-mediumGray rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg;
+  }
+  
+  .crd-card-header {
+    @apply p-6 border-b border-crd-mediumGray;
+  }
+  
+  .crd-card-content {
+    @apply p-6;
+  }
+  
+  .crd-card-footer {
+    @apply p-6 border-t border-crd-mediumGray;
+  }
+  
+  /* Form Inputs */
+  .crd-input {
+    @apply w-full bg-crd-dark border border-crd-mediumGray rounded-md px-3 py-2 text-crd-white placeholder:text-crd-lightGray focus:outline-none focus:ring-1 focus:ring-crd-blue focus:border-crd-blue;
+  }
+  
+  /* View Mode Toggles */
+  .crd-view-toggle {
+    @apply bg-crd-dark border-crd-mediumGray transition-all p-2 rounded;
+  }
+  
+  .crd-view-toggle-active {
+    @apply text-crd-blue;
+  }
+  
+  .crd-view-toggle-inactive {
+    @apply text-crd-lightGray;
+  }
+  
+  /* Tags and Badges */
+  .crd-tag {
+    @apply bg-crd-mediumGray text-crd-lightGray text-xs py-1 px-3 rounded-full;
+  }
+  
+  .crd-price-tag {
+    @apply bg-crd-darkGray/80 text-crd-green text-sm font-semibold py-1 px-3 rounded-full;
+  }
+  
+  .crd-bid-tag {
+    @apply bg-crd-darkGray/80 text-crd-orange text-sm py-1 px-3 rounded-full;
   }
 }
 
 /* Custom colors for Cardshow */
 :root {
-  --cardshow-green: #10b981;
+  --cardshow-green: #45B26B;
   --cardshow-orange: #EA6E48;
-  --cardshow-purple: #9b87f5;
+  --cardshow-purple: #9757D7;
   --cardshow-blue: #3772FF;
-  --cardshow-white: #ffffff;
+  --cardshow-white: #FCFCFD;
   --cardshow-lightGray: #777E90;
   --cardshow-mediumGray: #353945;
   --cardshow-darkGray: #23262F;
@@ -82,73 +186,9 @@
   @apply w-full bg-editor-darker border border-editor-border rounded-md px-3 py-2 text-cardshow-white placeholder:text-cardshow-lightGray focus:outline-none focus:ring-1 focus:ring-cardshow-blue focus:border-cardshow-blue;
 }
 
-.btn-primary {
-  @apply bg-cardshow-blue text-white rounded-lg py-2 px-4 hover:bg-opacity-90 transition-all;
-}
-
-/* Template item styles */
-.template-item {
-  @apply rounded-lg cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-cardshow-blue;
-}
-
-.template-item.active {
-  @apply ring-2 ring-cardshow-green;
-}
-
 /* Card styles for CRD app */
 .card-item {
   @apply bg-cardshow-darkGray border border-cardshow-mediumGray rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg;
-}
-
-.card-price-tag {
-  @apply bg-cardshow-darkGray/80 text-cardshow-green text-sm font-semibold py-1 px-3 rounded-full;
-}
-
-.card-bid-tag {
-  @apply bg-cardshow-darkGray/80 text-cardshow-orange text-sm py-1 px-3 rounded-full;
-}
-
-.card-stock-tag {
-  @apply text-cardshow-lightGray text-xs font-medium;
-}
-
-/* Custom tabs and buttons */
-.tab-button {
-  @apply px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200;
-}
-
-.tab-button.active {
-  @apply bg-cardshow-blue text-white;
-}
-
-.tab-button.inactive {
-  @apply text-cardshow-lightGray hover:text-white;
-}
-
-.filter-button {
-  @apply bg-cardshow-blue text-white rounded-md px-4 py-2 flex items-center gap-2 transition-colors duration-200 hover:bg-opacity-90;
-}
-
-.outline-button {
-  @apply bg-transparent border border-cardshow-mediumGray text-white rounded-md px-4 py-2 transition-colors duration-200 hover:bg-cardshow-mediumGray/50;
-}
-
-/* Particle effect animation */
-@keyframes particle-animation {
-  0% {
-    transform: translate(0, 0);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(var(--x, 20px), var(--y, -50px));
-    opacity: 0;
-  }
-}
-
-.animate-fade-out {
-  animation: particle-animation 1.5s ease-out forwards;
-  --x: calc(random() * 60px - 30px);
-  --y: calc(random() * -70px - 20px);
 }
 
 /* Custom sidebar scroll */
@@ -168,4 +208,22 @@
 .editor-sidebar::-webkit-scrollbar-thumb {
   background-color: var(--editor-tool);
   border-radius: 4px;
+}
+
+/* Animation classes */
+@keyframes particle-animation {
+  0% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--x, 20px), var(--y, -50px));
+    opacity: 0;
+  }
+}
+
+.animate-fade-out {
+  animation: particle-animation 1.5s ease-out forwards;
+  --x: calc(random() * 60px - 30px);
+  --y: calc(random() * -70px - 20px);
 }

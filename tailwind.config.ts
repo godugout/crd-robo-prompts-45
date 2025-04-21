@@ -53,40 +53,23 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
         },
-        sidebar: {
-          DEFAULT: 'hsl(var(--sidebar-background))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          primary: 'hsl(var(--sidebar-primary))',
-          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))'
-        },
-        editor: {
-          dark: '#0D0E14', // Darker background
-          darker: '#09090D', // Darkest background
-          border: '#282A3A', // Subtle border
-          tool: '#1A1D2A', // Tool panel background
-          highlight: '#2E3458', // Highlighted elements
-          canvas: '#fff', // Canvas background (white)
-          grid: 'rgba(0, 0, 0, 0.1)', // Grid lines
-          accent: '#EA6E48', // Orange accent from screenshots
-          blue: '#3772FF', // Blue accent
-          green: '#45B26B', // Green accent
-          purple: '#9757D7' // Purple accent 
-        },
-        cardshow: {
+        // CRD Design System
+        crd: {
+          // Base colors
+          darkest: '#121212',
+          dark: '#1A1A1A',
+          darkGray: '#23262F',
+          mediumGray: '#353945',
+          lightGray: '#777E90',
+          white: '#FCFCFD',
+          
+          // Brand colors
           orange: '#EA6E48',
           blue: '#3772FF',
           green: '#45B26B',
           purple: '#9757D7',
-          darkBlue: '#141416',
-          darkGray: '#23262F',
-          mediumGray: '#353945',
-          lightGray: '#777E90',
-          white: '#FCFCFD'
-        }
+          gold: '#FFD700',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -109,11 +92,31 @@ export default {
           to: {
             height: '0'
           }
+        },
+        'fade-in': {
+          '0%': {
+            opacity: '0',
+            transform: 'translateY(10px)'
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateY(0)'
+          }
+        },
+        'slide-in': {
+          '0%': {
+            transform: 'translateX(-100%)'
+          },
+          '100%': {
+            transform: 'translateX(0)'
+          }
         }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out'
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        'fade-in': 'fade-in 0.3s ease-out',
+        'slide-in': 'slide-in 0.3s ease-out'
       },
       fontFamily: {
         'orbitron': ['Orbitron', 'sans-serif'],
