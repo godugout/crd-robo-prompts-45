@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase-client';
 import type { Memory } from '@/types/memory';
 
-type FeedType = 'forYou' | 'following' | 'trending' | 'featured';
+export type FeedType = 'forYou' | 'following' | 'trending' | 'featured';
 
 export const useFeed = (userId?: string) => {
   const [memories, setMemories] = useState<Memory[]>([]);

@@ -1,12 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@/hooks/use-user';
-import { useFeed } from '@/hooks/use-feed';
+import { useFeed, FeedType } from '@/hooks/use-feed';
 import { CardsViewModeToggle } from './CardsViewModeToggle';
 import { CardsTabsContent } from './CardsTabsContent';
 import { CardsRecommendations } from './CardsRecommendations';
 
-type FeedType = 'forYou' | 'following' | 'trending' | 'featured';
 type ViewMode = 'feed' | 'grid' | 'masonry' | 'gallery';
 
 export const CardsPage = () => {

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -115,4 +114,3 @@ export const CardsTabsContent: React.FC<CardsTabsContentProps> = ({
     </Tabs>
   );
 };
-
