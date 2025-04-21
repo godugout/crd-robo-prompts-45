@@ -42,12 +42,12 @@ export const useMediaUpload = ({ memoryId, userId, isPrivate, detectFaces }: Use
             return prev + 5;
           });
         }, 100);
-        
+
         // Simulate upload completion
         await new Promise(resolve => setTimeout(resolve, 1500));
         clearInterval(interval);
         setProgress(100);
-        
+
         // Create mock media item
         const mockMediaItem: MediaItem = {
           id: 'mock-' + Date.now(),
@@ -60,14 +60,14 @@ export const useMediaUpload = ({ memoryId, userId, isPrivate, detectFaces }: Use
           mimeType: file.type,
           width: 800,
           height: 600,
-          created_at: new Date().toISOString()
+          createdAt: new Date().toISOString()
         };
-        
+
         toast({
           title: "Upload complete",
           description: "Your file has been uploaded successfully"
         });
-        
+
         return mockMediaItem;
       }
 
