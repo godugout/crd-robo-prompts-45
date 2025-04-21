@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase-client';
 import type { Memory } from '@/types/memory';
 
-type FeedType = 'forYou' | 'following' | 'trending';
+type FeedType = 'forYou' | 'following' | 'trending' | 'featured';
 
 export const useFeed = (userId?: string) => {
   const [memories, setMemories] = useState<Memory[]>([]);
@@ -110,6 +110,15 @@ export const useFeed = (userId?: string) => {
           return;
         }
         query = query.in('id', memoryIds);
+      }
+
+      if (feedType === 'featured') {
+        // For featured, we can potentially use a field in the database to mark featured items
+        // or use a different criteria like highest rated or staff picks
+        // For now, let's use the most recent with a certain tag or metadata
+        query = query.eq('visibility', 'public')
+                     .order('created_at', { ascending: false });
+        // Can add more specific filters for "featured" in the future
       }
 
       query = query.range(offset, offset + limit - 1);
