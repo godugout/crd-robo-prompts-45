@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@/hooks/use-user';
-import { useFeed, FeedType } from '@/hooks/use-feed';
+import { useFeed } from '@/hooks/use-feed';
+import type { FeedType } from '@/hooks/use-feed-types';
 import { CardsViewModeToggle } from './CardsViewModeToggle';
 import { CardsTabsContent } from './CardsTabsContent';
 import { CardsRecommendations } from './CardsRecommendations';

@@ -1,10 +1,11 @@
+
 import React from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader, AlertCircle } from "lucide-react";
 import { MemoryCard } from "@/components/memory/MemoryCard";
-import type { FeedType } from "@/hooks/use-feed";
+import type { FeedType } from "@/hooks/use-feed-types";
 import type { Memory } from "@/types/memory";
 import type { User } from "@/types/user";
 import { Button } from "@/components/ui/button";

@@ -8,7 +8,7 @@ export const fetchMemoriesFromFeed = async (
   currentPage: number,
   feedType: FeedType,
   existingMemories: Memory[],
-  setMemories: (memories: Memory[]) => void,
+  setMemories: React.Dispatch<React.SetStateAction<Memory[]>>,
   setHasMore: (v: boolean) => void,
   setError: (error: Error | null) => void,
   setLoading: (b: boolean) => void,
@@ -153,9 +153,11 @@ export const fetchMemoriesFromFeed = async (
       newMemories = mockMemories;
     }
     
-    setMemories(prev => 
-      currentPage === 1 ? newMemories : [...prev, ...newMemories]
-    );
+    if (currentPage === 1) {
+      setMemories(newMemories);
+    } else {
+      setMemories(prev => [...prev, ...newMemories]);
+    }
     setHasMore(!!count && count > currentPage * limit);
   } catch (error) {
     console.error('Error fetching memories:', error);

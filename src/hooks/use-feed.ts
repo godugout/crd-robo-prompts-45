@@ -4,6 +4,8 @@ import type { Memory } from '@/types/memory';
 import { fetchMemoriesFromFeed } from './useFeedFetcher';
 import type { FeedType } from './use-feed-types';
 
+export type { FeedType } from './use-feed-types';
+
 export const useFeed = (userId?: string) => {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(false);
