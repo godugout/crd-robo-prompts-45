@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -7,7 +8,7 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-route
 import Index from "./pages/Index";
 import CardDetail from "./pages/CardDetail";
 import NotFound from "./pages/NotFound";
-import { FeedPage } from "./components/feed/FeedPage";
+import { CardsPage } from "./components/cards/CardsPage";
 import Editor from "./pages/Editor";
 import Creators from "./pages/Creators";
 import Settings from "./pages/Settings";
@@ -61,11 +62,14 @@ const App = () => {
             <Routes>
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Index />} />
-                <Route path="/feed" element={<FeedPage />} />
+                <Route path="/cards" element={<CardsPage />} />
+                <Route path="/feed" element={<Navigate to="/cards" replace />} />
                 <Route path="/memories" element={<Memories />} />
                 <Route path="/card/:id" element={<CardDetail />} />
                 <Route path="/editor" element={<Editor />} />
                 <Route path="/creators" element={<Creators />} />
+                <Route path="/shop" element={<Navigate to="/decks" replace />} />
+                <Route path="/decks" element={<Navigate to="/shop" replace />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/collections" element={<Collections />} />
