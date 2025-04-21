@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 
 export const NavLinks = () => {
   const location = useLocation();
-  
+
   const isActive = (path: string) => {
     return location.pathname === path;
   };
@@ -18,32 +18,40 @@ export const NavLinks = () => {
 
   return (
     <div className="text-[#b1b5c3] text-center text-sm font-extrabold leading-none self-stretch my-auto">
-      <Link 
-        to="/cards" 
+      <Link
+        to="/cards"
         className={isActive('/cards') ? "underline text-[#EA6E48]" : "font-semibold text-[#BDBDBD] hover:text-[#EA6E48]"}
       >
         CARDS
       </Link>{" "}
-      <Link 
-        to="/gallery" 
+      <Link
+        to="/gallery"
         className={
           galleryBase +
           " " +
-          (isActive('/gallery') 
-            ? galleryActive 
+          (isActive('/gallery')
+            ? galleryActive
             : galleryInactive)
         }
         style={{
-          textShadow: isActive('/gallery') ? "0 0 10px #FFD700, 0 1px 24px #fff2, 0 0 2px #FFA500" : undefined
+          textShadow: isActive('/gallery')
+            ? "0 0 10px #FFD700, 0 1px 24px #fff2, 0 0 2px #FFA500"
+            : undefined
         }}
       >
         GALLERY
       </Link>{" "}
-      <Link 
-        to="/creators" 
+      <Link
+        to="/creators"
         className={isActive('/creators') ? "underline text-[#EA6E48]" : "font-semibold text-[#BDBDBD] hover:text-[#EA6E48]"}
       >
         CREATORS
+      </Link>{" "}
+      <Link
+        to="/collections"
+        className={isActive('/collections') ? "underline text-[#EA6E48]" : "font-semibold text-[#BDBDBD] hover:text-[#EA6E48]"}
+      >
+        COLLECTIONS
       </Link>
     </div>
   );
