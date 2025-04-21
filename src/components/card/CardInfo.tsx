@@ -1,20 +1,35 @@
 
 import React from "react";
 
+const formatCoins = (amount: number | string) => {
+  const n = typeof amount === "number" ? amount : parseFloat(amount);
+  return (
+    <>
+      <span className="inline-block mr-0.5 text-lg align-middle">🪙</span>
+      <span className="align-middle font-extrabold">{Math.ceil(n)}</span>
+      <span className="ml-1">CC</span>
+    </>
+  );
+};
+
 export const CardInfo = () => {
+  // Demo data as before
+  const coinValue = 2.5;
+  const usdValue = 4429.87;
+  const stock = 10;
   return (
     <div className="flex-1 space-y-16">
       <div className="space-y-10">
         <h1 className="font-raleway text-4xl font-black">The amazing art</h1>
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="px-2 py-1 text-lg font-raleway font-extrabold border-2 border-[#45B26B] text-[#45B26B] rounded">
-            2.5 ETH
+          <span className="px-2 py-1 text-lg font-raleway font-extrabold border-2 border-[#45B26B] text-[#45B26B] rounded flex items-center gap-1">
+            {formatCoins(coinValue)}
           </span>
           <span className="px-2 py-1 text-lg font-raleway font-extrabold border-2 border-[#353945] text-[#777E90] rounded">
-            $4,429.87
+            ${Math.ceil(usdValue).toLocaleString()}
           </span>
           <span className="text-lg font-raleway font-extrabold text-[#777E90]">
-            10 in stock
+            {stock} in stock
           </span>
         </div>
       </div>
