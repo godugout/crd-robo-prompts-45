@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import Memories from "./pages/Memories";
 import { MainLayout } from "./components/layout/MainLayout";
 import Collections from "./pages/Collections";
+import Gallery from "./pages/Gallery";
 
 const RouteLogger = () => {
   const location = useLocation();
@@ -68,8 +69,7 @@ const App = () => {
                 <Route path="/card/:id" element={<CardDetail />} />
                 <Route path="/editor" element={<Editor />} />
                 <Route path="/creators" element={<Creators />} />
-                <Route path="/shop" element={<Navigate to="/decks" replace />} />
-                <Route path="/decks" element={<Navigate to="/shop" replace />} />
+                <Route path="/gallery" element={<Gallery />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/collections" element={<Collections />} />
