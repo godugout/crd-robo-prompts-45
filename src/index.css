@@ -102,6 +102,11 @@
     color: var(--cardshow-white);
   }
   
+  /* Added missing placeholder:text-cardshow-lightGray definition */
+  .placeholder\:text-cardshow-lightGray::placeholder {
+    color: var(--cardshow-lightGray);
+  }
+  
   /* Button Variants */
   .crd-button-primary {
     @apply bg-crd-blue text-white rounded-md hover:bg-opacity-90 transition-all px-4 py-2 flex items-center gap-2;
