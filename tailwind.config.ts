@@ -70,6 +70,26 @@ export default {
           purple: '#9757D7',
           gold: '#FFD700',
         },
+        // Cardshow colors to match CSS variables
+        cardshow: {
+          green: 'var(--cardshow-green)',
+          orange: 'var(--cardshow-orange)',
+          purple: 'var(--cardshow-purple)',
+          blue: 'var(--cardshow-blue)',
+          white: 'var(--cardshow-white)',
+          lightGray: 'var(--cardshow-lightGray)',
+          mediumGray: 'var(--cardshow-mediumGray)',
+          darkGray: 'var(--cardshow-darkGray)',
+          darkest: 'var(--cardshow-darkest)',
+        },
+        // Editor colors
+        editor: {
+          dark: 'var(--editor-dark)',
+          darker: 'var(--editor-darker)',
+          tool: 'var(--editor-tool)',
+          border: 'var(--editor-border)',
+          canvas: 'var(--editor-canvas)',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
