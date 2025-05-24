@@ -58,4 +58,13 @@
   .crd-bid-tag {
     @apply bg-crd-darkGray/80 text-crd-orange text-sm py-1 px-3 rounded-full;
   }
+
+  /* Focus ring utilities for CRD design system */
+  .focus\:ring-crd-blue:focus {
+    @apply ring-1 ring-crd-blue;
+  }
+  
+  .focus\:border-crd-blue:focus {
+    @apply border-crd-blue;
+  }
 }

@@ -1,7 +1,7 @@
 
 import React, { ReactNode } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Button } from '@/components/ui/button';
+import { CRDButton } from '@/components/ui/design-system';
 
 interface ToolbarButtonProps {
   icon: ReactNode;
@@ -24,7 +24,7 @@ export const ToolbarButton = ({
     <Tooltip>
       <TooltipTrigger asChild>
         <div className="relative">
-          <Button 
+          <CRDButton 
             variant="ghost" 
             size="icon" 
             className={`h-8 w-8 p-1.5 ${
@@ -36,9 +36,9 @@ export const ToolbarButton = ({
             disabled={disabled}
           >
             {icon}
-          </Button>
+          </CRDButton>
           {badge !== undefined && (
-            <span className="absolute -top-1 -right-1 bg-cardshow-orange text-white text-[10px] rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+            <span className="absolute -top-1 -right-1 bg-crd-orange text-white text-[10px] rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
               {badge}
             </span>
           )}

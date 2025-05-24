@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { CRDButton, Typography } from '@/components/ui/design-system';
 
 interface CanvasCreatorProps {
   avatar?: string;
@@ -19,7 +19,9 @@ export const CanvasCreator = ({
     <div className="bg-editor-dark rounded-xl p-6 w-[400px]">
       <div className="flex flex-col gap-5">
         <div>
-          <h2 className="text-white text-xl font-bold mb-3">Creator</h2>
+          <Typography as="h2" variant="h4" className="mb-3">
+            Creator
+          </Typography>
           <div className="flex items-center gap-3">
             <img 
               src={avatar} 
@@ -27,18 +29,23 @@ export const CanvasCreator = ({
               className="w-16 h-16 rounded-full"
             />
             <div>
-              <div className="text-white font-semibold">{username}</div>
-              <div className="text-cardshow-lightGray text-sm">{fullName}</div>
-              <div className="text-cardshow-lightGray text-xs mt-1">{role}</div>
+              <Typography variant="body" className="font-semibold">{username}</Typography>
+              <Typography variant="caption" className="text-crd-lightGray">{fullName}</Typography>
+              <Typography variant="caption" className="text-crd-lightGray mt-1">{role}</Typography>
             </div>
           </div>
         </div>
         
         <div className="p-4 bg-editor-darker rounded-xl">
-          <div className="text-cardshow-lightGray text-sm mb-2">IS THIS A FAN SUBMISSION?</div>
-          <Button variant="default" className="w-full bg-editor-dark hover:bg-editor-dark/90 border border-editor-border text-cardshow-green">
+          <Typography variant="caption" className="text-crd-lightGray mb-2 block">
+            IS THIS A FAN SUBMISSION?
+          </Typography>
+          <CRDButton 
+            variant="outline" 
+            className="w-full bg-editor-dark hover:bg-editor-dark/90 text-crd-green"
+          >
             Add the original creator now.
-          </Button>
+          </CRDButton>
         </div>
       </div>
     </div>

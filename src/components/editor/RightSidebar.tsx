@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { CRDButton } from '@/components/ui/design-system';
 import { toast } from 'sonner';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { CardDetailsSection } from './right-sidebar/CardDetailsSection';
@@ -52,20 +52,24 @@ export const RightSidebar = () => {
       <CustomizeDesignSection cardEditor={cardEditor} />
       
       <div className="p-6 space-y-3">
-        <Button 
-          className="w-full bg-cardshow-green hover:bg-cardshow-green/90 text-white py-3 rounded-full font-medium transition-colors"
+        <CRDButton 
+          variant="primary"
+          size="lg"
+          className="w-full py-3 rounded-full"
           onClick={handleCreateCard}
           disabled={isSaving}
         >
           {isSaving ? 'Saving...' : isDirty ? 'Save Card' : 'Create Card'}
-        </Button>
+        </CRDButton>
 
-        <Button 
-          className="w-full bg-cardshow-orange hover:bg-cardshow-orange/90 text-white py-3 rounded-full font-medium transition-colors"
+        <CRDButton 
+          variant="primary"
+          size="lg" 
+          className="w-full py-3 rounded-full bg-crd-orange hover:bg-crd-orange/90"
           onClick={handlePublishCard}
         >
           Publish Card
-        </Button>
+        </CRDButton>
       </div>
     </div>
   );

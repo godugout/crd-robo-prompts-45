@@ -2,7 +2,7 @@
 import React from 'react';
 import { MousePointer, PenTool, Move, Sparkles } from 'lucide-react';
 import { ToolbarButton } from '@/components/editor/ToolbarButton';
-import { Button } from '@/components/ui/button';
+import { CRDButton } from '@/components/ui/design-system';
 
 interface ToolbarDrawingControlsProps {
   activeTool: string;
@@ -41,14 +41,14 @@ export const ToolbarDrawingControls = ({
         active={activeTool === 'pen'} 
         onClick={() => handleToolSelect('pen')}
       />
-      <Button 
+      <CRDButton 
         variant="ghost" 
         size="icon" 
         className="h-4 w-4 ml-1 p-0"
         onClick={toggleMagicBrush}
       >
-        <div className={`h-2 w-2 rounded-full ${isMagicBrush ? 'bg-cardshow-orange' : 'bg-gray-500'}`}></div>
-      </Button>
+        <div className={`h-2 w-2 rounded-full ${isMagicBrush ? 'bg-crd-orange' : 'bg-gray-500'}`}></div>
+      </CRDButton>
       <ToolbarButton 
         icon={<Sparkles size={18} />} 
         tooltip="Effects" 

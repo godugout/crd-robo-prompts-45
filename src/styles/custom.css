@@ -19,12 +19,3 @@
   background-color: var(--editor-tool);
   border-radius: 4px;
 }
-
-/* Legacy support - will be removed in next refactor */
-.input-dark {
-  @apply w-full bg-editor-darker border border-editor-border rounded-md px-3 py-2 text-cardshow-white placeholder:text-cardshow-lightGray focus:outline-none focus:ring-1 focus:ring-cardshow-blue focus:border-cardshow-blue;
-}
-
-.card-item {
-  @apply bg-cardshow-darkGray border border-cardshow-mediumGray rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg;
-}

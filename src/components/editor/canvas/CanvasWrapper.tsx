@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { CRDButton } from '@/components/ui/design-system';
 import { PaintBucket, Palette } from 'lucide-react';
 
 interface CanvasWrapperProps {
@@ -23,15 +23,13 @@ export const CanvasWrapper = ({
           {children}
           
           <div className="flex gap-2 mt-4">
-            <Button variant="outline" className="flex-1 rounded-full border border-editor-border text-cardshow-white">
+            <CRDButton variant="outline" className="flex-1 rounded-full">
               Add back
-            </Button>
-            <Button variant="outline" className="rounded-full border border-editor-border text-cardshow-green">
-              <PaintBucket size={16} />
-            </Button>
-            <Button variant="outline" className="rounded-full border border-editor-border text-cardshow-purple">
-              <Palette size={16} />
-            </Button>
+            </CRDButton>
+            <CRDButton variant="outline" className="rounded-full text-crd-green" icon={<PaintBucket size={16} />}>
+            </CRDButton>
+            <CRDButton variant="outline" className="rounded-full text-crd-purple" icon={<Palette size={16} />}>
+            </CRDButton>
           </div>
         </div>
       </div>
