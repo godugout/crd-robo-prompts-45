@@ -1,9 +1,9 @@
 
 @tailwind components;
 
-/* CRD Design System */
+/* CRD Design System Components */
 @layer components {
-  /* Layout Components */
+  /* Container & Layout */
   .crd-container {
     @apply container mx-auto p-6 max-w-7xl;
   }
@@ -19,20 +19,7 @@
   .crd-accent {
     @apply text-crd-orange;
   }
-  
-  /* Button Variants */
-  .crd-button-primary {
-    @apply bg-crd-blue text-white rounded-md hover:bg-opacity-90 transition-all px-4 py-2 flex items-center gap-2;
-  }
-  
-  .crd-button-secondary {
-    @apply bg-transparent border border-crd-mediumGray text-crd-white rounded-md px-4 py-2 hover:bg-crd-mediumGray/50 transition-all;
-  }
-  
-  .crd-button-outline {
-    @apply bg-crd-dark text-crd-white border border-crd-mediumGray rounded-md px-3 py-2 hover:border-crd-blue hover:text-crd-blue transition-all;
-  }
-  
+
   /* Filter Controls */
   .crd-filter-group {
     @apply flex rounded-md overflow-hidden;
@@ -45,29 +32,7 @@
   .crd-filter-button-active {
     @apply bg-crd-blue text-crd-white;
   }
-  
-  /* Card Components */
-  .crd-card {
-    @apply bg-crd-darkGray border border-crd-mediumGray rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg;
-  }
-  
-  .crd-card-header {
-    @apply p-6 border-b border-crd-mediumGray;
-  }
-  
-  .crd-card-content {
-    @apply p-6;
-  }
-  
-  .crd-card-footer {
-    @apply p-6 border-t border-crd-mediumGray;
-  }
-  
-  /* Form Inputs */
-  .crd-input {
-    @apply w-full bg-crd-dark border border-crd-mediumGray rounded-md px-3 py-2 text-crd-white placeholder:text-crd-lightGray focus:outline-none focus:ring-1 focus:ring-crd-blue focus:border-crd-blue;
-  }
-  
+
   /* View Mode Toggles */
   .crd-view-toggle {
     @apply bg-crd-dark border-crd-mediumGray transition-all p-2 rounded;
@@ -92,30 +57,5 @@
   
   .crd-bid-tag {
     @apply bg-crd-darkGray/80 text-crd-orange text-sm py-1 px-3 rounded-full;
-  }
-
-  /* Custom color classes for cardshow colors */
-  .bg-editor-darker {
-    background-color: var(--editor-darker);
-  }
-
-  .border-editor-border {
-    border-color: var(--editor-border);
-  }
-
-  .text-cardshow-white {
-    color: var(--cardshow-white);
-  }
-
-  .placeholder\:text-cardshow-lightGray::placeholder {
-    color: var(--cardshow-lightGray);
-  }
-
-  .focus\:ring-cardshow-blue:focus {
-    --tw-ring-color: var(--cardshow-blue);
-  }
-
-  .focus\:border-cardshow-blue:focus {
-    border-color: var(--cardshow-blue);
   }
 }
