@@ -1,30 +1,29 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CRDButton, CRDInput } from '@/components/ui/design-system';
-import { Label } from '@/components/ui/label';
+import { CRDButton } from '@/components/ui/design-system';
 import { useAuth } from '@/contexts/AuthContext';
 import { Mail, ArrowLeft } from 'lucide-react';
+import { EmailField } from './components/EmailField';
+import { useAuthForm } from './hooks/useAuthForm';
+
+interface ForgotPasswordFormData {
+  email: string;
+}
 
 export const ForgotPasswordForm: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isEmailSent, setIsEmailSent] = useState(false);
-  
   const { resetPassword } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    const { error } = await resetPassword(email);
-    
-    if (!error) {
-      setIsEmailSent(true);
-    }
-    
-    setIsLoading(false);
-  };
+  const { formData, isLoading, handleInputChange, handleSubmit } = useAuthForm<ForgotPasswordFormData>({
+    initialValues: { email: '' },
+    onSubmit: async (data) => {
+      const { error } = await resetPassword(data.email);
+      if (!error) {
+        setIsEmailSent(true);
+      }
+    },
+  });
 
   if (isEmailSent) {
     return (
@@ -35,7 +34,7 @@ export const ForgotPasswordForm: React.FC = () => {
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-crd-white">Check your email</h3>
           <p className="text-crd-lightGray">
-            We've sent a password reset link to <strong>{email}</strong>
+            We've sent a password reset link to <strong>{formData.email}</strong>
           </p>
         </div>
         <div className="space-y-3">
@@ -68,29 +67,17 @@ export const ForgotPasswordForm: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-crd-white">Email</Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-crd-lightGray h-4 w-4" />
-            <CRDInput
-              id="email"
-              type="email"
-              variant="crd"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="pl-10"
-              required
-            />
-          </div>
-        </div>
+        <EmailField
+          email={formData.email}
+          onEmailChange={(value) => handleInputChange('email', value)}
+        />
 
         <CRDButton
           type="submit"
           variant="primary"
           size="lg"
           className="w-full"
-          disabled={isLoading || !email}
+          disabled={isLoading || !formData.email}
         >
           {isLoading ? 'Sending...' : 'Send Reset Link'}
         </CRDButton>

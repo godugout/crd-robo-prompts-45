@@ -2,9 +2,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { CRDButton } from '@/components/ui/design-system';
-import { Separator } from '@/components/ui/separator';
 import { useSignUpForm } from './hooks/useSignUpForm';
-import { OAuthButtons } from './components/OAuthButtons';
+import { AuthFormContainer } from './components/AuthFormContainer';
 import { PasswordFields } from './components/PasswordFields';
 import { UserInfoFields } from './components/UserInfoFields';
 
@@ -19,7 +18,7 @@ export const SignUpForm: React.FC = () => {
   } = useSignUpForm();
 
   return (
-    <div className="space-y-6">
+    <AuthFormContainer>
       <form onSubmit={handleSubmit} className="space-y-4">
         <UserInfoFields
           fullName={formData.fullName}
@@ -48,21 +47,12 @@ export const SignUpForm: React.FC = () => {
         </CRDButton>
       </form>
 
-      <div className="relative">
-        <Separator className="bg-crd-mediumGray" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="bg-crd-dark px-2 text-sm text-crd-lightGray">Or continue with</span>
-        </div>
-      </div>
-
-      <OAuthButtons />
-
       <div className="text-center">
         <span className="text-crd-lightGray">Already have an account? </span>
         <Link to="/auth/signin" className="text-crd-blue hover:text-crd-blue/80">
           Sign in
         </Link>
       </div>
-    </div>
+    </AuthFormContainer>
   );
 };

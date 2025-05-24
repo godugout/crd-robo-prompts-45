@@ -1,20 +1,69 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CRDButton, CRDInput } from '@/components/ui/design-system';
-import { Label } from '@/components/ui/label';
+import { CRDButton } from '@/components/ui/design-system';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Lock, Eye, EyeOff } from 'lucide-react';
+import { PasswordField } from './components/PasswordField';
+import { useAuthForm } from './hooks/useAuthForm';
+
+interface ResetPasswordFormData {
+  password: string;
+  confirmPassword: string;
+}
 
 export const ResetPasswordForm: React.FC = () => {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  const { formData, isLoading, handleInputChange, handleSubmit } = useAuthForm<ResetPasswordFormData>({
+    initialValues: { password: '', confirmPassword: '' },
+    onSubmit: async (data) => {
+      if (data.password !== data.confirmPassword) {
+        toast({
+          title: 'Password Mismatch',
+          description: 'Passwords do not match. Please try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (data.password.length < 6) {
+        toast({
+          title: 'Password Too Short',
+          description: 'Password must be at least 6 characters long.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      try {
+        const { error } = await supabase.auth.updateUser({
+          password: data.password
+        });
+
+        if (error) {
+          toast({
+            title: 'Password Update Failed',
+            description: error.message,
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'Password Updated',
+            description: 'Your password has been updated successfully.',
+          });
+          navigate('/');
+        }
+      } catch (error) {
+        toast({
+          title: 'Unexpected Error',
+          description: 'An unexpected error occurred. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    },
+  });
 
   useEffect(() => {
     // Check if we have the required tokens from the URL
@@ -31,58 +80,6 @@ export const ResetPasswordForm: React.FC = () => {
     }
   }, [searchParams, navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (password !== confirmPassword) {
-      toast({
-        title: 'Password Mismatch',
-        description: 'Passwords do not match. Please try again.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (password.length < 6) {
-      toast({
-        title: 'Password Too Short',
-        description: 'Password must be at least 6 characters long.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      });
-
-      if (error) {
-        toast({
-          title: 'Password Update Failed',
-          description: error.message,
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Password Updated',
-          description: 'Your password has been updated successfully.',
-        });
-        navigate('/');
-      }
-    } catch (error) {
-      toast({
-        title: 'Unexpected Error',
-        description: 'An unexpected error occurred. Please try again.',
-        variant: 'destructive',
-      });
-    }
-
-    setIsLoading(false);
-  };
-
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
@@ -93,60 +90,26 @@ export const ResetPasswordForm: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-crd-white">New Password</Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-crd-lightGray h-4 w-4" />
-            <CRDInput
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              variant="crd"
-              placeholder="Enter new password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 pr-10"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-crd-lightGray hover:text-crd-white"
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-        </div>
+        <PasswordField
+          password={formData.password}
+          onPasswordChange={(value) => handleInputChange('password', value)}
+          placeholder="Enter new password"
+          label="New Password"
+        />
 
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword" className="text-crd-white">Confirm Password</Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-crd-lightGray h-4 w-4" />
-            <CRDInput
-              id="confirmPassword"
-              type={showConfirmPassword ? 'text' : 'password'}
-              variant="crd"
-              placeholder="Confirm new password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="pl-10 pr-10"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-crd-lightGray hover:text-crd-white"
-            >
-              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-        </div>
+        <PasswordField
+          password={formData.confirmPassword}
+          onPasswordChange={(value) => handleInputChange('confirmPassword', value)}
+          placeholder="Confirm new password"
+          label="Confirm Password"
+        />
 
         <CRDButton
           type="submit"
           variant="primary"
           size="lg"
           className="w-full"
-          disabled={isLoading || !password || !confirmPassword}
+          disabled={isLoading || !formData.password || !formData.confirmPassword}
         >
           {isLoading ? 'Updating...' : 'Update Password'}
         </CRDButton>
