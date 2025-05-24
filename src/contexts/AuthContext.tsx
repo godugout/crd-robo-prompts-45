@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -17,6 +16,7 @@ interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   signInWithOAuth: (provider: 'google' | 'github' | 'discord') => Promise<{ error: AuthError | null }>;
+  signInWithMagicLink: (email: string) => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   updateProfile: (updates: Record<string, any>) => Promise<{ error: AuthError | PostgrestError | null }>;
 }
@@ -239,6 +239,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return { error };
   };
 
+  const signInWithMagicLink = async (email: string) => {
+    setAuthState(prev => ({ ...prev, loading: true, error: null }));
+    
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    setAuthState(prev => ({ ...prev, loading: false, error }));
+
+    if (error) {
+      toast({
+        title: 'Magic Link Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Magic Link Sent',
+        description: 'Check your email for the magic link to sign in.',
+      });
+    }
+
+    return { error };
+  };
+
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/reset-password`,
@@ -297,6 +325,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signIn,
     signOut,
     signInWithOAuth,
+    signInWithMagicLink,
     resetPassword,
     updateProfile,
   };

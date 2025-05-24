@@ -5,7 +5,7 @@ import { CRDButton, CRDInput } from '@/components/ui/design-system';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Sparkles } from 'lucide-react';
 
 export const SignInForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -77,7 +77,14 @@ export const SignInForm: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-between items-center">
+          <Link 
+            to="/auth/magic-link" 
+            className="text-sm text-crd-blue hover:text-crd-blue/80 flex items-center"
+          >
+            <Sparkles className="h-3 w-3 mr-1" />
+            Magic link
+          </Link>
           <Link 
             to="/auth/forgot-password" 
             className="text-sm text-crd-blue hover:text-crd-blue/80"

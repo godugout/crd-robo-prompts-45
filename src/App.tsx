@@ -20,6 +20,9 @@ import Collections from "./pages/Collections";
 import Gallery from "./pages/Gallery";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
+import MagicLink from "./pages/auth/MagicLink";
 import AuthCallback from "./pages/auth/AuthCallback";
 import { MainLayout } from "./components/layout/MainLayout";
 
@@ -76,6 +79,21 @@ const App = () => {
                 <Route path="/auth/signup" element={
                   <ProtectedRoute requireAuth={false}>
                     <SignUp />
+                  </ProtectedRoute>
+                } />
+                <Route path="/auth/forgot-password" element={
+                  <ProtectedRoute requireAuth={false}>
+                    <ForgotPassword />
+                  </ProtectedRoute>
+                } />
+                <Route path="/auth/reset-password" element={
+                  <ProtectedRoute requireAuth={false}>
+                    <ResetPassword />
+                  </ProtectedRoute>
+                } />
+                <Route path="/auth/magic-link" element={
+                  <ProtectedRoute requireAuth={false}>
+                    <MagicLink />
                   </ProtectedRoute>
                 } />
                 <Route path="/auth/callback" element={<AuthCallback />} />
