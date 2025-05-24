@@ -1,67 +1,92 @@
 
-import React from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { CRDButton } from '@/components/ui/design-system';
+import { useAuth } from '@/contexts/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Settings, User } from "lucide-react";
+} from '@/components/ui/dropdown-menu';
+import { User, Settings, LogOut } from 'lucide-react';
 
 export const NavActions = () => {
-  return (
-    <div className="self-stretch flex min-w-60 gap-6 text-center flex-wrap my-auto max-md:max-w-full">
-      <div className="justify-between items-center flex min-w-60 gap-[40px_100px] overflow-hidden text-xs text-[#777E90] font-normal whitespace-nowrap leading-loose w-64 pl-4 pr-3 py-2.5 rounded-lg">
-        <div className="self-stretch my-auto">Search</div>
-        <img
-          src="https://cdn.builder.io/api/v1/image/assets/55d1eea1cc5a43f6bced987c3407a299/b30f2b7e744582894079841c0016d0c22eb76184?placeholderIfAbsent=true"
-          className="aspect-[1] object-contain w-5 self-stretch shrink-0 my-auto"
-          alt="Search"
-        />
+  const { user, signOut, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center space-x-4">
+        <div className="w-8 h-8 bg-crd-mediumGray rounded-full animate-pulse" />
       </div>
-      <img
-        src="https://cdn.builder.io/api/v1/image/assets/55d1eea1cc5a43f6bced987c3407a299/34fbc25a4acedf09fdae6eb6a44f243f080875a4?placeholderIfAbsent=true"
-        className="aspect-[1] object-contain w-10 shrink-0"
-        alt="Notification"
-      />
-      <div className="flex items-center gap-3">
-        <Link to="/editor">
-          <Button className="bg-[#27AE60] gap-3 px-4 py-3 rounded-[90px]">
-            Create card
-          </Button>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex items-center space-x-4">
+        <Link to="/auth/signin">
+          <CRDButton variant="ghost" size="sm">
+            Sign In
+          </CRDButton>
         </Link>
-        <DropdownMenu>
-          <DropdownMenuTrigger className="outline-none">
-            <Avatar className="h-10 w-10 border-2 border-[#27AE60]">
-              <AvatarFallback className="bg-[#27AE60] text-white">
-                U
+        <Link to="/auth/signup">
+          <CRDButton variant="primary" size="sm">
+            Sign Up
+          </CRDButton>
+        </Link>
+      </div>
+    );
+  }
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  return (
+    <div className="flex items-center space-x-4">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex items-center space-x-2 rounded-full p-1 hover:bg-crd-dark transition-colors">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user.user_metadata?.avatar_url} />
+              <AvatarFallback className="bg-crd-blue text-crd-white">
+                {user.user_metadata?.username?.[0]?.toUpperCase() || 
+                 user.email?.[0]?.toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem asChild>
-              <Link to="/profile" className="flex items-center">
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/settings" className="flex items-center">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600">
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56 bg-crd-dark border-crd-mediumGray">
+          <DropdownMenuLabel className="text-crd-white">
+            {user.user_metadata?.full_name || user.email}
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="bg-crd-mediumGray" />
+          <DropdownMenuItem asChild>
+            <Link to="/profile" className="text-crd-lightGray hover:text-crd-white">
+              <User className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/settings" className="text-crd-lightGray hover:text-crd-white">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="bg-crd-mediumGray" />
+          <DropdownMenuItem 
+            onClick={handleSignOut}
+            className="text-crd-lightGray hover:text-crd-white cursor-pointer"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Sign out</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

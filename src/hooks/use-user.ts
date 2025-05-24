@@ -1,72 +1,47 @@
 
-import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase-client';
 import type { User } from '@/types/user';
-import type { AuthError, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 
 export const useUser = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const { user: authUser, loading: authLoading } = useAuth();
 
-  useEffect(() => {
-    let mounted = true;
+  const { data: user, isLoading: profileLoading, error } = useQuery({
+    queryKey: ['profile', authUser?.id],
+    queryFn: async () => {
+      if (!authUser) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single();
 
-    const fetchUser = async (supabaseUser: SupabaseUser | null) => {
-      if (!supabaseUser) {
-        if (mounted) {
-          setUser(null);
-          setLoading(false);
-        }
-        return;
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return null;
       }
 
-      try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', supabaseUser.id)
-          .single();
+      return {
+        id: authUser.id,
+        email: authUser.email || '',
+        username: data.username || '',
+        full_name: data.full_name,
+        avatar_url: data.avatar_url,
+        bio: data.bio,
+        team_id: data.team_id,
+        createdAt: authUser.created_at,
+        preferences: null,
+        profileImage: data.avatar_url,
+      } as User;
+    },
+    enabled: !!authUser,
+  });
 
-        if (error) throw error;
-        
-        if (mounted) {
-          setUser(data);
-          setError(null);
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err instanceof Error ? err : new Error('Failed to fetch user'));
-          setUser(null);
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        fetchUser(session?.user ?? null);
-      }
-    });
-
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-          await fetchUser(session?.user ?? null);
-        }
-      }
-    );
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  return { user, loading, error };
+  return { 
+    user, 
+    loading: authLoading || profileLoading, 
+    error: error ? new Error(error.message) : null 
+  };
 };
