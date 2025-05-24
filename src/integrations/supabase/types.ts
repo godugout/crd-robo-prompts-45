@@ -525,6 +525,126 @@ export type Database = {
           },
         ]
       }
+      design_elements: {
+        Row: {
+          category: string
+          content: Json
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          moderation_status: string
+          name: string
+          performance: Json | null
+          premium: boolean | null
+          price: number | null
+          updated_at: string
+          usage_stats: Json
+          version: string | null
+          visibility: string
+        }
+        Insert: {
+          category: string
+          content: Json
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          moderation_status?: string
+          name: string
+          performance?: Json | null
+          premium?: boolean | null
+          price?: number | null
+          updated_at?: string
+          usage_stats?: Json
+          version?: string | null
+          visibility?: string
+        }
+        Update: {
+          category?: string
+          content?: Json
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          moderation_status?: string
+          name?: string
+          performance?: Json | null
+          premium?: boolean | null
+          price?: number | null
+          updated_at?: string
+          usage_stats?: Json
+          version?: string | null
+          visibility?: string
+        }
+        Relationships: []
+      }
+      design_frames: {
+        Row: {
+          category: string
+          constraints: Json
+          created_at: string
+          created_by: string
+          description: string | null
+          design: Json
+          id: string
+          inheritance: Json | null
+          moderation_note: string | null
+          moderation_status: string
+          name: string
+          performance: Json | null
+          permissions: Json
+          stats: Json
+          tags: string[] | null
+          updated_at: string
+          version: Json | null
+          visibility: string
+        }
+        Insert: {
+          category: string
+          constraints: Json
+          created_at?: string
+          created_by: string
+          description?: string | null
+          design?: Json
+          id?: string
+          inheritance?: Json | null
+          moderation_note?: string | null
+          moderation_status?: string
+          name: string
+          performance?: Json | null
+          permissions?: Json
+          stats?: Json
+          tags?: string[] | null
+          updated_at?: string
+          version?: Json | null
+          visibility?: string
+        }
+        Update: {
+          category?: string
+          constraints?: Json
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          design?: Json
+          id?: string
+          inheritance?: Json | null
+          moderation_note?: string | null
+          moderation_status?: string
+          name?: string
+          performance?: Json | null
+          permissions?: Json
+          stats?: Json
+          tags?: string[] | null
+          updated_at?: string
+          version?: Json | null
+          visibility?: string
+        }
+        Relationships: []
+      }
       digital_assets: {
         Row: {
           created_at: string
@@ -578,6 +698,41 @@ export type Database = {
           width?: number | null
         }
         Relationships: []
+      }
+      element_usage: {
+        Row: {
+          card_id: string | null
+          context: string | null
+          created_at: string
+          element_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          card_id?: string | null
+          context?: string | null
+          created_at?: string
+          element_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string | null
+          context?: string | null
+          created_at?: string
+          element_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "element_usage_element_id_fkey"
+            columns: ["element_id"]
+            isOneToOne: false
+            referencedRelation: "design_elements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fan_feeds: {
         Row: {
@@ -661,6 +816,41 @@ export type Database = {
             columns: ["feed_id"]
             isOneToOne: false
             referencedRelation: "fan_feeds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      frame_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          frame_id: string
+          id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          frame_id: string
+          id?: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          frame_id?: string
+          id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "frame_ratings_frame_id_fkey"
+            columns: ["frame_id"]
+            isOneToOne: false
+            referencedRelation: "design_frames"
             referencedColumns: ["id"]
           },
         ]
@@ -2084,9 +2274,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      execute_sql: {
+        Args: { query_text: string; query_params?: Json }
+        Returns: Json
+      }
       get_app_id: {
         Args: { p_app_key: string }
         Returns: string
+      }
+      get_column_exists: {
+        Args: { p_table_name: string; p_column_name: string }
+        Returns: boolean
+      }
+      get_table_exists: {
+        Args: { table_name: string }
+        Returns: boolean
       }
       get_user_team_role: {
         Args: { team_id: string; user_id: string }

@@ -93,4 +93,29 @@
   .crd-bid-tag {
     @apply bg-crd-darkGray/80 text-crd-orange text-sm py-1 px-3 rounded-full;
   }
+
+  /* Custom color classes for cardshow colors */
+  .bg-editor-darker {
+    background-color: var(--editor-darker);
+  }
+
+  .border-editor-border {
+    border-color: var(--editor-border);
+  }
+
+  .text-cardshow-white {
+    color: var(--cardshow-white);
+  }
+
+  .placeholder\:text-cardshow-lightGray::placeholder {
+    color: var(--cardshow-lightGray);
+  }
+
+  .focus\:ring-cardshow-blue:focus {
+    --tw-ring-color: var(--cardshow-blue);
+  }
+
+  .focus\:border-cardshow-blue:focus {
+    border-color: var(--cardshow-blue);
+  }
 }
