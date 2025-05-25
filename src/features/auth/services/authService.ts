@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User, AuthError } from '@supabase/supabase-js';
 import type { OAuthProvider } from '../types';
@@ -32,7 +31,6 @@ export class AuthService {
 
   async signIn(email: string, password: string) {
     console.log('Attempting sign in for:', email);
-    console.log('Supabase URL:', supabase.supabaseUrl);
     console.log('Current origin:', window.location.origin);
     
     const { data, error } = await supabase.auth.signInWithPassword({
