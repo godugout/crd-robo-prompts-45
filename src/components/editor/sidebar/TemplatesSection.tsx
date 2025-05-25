@@ -12,19 +12,27 @@ interface Template {
 }
 
 interface TemplatesSectionProps {
-  templates: Template[];
   selectedTemplate: string;
   onSelectTemplate: (id: string) => void;
   searchQuery: string;
 }
 
+// Mock template data
+const mockTemplates: Template[] = [
+  { id: 'template1', name: '80s VCR Style', color: '#ff6b6b', category: 'featured' },
+  { id: 'template2', name: 'Classic Cardboard', color: '#4ecdc4', category: 'featured' },
+  { id: 'template3', name: 'Nifty Framework', color: '#45b7d1', category: 'popular' },
+  { id: 'template4', name: 'Synthwave Dreams', color: '#96ceb4', category: 'popular' },
+  { id: 'template5', name: 'Retro Gaming', color: '#ffeaa7', category: 'featured' },
+  { id: 'template6', name: 'Cyberpunk Future', color: '#fd79a8', category: 'popular' }
+];
+
 export const TemplatesSection = ({ 
-  templates, 
   selectedTemplate, 
   onSelectTemplate,
   searchQuery 
 }: TemplatesSectionProps) => {
-  const filteredTemplates = templates.filter(template => 
+  const filteredTemplates = mockTemplates.filter(template => 
     template.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
