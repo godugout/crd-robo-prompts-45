@@ -121,14 +121,16 @@ export const CanvasDrawingTools = ({
       {tools.map((tool) => (
         <Tooltip key={tool.id}>
           <TooltipTrigger asChild>
-            <CRDButton
-              variant={activeTool === tool.id ? "primary" : "ghost"}
-              size="sm"
-              onClick={() => handleToolSelect(tool.id)}
-              className="w-8 h-8 p-0"
-            >
-              {tool.icon}
-            </CRDButton>
+            <div>
+              <CRDButton
+                variant={activeTool === tool.id ? "primary" : "ghost"}
+                size="sm"
+                onClick={() => handleToolSelect(tool.id)}
+                className="w-8 h-8 p-0"
+              >
+                {tool.icon}
+              </CRDButton>
+            </div>
           </TooltipTrigger>
           <TooltipContent>{tool.label}</TooltipContent>
         </Tooltip>
