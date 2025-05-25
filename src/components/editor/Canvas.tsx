@@ -1,13 +1,17 @@
 
 import React, { useState, useRef } from 'react';
 import { useCardEditor } from '@/hooks/useCardEditor';
-import { toast } from 'sonner';
+import { Canvas as FabricCanvas } from 'fabric';
 import { CanvasWrapper } from './canvas/CanvasWrapper';
 import { CanvasDragArea } from './canvas/CanvasDragArea';
-import { CanvasPreviewArea } from './canvas/CanvasPreviewArea';
 import { CanvasToolbar } from './canvas/CanvasToolbar';
 import { CanvasControls } from './canvas/CanvasControls';
 import { CanvasCreator } from './canvas/CanvasCreator';
+import { FabricCanvasComponent } from './canvas/FabricCanvas';
+import { CanvasDrawingTools } from './canvas/CanvasDrawingTools';
+import { TemplateRenderer } from './templates/TemplateRenderer';
+import { AssetIntegration } from './assets/AssetIntegration';
+import { toast } from 'sonner';
 
 interface CanvasProps {
   zoom: number;
@@ -16,40 +20,54 @@ interface CanvasProps {
 
 export const Canvas = ({ zoom, cardEditor }: CanvasProps) => {
   const scale = zoom / 100;
-  const [rotation, setRotation] = useState(0);
   const [showGrid, setShowGrid] = useState(true);
   const [showEffects, setShowEffects] = useState(false);
   const [brightness, setBrightness] = useState(100);
   const [contrast, setContrast] = useState(100);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-  const [cardPos, setCardPos] = useState({ x: 0, y: 0 });
+  const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
+  const [activeTool, setActiveTool] = useState('select');
+
+  const cardWidth = 320;
+  const cardHeight = 420;
 
   const title = cardEditor?.cardData.title || 'No roads needed';
   const description = cardEditor?.cardData.description || 'Where we\'re going, there are only cards. An original digital art piece inspired by BTTF.';
 
+  const handleCanvasReady = (canvas: FabricCanvas) => {
+    setFabricCanvas(canvas);
+    toast.success('Canvas ready for editing!');
+  };
+
   const handleRotate = () => {
-    setRotation(prev => (prev + 90) % 360);
-    toast.success('Card rotated!');
-  };
-  
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setStartPos({ x: e.clientX, y: e.clientY });
-  };
-  
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) {
-      const deltaX = e.clientX - startPos.x;
-      const deltaY = e.clientY - startPos.y;
-      setCardPos(prev => ({ x: prev.x + deltaX, y: prev.y + deltaY }));
-      setStartPos({ x: e.clientX, y: e.clientY });
+    if (!fabricCanvas) return;
+    
+    const activeObject = fabricCanvas.getActiveObject();
+    if (activeObject) {
+      activeObject.rotate((activeObject.angle || 0) + 90);
+      fabricCanvas.renderAll();
+      toast.success('Object rotated!');
+    } else {
+      toast.info('Select an object to rotate');
     }
   };
-  
-  const handleMouseUp = () => {
-    setIsDragging(false);
+
+  const handleShare = () => {
+    if (!fabricCanvas) return;
+    
+    // Export canvas as image
+    const dataURL = fabricCanvas.toDataURL({
+      format: 'png',
+      quality: 1,
+      multiplier: 2
+    });
+    
+    // Create download link
+    const link = document.createElement('a');
+    link.download = `${title.replace(/\s+/g, '_')}_card.png`;
+    link.href = dataURL;
+    link.click();
+    
+    toast.success('Card exported successfully!');
   };
 
   return (
@@ -64,29 +82,43 @@ export const Canvas = ({ zoom, cardEditor }: CanvasProps) => {
         onToggleGrid={() => setShowGrid(!showGrid)}
         onToggleEffects={() => setShowEffects(!showEffects)}
         onRotate={handleRotate}
-        onShare={() => toast.success('Sharing options coming soon!')}
+        onShare={handleShare}
       />
       
-      <CanvasDragArea
-        isDragging={isDragging}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-      >
-        <CanvasPreviewArea
-          cardRef={cardRef}
-          scale={scale}
-          rotation={rotation}
-          brightness={brightness}
-          contrast={contrast}
-          cardPos={cardPos}
-          showGrid={showGrid}
-          showEffects={showEffects}
-          title={title}
-          description={description}
+      <div className="flex flex-col items-center gap-4">
+        <CanvasDrawingTools
+          fabricCanvas={fabricCanvas}
+          activeTool={activeTool}
+          onToolChange={setActiveTool}
         />
-      </CanvasDragArea>
+        
+        <div 
+          className="relative"
+          style={{
+            transform: `scale(${scale})`,
+            transformOrigin: 'top center',
+            transition: 'transform 0.3s ease-in-out',
+            filter: `brightness(${brightness}%) contrast(${contrast}%)`
+          }}
+        >
+          <FabricCanvasComponent
+            width={cardWidth}
+            height={cardHeight}
+            showGrid={showGrid}
+            showEffects={showEffects}
+            cardEditor={cardEditor}
+            onCanvasReady={handleCanvasReady}
+          />
+        </div>
+      </div>
+      
+      <TemplateRenderer
+        templateId={cardEditor?.cardData.design_metadata?.templateId || 'template1'}
+        fabricCanvas={fabricCanvas}
+        cardData={cardEditor?.cardData}
+      />
+      
+      <AssetIntegration fabricCanvas={fabricCanvas} />
       
       <CanvasControls 
         brightness={brightness}
