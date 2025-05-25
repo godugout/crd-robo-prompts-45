@@ -8,12 +8,16 @@ import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useMemories } from '@/hooks/useMemories';
 import { GeneratedCardsView } from './GeneratedCardsView';
 
+type ViewMode = 'feed' | 'grid' | 'masonry';
+type SortOption = 'recent' | 'popular' | 'price-high' | 'price-low' | 'trending';
+
 export const CardsPage = () => {
   const [activeTab, setActiveTab] = useState('discover');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('created_at');
+  const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [filterBy, setFilterBy] = useState('all');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [showFilters, setShowFilters] = useState(false);
 
   const {
     memories: cards,
@@ -22,8 +26,12 @@ export const CardsPage = () => {
     loadMore
   } = useMemories({ visibility: activeTab === 'discover' ? 'public' : activeTab === 'following' ? 'public' : 'public' });
 
-  const handleViewModeChange = (mode: 'grid' | 'list') => {
+  const handleViewModeChange = (mode: ViewMode) => {
     setViewMode(mode);
+  };
+
+  const handleFilterToggle = () => {
+    setShowFilters(!showFilters);
   };
 
   return (
@@ -36,8 +44,8 @@ export const CardsPage = () => {
           onSearchChange={setSearchQuery}
           sortBy={sortBy}
           onSortChange={setSortBy}
-          filterBy={filterBy}
-          onFilterChange={setFilterBy}
+          showFilters={showFilters}
+          onFilterToggle={handleFilterToggle}
           viewMode={viewMode}
           onViewModeChange={handleViewModeChange}
         />

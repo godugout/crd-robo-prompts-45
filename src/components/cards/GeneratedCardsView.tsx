@@ -51,7 +51,7 @@ export const GeneratedCardsView = () => {
   if (cards.length === 0) {
     return (
       <EmptyState
-        icon={Sparkles}
+        icon={<Sparkles className="h-12 w-12" />}
         title="No Generated Cards Found"
         description="Use the card generator in the editor to create your first collection of CRDs."
       />
