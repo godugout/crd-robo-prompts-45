@@ -8,6 +8,7 @@ import { Settings, Save, Share2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { toast } from 'sonner';
+import type { CardRarity } from '@/hooks/useCardEditor';
 
 interface EditorPropertiesPanelProps {
   cardEditor?: ReturnType<typeof useCardEditor>;
@@ -33,7 +34,7 @@ export const EditorPropertiesPanel = ({ cardEditor }: EditorPropertiesPanelProps
   };
 
   return (
-    <div className="w-96 bg-editor-dark border-l border-editor-border overflow-y-auto">
+    <div className="w-96 bg-editor-dark border-l border-editor-border overflow-y-auto rounded-xl">
       <div className="p-6">
         <h2 className="text-white text-xl font-semibold mb-6">Card Studio</h2>
         
@@ -86,7 +87,7 @@ export const EditorPropertiesPanel = ({ cardEditor }: EditorPropertiesPanelProps
                 <select 
                   className="w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
                   value={cardEditor?.cardData.rarity || 'common'}
-                  onChange={(e) => cardEditor?.updateCardField('rarity', e.target.value)}
+                  onChange={(e) => cardEditor?.updateCardField('rarity', e.target.value as CardRarity)}
                 >
                   <option value="common">Common</option>
                   <option value="rare">Rare</option>
