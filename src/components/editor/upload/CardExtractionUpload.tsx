@@ -1,11 +1,10 @@
-
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Upload, Scissors, Download, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { extractCardsFromImage, ExtractedCard } from '@/services/cardExtractor';
+import { extractCardsFromImage, type ExtractedCard } from '@/services/cardExtractor';
 
 interface CardExtractionUploadProps {
   onCardsExtracted: (cards: ExtractedCard[]) => void;

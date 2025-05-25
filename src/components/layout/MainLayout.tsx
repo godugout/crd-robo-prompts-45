@@ -14,11 +14,11 @@ export const MainLayout = () => {
   useEffect(() => {
     console.log('MainLayout mounted');
     
-    // Simulate checking for any required resources
+    // Quick initialization
     const timer = setTimeout(() => {
       setIsLoading(false);
       console.log('MainLayout finished loading');
-    }, 100);
+    }, 50);
     
     return () => {
       clearTimeout(timer);
@@ -28,8 +28,11 @@ export const MainLayout = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader className="w-8 h-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center min-h-screen bg-[#141416]">
+        <div className="text-center">
+          <Loader className="w-8 h-8 animate-spin text-white mb-4" />
+          <p className="text-white">Loading layout...</p>
+        </div>
       </div>
     );
   }

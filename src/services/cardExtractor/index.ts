@@ -5,6 +5,8 @@ import { detectCardRegions } from './regionDetection';
 
 export type { ExtractedCard } from './types';
 
+console.log('Card extractor module loaded successfully');
+
 export const extractCardsFromImage = async (imageFile: File): Promise<ExtractedCard[]> => {
   console.log('Starting card extraction for file:', imageFile.name, 'Size:', (imageFile.size / 1024 / 1024).toFixed(2) + 'MB');
   

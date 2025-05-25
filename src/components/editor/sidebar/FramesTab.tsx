@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { toast } from 'sonner';
 import { InstagramImportModal } from './InstagramImportModal';
 import { CardExtractionUpload } from '../upload/CardExtractionUpload';
 import { DetectedCard } from '@/services/cardDetector';
-import { ExtractedCard } from '@/services/cardExtractor';
+import type { ExtractedCard } from '@/services/cardExtractor';
 
 interface Frame {
   id: string;
