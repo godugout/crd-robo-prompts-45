@@ -7,7 +7,7 @@ import type {
   EnhancedDialogStep, 
   ManualRegion, 
   DragState 
-} from '../hooks/useEnhancedCardDetection';
+} from '../hooks/types';
 import type { ExtractedCard } from '@/services/cardExtractor';
 
 interface EnhancedDialogStepContentProps {

@@ -20,3 +20,9 @@ export { EnhancedDialogStepContent } from './components/EnhancedDialogStepConten
 export { useCardDetectionDialog } from './hooks/useCardDetectionDialog';
 export { useEnhancedCardDetection } from './hooks/useEnhancedCardDetection';
 export { useCanvasInteractions } from './hooks/useCanvasInteractions';
+export { useDialogState } from './hooks/useDialogState';
+export { useImageProcessing } from './hooks/useImageProcessing';
+export { useCardExtraction } from './hooks/useCardExtraction';
+
+// Export types
+export type { EnhancedDialogStep, ManualRegion, DragState } from './hooks/types';

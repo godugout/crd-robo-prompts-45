@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Upload, Scissors, Download, ArrowLeft, Edit, Trash2 } from 'lucide-react';
-import type { EnhancedDialogStep } from '../hooks/useEnhancedCardDetection';
+import type { EnhancedDialogStep } from '../hooks/types';
 
 interface EnhancedDialogHeaderProps {
   currentStep: EnhancedDialogStep;

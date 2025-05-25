@@ -1,6 +1,5 @@
-
 import { useCallback } from 'react';
-import type { ManualRegion, DragState } from './useEnhancedCardDetection';
+import type { ManualRegion, DragState } from './types';
 
 interface UseCanvasInteractionsProps {
   isEditMode: boolean;
