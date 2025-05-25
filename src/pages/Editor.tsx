@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { EditorHeader } from '@/components/editor/EditorHeader';
@@ -5,9 +6,7 @@ import { EditorToolbar } from '@/components/editor/EditorToolbar';
 import { EditorSidebar } from '@/components/editor/EditorSidebar';
 import { EditorCanvas } from '@/components/editor/EditorCanvas';
 import { EditorPropertiesPanel } from '@/components/editor/EditorPropertiesPanel';
-import { CraftBoardOverlay } from '@/components/editor/CraftBoardOverlay';
 import { useCardEditor } from '@/hooks/useCardEditor';
-import { useCraftBoardMode } from '@/hooks/useCraftBoardMode';
 import { toast } from 'sonner';
 
 const Editor = () => {
@@ -15,7 +14,6 @@ const Editor = () => {
   const [zoom, setZoom] = useState(100);
   const [selectedTemplate, setSelectedTemplate] = useState("template1");
   const [isLoading, setIsLoading] = useState(false);
-  const { isCraftBoardMode } = useCraftBoardMode();
 
   const cardEditor = useCardEditor({
     autoSave: true,
@@ -41,26 +39,24 @@ const Editor = () => {
   }
 
   return (
-    <CraftBoardOverlay isActive={isCraftBoardMode}>
-      <div className="flex flex-col h-screen bg-editor-darker">
-        <EditorHeader cardEditor={cardEditor} />
-        <EditorToolbar onZoomChange={setZoom} currentZoom={zoom} />
-        <div className="flex-1 flex overflow-hidden gap-2 p-2">
-          <div className="rounded-xl overflow-hidden">
-            <EditorSidebar 
-              selectedTemplate={selectedTemplate}
-              onSelectTemplate={handleTemplateSelect}
-            />
-          </div>
-          <div className="flex-1 rounded-xl overflow-hidden">
-            <EditorCanvas zoom={zoom} cardEditor={cardEditor} />
-          </div>
-          <div className="rounded-xl overflow-hidden">
-            <EditorPropertiesPanel cardEditor={cardEditor} />
-          </div>
+    <div className="flex flex-col h-screen bg-editor-darker">
+      <EditorHeader cardEditor={cardEditor} />
+      <EditorToolbar onZoomChange={setZoom} currentZoom={zoom} />
+      <div className="flex-1 flex overflow-hidden gap-2 p-2">
+        <div className="rounded-xl overflow-hidden">
+          <EditorSidebar 
+            selectedTemplate={selectedTemplate}
+            onSelectTemplate={handleTemplateSelect}
+          />
+        </div>
+        <div className="flex-1 rounded-xl overflow-hidden">
+          <EditorCanvas zoom={zoom} cardEditor={cardEditor} />
+        </div>
+        <div className="rounded-xl overflow-hidden">
+          <EditorPropertiesPanel cardEditor={cardEditor} />
         </div>
       </div>
-    </CraftBoardOverlay>
+    </div>
   );
 };
 
