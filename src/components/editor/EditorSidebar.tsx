@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { Search, Grid, Shapes, Sparkles } from 'lucide-react';
+import { Search, Grid, Shapes, Sparkles, Wand2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FramesTab } from './sidebar/FramesTab';
 import { ElementsTab } from './sidebar/ElementsTab';
 import { EffectsTab } from './sidebar/EffectsTab';
+import { GeneratorTab } from './sidebar/GeneratorTab';
 
 interface EditorSidebarProps {
   selectedTemplate: string;
@@ -38,7 +39,7 @@ export const EditorSidebar = ({
       {/* Tabbed Content */}
       <div className="flex-1 overflow-hidden">
         <Tabs defaultValue="frames" className="h-full flex flex-col">
-          <TabsList className="mx-4 mt-4 bg-editor-dark grid grid-cols-3">
+          <TabsList className="mx-4 mt-4 bg-editor-dark grid grid-cols-4">
             <TabsTrigger value="frames" className="text-xs">
               <Grid className="w-3 h-3 mr-1" />
               Frames
@@ -50,6 +51,10 @@ export const EditorSidebar = ({
             <TabsTrigger value="effects" className="text-xs">
               <Sparkles className="w-3 h-3 mr-1" />
               Effects
+            </TabsTrigger>
+            <TabsTrigger value="generator" className="text-xs">
+              <Wand2 className="w-3 h-3 mr-1" />
+              Generate
             </TabsTrigger>
           </TabsList>
 
@@ -73,6 +78,11 @@ export const EditorSidebar = ({
           {/* Effects Tab */}
           <TabsContent value="effects" className="flex-1 mt-4">
             <EffectsTab searchQuery={searchQuery} />
+          </TabsContent>
+
+          {/* Generator Tab */}
+          <TabsContent value="generator" className="flex-1 mt-4">
+            <GeneratorTab />
           </TabsContent>
         </Tabs>
       </div>

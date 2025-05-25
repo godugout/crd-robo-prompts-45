@@ -1,41 +1,27 @@
 
 import React from 'react';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { FeedType } from '@/hooks/use-feed-types';
+import { Sparkles, TrendingUp, Users, Compass } from 'lucide-react';
 
-interface CardsTabsNavigationProps {
-  user: any;
-}
-
-export const CardsTabsNavigation: React.FC<CardsTabsNavigationProps> = ({ user }) => {
+export const CardsTabsNavigation = () => {
   return (
-    <TabsList className="bg-crd-dark border border-crd-mediumGray mb-6">
-      <TabsTrigger 
-        value="forYou" 
-        className="data-[state=active]:bg-crd-blue data-[state=active]:text-white"
-      >
-        For You
+    <TabsList className="grid w-full grid-cols-4 bg-editor-dark border border-editor-border">
+      <TabsTrigger value="discover" className="data-[state=active]:bg-crd-green data-[state=active]:text-white">
+        <Compass className="w-4 h-4 mr-2" />
+        Discover
       </TabsTrigger>
-      <TabsTrigger 
-        value="trending" 
-        className="data-[state=active]:bg-crd-blue data-[state=active]:text-white"
-      >
+      <TabsTrigger value="following" className="data-[state=active]:bg-crd-green data-[state=active]:text-white">
+        <Users className="w-4 h-4 mr-2" />
+        Following
+      </TabsTrigger>
+      <TabsTrigger value="trending" className="data-[state=active]:bg-crd-green data-[state=active]:text-white">
+        <TrendingUp className="w-4 h-4 mr-2" />
         Trending
       </TabsTrigger>
-      <TabsTrigger 
-        value="featured" 
-        className="data-[state=active]:bg-crd-blue data-[state=active]:text-white"
-      >
-        Featured
+      <TabsTrigger value="generated" className="data-[state=active]:bg-crd-green data-[state=active]:text-white">
+        <Sparkles className="w-4 h-4 mr-2" />
+        Generated
       </TabsTrigger>
-      {user && (
-        <TabsTrigger 
-          value="following" 
-          className="data-[state=active]:bg-crd-blue data-[state=active]:text-white"
-        >
-          Following
-        </TabsTrigger>
-      )}
     </TabsList>
   );
 };

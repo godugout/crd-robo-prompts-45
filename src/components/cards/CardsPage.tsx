@@ -1,123 +1,65 @@
-
-import React, { useState, useMemo } from 'react';
-import { useUser } from '@/hooks/use-user';
-import { useCards } from '@/hooks/useCards';
-import type { FeedType } from '@/hooks/use-feed-types';
-import { Tabs } from '@/components/ui/tabs';
-import { CardsCategoryFilter } from './CardsCategoryFilter';
+import React, { useState, useEffect } from 'react';
 import { CardsPageHeader } from './CardsPageHeader';
 import { CardsControlsBar } from './CardsControlsBar';
 import { CardsTabsNavigation } from './CardsTabsNavigation';
 import { CardsTabContent } from './CardsTabContent';
-import { CardsLoadMore } from './CardsLoadMore';
-
-type ViewMode = 'feed' | 'grid' | 'masonry';
-type SortOption = 'recent' | 'popular' | 'price-high' | 'price-low' | 'trending';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { useMemories } from '@/hooks/useMemories';
+import { GeneratedCardsView } from './GeneratedCardsView';
 
 export const CardsPage = () => {
-  const { user, loading: userLoading } = useUser();
-  const [activeTab, setActiveTab] = useState<FeedType>('forYou');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [sortBy, setSortBy] = useState<SortOption>('recent');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-
-  // Use the optimized useCards hook
-  const { allCards, loading: cardsLoading } = useCards();
-  
-  // Filter and sort cards
-  const filteredCards = useMemo(() => {
-    let filtered = allCards.filter(card => {
-      if (searchQuery && !card.title?.toLowerCase().includes(searchQuery.toLowerCase())) {
-        return false;
-      }
-      // Add category filtering logic here if needed
-      return true;
-    });
-    
-    // Sort cards
-    switch (sortBy) {
-      case 'recent':
-        filtered = filtered.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-        break;
-      case 'popular':
-        // For now, sort by edition size (smaller = more exclusive/popular)
-        filtered = filtered.sort((a, b) => (a.edition_size || 0) - (b.edition_size || 0));
-        break;
-      case 'price-high':
-        filtered = filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
-        break;
-      case 'price-low':
-        filtered = filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
-        break;
-      default:
-        break;
-    }
-    
-    return filtered;
-  }, [allCards, searchQuery, sortBy]);
-
-  const handleTabChange = (tab: FeedType) => {
-    setActiveTab(tab);
-  };
-
-  const handleClearFilters = () => {
-    setSearchQuery('');
-    setActiveCategory('all');
-  };
-
-  const handleViewModeChange = (mode: ViewMode) => {
-    setViewMode(mode);
-  };
-
-  if (userLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="animate-spin w-8 h-8 rounded-full border-4 border-t-4 border-crd-blue border-t-transparent" />
-      </div>
-    );
-  }
+  const [activeTab, setActiveTab] = useState('discover');
+  const {
+    cards,
+    isLoading,
+    hasMore,
+    loadMore
+  } = useMemories({ visibility: activeTab });
 
   return (
-    <div className="min-h-screen bg-crd-darkest">
-      <div className="crd-container">
-        <CardsPageHeader />
-
-        <CardsControlsBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          showFilters={showFilters}
-          onFilterToggle={() => setShowFilters(!showFilters)}
-          viewMode={viewMode}
-          onViewModeChange={handleViewModeChange}
-        />
-
-        <CardsCategoryFilter
-          activeCategory={activeCategory}
-          onCategoryChange={setActiveCategory}
-        />
-
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <CardsTabsNavigation user={user} />
-          
-          <CardsTabContent
-            activeTab={activeTab}
-            filteredCards={filteredCards}
-            cardsLoading={cardsLoading}
-            viewMode={viewMode}
-            user={user}
-            onClearFilters={handleClearFilters}
-          />
-        </Tabs>
-
-        <CardsLoadMore
-          cardsLoading={cardsLoading}
-          hasCards={filteredCards.length > 0}
-        />
+    <div className="container mx-auto px-4 py-8">
+      <CardsPageHeader />
+      
+      <div className="mb-8">
+        <CardsControlsBar />
       </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <CardsTabsNavigation />
+        
+        <div className="mt-6">
+          <TabsContent value="discover" className="mt-0">
+            <CardsTabContent 
+              cards={cards}
+              isLoading={isLoading}
+              hasMore={hasMore}
+              onLoadMore={loadMore}
+            />
+          </TabsContent>
+          
+          <TabsContent value="following" className="mt-0">
+            <CardsTabContent 
+              cards={cards}
+              isLoading={isLoading}
+              hasMore={hasMore}
+              onLoadMore={loadMore}
+            />
+          </TabsContent>
+          
+          <TabsContent value="trending" className="mt-0">
+            <CardsTabContent 
+              cards={cards}
+              isLoading={isLoading}
+              hasMore={hasMore}
+              onLoadMore={loadMore}
+            />
+          </TabsContent>
+
+          <TabsContent value="generated" className="mt-0">
+            <GeneratedCardsView />
+          </TabsContent>
+        </div>
+      </Tabs>
     </div>
   );
 };
