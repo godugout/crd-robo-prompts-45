@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Brush, Type, Square, Circle, Image, Eraser } from 'lucide-react';
 import { CRDButton } from '@/components/ui/design-system';
@@ -120,17 +119,15 @@ export const CanvasDrawingTools = ({
     <div className="flex gap-1 p-2 bg-editor-darker rounded-lg border border-editor-border">
       {tools.map((tool) => (
         <Tooltip key={tool.id}>
-          <TooltipTrigger asChild>
-            <div>
-              <CRDButton
-                variant={activeTool === tool.id ? "primary" : "ghost"}
-                size="sm"
-                onClick={() => handleToolSelect(tool.id)}
-                className="w-8 h-8 p-0"
-              >
-                {tool.icon}
-              </CRDButton>
-            </div>
+          <TooltipTrigger>
+            <CRDButton
+              variant={activeTool === tool.id ? "primary" : "ghost"}
+              size="sm"
+              onClick={() => handleToolSelect(tool.id)}
+              className="w-8 h-8 p-0"
+            >
+              {tool.icon}
+            </CRDButton>
           </TooltipTrigger>
           <TooltipContent>{tool.label}</TooltipContent>
         </Tooltip>
