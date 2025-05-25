@@ -67,7 +67,11 @@ export const GeneratedCardsView = () => {
         </p>
       </div>
       
-      <CardGrid cards={cards} />
+      <CardGrid 
+        cards={cards} 
+        loading={false}
+        viewMode="grid"
+      />
     </div>
   );
 };
