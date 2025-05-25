@@ -1,9 +1,9 @@
 
 import React from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { List, LayoutGrid, Grid, GalleryHorizontal } from "lucide-react";
+import { List, LayoutGrid, Grid } from "lucide-react";
 
-type ViewMode = 'feed' | 'grid' | 'masonry' | 'gallery';
+type ViewMode = 'feed' | 'grid' | 'masonry';
 
 interface CardsViewModeToggleProps {
   value: ViewMode;
@@ -24,9 +24,6 @@ export const CardsViewModeToggle: React.FC<CardsViewModeToggleProps> = ({
       </ToggleGroupItem>
       <ToggleGroupItem value="masonry" aria-label="Masonry View">
         <Grid className="h-4 w-4" />
-      </ToggleGroupItem>
-      <ToggleGroupItem value="gallery" aria-label="Gallery View">
-        <GalleryHorizontal className="h-4 w-4" />
       </ToggleGroupItem>
     </ToggleGroup>
   );
