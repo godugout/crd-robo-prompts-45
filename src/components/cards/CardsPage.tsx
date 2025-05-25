@@ -22,6 +22,10 @@ export const CardsPage = () => {
     loadMore
   } = useMemories({ visibility: activeTab === 'discover' ? 'public' : activeTab === 'following' ? 'public' : 'public' });
 
+  const handleViewModeChange = (mode: 'grid' | 'list') => {
+    setViewMode(mode);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <CardsPageHeader />
@@ -35,7 +39,7 @@ export const CardsPage = () => {
           filterBy={filterBy}
           onFilterChange={setFilterBy}
           viewMode={viewMode}
-          onViewModeChange={setViewMode}
+          onViewModeChange={handleViewModeChange}
         />
       </div>
 
