@@ -32,13 +32,22 @@ export class AuthService {
 
   async signIn(email: string, password: string) {
     console.log('Attempting sign in for:', email);
+    console.log('Supabase URL:', supabase.supabaseUrl);
+    console.log('Current origin:', window.location.origin);
+    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     
+    console.log('Sign in response:', { data, error });
+    
     if (error) {
-      console.error('Sign in error:', error);
+      console.error('Sign in error details:', {
+        message: error.message,
+        status: error.status,
+        name: error.name
+      });
     } else {
       console.log('Sign in successful:', data.user?.email);
     }
