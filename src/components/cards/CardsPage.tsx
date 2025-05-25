@@ -1,72 +1,18 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useUser } from '@/hooks/use-user';
-import { useFeed } from '@/hooks/use-feed';
 import { useCards } from '@/hooks/useCards';
 import type { FeedType } from '@/hooks/use-feed-types';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Grid, List, LayoutGrid, Filter, Search, Zap, TrendingUp, Star, Users } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { TrendingUp, Star, Users } from 'lucide-react';
+import { CardGrid } from './CardGrid';
+import { CardsSearchFilters } from './CardsSearchFilters';
+import { CardsCategoryFilter } from './CardsCategoryFilter';
+import { CardsViewModeToggle } from './CardsViewModeToggle';
 
 type ViewMode = 'feed' | 'grid' | 'masonry';
 type SortOption = 'recent' | 'popular' | 'price-high' | 'price-low' | 'trending';
-
-const categories = [
-  { id: 'all', name: 'All Items', icon: LayoutGrid },
-  { id: 'sports', name: 'Sports', icon: Zap },
-  { id: 'comics', name: 'Comics', icon: Star },
-  { id: 'games', name: 'Games', icon: Grid },
-  { id: 'music', name: 'Music', icon: TrendingUp },
-  { id: 'art', name: 'Art', icon: Users },
-];
-
-const ViewModeButton = ({ mode, currentMode, onClick, icon: Icon, label }: {
-  mode: ViewMode;
-  currentMode: ViewMode;
-  onClick: (mode: ViewMode) => void;
-  icon: React.ComponentType<any>;
-  label: string;
-}) => (
-  <Button
-    variant={currentMode === mode ? "default" : "outline"}
-    size="sm"
-    onClick={() => onClick(mode)}
-    className={`${currentMode === mode ? 'bg-crd-blue text-white' : 'text-crd-lightGray border-crd-mediumGray'}`}
-  >
-    <Icon className="w-4 h-4" />
-    <span className="sr-only">{label}</span>
-  </Button>
-);
-
-const CardGridItem = ({ card, index }: { card: any; index: number }) => (
-  <Card className="group bg-crd-dark border-crd-mediumGray hover:border-crd-blue transition-all duration-300 overflow-hidden">
-    <div className="aspect-[3/4] relative overflow-hidden">
-      <img
-        src={card.image_url || card.thumbnail_url || `https://images.unsplash.com/photo-${1580000000000 + index}?w=300&q=80`}
-        alt={card.title}
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-      <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Badge variant="secondary" className="bg-crd-green/20 text-crd-green">
-          {card.price ? `${card.price} ETH` : '1.5 ETH'}
-        </Badge>
-      </div>
-    </div>
-    <CardContent className="p-4">
-      <h3 className="text-crd-white font-semibold mb-1 line-clamp-1">{card.title}</h3>
-      <p className="text-crd-lightGray text-sm line-clamp-2">{card.description || 'Digital collectible card'}</p>
-      <div className="flex items-center justify-between mt-3">
-        <span className="text-xs text-crd-lightGray">3 in stock</span>
-        <span className="text-xs text-crd-orange">0.001 ETH bid</span>
-      </div>
-    </CardContent>
-  </Card>
-);
 
 export const CardsPage = () => {
   const { user, loading: userLoading } = useUser();
@@ -79,23 +25,28 @@ export const CardsPage = () => {
 
   const { featuredCards, trendingCards, loading: cardsLoading } = useCards();
   
-  // Combine cards for display
-  const allCards = [...(featuredCards || []), ...(trendingCards || [])];
+  // Combine and filter cards
+  const allCards = useMemo(() => {
+    return [...(featuredCards || []), ...(trendingCards || [])];
+  }, [featuredCards, trendingCards]);
   
-  // Filter and sort cards
-  const filteredCards = allCards.filter(card => {
-    if (searchQuery && !card.title?.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
-    }
-    if (activeCategory !== 'all') {
-      // In a real app, you'd filter by card category
+  const filteredCards = useMemo(() => {
+    return allCards.filter(card => {
+      if (searchQuery && !card.title?.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return false;
+      }
+      // Add category filtering logic here if needed
       return true;
-    }
-    return true;
-  });
+    });
+  }, [allCards, searchQuery]);
 
   const handleTabChange = (tab: FeedType) => {
     setActiveTab(tab);
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setActiveCategory('all');
   };
 
   if (userLoading) {
@@ -119,90 +70,25 @@ export const CardsPage = () => {
           </p>
         </div>
 
-        {/* Search and View Controls */}
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-crd-lightGray w-4 h-4" />
-            <Input
-              placeholder="Search cards, creators, or collections..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-crd-dark border-crd-mediumGray text-crd-white placeholder:text-crd-lightGray"
+        {/* Search and Controls */}
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-6">
+          <div className="flex-1">
+            <CardsSearchFilters
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              sortBy={sortBy}
+              onSortChange={(value: SortOption) => setSortBy(value)}
+              onFilterClick={() => setShowFilters(!showFilters)}
             />
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-              <SelectTrigger className="w-[140px] bg-crd-dark border-crd-mediumGray text-crd-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-crd-dark border-crd-mediumGray">
-                <SelectItem value="recent">Recently added</SelectItem>
-                <SelectItem value="popular">Most popular</SelectItem>
-                <SelectItem value="price-high">Price: High to Low</SelectItem>
-                <SelectItem value="price-low">Price: Low to High</SelectItem>
-                <SelectItem value="trending">Trending</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="text-crd-lightGray border-crd-mediumGray"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filter
-            </Button>
-            
-            <div className="flex items-center border border-crd-mediumGray rounded-md">
-              <ViewModeButton
-                mode="feed"
-                currentMode={viewMode}
-                onClick={setViewMode}
-                icon={List}
-                label="List view"
-              />
-              <ViewModeButton
-                mode="grid"
-                currentMode={viewMode}
-                onClick={setViewMode}
-                icon={Grid}
-                label="Grid view"
-              />
-              <ViewModeButton
-                mode="masonry"
-                currentMode={viewMode}
-                onClick={setViewMode}
-                icon={LayoutGrid}
-                label="Masonry view"
-              />
-            </div>
-          </div>
+          <CardsViewModeToggle value={viewMode} onChange={setViewMode} />
         </div>
 
         {/* Category Filters */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {categories.map((category) => {
-            const Icon = category.icon;
-            return (
-              <Button
-                key={category.id}
-                variant={activeCategory === category.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => setActiveCategory(category.id)}
-                className={`${
-                  activeCategory === category.id
-                    ? 'bg-crd-blue text-white'
-                    : 'text-crd-lightGray border-crd-mediumGray hover:border-crd-blue'
-                }`}
-              >
-                <Icon className="w-4 h-4 mr-2" />
-                {category.name}
-              </Button>
-            );
-          })}
-        </div>
+        <CardsCategoryFilter
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
+        />
 
         {/* Content Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -236,37 +122,15 @@ export const CardsPage = () => {
           </TabsList>
 
           <TabsContent value="forYou">
-            {cardsLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {Array(8).fill(0).map((_, i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="bg-crd-mediumGray aspect-[3/4] rounded-t-lg"></div>
-                    <div className="bg-crd-dark p-4 rounded-b-lg">
-                      <div className="h-4 bg-crd-mediumGray rounded mb-2"></div>
-                      <div className="h-3 bg-crd-mediumGray rounded w-2/3"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : filteredCards.length > 0 ? (
-              <div className={
-                viewMode === 'grid' 
-                  ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'
-                  : viewMode === 'masonry'
-                  ? 'columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6 space-y-6'
-                  : 'space-y-6'
-              }>
-                {filteredCards.map((card, index) => (
-                  <CardGridItem key={card.id || index} card={card} index={index} />
-                ))}
-              </div>
-            ) : (
+            <CardGrid 
+              cards={filteredCards} 
+              loading={cardsLoading} 
+              viewMode={viewMode}
+            />
+            {!cardsLoading && filteredCards.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-crd-lightGray mb-4">No cards found matching your criteria</p>
-                <Button variant="outline" onClick={() => {
-                  setSearchQuery('');
-                  setActiveCategory('all');
-                }}>
+                <Button variant="outline" onClick={handleClearFilters}>
                   Clear filters
                 </Button>
               </div>

@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CardRepository } from '@/repositories/cards';
 
 export const useCards = () => {
@@ -8,37 +7,42 @@ export const useCards = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const [featured, trending] = await Promise.all([
-          CardRepository.getFeaturedCards(),
-          CardRepository.getTrendingCards()
-        ]);
-        
-        // Only update state if we have actual data
-        if (featured && featured.length > 0) {
-          setFeaturedCards(featured);
-        }
-        
-        if (trending && trending.length > 0) {
-          setTrendingCards(trending);
-        }
-        
-      } catch (err) {
-        console.error('Error fetching cards:', err);
-        setError(err);
-        // Don't clear existing data on error to prevent flickering
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+  const fetchCards = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const [featured, trending] = await Promise.all([
+        CardRepository.getFeaturedCards(),
+        CardRepository.getTrendingCards()
+      ]);
+      
+      // Always set arrays to prevent undefined issues
+      setFeaturedCards(featured || []);
+      setTrendingCards(trending || []);
+      
+    } catch (err) {
+      console.error('Error fetching cards:', err);
+      setError(err);
+      // Keep existing data on error to prevent flashing
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { featuredCards, trendingCards, loading, error };
+  useEffect(() => {
+    fetchCards();
+  }, [fetchCards]);
+
+  const refetch = useCallback(() => {
+    fetchCards();
+  }, [fetchCards]);
+
+  return { 
+    featuredCards, 
+    trendingCards, 
+    loading, 
+    error,
+    refetch
+  };
 };
