@@ -2,7 +2,7 @@
 import React from 'react';
 import { Square, Circle, Type, Image, Star, Plus } from 'lucide-react';
 import { ToolbarButton } from '@/components/editor/ToolbarButton';
-import { CRDButton } from '@/components/ui/design-system';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -21,9 +21,13 @@ export const ToolbarShapeControls = ({ activeTool, onToolSelect }: ToolbarShapeC
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <CRDButton variant="ghost" size="icon" className="h-8 w-8 p-1.5 text-gray-400 hover:text-white">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 p-1.5 text-gray-400 hover:text-white"
+          >
             <Plus size={18} />
-          </CRDButton>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="bg-editor-dark border-editor-border">
           <DropdownMenuItem className="text-white hover:bg-editor-tool cursor-pointer" onClick={() => toast('Rectangle added')}>
