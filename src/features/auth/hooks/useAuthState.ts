@@ -83,7 +83,7 @@ export const useAuthState = () => {
     };
 
     // Set up auth state listener for production
-    let subscription: any = null;
+    let subscription: { unsubscribe: () => void } | null = null;
     
     if (!devAuthService.isDevMode()) {
       const { data } = authService.onAuthStateChange(
@@ -112,7 +112,7 @@ export const useAuthState = () => {
           }
         }
       );
-      subscription = data;
+      subscription = data.subscription;
     }
 
     // Initialize auth
@@ -120,7 +120,7 @@ export const useAuthState = () => {
 
     return () => {
       mounted = false;
-      if (subscription) {
+      if (subscription && typeof subscription.unsubscribe === 'function') {
         subscription.unsubscribe();
       }
     };
