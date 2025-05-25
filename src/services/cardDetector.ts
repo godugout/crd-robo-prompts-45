@@ -14,28 +14,60 @@ export const detectTradingCards = async (posts: any[]): Promise<DetectedCard[]> 
       const { width, height } = post.dimensions;
       const aspectRatio = width / height;
       
-      // Filter for images that might contain trading cards
-      // Trading cards are typically 2.5:3.5 (0.714) ratio
-      // We'll be lenient and check for rectangular images
-      const isGoodDimensions = width >= 400 && height >= 400; // Minimum resolution
-      const hasCardKeywords = post.edge_media_to_caption?.edges?.[0]?.node?.text
-        ?.toLowerCase()
-        .match(/(card|trading|collectible|pokemon|baseball|basketball|football|tcg|mtg|yugioh)/);
+      // Get caption text
+      const caption = post.edge_media_to_caption?.edges?.[0]?.node?.text || '';
+      
+      // Enhanced keyword detection for trading cards
+      const cardKeywords = [
+        'card', 'trading', 'collectible', 'pokemon', 'baseball', 'basketball', 
+        'football', 'tcg', 'mtg', 'yugioh', 'topps', 'panini', 'upper deck',
+        'rookie', 'autograph', 'patch', 'relic', 'graded', 'psa', 'bgs',
+        'prizm', 'optic', 'mosaic', 'select', 'chronicles', 'donruss'
+      ];
+      
+      const hasCardKeywords = cardKeywords.some(keyword => 
+        caption.toLowerCase().includes(keyword)
+      );
 
       let confidence = 0;
       
-      // Scoring system
-      if (isGoodDimensions) confidence += 30;
-      if (hasCardKeywords) confidence += 40;
-      if (aspectRatio > 0.6 && aspectRatio < 1.4) confidence += 30; // Rectangular-ish
+      // Enhanced scoring system
       
-      // Only include if confidence is above threshold
-      if (confidence >= 50) {
+      // Basic image quality check
+      if (width >= 300 && height >= 300) confidence += 20;
+      if (width >= 600 && height >= 600) confidence += 10;
+      
+      // Caption keyword matching
+      if (hasCardKeywords) confidence += 50;
+      
+      // Aspect ratio scoring (trading cards are typically rectangular)
+      if (aspectRatio >= 0.6 && aspectRatio <= 0.8) {
+        confidence += 30; // Portrait cards (most common)
+      } else if (aspectRatio >= 1.2 && aspectRatio <= 1.7) {
+        confidence += 25; // Landscape cards
+      } else if (aspectRatio >= 0.9 && aspectRatio <= 1.1) {
+        confidence += 15; // Square-ish (some special cards)
+      }
+      
+      // Bonus for exact trading card ratios
+      const cardRatio = 2.5 / 3.5; // Standard trading card ratio
+      if (Math.abs(aspectRatio - cardRatio) < 0.05) {
+        confidence += 20;
+      }
+      
+      // Check image URL for card-related terms
+      const urlHasCardTerms = cardKeywords.some(keyword =>
+        post.display_url.toLowerCase().includes(keyword)
+      );
+      if (urlHasCardTerms) confidence += 15;
+      
+      // Lower threshold for scraped images since they might not have perfect metadata
+      if (confidence >= 30) {
         detectedCards.push({
           imageUrl: post.display_url,
-          confidence,
+          confidence: Math.min(confidence, 100), // Cap at 100%
           aspectRatio,
-          caption: post.edge_media_to_caption?.edges?.[0]?.node?.text || ''
+          caption: caption || `Image from Instagram`
         });
       }
     } catch (error) {
@@ -46,5 +78,5 @@ export const detectTradingCards = async (posts: any[]): Promise<DetectedCard[]> 
   // Sort by confidence and return top results
   return detectedCards
     .sort((a, b) => b.confidence - a.confidence)
-    .slice(0, 10);
+    .slice(0, 15); // Increased limit since we're being more permissive
 };
