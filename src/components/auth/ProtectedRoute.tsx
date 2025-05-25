@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
 import { LoadingState } from '@/components/common/LoadingState';
 
 interface ProtectedRouteProps {
@@ -13,7 +13,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   requireAuth = true 
 }) => {
-  const { user, loading } = useAuth();
+  const { user, loading } = useCustomAuth();
   const location = useLocation();
 
   if (loading) {
