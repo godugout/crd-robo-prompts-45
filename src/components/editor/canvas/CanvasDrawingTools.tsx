@@ -119,7 +119,7 @@ export const CanvasDrawingTools = ({
     <div className="flex gap-1 p-2 bg-editor-darker rounded-lg border border-editor-border">
       {tools.map((tool) => (
         <Tooltip key={tool.id}>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <CRDButton
               variant={activeTool === tool.id ? "primary" : "ghost"}
               size="sm"
