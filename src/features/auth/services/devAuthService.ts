@@ -4,11 +4,11 @@ import type { User, Session } from '@supabase/supabase-js';
 
 export class DevAuthService {
   private static readonly DEV_USER_EMAIL = 'jay@godugout.com';
-  private static readonly DEV_USER_ID = '46a8c68a-e05b-4bc3-b25f-5a951b59c46f'; // From your logs
+  private static readonly DEV_USER_ID = '46a8c68a-e05b-4bc3-b25f-5a951b59c46f';
 
   async createDevUserSession(): Promise<{ user: User | null; session: Session | null; error: any }> {
     // Only run in development
-    if (window.location.hostname !== 'localhost') {
+    if (!this.isDevMode()) {
       return { user: null, session: null, error: new Error('Dev auth only works in development') };
     }
 
@@ -56,7 +56,7 @@ export class DevAuthService {
 
   getStoredDevSession(): { user: User | null; session: Session | null } {
     // Only run in development
-    if (window.location.hostname !== 'localhost') {
+    if (!this.isDevMode()) {
       return { user: null, session: null };
     }
 
@@ -65,13 +65,21 @@ export class DevAuthService {
       const storedUser = localStorage.getItem('dev_auth_user');
       
       if (storedSession && storedUser) {
-        return {
-          session: JSON.parse(storedSession),
-          user: JSON.parse(storedUser)
-        };
+        const session = JSON.parse(storedSession);
+        const user = JSON.parse(storedUser);
+        
+        // Check if session is still valid (not expired)
+        const now = Math.floor(Date.now() / 1000);
+        if (session.expires_at && session.expires_at > now) {
+          return { session, user };
+        } else {
+          // Clear expired session
+          this.clearDevSession();
+        }
       }
     } catch (error) {
       console.error('Error getting stored dev session:', error);
+      this.clearDevSession();
     }
 
     return { user: null, session: null };
@@ -84,7 +92,7 @@ export class DevAuthService {
   }
 
   isDevMode(): boolean {
-    return window.location.hostname === 'localhost';
+    return typeof window !== 'undefined' && window.location.hostname === 'localhost';
   }
 }
 

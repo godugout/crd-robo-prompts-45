@@ -17,69 +17,44 @@ export const useAuthState = () => {
   useEffect(() => {
     let mounted = true;
 
-    // Check for dev mode first
-    if (devAuthService.isDevMode()) {
-      const storedDevAuth = devAuthService.getStoredDevSession();
-      
-      if (storedDevAuth.user && storedDevAuth.session) {
-        console.log('🔧 Development: Using stored dev session');
-        if (mounted) {
-          setAuthState({
-            user: storedDevAuth.user,
-            session: storedDevAuth.session,
-            loading: false,
-            error: null,
-          });
-        }
-        return;
-      } else {
-        // Auto-create dev session
-        console.log('🔧 Development: Creating dev session for', 'jay@godugout.com');
-        devAuthService.createDevUserSession().then(({ user, session, error }) => {
+    const initializeAuth = async () => {
+      // Check for dev mode first
+      if (devAuthService.isDevMode()) {
+        console.log('🔧 Development mode detected');
+        
+        const storedDevAuth = devAuthService.getStoredDevSession();
+        
+        if (storedDevAuth.user && storedDevAuth.session) {
+          console.log('🔧 Development: Using stored dev session for', storedDevAuth.user.email);
+          if (mounted) {
+            setAuthState({
+              user: storedDevAuth.user,
+              session: storedDevAuth.session,
+              loading: false,
+              error: null,
+            });
+          }
+          return;
+        } else {
+          // Auto-create dev session
+          console.log('🔧 Development: Creating new dev session');
+          const { user, session, error } = await devAuthService.createDevUserSession();
           if (mounted && user && session) {
+            console.log('🔧 Development: Dev session created for', user.email);
             setAuthState({
               user,
               session,
               loading: false,
               error: null,
             });
+          } else {
+            console.error('🔧 Development: Failed to create dev session', error);
           }
-        });
-        return;
-      }
-    }
-
-    // Production auth flow
-    // Set up auth state listener
-    const { data: { subscription } } = authService.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
-        
-        if (!mounted) return;
-
-        setAuthState(prev => ({
-          ...prev,
-          session,
-          user: session?.user ?? null,
-          loading: false,
-          error: null,
-        }));
-
-        // Handle profile creation/updates after auth state change
-        if (event === 'SIGNED_IN' && session?.user) {
-          setTimeout(async () => {
-            try {
-              await profileService.ensureProfile(session.user);
-            } catch (error) {
-              console.error('Error ensuring profile:', error);
-            }
-          }, 0);
+          return;
         }
       }
-    );
 
-    // Get initial session
-    const getInitialSession = async () => {
+      // Production auth flow
       try {
         const { data: { session }, error } = await authService.getSession();
         
@@ -107,11 +82,47 @@ export const useAuthState = () => {
       }
     };
 
-    getInitialSession();
+    // Set up auth state listener for production
+    let subscription: any = null;
+    
+    if (!devAuthService.isDevMode()) {
+      const { data } = authService.onAuthStateChange(
+        async (event, session) => {
+          console.log('Auth state changed:', event, session?.user?.id);
+          
+          if (!mounted) return;
+
+          setAuthState(prev => ({
+            ...prev,
+            session,
+            user: session?.user ?? null,
+            loading: false,
+            error: null,
+          }));
+
+          // Handle profile creation/updates after auth state change
+          if (event === 'SIGNED_IN' && session?.user) {
+            setTimeout(async () => {
+              try {
+                await profileService.ensureProfile(session.user);
+              } catch (error) {
+                console.error('Error ensuring profile:', error);
+              }
+            }, 0);
+          }
+        }
+      );
+      subscription = data;
+    }
+
+    // Initialize auth
+    initializeAuth();
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, []);
 
