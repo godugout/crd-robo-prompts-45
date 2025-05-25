@@ -8,22 +8,78 @@ export interface ExtractedCard {
 }
 
 export const extractCardsFromImage = async (imageFile: File): Promise<ExtractedCard[]> => {
+  console.log('Starting card extraction for file:', imageFile.name, 'Size:', (imageFile.size / 1024 / 1024).toFixed(2) + 'MB');
+  
+  // Add file size limit to prevent memory issues
+  const maxFileSize = 10 * 1024 * 1024; // 10MB limit
+  if (imageFile.size > maxFileSize) {
+    throw new Error('Image file is too large. Please use an image smaller than 10MB.');
+  }
+
   return new Promise((resolve, reject) => {
     const img = new Image();
+    
+    const timeout = setTimeout(() => {
+      console.error('Card extraction timeout');
+      reject(new Error('Card extraction timed out. Please try with a smaller or simpler image.'));
+    }, 30000); // 30 second timeout
+
     img.onload = async () => {
       try {
-        const cards = await detectAndExtractCards(img, imageFile);
-        resolve(cards);
+        clearTimeout(timeout);
+        console.log('Image loaded, dimensions:', img.width, 'x', img.height);
+        
+        // Limit image resolution to prevent memory issues
+        const maxDimension = 2048;
+        if (img.width > maxDimension || img.height > maxDimension) {
+          console.log('Resizing large image for processing');
+          const resizedImage = await resizeImage(img, maxDimension);
+          const cards = await detectAndExtractCards(resizedImage, imageFile);
+          resolve(cards);
+        } else {
+          const cards = await detectAndExtractCards(img, imageFile);
+          resolve(cards);
+        }
       } catch (error) {
+        clearTimeout(timeout);
+        console.error('Card extraction error:', error);
         reject(error);
       }
     };
-    img.onerror = () => reject(new Error('Failed to load image'));
+    
+    img.onerror = () => {
+      clearTimeout(timeout);
+      reject(new Error('Failed to load image'));
+    };
+    
     img.src = URL.createObjectURL(imageFile);
   });
 };
 
+const resizeImage = async (img: HTMLImageElement, maxDimension: number): Promise<HTMLImageElement> => {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not get canvas context');
+
+  const scale = Math.min(maxDimension / img.width, maxDimension / img.height);
+  canvas.width = img.width * scale;
+  canvas.height = img.height * scale;
+
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => {
+      if (!blob) throw new Error('Failed to resize image');
+      const resizedImg = new Image();
+      resizedImg.onload = () => resolve(resizedImg);
+      resizedImg.src = URL.createObjectURL(blob);
+    });
+  });
+};
+
 const detectAndExtractCards = async (img: HTMLImageElement, originalFile: File): Promise<ExtractedCard[]> => {
+  console.log('Starting card detection on image:', img.width, 'x', img.height);
+  
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Could not get canvas context');
@@ -32,87 +88,96 @@ const detectAndExtractCards = async (img: HTMLImageElement, originalFile: File):
   canvas.height = img.height;
   ctx.drawImage(img, 0, 0);
 
-  // Detect card regions using edge detection and contour analysis
+  // Detect card regions with performance limits
   const cardRegions = await detectCardRegions(canvas, ctx);
+  console.log('Detected', cardRegions.length, 'potential card regions');
   
   const extractedCards: ExtractedCard[] = [];
+  const maxCards = 15; // Limit to prevent performance issues
 
-  for (const region of cardRegions) {
-    // Extract individual card
-    const cardCanvas = document.createElement('canvas');
-    const cardCtx = cardCanvas.getContext('2d');
-    if (!cardCtx) continue;
-
-    // Add padding around detected region
-    const padding = 10;
-    const x = Math.max(0, region.x - padding);
-    const y = Math.max(0, region.y - padding);
-    const width = Math.min(img.width - x, region.width + padding * 2);
-    const height = Math.min(img.height - y, region.height + padding * 2);
-
-    cardCanvas.width = width;
-    cardCanvas.height = height;
+  for (let i = 0; i < Math.min(cardRegions.length, maxCards); i++) {
+    const region = cardRegions[i];
+    console.log(`Processing card ${i + 1}/${Math.min(cardRegions.length, maxCards)}`);
     
-    cardCtx.drawImage(
-      canvas,
-      x, y, width, height,
-      0, 0, width, height
-    );
+    try {
+      // Extract individual card
+      const cardCanvas = document.createElement('canvas');
+      const cardCtx = cardCanvas.getContext('2d');
+      if (!cardCtx) continue;
 
-    // Convert to blob
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      cardCanvas.toBlob(
-        (blob) => blob ? resolve(blob) : reject(new Error('Failed to create blob')),
-        'image/jpeg',
-        0.9
+      // Add padding around detected region
+      const padding = 10;
+      const x = Math.max(0, region.x - padding);
+      const y = Math.max(0, region.y - padding);
+      const width = Math.min(img.width - x, region.width + padding * 2);
+      const height = Math.min(img.height - y, region.height + padding * 2);
+
+      cardCanvas.width = width;
+      cardCanvas.height = height;
+      
+      cardCtx.drawImage(
+        canvas,
+        x, y, width, height,
+        0, 0, width, height
       );
-    });
 
-    extractedCards.push({
-      imageBlob: blob,
-      confidence: region.confidence,
-      bounds: { x, y, width, height },
-      originalImage: URL.createObjectURL(originalFile)
-    });
+      // Convert to blob with quality control
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        cardCanvas.toBlob(
+          (blob) => blob ? resolve(blob) : reject(new Error('Failed to create blob')),
+          'image/jpeg',
+          0.8 // Reduced quality to save memory
+        );
+      });
+
+      extractedCards.push({
+        imageBlob: blob,
+        confidence: region.confidence,
+        bounds: { x, y, width, height },
+        originalImage: URL.createObjectURL(originalFile)
+      });
+    } catch (error) {
+      console.error(`Failed to extract card ${i + 1}:`, error);
+      // Continue with other cards even if one fails
+    }
   }
 
+  console.log('Successfully extracted', extractedCards.length, 'cards');
   return extractedCards.sort((a, b) => b.confidence - a.confidence);
 };
 
 const detectCardRegions = async (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const data = imageData.data;
+  console.log('Starting region detection...');
   
-  // Convert to grayscale for edge detection
-  const gray = new Uint8Array(canvas.width * canvas.height);
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    gray[i / 4] = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-  }
-
-  // Simple edge detection and region finding
+  // Reduced grid size for better performance with many cards
+  const gridSize = Math.max(15, Math.min(canvas.width, canvas.height) / 50);
   const regions = [];
-  const minCardWidth = canvas.width * 0.1; // Minimum 10% of image width
-  const minCardHeight = canvas.height * 0.1; // Minimum 10% of image height
-  const maxCardWidth = canvas.width * 0.8; // Maximum 80% of image width
-  const maxCardHeight = canvas.height * 0.8; // Maximum 80% of image height
+  const minCardWidth = canvas.width * 0.08; // Smaller minimum for images with many cards
+  const minCardHeight = canvas.height * 0.08;
+  const maxCardWidth = canvas.width * 0.6; // Reduced max size
+  const maxCardHeight = canvas.height * 0.6;
 
-  // Grid-based detection for rectangular regions
-  const gridSize = 20;
-  for (let y = 0; y < canvas.height - minCardHeight; y += gridSize) {
-    for (let x = 0; x < canvas.width - minCardWidth; x += gridSize) {
-      // Try different sizes
-      for (let w = minCardWidth; w <= maxCardWidth && x + w <= canvas.width; w += gridSize) {
-        for (let h = minCardHeight; h <= maxCardHeight && y + h <= canvas.height; h += gridSize) {
+  console.log('Grid size:', gridSize, 'Min card size:', minCardWidth, 'x', minCardHeight);
+
+  // Optimized grid-based detection
+  const stepX = Math.ceil(gridSize * 1.5);
+  const stepY = Math.ceil(gridSize * 1.5);
+  const stepW = Math.ceil(gridSize * 2);
+  const stepH = Math.ceil(gridSize * 2);
+
+  for (let y = 0; y < canvas.height - minCardHeight; y += stepY) {
+    for (let x = 0; x < canvas.width - minCardWidth; x += stepX) {
+      // Try fewer size combinations for performance
+      for (let w = minCardWidth; w <= maxCardWidth && x + w <= canvas.width; w += stepW) {
+        for (let h = minCardHeight; h <= maxCardHeight && y + h <= canvas.height; h += stepH) {
           const aspectRatio = w / h;
           
-          // Check if aspect ratio matches typical trading cards
-          if (aspectRatio >= 0.6 && aspectRatio <= 1.7) {
+          // More lenient aspect ratio for various card types
+          if (aspectRatio >= 0.5 && aspectRatio <= 2.0) {
             const confidence = calculateRegionConfidence(canvas, ctx, x, y, w, h);
             
-            if (confidence > 0.3) {
+            // Lower threshold for images with many cards
+            if (confidence > 0.25) {
               regions.push({
                 x, y, width: w, height: h, confidence
               });
@@ -123,8 +188,13 @@ const detectCardRegions = async (canvas: HTMLCanvasElement, ctx: CanvasRendering
     }
   }
 
-  // Remove overlapping regions (keep highest confidence)
-  return removeOverlappingRegions(regions);
+  console.log('Found', regions.length, 'potential regions before filtering');
+  
+  // Remove overlapping regions
+  const filtered = removeOverlappingRegions(regions);
+  console.log('Filtered to', filtered.length, 'final regions');
+  
+  return filtered;
 };
 
 const calculateRegionConfidence = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): number => {
@@ -197,7 +267,8 @@ const removeOverlappingRegions = (regions: any[]) => {
       const regionArea = region.width * region.height;
       const existingArea = existing.width * existing.height;
       
-      if (overlapArea > 0.3 * Math.min(regionArea, existingArea)) {
+      // More aggressive overlap removal for dense card layouts
+      if (overlapArea > 0.2 * Math.min(regionArea, existingArea)) {
         overlaps = true;
         break;
       }
@@ -208,5 +279,5 @@ const removeOverlappingRegions = (regions: any[]) => {
     }
   }
   
-  return filtered.slice(0, 10); // Limit to 10 cards max
+  return filtered.slice(0, 12); // Increased limit but still reasonable
 };
