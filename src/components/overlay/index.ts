@@ -6,9 +6,14 @@ export { CardDetectionOverlay } from './CardDetectionOverlay';
 export { CardDetectionDialog } from './CardDetectionDialog';
 export { EnhancedCardDetectionDialog } from './EnhancedCardDetectionDialog';
 
-// Export new refactored components
+// Export refactored components
 export { CardDetectionUploadStep } from './components/CardDetectionUploadStep';
 export { CardDetectionReviewStep } from './components/CardDetectionReviewStep';
 export { CardDetectionReviewControls } from './components/CardDetectionReviewControls';
 export { CardDetectionGrid } from './components/CardDetectionGrid';
+export { EnhancedCanvasRegionEditor } from './components/EnhancedCanvasRegionEditor';
+export { EnhancedExtractedCardsView } from './components/EnhancedExtractedCardsView';
+
+// Export hooks
 export { useCardDetectionDialog } from './hooks/useCardDetectionDialog';
+export { useEnhancedCardDetection } from './hooks/useEnhancedCardDetection';
