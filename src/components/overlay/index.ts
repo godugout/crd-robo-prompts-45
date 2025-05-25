@@ -23,6 +23,8 @@ export { useCanvasInteractions } from './hooks/useCanvasInteractions';
 export { useDialogState } from './hooks/useDialogState';
 export { useImageProcessing } from './hooks/useImageProcessing';
 export { useCardExtraction } from './hooks/useCardExtraction';
+export { useCardDetectionState } from './hooks/useCardDetectionState';
+export { useCardDetectionActions } from './hooks/useCardDetectionActions';
 
 // Export types
 export type { EnhancedDialogStep, ManualRegion, DragState } from './hooks/types';
