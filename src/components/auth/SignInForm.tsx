@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CRDButton } from '@/components/ui/design-system';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/features/auth';
 import { Sparkles } from 'lucide-react';
 import { AuthFormContainer } from './components/AuthFormContainer';
 import { EmailField } from './components/EmailField';
@@ -15,15 +15,19 @@ interface SignInFormData {
 }
 
 export const SignInForm: React.FC = () => {
-  const { signIn } = useAuth();
+  const { signIn, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  const { formData, isLoading, handleInputChange, handleSubmit } = useAuthForm<SignInFormData>({
+  const { formData, handleInputChange, handleSubmit } = useAuthForm<SignInFormData>({
     initialValues: { email: '', password: '' },
     onSubmit: async (data) => {
+      console.log('Submitting sign in form for:', data.email);
       const { error } = await signIn(data.email, data.password);
       if (!error) {
+        console.log('Sign in successful, navigating to home');
         navigate('/');
+      } else {
+        console.error('Sign in failed:', error);
       }
     },
   });
@@ -62,7 +66,7 @@ export const SignInForm: React.FC = () => {
           variant="primary"
           size="lg"
           className="w-full"
-          disabled={isLoading}
+          disabled={isLoading || !formData.email || !formData.password}
         >
           {isLoading ? 'Signing in...' : 'Sign In'}
         </CRDButton>

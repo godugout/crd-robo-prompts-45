@@ -61,10 +61,12 @@ export const useAuthState = () => {
         if (!mounted) return;
 
         if (error) {
+          console.error('Auth initialization error:', error);
           setAuthState(prev => ({ ...prev, error, loading: false }));
           return;
         }
 
+        console.log('Production: Session check completed', session ? 'Session found' : 'No session');
         setAuthState(prev => ({
           ...prev,
           session,
@@ -72,6 +74,7 @@ export const useAuthState = () => {
           loading: false,
         }));
       } catch (error) {
+        console.error('Auth initialization error:', error);
         if (mounted) {
           setAuthState(prev => ({ 
             ...prev, 
@@ -88,7 +91,7 @@ export const useAuthState = () => {
     if (!devAuthService.isDevMode()) {
       const { data } = authService.onAuthStateChange(
         async (event, session) => {
-          console.log('Auth state changed:', event, session?.user?.id);
+          console.log('Production: Auth state changed:', event, session?.user?.id);
           
           if (!mounted) return;
 
@@ -105,6 +108,7 @@ export const useAuthState = () => {
             setTimeout(async () => {
               try {
                 await profileService.ensureProfile(session.user);
+                console.log('Production: Profile ensured for user');
               } catch (error) {
                 console.error('Error ensuring profile:', error);
               }
