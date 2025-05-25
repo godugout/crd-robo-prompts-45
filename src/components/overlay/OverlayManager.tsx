@@ -1,14 +1,14 @@
 
 import React from 'react';
 import { useOverlay } from './OverlayProvider';
-import { CardDetectionOverlay } from './CardDetectionOverlay';
+import { CardDetectionDialog } from './CardDetectionDialog';
 
 export const OverlayManager = () => {
   const { isOpen, overlayType, overlayData, closeOverlay } = useOverlay();
 
   if (overlayType === 'card-detection') {
     return (
-      <CardDetectionOverlay
+      <CardDetectionDialog
         isOpen={isOpen}
         onClose={closeOverlay}
         onCardsExtracted={overlayData?.onCardsExtracted}

@@ -32,14 +32,14 @@ export const OverlayProvider = ({ children }: OverlayProviderProps) => {
     setOverlayType(type);
     setOverlayData(data);
     setIsOpen(true);
-    document.body.style.overflow = 'hidden';
+    // No longer need to control body overflow since we're using a dialog
   };
 
   const closeOverlay = () => {
     setIsOpen(false);
     setOverlayType(null);
     setOverlayData(null);
-    document.body.style.overflow = 'unset';
+    // No longer need to reset body overflow
   };
 
   return (
