@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { extractCardsFromImage, type ExtractedCard } from '@/services/cardExtractor';
 import { enhancedCardDetection } from '@/services/cardExtractor/enhancedDetection';
@@ -43,27 +43,54 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
       return;
     }
 
+    // Add file size check
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error('Image file is too large. Please use an image smaller than 15MB.');
+      return;
+    }
+
     setIsProcessing(true);
+    setCurrentStep('detect');
+    
     try {
       const img = new Image();
       img.onload = () => {
         setOriginalImage(img);
-        setCurrentStep('detect');
         handleEnhancedDetection(img, file);
+      };
+      img.onerror = () => {
+        toast.error('Failed to load image');
+        setIsProcessing(false);
+        setCurrentStep('upload');
       };
       img.src = URL.createObjectURL(file);
     } catch (error) {
       console.error('Error loading image:', error);
       toast.error('Failed to load image');
       setIsProcessing(false);
+      setCurrentStep('upload');
     }
   }, []);
 
   const handleEnhancedDetection = async (img: HTMLImageElement, file: File) => {
+    let detectionTimeout: NodeJS.Timeout | null = null;
+    
     try {
       toast.info('Running enhanced card detection...');
       
+      // Set a timeout to prevent hanging
+      detectionTimeout = setTimeout(() => {
+        toast.error('Detection is taking too long. Please try with a smaller image.');
+        setIsProcessing(false);
+        setCurrentStep('upload');
+      }, 20000); // 20 second timeout
+      
       const regions = await enhancedCardDetection(img, file);
+      
+      if (detectionTimeout) {
+        clearTimeout(detectionTimeout);
+        detectionTimeout = null;
+      }
       
       const manualRegions: ManualRegion[] = regions.map((region, index) => ({
         id: `region-${index}`,
@@ -78,10 +105,24 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
       setSelectedRegions(new Set(manualRegions.map(r => r.id)));
       setCurrentStep('refine');
       
-      toast.success(`Detected ${regions.length} potential cards. You can now refine the boundaries.`);
+      if (manualRegions.length > 0) {
+        toast.success(`Detected ${regions.length} potential cards. You can now refine the boundaries.`);
+      } else {
+        toast.info('No cards detected automatically. You can manually draw card regions.');
+      }
     } catch (error) {
+      if (detectionTimeout) {
+        clearTimeout(detectionTimeout);
+      }
+      
       console.error('Enhanced detection error:', error);
-      toast.error('Detection failed. You can manually draw card regions.');
+      
+      if (error instanceof Error && error.message.includes('timeout')) {
+        toast.error('Detection timed out. Please try with a smaller or simpler image.');
+      } else {
+        toast.error('Detection failed. You can manually draw card regions.');
+      }
+      
       setDetectedRegions([]);
       setCurrentStep('refine');
     } finally {
