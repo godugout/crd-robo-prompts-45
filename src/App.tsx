@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -6,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { OverlayProvider, OverlayManager } from "@/components/overlay";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import CardDetail from "./pages/CardDetail";
@@ -73,98 +73,103 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <RouteLogger />
-            {isLoaded ? (
-              <Routes>
-                {/* Public auth routes */}
-                <Route path="/auth/signin" element={
-                  <ProtectedRoute requireAuth={false}>
-                    <SignIn />
-                  </ProtectedRoute>
-                } />
-                <Route path="/auth/signup" element={
-                  <ProtectedRoute requireAuth={false}>
-                    <SignUp />
-                  </ProtectedRoute>
-                } />
-                <Route path="/auth/onboarding" element={
-                  <ProtectedRoute requireAuth={false}>
-                    <OnboardingFlow />
-                  </ProtectedRoute>
-                } />
-                <Route path="/auth/forgot-password" element={
-                  <ProtectedRoute requireAuth={false}>
-                    <ForgotPassword />
-                  </ProtectedRoute>
-                } />
-                <Route path="/auth/reset-password" element={
-                  <ProtectedRoute requireAuth={false}>
-                    <ResetPassword />
-                  </ProtectedRoute>
-                } />
-                <Route path="/auth/magic-link" element={
-                  <ProtectedRoute requireAuth={false}>
-                    <MagicLink />
-                  </ProtectedRoute>
-                } />
-                <Route path="/auth/callback" element={<AuthCallback />} />
+          <OverlayProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <RouteLogger />
+              {isLoaded ? (
+                <>
+                  <Routes>
+                    {/* Public auth routes */}
+                    <Route path="/auth/signin" element={
+                      <ProtectedRoute requireAuth={false}>
+                        <SignIn />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/auth/signup" element={
+                      <ProtectedRoute requireAuth={false}>
+                        <SignUp />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/auth/onboarding" element={
+                      <ProtectedRoute requireAuth={false}>
+                        <OnboardingFlow />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/auth/forgot-password" element={
+                      <ProtectedRoute requireAuth={false}>
+                        <ForgotPassword />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/auth/reset-password" element={
+                      <ProtectedRoute requireAuth={false}>
+                        <ResetPassword />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/auth/magic-link" element={
+                      <ProtectedRoute requireAuth={false}>
+                        <MagicLink />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/auth/callback" element={<AuthCallback />} />
 
-                {/* Editor Mockup - standalone route */}
-                <Route path="/editor-mockup" element={<EditorMockup />} />
+                    {/* Editor Mockup - standalone route */}
+                    <Route path="/editor-mockup" element={<EditorMockup />} />
 
-                {/* Protected routes */}
-                <Route element={<MainLayout />}>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/cards" element={<CardsPage />} />
-                  <Route path="/feed" element={<Navigate to="/cards" replace />} />
-                  <Route path="/memories" element={
-                    <ProtectedRoute>
-                      <Memories />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/card/:id" element={<CardDetail />} />
-                  <Route path="/editor" element={
-                    <ProtectedRoute>
-                      <Editor />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/creators" element={<Creators />} />
-                  <Route path="/gallery" element={<Gallery />} />
-                  <Route path="/settings" element={
-                    <ProtectedRoute>
-                      <Settings />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/account" element={
-                    <ProtectedRoute>
-                      <AccountSettings />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/profile" element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/collections" element={
-                    <ProtectedRoute>
-                      <Collections />
-                    </ProtectedRoute>
-                  } />
-                </Route>
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            ) : (
-              <div className="flex items-center justify-center min-h-screen bg-[#141416]">
-                <div className="text-center">
-                  <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mb-4"></div>
-                  <p className="text-white text-xl">Loading application...</p>
+                    {/* Protected routes */}
+                    <Route element={<MainLayout />}>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/cards" element={<CardsPage />} />
+                      <Route path="/feed" element={<Navigate to="/cards" replace />} />
+                      <Route path="/memories" element={
+                        <ProtectedRoute>
+                          <Memories />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/card/:id" element={<CardDetail />} />
+                      <Route path="/editor" element={
+                        <ProtectedRoute>
+                          <Editor />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/creators" element={<Creators />} />
+                      <Route path="/gallery" element={<Gallery />} />
+                      <Route path="/settings" element={
+                        <ProtectedRoute>
+                          <Settings />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/account" element={
+                        <ProtectedRoute>
+                          <AccountSettings />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/profile" element={
+                        <ProtectedRoute>
+                          <Profile />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/collections" element={
+                        <ProtectedRoute>
+                          <Collections />
+                        </ProtectedRoute>
+                      } />
+                    </Route>
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  <OverlayManager />
+                </>
+              ) : (
+                <div className="flex items-center justify-center min-h-screen bg-[#141416]">
+                  <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-white text-xl">Loading application...</p>
+                  </div>
                 </div>
-              </div>
-            )}
-          </BrowserRouter>
+              )}
+            </BrowserRouter>
+          </OverlayProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
