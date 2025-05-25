@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { authService } from '../services/authService';
 import { profileService } from '../services/profileService';
+import { devAuthService } from '../services/devAuthService';
 import type { OAuthProvider } from '../types';
 
 export const useAuthActions = (userId?: string) => {
@@ -54,6 +55,13 @@ export const useAuthActions = (userId?: string) => {
 
   const signOut = async () => {
     setIsLoading(true);
+    
+    // Clear dev session if in dev mode
+    if (devAuthService.isDevMode()) {
+      devAuthService.clearDevSession();
+      window.location.reload(); // Force reload to reset auth state
+      return { error: null };
+    }
     
     const { error } = await authService.signOut();
     

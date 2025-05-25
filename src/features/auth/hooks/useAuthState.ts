@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { authService } from '../services/authService';
 import { profileService } from '../services/profileService';
+import { devAuthService } from '../services/devAuthService';
 import type { AuthState } from '../types';
 
 export const useAuthState = () => {
@@ -16,6 +17,39 @@ export const useAuthState = () => {
   useEffect(() => {
     let mounted = true;
 
+    // Check for dev mode first
+    if (devAuthService.isDevMode()) {
+      const storedDevAuth = devAuthService.getStoredDevSession();
+      
+      if (storedDevAuth.user && storedDevAuth.session) {
+        console.log('🔧 Development: Using stored dev session');
+        if (mounted) {
+          setAuthState({
+            user: storedDevAuth.user,
+            session: storedDevAuth.session,
+            loading: false,
+            error: null,
+          });
+        }
+        return;
+      } else {
+        // Auto-create dev session
+        console.log('🔧 Development: Creating dev session for', 'jay@godugout.com');
+        devAuthService.createDevUserSession().then(({ user, session, error }) => {
+          if (mounted && user && session) {
+            setAuthState({
+              user,
+              session,
+              loading: false,
+              error: null,
+            });
+          }
+        });
+        return;
+      }
+    }
+
+    // Production auth flow
     // Set up auth state listener
     const { data: { subscription } } = authService.onAuthStateChange(
       async (event, session) => {
