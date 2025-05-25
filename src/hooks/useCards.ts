@@ -1,9 +1,9 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { CardRepository } from '@/repositories/cards';
 
 export const useCards = () => {
-  const [featuredCards, setFeaturedCards] = useState([]);
-  const [trendingCards, setTrendingCards] = useState([]);
+  const [allCards, setAllCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -12,14 +12,11 @@ export const useCards = () => {
       setLoading(true);
       setError(null);
       
-      const [featured, trending] = await Promise.all([
-        CardRepository.getFeaturedCards(),
-        CardRepository.getTrendingCards()
-      ]);
+      // Fetch more cards in a single call to reduce API requests
+      const cards = await CardRepository.getFeaturedCards(12);
       
       // Always set arrays to prevent undefined issues
-      setFeaturedCards(featured || []);
-      setTrendingCards(trending || []);
+      setAllCards(cards || []);
       
     } catch (err) {
       console.error('Error fetching cards:', err);
@@ -38,9 +35,14 @@ export const useCards = () => {
     fetchCards();
   }, [fetchCards]);
 
+  // Split cards into featured and trending for backward compatibility
+  const featuredCards = allCards.slice(0, 6);
+  const trendingCards = allCards.slice(6, 12);
+
   return { 
     featuredCards, 
     trendingCards, 
+    allCards,
     loading, 
     error,
     refetch

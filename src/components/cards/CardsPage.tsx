@@ -23,22 +23,40 @@ export const CardsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
-  const { featuredCards, trendingCards, loading: cardsLoading } = useCards();
+  // Use the optimized useCards hook
+  const { allCards, loading: cardsLoading } = useCards();
   
-  // Combine and filter cards
-  const allCards = useMemo(() => {
-    return [...(featuredCards || []), ...(trendingCards || [])];
-  }, [featuredCards, trendingCards]);
-  
+  // Filter and sort cards
   const filteredCards = useMemo(() => {
-    return allCards.filter(card => {
+    let filtered = allCards.filter(card => {
       if (searchQuery && !card.title?.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
       }
       // Add category filtering logic here if needed
       return true;
     });
-  }, [allCards, searchQuery]);
+    
+    // Sort cards
+    switch (sortBy) {
+      case 'recent':
+        filtered = filtered.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+        break;
+      case 'popular':
+        // For now, sort by edition size (smaller = more exclusive/popular)
+        filtered = filtered.sort((a, b) => (a.edition_size || 0) - (b.edition_size || 0));
+        break;
+      case 'price-high':
+        filtered = filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+        break;
+      case 'price-low':
+        filtered = filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+        break;
+      default:
+        break;
+    }
+    
+    return filtered;
+  }, [allCards, searchQuery, sortBy]);
 
   const handleTabChange = (tab: FeedType) => {
     setActiveTab(tab);
