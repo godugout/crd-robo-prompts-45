@@ -26,6 +26,13 @@ const Editor = () => {
     toast.success(`Template "${templateId}" applied`);
   };
 
+  const handleAddElement = (elementType: string, elementId: string) => {
+    // This will be handled by the canvas component
+    if ((window as any).handleCanvasAddElement) {
+      (window as any).handleCanvasAddElement(elementType, elementId);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-editor-darker">
@@ -47,10 +54,15 @@ const Editor = () => {
           <EditorSidebar 
             selectedTemplate={selectedTemplate}
             onSelectTemplate={handleTemplateSelect}
+            onAddElement={handleAddElement}
           />
         </div>
         <div className="flex-1 rounded-xl overflow-hidden">
-          <EditorCanvas zoom={zoom} cardEditor={cardEditor} />
+          <EditorCanvas 
+            zoom={zoom} 
+            cardEditor={cardEditor}
+            onAddElement={handleAddElement}
+          />
         </div>
         <div className="rounded-xl overflow-hidden">
           <EditorPropertiesPanel cardEditor={cardEditor} />

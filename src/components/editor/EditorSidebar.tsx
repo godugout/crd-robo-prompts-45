@@ -10,9 +10,14 @@ import { EffectsTab } from './sidebar/EffectsTab';
 interface EditorSidebarProps {
   selectedTemplate: string;
   onSelectTemplate: (templateId: string) => void;
+  onAddElement?: (elementType: string, elementId: string) => void;
 }
 
-export const EditorSidebar = ({ selectedTemplate, onSelectTemplate }: EditorSidebarProps) => {
+export const EditorSidebar = ({ 
+  selectedTemplate, 
+  onSelectTemplate, 
+  onAddElement 
+}: EditorSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
@@ -59,7 +64,10 @@ export const EditorSidebar = ({ selectedTemplate, onSelectTemplate }: EditorSide
 
           {/* Elements Tab */}
           <TabsContent value="elements" className="flex-1 mt-4">
-            <ElementsTab searchQuery={searchQuery} />
+            <ElementsTab 
+              searchQuery={searchQuery} 
+              onAddElement={onAddElement}
+            />
           </TabsContent>
 
           {/* Effects Tab */}
