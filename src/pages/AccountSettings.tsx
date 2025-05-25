@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { CRDButton, CRDInput } from '@/components/ui/design-system';
 import { Label } from '@/components/ui/label';
@@ -8,6 +8,12 @@ import { Switch } from '@/components/ui/switch';
 import { User, Shield, Bell, Palette } from 'lucide-react';
 import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
 import { toast } from '@/hooks/use-toast';
+
+interface ProfileData {
+  fullName: string;
+  bio: string;
+  username: string;
+}
 
 const AccountSettings = () => {
   const { user, signOut } = useCustomAuth();
@@ -25,17 +31,55 @@ const AccountSettings = () => {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
 
+  // Load profile data from localStorage
+  useEffect(() => {
+    if (user?.id) {
+      try {
+        const existingProfiles = JSON.parse(localStorage.getItem('cardshow_profiles') || '{}');
+        const userProfile = existingProfiles[user.id];
+        
+        if (userProfile) {
+          setFullName(userProfile.fullName || '');
+          setBio(userProfile.bio || '');
+          console.log('🔧 Loaded profile from localStorage:', userProfile);
+        }
+      } catch (error) {
+        console.error('🔧 Error loading profile:', error);
+      }
+    }
+  }, [user]);
+
   const handleSaveProfile = async () => {
+    if (!user) {
+      toast({
+        title: 'Error',
+        description: 'You must be signed in to save profile changes',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // TODO: Save to database when profiles table is set up
-      console.log('🔧 Saving profile:', { fullName, bio });
+      const profileData: ProfileData = {
+        fullName,
+        bio,
+        username: user.username
+      };
+
+      // Save to localStorage
+      const existingProfiles = JSON.parse(localStorage.getItem('cardshow_profiles') || '{}');
+      existingProfiles[user.id] = profileData;
+      localStorage.setItem('cardshow_profiles', JSON.stringify(existingProfiles));
+      
+      console.log('🔧 Profile saved:', profileData);
       
       toast({
         title: 'Profile Updated',
         description: 'Your profile has been saved successfully',
       });
     } catch (error) {
+      console.error('🔧 Error saving profile:', error);
       toast({
         title: 'Error',
         description: 'Failed to save profile changes',

@@ -10,11 +10,29 @@ interface ProfileSetupFormProps {
   onComplete: () => void;
 }
 
+interface ProfileData {
+  fullName: string;
+  bio: string;
+  username: string;
+}
+
 export const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ onComplete }) => {
   const [fullName, setFullName] = useState('');
   const [bio, setBio] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useCustomAuth();
+
+  const saveProfileToLocalStorage = (profileData: ProfileData) => {
+    try {
+      const existingProfiles = JSON.parse(localStorage.getItem('cardshow_profiles') || '{}');
+      existingProfiles[user?.id || ''] = profileData;
+      localStorage.setItem('cardshow_profiles', JSON.stringify(existingProfiles));
+      console.log('🔧 Profile saved to localStorage:', profileData);
+    } catch (error) {
+      console.error('🔧 Error saving profile:', error);
+      throw error;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,8 +49,14 @@ export const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ onComplete }
     setIsLoading(true);
     
     try {
-      // For now, we'll just store this locally or in the future connect to profiles table
-      console.log('🔧 Profile setup data:', { fullName, bio, username: user.username });
+      const profileData: ProfileData = {
+        fullName,
+        bio,
+        username: user.username
+      };
+
+      // Save to localStorage for now
+      saveProfileToLocalStorage(profileData);
       
       toast({
         title: 'Profile Updated!',
