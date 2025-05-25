@@ -6,51 +6,91 @@ export class AuthService {
   private getRedirectUrl(path: string = '') {
     // Use the current origin for redirect URLs
     const origin = window.location.origin;
+    console.log('🔧 Getting redirect URL:', `${origin}${path}`);
     return `${origin}${path}`;
   }
 
   async signUp(email: string, password: string, metadata?: Record<string, any>) {
-    console.log('Attempting sign up for:', email);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: metadata,
-        emailRedirectTo: this.getRedirectUrl('/auth/callback'),
-      },
+    console.log('🔧 Attempting sign up for:', email);
+    console.log('🔧 Current environment:', {
+      origin: window.location.origin,
+      hostname: window.location.hostname,
+      href: window.location.href
     });
     
-    if (error) {
-      console.error('Sign up error:', error);
-    } else {
-      console.log('Sign up successful:', data.user?.email);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata,
+          emailRedirectTo: this.getRedirectUrl('/auth/callback'),
+        },
+      });
+      
+      if (error) {
+        console.error('🔧 Sign up error:', {
+          message: error.message,
+          status: error.status,
+          name: error.name,
+          stack: error.stack
+        });
+      } else {
+        console.log('🔧 Sign up successful:', data.user?.email);
+      }
+      
+      return { data, error };
+    } catch (err) {
+      console.error('🔧 Sign up exception:', err);
+      return { data: null, error: err as AuthError };
     }
-    
-    return { data, error };
   }
 
   async signIn(email: string, password: string) {
-    console.log('Attempting sign in for:', email);
-    console.log('Current origin:', window.location.origin);
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    console.log('🔧 Attempting sign in for:', email);
+    console.log('🔧 Current environment details:', {
+      origin: window.location.origin,
+      hostname: window.location.hostname,
+      href: window.location.href,
+      protocol: window.location.protocol,
+      port: window.location.port,
+      pathname: window.location.pathname
     });
     
-    console.log('Sign in response:', { data, error });
-    
-    if (error) {
-      console.error('Sign in error details:', {
-        message: error.message,
-        status: error.status,
-        name: error.name
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-    } else {
-      console.log('Sign in successful:', data.user?.email);
+      
+      console.log('🔧 Sign in response received:', { 
+        hasData: !!data, 
+        hasUser: !!data?.user,
+        hasSession: !!data?.session,
+        hasError: !!error 
+      });
+      
+      if (error) {
+        console.error('🔧 Sign in error details:', {
+          message: error.message,
+          status: error.status,
+          name: error.name,
+          stack: error.stack
+        });
+      } else {
+        console.log('🔧 Sign in successful for:', data.user?.email);
+        console.log('🔧 Session details:', {
+          accessToken: data.session?.access_token ? 'present' : 'missing',
+          refreshToken: data.session?.refresh_token ? 'present' : 'missing',
+          expiresAt: data.session?.expires_at
+        });
+      }
+      
+      return { data, error };
+    } catch (err) {
+      console.error('🔧 Sign in exception:', err);
+      return { data: null, error: err as AuthError };
     }
-    
-    return { data, error };
   }
 
   async signOut() {

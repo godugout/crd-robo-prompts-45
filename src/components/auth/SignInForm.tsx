@@ -21,22 +21,34 @@ export const SignInForm: React.FC = () => {
   const { formData, handleInputChange, handleSubmit } = useAuthForm<SignInFormData>({
     initialValues: { email: '', password: '' },
     onSubmit: async (data) => {
-      console.log('Form submitting with data:', data);
-      console.log('Current environment:', {
+      console.log('🔧 Form submitting with data:', { 
+        email: data.email, 
+        passwordLength: data.password.length 
+      });
+      console.log('🔧 Current environment:', {
         isDev: window.location.hostname === 'localhost',
         hostname: window.location.hostname,
-        origin: window.location.origin
+        origin: window.location.origin,
+        href: window.location.href
       });
       
       const { error } = await signIn(data.email, data.password);
       
-      console.log('Sign in result:', { error });
+      console.log('🔧 Sign in result:', { 
+        hasError: !!error,
+        errorMessage: error?.message,
+        errorStatus: error?.status
+      });
       
       if (!error) {
-        console.log('Sign in successful, navigating to home');
+        console.log('🔧 Sign in successful, navigating to home');
         navigate('/');
       } else {
-        console.error('Sign in failed with error:', error);
+        console.error('🔧 Sign in failed with error:', {
+          message: error.message,
+          status: error.status,
+          name: error.name
+        });
       }
     },
   });
