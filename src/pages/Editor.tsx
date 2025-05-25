@@ -42,13 +42,19 @@ const Editor = () => {
     <div className="flex flex-col h-screen bg-editor-darker">
       <EditorHeader cardEditor={cardEditor} />
       <EditorToolbar onZoomChange={setZoom} currentZoom={zoom} />
-      <div className="flex-1 flex overflow-hidden">
-        <EditorSidebar 
-          selectedTemplate={selectedTemplate}
-          onSelectTemplate={handleTemplateSelect}
-        />
-        <EditorCanvas zoom={zoom} cardEditor={cardEditor} />
-        <EditorPropertiesPanel cardEditor={cardEditor} />
+      <div className="flex-1 flex overflow-hidden gap-2 p-2">
+        <div className="rounded-xl overflow-hidden">
+          <EditorSidebar 
+            selectedTemplate={selectedTemplate}
+            onSelectTemplate={handleTemplateSelect}
+          />
+        </div>
+        <div className="flex-1 rounded-xl overflow-hidden">
+          <EditorCanvas zoom={zoom} cardEditor={cardEditor} />
+        </div>
+        <div className="rounded-xl overflow-hidden">
+          <EditorPropertiesPanel cardEditor={cardEditor} />
+        </div>
       </div>
     </div>
   );

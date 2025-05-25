@@ -89,14 +89,14 @@ export const EditorCanvas = ({ zoom, cardEditor }: EditorCanvasProps) => {
   return (
     <div className="flex-1 bg-editor-darker overflow-auto flex items-start justify-center py-8">
       <div className="flex flex-col gap-8">
-        <div className="bg-editor-dark rounded-xl p-6 w-[400px]">
+        <div className="bg-editor-dark rounded-2xl p-6 w-[400px] shadow-xl border border-editor-border/20">
           <div className="flex justify-between items-center mb-5">
             <h2 className="text-white text-xl font-semibold">Preview</h2>
             <div className="flex gap-2">
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className={`text-crd-lightGray hover:text-white ${showGrid ? "text-crd-green" : ""}`}
+                className={`text-crd-lightGray hover:text-white rounded-lg ${showGrid ? "text-crd-green" : ""}`}
                 onClick={() => setShowGrid(!showGrid)}
               >
                 <Grid3x3 className="w-4 h-4" />
@@ -105,7 +105,7 @@ export const EditorCanvas = ({ zoom, cardEditor }: EditorCanvasProps) => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className={`text-crd-lightGray hover:text-white ${showEffects ? "text-crd-orange" : ""}`}
+                className={`text-crd-lightGray hover:text-white rounded-lg ${showEffects ? "text-crd-orange" : ""}`}
                 onClick={() => setShowEffects(!showEffects)}
               >
                 <Sparkles className="w-4 h-4" />
@@ -114,7 +114,7 @@ export const EditorCanvas = ({ zoom, cardEditor }: EditorCanvasProps) => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-crd-lightGray hover:text-white"
+                className="text-crd-lightGray hover:text-white rounded-lg"
                 onClick={handleRotate}
               >
                 <RotateCw className="w-4 h-4" />
@@ -123,7 +123,7 @@ export const EditorCanvas = ({ zoom, cardEditor }: EditorCanvasProps) => {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-crd-lightGray hover:text-white"
+                className="text-crd-lightGray hover:text-white rounded-lg"
                 onClick={handleShare}
               >
                 <Share className="w-4 h-4" />
@@ -133,7 +133,7 @@ export const EditorCanvas = ({ zoom, cardEditor }: EditorCanvasProps) => {
           
           <div className="flex flex-col items-center gap-4">
             <div 
-              className="relative"
+              className="relative rounded-xl overflow-hidden shadow-2xl"
               style={{
                 transform: `scale(${scale})`,
                 transformOrigin: 'top center',
@@ -142,11 +142,11 @@ export const EditorCanvas = ({ zoom, cardEditor }: EditorCanvasProps) => {
             >
               <canvas 
                 ref={canvasRef} 
-                className="border border-editor-border rounded-lg shadow-lg"
+                className="border border-editor-border rounded-xl shadow-lg"
               />
               {showEffects && (
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute inset-0 bg-gradient-to-br from-transparent via-crd-orange/5 to-transparent animate-pulse" />
+                <div className="absolute inset-0 pointer-events-none rounded-xl">
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent via-crd-orange/5 to-transparent animate-pulse rounded-xl" />
                 </div>
               )}
             </div>

@@ -31,7 +31,7 @@ export const EditorSidebar = ({ selectedTemplate, onSelectTemplate }: EditorSide
   return (
     <div className="w-80 bg-editor-darker border-r border-editor-border flex flex-col">
       <div className="p-4 border-b border-editor-border">
-        <div className="flex space-x-1 bg-editor-dark rounded-lg p-1">
+        <div className="flex space-x-1 bg-editor-dark rounded-xl p-1">
           {tabs.map((tab) => {
             const IconComponent = tab.icon;
             return (
@@ -39,7 +39,7 @@ export const EditorSidebar = ({ selectedTemplate, onSelectTemplate }: EditorSide
                 key={tab.id}
                 variant={activeTab === tab.id ? 'default' : 'ghost'}
                 size="sm"
-                className="flex-1"
+                className={`flex-1 rounded-lg ${activeTab === tab.id ? 'bg-crd-green/20 text-crd-green' : ''}`}
                 onClick={() => setActiveTab(tab.id)}
               >
                 <IconComponent className="w-4 h-4 mr-2" />
@@ -58,7 +58,7 @@ export const EditorSidebar = ({ selectedTemplate, onSelectTemplate }: EditorSide
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-editor-dark border-editor-border text-white"
+              className="pl-10 bg-editor-dark border-editor-border text-white rounded-xl"
             />
           </div>
           
@@ -69,19 +69,19 @@ export const EditorSidebar = ({ selectedTemplate, onSelectTemplate }: EditorSide
                 {templates.map((template) => (
                   <div 
                     key={template.id}
-                    className={`p-3 rounded-lg cursor-pointer flex items-center gap-3 transition-colors ${
+                    className={`p-3 rounded-xl cursor-pointer flex items-center gap-3 transition-colors ${
                       selectedTemplate === template.id
-                        ? 'bg-editor-tool border border-editor-border' 
+                        ? 'bg-editor-tool border border-crd-green/30 shadow-lg' 
                         : 'hover:bg-editor-tool/50'
                     }`}
                     onClick={() => onSelectTemplate(template.id)}
                   >
-                    <div className={`w-10 h-10 rounded ${template.color}`}></div>
+                    <div className={`w-10 h-10 rounded-lg ${template.color}`}></div>
                     <div className="flex-1">
                       <p className="text-white font-medium">{template.name}</p>
                     </div>
                     {selectedTemplate === template.id && (
-                      <div className="w-4 h-4 bg-crd-green rounded-full"></div>
+                      <div className="w-4 h-4 bg-crd-green rounded-full shadow-lg"></div>
                     )}
                   </div>
                 ))}
@@ -98,13 +98,13 @@ export const EditorSidebar = ({ selectedTemplate, onSelectTemplate }: EditorSide
             {activeTab === 'upload' && (
               <div className="space-y-3">
                 <h3 className="text-white font-medium text-sm uppercase tracking-wide">Upload Files</h3>
-                <div className="p-4 border-2 border-dashed border-editor-border rounded-lg text-center">
+                <div className="p-4 border-2 border-dashed border-editor-border rounded-xl text-center">
                   <Upload className="w-10 h-10 text-crd-lightGray mb-3 mx-auto" />
                   <p className="text-white font-medium">Upload Card Art</p>
                   <p className="text-xs text-crd-lightGray mt-1">
                     Drag or choose your file to upload
                   </p>
-                  <Button className="mt-4" variant="outline">
+                  <Button className="mt-4 rounded-lg" variant="outline">
                     Browse Files
                   </Button>
                 </div>
