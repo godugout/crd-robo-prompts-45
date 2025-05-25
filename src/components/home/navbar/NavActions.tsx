@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { CRDButton } from '@/components/ui/design-system';
@@ -12,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, Settings, LogOut, UserCog } from 'lucide-react';
+import { User, Settings, LogOut } from 'lucide-react';
 
 export const NavActions = () => {
   const { user, loading, signOut } = useCustomAuth();
@@ -72,14 +71,8 @@ export const NavActions = () => {
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link to="/account" className="text-crd-lightGray hover:text-crd-white">
-              <UserCog className="mr-2 h-4 w-4" />
-              <span>Account Settings</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link to="/settings" className="text-crd-lightGray hover:text-crd-white">
               <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
+              <span>Account Settings</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-crd-mediumGray" />
