@@ -35,8 +35,11 @@ export const EditorCanvas = ({ zoom, cardEditor }: EditorCanvasProps) => {
       preserveObjectStacking: true,
     });
 
-    canvas.freeDrawingBrush.color = '#000000';
-    canvas.freeDrawingBrush.width = 2;
+    // Initialize drawing brush safely
+    if (canvas.freeDrawingBrush) {
+      canvas.freeDrawingBrush.color = '#000000';
+      canvas.freeDrawingBrush.width = 2;
+    }
 
     setFabricCanvas(canvas);
     toast.success('Canvas ready for editing!');
@@ -51,7 +54,7 @@ export const EditorCanvas = ({ zoom, cardEditor }: EditorCanvasProps) => {
     return () => {
       canvas.dispose();
     };
-  }, [cardWidth, cardHeight]);
+  }, [cardWidth, cardHeight, cardEditor]);
 
   const handleRotate = () => {
     if (!fabricCanvas) return;
