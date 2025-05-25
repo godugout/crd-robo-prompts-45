@@ -12,6 +12,7 @@ import CardDetail from "./pages/CardDetail";
 import NotFound from "./pages/NotFound";
 import { CardsPage } from "./components/cards/CardsPage";
 import Editor from "./pages/Editor";
+import EditorMockup from "./pages/EditorMockup";
 import Creators from "./pages/Creators";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
@@ -104,6 +105,9 @@ const App = () => {
                   </ProtectedRoute>
                 } />
                 <Route path="/auth/callback" element={<AuthCallback />} />
+
+                {/* Editor Mockup - standalone route */}
+                <Route path="/editor-mockup" element={<EditorMockup />} />
 
                 {/* Protected routes */}
                 <Route element={<MainLayout />}>
