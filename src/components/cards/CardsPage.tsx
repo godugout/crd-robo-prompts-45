@@ -34,6 +34,22 @@ export const CardsPage = () => {
     setShowFilters(!showFilters);
   };
 
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setSortBy('recent');
+    setFilterBy('all');
+  };
+
+  // Convert memories to the expected CardData format
+  const filteredCards = cards.map(memory => ({
+    id: memory.id,
+    title: memory.title,
+    description: memory.description,
+    image_url: memory.media?.[0]?.url,
+    thumbnail_url: memory.media?.[0]?.thumbnailUrl,
+    price: undefined // No price field in Memory type
+  }));
+
   return (
     <div className="container mx-auto px-4 py-8">
       <CardsPageHeader />
@@ -57,31 +73,34 @@ export const CardsPage = () => {
         <div className="mt-6">
           <TabsContent value="discover" className="mt-0">
             <CardsTabContent 
-              memories={cards}
-              loading={isLoading}
-              hasMore={hasMore}
-              onLoadMore={loadMore}
+              activeTab="forYou"
+              filteredCards={filteredCards}
+              cardsLoading={isLoading}
               viewMode={viewMode}
+              user={null}
+              onClearFilters={handleClearFilters}
             />
           </TabsContent>
           
           <TabsContent value="following" className="mt-0">
             <CardsTabContent 
-              memories={cards}
-              loading={isLoading}
-              hasMore={hasMore}
-              onLoadMore={loadMore}
+              activeTab="following"
+              filteredCards={filteredCards}
+              cardsLoading={isLoading}
               viewMode={viewMode}
+              user={null}
+              onClearFilters={handleClearFilters}
             />
           </TabsContent>
           
           <TabsContent value="trending" className="mt-0">
             <CardsTabContent 
-              memories={cards}
-              loading={isLoading}
-              hasMore={hasMore}
-              onLoadMore={loadMore}
+              activeTab="trending"
+              filteredCards={filteredCards}
+              cardsLoading={isLoading}
               viewMode={viewMode}
+              user={null}
+              onClearFilters={handleClearFilters}
             />
           </TabsContent>
 
