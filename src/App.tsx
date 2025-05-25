@@ -24,6 +24,8 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import MagicLink from "./pages/auth/MagicLink";
 import AuthCallback from "./pages/auth/AuthCallback";
+import { OnboardingFlow } from "./components/auth/OnboardingFlow";
+import AccountSettings from "./pages/AccountSettings";
 import { MainLayout } from "./components/layout/MainLayout";
 
 const RouteLogger = () => {
@@ -81,6 +83,11 @@ const App = () => {
                     <SignUp />
                   </ProtectedRoute>
                 } />
+                <Route path="/auth/onboarding" element={
+                  <ProtectedRoute requireAuth={false}>
+                    <OnboardingFlow />
+                  </ProtectedRoute>
+                } />
                 <Route path="/auth/forgot-password" element={
                   <ProtectedRoute requireAuth={false}>
                     <ForgotPassword />
@@ -119,6 +126,11 @@ const App = () => {
                   <Route path="/settings" element={
                     <ProtectedRoute>
                       <Settings />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/account" element={
+                    <ProtectedRoute>
+                      <AccountSettings />
                     </ProtectedRoute>
                   } />
                   <Route path="/profile" element={

@@ -1,19 +1,22 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { CRDButton } from '@/components/ui/design-system';
 import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
 import { AuthFormContainer } from './components/AuthFormContainer';
 import { UsernameField } from './components/UsernameField';
 import { PasscodeField } from './components/PasscodeField';
 
-export const CustomSignUpForm: React.FC = () => {
+interface CustomSignUpFormProps {
+  onComplete?: () => void;
+}
+
+export const CustomSignUpForm: React.FC<CustomSignUpFormProps> = ({ onComplete }) => {
   const [username, setUsername] = useState('');
   const [passcode, setPasscode] = useState('');
   const [confirmPasscode, setConfirmPasscode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useCustomAuth();
-  const navigate = useNavigate();
 
   const isFormValid = username.length >= 3 && 
     passcode.length >= 4 && 
@@ -33,8 +36,10 @@ export const CustomSignUpForm: React.FC = () => {
     const { error } = await signUp(username, passcode);
     
     if (!error) {
-      console.log('🔧 Sign up successful, navigating to home');
-      navigate('/');
+      console.log('🔧 Sign up successful');
+      if (onComplete) {
+        onComplete();
+      }
     } else {
       console.error('🔧 Sign up failed:', error);
     }
@@ -86,12 +91,14 @@ export const CustomSignUpForm: React.FC = () => {
         </CRDButton>
       </form>
 
-      <div className="text-center">
-        <span className="text-crd-lightGray">Already have an account? </span>
-        <Link to="/auth/signin" className="text-crd-blue hover:text-crd-blue/80">
-          Sign in
-        </Link>
-      </div>
+      {!onComplete && (
+        <div className="text-center">
+          <span className="text-crd-lightGray">Already have an account? </span>
+          <Link to="/auth/signin" className="text-crd-blue hover:text-crd-blue/80">
+            Sign in
+          </Link>
+        </div>
+      )}
     </AuthFormContainer>
   );
 };

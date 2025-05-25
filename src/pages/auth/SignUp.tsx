@@ -1,17 +1,9 @@
 
 import React from 'react';
-import { AuthLayout } from '@/components/auth/AuthLayout';
-import { CustomSignUpForm } from '@/components/auth/CustomSignUpForm';
+import { OnboardingFlow } from '@/components/auth/OnboardingFlow';
 
 const SignUp = () => {
-  return (
-    <AuthLayout
-      title="Create Account"
-      description="Join Cardshow with just a username and passcode"
-    >
-      <CustomSignUpForm />
-    </AuthLayout>
-  );
+  return <OnboardingFlow />;
 };
 
 export default SignUp;
