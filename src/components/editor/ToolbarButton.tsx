@@ -21,9 +21,9 @@ export const ToolbarButton = ({
   badge
 }: ToolbarButtonProps) => {
   return (
-    <div className="relative">
-      <Tooltip>
-        <TooltipTrigger asChild>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="relative">
           <Button 
             variant="ghost" 
             size="icon" 
@@ -37,16 +37,16 @@ export const ToolbarButton = ({
           >
             {icon}
           </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="py-1 px-2 text-xs">
-          {tooltip}
-        </TooltipContent>
-      </Tooltip>
-      {badge !== undefined && (
-        <span className="absolute -top-1 -right-1 bg-crd-orange text-white text-[10px] rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
-          {badge}
-        </span>
-      )}
-    </div>
+          {badge !== undefined && (
+            <span className="absolute -top-1 -right-1 bg-crd-orange text-white text-[10px] rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+              {badge}
+            </span>
+          )}
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="py-1 px-2 text-xs">
+        {tooltip}
+      </TooltipContent>
+    </Tooltip>
   );
 };
