@@ -9,7 +9,7 @@ interface Element {
   id: string;
   name: string;
   icon?: string;
-  color: string;
+  color?: string;
   type: 'shape' | 'text' | 'background';
   gradient?: string;
 }
