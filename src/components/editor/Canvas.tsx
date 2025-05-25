@@ -10,7 +10,7 @@ import { CanvasCreator } from './canvas/CanvasCreator';
 import { FabricCanvasComponent } from './canvas/FabricCanvas';
 import { CanvasDrawingTools } from './canvas/CanvasDrawingTools';
 import { TemplateRenderer } from './templates/TemplateRenderer';
-import { AssetIntegration } from './assets/AssetIntegration';
+import { EnhancedAssetIntegration } from './assets/EnhancedAssetIntegration';
 import { toast } from 'sonner';
 
 interface CanvasProps {
@@ -118,7 +118,7 @@ export const Canvas = ({ zoom, cardEditor }: CanvasProps) => {
         cardData={cardEditor?.cardData}
       />
       
-      <AssetIntegration fabricCanvas={fabricCanvas} />
+      <EnhancedAssetIntegration fabricCanvas={fabricCanvas} />
       
       <CanvasControls 
         brightness={brightness}
