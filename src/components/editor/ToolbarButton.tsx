@@ -1,7 +1,7 @@
 
 import React, { ReactNode } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { CRDButton } from '@/components/ui/design-system';
+import { Button } from '@/components/ui/button';
 
 interface ToolbarButtonProps {
   icon: ReactNode;
@@ -24,7 +24,7 @@ export const ToolbarButton = ({
     <div className="relative">
       <Tooltip>
         <TooltipTrigger asChild>
-          <CRDButton 
+          <Button 
             variant="ghost" 
             size="icon" 
             className={`h-8 w-8 p-1.5 ${
@@ -36,7 +36,7 @@ export const ToolbarButton = ({
             disabled={disabled}
           >
             {icon}
-          </CRDButton>
+          </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="py-1 px-2 text-xs">
           {tooltip}
