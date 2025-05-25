@@ -9,7 +9,7 @@ import {
   CardFooter
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader, Image, Grid, List, Plus, Filter } from 'lucide-react';
+import { Loader, Image, Grid, List, Plus, Filter, Palette } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { LoadingState } from '@/components/common/LoadingState';
 import { handleApiError } from '@/utils/toast-handlers';
@@ -18,6 +18,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { FilterControls } from '@/components/shared/FilterControls';
 import { SortFilterOptions } from '@/components/shared/SortFilterOptions';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { Link } from 'react-router-dom';
 
 const Collections = () => {
   const { user } = useUser();
@@ -48,6 +49,35 @@ const Collections = () => {
         title="Discover" 
         accentText="Cards & Collectibles"
       />
+      
+      {/* Hero CTA Section for Card Creation */}
+      <div className="mb-12 bg-gradient-to-r from-crd-blue/20 to-crd-orange/20 rounded-2xl p-8 border border-crd-mediumGray">
+        <div className="text-center max-w-2xl mx-auto">
+          <div className="mb-4">
+            <Palette className="h-16 w-16 text-crd-orange mx-auto mb-4" />
+          </div>
+          <h2 className="text-3xl font-bold text-crd-white mb-3">
+            Create Your First Custom Card
+          </h2>
+          <p className="text-crd-lightGray text-lg mb-6">
+            Transform your ideas into stunning digital collectibles with our powerful card editor. 
+            Choose from templates, add your art, and mint unique cards.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/editor">
+              <Button className="bg-crd-orange hover:bg-crd-orange/90 text-white px-8 py-3 text-lg font-semibold">
+                <Palette className="mr-2 h-5 w-5" />
+                Start Creating
+              </Button>
+            </Link>
+            <Link to="/cards">
+              <Button variant="outline" className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray/20 px-8 py-3">
+                Browse Examples
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
       
       <FilterControls 
         activeCategory={activeCategory}
