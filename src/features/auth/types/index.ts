@@ -17,6 +17,7 @@ export interface AuthContextType extends AuthState {
   signInWithMagicLink: (email: string) => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   updateProfile: (updates: Record<string, any>) => Promise<{ error: AuthError | PostgrestError | null }>;
+  isLoading: boolean;
 }
 
 export type OAuthProvider = 'google' | 'github' | 'discord';
