@@ -525,6 +525,33 @@ export type Database = {
           },
         ]
       }
+      custom_users: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          passcode: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          passcode: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          passcode?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
       design_elements: {
         Row: {
           category: string
@@ -2274,6 +2301,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      authenticate_user: {
+        Args: { username_input: string; passcode_input: string }
+        Returns: {
+          user_id: string
+          username: string
+          success: boolean
+        }[]
+      }
       execute_sql: {
         Args: { query_text: string; query_params?: Json }
         Returns: Json
@@ -2294,9 +2329,22 @@ export type Database = {
         Args: { team_id: string; user_id: string }
         Returns: string
       }
+      hash_passcode: {
+        Args: { passcode_input: string }
+        Returns: string
+      }
       is_team_member: {
         Args: { team_id: string; user_id: string }
         Returns: boolean
+      }
+      register_user: {
+        Args: { username_input: string; passcode_input: string }
+        Returns: {
+          user_id: string
+          username: string
+          success: boolean
+          error_message: string
+        }[]
       }
     }
     Enums: {

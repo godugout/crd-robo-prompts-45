@@ -1,15 +1,15 @@
 
 import React from 'react';
 import { AuthLayout } from '@/components/auth/AuthLayout';
-import { SignUpForm } from '@/components/auth/SignUpForm';
+import { CustomSignUpForm } from '@/components/auth/CustomSignUpForm';
 
 const SignUp = () => {
   return (
     <AuthLayout
       title="Create Account"
-      description="Join Cardshow and start building your collection"
+      description="Join Cardshow with just a username and passcode"
     >
-      <SignUpForm />
+      <CustomSignUpForm />
     </AuthLayout>
   );
 };

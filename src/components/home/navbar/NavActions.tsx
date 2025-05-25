@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { CRDButton } from '@/components/ui/design-system';
-import { useAuth } from '@/features/auth';
+import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -15,7 +15,7 @@ import {
 import { User, Settings, LogOut } from 'lucide-react';
 
 export const NavActions = () => {
-  const { user, signOut, loading } = useAuth();
+  const { user, loading, signOut } = useCustomAuth();
 
   if (loading) {
     return (
@@ -42,8 +42,8 @@ export const NavActions = () => {
     );
   }
 
-  const handleSignOut = async () => {
-    await signOut();
+  const handleSignOut = () => {
+    signOut();
   };
 
   return (
@@ -52,17 +52,16 @@ export const NavActions = () => {
         <DropdownMenuTrigger asChild>
           <button className="flex items-center space-x-2 rounded-full p-1 hover:bg-crd-dark transition-colors">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.user_metadata?.avatar_url} />
+              <AvatarImage src="" />
               <AvatarFallback className="bg-crd-blue text-crd-white">
-                {user.user_metadata?.username?.[0]?.toUpperCase() || 
-                 user.email?.[0]?.toUpperCase() || 'U'}
+                {user.username?.[0]?.toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56 bg-crd-dark border-crd-mediumGray">
           <DropdownMenuLabel className="text-crd-white">
-            {user.user_metadata?.full_name || user.email}
+            {user.username}
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="bg-crd-mediumGray" />
           <DropdownMenuItem asChild>

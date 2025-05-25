@@ -1,15 +1,15 @@
 
 import React from 'react';
 import { AuthLayout } from '@/components/auth/AuthLayout';
-import { SignInForm } from '@/components/auth/SignInForm';
+import { CustomSignInForm } from '@/components/auth/CustomSignInForm';
 
 const SignIn = () => {
   return (
     <AuthLayout
       title="Welcome Back"
-      description="Sign in to your Cardshow account"
+      description="Sign in with your username and passcode"
     >
-      <SignInForm />
+      <CustomSignInForm />
     </AuthLayout>
   );
 };
