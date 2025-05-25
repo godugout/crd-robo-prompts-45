@@ -27,7 +27,6 @@ const Editor = () => {
   };
 
   const handleAddElement = (elementType: string, elementId: string) => {
-    // This will be handled by the canvas component
     if ((window as any).handleCanvasAddElement) {
       (window as any).handleCanvasAddElement(elementType, elementId);
     }
@@ -49,7 +48,7 @@ const Editor = () => {
     <div className="flex flex-col h-screen bg-editor-darker">
       <EditorHeader cardEditor={cardEditor} />
       <EditorToolbar onZoomChange={setZoom} currentZoom={zoom} />
-      <div className="flex-1 flex overflow-hidden gap-2 p-2">
+      <div className="flex-1 flex overflow-hidden gap-1 p-1">
         <div className="rounded-xl overflow-hidden">
           <EditorSidebar 
             selectedTemplate={selectedTemplate}
