@@ -3,7 +3,7 @@ import { ExtractedCard } from './types';
 import { resizeImage } from './imageUtils';
 import { detectCardRegions } from './regionDetection';
 
-export { ExtractedCard } from './types';
+export type { ExtractedCard } from './types';
 
 export const extractCardsFromImage = async (imageFile: File): Promise<ExtractedCard[]> => {
   console.log('Starting card extraction for file:', imageFile.name, 'Size:', (imageFile.size / 1024 / 1024).toFixed(2) + 'MB');
