@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Settings, Save, Share2 } from 'lucide-react';
+import { Settings, Save, Share2, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { toast } from 'sonner';
@@ -33,10 +33,22 @@ export const EditorPropertiesPanel = ({ cardEditor }: EditorPropertiesPanelProps
     }
   };
 
+  const handleAddTag = (value: string) => {
+    if (value.trim() && cardEditor) {
+      cardEditor.addTag(value.trim());
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    if (cardEditor) {
+      cardEditor.removeTag(tagToRemove);
+    }
+  };
+
   return (
     <div className="w-96 bg-editor-dark border-l border-editor-border overflow-y-auto rounded-xl">
       <div className="p-6">
-        <h2 className="text-white text-xl font-semibold mb-6">Card Studio</h2>
+        <h2 className="text-white text-xl font-semibold mb-6">Card Properties</h2>
         
         {/* Card Details Section */}
         <div className="space-y-6">
@@ -94,32 +106,32 @@ export const EditorPropertiesPanel = ({ cardEditor }: EditorPropertiesPanelProps
                   <option value="legendary">Legendary</option>
                 </select>
               </div>
-            </div>
-          </div>
-
-          <Separator className="bg-gray-700" />
-
-          {/* Effects Section */}
-          <div>
-            <h3 className="text-white font-medium mb-4 text-lg">Effects & Style</h3>
-            <div className="space-y-4">
               <div>
-                <Label className="text-gray-300">Background</Label>
-                <div className="grid grid-cols-4 gap-2 mt-2">
-                  {['bg-gradient-to-r from-purple-500 to-pink-500', 'bg-gradient-to-r from-blue-500 to-green-500', 'bg-gradient-to-r from-yellow-500 to-red-500', 'bg-gradient-to-r from-indigo-500 to-purple-500'].map((bg, i) => (
-                    <div key={i} className={`aspect-square rounded-lg cursor-pointer border-2 border-transparent hover:border-white transition-colors ${bg}`}></div>
-                  ))}
-                </div>
+                <Label className="text-gray-300">Series</Label>
+                <select 
+                  className="w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                  value={cardEditor?.cardData.series || ''}
+                  onChange={(e) => cardEditor?.updateCardField('series', e.target.value)}
+                >
+                  <option value="">Select Series</option>
+                  <option value="80s-vcr">80s VCR</option>
+                  <option value="neon-dreams">Neon Dreams</option>
+                  <option value="retro-wave">Retro Wave</option>
+                </select>
               </div>
               <div>
-                <Label className="text-gray-300">Border Style</Label>
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  {['None', 'Solid', 'Glow'].map(style => (
-                    <Button key={style} variant="outline" size="sm" className="bg-gray-700 border-gray-600 text-white hover:bg-gray-600 rounded-lg">
-                      {style}
-                    </Button>
-                  ))}
-                </div>
+                <Label className="text-gray-300">Category</Label>
+                <select 
+                  className="w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                  value={cardEditor?.cardData.category || ''}
+                  onChange={(e) => cardEditor?.updateCardField('category', e.target.value)}
+                >
+                  <option value="">Select Category</option>
+                  <option value="movies">Movies</option>
+                  <option value="music">Music</option>
+                  <option value="art">Art</option>
+                  <option value="sports">Sports</option>
+                </select>
               </div>
             </div>
           </div>
@@ -131,8 +143,17 @@ export const EditorPropertiesPanel = ({ cardEditor }: EditorPropertiesPanelProps
             <h3 className="text-white font-medium mb-4 text-lg">Tags</h3>
             <div className="flex flex-wrap gap-2 mb-3">
               {cardEditor?.tags?.map(tag => (
-                <span key={tag} className="bg-blue-600 text-white px-2 py-1 rounded-lg text-sm">
+                <span 
+                  key={tag} 
+                  className="bg-blue-600 text-white px-2 py-1 rounded-lg text-sm flex items-center gap-1"
+                >
                   #{tag}
+                  <button
+                    onClick={() => handleRemoveTag(tag)}
+                    className="text-white/70 hover:text-white ml-1"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
                 </span>
               ))}
             </div>
@@ -142,13 +163,43 @@ export const EditorPropertiesPanel = ({ cardEditor }: EditorPropertiesPanelProps
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
                   const value = (e.target as HTMLInputElement).value.trim();
-                  if (value && cardEditor) {
-                    cardEditor.addTag(value);
+                  if (value) {
+                    handleAddTag(value);
                     (e.target as HTMLInputElement).value = '';
                   }
                 }
               }}
             />
+          </div>
+
+          <Separator className="bg-gray-700" />
+
+          {/* Publishing Settings */}
+          <div>
+            <h3 className="text-white font-medium mb-4 text-lg">Publishing</h3>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-gray-300">Visibility</Label>
+                <select 
+                  className="w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                  value={cardEditor?.cardData.visibility || 'private'}
+                  onChange={(e) => cardEditor?.updateCardField('visibility', e.target.value as any)}
+                >
+                  <option value="private">Private</option>
+                  <option value="public">Public</option>
+                  <option value="shared">Shared</option>
+                </select>
+              </div>
+              <div className="flex items-center justify-between px-4 py-3 bg-editor-darker rounded-lg">
+                <div>
+                  <p className="text-white font-medium">Edition Size</p>
+                  <p className="text-gray-400 text-xs">How many copies will exist</p>
+                </div>
+                <div className="h-8 w-16 px-3 bg-editor-tool text-white flex items-center justify-center rounded-md font-mono">
+                  1/1
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Action Buttons */}
