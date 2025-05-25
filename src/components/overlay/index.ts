@@ -13,7 +13,10 @@ export { CardDetectionReviewControls } from './components/CardDetectionReviewCon
 export { CardDetectionGrid } from './components/CardDetectionGrid';
 export { EnhancedCanvasRegionEditor } from './components/EnhancedCanvasRegionEditor';
 export { EnhancedExtractedCardsView } from './components/EnhancedExtractedCardsView';
+export { EnhancedDialogHeader } from './components/EnhancedDialogHeader';
+export { EnhancedDialogStepContent } from './components/EnhancedDialogStepContent';
 
 // Export hooks
 export { useCardDetectionDialog } from './hooks/useCardDetectionDialog';
 export { useEnhancedCardDetection } from './hooks/useEnhancedCardDetection';
+export { useCanvasInteractions } from './hooks/useCanvasInteractions';
