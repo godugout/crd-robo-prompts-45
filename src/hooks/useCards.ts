@@ -12,18 +12,26 @@ export const useCards = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null);
         
         const [featured, trending] = await Promise.all([
           CardRepository.getFeaturedCards(),
           CardRepository.getTrendingCards()
         ]);
         
-        setFeaturedCards(featured);
-        setTrendingCards(trending);
+        // Only update state if we have actual data
+        if (featured && featured.length > 0) {
+          setFeaturedCards(featured);
+        }
+        
+        if (trending && trending.length > 0) {
+          setTrendingCards(trending);
+        }
         
       } catch (err) {
         console.error('Error fetching cards:', err);
         setError(err);
+        // Don't clear existing data on error to prevent flickering
       } finally {
         setLoading(false);
       }
