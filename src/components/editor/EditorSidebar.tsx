@@ -53,8 +53,8 @@ export const EditorSidebar = ({ selectedTemplate, onSelectTemplate }: EditorSide
     { id: 'shape4', name: 'Star', icon: '★', color: 'text-yellow-400', type: 'shape' },
     { id: 'shape5', name: 'Diamond', icon: '◆', color: 'text-pink-400', type: 'shape' },
     { id: 'shape6', name: 'Hexagon', icon: '⬢', color: 'text-cyan-400', type: 'shape' },
-    { id: 'text1', name: 'Title Text', icon: Type, color: 'text-white', type: 'text' },
-    { id: 'text2', name: 'Subtitle', icon: Type, color: 'text-gray-300', type: 'text' },
+    { id: 'text1', name: 'Title Text', color: 'text-white', type: 'text' },
+    { id: 'text2', name: 'Subtitle', color: 'text-gray-300', type: 'text' },
     { id: 'bg1', name: 'Galaxy Nebula', gradient: 'from-purple-900 via-blue-900 to-purple-800', type: 'background' },
     { id: 'bg2', name: 'Sunset Glow', gradient: 'from-orange-500 via-red-500 to-pink-500', type: 'background' },
     { id: 'bg3', name: 'Ocean Deep', gradient: 'from-blue-600 via-cyan-500 to-teal-400', type: 'background' },
@@ -187,7 +187,7 @@ export const EditorSidebar = ({ selectedTemplate, onSelectTemplate }: EditorSide
                         className="w-full justify-start bg-editor-tool border-editor-border text-white hover:bg-editor-border rounded-lg"
                         onClick={() => toast.success(`${textEl.name} added`)}
                       >
-                        <textEl.icon className="w-4 h-4 mr-2" />
+                        <Type className="w-4 h-4 mr-2" />
                         Add {textEl.name}
                       </Button>
                     ))}
@@ -238,19 +238,22 @@ export const EditorSidebar = ({ selectedTemplate, onSelectTemplate }: EditorSide
               <div className="space-y-4">
                 <h3 className="text-white font-medium text-sm uppercase tracking-wide">Lighting & Effects</h3>
                 <div className="grid grid-cols-2 gap-3">
-                  {filteredEffects.map((effect) => (
-                    <div 
-                      key={effect.id}
-                      className="group cursor-pointer rounded-xl bg-editor-tool hover:bg-editor-border transition-colors p-4 flex flex-col items-center gap-3"
-                      onClick={() => toast.success(`${effect.name} effect applied`)}
-                    >
-                      <effect.icon className={`w-8 h-8 ${effect.color}`} />
-                      <div className="text-center">
-                        <p className="text-white text-xs font-medium">{effect.name}</p>
-                        <p className="text-gray-400 text-xs mt-1">{effect.description}</p>
+                  {filteredEffects.map((effect) => {
+                    const IconComponent = effect.icon;
+                    return (
+                      <div 
+                        key={effect.id}
+                        className="group cursor-pointer rounded-xl bg-editor-tool hover:bg-editor-border transition-colors p-4 flex flex-col items-center gap-3"
+                        onClick={() => toast.success(`${effect.name} effect applied`)}
+                      >
+                        <IconComponent className={`w-8 h-8 ${effect.color}`} />
+                        <div className="text-center">
+                          <p className="text-white text-xs font-medium">{effect.name}</p>
+                          <p className="text-gray-400 text-xs mt-1">{effect.description}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="mt-6 p-4 bg-editor-tool rounded-xl">
