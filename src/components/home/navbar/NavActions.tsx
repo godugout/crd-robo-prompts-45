@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, Settings, LogOut } from 'lucide-react';
+import { User, Settings, LogOut, UserCog } from 'lucide-react';
 
 export const NavActions = () => {
   const { user, loading, signOut } = useCustomAuth();
@@ -68,6 +68,12 @@ export const NavActions = () => {
             <Link to="/profile" className="text-crd-lightGray hover:text-crd-white">
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/account" className="text-crd-lightGray hover:text-crd-white">
+              <UserCog className="mr-2 h-4 w-4" />
+              <span>Account Settings</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
