@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Canvas as FabricCanvas, Circle, Rect, FabricText, FabricImage } from 'fabric';
+import { Canvas as FabricCanvas, Circle, Rect, FabricText, FabricImage, Line } from 'fabric';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { toast } from 'sonner';
 
@@ -72,16 +72,16 @@ export const FabricCanvasComponent = ({
 
       // Add vertical lines
       for (let i = 0; i <= width; i += gridSize) {
-        const line = new fabric.Line([i, 0, i, height], gridOptions);
+        const line = new Line([i, 0, i, height], gridOptions);
         fabricCanvas.add(line);
-        fabricCanvas.sendToBack(line);
+        fabricCanvas.sendObjectToBack(line);
       }
 
       // Add horizontal lines
       for (let i = 0; i <= height; i += gridSize) {
-        const line = new fabric.Line([0, i, width, i], gridOptions);
+        const line = new Line([0, i, width, i], gridOptions);
         fabricCanvas.add(line);
-        fabricCanvas.sendToBack(line);
+        fabricCanvas.sendObjectToBack(line);
       }
     } else {
       // Remove grid lines
