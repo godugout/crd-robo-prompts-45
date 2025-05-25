@@ -40,7 +40,7 @@ export const useCanvasInteractions = ({
     if (clickedRegion) {
       setSelectedRegions(new Set([clickedRegion.id]));
     } else {
-      const newRegion = {
+      const newRegion: ManualRegion = {
         id: `manual-${Date.now()}`,
         x,
         y,
@@ -69,7 +69,7 @@ export const useCanvasInteractions = ({
     const currentX = (e.clientX - rect.left) * scaleX;
     const currentY = (e.clientY - rect.top) * scaleY;
     
-    const updatedRegion = {
+    const updatedRegion: ManualRegion = {
       ...dragState.currentRegion,
       width: Math.abs(currentX - dragState.startX),
       height: Math.abs(currentY - dragState.startY),
@@ -77,11 +77,10 @@ export const useCanvasInteractions = ({
       y: Math.min(dragState.startY, currentY)
     };
     
-    setDetectedRegions(prev => {
-      const filtered = prev.filter(r => r.id !== updatedRegion.id);
-      return [...filtered, updatedRegion];
-    });
-  }, [dragState, setDetectedRegions]);
+    const filtered = detectedRegions.filter((r: ManualRegion) => r.id !== updatedRegion.id);
+    const newRegions: ManualRegion[] = [...filtered, updatedRegion];
+    setDetectedRegions(newRegions);
+  }, [dragState, setDetectedRegions, detectedRegions]);
 
   const handleCanvasMouseUp = useCallback(() => {
     if (dragState.isDragging && dragState.currentRegion) {
