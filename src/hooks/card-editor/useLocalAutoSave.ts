@@ -38,15 +38,17 @@ export const useLocalAutoSave = (
           clearTimeout(syncTimeoutRef.current);
         }
         
-        // Schedule server sync after delay
-        syncTimeoutRef.current = setTimeout(() => {
-          syncToServer(cardId);
-        }, syncDelay);
+        // Schedule server sync after delay (only if user is authenticated)
+        if (user) {
+          syncTimeoutRef.current = setTimeout(() => {
+            syncToServer(cardId);
+          }, syncDelay);
+        }
       }
     }, autoSaveInterval);
     
     return () => clearTimeout(timer);
-  }, [cardData, isDirty, autoSaveInterval, syncDelay, updateCardData]);
+  }, [cardData, isDirty, autoSaveInterval, syncDelay, updateCardData, user]);
 
   const syncToServer = async (cardId: string) => {
     if (!user) {
@@ -92,14 +94,14 @@ export const useLocalAutoSave = (
         
         if (error) throw error;
       } else {
-        // Create new card
+        // Create new card (allow null creator_id for anonymous users initially)
         const { error } = await supabase
           .from('cards')
           .insert({
             id: cardId,
             title: localCard.title,
             description: localCard.description,
-            creator_id: user.id,
+            creator_id: user.id, // Now we have the user id
             design_metadata: localCard.design_metadata,
             image_url: localCard.image_url,
             thumbnail_url: localCard.thumbnail_url,

@@ -19,13 +19,15 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
     if (cardEditor) {
       if (user) {
         // Force sync to server if user is authenticated
-        cardEditor.saveCard();
-        toast.success('Syncing to cloud...');
+        const success = await cardEditor.saveCard();
+        if (success) {
+          toast.success('Card saved to cloud');
+        }
       } else {
         // Just save locally if not authenticated
         if (cardEditor.cardData.id) {
           localCardStorage.saveCard(cardEditor.cardData);
-          toast.success('Card saved locally');
+          toast.success('Card saved locally - sign in to sync to cloud');
         }
       }
     }
@@ -81,7 +83,7 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
   const getStatusDisplay = () => {
     if (isSaving) return 'Saving...';
     if (isDirty) return 'Editing...';
-    if (isLocalCard && !user) return 'Saved locally';
+    if (!user) return 'Saved locally';
     if (isLocalCard && user) return 'Syncing...';
     return 'Saved';
   };
@@ -89,7 +91,7 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
   const getStatusIcon = () => {
     if (isSaving) return 'bg-yellow-500';
     if (isDirty) return 'bg-blue-500';
-    if (isLocalCard && !user) return 'bg-orange-500';
+    if (!user) return 'bg-orange-500';
     if (isLocalCard && user) return 'bg-yellow-500';
     return 'bg-crd-green';
   };
@@ -109,7 +111,7 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
       
       <div className="flex items-center space-x-2">
         <div className="flex items-center px-3 py-1 rounded-full bg-crd-mediumGray/50 text-sm text-crd-lightGray">
-          {!user && isLocalCard && <CloudOff className="w-3 h-3 mr-1" />}
+          {!user && <CloudOff className="w-3 h-3 mr-1" />}
           {user && <Cloud className="w-3 h-3 mr-1" />}
           {getStatusDisplay()}
           <span className={`inline-block w-2 h-2 ml-2 rounded-full ${getStatusIcon()}`}></span>
@@ -117,7 +119,7 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
         
         <Button variant="ghost" size="sm" onClick={handleSave} disabled={isSaving}>
           <Save className="w-5 h-5 mr-2" />
-          {user ? 'Sync' : 'Save'}
+          {user ? 'Save' : 'Save Local'}
         </Button>
         
         <Button variant="ghost" size="sm" onClick={handleShare}>
@@ -138,13 +140,22 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
           <Moon className="w-5 h-5" />
         </Button>
         
-        <Button 
-          className="ml-2 bg-crd-orange hover:bg-crd-orange/90 text-white rounded-full" 
-          onClick={handlePublish}
-          disabled={!user}
-        >
-          Publish
-        </Button>
+        {user ? (
+          <Button 
+            className="ml-2 bg-crd-orange hover:bg-crd-orange/90 text-white rounded-full" 
+            onClick={handlePublish}
+          >
+            Publish
+          </Button>
+        ) : (
+          <Button 
+            variant="outline"
+            className="ml-2 rounded-full" 
+            asChild
+          >
+            <Link to="/auth">Sign In</Link>
+          </Button>
+        )}
       </div>
     </div>
   );

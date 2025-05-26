@@ -14,20 +14,17 @@ export const useCardOperations = (
   const { user } = useCustomAuth();
 
   const saveCard = async (): Promise<boolean> => {
-    if (!user) {
-      toast.error('Please sign in to save cards');
-      return false;
-    }
-
     setIsSaving(true);
     try {
+      // For anonymous users, we'll allow creator_id to be null initially
+      // They can claim ownership later when they sign up
       const { error } = await supabase
         .from('cards')
         .upsert({
           id: cardData.id,
           title: cardData.title,
           description: cardData.description,
-          creator_id: user.id,
+          creator_id: user?.id || null, // Allow null for anonymous users
           design_metadata: cardData.design_metadata,
           image_url: cardData.image_url,
           thumbnail_url: cardData.thumbnail_url,
@@ -43,16 +40,28 @@ export const useCardOperations = (
 
       if (error) {
         console.error('Error saving card:', error);
-        toast.error('Failed to save card');
+        if (user) {
+          toast.error('Failed to save card to cloud');
+        } else {
+          toast.error('Failed to save card - try signing in for cloud sync');
+        }
         return false;
       }
       
       setLastSaved(new Date());
-      toast.success('Card saved successfully');
+      if (user) {
+        toast.success('Card saved to cloud');
+      } else {
+        toast.success('Card saved (sign in to sync to cloud)');
+      }
       return true;
     } catch (error) {
       console.error('Error saving card:', error);
-      toast.error('Failed to save card');
+      if (user) {
+        toast.error('Failed to save card to cloud');
+      } else {
+        toast.error('Failed to save card - try signing in for cloud sync');
+      }
       return false;
     } finally {
       setIsSaving(false);
