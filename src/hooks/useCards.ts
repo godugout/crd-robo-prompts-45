@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase-client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface Card {
@@ -19,13 +20,14 @@ interface Card {
 }
 
 export const useCards = () => {
+  const { user } = useAuth();
   const [cards, setCards] = useState<Card[]>([]);
   const [featuredCards, setFeaturedCards] = useState<Card[]>([]);
+  const [userCards, setUserCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchCards = async () => {
+  const fetchPublicCards = async () => {
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from('cards')
         .select('*')
@@ -37,27 +39,32 @@ export const useCards = () => {
       setCards(data || []);
       setFeaturedCards(data?.slice(0, 8) || []);
     } catch (error) {
-      console.error('Error fetching cards:', error);
+      console.error('Error fetching public cards:', error);
       toast.error('Failed to load cards');
-    } finally {
-      setLoading(false);
     }
   };
 
-  const fetchUserCards = async (userId: string) => {
+  const fetchUserCards = async () => {
+    if (!user) return;
+    
     try {
       const { data, error } = await supabase
         .from('cards')
         .select('*')
-        .eq('creator_id', userId)
+        .eq('creator_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      setUserCards(data || []);
     } catch (error) {
       console.error('Error fetching user cards:', error);
-      return [];
     }
+  };
+
+  const fetchCards = async () => {
+    setLoading(true);
+    await Promise.all([fetchPublicCards(), fetchUserCards()]);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -82,13 +89,15 @@ export const useCards = () => {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, []);
+  }, [user]);
 
   return {
     cards,
     featuredCards,
+    userCards,
     loading,
     fetchCards,
+    fetchPublicCards,
     fetchUserCards
   };
 };

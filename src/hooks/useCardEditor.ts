@@ -1,197 +1,130 @@
 
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { useTags } from '@/components/memory/hooks/useTags';
-import { useLocalAutoSave } from './card-editor/useLocalAutoSave';
-import { useCardOperations } from './card-editor/useCardOperations';
-import { localCardStorage } from '@/lib/localCardStorage';
-import type { CardData, UseCardEditorOptions, CardRarity, CardVisibility, DesignTemplate, PublishingOptions, CreatorAttribution } from './card-editor/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-export type { CardData, CardRarity, CardVisibility, DesignTemplate, PublishingOptions, CreatorAttribution } from './card-editor/types';
+interface CardData {
+  id?: string;
+  title: string;
+  description?: string;
+  image_url?: string;
+  thumbnail_url?: string;
+  rarity: 'common' | 'rare' | 'legendary';
+  tags: string[];
+  design_metadata: Record<string, any>;
+  is_public: boolean;
+  creator_id?: string;
+}
 
-// UUID validation function
-const isValidUUID = (str: string): boolean => {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(str);
-};
-
-// Clean template_id - if it's not a valid UUID, return null
-const cleanTemplateId = (templateId: string | undefined): string | undefined => {
-  if (!templateId) return undefined;
-  if (templateId === 'default' || templateId === 'neon' || !isValidUUID(templateId)) {
-    console.warn(`Invalid template_id detected: ${templateId}, setting to null`);
-    return undefined;
-  }
-  return templateId;
-};
-
-export const useCardEditor = (options: UseCardEditorOptions = {}) => {
-  const {
-    initialData = {},
-    autoSave = true,
-    autoSaveInterval = 5000,
-  } = options;
-
-  // Initialize card data with proper defaults and unique ID
-  const [cardData, setCardData] = useState<CardData>(() => {
-    const baseData: CardData = {
-      id: initialData.id || uuidv4(),
-      title: initialData.title || '',
-      description: initialData.description || '',
-      type: initialData.type || 'Handcrafted',
-      series: initialData.series || '80s VCR',
-      category: initialData.category || 'Movies',
-      rarity: (initialData.rarity as CardRarity) || 'common',
-      tags: initialData.tags || [],
-      image_url: initialData.image_url,
-      design_metadata: initialData.design_metadata || {},
-      visibility: initialData.visibility || 'private',
-      is_public: initialData.is_public || false,
-      shop_id: initialData.shop_id,
-      template_id: cleanTemplateId(initialData.template_id), // Clean template_id
-      creator_attribution: initialData.creator_attribution || {
-        collaboration_type: 'solo'
-      },
-      publishing_options: initialData.publishing_options || {
-        marketplace_listing: false,
-        crd_catalog_inclusion: true,
-        print_available: false,
-        pricing: {
-          currency: 'USD'
-        },
-        distribution: {
-          limited_edition: false
-        }
-      },
-      verification_status: initialData.verification_status || 'pending',
-      print_metadata: initialData.print_metadata || {}
-    };
-
-    // Load from local storage if available
-    if (initialData.id) {
-      const localCard = localCardStorage.getCard(initialData.id);
-      if (localCard) {
-        return {
-          ...baseData,
-          ...localCard,
-          id: localCard.id,
-          rarity: localCard.rarity as CardRarity,
-          template_id: cleanTemplateId(localCard.template_id) // Clean template_id from local storage too
-        };
-      }
-    }
-
-    console.log('Initialized card data:', baseData);
-    return baseData;
+export const useCardEditor = (initialData: Partial<CardData> = {}) => {
+  const { user } = useAuth();
+  const [cardData, setCardData] = useState<CardData>({
+    id: initialData.id || uuidv4(),
+    title: initialData.title || '',
+    description: initialData.description || '',
+    image_url: initialData.image_url,
+    thumbnail_url: initialData.thumbnail_url,
+    rarity: initialData.rarity || 'common',
+    tags: initialData.tags || [],
+    design_metadata: initialData.design_metadata || {},
+    is_public: initialData.is_public || false,
+    creator_id: user?.id
   });
 
-  const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  const updateCardData = (updates: Partial<CardData>) => {
-    // Clean any template_id in updates
-    if (updates.template_id !== undefined) {
-      updates.template_id = cleanTemplateId(updates.template_id);
+  useEffect(() => {
+    if (user?.id && !cardData.creator_id) {
+      setCardData(prev => ({ ...prev, creator_id: user.id }));
     }
-    
-    console.log('Updating card data:', updates);
-    setCardData(prev => ({ ...prev, ...updates }));
-    setIsDirty(true);
-  };
+  }, [user?.id, cardData.creator_id]);
 
-  const updateCardField = <K extends keyof CardData>(
-    field: K, 
-    value: CardData[K]
-  ) => {
-    // Clean template_id if that's what's being updated
-    let cleanValue = value;
-    if (field === 'template_id' && typeof value === 'string') {
-      cleanValue = cleanTemplateId(value) as CardData[K];
-    }
-    
-    console.log(`Updating card field ${field}:`, { original: value, cleaned: cleanValue });
-    setCardData(prev => ({
-      ...prev,
-      [field]: cleanValue
-    }));
-    setIsDirty(true);
+  const updateCardField = <K extends keyof CardData>(field: K, value: CardData[K]) => {
+    setCardData(prev => ({ ...prev, [field]: value }));
   };
 
   const updateDesignMetadata = (key: string, value: any) => {
     setCardData(prev => ({
       ...prev,
-      design_metadata: {
-        ...prev.design_metadata,
-        [key]: value
-      }
+      design_metadata: { ...prev.design_metadata, [key]: value }
     }));
-    setIsDirty(true);
   };
 
-  const { 
-    tags, 
-    addTag, 
-    removeTag, 
-    handleTagInput, 
-    hasMaxTags 
-  } = useTags(cardData.tags || [], {
-    maxTags: 10,
-    validateTag: (tag) => tag.length <= 20 && /^[A-Za-z0-9\s-]+$/.test(tag),
-    onTagAdded: (tag) => updateCardField('tags', [...(cardData.tags || []), tag]),
-    onTagRemoved: (tag) => updateCardField('tags', cardData.tags.filter(t => t !== tag))
-  });
-
-  const { saveCard: saveCardToServer, publishCard, isSaving, lastSaved } = useCardOperations(
-    cardData,
-    updateCardData
-  );
-
-  const { lastSaveTime, forceSyncToServer } = useLocalAutoSave(
-    cardData,
-    isDirty,
-    updateCardData,
-    autoSave ? autoSaveInterval : 0
-  );
-
-  // Reset dirty state after local save
-  useEffect(() => {
-    if (lastSaveTime > 0) {
-      setIsDirty(false);
-    }
-  }, [lastSaveTime]);
-
   const saveCard = async (): Promise<boolean> => {
+    if (!user) {
+      toast.error('Please sign in to save cards');
+      return false;
+    }
+
+    if (!cardData.title.trim()) {
+      toast.error('Please enter a card title');
+      return false;
+    }
+
+    setIsSaving(true);
     try {
-      // Ensure we have a title before saving
-      if (!cardData.title?.trim()) {
-        updateCardData({ title: 'Untitled Card' });
+      const cardToSave = {
+        ...cardData,
+        creator_id: user.id,
+        title: cardData.title.trim()
+      };
+
+      const { error } = await supabase
+        .from('cards')
+        .upsert(cardToSave, { onConflict: 'id' });
+
+      if (error) {
+        console.error('Error saving card:', error);
+        toast.error('Failed to save card');
+        return false;
       }
-      
-      const success = await saveCardToServer();
-      if (success) {
-        setIsDirty(false);
-      }
-      return success;
+
+      setLastSaved(new Date());
+      toast.success('Card saved successfully');
+      return true;
     } catch (error) {
       console.error('Error saving card:', error);
+      toast.error('Failed to save card');
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const publishCard = async (): Promise<boolean> => {
+    const saved = await saveCard();
+    if (!saved) return false;
+
+    try {
+      const { error } = await supabase
+        .from('cards')
+        .update({ is_public: true })
+        .eq('id', cardData.id);
+
+      if (error) {
+        toast.error('Failed to publish card');
+        return false;
+      }
+
+      updateCardField('is_public', true);
+      toast.success('Card published successfully');
+      return true;
+    } catch (error) {
+      toast.error('Failed to publish card');
       return false;
     }
   };
 
   return {
     cardData,
-    updateCardData,
     updateCardField,
     updateDesignMetadata,
     saveCard,
     publishCard,
-    isLoading: false,
     isSaving,
-    lastSaved,
-    isDirty,
-    tags,
-    addTag,
-    removeTag,
-    handleTagInput,
-    hasMaxTags
+    lastSaved
   };
 };
