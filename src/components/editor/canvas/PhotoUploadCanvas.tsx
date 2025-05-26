@@ -33,13 +33,14 @@ export const PhotoUploadCanvas = ({ onPhotoSelect }: PhotoUploadCanvasProps) => 
     }
   }, [onPhotoSelect]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: {
       'image/*': []
     },
     maxFiles: 1,
-    noClick: !!uploadedImage
+    noClick: !!uploadedImage,
+    noKeyboard: true
   });
 
   const handleCropSetting = (setting: keyof typeof cropSettings, value: number) => {
@@ -83,9 +84,18 @@ export const PhotoUploadCanvas = ({ onPhotoSelect }: PhotoUploadCanvasProps) => 
               {isDragActive ? 'Drop photo here' : 'Upload Your Photo'}
             </div>
             <div className="text-crd-lightGray text-sm max-w-md">
-              Drag and drop your photo here, or click to browse files
+              {isDragActive 
+                ? 'Release to upload your photo' 
+                : 'Drag and drop your photo here, or click to browse files'
+              }
             </div>
-            <Button className="bg-crd-green hover:bg-crd-green/90 text-black">
+            <Button 
+              onClick={(e) => {
+                e.stopPropagation();
+                open();
+              }}
+              className="bg-crd-green hover:bg-crd-green/90 text-black"
+            >
               <Camera className="w-4 h-4 mr-2" />
               Choose Photo
             </Button>
