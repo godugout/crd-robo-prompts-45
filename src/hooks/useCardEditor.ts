@@ -24,10 +24,33 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     tags: initialData.tags || [],
     image_url: initialData.image_url,
     design_metadata: initialData.design_metadata || {},
-    visibility: initialData.visibility || 'private'
+    visibility: initialData.visibility || 'private',
+    shop_id: initialData.shop_id,
+    template_id: initialData.template_id,
+    creator_attribution: initialData.creator_attribution || {
+      collaboration_type: 'solo'
+    },
+    publishing_options: initialData.publishing_options || {
+      marketplace_listing: false,
+      crd_catalog_inclusion: true,
+      print_available: false,
+      pricing: {
+        currency: 'USD'
+      },
+      distribution: {
+        limited_edition: false
+      }
+    },
+    verification_status: initialData.verification_status || 'pending',
+    print_metadata: initialData.print_metadata || {}
   });
 
   const [isDirty, setIsDirty] = useState(false);
+
+  const updateCardData = (updates: Partial<CardData>) => {
+    setCardData(prev => ({ ...prev, ...updates }));
+    setIsDirty(true);
+  };
 
   const updateCardField = <K extends keyof CardData>(
     field: K, 
@@ -66,13 +89,14 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
 
   const { saveCard, publishCard, isSaving, lastSaved } = useCardOperations(
     cardData,
-    (updates) => setCardData(prev => ({ ...prev, ...updates }))
+    updateCardData
   );
 
   useAutoSave(cardData, isDirty, saveCard, autoSave, autoSaveInterval);
 
   return {
     cardData,
+    updateCardData,
     updateCardField,
     updateDesignMetadata,
     saveCard,

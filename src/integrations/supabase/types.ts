@@ -248,7 +248,9 @@ export type Database = {
       cards: {
         Row: {
           collection_id: string | null
+          crd_catalog_inclusion: boolean | null
           created_at: string
+          creator_attribution: Json | null
           creator_id: string
           description: string | null
           design_metadata: Json | null
@@ -256,18 +258,27 @@ export type Database = {
           id: string
           image_url: string | null
           is_public: boolean | null
+          marketplace_listing: boolean | null
           price: number | null
+          print_available: boolean | null
+          print_metadata: Json | null
+          publishing_options: Json | null
           rarity: string
+          shop_id: string | null
           tags: string[] | null
           team_id: string | null
+          template_id: string | null
           thumbnail_url: string | null
           title: string
           updated_at: string
           user_id: string | null
+          verification_status: string | null
         }
         Insert: {
           collection_id?: string | null
+          crd_catalog_inclusion?: boolean | null
           created_at?: string
+          creator_attribution?: Json | null
           creator_id: string
           description?: string | null
           design_metadata?: Json | null
@@ -275,18 +286,27 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_public?: boolean | null
+          marketplace_listing?: boolean | null
           price?: number | null
+          print_available?: boolean | null
+          print_metadata?: Json | null
+          publishing_options?: Json | null
           rarity: string
+          shop_id?: string | null
           tags?: string[] | null
           team_id?: string | null
+          template_id?: string | null
           thumbnail_url?: string | null
           title: string
           updated_at?: string
           user_id?: string | null
+          verification_status?: string | null
         }
         Update: {
           collection_id?: string | null
+          crd_catalog_inclusion?: boolean | null
           created_at?: string
+          creator_attribution?: Json | null
           creator_id?: string
           description?: string | null
           design_metadata?: Json | null
@@ -294,14 +314,21 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_public?: boolean | null
+          marketplace_listing?: boolean | null
           price?: number | null
+          print_available?: boolean | null
+          print_metadata?: Json | null
+          publishing_options?: Json | null
           rarity?: string
+          shop_id?: string | null
           tags?: string[] | null
           team_id?: string | null
+          template_id?: string | null
           thumbnail_url?: string | null
           title?: string
           updated_at?: string
           user_id?: string | null
+          verification_status?: string | null
         }
         Relationships: [
           {
@@ -309,6 +336,13 @@ export type Database = {
             columns: ["collection_id"]
             isOneToOne: false
             referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cards_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
             referencedColumns: ["id"]
           },
           {
@@ -669,6 +703,51 @@ export type Database = {
           updated_at?: string
           version?: Json | null
           visibility?: string
+        }
+        Relationships: []
+      }
+      design_templates: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_premium: boolean | null
+          name: string
+          preview_url: string | null
+          tags: string[] | null
+          template_data: Json
+          updated_at: string
+          usage_count: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_premium?: boolean | null
+          name: string
+          preview_url?: string | null
+          tags?: string[] | null
+          template_data?: Json
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_premium?: boolean | null
+          name?: string
+          preview_url?: string | null
+          tags?: string[] | null
+          template_data?: Json
+          updated_at?: string
+          usage_count?: number | null
         }
         Relationships: []
       }
@@ -1394,30 +1473,83 @@ export type Database = {
           },
         ]
       }
+      product_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          shop_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          shop_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          shop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_categories_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          bio_extended: string | null
           created_at: string
+          creator_badge: string | null
+          creator_verified: boolean | null
           full_name: string | null
           id: string
+          portfolio_links: Json | null
+          specialties: string[] | null
           team_id: string | null
           updated_at: string
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio_extended?: string | null
           created_at?: string
+          creator_badge?: string | null
+          creator_verified?: boolean | null
           full_name?: string | null
           id: string
+          portfolio_links?: Json | null
+          specialties?: string[] | null
           team_id?: string | null
           updated_at?: string
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio_extended?: string | null
           created_at?: string
+          creator_badge?: string | null
+          creator_verified?: boolean | null
           full_name?: string | null
           id?: string
+          portfolio_links?: Json | null
+          specialties?: string[] | null
           team_id?: string | null
           updated_at?: string
           username?: string | null
@@ -1476,6 +1608,95 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      shop_teams: {
+        Row: {
+          id: string
+          invited_by: string | null
+          joined_at: string
+          permissions: Json | null
+          role: string
+          shop_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string
+          permissions?: Json | null
+          role?: string
+          shop_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          invited_by?: string | null
+          joined_at?: string
+          permissions?: Json | null
+          role?: string
+          shop_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_teams_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shops: {
+        Row: {
+          banner_url: string | null
+          branding: Json | null
+          contact_info: Json | null
+          created_at: string
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          owner_id: string
+          shop_status: string
+          social_links: Json | null
+          specialties: string[] | null
+          updated_at: string
+          verification_status: string
+        }
+        Insert: {
+          banner_url?: string | null
+          branding?: Json | null
+          contact_info?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          owner_id: string
+          shop_status?: string
+          social_links?: Json | null
+          specialties?: string[] | null
+          updated_at?: string
+          verification_status?: string
+        }
+        Update: {
+          banner_url?: string | null
+          branding?: Json | null
+          contact_info?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          owner_id?: string
+          shop_status?: string
+          social_links?: Json | null
+          specialties?: string[] | null
+          updated_at?: string
+          verification_status?: string
+        }
+        Relationships: []
       }
       song_analyses: {
         Row: {

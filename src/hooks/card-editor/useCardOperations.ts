@@ -19,8 +19,17 @@ export const useCardOperations = (cardData: CardData, updateCardData: (data: Par
             description: cardData.description,
             design_metadata: cardData.design_metadata,
             image_url: cardData.image_url,
+            thumbnail_url: cardData.thumbnail_url,
             rarity: cardData.rarity,
             tags: cardData.tags,
+            shop_id: cardData.shop_id,
+            template_id: cardData.template_id,
+            marketplace_listing: cardData.publishing_options.marketplace_listing,
+            crd_catalog_inclusion: cardData.publishing_options.crd_catalog_inclusion,
+            print_available: cardData.publishing_options.print_available,
+            publishing_options: cardData.publishing_options,
+            creator_attribution: cardData.creator_attribution,
+            print_metadata: cardData.print_metadata,
             updated_at: new Date().toISOString(),
           })
           .eq('id', cardData.id);
@@ -47,9 +56,19 @@ export const useCardOperations = (cardData: CardData, updateCardData: (data: Par
             creator_id: creatorId,
             design_metadata: cardData.design_metadata || {},
             image_url: cardData.image_url,
+            thumbnail_url: cardData.thumbnail_url,
             rarity: cardData.rarity || 'common',
             tags: cardData.tags || [],
             is_public: cardData.visibility === 'public',
+            shop_id: cardData.shop_id,
+            template_id: cardData.template_id,
+            marketplace_listing: cardData.publishing_options.marketplace_listing || false,
+            crd_catalog_inclusion: cardData.publishing_options.crd_catalog_inclusion !== false,
+            print_available: cardData.publishing_options.print_available || false,
+            publishing_options: cardData.publishing_options,
+            creator_attribution: cardData.creator_attribution,
+            verification_status: 'pending',
+            print_metadata: cardData.print_metadata || {}
           })
           .select()
           .single();
@@ -83,6 +102,7 @@ export const useCardOperations = (cardData: CardData, updateCardData: (data: Par
         .from('cards')
         .update({ 
           is_public: true,
+          marketplace_listing: cardData.publishing_options.marketplace_listing,
           updated_at: new Date().toISOString()
         })
         .eq('id', cardData.id);
