@@ -53,50 +53,43 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
         },
-        // Unified CRD Design System
+        // Modern CRD Design System
         crd: {
-          // Brand colors
-          orange: '#EA6E48',
-          blue: '#3772FF',
-          green: '#45B26B',
-          purple: '#9757D7',
-          gold: '#FFD700',
+          // Primary brand colors - vibrant & professional
+          orange: '#FF6B35',
+          blue: '#4A90E2', 
+          green: '#7ED321',
+          purple: '#9013FE',
+          gold: '#F5A623',
           
-          // Improved neutral system
-          darkest: '#0F0F0F',
-          darker: '#161618',
-          dark: '#1E1E20',
-          'medium-dark': '#2A2A2E',
-          medium: '#404048',
-          'light-medium': '#6B6B78',
-          light: '#9A9AA8',
-          lighter: '#C4C4D0',
-          lightest: '#FCFCFD',
+          // Professional dark theme
+          darkest: '#0A0A0B',
+          darker: '#1A1A1C',
+          dark: '#252528',
+          'medium-dark': '#343437',
+          medium: '#4A4A4F',
+          'light-medium': '#6B6B73',
+          light: '#9B9BA3',
+          lighter: '#CECECE',
+          lightest: '#FFFFFF',
           
           // Semantic colors
-          success: '#45B26B',
-          warning: '#FFD700',
-          error: '#FF4757',
-          info: '#3772FF',
-        },
-        // Legacy support - will be deprecated
-        cardshow: {
-          green: 'var(--crd-green)',
-          orange: 'var(--crd-orange)',
-          purple: 'var(--crd-purple)',
-          blue: 'var(--crd-blue)',
-          white: 'var(--crd-lightest)',
-          lightGray: 'var(--crd-light)',
-          mediumGray: 'var(--crd-medium)',
-          darkGray: 'var(--crd-medium-dark)',
-          darkest: 'var(--crd-darkest)',
+          success: '#7ED321',
+          warning: '#F5A623',
+          error: '#D0021B',
+          info: '#4A90E2',
+          
+          // Interactive states
+          hover: 'rgba(255, 255, 255, 0.08)',
+          active: 'rgba(255, 255, 255, 0.12)',
+          focus: '#4A90E2',
         },
         // Editor colors
         editor: {
-          dark: '#1E1E20',
-          darker: '#161618',
-          tool: '#2A2A2E',
-          border: '#404048',
+          dark: '#252528',
+          darker: '#1A1A1C',
+          tool: '#343437',
+          border: '#4A4A4F',
           canvas: '#2C2C2C',
         },
       },
@@ -124,6 +117,17 @@ export default {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)'
       },
+      backdropBlur: {
+        'xs': '2px',
+        'sm': '4px',
+        'md': '8px',
+        'lg': '12px',
+        'xl': '16px',
+      },
+      boxShadow: {
+        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+        'glass-lg': '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+      },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },
@@ -140,13 +144,18 @@ export default {
         'slide-in': {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(0)' }
+        },
+        'glow': {
+          '0%, 100%': { boxShadow: '0 0 5px currentColor' },
+          '50%': { boxShadow: '0 0 20px currentColor' }
         }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in': 'fade-in 0.3s ease-out',
-        'slide-in': 'slide-in 0.3s ease-out'
+        'slide-in': 'slide-in 0.3s ease-out',
+        'glow': 'glow 2s ease-in-out infinite'
       },
       fontFamily: {
         'orbitron': ['Orbitron', 'sans-serif'],
@@ -155,6 +164,7 @@ export default {
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'glass': 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
       }
     }
   },

@@ -3,153 +3,183 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Unified CRD Design System */
+/* CRD Design System - Professional & Modern */
 @layer base {
   :root {
-    /* Unified Brand Colors */
-    --crd-orange: #EA6E48;
-    --crd-blue: #3772FF;
-    --crd-green: #45B26B;
-    --crd-purple: #9757D7;
-    --crd-gold: #FFD700;
+    /* Primary Brand Colors - Vibrant & Professional */
+    --crd-orange: #FF6B35;
+    --crd-blue: #4A90E2;
+    --crd-green: #7ED321;
+    --crd-purple: #9013FE;
+    --crd-gold: #F5A623;
     
-    /* Neutral System - Improved Contrast */
-    --crd-darkest: #0F0F0F;
-    --crd-darker: #161618;
-    --crd-dark: #1E1E20;
-    --crd-medium-dark: #2A2A2E;
-    --crd-medium: #404048;
-    --crd-light-medium: #6B6B78;
-    --crd-light: #9A9AA8;
-    --crd-lighter: #C4C4D0;
-    --crd-lightest: #FCFCFD;
+    /* Professional Dark Theme */
+    --crd-darkest: #0A0A0B;
+    --crd-darker: #1A1A1C;
+    --crd-dark: #252528;
+    --crd-medium-dark: #343437;
+    --crd-medium: #4A4A4F;
+    --crd-light-medium: #6B6B73;
+    --crd-light: #9B9BA3;
+    --crd-lighter: #CECECE;
+    --crd-lightest: #FFFFFF;
     
     /* Semantic Colors */
-    --crd-success: var(--crd-green);
-    --crd-warning: var(--crd-gold);
-    --crd-error: #FF4757;
-    --crd-info: var(--crd-blue);
+    --crd-success: #7ED321;
+    --crd-warning: #F5A623;
+    --crd-error: #D0021B;
+    --crd-info: #4A90E2;
     
     /* Interactive States */
-    --crd-hover-opacity: 0.9;
-    --crd-active-opacity: 0.8;
-    --crd-disabled-opacity: 0.5;
-    
-    /* Spacing Scale */
-    --space-xs: 0.25rem;  /* 4px */
-    --space-sm: 0.5rem;   /* 8px */
-    --space-md: 1rem;     /* 16px */
-    --space-lg: 1.5rem;   /* 24px */
-    --space-xl: 2rem;     /* 32px */
-    --space-2xl: 3rem;    /* 48px */
-    --space-3xl: 4rem;    /* 64px */
+    --crd-hover: rgba(255, 255, 255, 0.08);
+    --crd-active: rgba(255, 255, 255, 0.12);
+    --crd-focus: #4A90E2;
   }
 }
 
 @layer components {
-  /* Unified Button System */
+  /* Enhanced Button System */
   .crd-btn {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-crd-darkest disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-crd-darkest disabled:opacity-50 disabled:cursor-not-allowed;
   }
   
   .crd-btn-primary {
-    @apply crd-btn bg-crd-blue text-white hover:opacity-90 focus:ring-crd-blue;
+    @apply crd-btn bg-crd-blue text-white hover:bg-blue-600 focus:ring-crd-blue shadow-md hover:shadow-lg;
   }
   
   .crd-btn-secondary {
-    @apply crd-btn bg-crd-medium-dark text-crd-lightest border border-crd-medium hover:bg-crd-medium focus:ring-crd-medium;
+    @apply crd-btn bg-crd-medium-dark text-crd-lightest border border-crd-light-medium hover:bg-crd-medium hover:border-crd-lighter focus:ring-crd-blue;
   }
   
   .crd-btn-outline {
-    @apply crd-btn bg-transparent text-crd-lightest border border-crd-medium hover:bg-crd-medium-dark hover:border-crd-light focus:ring-crd-blue;
+    @apply crd-btn bg-transparent text-crd-lightest border-2 border-crd-blue hover:bg-crd-blue hover:text-white focus:ring-crd-blue;
   }
   
   .crd-btn-ghost {
-    @apply crd-btn bg-transparent text-crd-light hover:bg-crd-medium-dark hover:text-crd-lightest focus:ring-crd-blue;
+    @apply crd-btn bg-transparent text-crd-light hover:bg-crd-hover hover:text-crd-lightest focus:ring-crd-blue;
   }
   
   .crd-btn-success {
-    @apply crd-btn bg-crd-green text-crd-darkest hover:opacity-90 focus:ring-crd-green;
+    @apply crd-btn bg-crd-green text-crd-darkest hover:bg-green-500 focus:ring-crd-green font-bold;
   }
   
   .crd-btn-sm {
-    @apply px-3 py-1.5 text-sm;
+    @apply px-4 py-2 text-xs;
   }
   
   .crd-btn-lg {
-    @apply px-6 py-3 text-lg;
+    @apply px-8 py-4 text-base;
   }
   
-  /* Navigation Components */
+  /* Professional Navigation */
   .crd-nav {
-    @apply bg-crd-darker border-b border-crd-medium-dark;
+    @apply bg-crd-darker/95 backdrop-blur-md border-b border-crd-medium-dark/50;
   }
   
   .crd-nav-item {
-    @apply px-4 py-2 text-crd-light hover:text-crd-lightest hover:bg-crd-medium-dark transition-colors duration-200 rounded-md;
+    @apply px-4 py-2 text-crd-light hover:text-crd-lightest hover:bg-crd-hover transition-all duration-200 rounded-md font-medium;
   }
   
   .crd-nav-item-active {
-    @apply bg-crd-green text-crd-darkest font-medium;
+    @apply bg-crd-orange text-white font-semibold;
   }
   
-  /* Card System */
+  /* Modern Card System */
   .crd-card {
-    @apply bg-crd-dark border border-crd-medium-dark rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300;
+    @apply bg-crd-dark/90 backdrop-blur-sm border border-crd-medium-dark rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-crd-light-medium;
   }
   
   .crd-card-header {
-    @apply p-6 border-b border-crd-medium-dark;
+    @apply p-6 border-b border-crd-medium-dark/50 bg-gradient-to-r from-crd-dark to-crd-medium-dark;
   }
   
   .crd-card-content {
     @apply p-6;
   }
   
-  /* Form Elements */
+  /* Enhanced Form Elements */
   .crd-input {
-    @apply w-full px-3 py-2 bg-crd-medium-dark border border-crd-medium text-crd-lightest rounded-lg focus:outline-none focus:ring-2 focus:ring-crd-blue focus:border-transparent placeholder:text-crd-light transition-all duration-200;
+    @apply w-full px-4 py-3 bg-crd-medium-dark/80 border border-crd-medium text-crd-lightest rounded-lg focus:outline-none focus:ring-2 focus:ring-crd-blue focus:border-crd-blue placeholder:text-crd-light transition-all duration-200 backdrop-blur-sm;
   }
   
-  /* Filter and Search Components */
+  /* Modern Filter System */
   .crd-filter-group {
-    @apply flex items-center gap-2 p-1 bg-crd-medium-dark rounded-lg;
+    @apply flex items-center gap-1 p-1 bg-crd-medium-dark/80 backdrop-blur-sm rounded-lg border border-crd-medium;
   }
   
   .crd-filter-button {
-    @apply px-3 py-1.5 text-sm text-crd-light hover:text-crd-lightest hover:bg-crd-medium rounded-md transition-all duration-200;
+    @apply px-4 py-2 text-sm text-crd-light hover:text-crd-lightest hover:bg-crd-hover rounded-md transition-all duration-200 font-medium;
   }
   
   .crd-filter-button-active {
-    @apply bg-crd-blue text-white font-medium;
+    @apply bg-crd-green text-crd-darkest font-semibold shadow-md;
   }
   
-  /* Responsive Design */
+  /* Professional Tabs */
+  .crd-tabs {
+    @apply bg-crd-darker/90 backdrop-blur-sm border border-crd-medium-dark rounded-xl p-1;
+  }
+  
+  .crd-tab {
+    @apply flex items-center gap-2 px-4 py-3 text-sm font-medium text-crd-light hover:text-crd-lightest transition-all duration-200 rounded-lg;
+  }
+  
+  .crd-tab-active {
+    @apply bg-crd-green text-crd-darkest shadow-md;
+  }
+  
+  /* Enhanced Search */
+  .crd-search {
+    @apply relative;
+  }
+  
+  .crd-search-input {
+    @apply w-full pl-12 pr-4 py-3 bg-crd-medium-dark/80 border border-crd-medium text-crd-lightest rounded-lg focus:outline-none focus:ring-2 focus:ring-crd-blue focus:border-crd-blue placeholder:text-crd-light backdrop-blur-sm;
+  }
+  
+  /* Professional Layout */
   .crd-container {
-    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+    @apply container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
   }
   
   .crd-grid {
     @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
   }
   
-  /* Mobile-First Navigation */
+  /* Mobile Optimizations */
   @media (max-width: 768px) {
     .crd-nav-mobile {
-      @apply fixed bottom-0 left-0 right-0 bg-crd-darker border-t border-crd-medium-dark p-2 z-50;
+      @apply fixed bottom-0 left-0 right-0 bg-crd-darker/95 backdrop-blur-md border-t border-crd-medium-dark p-2 z-50;
     }
     
     .crd-nav-mobile-item {
-      @apply flex flex-col items-center p-2 text-xs text-crd-light hover:text-crd-lightest transition-colors;
+      @apply flex flex-col items-center p-3 text-xs text-crd-light hover:text-crd-lightest transition-colors rounded-lg;
+    }
+    
+    .crd-btn {
+      @apply min-h-[44px] min-w-[44px];
     }
   }
   
-  /* Accessibility Improvements */
+  /* Accessibility & Focus */
   .crd-focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-crd-blue focus:ring-offset-2 focus:ring-offset-crd-darkest;
   }
   
-  .crd-sr-only {
-    @apply sr-only;
+  /* Professional Badges */
+  .crd-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .crd-badge-primary {
+    @apply bg-crd-blue/20 text-crd-blue border border-crd-blue/30;
+  }
+  
+  .crd-badge-success {
+    @apply bg-crd-green/20 text-crd-green border border-crd-green/30;
+  }
+  
+  .crd-badge-warning {
+    @apply bg-crd-warning/20 text-crd-warning border border-crd-warning/30;
   }
 }

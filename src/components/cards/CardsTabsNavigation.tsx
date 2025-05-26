@@ -5,38 +5,38 @@ import { Sparkles, TrendingUp, Users, Compass } from 'lucide-react';
 
 export const CardsTabsNavigation = () => {
   return (
-    <TabsList className="grid w-full grid-cols-4 bg-crd-darker border border-crd-medium-dark rounded-xl p-1 gap-1">
+    <TabsList className="crd-tabs grid w-full grid-cols-4 gap-1">
       <TabsTrigger 
         value="discover" 
-        className="data-[state=active]:bg-crd-green data-[state=active]:text-crd-darkest data-[state=active]:font-semibold text-crd-light hover:text-crd-lightest transition-all duration-200 rounded-lg py-3 px-4 text-sm sm:text-base"
+        className="crd-tab data-[state=active]:crd-tab-active"
       >
-        <Compass className="w-4 h-4 mr-2 flex-shrink-0" />
-        <span className="hidden sm:inline">Discover</span>
-        <span className="sm:hidden">Disc</span>
+        <Compass className="w-4 h-4 flex-shrink-0" />
+        <span className="hidden sm:inline font-semibold">Discover</span>
+        <span className="sm:hidden font-semibold">Disc</span>
       </TabsTrigger>
       <TabsTrigger 
         value="following" 
-        className="data-[state=active]:bg-crd-green data-[state=active]:text-crd-darkest data-[state=active]:font-semibold text-crd-light hover:text-crd-lightest transition-all duration-200 rounded-lg py-3 px-4 text-sm sm:text-base"
+        className="crd-tab data-[state=active]:crd-tab-active"
       >
-        <Users className="w-4 h-4 mr-2 flex-shrink-0" />
-        <span className="hidden sm:inline">Following</span>
-        <span className="sm:hidden">Follow</span>
+        <Users className="w-4 h-4 flex-shrink-0" />
+        <span className="hidden sm:inline font-semibold">Following</span>
+        <span className="sm:hidden font-semibold">Follow</span>
       </TabsTrigger>
       <TabsTrigger 
         value="trending" 
-        className="data-[state=active]:bg-crd-green data-[state=active]:text-crd-darkest data-[state=active]:font-semibold text-crd-light hover:text-crd-lightest transition-all duration-200 rounded-lg py-3 px-4 text-sm sm:text-base"
+        className="crd-tab data-[state=active]:crd-tab-active"
       >
-        <TrendingUp className="w-4 h-4 mr-2 flex-shrink-0" />
-        <span className="hidden sm:inline">Trending</span>
-        <span className="sm:hidden">Trend</span>
+        <TrendingUp className="w-4 h-4 flex-shrink-0" />
+        <span className="hidden sm:inline font-semibold">Trending</span>
+        <span className="sm:hidden font-semibold">Trend</span>
       </TabsTrigger>
       <TabsTrigger 
         value="generated" 
-        className="data-[state=active]:bg-crd-green data-[state=active]:text-crd-darkest data-[state=active]:font-semibold text-crd-light hover:text-crd-lightest transition-all duration-200 rounded-lg py-3 px-4 text-sm sm:text-base"
+        className="crd-tab data-[state=active]:crd-tab-active"
       >
-        <Sparkles className="w-4 h-4 mr-2 flex-shrink-0" />
-        <span className="hidden sm:inline">Generated</span>
-        <span className="sm:hidden">Gen</span>
+        <Sparkles className="w-4 h-4 flex-shrink-0" />
+        <span className="hidden sm:inline font-semibold">Generated</span>
+        <span className="sm:hidden font-semibold">Gen</span>
       </TabsTrigger>
     </TabsList>
   );
