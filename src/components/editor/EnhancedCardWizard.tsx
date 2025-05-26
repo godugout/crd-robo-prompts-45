@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -252,7 +253,7 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
               onBack={handleBack}
               onNext={handleNext}
               onComplete={handleComplete}
-              canSkipToEnd={aiAnalysisComplete && selectedTemplate}
+              canSkipToEnd={aiAnalysisComplete && !!selectedTemplate}
             />
           </CardContent>
         </Card>
