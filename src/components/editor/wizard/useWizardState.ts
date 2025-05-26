@@ -125,6 +125,7 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
     cardData,
     handlers,
     isSaving,
-    templates: DEFAULT_TEMPLATES
+    templates: DEFAULT_TEMPLATES,
+    updateCardField
   };
 };

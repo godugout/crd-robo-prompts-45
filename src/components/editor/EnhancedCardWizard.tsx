@@ -11,9 +11,14 @@ import { PublishingOptionsStep } from './wizard/PublishingOptionsStep';
 import { useWizardState } from './wizard/useWizardState';
 import { WIZARD_STEPS } from './wizard/wizardConfig';
 import type { EnhancedCardWizardProps } from './wizard/types';
+import type { CardData, CardRarity, CardVisibility } from '@/hooks/useCardEditor';
 
 export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardProps) => {
-  const { wizardState, cardData, handlers, isSaving, templates } = useWizardState(onComplete);
+  const { wizardState, cardData, handlers, isSaving, templates, updateCardField } = useWizardState(onComplete);
+
+  const handleFieldUpdate = <K extends keyof CardData>(field: K, value: CardData[K]) => {
+    updateCardField(field, value);
+  };
 
   const renderStepContent = () => {
     switch (wizardState.currentStep) {
@@ -37,15 +42,7 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
         return (
           <CardDetailsStep
             cardData={cardData}
-            onFieldUpdate={(field, value) => {
-              // We need to pass updateCardField here - this shows we need to refactor the hook further
-              // For now, we'll handle this in a simple way
-              if (field === 'title') cardData.title = value;
-              if (field === 'description') cardData.description = value;
-              if (field === 'rarity') cardData.rarity = value;
-              if (field === 'tags') cardData.tags = value;
-              if (field === 'visibility') cardData.visibility = value;
-            }}
+            onFieldUpdate={handleFieldUpdate}
             onCreatorAttributionUpdate={handlers.updateCreatorAttribution}
             aiAnalysisComplete={wizardState.aiAnalysisComplete}
           />
