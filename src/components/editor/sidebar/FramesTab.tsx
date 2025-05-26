@@ -1,11 +1,13 @@
+
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Instagram, Scissors } from 'lucide-react';
+import { Instagram, Scissors, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { InstagramImportModal } from './InstagramImportModal';
 import { CardExtractionUpload } from '../upload/CardExtractionUpload';
+import { GeneratorTab } from './GeneratorTab';
 import { DetectedCard } from '@/services/cardDetector';
 import type { ExtractedCard } from '@/services/cardExtractor';
 
@@ -15,6 +17,11 @@ interface Frame {
   preview: string;
   category: string;
   gradient: string;
+  defaultStyle: {
+    primaryColor: string;
+    accentColor: string;
+    backgroundColor: string;
+  };
 }
 
 interface FramesTabProps {
@@ -33,28 +40,48 @@ export const FramesTab = ({ selectedTemplate, onSelectTemplate, searchQuery }: F
       name: 'Cardshow Nostalgia', 
       preview: '/placeholder.svg',
       category: 'featured',
-      gradient: 'from-green-500 to-blue-500'
+      gradient: 'from-green-500 to-blue-500',
+      defaultStyle: {
+        primaryColor: '#16a085',
+        accentColor: '#eee',
+        backgroundColor: '#1a1a2e'
+      }
     },
     { 
       id: 'template2', 
       name: 'Classic Cardboard', 
       preview: '/placeholder.svg',
       category: 'featured',
-      gradient: 'from-orange-500 to-red-500'
+      gradient: 'from-orange-500 to-red-500',
+      defaultStyle: {
+        primaryColor: '#e07a5f',
+        accentColor: '#3d405b',
+        backgroundColor: '#f4f1de'
+      }
     },
     { 
       id: 'template3', 
       name: 'Nifty Framework', 
       preview: '/placeholder.svg',
       category: 'popular',
-      gradient: 'from-purple-500 to-pink-500'
+      gradient: 'from-purple-500 to-pink-500',
+      defaultStyle: {
+        primaryColor: '#8e44ad',
+        accentColor: '#f39c12',
+        backgroundColor: '#2d1b69'
+      }
     },
     { 
       id: 'template4', 
       name: 'Synthwave Dreams', 
       preview: '/placeholder.svg',
       category: 'popular',
-      gradient: 'from-cyan-500 to-purple-500'
+      gradient: 'from-cyan-500 to-purple-500',
+      defaultStyle: {
+        primaryColor: '#ff006e',
+        accentColor: '#8338ec',
+        backgroundColor: '#0f0f23'
+      }
     }
   ];
 
@@ -70,7 +97,12 @@ export const FramesTab = ({ selectedTemplate, onSelectTemplate, searchQuery }: F
       name: `Instagram Card ${index + 1}`,
       preview: card.imageUrl,
       category: 'imported',
-      gradient: 'from-pink-500 to-purple-500'
+      gradient: 'from-pink-500 to-purple-500',
+      defaultStyle: {
+        primaryColor: '#e91e63',
+        accentColor: '#ffffff',
+        backgroundColor: '#000000'
+      }
     }));
 
     setImportedFrames(prev => [...prev, ...newFrames]);
@@ -83,7 +115,12 @@ export const FramesTab = ({ selectedTemplate, onSelectTemplate, searchQuery }: F
       name: `Extracted Card ${index + 1}`,
       preview: URL.createObjectURL(card.imageBlob),
       category: 'extracted',
-      gradient: 'from-blue-500 to-purple-500'
+      gradient: 'from-blue-500 to-purple-500',
+      defaultStyle: {
+        primaryColor: '#2196f3',
+        accentColor: '#ffffff',
+        backgroundColor: '#1a1a1a'
+      }
     }));
 
     setImportedFrames(prev => [...prev, ...newFrames]);
@@ -93,15 +130,19 @@ export const FramesTab = ({ selectedTemplate, onSelectTemplate, searchQuery }: F
   return (
     <ScrollArea className="h-full px-4">
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-white font-medium text-sm uppercase tracking-wide">Card Frames</h3>
+        <div className="text-center">
+          <h3 className="text-white font-medium text-lg mb-2">Choose Frame Template</h3>
+          <p className="text-crd-lightGray text-sm">
+            Select a frame style and see how it looks with a placeholder photo
+          </p>
         </div>
 
         <Tabs defaultValue="templates" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-editor-darker">
+          <TabsList className="grid w-full grid-cols-4 bg-editor-darker">
             <TabsTrigger value="templates" className="text-white">Templates</TabsTrigger>
             <TabsTrigger value="extract" className="text-white">Extract</TabsTrigger>
             <TabsTrigger value="instagram" className="text-white">Instagram</TabsTrigger>
+            <TabsTrigger value="generate" className="text-white">Generate</TabsTrigger>
           </TabsList>
 
           <TabsContent value="templates" className="space-y-4">
@@ -116,7 +157,7 @@ export const FramesTab = ({ selectedTemplate, onSelectTemplate, searchQuery }: F
                   }`}
                   onClick={() => {
                     onSelectTemplate(frame.id);
-                    toast.success(`Frame "${frame.name}" applied`);
+                    toast.success(`Frame "${frame.name}" selected`);
                   }}
                 >
                   {frame.category === 'imported' || frame.category === 'extracted' ? (
@@ -128,8 +169,45 @@ export const FramesTab = ({ selectedTemplate, onSelectTemplate, searchQuery }: F
                       />
                     </div>
                   ) : (
-                    <div className={`aspect-[3/4] bg-gradient-to-br ${frame.gradient} flex items-center justify-center`}>
-                      <div className="text-white font-bold text-xs opacity-80">FRAME</div>
+                    <div 
+                      className="aspect-[3/4] relative"
+                      style={{ backgroundColor: frame.defaultStyle.backgroundColor }}
+                    >
+                      {/* Template preview with placeholder photo */}
+                      <div className="absolute inset-2 border-2 border-dashed border-gray-500 rounded-lg overflow-hidden">
+                        <img 
+                          src={`https://images.unsplash.com/photo-1472396961693-142e6e269027?w=300&h=400&fit=crop`}
+                          alt="Placeholder"
+                          className="w-full h-full object-cover opacity-60"
+                        />
+                      </div>
+                      
+                      {/* Frame elements */}
+                      <div 
+                        className="absolute top-2 left-2 right-2 h-6 rounded flex items-center justify-center"
+                        style={{ backgroundColor: frame.defaultStyle.primaryColor }}
+                      >
+                        <span className="text-white text-xs font-bold">FRAME HEADER</span>
+                      </div>
+                      
+                      <div 
+                        className="absolute bottom-2 left-2 right-2 h-4 rounded flex items-center justify-center"
+                        style={{ backgroundColor: frame.defaultStyle.accentColor }}
+                      >
+                        <span className="text-black text-xs">Footer</span>
+                      </div>
+                      
+                      {/* Color palette indicator */}
+                      <div className="absolute top-2 right-2 flex flex-col gap-1">
+                        <div 
+                          className="w-3 h-3 rounded-full border border-white/30"
+                          style={{ backgroundColor: frame.defaultStyle.primaryColor }}
+                        ></div>
+                        <div 
+                          className="w-3 h-3 rounded-full border border-white/30"
+                          style={{ backgroundColor: frame.defaultStyle.accentColor }}
+                        ></div>
+                      </div>
                     </div>
                   )}
                   
@@ -144,7 +222,7 @@ export const FramesTab = ({ selectedTemplate, onSelectTemplate, searchQuery }: F
                     )}
                   </div>
                   {selectedTemplate === frame.id && (
-                    <div className="absolute top-2 right-2 w-4 h-4 bg-crd-green rounded-full shadow-lg flex items-center justify-center">
+                    <div className="absolute top-2 left-2 w-4 h-4 bg-crd-green rounded-full shadow-lg flex items-center justify-center">
                       <div className="w-2 h-2 bg-white rounded-full"></div>
                     </div>
                   )}
@@ -168,6 +246,10 @@ export const FramesTab = ({ selectedTemplate, onSelectTemplate, searchQuery }: F
             <p className="text-crd-lightGray text-xs text-center">
               Note: Only works with public accounts
             </p>
+          </TabsContent>
+
+          <TabsContent value="generate" className="space-y-4">
+            <GeneratorTab />
           </TabsContent>
         </Tabs>
 
