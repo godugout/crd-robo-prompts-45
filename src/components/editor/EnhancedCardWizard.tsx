@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -9,6 +8,7 @@ import { TemplateSelectionStep } from './wizard/TemplateSelectionStep';
 import { CardDetailsStep } from './wizard/CardDetailsStep';
 import { PublishingOptionsStep } from './wizard/PublishingOptionsStep';
 import { WizardNavigation } from './wizard/WizardNavigation';
+import type { CardAnalysisResult } from '@/services/cardAnalyzer';
 
 interface EnhancedCardWizardProps {
   onComplete: (cardData: CardData) => void;
@@ -19,6 +19,7 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedPhoto, setSelectedPhoto] = useState<string>('');
   const [selectedTemplate, setSelectedTemplate] = useState<DesignTemplate | null>(null);
+  const [aiAnalysisComplete, setAiAnalysisComplete] = useState(false);
   
   const { cardData, updateCardField, saveCard, isSaving } = useCardEditor({
     initialData: {
@@ -89,13 +90,38 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
   const steps = [
     { number: 1, title: 'Upload Photo', description: 'Add your image' },
     { number: 2, title: 'Choose Template', description: 'Select design style' },
-    { number: 3, title: 'Card Details', description: 'Add information' },
+    { number: 3, title: 'Card Details', description: 'Review AI suggestions' },
     { number: 4, title: 'Publishing', description: 'Set visibility & options' }
   ];
 
   const handlePhotoSelect = (photo: string) => {
     setSelectedPhoto(photo);
     updateCardField('image_url', photo);
+  };
+
+  const handleAiAnalysis = (analysis: CardAnalysisResult) => {
+    // Pre-fill all fields with AI suggestions
+    updateCardField('title', analysis.title);
+    updateCardField('description', analysis.description);
+    updateCardField('rarity', analysis.rarity);
+    updateCardField('tags', analysis.tags);
+    updateCardField('category', analysis.category);
+    updateCardField('type', analysis.type);
+    updateCardField('series', analysis.series);
+    
+    setAiAnalysisComplete(true);
+    
+    // Auto-select a template based on analysis
+    const suggestedTemplate = templates.find(t => 
+      analysis.tags.some(tag => t.tags.includes(tag)) ||
+      t.category.toLowerCase().includes(analysis.category.toLowerCase())
+    ) || templates[0];
+    
+    setSelectedTemplate(suggestedTemplate);
+    updateCardField('template_id', suggestedTemplate.id);
+    updateCardField('design_metadata', suggestedTemplate.template_data);
+    
+    toast.success('All fields pre-filled with AI suggestions!');
   };
 
   const handleTemplateSelect = (template: DesignTemplate) => {
@@ -117,7 +143,13 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
       toast.error('Please enter a card title');
       return;
     }
-    setCurrentStep(prev => Math.min(prev + 1, 4));
+    
+    // Auto-advance if AI has completed analysis
+    if (currentStep === 1 && aiAnalysisComplete && selectedTemplate) {
+      setCurrentStep(3); // Skip template step since AI selected one
+    } else {
+      setCurrentStep(prev => Math.min(prev + 1, 4));
+    }
   };
 
   const handleBack = () => {
@@ -157,6 +189,7 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
           <PhotoUploadStep
             selectedPhoto={selectedPhoto}
             onPhotoSelect={handlePhotoSelect}
+            onAnalysisComplete={handleAiAnalysis}
           />
         );
       case 2:
@@ -173,6 +206,7 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
             cardData={cardData}
             onFieldUpdate={updateCardField}
             onCreatorAttributionUpdate={updateCreatorAttribution}
+            aiAnalysisComplete={aiAnalysisComplete}
           />
         );
       case 4:
@@ -194,7 +228,10 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Create New Card</h1>
-          <p className="text-crd-lightGray">Follow the steps to create your custom card</p>
+          <p className="text-crd-lightGray">
+            Upload your image and let AI suggest the perfect details
+            {aiAnalysisComplete && <span className="text-crd-green ml-2">✨ AI analysis complete!</span>}
+          </p>
         </div>
 
         {/* Step Indicator */}
@@ -215,6 +252,7 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
               onBack={handleBack}
               onNext={handleNext}
               onComplete={handleComplete}
+              canSkipToEnd={aiAnalysisComplete && selectedTemplate}
             />
           </CardContent>
         </Card>

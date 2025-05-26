@@ -4,27 +4,47 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Globe, Lock, Users } from 'lucide-react';
+import { Globe, Lock, Users, Sparkles } from 'lucide-react';
 import type { CardData, CardRarity, CardVisibility, CreatorAttribution } from '@/hooks/useCardEditor';
 
 interface CardDetailsStepProps {
   cardData: CardData;
   onFieldUpdate: <K extends keyof CardData>(field: K, value: CardData[K]) => void;
   onCreatorAttributionUpdate: (key: keyof CreatorAttribution, value: any) => void;
+  aiAnalysisComplete?: boolean;
 }
 
-export const CardDetailsStep = ({ cardData, onFieldUpdate, onCreatorAttributionUpdate }: CardDetailsStepProps) => {
+export const CardDetailsStep = ({ 
+  cardData, 
+  onFieldUpdate, 
+  onCreatorAttributionUpdate,
+  aiAnalysisComplete = false 
+}: CardDetailsStepProps) => {
   return (
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-xl font-semibold text-white mb-2">Card Details</h2>
-        <p className="text-crd-lightGray">Add information about your card</p>
+        <p className="text-crd-lightGray">
+          {aiAnalysisComplete 
+            ? 'Review the AI-suggested details below and make any adjustments'
+            : 'Add information about your card'
+          }
+        </p>
+        {aiAnalysisComplete && (
+          <div className="flex items-center justify-center gap-2 mt-2 text-crd-green text-sm">
+            <Sparkles className="w-4 h-4" />
+            <span>Fields have been pre-filled with AI suggestions</span>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div>
-            <Label className="text-white">Card Title *</Label>
+            <Label className="text-white flex items-center gap-2">
+              Card Title *
+              {aiAnalysisComplete && <Sparkles className="w-3 h-3 text-crd-green" />}
+            </Label>
             <Input
               value={cardData.title}
               onChange={(e) => onFieldUpdate('title', e.target.value)}
@@ -34,7 +54,10 @@ export const CardDetailsStep = ({ cardData, onFieldUpdate, onCreatorAttributionU
           </div>
 
           <div>
-            <Label className="text-white">Description</Label>
+            <Label className="text-white flex items-center gap-2">
+              Description
+              {aiAnalysisComplete && <Sparkles className="w-3 h-3 text-crd-green" />}
+            </Label>
             <Textarea
               value={cardData.description || ''}
               onChange={(e) => onFieldUpdate('description', e.target.value)}
@@ -45,7 +68,10 @@ export const CardDetailsStep = ({ cardData, onFieldUpdate, onCreatorAttributionU
           </div>
 
           <div>
-            <Label className="text-white">Rarity</Label>
+            <Label className="text-white flex items-center gap-2">
+              Rarity
+              {aiAnalysisComplete && <Sparkles className="w-3 h-3 text-crd-green" />}
+            </Label>
             <Select value={cardData.rarity} onValueChange={(value) => onFieldUpdate('rarity', value as CardRarity)}>
               <SelectTrigger className="bg-editor-tool border-editor-border text-white">
                 <SelectValue placeholder="Select rarity" />
@@ -80,8 +106,12 @@ export const CardDetailsStep = ({ cardData, onFieldUpdate, onCreatorAttributionU
           </div>
 
           <div>
-            <Label className="text-white">Tags</Label>
+            <Label className="text-white flex items-center gap-2">
+              Tags
+              {aiAnalysisComplete && <Sparkles className="w-3 h-3 text-crd-green" />}
+            </Label>
             <Input
+              value={cardData.tags.join(', ')}
               placeholder="Add tags (comma separated)"
               className="bg-editor-tool border-editor-border text-white"
               onChange={(e) => {
@@ -121,6 +151,33 @@ export const CardDetailsStep = ({ cardData, onFieldUpdate, onCreatorAttributionU
           </div>
         </div>
       </div>
+
+      {aiAnalysisComplete && (
+        <div className="bg-editor-tool p-4 rounded-lg border border-crd-green/30">
+          <h4 className="text-white font-medium text-sm mb-2 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-crd-green" />
+            AI Analysis Summary
+          </h4>
+          <div className="grid grid-cols-2 gap-4 text-xs">
+            <div>
+              <span className="text-crd-lightGray">Category:</span>
+              <span className="text-white ml-2">{cardData.category}</span>
+            </div>
+            <div>
+              <span className="text-crd-lightGray">Type:</span>
+              <span className="text-white ml-2">{cardData.type}</span>
+            </div>
+            <div>
+              <span className="text-crd-lightGray">Series:</span>
+              <span className="text-white ml-2">{cardData.series}</span>
+            </div>
+            <div>
+              <span className="text-crd-lightGray">Tags:</span>
+              <span className="text-white ml-2">{cardData.tags.length} generated</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

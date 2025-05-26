@@ -1,23 +1,48 @@
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
-import { Image, Upload } from 'lucide-react';
+import { Image, Upload, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { analyzeCardImage } from '@/services/cardAnalyzer';
 
 interface PhotoUploadStepProps {
   selectedPhoto: string;
   onPhotoSelect: (photo: string) => void;
+  onAnalysisComplete?: (analysis: any) => void;
 }
 
-export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect }: PhotoUploadStepProps) => {
+export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComplete }: PhotoUploadStepProps) => {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const handlePhotoAnalysis = async (imageDataUrl: string) => {
+    if (!onAnalysisComplete) return;
+    
+    setIsAnalyzing(true);
+    try {
+      toast.info('Analyzing image with AI...', { icon: <Sparkles className="w-4 h-4" /> });
+      const analysis = await analyzeCardImage(imageDataUrl);
+      onAnalysisComplete(analysis);
+      toast.success('Image analyzed! Fields have been pre-filled.');
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      toast.error('Analysis failed, but you can still fill details manually.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        onPhotoSelect(e.target?.result as string);
+      reader.onload = async (e) => {
+        const imageDataUrl = e.target?.result as string;
+        onPhotoSelect(imageDataUrl);
         toast.success('Photo uploaded!');
+        
+        // Trigger AI analysis
+        await handlePhotoAnalysis(imageDataUrl);
       };
       reader.readAsDataURL(file);
     }
@@ -33,13 +58,17 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect }: PhotoUploadSte
     noKeyboard: true
   });
 
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        onPhotoSelect(e.target?.result as string);
+      reader.onload = async (e) => {
+        const imageDataUrl = e.target?.result as string;
+        onPhotoSelect(imageDataUrl);
         toast.success('Photo uploaded!');
+        
+        // Trigger AI analysis
+        await handlePhotoAnalysis(imageDataUrl);
       };
       reader.readAsDataURL(file);
     }
@@ -51,6 +80,12 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect }: PhotoUploadSte
       <div className="text-center">
         <h2 className="text-xl font-semibold text-white mb-2">Upload Your Photo</h2>
         <p className="text-crd-lightGray">Choose the image that will be featured on your card</p>
+        {isAnalyzing && (
+          <div className="mt-2 flex items-center justify-center gap-2 text-crd-green">
+            <Sparkles className="w-4 h-4 animate-pulse" />
+            <span className="text-sm">AI is analyzing your image...</span>
+          </div>
+        )}
       </div>
       
       <div 
@@ -65,11 +100,12 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect }: PhotoUploadSte
         {selectedPhoto ? (
           <div className="space-y-4">
             <img src={selectedPhoto} alt="Selected" className="w-48 h-48 object-cover rounded-lg mx-auto" />
-            <p className="text-crd-green">Photo selected!</p>
+            <p className="text-crd-green">Photo selected and analyzed!</p>
             <Button
               onClick={open}
               variant="outline"
               className="border-editor-border text-white hover:bg-editor-border"
+              disabled={isAnalyzing}
             >
               Choose Different Photo
             </Button>
@@ -85,6 +121,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect }: PhotoUploadSte
               <Button
                 onClick={open}
                 className="bg-crd-green hover:bg-crd-green/90 text-black"
+                disabled={isAnalyzing}
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Select Photo
@@ -102,6 +139,19 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect }: PhotoUploadSte
           className="hidden"
         />
       </div>
+
+      {selectedPhoto && !isAnalyzing && (
+        <div className="bg-editor-tool p-4 rounded-lg">
+          <div className="flex items-center gap-2 text-crd-green mb-2">
+            <Sparkles className="w-4 h-4" />
+            <span className="text-sm font-medium">AI Analysis Complete</span>
+          </div>
+          <p className="text-crd-lightGray text-xs">
+            Your card details have been automatically filled based on the image analysis. 
+            You can review and adjust them in the next steps.
+          </p>
+        </div>
+      )}
     </div>
   );
 };
