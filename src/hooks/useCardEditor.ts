@@ -9,6 +9,22 @@ import type { CardData, UseCardEditorOptions, CardRarity, CardVisibility, Design
 
 export type { CardData, CardRarity, CardVisibility, DesignTemplate, PublishingOptions, CreatorAttribution } from './card-editor/types';
 
+// UUID validation function
+const isValidUUID = (str: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
+// Clean template_id - if it's not a valid UUID, return null
+const cleanTemplateId = (templateId: string | undefined): string | undefined => {
+  if (!templateId) return undefined;
+  if (templateId === 'default' || templateId === 'neon' || !isValidUUID(templateId)) {
+    console.warn(`Invalid template_id detected: ${templateId}, setting to null`);
+    return undefined;
+  }
+  return templateId;
+};
+
 export const useCardEditor = (options: UseCardEditorOptions = {}) => {
   const {
     initialData = {},
@@ -32,7 +48,7 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
       visibility: initialData.visibility || 'private',
       is_public: initialData.is_public || false,
       shop_id: initialData.shop_id,
-      template_id: initialData.template_id,
+      template_id: cleanTemplateId(initialData.template_id), // Clean template_id
       creator_attribution: initialData.creator_attribution || {
         collaboration_type: 'solo'
       },
@@ -59,17 +75,25 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
           ...baseData,
           ...localCard,
           id: localCard.id,
-          rarity: localCard.rarity as CardRarity
+          rarity: localCard.rarity as CardRarity,
+          template_id: cleanTemplateId(localCard.template_id) // Clean template_id from local storage too
         };
       }
     }
 
+    console.log('Initialized card data:', baseData);
     return baseData;
   });
 
   const [isDirty, setIsDirty] = useState(false);
 
   const updateCardData = (updates: Partial<CardData>) => {
+    // Clean any template_id in updates
+    if (updates.template_id !== undefined) {
+      updates.template_id = cleanTemplateId(updates.template_id);
+    }
+    
+    console.log('Updating card data:', updates);
     setCardData(prev => ({ ...prev, ...updates }));
     setIsDirty(true);
   };
@@ -78,9 +102,16 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     field: K, 
     value: CardData[K]
   ) => {
+    // Clean template_id if that's what's being updated
+    let cleanValue = value;
+    if (field === 'template_id' && typeof value === 'string') {
+      cleanValue = cleanTemplateId(value) as CardData[K];
+    }
+    
+    console.log(`Updating card field ${field}:`, { original: value, cleaned: cleanValue });
     setCardData(prev => ({
       ...prev,
-      [field]: value
+      [field]: cleanValue
     }));
     setIsDirty(true);
   };

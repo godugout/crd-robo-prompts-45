@@ -4,14 +4,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Save, Share, Palette, Type, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { useCardEditor } from '@/hooks/useCardEditor';
 
 interface SimpleEditorProps {
   initialData: { photo: string; templateId: string };
 }
 
 export const SimpleEditor = ({ initialData }: SimpleEditorProps) => {
-  const [cardTitle, setCardTitle] = useState('My Awesome Card');
-  const [cardDescription, setCardDescription] = useState('This is my card description');
+  // Initialize card editor with clean data
+  const cardEditor = useCardEditor({
+    initialData: {
+      image_url: initialData.photo,
+      template_id: undefined, // Don't pass templateId as it's likely not a valid UUID
+      title: 'My Awesome Card'
+    },
+    autoSave: true,
+    autoSaveInterval: 30000
+  });
+
   const [brightness, setBrightness] = useState(100);
   const [effects, setEffects] = useState({
     holographic: false,
@@ -19,8 +29,11 @@ export const SimpleEditor = ({ initialData }: SimpleEditorProps) => {
     vintage: false
   });
 
-  const handleSave = () => {
-    toast.success('Card saved successfully!');
+  const handleSave = async () => {
+    const success = await cardEditor.saveCard();
+    if (success) {
+      toast.success('Card saved successfully!');
+    }
   };
 
   const handleShare = () => {
@@ -30,6 +43,14 @@ export const SimpleEditor = ({ initialData }: SimpleEditorProps) => {
   const toggleEffect = (effectName: keyof typeof effects) => {
     setEffects(prev => ({ ...prev, [effectName]: !prev[effectName] }));
     toast.success(`${effectName} effect ${effects[effectName] ? 'disabled' : 'enabled'}`);
+  };
+
+  const handleTitleChange = (value: string) => {
+    cardEditor.updateCardField('title', value);
+  };
+
+  const handleDescriptionChange = (value: string) => {
+    cardEditor.updateCardField('description', value);
   };
 
   return (
@@ -71,6 +92,14 @@ export const SimpleEditor = ({ initialData }: SimpleEditorProps) => {
             className="w-full accent-crd-green"
           />
         </div>
+
+        {/* Debug Info */}
+        <div className="space-y-2 text-xs text-gray-400">
+          <div>Card ID: {cardEditor.cardData.id}</div>
+          <div>Template: {initialData.templateId}</div>
+          <div>Has Photo: {initialData.photo ? 'Yes' : 'No'}</div>
+          <div>Dirty: {cardEditor.isDirty ? 'Yes' : 'No'}</div>
+        </div>
       </div>
 
       {/* Center - Large Preview */}
@@ -79,9 +108,14 @@ export const SimpleEditor = ({ initialData }: SimpleEditorProps) => {
         <div className="h-16 bg-editor-dark border-b border-editor-border flex items-center justify-between px-6">
           <h1 className="text-white text-lg font-semibold">Card Editor</h1>
           <div className="flex space-x-2">
-            <Button onClick={handleSave} size="sm" className="bg-crd-green text-black">
+            <Button 
+              onClick={handleSave} 
+              size="sm" 
+              className="bg-crd-green text-black"
+              disabled={cardEditor.isSaving}
+            >
               <Save className="w-4 h-4 mr-2" />
-              Save
+              {cardEditor.isSaving ? 'Saving...' : 'Save'}
             </Button>
             <Button onClick={handleShare} size="sm" variant="outline">
               <Share className="w-4 h-4 mr-2" />
@@ -102,11 +136,17 @@ export const SimpleEditor = ({ initialData }: SimpleEditorProps) => {
                 boxShadow: effects.neon ? '0 0 30px #ff006e' : undefined
               }}
             >
-              <img 
-                src={initialData.photo} 
-                alt="Card" 
-                className="w-full h-full object-cover"
-              />
+              {initialData.photo ? (
+                <img 
+                  src={initialData.photo} 
+                  alt="Card" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                  <span className="text-white text-lg">No Image</span>
+                </div>
+              )}
               
               {/* Holographic overlay */}
               {effects.holographic && (
@@ -115,8 +155,8 @@ export const SimpleEditor = ({ initialData }: SimpleEditorProps) => {
               
               {/* Text overlay */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                <h2 className="text-white text-2xl font-bold mb-2">{cardTitle}</h2>
-                <p className="text-gray-200 text-sm">{cardDescription}</p>
+                <h2 className="text-white text-2xl font-bold mb-2">{cardEditor.cardData.title}</h2>
+                <p className="text-gray-200 text-sm">{cardEditor.cardData.description}</p>
               </div>
             </div>
           </div>
@@ -134,8 +174,8 @@ export const SimpleEditor = ({ initialData }: SimpleEditorProps) => {
           <div>
             <label className="text-crd-lightGray text-sm block mb-2">Card Title</label>
             <Input
-              value={cardTitle}
-              onChange={(e) => setCardTitle(e.target.value)}
+              value={cardEditor.cardData.title}
+              onChange={(e) => handleTitleChange(e.target.value)}
               className="bg-editor-tool border-editor-border text-white"
             />
           </div>
@@ -143,8 +183,8 @@ export const SimpleEditor = ({ initialData }: SimpleEditorProps) => {
           <div>
             <label className="text-crd-lightGray text-sm block mb-2">Description</label>
             <textarea
-              value={cardDescription}
-              onChange={(e) => setCardDescription(e.target.value)}
+              value={cardEditor.cardData.description || ''}
+              onChange={(e) => handleDescriptionChange(e.target.value)}
               className="w-full p-2 bg-editor-tool border border-editor-border rounded text-white text-sm"
               rows={3}
             />
@@ -154,6 +194,9 @@ export const SimpleEditor = ({ initialData }: SimpleEditorProps) => {
         <div className="pt-4 border-t border-editor-border">
           <p className="text-crd-lightGray text-xs">
             Template: {initialData.templateId}
+          </p>
+          <p className="text-crd-lightGray text-xs mt-1">
+            Status: {cardEditor.isDirty ? 'Modified' : 'Saved'}
           </p>
         </div>
       </div>

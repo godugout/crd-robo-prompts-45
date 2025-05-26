@@ -6,6 +6,54 @@ import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
 import { v4 as uuidv4 } from 'uuid';
 import type { CardData } from './types';
 
+// UUID validation function
+const isValidUUID = (str: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
+// Validation function for card data
+const validateCardData = (cardData: CardData): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+
+  // Validate required fields
+  if (!cardData.title?.trim()) {
+    errors.push('Title is required');
+  }
+
+  // Validate UUID fields
+  if (cardData.id && !isValidUUID(cardData.id)) {
+    errors.push(`Invalid card ID format: ${cardData.id}`);
+  }
+
+  if (cardData.template_id && !isValidUUID(cardData.template_id)) {
+    errors.push(`Invalid template_id format: ${cardData.template_id}`);
+  }
+
+  if (cardData.shop_id && !isValidUUID(cardData.shop_id)) {
+    errors.push(`Invalid shop_id format: ${cardData.shop_id}`);
+  }
+
+  if (cardData.collection_id && !isValidUUID(cardData.collection_id)) {
+    errors.push(`Invalid collection_id format: ${cardData.collection_id}`);
+  }
+
+  if (cardData.team_id && !isValidUUID(cardData.team_id)) {
+    errors.push(`Invalid team_id format: ${cardData.team_id}`);
+  }
+
+  // Validate rarity enum
+  const validRarities = ['common', 'rare', 'legendary'];
+  if (cardData.rarity && !validRarities.includes(cardData.rarity)) {
+    errors.push(`Invalid rarity: ${cardData.rarity}. Must be one of: ${validRarities.join(', ')}`);
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
 export const useCardOperations = (
   cardData: CardData,
   updateCardData: (data: Partial<CardData>) => void
@@ -30,7 +78,15 @@ export const useCardOperations = (
         return false;
       }
 
-      // Prepare the card data for saving with all required fields
+      // Comprehensive validation
+      const validation = validateCardData({ ...cardData, id: cardId });
+      if (!validation.isValid) {
+        console.error('Card validation failed:', validation.errors);
+        toast.error(`Validation failed: ${validation.errors.join(', ')}`);
+        return false;
+      }
+
+      // Clean and prepare the card data for saving
       const cardToSave = {
         id: cardId,
         title: cardData.title.trim(),
@@ -42,7 +98,14 @@ export const useCardOperations = (
         rarity: cardData.rarity || 'common',
         tags: cardData.tags || [],
         is_public: cardData.is_public || false,
-        template_id: cardData.template_id || null,
+        // Only include template_id if it's a valid UUID, otherwise set to null
+        template_id: (cardData.template_id && isValidUUID(cardData.template_id)) ? cardData.template_id : null,
+        // Only include shop_id if it's a valid UUID, otherwise set to null
+        shop_id: (cardData.shop_id && isValidUUID(cardData.shop_id)) ? cardData.shop_id : null,
+        // Only include collection_id if it's a valid UUID, otherwise set to null
+        collection_id: (cardData.collection_id && isValidUUID(cardData.collection_id)) ? cardData.collection_id : null,
+        // Only include team_id if it's a valid UUID, otherwise set to null
+        team_id: (cardData.team_id && isValidUUID(cardData.team_id)) ? cardData.team_id : null,
         creator_attribution: cardData.creator_attribution || { collaboration_type: 'solo' },
         publishing_options: cardData.publishing_options || {
           marketplace_listing: false,
@@ -59,11 +122,16 @@ export const useCardOperations = (
         crd_catalog_inclusion: true
       };
 
-      console.log('Attempting to save card:', { 
+      console.log('Attempting to save card with validated data:', { 
         cardId: cardToSave.id, 
         userId: user?.id, 
         isAuthenticated: !!user,
-        title: cardToSave.title
+        title: cardToSave.title,
+        template_id: cardToSave.template_id,
+        shop_id: cardToSave.shop_id,
+        collection_id: cardToSave.collection_id,
+        team_id: cardToSave.team_id,
+        rarity: cardToSave.rarity
       });
 
       const { error } = await supabase
