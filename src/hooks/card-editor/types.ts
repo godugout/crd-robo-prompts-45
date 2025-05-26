@@ -67,6 +67,8 @@ export interface CardData {
   is_public?: boolean;
   shop_id?: string;
   template_id?: string;
+  collection_id?: string;
+  team_id?: string;
   creator_attribution: CreatorAttribution;
   publishing_options: PublishingOptions;
   verification_status?: 'pending' | 'verified' | 'rejected';
