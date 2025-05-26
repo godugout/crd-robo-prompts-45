@@ -5,78 +5,44 @@ import { supabase } from '@/lib/supabase-client';
 import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
 import type { CardData } from './types';
 
-export const useCardOperations = (cardData: CardData, updateCardData: (data: Partial<CardData>) => void) => {
+export const useCardOperations = (
+  cardData: CardData,
+  updateCardData: (data: Partial<CardData>) => void
+) => {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const { user } = useCustomAuth();
 
   const saveCard = async (): Promise<boolean> => {
+    if (!user) {
+      toast.error('Please sign in to save cards');
+      return false;
+    }
+
     setIsSaving(true);
     try {
-      // Check if user is logged in with custom auth
-      if (!user) {
-        toast.error('You must be logged in to save cards');
-        return false;
-      }
+      const { error } = await supabase
+        .from('cards')
+        .upsert({
+          id: cardData.id,
+          title: cardData.title,
+          description: cardData.description,
+          creator_id: user.id,
+          design_metadata: cardData.design_metadata,
+          image_url: cardData.image_url,
+          thumbnail_url: cardData.thumbnail_url,
+          rarity: cardData.rarity,
+          tags: cardData.tags,
+          is_public: false,
+          template_id: cardData.template_id && cardData.template_id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) ? cardData.template_id : null,
+          creator_attribution: cardData.creator_attribution,
+          publishing_options: cardData.publishing_options,
+          verification_status: 'pending',
+          print_metadata: cardData.print_metadata
+        });
 
-      if (cardData.id) {
-        const { error } = await supabase
-          .from('cards')
-          .update({
-            title: cardData.title,
-            description: cardData.description,
-            design_metadata: cardData.design_metadata,
-            image_url: cardData.image_url,
-            thumbnail_url: cardData.thumbnail_url,
-            rarity: cardData.rarity,
-            tags: cardData.tags,
-            shop_id: cardData.shop_id,
-            // Only include template_id if it's a valid UUID format
-            template_id: cardData.template_id && cardData.template_id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) ? cardData.template_id : null,
-            marketplace_listing: cardData.publishing_options.marketplace_listing,
-            crd_catalog_inclusion: cardData.publishing_options.crd_catalog_inclusion,
-            print_available: cardData.publishing_options.print_available,
-            publishing_options: cardData.publishing_options,
-            creator_attribution: cardData.creator_attribution,
-            print_metadata: cardData.print_metadata,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', cardData.id);
-        
-        if (error) throw error;
-      } else {
-        const { data, error } = await supabase
-          .from('cards')
-          .insert({
-            title: cardData.title || 'Untitled Card',
-            description: cardData.description,
-            creator_id: user.id, // Use the custom auth user ID
-            design_metadata: cardData.design_metadata || {},
-            image_url: cardData.image_url,
-            thumbnail_url: cardData.thumbnail_url,
-            rarity: cardData.rarity || 'common',
-            tags: cardData.tags || [],
-            is_public: cardData.visibility === 'public',
-            shop_id: cardData.shop_id,
-            // Only include template_id if it's a valid UUID format
-            template_id: cardData.template_id && cardData.template_id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) ? cardData.template_id : null,
-            marketplace_listing: cardData.publishing_options.marketplace_listing || false,
-            crd_catalog_inclusion: cardData.publishing_options.crd_catalog_inclusion !== false,
-            print_available: cardData.publishing_options.print_available || false,
-            publishing_options: cardData.publishing_options,
-            creator_attribution: cardData.creator_attribution,
-            verification_status: 'pending',
-            print_metadata: cardData.print_metadata || {}
-          })
-          .select()
-          .single();
-        
-        if (error) throw error;
-        if (data) {
-          updateCardData({ id: data.id });
-        }
-      }
-
+      if (error) throw error;
+      
       setLastSaved(new Date());
       toast.success('Card saved successfully');
       return true;
@@ -90,30 +56,20 @@ export const useCardOperations = (cardData: CardData, updateCardData: (data: Par
   };
 
   const publishCard = async (): Promise<boolean> => {
+    if (!user) {
+      toast.error('Please sign in to publish cards');
+      return false;
+    }
+
     try {
-      // Check if user is logged in with custom auth
-      if (!user) {
-        toast.error('You must be logged in to publish cards');
-        return false;
-      }
-
-      if (!cardData.id) {
-        const saved = await saveCard();
-        if (!saved) return false;
-      }
-
       const { error } = await supabase
         .from('cards')
-        .update({ 
-          is_public: true,
-          marketplace_listing: cardData.publishing_options.marketplace_listing,
-          updated_at: new Date().toISOString()
-        })
+        .update({ is_public: true })
         .eq('id', cardData.id);
-      
+
       if (error) throw error;
       
-      updateCardData({ visibility: 'public' });
+      updateCardData({ is_public: true });
       toast.success('Card published successfully');
       return true;
     } catch (error) {

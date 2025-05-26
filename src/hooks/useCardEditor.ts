@@ -21,7 +21,7 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     type: initialData.type || 'Handcrafted',
     series: initialData.series || '80s VCR',
     category: initialData.category || 'Movies',
-    rarity: initialData.rarity || 'common',
+    rarity: (initialData.rarity as CardRarity) || 'common',
     tags: initialData.tags || [],
     image_url: initialData.image_url,
     design_metadata: initialData.design_metadata || {},
@@ -56,7 +56,8 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
         setCardData(prev => ({
           ...prev,
           ...localCard,
-          id: localCard.id
+          id: localCard.id,
+          rarity: localCard.rarity as CardRarity
         }));
       }
     }

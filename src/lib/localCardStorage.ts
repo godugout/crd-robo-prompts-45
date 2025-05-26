@@ -1,5 +1,6 @@
 
 import { v4 as uuidv4 } from 'uuid';
+import type { CardRarity } from '@/hooks/card-editor/types';
 
 export interface LocalCard {
   id: string;
@@ -8,7 +9,7 @@ export interface LocalCard {
   image_url?: string;
   thumbnail_url?: string;
   design_metadata: Record<string, any>;
-  rarity: string;
+  rarity: CardRarity;
   tags: string[];
   template_id?: string;
   creator_attribution: any;
@@ -34,7 +35,7 @@ export const localCardStorage = {
       image_url: cardData.image_url,
       thumbnail_url: cardData.thumbnail_url,
       design_metadata: cardData.design_metadata || {},
-      rarity: cardData.rarity || 'common',
+      rarity: (cardData.rarity as CardRarity) || 'common',
       tags: cardData.tags || [],
       template_id: cardData.template_id,
       creator_attribution: cardData.creator_attribution || { collaboration_type: 'solo' },
