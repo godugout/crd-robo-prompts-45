@@ -7,7 +7,8 @@ export interface ManualRegion {
   y: number;
   width: number;
   height: number;
-  isManual: boolean;
+  confidence: number;
+  isManual?: boolean;
 }
 
 export interface DragState {

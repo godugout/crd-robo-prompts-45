@@ -2,7 +2,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import type { ManualRegion, DragState } from '../hooks/useEnhancedCardDetection';
+import type { ManualRegion, DragState } from '../hooks/types';
 
 interface EnhancedCanvasRegionEditorProps {
   originalImage: HTMLImageElement;

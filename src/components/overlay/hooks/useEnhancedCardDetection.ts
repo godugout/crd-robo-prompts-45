@@ -18,7 +18,11 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [extractedCards, setExtractedCards] = useState<ExtractedCard[]>([]);
-  const [dragState, setDragState] = useState<DragState>({ isDragging: false });
+  const [dragState, setDragState] = useState<DragState>({ 
+    isDragging: false, 
+    startX: 0, 
+    startY: 0 
+  });
   const [activeMode, setActiveMode] = useState<'move' | 'crop' | 'rotate' | null>(null);
 
   const {
@@ -208,7 +212,7 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
     setSelectedCardId(null);
     setIsEditMode(false);
     setExtractedCards([]);
-    setDragState({ isDragging: false });
+    setDragState({ isDragging: false, startX: 0, startY: 0 });
     setActiveMode(null);
     setOriginalImage(null);
   }, [setOriginalImage]);
