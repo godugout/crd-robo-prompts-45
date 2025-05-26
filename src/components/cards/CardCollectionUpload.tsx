@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Upload, Scissors, Grid, Camera } from 'lucide-react';
-import { useOverlay } from '@/components/overlay';
+import { useOverlay } from '@/components/overlay/index';
 import { ExtractedCard } from '@/services/cardExtractor';
 import { toast } from 'sonner';
 
