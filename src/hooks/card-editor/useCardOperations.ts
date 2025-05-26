@@ -11,6 +11,14 @@ export const useCardOperations = (cardData: CardData, updateCardData: (data: Par
   const saveCard = async (): Promise<boolean> => {
     setIsSaving(true);
     try {
+      // Get the current authenticated user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        toast.error('You must be logged in to save cards');
+        return false;
+      }
+
       if (cardData.id) {
         const { error } = await supabase
           .from('cards')
@@ -37,24 +45,12 @@ export const useCardOperations = (cardData: CardData, updateCardData: (data: Par
         
         if (error) throw error;
       } else {
-        // For new cards, we need to get the current user
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        // If no authenticated user, try to use a default creator_id or handle differently
-        let creatorId = user?.id;
-        
-        if (!creatorId) {
-          // For demo purposes, use a placeholder or handle this case appropriately
-          console.warn('No authenticated user found, using placeholder creator_id');
-          creatorId = '00000000-0000-0000-0000-000000000000'; // Placeholder UUID
-        }
-
         const { data, error } = await supabase
           .from('cards')
           .insert({
             title: cardData.title || 'Untitled Card',
             description: cardData.description,
-            creator_id: creatorId,
+            creator_id: user.id, // Use the authenticated user's ID
             design_metadata: cardData.design_metadata || {},
             image_url: cardData.image_url,
             thumbnail_url: cardData.thumbnail_url,
@@ -95,6 +91,14 @@ export const useCardOperations = (cardData: CardData, updateCardData: (data: Par
 
   const publishCard = async (): Promise<boolean> => {
     try {
+      // Get the current authenticated user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        toast.error('You must be logged in to publish cards');
+        return false;
+      }
+
       if (!cardData.id) {
         const saved = await saveCard();
         if (!saved) return false;
