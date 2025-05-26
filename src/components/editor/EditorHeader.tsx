@@ -1,9 +1,11 @@
 
 import React from 'react';
-import { Save, Share, Download, Settings, Moon, ArrowLeft } from 'lucide-react';
+import { Save, Share, Download, Settings, Moon, ArrowLeft, Cloud, CloudOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useCardEditor } from '@/hooks/useCardEditor';
+import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
+import { localCardStorage } from '@/lib/localCardStorage';
 import { toast } from 'sonner';
 
 interface EditorHeaderProps {
@@ -11,11 +13,20 @@ interface EditorHeaderProps {
 }
 
 export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
+  const { user } = useCustomAuth();
+
   const handleSave = async () => {
     if (cardEditor) {
-      const success = await cardEditor.saveCard();
-      if (success) {
-        toast.success('Card saved successfully');
+      if (user) {
+        // Force sync to server if user is authenticated
+        cardEditor.saveCard();
+        toast.success('Syncing to cloud...');
+      } else {
+        // Just save locally if not authenticated
+        if (cardEditor.cardData.id) {
+          localCardStorage.saveCard(cardEditor.cardData);
+          toast.success('Card saved locally');
+        }
       }
     }
   };
@@ -47,6 +58,11 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
   };
 
   const handlePublish = async () => {
+    if (!user) {
+      toast.error('Please sign in to publish cards');
+      return;
+    }
+    
     if (cardEditor) {
       const success = await cardEditor.publishCard();
       if (success) {
@@ -57,6 +73,26 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
 
   const isDirty = cardEditor?.isDirty || false;
   const isSaving = cardEditor?.isSaving || false;
+  
+  // Check if card is saved locally
+  const isLocalCard = cardEditor?.cardData.id ? 
+    localCardStorage.getCard(cardEditor.cardData.id)?.isLocal : false;
+
+  const getStatusDisplay = () => {
+    if (isSaving) return 'Saving...';
+    if (isDirty) return 'Editing...';
+    if (isLocalCard && !user) return 'Saved locally';
+    if (isLocalCard && user) return 'Syncing...';
+    return 'Saved';
+  };
+
+  const getStatusIcon = () => {
+    if (isSaving) return 'bg-yellow-500';
+    if (isDirty) return 'bg-blue-500';
+    if (isLocalCard && !user) return 'bg-orange-500';
+    if (isLocalCard && user) return 'bg-yellow-500';
+    return 'bg-crd-green';
+  };
 
   return (
     <div className="flex items-center justify-between h-16 px-4 bg-editor-dark border-b border-editor-border">
@@ -72,16 +108,16 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
       </div>
       
       <div className="flex items-center space-x-2">
-        <div className="px-3 py-1 rounded-full bg-crd-mediumGray/50 text-sm text-crd-lightGray">
-          {isSaving ? 'Saving...' : isDirty ? 'Unsaved changes' : 'Auto saving'} 
-          <span className={`inline-block w-2 h-2 ml-1 rounded-full ${
-            isSaving ? 'bg-yellow-500' : isDirty ? 'bg-red-500' : 'bg-crd-green'
-          }`}></span>
+        <div className="flex items-center px-3 py-1 rounded-full bg-crd-mediumGray/50 text-sm text-crd-lightGray">
+          {!user && isLocalCard && <CloudOff className="w-3 h-3 mr-1" />}
+          {user && <Cloud className="w-3 h-3 mr-1" />}
+          {getStatusDisplay()}
+          <span className={`inline-block w-2 h-2 ml-2 rounded-full ${getStatusIcon()}`}></span>
         </div>
         
         <Button variant="ghost" size="sm" onClick={handleSave} disabled={isSaving}>
           <Save className="w-5 h-5 mr-2" />
-          Save
+          {user ? 'Sync' : 'Save'}
         </Button>
         
         <Button variant="ghost" size="sm" onClick={handleShare}>
@@ -102,7 +138,11 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
           <Moon className="w-5 h-5" />
         </Button>
         
-        <Button className="ml-2 bg-crd-orange hover:bg-crd-orange/90 text-white rounded-full" onClick={handlePublish}>
+        <Button 
+          className="ml-2 bg-crd-orange hover:bg-crd-orange/90 text-white rounded-full" 
+          onClick={handlePublish}
+          disabled={!user}
+        >
           Publish
         </Button>
       </div>

@@ -1,8 +1,9 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTags } from '@/components/memory/hooks/useTags';
-import { useAutoSave } from './card-editor/useAutoSave';
+import { useLocalAutoSave } from './card-editor/useLocalAutoSave';
 import { useCardOperations } from './card-editor/useCardOperations';
+import { localCardStorage } from '@/lib/localCardStorage';
 import type { CardData, UseCardEditorOptions, CardRarity, CardVisibility, DesignTemplate, PublishingOptions, CreatorAttribution } from './card-editor/types';
 
 export type { CardData, CardRarity, CardVisibility, DesignTemplate, PublishingOptions, CreatorAttribution } from './card-editor/types';
@@ -11,7 +12,7 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
   const {
     initialData = {},
     autoSave = true,
-    autoSaveInterval = 10000,
+    autoSaveInterval = 5000,
   } = options;
 
   const [cardData, setCardData] = useState<CardData>({
@@ -46,6 +47,20 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
   });
 
   const [isDirty, setIsDirty] = useState(false);
+
+  // Load existing card data if we have an ID
+  useEffect(() => {
+    if (initialData.id) {
+      const localCard = localCardStorage.getCard(initialData.id);
+      if (localCard) {
+        setCardData(prev => ({
+          ...prev,
+          ...localCard,
+          id: localCard.id
+        }));
+      }
+    }
+  }, [initialData.id]);
 
   const updateCardData = (updates: Partial<CardData>) => {
     setCardData(prev => ({ ...prev, ...updates }));
@@ -92,14 +107,27 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     updateCardData
   );
 
-  useAutoSave(cardData, isDirty, saveCard, autoSave, autoSaveInterval);
+  // Use local auto-save instead of regular auto-save
+  const { lastSaveTime, forceSyncToServer } = useLocalAutoSave(
+    cardData,
+    isDirty,
+    updateCardData,
+    autoSave ? autoSaveInterval : 0
+  );
+
+  // Reset dirty state after local save
+  useEffect(() => {
+    if (lastSaveTime > 0) {
+      setIsDirty(false);
+    }
+  }, [lastSaveTime]);
 
   return {
     cardData,
     updateCardData,
     updateCardField,
     updateDesignMetadata,
-    saveCard,
+    saveCard: forceSyncToServer, // Manual save now forces sync to server
     publishCard,
     isLoading: false,
     isSaving,
