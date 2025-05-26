@@ -41,7 +41,11 @@ export const useCardOperations = (
           print_metadata: cardData.print_metadata
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving card:', error);
+        toast.error('Failed to save card');
+        return false;
+      }
       
       setLastSaved(new Date());
       toast.success('Card saved successfully');
@@ -67,7 +71,11 @@ export const useCardOperations = (
         .update({ is_public: true })
         .eq('id', cardData.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error publishing card:', error);
+        toast.error('Failed to publish card');
+        return false;
+      }
       
       updateCardData({ is_public: true });
       toast.success('Card published successfully');
