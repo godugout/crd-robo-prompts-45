@@ -13,7 +13,7 @@ export default function Index() {
   console.log('Index page rendering');
   
   return (
-    <div className="bg-crd-darkest min-h-screen flex flex-col overflow-hidden items-center">
+    <div className="bg-crd-gray-50 min-h-screen flex flex-col overflow-hidden items-center">
       <main className="w-full">
         <Hero />
         <AuctionSection />

@@ -53,36 +53,33 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
         },
-        // Clean CRD Design System
+        // Clean modern color system
         crd: {
-          // Primary brand colors
+          // Brand colors
           orange: '#FF6B35',
-          blue: '#4A90E2', 
-          green: '#7ED321',
-          purple: '#9013FE',
-          gold: '#F5A623',
+          blue: '#3B82F6', 
+          green: '#10B981',
+          purple: '#8B5CF6',
+          gold: '#F59E0B',
           
-          // Clean readable dark theme
-          darkest: '#1A1A1A',
-          darker: '#242424',
-          dark: '#2D2D2D',
-          'medium-dark': '#404040',
-          medium: '#606060',
-          'light-medium': '#808080',
-          light: '#B0B0B0',
-          lighter: '#D0D0D0',
-          lightest: '#FFFFFF',
+          // Clean light theme
+          white: '#FFFFFF',
+          'gray-50': '#F9FAFB',
+          'gray-100': '#F3F4F6',
+          'gray-200': '#E5E7EB',
+          'gray-300': '#D1D5DB',
+          'gray-400': '#9CA3AF',
+          'gray-500': '#6B7280',
+          'gray-600': '#4B5563',
+          'gray-700': '#374151',
+          'gray-800': '#1F2937',
+          'gray-900': '#111827',
           
           // Semantic colors
-          success: '#7ED321',
-          warning: '#F5A623',
-          error: '#D0021B',
-          info: '#4A90E2',
-          
-          // Interactive states
-          hover: 'rgba(255, 255, 255, 0.1)',
-          active: 'rgba(255, 255, 255, 0.15)',
-          focus: '#4A90E2',
+          success: '#10B981',
+          warning: '#F59E0B',
+          error: '#EF4444',
+          info: '#3B82F6',
         },
       },
       spacing: {
@@ -137,6 +134,7 @@ export default {
         'orbitron': ['Orbitron', 'sans-serif'],
         'poppins': ['Poppins', 'sans-serif'],
         'raleway': ['Raleway', 'sans-serif'],
+        'sans': ['Inter', 'system-ui', 'sans-serif'],
       }
     }
   },
