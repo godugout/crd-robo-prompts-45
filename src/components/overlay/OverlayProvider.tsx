@@ -1,11 +1,13 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
+type OverlayType = 'card-detection' | 'card-review' | 'enhanced-card-detection';
+
 interface OverlayContextType {
   isOpen: boolean;
-  overlayType: 'card-detection' | 'card-review' | null;
+  overlayType: OverlayType | null;
   overlayData: any;
-  openOverlay: (type: 'card-detection' | 'card-review', data?: any) => void;
+  openOverlay: (type: OverlayType, data?: any) => void;
   closeOverlay: () => void;
 }
 
@@ -25,10 +27,10 @@ interface OverlayProviderProps {
 
 export const OverlayProvider = ({ children }: OverlayProviderProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [overlayType, setOverlayType] = useState<'card-detection' | 'card-review' | null>(null);
+  const [overlayType, setOverlayType] = useState<OverlayType | null>(null);
   const [overlayData, setOverlayData] = useState<any>(null);
 
-  const openOverlay = (type: 'card-detection' | 'card-review', data?: any) => {
+  const openOverlay = (type: OverlayType, data?: any) => {
     setOverlayType(type);
     setOverlayData(data);
     setIsOpen(true);
