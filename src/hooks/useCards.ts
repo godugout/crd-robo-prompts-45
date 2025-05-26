@@ -44,20 +44,27 @@ export const useCards = () => {
     }
   };
 
-  const fetchUserCards = async () => {
-    if (!user) return;
+  const fetchUserCards = async (userId?: string) => {
+    const targetUserId = userId || user?.id;
+    if (!targetUserId) return [];
     
     try {
       const { data, error } = await supabase
         .from('cards')
         .select('*')
-        .eq('creator_id', user.id)
+        .eq('creator_id', targetUserId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setUserCards(data || []);
+      
+      const userCardsData = data || [];
+      if (!userId || userId === user?.id) {
+        setUserCards(userCardsData);
+      }
+      return userCardsData;
     } catch (error) {
       console.error('Error fetching user cards:', error);
+      return [];
     }
   };
 

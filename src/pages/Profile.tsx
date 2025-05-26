@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -6,9 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LoadingState } from '@/components/common/LoadingState';
-import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useCards } from '@/hooks/useCards';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { User, Edit, Settings, Save, Plus } from 'lucide-react';
 
 interface ProfileData {
@@ -18,7 +19,7 @@ interface ProfileData {
 }
 
 const Profile = () => {
-  const { user, loading } = useCustomAuth();
+  const { user, loading } = useAuth();
   const { fetchUserCards } = useCards();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -54,7 +55,7 @@ const Profile = () => {
     const loadUserCards = async () => {
       if (user?.id) {
         setCardsLoading(true);
-        const cards = await fetchUserCards(user.id);
+        const cards = await fetchUserCards();
         setUserCards(cards);
         setCardsLoading(false);
       }
@@ -65,11 +66,7 @@ const Profile = () => {
 
   const handleSaveProfile = async () => {
     if (!user) {
-      toast({
-        title: 'Error',
-        description: 'You must be signed in to save profile changes',
-        variant: 'destructive',
-      });
+      toast.error('You must be signed in to save profile changes');
       return;
     }
 
@@ -78,7 +75,7 @@ const Profile = () => {
       const profileData: ProfileData = {
         fullName,
         bio,
-        username: user.username
+        username: user.email || 'user'
       };
 
       // Save to localStorage
@@ -91,17 +88,12 @@ const Profile = () => {
       
       console.log('🔧 Profile saved:', profileData);
       
-      toast({
-        title: 'Profile Updated',
+      toast.success('Profile Updated', {
         description: 'Your profile has been saved successfully',
       });
     } catch (error) {
       console.error('🔧 Error saving profile:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save profile changes',
-        variant: 'destructive',
-      });
+      toast.error('Failed to save profile changes');
     } finally {
       setIsSaving(false);
     }
@@ -123,7 +115,7 @@ const Profile = () => {
         <Card className="bg-crd-dark border-crd-mediumGray p-6 max-w-md w-full mx-4">
           <CardContent className="text-center space-y-4">
             <h2 className="text-2xl font-bold text-crd-white">Please sign in to view your profile</h2>
-            <Link to="/auth/signin">
+            <Link to="/auth">
               <CRDButton variant="primary" className="w-full">
                 Sign In
               </CRDButton>
@@ -134,7 +126,7 @@ const Profile = () => {
     );
   }
 
-  const displayName = fullName || user.username;
+  const displayName = fullName || user.email;
   const hasProfileData = fullName || bio;
 
   return (
@@ -153,7 +145,7 @@ const Profile = () => {
                 </Avatar>
                 <div>
                   <CardTitle className="text-2xl text-crd-white">{displayName}</CardTitle>
-                  <CardDescription className="text-crd-lightGray">@{user.username}</CardDescription>
+                  <CardDescription className="text-crd-lightGray">@{user.email}</CardDescription>
                   {bio && !isEditing && (
                     <p className="text-crd-lightGray mt-2">{bio}</p>
                   )}
@@ -170,12 +162,10 @@ const Profile = () => {
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Profile
                     </CRDButton>
-                    <Link to="/account">
-                      <CRDButton variant="outline" size="sm">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Settings
-                      </CRDButton>
-                    </Link>
+                    <CRDButton variant="outline" size="sm">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Settings
+                    </CRDButton>
                   </>
                 ) : (
                   <div className="flex space-x-2">
@@ -244,8 +234,8 @@ const Profile = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <Card className="bg-crd-dark border-crd-mediumGray">
             <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-crd-white">0</div>
-              <div className="text-crd-lightGray">Memories</div>
+              <div className="text-2xl font-bold text-crd-white">{userCards.length}</div>
+              <div className="text-crd-lightGray">Cards Created</div>
             </CardContent>
           </Card>
           <Card className="bg-crd-dark border-crd-mediumGray">

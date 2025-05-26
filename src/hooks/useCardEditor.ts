@@ -95,11 +95,10 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     visibility: initialData.visibility || 'private',
     is_public: initialData.is_public || false,
     template_id: initialData.template_id,
-    creator_attribution: {
-      collaboration_type: 'solo',
-      ...initialData.creator_attribution
+    creator_attribution: initialData.creator_attribution || {
+      collaboration_type: 'solo'
     },
-    publishing_options: {
+    publishing_options: initialData.publishing_options || {
       marketplace_listing: false,
       crd_catalog_inclusion: true,
       print_available: false,
@@ -108,8 +107,7 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
       },
       distribution: {
         limited_edition: false
-      },
-      ...initialData.publishing_options
+      }
     },
     creator_id: user?.id
   });
@@ -170,11 +168,30 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
 
     setIsSaving(true);
     try {
+      // Convert to database format with proper JSON fields
       const cardToSave = {
-        ...cardData,
-        creator_id: user.id,
+        id: cardData.id,
         title: cardData.title.trim(),
-        is_public: cardData.visibility === 'public'
+        description: cardData.description,
+        type: cardData.type,
+        series: cardData.series,
+        category: cardData.category,
+        rarity: cardData.rarity,
+        tags: cardData.tags,
+        image_url: cardData.image_url,
+        thumbnail_url: cardData.thumbnail_url,
+        design_metadata: cardData.design_metadata as any,
+        visibility: cardData.visibility,
+        is_public: cardData.visibility === 'public',
+        shop_id: cardData.shop_id,
+        template_id: cardData.template_id,
+        collection_id: cardData.collection_id,
+        team_id: cardData.team_id,
+        creator_attribution: cardData.creator_attribution as any,
+        publishing_options: cardData.publishing_options as any,
+        verification_status: cardData.verification_status,
+        print_metadata: cardData.print_metadata as any,
+        creator_id: user.id
       };
 
       const { error } = await supabase
