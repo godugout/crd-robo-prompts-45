@@ -15,31 +15,14 @@ export const CardsViewModeToggle: React.FC<CardsViewModeToggleProps> = ({
   onChange,
 }) => {
   return (
-    <ToggleGroup 
-      type="single" 
-      value={value} 
-      onValueChange={(val) => val && onChange(val as ViewMode)}
-      className="crd-filter-group"
-    >
-      <ToggleGroupItem 
-        value="feed" 
-        aria-label="Feed View"
-        className="data-[state=on]:bg-crd-blue data-[state=on]:text-white text-crd-light hover:text-crd-lightest hover:bg-crd-hover transition-all duration-200 h-10 w-10 rounded-md"
-      >
+    <ToggleGroup type="single" value={value} onValueChange={(val) => val && onChange(val as ViewMode)}>
+      <ToggleGroupItem value="feed" aria-label="Feed View">
         <List className="h-4 w-4" />
       </ToggleGroupItem>
-      <ToggleGroupItem 
-        value="grid" 
-        aria-label="Grid View"
-        className="data-[state=on]:bg-crd-blue data-[state=on]:text-white text-crd-light hover:text-crd-lightest hover:bg-crd-hover transition-all duration-200 h-10 w-10 rounded-md"
-      >
+      <ToggleGroupItem value="grid" aria-label="Grid View">
         <LayoutGrid className="h-4 w-4" />
       </ToggleGroupItem>
-      <ToggleGroupItem 
-        value="masonry" 
-        aria-label="Masonry View"
-        className="data-[state=on]:bg-crd-blue data-[state=on]:text-white text-crd-light hover:text-crd-lightest hover:bg-crd-hover transition-all duration-200 h-10 w-10 rounded-md"
-      >
+      <ToggleGroupItem value="masonry" aria-label="Masonry View">
         <Grid className="h-4 w-4" />
       </ToggleGroupItem>
     </ToggleGroup>

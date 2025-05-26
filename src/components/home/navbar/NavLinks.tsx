@@ -10,19 +10,21 @@ export const NavLinks = () => {
   };
 
   // Base styles for all nav links
-  const baseStyle = "relative font-semibold px-3 py-2 transition-all duration-200 rounded-md";
+  const baseStyle = "relative font-bold px-3 py-1 transition-all duration-200";
   
-  // Clean modern styling
-  const activeStyle = "bg-crd-orange text-white";
-  const inactiveStyle = "text-crd-gray-600 hover:text-crd-gray-900 hover:bg-crd-gray-100";
+  // Custom style for active and inactive states
+  const activeStyle = "text-crd-orange underline underline-offset-4";
+  const inactiveStyle = "text-crd-lightGray hover:text-crd-orange";
   
-  // Special styling for Gallery link
-  const galleryBase = "relative font-bold px-3 py-2 transition-all duration-200 rounded-md";
-  const galleryActive = "bg-gradient-to-r from-crd-gold to-yellow-500 text-white shadow-lg";
-  const galleryInactive = "text-crd-gray-600 hover:text-crd-gold hover:bg-yellow-50 hover:scale-105";
+  // Custom style for the Gallery link (golden special styling)
+  const galleryBase = "relative font-extrabold px-2 transition-all duration-200";
+  const galleryActive =
+    "text-crd-gold underline underline-offset-4 after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-gradient-to-r after:from-yellow-400 after:to-orange-400 after:rounded-full";
+  const galleryInactive =
+    "text-crd-lightGray hover:text-crd-gold hover:scale-105 hover:brightness-125";
 
   return (
-    <div className="flex space-x-2 items-center">
+    <div className="text-center flex space-x-6 items-center">
       <Link
         to="/cards"
         className={`${baseStyle} ${isActive('/cards') ? activeStyle : inactiveStyle}`}
@@ -32,7 +34,18 @@ export const NavLinks = () => {
       
       <Link
         to="/gallery"
-        className={`${galleryBase} ${isActive('/gallery') ? galleryActive : galleryInactive}`}
+        className={
+          galleryBase +
+          " " +
+          (isActive('/gallery')
+            ? galleryActive
+            : galleryInactive)
+        }
+        style={{
+          textShadow: isActive('/gallery')
+            ? "0 0 10px #FFD700, 0 1px 24px #fff2, 0 0 2px #FFA500"
+            : undefined
+        }}
       >
         GALLERY
       </Link>
