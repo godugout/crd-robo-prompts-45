@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -148,7 +147,7 @@ const Gallery = () => {
                     ))
                   ) : featuredCards && featuredCards.length > 0 ? (
                     featuredCards.slice(0, 4).map((card, index) => (
-                      <Card key={index} className="bg-[#23262F] border-[#353945] overflow-hidden">
+                      <Card key={card.id} className="bg-[#23262F] border-[#353945] overflow-hidden">
                         <div 
                           className="h-48 bg-cover bg-center"
                           style={{ 

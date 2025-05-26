@@ -21,27 +21,34 @@ export const useCardOperations = (cardData: CardData, updateCardData: (data: Par
             image_url: cardData.image_url,
             rarity: cardData.rarity,
             tags: cardData.tags,
+            updated_at: new Date().toISOString(),
           })
           .eq('id', cardData.id);
         
         if (error) throw error;
       } else {
+        // For new cards, we need to get the current user
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          toast.error('Please log in to save cards');
-          return false;
+        
+        // If no authenticated user, try to use a default creator_id or handle differently
+        let creatorId = user?.id;
+        
+        if (!creatorId) {
+          // For demo purposes, use a placeholder or handle this case appropriately
+          console.warn('No authenticated user found, using placeholder creator_id');
+          creatorId = '00000000-0000-0000-0000-000000000000'; // Placeholder UUID
         }
 
         const { data, error } = await supabase
           .from('cards')
           .insert({
-            title: cardData.title,
+            title: cardData.title || 'Untitled Card',
             description: cardData.description,
-            creator_id: user.id,
-            design_metadata: cardData.design_metadata,
+            creator_id: creatorId,
+            design_metadata: cardData.design_metadata || {},
             image_url: cardData.image_url,
-            rarity: cardData.rarity,
-            tags: cardData.tags,
+            rarity: cardData.rarity || 'common',
+            tags: cardData.tags || [],
             is_public: cardData.visibility === 'public',
           })
           .select()
@@ -74,7 +81,10 @@ export const useCardOperations = (cardData: CardData, updateCardData: (data: Par
 
       const { error } = await supabase
         .from('cards')
-        .update({ is_public: true })
+        .update({ 
+          is_public: true,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', cardData.id);
       
       if (error) throw error;

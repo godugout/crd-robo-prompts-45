@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,8 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LoadingState } from '@/components/common/LoadingState';
 import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
+import { useCards } from '@/hooks/useCards';
 import { toast } from '@/hooks/use-toast';
-import { User, Edit, Settings, Save } from 'lucide-react';
+import { User, Edit, Settings, Save, Plus } from 'lucide-react';
 
 interface ProfileData {
   fullName: string;
@@ -19,8 +19,11 @@ interface ProfileData {
 
 const Profile = () => {
   const { user, loading } = useCustomAuth();
+  const { fetchUserCards } = useCards();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [userCards, setUserCards] = useState([]);
+  const [cardsLoading, setCardsLoading] = useState(true);
   
   // Profile data
   const [fullName, setFullName] = useState('');
@@ -45,6 +48,20 @@ const Profile = () => {
       }
     }
   }, [user]);
+
+  // Load user's cards
+  useEffect(() => {
+    const loadUserCards = async () => {
+      if (user?.id) {
+        setCardsLoading(true);
+        const cards = await fetchUserCards(user.id);
+        setUserCards(cards);
+        setCardsLoading(false);
+      }
+    };
+    
+    loadUserCards();
+  }, [user?.id, fetchUserCards]);
 
   const handleSaveProfile = async () => {
     if (!user) {
@@ -244,6 +261,80 @@ const Profile = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* User's Cards Section */}
+        <Card className="bg-crd-dark border-crd-mediumGray mb-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-crd-white">My Cards</CardTitle>
+              <Link to="/editor">
+                <CRDButton variant="primary" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create New Card
+                </CRDButton>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {cardsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {Array(3).fill(0).map((_, i) => (
+                  <div key={i} className="h-48 bg-crd-mediumGray/20 rounded-lg animate-pulse"></div>
+                ))}
+              </div>
+            ) : userCards.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {userCards.map((card) => (
+                  <Card key={card.id} className="bg-crd-mediumGray/10 border-crd-mediumGray/50 overflow-hidden">
+                    <div 
+                      className="h-32 bg-cover bg-center"
+                      style={{ 
+                        backgroundImage: card.image_url 
+                          ? `url(${card.image_url})` 
+                          : 'url(https://images.unsplash.com/photo-1546519638-68e109498ffc?w=500&q=80)'
+                      }}
+                    ></div>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-crd-white text-sm">{card.title}</CardTitle>
+                      {card.description && (
+                        <CardDescription className="text-crd-lightGray text-xs line-clamp-2">
+                          {card.description}
+                        </CardDescription>
+                      )}
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          card.is_public ? 'bg-crd-green/20 text-crd-green' : 'bg-crd-mediumGray/20 text-crd-lightGray'
+                        }`}>
+                          {card.is_public ? 'Public' : 'Private'}
+                        </span>
+                        <span className="text-xs text-crd-lightGray">
+                          {card.rarity}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-crd-mediumGray/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Plus className="w-8 h-8 text-crd-mediumGray" />
+                </div>
+                <h3 className="text-lg font-semibold text-crd-white mb-2">No cards yet</h3>
+                <p className="text-crd-lightGray mb-4">
+                  Create your first card to get started
+                </p>
+                <Link to="/editor">
+                  <CRDButton variant="primary">
+                    Create Your First Card
+                  </CRDButton>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Profile Content Placeholder */}
         {!hasProfileData && !isEditing && (

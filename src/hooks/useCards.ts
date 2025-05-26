@@ -1,50 +1,94 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { CardRepository } from '@/repositories/cards';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase-client';
+import { toast } from 'sonner';
+
+interface Card {
+  id: string;
+  title: string;
+  description?: string;
+  image_url?: string;
+  thumbnail_url?: string;
+  creator_id: string;
+  is_public: boolean;
+  rarity: string;
+  tags: string[];
+  design_metadata: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
 
 export const useCards = () => {
-  const [allCards, setAllCards] = useState([]);
+  const [cards, setCards] = useState<Card[]>([]);
+  const [featuredCards, setFeaturedCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  const fetchCards = useCallback(async () => {
+  const fetchCards = async () => {
     try {
       setLoading(true);
-      setError(null);
+      const { data, error } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('is_public', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
       
-      // Fetch more cards in a single call to reduce API requests
-      const cards = await CardRepository.getFeaturedCards(12);
-      
-      // Always set arrays to prevent undefined issues
-      setAllCards(cards || []);
-      
-    } catch (err) {
-      console.error('Error fetching cards:', err);
-      setError(err);
-      // Keep existing data on error to prevent flashing
+      setCards(data || []);
+      setFeaturedCards(data?.slice(0, 8) || []);
+    } catch (error) {
+      console.error('Error fetching cards:', error);
+      toast.error('Failed to load cards');
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
+
+  const fetchUserCards = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('cards')
+        .select('*')
+        .eq('creator_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching user cards:', error);
+      return [];
+    }
+  };
 
   useEffect(() => {
     fetchCards();
-  }, [fetchCards]);
 
-  const refetch = useCallback(() => {
-    fetchCards();
-  }, [fetchCards]);
+    // Set up real-time subscription for new cards
+    const subscription = supabase
+      .channel('cards-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'cards'
+        },
+        () => {
+          fetchCards(); // Refresh cards when changes occur
+        }
+      )
+      .subscribe();
 
-  // Split cards into featured and trending for backward compatibility
-  const featuredCards = allCards.slice(0, 6);
-  const trendingCards = allCards.slice(6, 12);
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, []);
 
-  return { 
-    featuredCards, 
-    trendingCards, 
-    allCards,
-    loading, 
-    error,
-    refetch
+  return {
+    cards,
+    featuredCards,
+    loading,
+    fetchCards,
+    fetchUserCards
   };
 };
