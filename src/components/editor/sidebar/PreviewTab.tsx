@@ -2,21 +2,28 @@
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Eye, Maximize, Download, Share2, ArrowRight } from 'lucide-react';
+import { Eye, Maximize, Download, Share2, ArrowRight, Sparkles } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
+import type { CardData } from '@/hooks/useCardEditor';
 
 interface PreviewTabProps {
   selectedTemplate: string;
+  cardData?: CardData;
   onContinueToEffects: () => void;
 }
 
-export const PreviewTab = ({ selectedTemplate, onContinueToEffects }: PreviewTabProps) => {
+export const PreviewTab = ({ selectedTemplate, cardData, onContinueToEffects }: PreviewTabProps) => {
   const [previewMode, setPreviewMode] = useState<'simple' | 'scene' | '3d'>('simple');
+  const [showImmersiveViewer, setShowImmersiveViewer] = useState(false);
 
   const handleImmersiveView = () => {
-    toast.success('Opening immersive card viewer...');
-    // This would open the full-screen immersive experience
+    if (cardData) {
+      setShowImmersiveViewer(true);
+    } else {
+      toast.error('No card data available for immersive view');
+    }
   };
 
   const handleExport = () => {
@@ -27,6 +34,35 @@ export const PreviewTab = ({ selectedTemplate, onContinueToEffects }: PreviewTab
   const handleShare = () => {
     toast.success('Generating share link...');
     // This would create a shareable link
+  };
+
+  const handleDownloadCard = (card: CardData) => {
+    // Create a JSON blob of the card data
+    const dataStr = JSON.stringify(card, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    
+    // Create a download link and trigger a click
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${card.title.replace(/\s+/g, '_')}_card.json`;
+    link.click();
+    
+    // Clean up
+    URL.revokeObjectURL(url);
+    toast.success('Card exported successfully');
+  };
+
+  const handleShareCard = (card: CardData) => {
+    const shareUrl = window.location.href;
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl)
+        .then(() => toast.success('Card link copied to clipboard'))
+        .catch(() => toast.error('Failed to copy link'));
+    } else {
+      toast.error('Sharing not supported in this browser');
+    }
   };
 
   return (
@@ -80,30 +116,14 @@ export const PreviewTab = ({ selectedTemplate, onContinueToEffects }: PreviewTab
         </div>
 
         {/* Immersive View Button */}
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="w-full bg-crd-purple hover:bg-crd-purple/90 text-white">
-              <Maximize className="w-4 h-4 mr-2" />
-              Open Immersive Viewer
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-6xl h-[80vh] bg-black border-0">
-            <div className="w-full h-full flex items-center justify-center relative">
-              <div className={`absolute inset-0 bg-gradient-to-br ${
-                previewMode === 'simple' ? 'from-gray-900 to-black' :
-                previewMode === 'scene' ? 'from-blue-900 to-purple-900' :
-                'from-green-900 to-cyan-900'
-              }`}></div>
-              <div className="relative z-10 aspect-[3/4] w-80 bg-white rounded-xl shadow-2xl flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gradient-to-br from-crd-green to-crd-orange rounded-xl mb-4 mx-auto"></div>
-                  <p className="text-black font-bold">Immersive Card View</p>
-                  <p className="text-gray-600 text-sm">{previewMode} background</p>
-                </div>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          className="w-full bg-crd-purple hover:bg-crd-purple/90 text-white" 
+          onClick={handleImmersiveView}
+          disabled={!cardData}
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          Open Immersive Viewer
+        </Button>
 
         {/* Action Buttons */}
         <div className="space-y-3">
@@ -126,6 +146,20 @@ export const PreviewTab = ({ selectedTemplate, onContinueToEffects }: PreviewTab
           </Button>
         </div>
       </div>
+
+      {/* Immersive Card Viewer */}
+      {showImmersiveViewer && cardData && (
+        <ImmersiveCardViewer
+          card={cardData}
+          isOpen={showImmersiveViewer}
+          onClose={() => setShowImmersiveViewer(false)}
+          onShare={handleShareCard}
+          onDownload={handleDownloadCard}
+          allowRotation={true}
+          showStats={true}
+          ambient={true}
+        />
+      )}
     </ScrollArea>
   );
 };

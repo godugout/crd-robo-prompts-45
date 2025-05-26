@@ -1,6 +1,10 @@
 
 import React, { useState } from 'react';
-import { useCardEditor } from '@/hooks/useCardEditor';
+import { Sparkles, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
+import { toast } from 'sonner';
+import type { useCardEditor } from '@/hooks/useCardEditor';
 
 interface EnhancedInteractivePreviewProps {
   title: string;
@@ -12,192 +16,199 @@ interface EnhancedInteractivePreviewProps {
   cardState: any;
 }
 
-export const EnhancedInteractivePreview = ({ 
-  title, 
-  description, 
-  cardEditor, 
-  onElementSelect, 
+export const EnhancedInteractivePreview = ({
+  title,
+  description,
+  cardEditor,
+  onElementSelect,
   selectedElement,
   currentPhoto,
   cardState
 }: EnhancedInteractivePreviewProps) => {
-  const [editingText, setEditingText] = useState<{[key: string]: string}>({
-    title,
-    description
-  });
+  const [showImmersiveViewer, setShowImmersiveViewer] = useState(false);
 
-  const handleTextChange = (field: string, value: string) => {
-    setEditingText(prev => ({ ...prev, [field]: value }));
-    if (cardEditor) {
-      cardEditor.updateCardField(field as keyof typeof cardEditor.cardData, value);
+  const handleViewImmersive = () => {
+    if (!cardEditor?.cardData || !cardEditor.cardData.title?.trim()) {
+      toast.error('Please add a card title before viewing in immersive mode');
+      return;
     }
+    setShowImmersiveViewer(true);
   };
 
-  // Build dynamic styles based on all applied settings
-  const getImageStyles = () => {
-    const { effects, photo } = cardState;
-    return {
-      filter: `
-        brightness(${effects.brightness}%) 
-        contrast(${effects.contrast}%) 
-        saturate(${effects.saturation}%)
-        ${effects.filter !== 'none' && effects.filter !== 'original' ? getFilterCSS(effects.filter) : ''}
-        ${photo.filter !== 'original' ? getFilterCSS(photo.filter) : ''}
-      `.trim(),
-      transform: `
-        scale(${photo.crop.scale}) 
-        rotate(${photo.crop.rotation}deg) 
-        translate(${photo.crop.offsetX}px, ${photo.crop.offsetY}px)
-      `,
-    };
-  };
-
-  const getFilterCSS = (filterName: string) => {
-    switch (filterName) {
-      case 'vintage': return 'sepia(0.5) saturate(1.2) contrast(0.8)';
-      case 'b&w': return 'grayscale(1)';
-      case 'sepia': return 'sepia(1)';
-      case 'vibrant': return 'saturate(1.5) contrast(1.1)';
-      case 'cool': return 'hue-rotate(180deg) saturate(1.1)';
-      default: return '';
+  const handleDownloadCard = () => {
+    if (!cardEditor?.cardData) {
+      toast.error('No card data available');
+      return;
     }
+    
+    const card = cardEditor.cardData;
+    const dataStr = JSON.stringify(card, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${card.title.replace(/\s+/g, '_')}_card.json`;
+    link.click();
+    
+    URL.revokeObjectURL(url);
+    toast.success('Card exported successfully');
   };
 
-  const getCardStyles = () => {
-    const { template, effects } = cardState;
-    return {
-      backgroundColor: template.colors.background,
-      boxShadow: effects.neonGlow ? `0 0 20px ${template.colors.primary}` : undefined,
-      position: 'relative' as const,
-      overflow: 'hidden' as const,
-    };
+  const handleShareCard = () => {
+    const shareUrl = window.location.href;
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl)
+        .then(() => toast.success('Card link copied to clipboard'))
+        .catch(() => toast.error('Failed to copy link'));
+    } else {
+      toast.error('Sharing not supported in this browser');
+    }
   };
 
   return (
-    <div className="relative">
-      <div 
-        className="relative rounded-xl shadow-xl overflow-hidden"
-        style={{ width: 320, height: 420, ...getCardStyles() }}
-      >
-        {/* Background image with all effects applied */}
-        <img 
-          src={currentPhoto?.preview || "public/lovable-uploads/25cbcac9-64c0-4969-9baa-7a3fdf9eb00a.png"} 
-          alt="Card preview" 
-          className="w-full h-full object-cover"
-          style={getImageStyles()}
+    <div className="relative w-full h-full flex items-center justify-center">
+      {/* Card Preview Container */}
+      <div className="relative">
+        {/* Interactive Card Preview */}
+        <div 
+          className={`aspect-[3/4] w-80 rounded-xl shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer ${
+            cardEditor?.cardData.template_id === 'neon' ? 'bg-gradient-to-br from-purple-900 to-black border-2 border-purple-500' :
+            cardEditor?.cardData.template_id === 'vintage' ? 'bg-gradient-to-br from-amber-100 to-amber-200 border-2 border-amber-600' :
+            cardEditor?.cardData.template_id === 'classic' ? 'bg-white border-2 border-gray-300' :
+            'bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300'
+          }`}
+          onClick={() => onElementSelect(selectedElement === 'card' ? null : 'card')}
+          style={{
+            transform: `perspective(1000px) rotateX(${cardState?.effects?.holographic ? '2deg' : '0'}) rotateY(${cardState?.effects?.neonGlow ? '1deg' : '0'})`,
+            filter: `brightness(${cardState?.effects?.brightness || 100}%) contrast(${cardState?.effects?.contrast || 100}%) saturate(${cardState?.effects?.saturation || 100}%)`,
+            ...cardState?.effects?.holographic && { 
+              background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4)',
+              backgroundSize: '400% 400%',
+              animation: 'gradient 4s ease infinite'
+            }
+          }}
+        >
+          {/* Photo Section */}
+          <div className="h-3/5 w-full p-4">
+            <div className="h-full w-full rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center relative">
+              {currentPhoto ? (
+                <img 
+                  src={currentPhoto.preview} 
+                  alt="Card" 
+                  className="w-full h-full object-cover"
+                  style={{
+                    filter: cardState?.photo?.filter !== 'original' ? 
+                      cardState?.photo?.filter === 'sepia' ? 'sepia(1)' :
+                      cardState?.photo?.filter === 'grayscale' ? 'grayscale(1)' :
+                      cardState?.photo?.filter === 'blur' ? 'blur(2px)' :
+                      'none' : 'none',
+                    transform: `scale(${cardState?.photo?.crop?.scale || 1}) rotate(${cardState?.photo?.crop?.rotation || 0}deg) translateX(${cardState?.photo?.crop?.offsetX || 0}px) translateY(${cardState?.photo?.crop?.offsetY || 0}px)`
+                  }}
+                />
+              ) : cardEditor?.cardData.image_url ? (
+                <img 
+                  src={cardEditor.cardData.image_url} 
+                  alt={title} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="text-gray-400 text-center">
+                  <Eye className="w-12 h-12 mx-auto mb-2" />
+                  <p className="text-sm">Upload a photo</p>
+                </div>
+              )}
+              
+              {cardState?.effects?.holographic && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20 animate-pulse"></div>
+              )}
+            </div>
+          </div>
+          
+          {/* Text Section */}
+          <div className="h-2/5 p-4 flex flex-col justify-center">
+            <h2 
+              className={`text-2xl font-bold mb-2 cursor-text ${
+                cardEditor?.cardData.template_id === 'neon' ? 'text-white' : 'text-gray-900'
+              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onElementSelect('title');
+              }}
+              style={{ color: cardState?.template?.colors?.primary }}
+            >
+              {title || 'Card Title'}
+            </h2>
+            <p 
+              className={`text-sm cursor-text ${
+                cardEditor?.cardData.template_id === 'neon' ? 'text-gray-300' : 'text-gray-600'
+              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onElementSelect('description');
+              }}
+              style={{ color: cardState?.template?.colors?.accent }}
+            >
+              {description || 'Add a description...'}
+            </p>
+            
+            {cardEditor?.cardData.rarity && (
+              <div className="mt-2">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  cardEditor.cardData.rarity === 'legendary' ? 'bg-yellow-100 text-yellow-800' :
+                  cardEditor.cardData.rarity === 'epic' ? 'bg-purple-100 text-purple-800' :
+                  cardEditor.cardData.rarity === 'rare' ? 'bg-blue-100 text-blue-800' :
+                  cardEditor.cardData.rarity === 'uncommon' ? 'bg-green-100 text-green-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {cardEditor.cardData.rarity}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Immersive View Button */}
+        <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
+          <Button
+            onClick={handleViewImmersive}
+            className="bg-crd-purple hover:bg-crd-purple/90 text-white px-6 py-2 rounded-full shadow-lg"
+            disabled={!cardEditor?.cardData || !cardEditor.cardData.title?.trim()}
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            View Immersive
+          </Button>
+        </div>
+      </div>
+
+      {/* Visual Effects */}
+      {cardState?.effects?.neonGlow && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 opacity-30 blur-2xl"></div>
+        </div>
+      )}
+
+      {/* Selection Indicator */}
+      {selectedElement && (
+        <div className="absolute top-4 right-4 bg-crd-green text-black px-3 py-1 rounded-full text-sm font-medium">
+          Selected: {selectedElement}
+        </div>
+      )}
+
+      {/* Immersive Card Viewer */}
+      {showImmersiveViewer && cardEditor?.cardData && (
+        <ImmersiveCardViewer
+          card={cardEditor.cardData}
+          isOpen={showImmersiveViewer}
+          onClose={() => setShowImmersiveViewer(false)}
+          onShare={handleShareCard}
+          onDownload={handleDownloadCard}
+          allowRotation={true}
+          showStats={true}
+          ambient={true}
         />
-
-        {/* Holographic effect overlay */}
-        {cardState.effects.holographic && (
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-transparent to-cyan-500/20 animate-pulse pointer-events-none" />
-        )}
-
-        {/* Vintage effect overlay */}
-        {cardState.effects.vintage && (
-          <div className="absolute inset-0 bg-gradient-to-b from-amber-100/10 to-amber-900/10 pointer-events-none" />
-        )}
-        
-        {/* Template-styled header */}
-        <div 
-          className="absolute top-2 left-2 right-2 h-6 rounded flex items-center justify-center"
-          style={{ backgroundColor: cardState.template.colors.primary }}
-        >
-          <span className="text-white text-xs font-bold">FRAME HEADER</span>
-        </div>
-        
-        {/* Interactive text overlay with template colors */}
-        <div 
-          className="absolute bottom-0 left-0 right-0 p-4 backdrop-blur-sm"
-          style={{ backgroundColor: `${cardState.template.colors.background}CC` }}
-        >
-          {/* Editable Title */}
-          <div 
-            className={`mb-2 ${selectedElement === 'title' ? 'ring-2 ring-crd-green rounded p-1' : ''}`}
-            onClick={() => onElementSelect('title')}
-          >
-            {selectedElement === 'title' ? (
-              <input
-                value={editingText.title}
-                onChange={(e) => handleTextChange('title', e.target.value)}
-                className="bg-transparent text-white text-xl font-bold w-full border-none outline-none"
-                placeholder="Enter title..."
-                autoFocus
-                onBlur={() => onElementSelect(null)}
-                onKeyDown={(e) => e.key === 'Enter' && onElementSelect(null)}
-              />
-            ) : (
-              <h3 
-                className="text-white text-xl font-bold cursor-pointer hover:bg-white/10 rounded p-1"
-                style={{ color: cardState.template.colors.accent }}
-              >
-                {editingText.title}
-              </h3>
-            )}
-          </div>
-
-          {/* Editable Description */}
-          <div 
-            className={`${selectedElement === 'description' ? 'ring-2 ring-crd-green rounded p-1' : ''}`}
-            onClick={() => onElementSelect('description')}
-          >
-            {selectedElement === 'description' ? (
-              <textarea
-                value={editingText.description}
-                onChange={(e) => handleTextChange('description', e.target.value)}
-                className="bg-transparent text-gray-200 text-sm w-full border-none outline-none resize-none"
-                placeholder="Enter description..."
-                rows={2}
-                autoFocus
-                onBlur={() => onElementSelect(null)}
-              />
-            ) : (
-              <p 
-                className="text-gray-200 text-sm cursor-pointer hover:bg-white/10 rounded p-1 line-clamp-2"
-                style={{ color: `${cardState.template.colors.accent}CC` }}
-              >
-                {editingText.description}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Footer with template styling */}
-        <div 
-          className="absolute bottom-2 left-2 right-2 h-4 rounded flex items-center justify-center"
-          style={{ backgroundColor: cardState.template.colors.accent }}
-        >
-          <span className="text-black text-xs">Template: {cardState.template.id}</span>
-        </div>
-
-        {/* Editing indicator */}
-        {selectedElement && (
-          <div className="absolute top-4 right-4 bg-crd-green text-black text-xs px-2 py-1 rounded">
-            Editing: {selectedElement}
-          </div>
-        )}
-      </div>
-
-      {/* Status indicators */}
-      <div className="mt-4 text-center space-y-1">
-        <p className="text-crd-lightGray text-sm">
-          Click on text elements to edit them directly
-        </p>
-        {selectedElement && (
-          <p className="text-crd-green text-xs">
-            Press Enter or click outside to finish editing
-          </p>
-        )}
-        {Object.values(cardState.effects).some(v => v !== 100 && v !== false && v !== 'none') && (
-          <p className="text-crd-purple text-xs">
-            Effects applied • Brightness: {cardState.effects.brightness}% • Contrast: {cardState.effects.contrast}%
-          </p>
-        )}
-        {currentPhoto && (
-          <p className="text-crd-green text-xs">
-            Custom photo applied • Filter: {cardState.photo.filter}
-          </p>
-        )}
-      </div>
+      )}
     </div>
   );
 };

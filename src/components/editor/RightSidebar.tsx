@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CRDButton } from '@/components/ui/design-system';
 import { toast } from 'sonner';
 import { useCardEditor } from '@/hooks/useCardEditor';
@@ -8,12 +8,16 @@ import { PropertiesSection } from './right-sidebar/PropertiesSection';
 import { RaritySection } from './right-sidebar/RaritySection';
 import { PublishingSection } from './right-sidebar/PublishingSection';
 import { CustomizeDesignSection } from './right-sidebar/CustomizeDesignSection';
+import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
+import { Sparkles } from 'lucide-react';
 
 interface RightSidebarProps {
   cardEditor?: ReturnType<typeof useCardEditor>;
 }
 
 export const RightSidebar = ({ cardEditor: providedCardEditor }: RightSidebarProps) => {
+  const [showImmersiveViewer, setShowImmersiveViewer] = useState(false);
+  
   // Use provided card editor or create a fallback one
   const fallbackCardEditor = useCardEditor({
     autoSave: true,
@@ -62,6 +66,41 @@ export const RightSidebar = ({ cardEditor: providedCardEditor }: RightSidebarPro
       });
     }
   };
+
+  const handleViewImmersive = () => {
+    if (!cardEditor.cardData.title?.trim()) {
+      toast.error('Please add a card title before viewing in immersive mode');
+      return;
+    }
+    setShowImmersiveViewer(true);
+  };
+
+  const handleDownloadCard = () => {
+    const card = cardEditor.cardData;
+    const dataStr = JSON.stringify(card, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${card.title.replace(/\s+/g, '_')}_card.json`;
+    link.click();
+    
+    URL.revokeObjectURL(url);
+    toast.success('Card exported successfully');
+  };
+
+  const handleShareCard = () => {
+    const shareUrl = window.location.href;
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl)
+        .then(() => toast.success('Card link copied to clipboard'))
+        .catch(() => toast.error('Failed to copy link'));
+    } else {
+      toast.error('Sharing not supported in this browser');
+    }
+  };
   
   return (
     <div className="w-80 h-full bg-editor-dark border-l border-editor-border overflow-y-auto">
@@ -72,6 +111,16 @@ export const RightSidebar = ({ cardEditor: providedCardEditor }: RightSidebarPro
       <CustomizeDesignSection cardEditor={cardEditor} />
       
       <div className="p-6 space-y-3">
+        <CRDButton 
+          variant="secondary"
+          size="lg"
+          className="w-full py-3 rounded-full bg-crd-purple hover:bg-crd-purple/90 text-white"
+          onClick={handleViewImmersive}
+          icon={<Sparkles className="w-4 h-4" />}
+        >
+          View Immersive
+        </CRDButton>
+
         <CRDButton 
           variant="primary"
           size="lg"
@@ -92,6 +141,20 @@ export const RightSidebar = ({ cardEditor: providedCardEditor }: RightSidebarPro
           Publish Card
         </CRDButton>
       </div>
+
+      {/* Immersive Card Viewer */}
+      {showImmersiveViewer && (
+        <ImmersiveCardViewer
+          card={cardEditor.cardData}
+          isOpen={showImmersiveViewer}
+          onClose={() => setShowImmersiveViewer(false)}
+          onShare={handleShareCard}
+          onDownload={handleDownloadCard}
+          allowRotation={true}
+          showStats={true}
+          ambient={true}
+        />
+      )}
     </div>
   );
 };
