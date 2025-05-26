@@ -65,6 +65,13 @@ export const useCardOperations = (
   const saveCard = async (): Promise<boolean> => {
     setIsSaving(true);
     try {
+      // Check if user is authenticated first
+      if (!user?.id) {
+        console.error('User not authenticated');
+        toast.error('Please sign in to save cards');
+        return false;
+      }
+
       // Ensure we have a card ID
       let cardId = cardData.id;
       if (!cardId) {
@@ -91,7 +98,7 @@ export const useCardOperations = (
         id: cardId,
         title: cardData.title.trim(),
         description: cardData.description?.trim() || '',
-        creator_id: user?.id || null,
+        creator_id: user.id, // Ensure this is set to the authenticated user's ID
         design_metadata: cardData.design_metadata || {},
         image_url: cardData.image_url || null,
         thumbnail_url: cardData.thumbnail_url || null,
@@ -124,14 +131,10 @@ export const useCardOperations = (
 
       console.log('Attempting to save card with validated data:', { 
         cardId: cardToSave.id, 
-        userId: user?.id, 
+        userId: user.id, 
         isAuthenticated: !!user,
         title: cardToSave.title,
-        template_id: cardToSave.template_id,
-        shop_id: cardToSave.shop_id,
-        collection_id: cardToSave.collection_id,
-        team_id: cardToSave.team_id,
-        rarity: cardToSave.rarity
+        creator_id: cardToSave.creator_id
       });
 
       const { error } = await supabase
@@ -140,20 +143,20 @@ export const useCardOperations = (
 
       if (error) {
         console.error('Database error saving card:', error);
-        toast.error(`Failed to save card: ${error.message}`);
+        if (error.message.includes('row-level security policy')) {
+          toast.error('Authentication required. Please sign in to save cards.');
+        } else {
+          toast.error(`Failed to save card: ${error.message}`);
+        }
         return false;
       }
       
       setLastSaved(new Date());
-      if (user) {
-        toast.success('Card saved to cloud successfully');
-      } else {
-        toast.success('Card saved locally (sign in to sync to cloud)');
-      }
+      toast.success('Card saved successfully');
       return true;
     } catch (error) {
       console.error('Error saving card:', error);
-      toast.error('Failed to save card to cloud');
+      toast.error('Failed to save card');
       return false;
     } finally {
       setIsSaving(false);
