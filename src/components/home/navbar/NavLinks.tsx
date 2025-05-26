@@ -4,64 +4,46 @@ import { Link, useLocation } from "react-router-dom";
 
 export const NavLinks = () => {
   const location = useLocation();
-
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-
-  // Base styles for all nav links
-  const baseStyle = "relative font-bold px-3 py-1 transition-all duration-200";
   
-  // Custom style for active and inactive states
-  const activeStyle = "text-crd-orange underline underline-offset-4";
-  const inactiveStyle = "text-crd-lightGray hover:text-crd-orange";
+  const isActive = (path: string) => location.pathname === path;
   
-  // Custom style for the Gallery link (golden special styling)
-  const galleryBase = "relative font-extrabold px-2 transition-all duration-200";
-  const galleryActive =
-    "text-crd-gold underline underline-offset-4 after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-gradient-to-r after:from-yellow-400 after:to-orange-400 after:rounded-full";
-  const galleryInactive =
-    "text-crd-lightGray hover:text-crd-gold hover:scale-105 hover:brightness-125";
-
   return (
-    <div className="text-center flex space-x-6 items-center">
-      <Link
-        to="/cards"
-        className={`${baseStyle} ${isActive('/cards') ? activeStyle : inactiveStyle}`}
+    <div className="flex items-center gap-8">
+      <Link 
+        to="/" 
+        className={`nav-item ${isActive('/') ? 'active' : ''}`}
       >
-        CARDS
+        Home
       </Link>
-      
-      <Link
-        to="/gallery"
-        className={
-          galleryBase +
-          " " +
-          (isActive('/gallery')
-            ? galleryActive
-            : galleryInactive)
-        }
-        style={{
-          textShadow: isActive('/gallery')
-            ? "0 0 10px #FFD700, 0 1px 24px #fff2, 0 0 2px #FFA500"
-            : undefined
-        }}
+      <Link 
+        to="/cards" 
+        className={`nav-item ${isActive('/cards') ? 'active' : ''}`}
       >
-        GALLERY
+        Cards
       </Link>
-      
-      <Link
-        to="/creators"
-        className={`${baseStyle} ${isActive('/creators') ? activeStyle : inactiveStyle}`}
+      <Link 
+        to="/gallery" 
+        className={`nav-item ${isActive('/gallery') ? 'active' : ''}`}
       >
-        CREATORS
+        Gallery
       </Link>
-      
-      <Link
-        to="/collections"
-        className={`${baseStyle} ${isActive('/collections') ? activeStyle : inactiveStyle}`}
+      <Link 
+        to="/creators" 
+        className={`nav-item ${isActive('/creators') ? 'active' : ''}`}
       >
-        COLLECTIONS
+        Creators
+      </Link>
+      <Link 
+        to="/editor" 
+        className={`nav-item ${isActive('/editor') ? 'active' : ''}`}
+      >
+        Editor
+      </Link>
+      <Link 
+        to="/profile" 
+        className={`nav-item ${isActive('/profile') ? 'active' : ''}`}
+      >
+        Profile
       </Link>
     </div>
   );

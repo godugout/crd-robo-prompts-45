@@ -4,6 +4,8 @@ import { Navbar } from '@/components/home/Navbar';
 import Index from '@/pages/Index';
 import Editor from '@/pages/Editor';
 import Gallery from '@/pages/Gallery';
+import Profile from '@/pages/Profile';
+import Creators from '@/pages/Creators';
 import { CardsPage } from '@/components/cards/CardsPage';
 import { AuthPage } from '@/components/auth/AuthPage';
 
@@ -18,6 +20,8 @@ function App() {
         <Route path="/gallery" element={<Gallery />} />
         <Route path="/cards" element={<CardsPage />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/creators" element={<Creators />} />
       </Routes>
     </div>
   );
