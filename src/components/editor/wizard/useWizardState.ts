@@ -44,7 +44,7 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
       updateCardField('description', analysis.description);
       updateCardField('rarity', analysis.rarity);
       updateCardField('tags', analysis.tags);
-      updateCardField('category', analysis.category);
+      // Remove category field update since it doesn't exist in the database
       updateCardField('type', analysis.type);
       updateCardField('series', analysis.series);
       
