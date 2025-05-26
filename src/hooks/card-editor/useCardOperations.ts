@@ -2,19 +2,19 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase-client';
+import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
 import type { CardData } from './types';
 
 export const useCardOperations = (cardData: CardData, updateCardData: (data: Partial<CardData>) => void) => {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const { user } = useCustomAuth();
 
   const saveCard = async (): Promise<boolean> => {
     setIsSaving(true);
     try {
-      // Get the current authenticated user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !user) {
+      // Check if user is logged in with custom auth
+      if (!user) {
         toast.error('You must be logged in to save cards');
         return false;
       }
@@ -50,7 +50,7 @@ export const useCardOperations = (cardData: CardData, updateCardData: (data: Par
           .insert({
             title: cardData.title || 'Untitled Card',
             description: cardData.description,
-            creator_id: user.id, // Use the authenticated user's ID
+            creator_id: user.id, // Use the custom auth user ID
             design_metadata: cardData.design_metadata || {},
             image_url: cardData.image_url,
             thumbnail_url: cardData.thumbnail_url,
@@ -91,10 +91,8 @@ export const useCardOperations = (cardData: CardData, updateCardData: (data: Par
 
   const publishCard = async (): Promise<boolean> => {
     try {
-      // Get the current authenticated user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !user) {
+      // Check if user is logged in with custom auth
+      if (!user) {
         toast.error('You must be logged in to publish cards');
         return false;
       }
