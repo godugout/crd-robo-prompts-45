@@ -22,22 +22,6 @@
   --input: 214.3 31.8% 91.4%;
   --ring: 221.2 83.2% 53.3%;
   --radius: 0.5rem;
-
-  /* Custom colors for Cardshow */
-  --cardshow-green: #45B26B;
-  --cardshow-orange: #EA6E48;
-  --cardshow-purple: #9757D7;
-  --cardshow-blue: #3772FF;
-  --cardshow-white: #FCFCFD;
-  --cardshow-lightGray: #777E90;
-  --cardshow-mediumGray: #353945;
-  --cardshow-darkGray: #23262F;
-  --cardshow-darkest: #121212;
-  --editor-dark: #1a1a1a;
-  --editor-darker: #121212;
-  --editor-tool: #2a2a2a;
-  --editor-border: #333333;
-  --editor-canvas: #2c2c2c;
 }
 
 .dark {
@@ -67,18 +51,18 @@
     @apply border-border;
   }
   body {
-    @apply bg-crd-darkest text-crd-white;
+    @apply bg-crd-darkest text-crd-lightest;
   }
   
   h1 {
-    @apply text-4xl font-bold mb-4;
+    @apply text-4xl font-bold mb-4 text-crd-lightest;
   }
   
   h2 {
-    @apply text-3xl font-bold mb-3;
+    @apply text-3xl font-bold mb-3 text-crd-lightest;
   }
   
   h3 {
-    @apply text-2xl font-bold mb-2;
+    @apply text-2xl font-bold mb-2 text-crd-lightest;
   }
 }

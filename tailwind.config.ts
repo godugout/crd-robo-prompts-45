@@ -53,24 +53,24 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
         },
-        // Modern CRD Design System
+        // Clean CRD Design System
         crd: {
-          // Primary brand colors - vibrant & professional
+          // Primary brand colors
           orange: '#FF6B35',
           blue: '#4A90E2', 
           green: '#7ED321',
           purple: '#9013FE',
           gold: '#F5A623',
           
-          // Professional dark theme
-          darkest: '#0A0A0B',
-          darker: '#1A1A1C',
-          dark: '#252528',
-          'medium-dark': '#343437',
-          medium: '#4A4A4F',
-          'light-medium': '#6B6B73',
-          light: '#9B9BA3',
-          lighter: '#CECECE',
+          // Clean readable dark theme
+          darkest: '#1A1A1A',
+          darker: '#242424',
+          dark: '#2D2D2D',
+          'medium-dark': '#404040',
+          medium: '#606060',
+          'light-medium': '#808080',
+          light: '#B0B0B0',
+          lighter: '#D0D0D0',
           lightest: '#FFFFFF',
           
           // Semantic colors
@@ -80,17 +80,9 @@ export default {
           info: '#4A90E2',
           
           // Interactive states
-          hover: 'rgba(255, 255, 255, 0.08)',
-          active: 'rgba(255, 255, 255, 0.12)',
+          hover: 'rgba(255, 255, 255, 0.1)',
+          active: 'rgba(255, 255, 255, 0.15)',
           focus: '#4A90E2',
-        },
-        // Editor colors
-        editor: {
-          dark: '#252528',
-          darker: '#1A1A1C',
-          tool: '#343437',
-          border: '#4A4A4F',
-          canvas: '#2C2C2C',
         },
       },
       spacing: {
@@ -117,17 +109,6 @@ export default {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)'
       },
-      backdropBlur: {
-        'xs': '2px',
-        'sm': '4px',
-        'md': '8px',
-        'lg': '12px',
-        'xl': '16px',
-      },
-      boxShadow: {
-        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-        'glass-lg': '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-      },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },
@@ -144,27 +125,18 @@ export default {
         'slide-in': {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(0)' }
-        },
-        'glow': {
-          '0%, 100%': { boxShadow: '0 0 5px currentColor' },
-          '50%': { boxShadow: '0 0 20px currentColor' }
         }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in': 'fade-in 0.3s ease-out',
-        'slide-in': 'slide-in 0.3s ease-out',
-        'glow': 'glow 2s ease-in-out infinite'
+        'slide-in': 'slide-in 0.3s ease-out'
       },
       fontFamily: {
         'orbitron': ['Orbitron', 'sans-serif'],
         'poppins': ['Poppins', 'sans-serif'],
         'raleway': ['Raleway', 'sans-serif'],
-      },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'glass': 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
       }
     }
   },

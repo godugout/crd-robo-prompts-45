@@ -3,25 +3,25 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CRD Design System - Professional & Modern */
+/* CRD Design System - Clean & Readable */
 @layer base {
   :root {
-    /* Primary Brand Colors - Vibrant & Professional */
+    /* Primary Brand Colors */
     --crd-orange: #FF6B35;
     --crd-blue: #4A90E2;
     --crd-green: #7ED321;
     --crd-purple: #9013FE;
     --crd-gold: #F5A623;
     
-    /* Professional Dark Theme */
-    --crd-darkest: #0A0A0B;
-    --crd-darker: #1A1A1C;
-    --crd-dark: #252528;
-    --crd-medium-dark: #343437;
-    --crd-medium: #4A4A4F;
-    --crd-light-medium: #6B6B73;
-    --crd-light: #9B9BA3;
-    --crd-lighter: #CECECE;
+    /* Clean Dark Theme - More Readable */
+    --crd-darkest: #1A1A1A;
+    --crd-darker: #242424;
+    --crd-dark: #2D2D2D;
+    --crd-medium-dark: #404040;
+    --crd-medium: #606060;
+    --crd-light-medium: #808080;
+    --crd-light: #B0B0B0;
+    --crd-lighter: #D0D0D0;
     --crd-lightest: #FFFFFF;
     
     /* Semantic Colors */
@@ -31,49 +31,37 @@
     --crd-info: #4A90E2;
     
     /* Interactive States */
-    --crd-hover: rgba(255, 255, 255, 0.08);
-    --crd-active: rgba(255, 255, 255, 0.12);
+    --crd-hover: rgba(255, 255, 255, 0.1);
+    --crd-active: rgba(255, 255, 255, 0.15);
     --crd-focus: #4A90E2;
   }
 }
 
 @layer components {
-  /* Enhanced Button System */
+  /* Clean Button System */
   .crd-btn {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-crd-darkest disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-crd-darkest disabled:opacity-50 disabled:cursor-not-allowed;
   }
   
   .crd-btn-primary {
-    @apply crd-btn bg-crd-blue text-white hover:bg-blue-600 focus:ring-crd-blue shadow-md hover:shadow-lg;
+    @apply crd-btn bg-crd-blue text-white hover:bg-blue-600 focus:ring-crd-blue;
   }
   
   .crd-btn-secondary {
-    @apply crd-btn bg-crd-medium-dark text-crd-lightest border border-crd-light-medium hover:bg-crd-medium hover:border-crd-lighter focus:ring-crd-blue;
+    @apply crd-btn bg-crd-medium-dark text-crd-lightest border border-crd-light-medium hover:bg-crd-medium focus:ring-crd-blue;
   }
   
   .crd-btn-outline {
-    @apply crd-btn bg-transparent text-crd-lightest border-2 border-crd-blue hover:bg-crd-blue hover:text-white focus:ring-crd-blue;
+    @apply crd-btn bg-transparent text-crd-lightest border border-crd-blue hover:bg-crd-blue hover:text-white focus:ring-crd-blue;
   }
   
   .crd-btn-ghost {
     @apply crd-btn bg-transparent text-crd-light hover:bg-crd-hover hover:text-crd-lightest focus:ring-crd-blue;
   }
   
-  .crd-btn-success {
-    @apply crd-btn bg-crd-green text-crd-darkest hover:bg-green-500 focus:ring-crd-green font-bold;
-  }
-  
-  .crd-btn-sm {
-    @apply px-4 py-2 text-xs;
-  }
-  
-  .crd-btn-lg {
-    @apply px-8 py-4 text-base;
-  }
-  
-  /* Professional Navigation */
+  /* Clean Navigation */
   .crd-nav {
-    @apply bg-crd-darker/95 backdrop-blur-md border-b border-crd-medium-dark/50;
+    @apply bg-crd-darker border-b border-crd-medium-dark;
   }
   
   .crd-nav-item {
@@ -84,27 +72,27 @@
     @apply bg-crd-orange text-white font-semibold;
   }
   
-  /* Modern Card System */
+  /* Clean Card System */
   .crd-card {
-    @apply bg-crd-dark/90 backdrop-blur-sm border border-crd-medium-dark rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-crd-light-medium;
+    @apply bg-crd-dark border border-crd-medium-dark rounded-xl overflow-hidden;
   }
   
   .crd-card-header {
-    @apply p-6 border-b border-crd-medium-dark/50 bg-gradient-to-r from-crd-dark to-crd-medium-dark;
+    @apply p-6 border-b border-crd-medium-dark;
   }
   
   .crd-card-content {
     @apply p-6;
   }
   
-  /* Enhanced Form Elements */
+  /* Clean Form Elements */
   .crd-input {
-    @apply w-full px-4 py-3 bg-crd-medium-dark/80 border border-crd-medium text-crd-lightest rounded-lg focus:outline-none focus:ring-2 focus:ring-crd-blue focus:border-crd-blue placeholder:text-crd-light transition-all duration-200 backdrop-blur-sm;
+    @apply w-full px-4 py-3 bg-crd-medium-dark border border-crd-medium text-crd-lightest rounded-lg focus:outline-none focus:ring-2 focus:ring-crd-blue focus:border-crd-blue placeholder:text-crd-light transition-all duration-200;
   }
   
-  /* Modern Filter System */
+  /* Clean Filter System */
   .crd-filter-group {
-    @apply flex items-center gap-1 p-1 bg-crd-medium-dark/80 backdrop-blur-sm rounded-lg border border-crd-medium;
+    @apply flex items-center gap-1 p-1 bg-crd-medium-dark rounded-lg border border-crd-medium;
   }
   
   .crd-filter-button {
@@ -112,12 +100,12 @@
   }
   
   .crd-filter-button-active {
-    @apply bg-crd-green text-crd-darkest font-semibold shadow-md;
+    @apply bg-crd-green text-crd-darkest font-semibold;
   }
   
-  /* Professional Tabs */
+  /* Clean Tabs */
   .crd-tabs {
-    @apply bg-crd-darker/90 backdrop-blur-sm border border-crd-medium-dark rounded-xl p-1;
+    @apply bg-crd-darker border border-crd-medium-dark rounded-xl p-1;
   }
   
   .crd-tab {
@@ -125,19 +113,19 @@
   }
   
   .crd-tab-active {
-    @apply bg-crd-green text-crd-darkest shadow-md;
+    @apply bg-crd-green text-crd-darkest;
   }
   
-  /* Enhanced Search */
+  /* Clean Search */
   .crd-search {
     @apply relative;
   }
   
   .crd-search-input {
-    @apply w-full pl-12 pr-4 py-3 bg-crd-medium-dark/80 border border-crd-medium text-crd-lightest rounded-lg focus:outline-none focus:ring-2 focus:ring-crd-blue focus:border-crd-blue placeholder:text-crd-light backdrop-blur-sm;
+    @apply w-full pl-12 pr-4 py-3 bg-crd-medium-dark border border-crd-medium text-crd-lightest rounded-lg focus:outline-none focus:ring-2 focus:ring-crd-blue focus:border-crd-blue placeholder:text-crd-light;
   }
   
-  /* Professional Layout */
+  /* Clean Layout */
   .crd-container {
     @apply container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl;
   }
@@ -146,27 +134,12 @@
     @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
   }
   
-  /* Mobile Optimizations */
-  @media (max-width: 768px) {
-    .crd-nav-mobile {
-      @apply fixed bottom-0 left-0 right-0 bg-crd-darker/95 backdrop-blur-md border-t border-crd-medium-dark p-2 z-50;
-    }
-    
-    .crd-nav-mobile-item {
-      @apply flex flex-col items-center p-3 text-xs text-crd-light hover:text-crd-lightest transition-colors rounded-lg;
-    }
-    
-    .crd-btn {
-      @apply min-h-[44px] min-w-[44px];
-    }
-  }
-  
-  /* Accessibility & Focus */
+  /* Clean Focus States */
   .crd-focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-crd-blue focus:ring-offset-2 focus:ring-offset-crd-darkest;
   }
   
-  /* Professional Badges */
+  /* Clean Badges */
   .crd-badge {
     @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
   }
