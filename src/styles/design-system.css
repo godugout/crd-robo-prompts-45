@@ -1,0 +1,155 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Unified CRD Design System */
+@layer base {
+  :root {
+    /* Unified Brand Colors */
+    --crd-orange: #EA6E48;
+    --crd-blue: #3772FF;
+    --crd-green: #45B26B;
+    --crd-purple: #9757D7;
+    --crd-gold: #FFD700;
+    
+    /* Neutral System - Improved Contrast */
+    --crd-darkest: #0F0F0F;
+    --crd-darker: #161618;
+    --crd-dark: #1E1E20;
+    --crd-medium-dark: #2A2A2E;
+    --crd-medium: #404048;
+    --crd-light-medium: #6B6B78;
+    --crd-light: #9A9AA8;
+    --crd-lighter: #C4C4D0;
+    --crd-lightest: #FCFCFD;
+    
+    /* Semantic Colors */
+    --crd-success: var(--crd-green);
+    --crd-warning: var(--crd-gold);
+    --crd-error: #FF4757;
+    --crd-info: var(--crd-blue);
+    
+    /* Interactive States */
+    --crd-hover-opacity: 0.9;
+    --crd-active-opacity: 0.8;
+    --crd-disabled-opacity: 0.5;
+    
+    /* Spacing Scale */
+    --space-xs: 0.25rem;  /* 4px */
+    --space-sm: 0.5rem;   /* 8px */
+    --space-md: 1rem;     /* 16px */
+    --space-lg: 1.5rem;   /* 24px */
+    --space-xl: 2rem;     /* 32px */
+    --space-2xl: 3rem;    /* 48px */
+    --space-3xl: 4rem;    /* 64px */
+  }
+}
+
+@layer components {
+  /* Unified Button System */
+  .crd-btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-crd-darkest disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .crd-btn-primary {
+    @apply crd-btn bg-crd-blue text-white hover:opacity-90 focus:ring-crd-blue;
+  }
+  
+  .crd-btn-secondary {
+    @apply crd-btn bg-crd-medium-dark text-crd-lightest border border-crd-medium hover:bg-crd-medium focus:ring-crd-medium;
+  }
+  
+  .crd-btn-outline {
+    @apply crd-btn bg-transparent text-crd-lightest border border-crd-medium hover:bg-crd-medium-dark hover:border-crd-light focus:ring-crd-blue;
+  }
+  
+  .crd-btn-ghost {
+    @apply crd-btn bg-transparent text-crd-light hover:bg-crd-medium-dark hover:text-crd-lightest focus:ring-crd-blue;
+  }
+  
+  .crd-btn-success {
+    @apply crd-btn bg-crd-green text-crd-darkest hover:opacity-90 focus:ring-crd-green;
+  }
+  
+  .crd-btn-sm {
+    @apply px-3 py-1.5 text-sm;
+  }
+  
+  .crd-btn-lg {
+    @apply px-6 py-3 text-lg;
+  }
+  
+  /* Navigation Components */
+  .crd-nav {
+    @apply bg-crd-darker border-b border-crd-medium-dark;
+  }
+  
+  .crd-nav-item {
+    @apply px-4 py-2 text-crd-light hover:text-crd-lightest hover:bg-crd-medium-dark transition-colors duration-200 rounded-md;
+  }
+  
+  .crd-nav-item-active {
+    @apply bg-crd-green text-crd-darkest font-medium;
+  }
+  
+  /* Card System */
+  .crd-card {
+    @apply bg-crd-dark border border-crd-medium-dark rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300;
+  }
+  
+  .crd-card-header {
+    @apply p-6 border-b border-crd-medium-dark;
+  }
+  
+  .crd-card-content {
+    @apply p-6;
+  }
+  
+  /* Form Elements */
+  .crd-input {
+    @apply w-full px-3 py-2 bg-crd-medium-dark border border-crd-medium text-crd-lightest rounded-lg focus:outline-none focus:ring-2 focus:ring-crd-blue focus:border-transparent placeholder:text-crd-light transition-all duration-200;
+  }
+  
+  /* Filter and Search Components */
+  .crd-filter-group {
+    @apply flex items-center gap-2 p-1 bg-crd-medium-dark rounded-lg;
+  }
+  
+  .crd-filter-button {
+    @apply px-3 py-1.5 text-sm text-crd-light hover:text-crd-lightest hover:bg-crd-medium rounded-md transition-all duration-200;
+  }
+  
+  .crd-filter-button-active {
+    @apply bg-crd-blue text-white font-medium;
+  }
+  
+  /* Responsive Design */
+  .crd-container {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .crd-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+  }
+  
+  /* Mobile-First Navigation */
+  @media (max-width: 768px) {
+    .crd-nav-mobile {
+      @apply fixed bottom-0 left-0 right-0 bg-crd-darker border-t border-crd-medium-dark p-2 z-50;
+    }
+    
+    .crd-nav-mobile-item {
+      @apply flex flex-col items-center p-2 text-xs text-crd-light hover:text-crd-lightest transition-colors;
+    }
+  }
+  
+  /* Accessibility Improvements */
+  .crd-focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-crd-blue focus:ring-offset-2 focus:ring-offset-crd-darkest;
+  }
+  
+  .crd-sr-only {
+    @apply sr-only;
+  }
+}

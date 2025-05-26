@@ -1,6 +1,5 @@
 
 /* Main entry point for all CSS files */
-@import './base.css';
-@import './components.css';
+@import './design-system.css';
 @import './utilities.css';
 @import './custom.css';

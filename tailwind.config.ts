@@ -13,7 +13,7 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: '2rem',
+      padding: '1rem',
       screens: {
         '2xl': '1400px'
       }
@@ -53,43 +53,71 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
         },
-        // CRD Design System
+        // Unified CRD Design System
         crd: {
-          // Base colors
-          darkest: '#121212',
-          dark: '#1A1A1A',
-          darkGray: '#23262F',
-          mediumGray: '#353945',
-          lightGray: '#777E90',
-          white: '#FCFCFD',
-          
           // Brand colors
           orange: '#EA6E48',
           blue: '#3772FF',
           green: '#45B26B',
           purple: '#9757D7',
           gold: '#FFD700',
+          
+          // Improved neutral system
+          darkest: '#0F0F0F',
+          darker: '#161618',
+          dark: '#1E1E20',
+          'medium-dark': '#2A2A2E',
+          medium: '#404048',
+          'light-medium': '#6B6B78',
+          light: '#9A9AA8',
+          lighter: '#C4C4D0',
+          lightest: '#FCFCFD',
+          
+          // Semantic colors
+          success: '#45B26B',
+          warning: '#FFD700',
+          error: '#FF4757',
+          info: '#3772FF',
         },
-        // Cardshow colors to match CSS variables
+        // Legacy support - will be deprecated
         cardshow: {
-          green: 'var(--cardshow-green)',
-          orange: 'var(--cardshow-orange)',
-          purple: 'var(--cardshow-purple)',
-          blue: 'var(--cardshow-blue)',
-          white: 'var(--cardshow-white)',
-          lightGray: 'var(--cardshow-lightGray)',
-          mediumGray: 'var(--cardshow-mediumGray)',
-          darkGray: 'var(--cardshow-darkGray)',
-          darkest: 'var(--cardshow-darkest)',
+          green: 'var(--crd-green)',
+          orange: 'var(--crd-orange)',
+          purple: 'var(--crd-purple)',
+          blue: 'var(--crd-blue)',
+          white: 'var(--crd-lightest)',
+          lightGray: 'var(--crd-light)',
+          mediumGray: 'var(--crd-medium)',
+          darkGray: 'var(--crd-medium-dark)',
+          darkest: 'var(--crd-darkest)',
         },
         // Editor colors
         editor: {
-          dark: 'var(--editor-dark)',
-          darker: 'var(--editor-darker)',
-          tool: 'var(--editor-tool)',
-          border: 'var(--editor-border)',
-          canvas: 'var(--editor-canvas)',
+          dark: '#1E1E20',
+          darker: '#161618',
+          tool: '#2A2A2E',
+          border: '#404048',
+          canvas: '#2C2C2C',
         },
+      },
+      spacing: {
+        'xs': '0.25rem',
+        'sm': '0.5rem', 
+        'md': '1rem',
+        'lg': '1.5rem',
+        'xl': '2rem',
+        '2xl': '3rem',
+        '3xl': '4rem',
+      },
+      fontSize: {
+        'xs': ['0.75rem', { lineHeight: '1rem' }],
+        'sm': ['0.875rem', { lineHeight: '1.25rem' }],
+        'base': ['1rem', { lineHeight: '1.5rem' }],
+        'lg': ['1.125rem', { lineHeight: '1.75rem' }],
+        'xl': ['1.25rem', { lineHeight: '1.75rem' }],
+        '2xl': ['1.5rem', { lineHeight: '2rem' }],
+        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
+        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -98,38 +126,20 @@ export default {
       },
       keyframes: {
         'accordion-down': {
-          from: {
-            height: '0'
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)'
-          }
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' }
         },
         'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)'
-          },
-          to: {
-            height: '0'
-          }
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' }
         },
         'fade-in': {
-          '0%': {
-            opacity: '0',
-            transform: 'translateY(10px)'
-          },
-          '100%': {
-            opacity: '1',
-            transform: 'translateY(0)'
-          }
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' }
         },
         'slide-in': {
-          '0%': {
-            transform: 'translateX(-100%)'
-          },
-          '100%': {
-            transform: 'translateX(0)'
-          }
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(0)' }
         }
       },
       animation: {
