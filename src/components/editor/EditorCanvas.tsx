@@ -15,26 +15,84 @@ export const EditorCanvas = ({ zoom, cardEditor, onAddElement }: EditorCanvasPro
   const [previewMode, setPreviewMode] = useState<'canvas' | 'preview' | 'photo'>('preview');
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
   const [currentPhoto, setCurrentPhoto] = useState<{file: File, preview: string} | null>(null);
+  
+  // Card state that responds to all sidebar changes
+  const [cardState, setCardState] = useState({
+    effects: {
+      brightness: 100,
+      contrast: 100,
+      saturation: 100,
+      filter: 'none',
+      holographic: false,
+      neonGlow: false,
+      vintage: false
+    },
+    template: {
+      id: 'template1',
+      colors: {
+        primary: '#16a085',
+        accent: '#eee',
+        background: '#1a1a2e'
+      }
+    },
+    photo: {
+      crop: { scale: 1, rotation: 0, offsetX: 0, offsetY: 0 },
+      filter: 'original'
+    }
+  });
 
-  // Listen for messages from sidebar to switch modes
+  // Listen for all sidebar events
   useEffect(() => {
-    const handlePreviewMode = (event: CustomEvent) => {
-      setPreviewMode('preview');
-    };
-
+    const handlePreviewMode = () => setPreviewMode('preview');
     const handlePhotoAction = (event: CustomEvent) => {
       const { action } = event.detail;
       if (action === 'upload') {
         setPreviewMode('photo');
+      } else if (action.startsWith('filter-')) {
+        const filterName = action.replace('filter-', '');
+        setCardState(prev => ({
+          ...prev,
+          photo: { ...prev.photo, filter: filterName }
+        }));
       }
+    };
+
+    const handleEffectChange = (event: CustomEvent) => {
+      const { effectType, value, enabled } = event.detail;
+      setCardState(prev => ({
+        ...prev,
+        effects: { ...prev.effects, [effectType]: enabled !== undefined ? enabled : value }
+      }));
+    };
+
+    const handleTemplateChange = (event: CustomEvent) => {
+      const { templateId, colors } = event.detail;
+      setCardState(prev => ({
+        ...prev,
+        template: { id: templateId, colors: colors || prev.template.colors }
+      }));
+    };
+
+    const handlePhotoCrop = (event: CustomEvent) => {
+      const { cropSettings } = event.detail;
+      setCardState(prev => ({
+        ...prev,
+        photo: { ...prev.photo, crop: cropSettings }
+      }));
     };
 
     window.addEventListener('switchToPreview' as any, handlePreviewMode);
     window.addEventListener('photoAction' as any, handlePhotoAction);
+    window.addEventListener('effectChange' as any, handleEffectChange);
+    window.addEventListener('templateChange' as any, handleTemplateChange);
+    window.addEventListener('photoCropChange' as any, handlePhotoCrop);
     
     return () => {
       window.removeEventListener('switchToPreview' as any, handlePreviewMode);
       window.removeEventListener('photoAction' as any, handlePhotoAction);
+      window.removeEventListener('effectChange' as any, handleEffectChange);
+      window.removeEventListener('templateChange' as any, handleTemplateChange);
+      window.removeEventListener('photoCropChange' as any, handlePhotoCrop);
     };
   }, []);
 
@@ -90,13 +148,14 @@ export const EditorCanvas = ({ zoom, cardEditor, onAddElement }: EditorCanvasPro
       {/* Main Canvas Area */}
       <div className="flex-1 flex items-center justify-center p-8">
         {previewMode === 'preview' && (
-          <InteractivePreview
+          <EnhancedInteractivePreview
             title={title}
             description={description}
             cardEditor={cardEditor}
             onElementSelect={setSelectedElement}
             selectedElement={selectedElement}
             currentPhoto={currentPhoto}
+            cardState={cardState}
           />
         )}
         
@@ -116,14 +175,15 @@ export const EditorCanvas = ({ zoom, cardEditor, onAddElement }: EditorCanvasPro
   );
 };
 
-// Updated interactive preview component with photo support
-const InteractivePreview = ({ 
+// Enhanced preview component that responds to all changes
+const EnhancedInteractivePreview = ({ 
   title, 
   description, 
   cardEditor, 
   onElementSelect, 
   selectedElement,
-  currentPhoto
+  currentPhoto,
+  cardState
 }: {
   title: string;
   description: string;
@@ -131,6 +191,7 @@ const InteractivePreview = ({
   onElementSelect: (element: string | null) => void;
   selectedElement: string | null;
   currentPhoto: {file: File, preview: string} | null;
+  cardState: any;
 }) => {
   const [editingText, setEditingText] = useState<{[key: string]: string}>({
     title,
@@ -144,21 +205,83 @@ const InteractivePreview = ({
     }
   };
 
+  // Build dynamic styles based on all applied settings
+  const getImageStyles = () => {
+    const { effects, photo } = cardState;
+    return {
+      filter: `
+        brightness(${effects.brightness}%) 
+        contrast(${effects.contrast}%) 
+        saturate(${effects.saturation}%)
+        ${effects.filter !== 'none' && effects.filter !== 'original' ? getFilterCSS(effects.filter) : ''}
+        ${photo.filter !== 'original' ? getFilterCSS(photo.filter) : ''}
+      `.trim(),
+      transform: `
+        scale(${photo.crop.scale}) 
+        rotate(${photo.crop.rotation}deg) 
+        translate(${photo.crop.offsetX}px, ${photo.crop.offsetY}px)
+      `,
+    };
+  };
+
+  const getFilterCSS = (filterName: string) => {
+    switch (filterName) {
+      case 'vintage': return 'sepia(0.5) saturate(1.2) contrast(0.8)';
+      case 'b&w': return 'grayscale(1)';
+      case 'sepia': return 'sepia(1)';
+      case 'vibrant': return 'saturate(1.5) contrast(1.1)';
+      case 'cool': return 'hue-rotate(180deg) saturate(1.1)';
+      default: return '';
+    }
+  };
+
+  const getCardStyles = () => {
+    const { template, effects } = cardState;
+    return {
+      backgroundColor: template.colors.background,
+      boxShadow: effects.neonGlow ? `0 0 20px ${template.colors.primary}` : undefined,
+      position: 'relative' as const,
+      overflow: 'hidden' as const,
+    };
+  };
+
   return (
     <div className="relative">
       <div 
-        className="relative bg-editor-canvas rounded-xl shadow-xl overflow-hidden"
-        style={{ width: 320, height: 420 }}
+        className="relative rounded-xl shadow-xl overflow-hidden"
+        style={{ width: 320, height: 420, ...getCardStyles() }}
       >
-        {/* Background image - either uploaded photo or default */}
+        {/* Background image with all effects applied */}
         <img 
           src={currentPhoto?.preview || "public/lovable-uploads/25cbcac9-64c0-4969-9baa-7a3fdf9eb00a.png"} 
           alt="Card preview" 
           className="w-full h-full object-cover"
+          style={getImageStyles()}
         />
+
+        {/* Holographic effect overlay */}
+        {cardState.effects.holographic && (
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-transparent to-cyan-500/20 animate-pulse pointer-events-none" />
+        )}
+
+        {/* Vintage effect overlay */}
+        {cardState.effects.vintage && (
+          <div className="absolute inset-0 bg-gradient-to-b from-amber-100/10 to-amber-900/10 pointer-events-none" />
+        )}
         
-        {/* Interactive text overlay */}
-        <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-4 backdrop-blur-sm">
+        {/* Template-styled header */}
+        <div 
+          className="absolute top-2 left-2 right-2 h-6 rounded flex items-center justify-center"
+          style={{ backgroundColor: cardState.template.colors.primary }}
+        >
+          <span className="text-white text-xs font-bold">FRAME HEADER</span>
+        </div>
+        
+        {/* Interactive text overlay with template colors */}
+        <div 
+          className="absolute bottom-0 left-0 right-0 p-4 backdrop-blur-sm"
+          style={{ backgroundColor: `${cardState.template.colors.background}CC` }}
+        >
           {/* Editable Title */}
           <div 
             className={`mb-2 ${selectedElement === 'title' ? 'ring-2 ring-crd-green rounded p-1' : ''}`}
@@ -175,7 +298,10 @@ const InteractivePreview = ({
                 onKeyDown={(e) => e.key === 'Enter' && onElementSelect(null)}
               />
             ) : (
-              <h3 className="text-white text-xl font-bold cursor-pointer hover:bg-white/10 rounded p-1">
+              <h3 
+                className="text-white text-xl font-bold cursor-pointer hover:bg-white/10 rounded p-1"
+                style={{ color: cardState.template.colors.accent }}
+              >
                 {editingText.title}
               </h3>
             )}
@@ -197,11 +323,22 @@ const InteractivePreview = ({
                 onBlur={() => onElementSelect(null)}
               />
             ) : (
-              <p className="text-gray-200 text-sm cursor-pointer hover:bg-white/10 rounded p-1 line-clamp-2">
+              <p 
+                className="text-gray-200 text-sm cursor-pointer hover:bg-white/10 rounded p-1 line-clamp-2"
+                style={{ color: `${cardState.template.colors.accent}CC` }}
+              >
                 {editingText.description}
               </p>
             )}
           </div>
+        </div>
+
+        {/* Footer with template styling */}
+        <div 
+          className="absolute bottom-2 left-2 right-2 h-4 rounded flex items-center justify-center"
+          style={{ backgroundColor: cardState.template.colors.accent }}
+        >
+          <span className="text-black text-xs">Template: {cardState.template.id}</span>
         </div>
 
         {/* Editing indicator */}
@@ -212,19 +349,24 @@ const InteractivePreview = ({
         )}
       </div>
 
-      {/* Editing instructions */}
-      <div className="mt-4 text-center">
+      {/* Status indicators */}
+      <div className="mt-4 text-center space-y-1">
         <p className="text-crd-lightGray text-sm">
           Click on text elements to edit them directly
         </p>
         {selectedElement && (
-          <p className="text-crd-green text-xs mt-1">
+          <p className="text-crd-green text-xs">
             Press Enter or click outside to finish editing
           </p>
         )}
+        {Object.values(cardState.effects).some(v => v !== 100 && v !== false && v !== 'none') && (
+          <p className="text-crd-purple text-xs">
+            Effects applied • Brightness: {cardState.effects.brightness}% • Contrast: {cardState.effects.contrast}%
+          </p>
+        )}
         {currentPhoto && (
-          <p className="text-crd-green text-xs mt-1">
-            Custom photo applied • Switch to Photo mode to edit
+          <p className="text-crd-green text-xs">
+            Custom photo applied • Filter: {cardState.photo.filter}
           </p>
         )}
       </div>

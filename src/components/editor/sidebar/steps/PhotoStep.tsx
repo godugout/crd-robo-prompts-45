@@ -19,6 +19,24 @@ export const PhotoStep = ({ selectedTemplate, searchQuery }: PhotoStepProps) => 
     toast.success(`${action} activated - use the center canvas to upload and edit`);
   };
 
+  const handleBrightnessChange = (value: number) => {
+    window.dispatchEvent(new CustomEvent('effectChange', {
+      detail: { effectType: 'brightness', value }
+    }));
+  };
+
+  const handleContrastChange = (value: number) => {
+    window.dispatchEvent(new CustomEvent('effectChange', {
+      detail: { effectType: 'contrast', value }
+    }));
+  };
+
+  const handleSaturationChange = (value: number) => {
+    window.dispatchEvent(new CustomEvent('effectChange', {
+      detail: { effectType: 'saturation', value }
+    }));
+  };
+
   return (
     <ScrollArea className="h-full px-4">
       <div className="space-y-6">
@@ -56,6 +74,46 @@ export const PhotoStep = ({ selectedTemplate, searchQuery }: PhotoStepProps) => 
               <RotateCw className="w-4 h-4 mr-2" />
               Auto Fit to Frame
             </Button>
+          </div>
+        </div>
+
+        {/* Photo Adjustments */}
+        <div className="space-y-4">
+          <h4 className="text-white font-medium text-sm uppercase tracking-wide">Adjustments</h4>
+          <div className="space-y-3">
+            <div>
+              <label className="text-white text-xs font-medium">Brightness</label>
+              <input
+                type="range"
+                min="50"
+                max="150"
+                defaultValue="100"
+                onChange={(e) => handleBrightnessChange(parseInt(e.target.value))}
+                className="w-full mt-1 accent-crd-green"
+              />
+            </div>
+            <div>
+              <label className="text-white text-xs font-medium">Contrast</label>
+              <input
+                type="range"
+                min="50"
+                max="150"
+                defaultValue="100"
+                onChange={(e) => handleContrastChange(parseInt(e.target.value))}
+                className="w-full mt-1 accent-crd-green"
+              />
+            </div>
+            <div>
+              <label className="text-white text-xs font-medium">Saturation</label>
+              <input
+                type="range"
+                min="0"
+                max="200"
+                defaultValue="100"
+                onChange={(e) => handleSaturationChange(parseInt(e.target.value))}
+                className="w-full mt-1 accent-crd-green"
+              />
+            </div>
           </div>
         </div>
 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -89,6 +88,21 @@ export const FramesStep = ({ selectedTemplate, onSelectTemplate, searchQuery }: 
   const filteredFrames = allFrames.filter(frame => 
     frame.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleTemplateSelect = (templateId: string) => {
+    onSelectTemplate(templateId);
+    
+    // Send template change event to main preview
+    const template = defaultFrames.find(t => t.id === templateId);
+    if (template) {
+      window.dispatchEvent(new CustomEvent('templateChange', {
+        detail: { 
+          templateId, 
+          colors: template.defaultStyle 
+        }
+      }));
+    }
+  };
 
   const handleImportCards = (cards: DetectedCard[]) => {
     const newFrames: Frame[] = cards.map((card, index) => ({
@@ -189,7 +203,7 @@ export const FramesStep = ({ selectedTemplate, onSelectTemplate, searchQuery }: 
                     ? 'ring-2 ring-crd-green shadow-lg scale-105' 
                     : 'hover:scale-102 hover:shadow-md'
                 }`}
-                onClick={() => onSelectTemplate(frame.id)}
+                onClick={() => handleTemplateSelect(frame.id)}
               >
                 {frame.category === 'imported' || frame.category === 'extracted' ? (
                   <div className="aspect-[3/4] relative">
