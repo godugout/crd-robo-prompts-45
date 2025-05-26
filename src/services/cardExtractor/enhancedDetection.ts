@@ -1,63 +1,68 @@
 
 import { CardRegion } from './types';
-import { DETECTION_CONFIG } from './config';
-import { tryBackgroundRemoval } from './backgroundRemovalService';
-import { tryFaceDetection } from './faceDetectionService';
-import { detectRegionsWithEdges, filterAndRankRegions } from './regionDetectionService';
-import { basicCardDetection } from './fallbackDetection';
+import { advancedCardDetection, DEFAULT_CONFIG } from './advancedDetection';
 
 export const enhancedCardDetection = async (image: HTMLImageElement, file: File): Promise<CardRegion[]> => {
   try {
-    console.log('Starting enhanced card detection...');
+    console.log('Starting enhanced card detection with advanced algorithms...');
     
-    // File size check
-    if (file.size > DETECTION_CONFIG.MAX_FILE_SIZE) {
-      console.warn('File too large, using fallback detection');
-      return await basicCardDetection(image, file);
-    }
-    
-    // Set processing timeout
-    const processingTimeout = new Promise<CardRegion[]>((resolve) => {
-      setTimeout(() => {
-        console.warn('Detection timeout, returning empty results');
-        resolve([]);
-      }, DETECTION_CONFIG.MAX_PROCESSING_TIME);
+    // Use the advanced detection system
+    const regions = await advancedCardDetection(image, file, {
+      ...DEFAULT_CONFIG,
+      aspectTolerance: 0.08, // Slightly more tolerance for initial detection
+      contrastThreshold: 0.5  // Lower threshold to catch more candidates
     });
     
-    const detectionPromise = performDetection(image, file);
+    console.log(`Enhanced detection completed: ${regions.length} regions found`);
+    return regions;
     
-    return await Promise.race([detectionPromise, processingTimeout]);
   } catch (error) {
     console.error('Enhanced detection failed:', error);
-    return await basicCardDetection(image, file);
+    
+    // Fallback to basic detection
+    return fallbackDetection(image);
   }
 };
 
-const performDetection = async (image: HTMLImageElement, file: File): Promise<CardRegion[]> => {
-  // Step 1: Try face detection
-  const faces = await tryFaceDetection(file);
-  console.log(`Face detection found ${faces.length} faces`);
+const fallbackDetection = (image: HTMLImageElement): CardRegion[] => {
+  console.log('Using fallback detection method...');
   
-  // Step 2: Try background removal if faces were found
-  let processedImage = image;
-  let backgroundRemoved = false;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return [];
+
+  canvas.width = image.width;
+  canvas.height = image.height;
+  ctx.drawImage(image, 0, 0);
+
+  // Simple grid-based detection for fallback
+  const regions: CardRegion[] = [];
+  const targetRatio = 2.5 / 3.5;
+  const minSize = Math.min(image.width, image.height) * 0.1;
+  const maxSize = Math.min(image.width, image.height) * 0.8;
   
-  if (faces.length > 0) {
-    const removedBgImage = await tryBackgroundRemoval(image);
-    if (removedBgImage) {
-      processedImage = removedBgImage;
-      backgroundRemoved = true;
-      console.log('Background removal successful');
+  // Create a few reasonable regions as fallback
+  const gridCols = 3;
+  const gridRows = 2;
+  
+  for (let row = 0; row < gridRows; row++) {
+    for (let col = 0; col < gridCols; col++) {
+      const width = maxSize * 0.6;
+      const height = width / targetRatio;
+      const x = (image.width / gridCols) * col + (image.width / gridCols - width) / 2;
+      const y = (image.height / gridRows) * row + (image.height / gridRows - height) / 2;
+      
+      if (x >= 0 && y >= 0 && x + width <= image.width && y + height <= image.height) {
+        regions.push({
+          x: Math.round(x),
+          y: Math.round(y),
+          width: Math.round(width),
+          height: Math.round(height),
+          confidence: 0.5
+        });
+      }
     }
   }
   
-  // Step 3: Detect regions with edge detection
-  const regions = await detectRegionsWithEdges(processedImage, faces, backgroundRemoved);
-  console.log(`Edge detection found ${regions.length} regions`);
-  
-  // Step 4: Filter and rank regions
-  const finalRegions = filterAndRankRegions(regions);
-  console.log(`Final filtered regions: ${finalRegions.length}`);
-  
-  return finalRegions;
+  return regions;
 };

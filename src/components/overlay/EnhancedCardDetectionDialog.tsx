@@ -2,7 +2,6 @@
 import React, { useCallback } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useEnhancedCardDetection } from './hooks/useEnhancedCardDetection';
-import { useCanvasInteractions } from './hooks/useCanvasInteractions';
 import { EnhancedDialogHeader } from './components/EnhancedDialogHeader';
 import { EnhancedDialogStepContent } from './components/EnhancedDialogStepContent';
 import type { ExtractedCard } from '@/services/cardExtractor';
@@ -22,36 +21,23 @@ export const EnhancedCardDetectionDialog = ({
     isProcessing,
     currentStep,
     originalImage,
-    detectedRegions,
-    selectedRegions,
+    detectedCards,
+    selectedCardId,
     isEditMode,
     extractedCards,
-    dragState,
+    activeMode,
     handleImageDrop,
     handleExtractCards,
     handleUseCards,
-    deleteSelectedRegions,
+    deleteSelectedCards,
     goBack,
     resetDialog,
-    setDetectedRegions,
-    setSelectedRegions,
+    setSelectedCardId,
     setIsEditMode,
-    setDragState
+    setActiveMode,
+    handleCardUpdate,
+    handleAdjustmentChange
   } = useEnhancedCardDetection(onCardsExtracted);
-
-  const {
-    handleCanvasMouseDown,
-    handleCanvasMouseMove,
-    handleCanvasMouseUp
-  } = useCanvasInteractions({
-    isEditMode,
-    originalImage,
-    detectedRegions,
-    dragState,
-    setSelectedRegions,
-    setDetectedRegions,
-    setDragState
-  });
 
   const handleClose = () => {
     resetDialog();
@@ -63,37 +49,43 @@ export const EnhancedCardDetectionDialog = ({
     handleClose();
   };
 
-  const handleRegionToggle = useCallback((regionId: string) => {
-    const newSelected = new Set(selectedRegions);
-    if (newSelected.has(regionId)) {
-      newSelected.delete(regionId);
-    } else {
-      newSelected.add(regionId);
+  const handleConfirmAdjustment = useCallback(() => {
+    setActiveMode(null);
+  }, [setActiveMode]);
+
+  const handleCancelAdjustment = useCallback(() => {
+    // Reset to original position/size
+    if (selectedCardId) {
+      const originalCard = detectedCards.find(c => c.id === selectedCardId);
+      if (originalCard) {
+        handleCardUpdate(selectedCardId, {
+          adjustment: {
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 140,
+            rotation: 0,
+            scale: 1
+          }
+        });
+      }
     }
-    setSelectedRegions(newSelected);
-  }, [selectedRegions, setSelectedRegions]);
-
-  const handleSelectAll = useCallback(() => {
-    setSelectedRegions(new Set(detectedRegions.map(r => r.id)));
-  }, [detectedRegions, setSelectedRegions]);
-
-  const handleClearSelection = useCallback(() => {
-    setSelectedRegions(new Set());
-  }, [setSelectedRegions]);
+    setActiveMode(null);
+  }, [selectedCardId, detectedCards, handleCardUpdate, setActiveMode]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-7xl h-[90vh] p-0 bg-gray-900 border-gray-700">
         <EnhancedDialogHeader
           currentStep={currentStep}
-          detectedRegionsCount={detectedRegions.length}
-          selectedRegionsCount={selectedRegions.size}
+          detectedRegionsCount={detectedCards.length}
+          selectedRegionsCount={selectedCardId ? 1 : 0}
           extractedCardsCount={extractedCards.length}
           isEditMode={isEditMode}
           isProcessing={isProcessing}
           onGoBack={goBack}
           onToggleEditMode={() => setIsEditMode(!isEditMode)}
-          onDeleteSelected={deleteSelectedRegions}
+          onDeleteSelected={deleteSelectedCards}
           onExtractCards={handleExtractCards}
           onUseCards={handleUseCardsAndClose}
         />
@@ -103,19 +95,17 @@ export const EnhancedCardDetectionDialog = ({
             currentStep={currentStep}
             isProcessing={isProcessing}
             originalImage={originalImage}
-            detectedRegions={detectedRegions}
-            selectedRegions={selectedRegions}
-            isEditMode={isEditMode}
-            dragState={dragState}
+            detectedCards={detectedCards}
+            selectedCardId={selectedCardId}
+            activeMode={activeMode}
             extractedCards={extractedCards}
             onImageDrop={handleImageDrop}
-            onRegionToggle={handleRegionToggle}
-            onCanvasMouseDown={handleCanvasMouseDown}
-            onCanvasMouseMove={handleCanvasMouseMove}
-            onCanvasMouseUp={handleCanvasMouseUp}
-            onSelectAll={handleSelectAll}
-            onClearSelection={handleClearSelection}
-            setSelectedRegions={setSelectedRegions}
+            onCardSelect={setSelectedCardId}
+            onCardUpdate={handleCardUpdate}
+            onAdjustmentChange={handleAdjustmentChange}
+            onConfirmAdjustment={handleConfirmAdjustment}
+            onCancelAdjustment={handleCancelAdjustment}
+            setActiveMode={setActiveMode}
           />
         </div>
       </DialogContent>
