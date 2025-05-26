@@ -16,35 +16,38 @@ export const useCardOperations = (
   const saveCard = async (): Promise<boolean> => {
     setIsSaving(true);
     try {
-      // For anonymous users, we'll allow creator_id to be null initially
-      // They can claim ownership later when they sign up
+      // Prepare the card data for saving
+      const cardToSave = {
+        id: cardData.id,
+        title: cardData.title,
+        description: cardData.description,
+        creator_id: user?.id || null, // Explicitly set to null for anonymous users
+        design_metadata: cardData.design_metadata,
+        image_url: cardData.image_url,
+        thumbnail_url: cardData.thumbnail_url,
+        rarity: cardData.rarity,
+        tags: cardData.tags,
+        is_public: cardData.is_public || false,
+        template_id: cardData.template_id && cardData.template_id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) ? cardData.template_id : null,
+        creator_attribution: cardData.creator_attribution,
+        publishing_options: cardData.publishing_options,
+        verification_status: 'pending' as const,
+        print_metadata: cardData.print_metadata
+      };
+
+      console.log('Attempting to save card:', { 
+        cardId: cardToSave.id, 
+        userId: user?.id, 
+        isAuthenticated: !!user 
+      });
+
       const { error } = await supabase
         .from('cards')
-        .upsert({
-          id: cardData.id,
-          title: cardData.title,
-          description: cardData.description,
-          creator_id: user?.id || null, // Allow null for anonymous users
-          design_metadata: cardData.design_metadata,
-          image_url: cardData.image_url,
-          thumbnail_url: cardData.thumbnail_url,
-          rarity: cardData.rarity,
-          tags: cardData.tags,
-          is_public: cardData.is_public || false,
-          template_id: cardData.template_id && cardData.template_id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) ? cardData.template_id : null,
-          creator_attribution: cardData.creator_attribution,
-          publishing_options: cardData.publishing_options,
-          verification_status: 'pending',
-          print_metadata: cardData.print_metadata
-        });
+        .upsert(cardToSave);
 
       if (error) {
         console.error('Error saving card:', error);
-        if (user) {
-          toast.error('Failed to save card to cloud');
-        } else {
-          toast.error('Failed to save card - try signing in for cloud sync');
-        }
+        toast.error('Failed to save card to cloud');
         return false;
       }
       
@@ -57,11 +60,7 @@ export const useCardOperations = (
       return true;
     } catch (error) {
       console.error('Error saving card:', error);
-      if (user) {
-        toast.error('Failed to save card to cloud');
-      } else {
-        toast.error('Failed to save card - try signing in for cloud sync');
-      }
+      toast.error('Failed to save card to cloud');
       return false;
     } finally {
       setIsSaving(false);
