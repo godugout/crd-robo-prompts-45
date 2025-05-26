@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { localCardStorage } from '@/lib/localCardStorage';
 
 export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type CardVisibility = 'private' | 'public' | 'shared';
@@ -51,7 +51,6 @@ export interface CardData {
   description?: string;
   type?: string;
   series?: string;
-  category?: string;
   rarity: CardRarity;
   tags: string[];
   image_url?: string;
@@ -86,7 +85,6 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     description: initialData.description || '',
     type: initialData.type || '',
     series: initialData.series || '',
-    category: initialData.category || '',
     image_url: initialData.image_url,
     thumbnail_url: initialData.thumbnail_url,
     rarity: initialData.rarity || 'common',
@@ -156,11 +154,6 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
   };
 
   const saveCard = async (): Promise<boolean> => {
-    if (!user) {
-      toast.error('Please sign in to save cards');
-      return false;
-    }
-
     if (!cardData.title.trim()) {
       toast.error('Please enter a card title');
       return false;
@@ -168,49 +161,35 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
 
     setIsSaving(true);
     try {
-      // Convert to database format with proper JSON fields
-      const cardToSave = {
+      // Save to local storage instead of database
+      const cardId = localCardStorage.saveCard({
         id: cardData.id,
         title: cardData.title.trim(),
         description: cardData.description,
-        type: cardData.type,
-        series: cardData.series,
-        category: cardData.category,
-        rarity: cardData.rarity,
-        tags: cardData.tags,
         image_url: cardData.image_url,
         thumbnail_url: cardData.thumbnail_url,
-        design_metadata: cardData.design_metadata as any,
-        visibility: cardData.visibility,
-        is_public: cardData.visibility === 'public',
-        shop_id: cardData.shop_id,
+        design_metadata: cardData.design_metadata,
+        rarity: cardData.rarity,
+        tags: cardData.tags,
         template_id: cardData.template_id,
-        collection_id: cardData.collection_id,
-        team_id: cardData.team_id,
-        creator_attribution: cardData.creator_attribution as any,
-        publishing_options: cardData.publishing_options as any,
-        verification_status: cardData.verification_status,
-        print_metadata: cardData.print_metadata as any,
-        creator_id: user.id
-      };
+        creator_attribution: cardData.creator_attribution,
+        publishing_options: cardData.publishing_options,
+        print_metadata: cardData.print_metadata || {},
+        is_public: cardData.is_public
+      });
 
-      const { error } = await supabase
-        .from('cards')
-        .upsert(cardToSave, { onConflict: 'id' });
-
-      if (error) {
-        console.error('Error saving card:', error);
-        toast.error('Failed to save card');
-        return false;
+      // Update the card ID if it was generated
+      if (cardId !== cardData.id) {
+        setCardData(prev => ({ ...prev, id: cardId }));
       }
 
       setLastSaved(new Date());
       setIsDirty(false);
-      toast.success('Card saved successfully');
+      toast.success('Card saved locally');
       return true;
     } catch (error) {
-      console.error('Error saving card:', error);
-      toast.error('Failed to save card');
+      console.error('Error saving card locally:', error);
+      toast.error('Failed to save card locally');
       return false;
     } finally {
       setIsSaving(false);
@@ -222,19 +201,18 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     if (!saved) return false;
 
     try {
-      const { error } = await supabase
-        .from('cards')
-        .update({ is_public: true, visibility: 'public' })
-        .eq('id', cardData.id);
-
-      if (error) {
-        toast.error('Failed to publish card');
-        return false;
-      }
-
+      // For local storage, just mark as public
       updateCardField('is_public', true);
       updateCardField('visibility', 'public');
-      toast.success('Card published successfully');
+      
+      // Update in local storage
+      localCardStorage.saveCard({
+        ...cardData,
+        is_public: true,
+        visibility: 'public'
+      });
+      
+      toast.success('Card published locally (will sync when online)');
       return true;
     } catch (error) {
       toast.error('Failed to publish card');

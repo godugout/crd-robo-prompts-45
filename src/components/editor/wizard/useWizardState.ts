@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useCardEditor, CardData } from '@/hooks/useCardEditor';
 import { DEFAULT_TEMPLATES } from './wizardConfig';
+import { localCardStorage } from '@/lib/localCardStorage';
 import type { WizardState, WizardHandlers } from './types';
 import type { CardAnalysisResult } from '@/services/cardAnalyzer';
 
@@ -44,7 +45,6 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
       updateCardField('description', analysis.description);
       updateCardField('rarity', analysis.rarity);
       updateCardField('tags', analysis.tags);
-      // Remove category field update since it doesn't exist in the database
       updateCardField('type', analysis.type);
       updateCardField('series', analysis.series);
       
@@ -98,7 +98,7 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
         const success = await saveCard();
         if (success) {
           onComplete(cardData);
-          toast.success('Card created successfully!');
+          toast.success('Card created and saved locally!');
         }
       } catch (error) {
         toast.error('Failed to create card');
