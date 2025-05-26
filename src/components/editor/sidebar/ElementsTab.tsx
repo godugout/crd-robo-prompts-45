@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Type, Upload, ArrowRight } from 'lucide-react';
+import { Type, Upload, ArrowRight, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Element {
@@ -28,7 +28,6 @@ export const ElementsTab = ({ searchQuery, onAddElement, onElementsComplete }: E
     subtitle: 'Subtitle text',
     description: 'Card description goes here...'
   });
-  const [selectedElement, setSelectedElement] = useState<string | null>('title');
 
   const elements: Element[] = [
     { id: 'circle', name: 'Circle', icon: '●', color: 'text-blue-400', type: 'shape' },
@@ -60,6 +59,17 @@ export const ElementsTab = ({ searchQuery, onAddElement, onElementsComplete }: E
       ...prev,
       [field]: value
     }));
+    
+    // Send update to the main preview area
+    window.dispatchEvent(new CustomEvent('cardTextUpdate', { 
+      detail: { field, value } 
+    }));
+  };
+
+  const switchToPreviewMode = () => {
+    // Signal the main canvas to switch to preview mode
+    window.dispatchEvent(new CustomEvent('switchToPreview'));
+    toast.success('Switched to preview mode - edit text directly on the card!');
   };
 
   return (
@@ -72,80 +82,58 @@ export const ElementsTab = ({ searchQuery, onAddElement, onElementsComplete }: E
           </p>
         </div>
 
-        {/* Real-time Text Editing */}
+        {/* Quick Text Edit Controls */}
         <div className="space-y-4">
-          <h4 className="text-white font-medium text-sm uppercase tracking-wide">Template Text</h4>
+          <div className="flex items-center justify-between">
+            <h4 className="text-white font-medium text-sm uppercase tracking-wide">Quick Text Edit</h4>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={switchToPreviewMode}
+              className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              Preview Mode
+            </Button>
+          </div>
           
-          {/* Live Preview Card */}
-          <div className="aspect-[3/4] bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl border border-editor-border relative overflow-hidden">
-            <div className="absolute inset-4 flex flex-col justify-between">
-              <div 
-                className={`cursor-pointer p-2 rounded ${selectedElement === 'title' ? 'bg-crd-green/20 border border-crd-green' : 'hover:bg-white/5'}`}
-                onClick={() => setSelectedElement('title')}
-              >
-                <h3 className="text-white font-bold text-lg leading-tight">{cardText.title}</h3>
-              </div>
-              
-              <div 
-                className={`cursor-pointer p-2 rounded ${selectedElement === 'subtitle' ? 'bg-crd-green/20 border border-crd-green' : 'hover:bg-white/5'}`}
-                onClick={() => setSelectedElement('subtitle')}
-              >
-                <p className="text-crd-lightGray text-sm">{cardText.subtitle}</p>
-              </div>
-              
-              <div 
-                className={`cursor-pointer p-2 rounded flex-1 ${selectedElement === 'description' ? 'bg-crd-green/20 border border-crd-green' : 'hover:bg-white/5'}`}
-                onClick={() => setSelectedElement('description')}
-              >
-                <p className="text-white text-xs leading-relaxed">{cardText.description}</p>
-              </div>
+          <div className="space-y-3">
+            <div>
+              <label className="text-white text-sm font-medium">Card Title</label>
+              <Input
+                value={cardText.title}
+                onChange={(e) => handleTextUpdate('title', e.target.value)}
+                className="mt-1 bg-editor-dark border-editor-border text-white"
+                placeholder="Enter card title..."
+              />
             </div>
             
-            {selectedElement && (
-              <div className="absolute top-2 right-2 bg-crd-green text-black text-xs px-2 py-1 rounded">
-                Editing: {selectedElement}
-              </div>
-            )}
+            <div>
+              <label className="text-white text-sm font-medium">Subtitle</label>
+              <Input
+                value={cardText.subtitle}
+                onChange={(e) => handleTextUpdate('subtitle', e.target.value)}
+                className="mt-1 bg-editor-dark border-editor-border text-white"
+                placeholder="Enter subtitle..."
+              />
+            </div>
+            
+            <div>
+              <label className="text-white text-sm font-medium">Description</label>
+              <Textarea
+                value={cardText.description}
+                onChange={(e) => handleTextUpdate('description', e.target.value)}
+                className="mt-1 bg-editor-dark border-editor-border text-white resize-none"
+                placeholder="Enter card description..."
+                rows={3}
+              />
+            </div>
           </div>
 
-          {/* Text Editing Controls */}
-          <div className="space-y-3">
-            {selectedElement === 'title' && (
-              <div>
-                <label className="text-white text-sm font-medium">Card Title</label>
-                <Input
-                  value={cardText.title}
-                  onChange={(e) => handleTextUpdate('title', e.target.value)}
-                  className="mt-1 bg-editor-dark border-editor-border text-white"
-                  placeholder="Enter card title..."
-                />
-              </div>
-            )}
-            
-            {selectedElement === 'subtitle' && (
-              <div>
-                <label className="text-white text-sm font-medium">Subtitle</label>
-                <Input
-                  value={cardText.subtitle}
-                  onChange={(e) => handleTextUpdate('subtitle', e.target.value)}
-                  className="mt-1 bg-editor-dark border-editor-border text-white"
-                  placeholder="Enter subtitle..."
-                />
-              </div>
-            )}
-            
-            {selectedElement === 'description' && (
-              <div>
-                <label className="text-white text-sm font-medium">Description</label>
-                <Textarea
-                  value={cardText.description}
-                  onChange={(e) => handleTextUpdate('description', e.target.value)}
-                  className="mt-1 bg-editor-dark border-editor-border text-white resize-none"
-                  placeholder="Enter card description..."
-                  rows={3}
-                />
-              </div>
-            )}
+          <div className="p-3 bg-crd-green/10 border border-crd-green/30 rounded-lg">
+            <p className="text-crd-green text-xs">
+              💡 Tip: Use Preview Mode to edit text directly on the card for real-time visual feedback!
+            </p>
           </div>
         </div>
 
