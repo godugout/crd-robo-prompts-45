@@ -51,7 +51,7 @@ export const CustomSignInForm: React.FC = () => {
 
         <CRDButton
           type="submit"
-          variant="primary"
+          variant="outline"
           size="lg"
           className="w-full"
           disabled={isLoading || !username || !passcode || passcode.length < 4}
@@ -62,7 +62,7 @@ export const CustomSignInForm: React.FC = () => {
 
       <div className="text-center">
         <span className="text-crd-lightGray">Don't have an account? </span>
-        <Link to="/auth/signup" className="text-crd-blue hover:text-crd-blue/80">
+        <Link to="/auth/signup" className="text-crd-lightGray hover:text-crd-white underline">
           Sign up
         </Link>
       </div>

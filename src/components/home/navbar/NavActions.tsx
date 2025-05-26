@@ -2,7 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
+import { CRDButton } from "@/components/ui/design-system";
 
 export const NavActions = () => {
   const { user, signOut } = useAuth();
@@ -11,13 +11,13 @@ export const NavActions = () => {
     return (
       <div className="flex items-center gap-4">
         <span className="text-crd-lightGray text-sm">Welcome, {user.email}</span>
-        <Button
+        <CRDButton
           onClick={signOut}
-          variant="outline"
-          className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
+          variant="ghost"
+          size="sm"
         >
           Sign Out
-        </Button>
+        </CRDButton>
       </div>
     );
   }
@@ -25,12 +25,12 @@ export const NavActions = () => {
   return (
     <div className="flex items-center gap-4">
       <Link to="/auth">
-        <Button
+        <CRDButton
           variant="outline"
-          className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
+          size="sm"
         >
           Sign In
-        </Button>
+        </CRDButton>
       </Link>
     </div>
   );

@@ -69,14 +69,14 @@ export const SignInForm: React.FC = () => {
         <div className="flex justify-between items-center">
           <Link 
             to="/auth/magic-link" 
-            className="text-sm text-crd-blue hover:text-crd-blue/80 flex items-center"
+            className="text-sm text-crd-lightGray hover:text-crd-white flex items-center"
           >
             <Sparkles className="h-3 w-3 mr-1" />
             Magic link
           </Link>
           <Link 
             to="/auth/forgot-password" 
-            className="text-sm text-crd-blue hover:text-crd-blue/80"
+            className="text-sm text-crd-lightGray hover:text-crd-white"
           >
             Forgot password?
           </Link>
@@ -84,7 +84,7 @@ export const SignInForm: React.FC = () => {
 
         <CRDButton
           type="submit"
-          variant="primary"
+          variant="outline"
           size="lg"
           className="w-full"
           disabled={isLoading || !formData.email || !formData.password}
@@ -95,7 +95,7 @@ export const SignInForm: React.FC = () => {
 
       <div className="text-center">
         <span className="text-crd-lightGray">Don't have an account? </span>
-        <Link to="/auth/signup" className="text-crd-blue hover:text-crd-blue/80">
+        <Link to="/auth/signup" className="text-crd-lightGray hover:text-crd-white underline">
           Sign up
         </Link>
       </div>

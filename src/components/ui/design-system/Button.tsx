@@ -11,13 +11,13 @@ const buttonVariants = cva(
       variant: {
         // CRD Design System variants
         primary: "bg-crd-blue text-crd-white hover:bg-opacity-90",
-        secondary: "bg-transparent border border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray/50",
-        outline: "bg-crd-dark text-crd-white border border-crd-mediumGray hover:border-crd-blue hover:text-crd-blue",
+        secondary: "bg-crd-lightGray text-crd-darkest hover:bg-opacity-90",
+        outline: "bg-transparent border border-crd-lightGray text-crd-lightGray hover:border-crd-white hover:text-crd-white hover:bg-crd-lightGray/10",
+        ghost: "bg-transparent text-crd-lightGray hover:bg-crd-mediumGray/20 hover:text-crd-white",
         action: "p-3 rounded-full border-2 border-crd-mediumGray bg-transparent hover:bg-crd-mediumGray/10",
         // Standard variants
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
