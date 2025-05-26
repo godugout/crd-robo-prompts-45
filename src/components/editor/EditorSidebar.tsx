@@ -1,13 +1,12 @@
 
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { Search, Grid, Shapes, Sparkles, Camera, Eye } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FramesTab } from './sidebar/FramesTab';
-import { ElementsTab } from './sidebar/ElementsTab';
-import { EffectsTab } from './sidebar/EffectsTab';
-import { PhotoTab } from './sidebar/PhotoTab';
-import { PreviewTab } from './sidebar/PreviewTab';
+import { Search } from 'lucide-react';
+import { FramesStep } from './sidebar/steps/FramesStep';
+import { ElementsStep } from './sidebar/steps/ElementsStep';
+import { PreviewStep } from './sidebar/steps/PreviewStep';
+import { EffectsStep } from './sidebar/steps/EffectsStep';
+import { PhotoStep } from './sidebar/steps/PhotoStep';
 
 interface EditorSidebarProps {
   selectedTemplate: string;
@@ -15,13 +14,29 @@ interface EditorSidebarProps {
   onAddElement?: (elementType: string, elementId: string) => void;
 }
 
+type WorkflowStep = 'frames' | 'elements' | 'preview' | 'effects' | 'photo';
+
 export const EditorSidebar = ({ 
   selectedTemplate, 
   onSelectTemplate, 
   onAddElement 
 }: EditorSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentStep, setCurrentStep] = useState<'frames' | 'elements' | 'preview' | 'effects' | 'photo'>('frames');
+  const [currentStep, setCurrentStep] = useState<WorkflowStep>('frames');
+
+  const steps = [
+    { key: 'frames' as const, label: '1', title: 'Frame', description: 'Choose template' },
+    { key: 'elements' as const, label: '2', title: 'Elements', description: 'Add & edit content' },
+    { key: 'preview' as const, label: '3', title: 'Preview', description: 'Review design' },
+    { key: 'effects' as const, label: '4', title: 'Effects', description: 'Add visual effects' },
+    { key: 'photo' as const, label: '5', title: 'Photo', description: 'Replace content' }
+  ];
+
+  const handleStepComplete = (nextStep: WorkflowStep) => {
+    setCurrentStep(nextStep);
+  };
+
+  const currentStepInfo = steps.find(step => step.key === currentStep);
 
   return (
     <div className="w-80 bg-editor-darker border-r border-editor-border flex flex-col rounded-xl">
@@ -30,7 +45,7 @@ export const EditorSidebar = ({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
-            placeholder="Search design elements..."
+            placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 bg-editor-dark border-editor-border text-white rounded-xl"
@@ -38,104 +53,84 @@ export const EditorSidebar = ({
         </div>
       </div>
 
-      {/* Workflow Steps Header */}
+      {/* Workflow Progress */}
       <div className="px-4 py-3 border-b border-editor-border">
-        <h3 className="text-white font-medium text-sm uppercase tracking-wide mb-2">Creation Workflow</h3>
-        <div className="flex items-center space-x-1">
-          {[
-            { key: 'frames', label: '1', desc: 'Template' },
-            { key: 'elements', label: '2', desc: 'Elements' },
-            { key: 'preview', label: '3', desc: 'Preview' },
-            { key: 'effects', label: '4', desc: 'Effects' },
-            { key: 'photo', label: '5', desc: 'Photo' }
-          ].map((step, index) => (
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-white font-medium text-sm uppercase tracking-wide">Card Creation</h3>
+          <span className="text-crd-lightGray text-xs">Step {currentStepInfo?.label} of 5</span>
+        </div>
+        
+        <div className="flex items-center space-x-1 mb-2">
+          {steps.map((step, index) => (
             <div key={step.key} className="flex items-center">
-              <div 
-                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+              <button
+                onClick={() => setCurrentStep(step.key)}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                   currentStep === step.key 
                     ? 'bg-crd-green text-black' 
-                    : 'bg-editor-tool text-gray-400'
+                    : 'bg-editor-tool text-gray-400 hover:bg-editor-border'
                 }`}
               >
                 {step.label}
-              </div>
-              {index < 4 && <div className="w-2 h-px bg-editor-border ml-1"></div>}
+              </button>
+              {index < steps.length - 1 && (
+                <div className={`w-4 h-px mx-1 ${
+                  steps.findIndex(s => s.key === currentStep) > index 
+                    ? 'bg-crd-green' 
+                    : 'bg-editor-border'
+                }`}></div>
+              )}
             </div>
           ))}
         </div>
+        
+        <div className="text-center">
+          <h4 className="text-white font-medium text-sm">{currentStepInfo?.title}</h4>
+          <p className="text-crd-lightGray text-xs">{currentStepInfo?.description}</p>
+        </div>
       </div>
       
-      {/* Tabbed Content */}
+      {/* Step Content */}
       <div className="flex-1 overflow-hidden">
-        <Tabs value={currentStep} onValueChange={(value) => setCurrentStep(value as any)} className="h-full flex flex-col">
-          <TabsList className="mx-4 mt-4 bg-editor-dark grid grid-cols-5">
-            <TabsTrigger value="frames" className="text-xs">
-              <Grid className="w-3 h-3 mr-1" />
-              Frames
-            </TabsTrigger>
-            <TabsTrigger value="elements" className="text-xs">
-              <Shapes className="w-3 h-3 mr-1" />
-              Elements
-            </TabsTrigger>
-            <TabsTrigger value="preview" className="text-xs">
-              <Eye className="w-3 h-3 mr-1" />
-              Preview
-            </TabsTrigger>
-            <TabsTrigger value="effects" className="text-xs">
-              <Sparkles className="w-3 h-3 mr-1" />
-              Effects
-            </TabsTrigger>
-            <TabsTrigger value="photo" className="text-xs">
-              <Camera className="w-3 h-3 mr-1" />
-              Photo
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Frames Tab */}
-          <TabsContent value="frames" className="flex-1 mt-4">
-            <FramesTab 
-              selectedTemplate={selectedTemplate}
-              onSelectTemplate={(templateId) => {
-                onSelectTemplate(templateId);
-                setCurrentStep('elements'); // Auto-advance to next step
-              }}
-              searchQuery={searchQuery}
-            />
-          </TabsContent>
-
-          {/* Elements Tab */}
-          <TabsContent value="elements" className="flex-1 mt-4">
-            <ElementsTab 
-              searchQuery={searchQuery} 
-              onAddElement={onAddElement}
-              onElementsComplete={() => setCurrentStep('preview')} // Auto-advance to preview
-            />
-          </TabsContent>
-
-          {/* Preview Tab */}
-          <TabsContent value="preview" className="flex-1 mt-4">
-            <PreviewTab 
-              selectedTemplate={selectedTemplate}
-              onContinueToEffects={() => setCurrentStep('effects')}
-            />
-          </TabsContent>
-
-          {/* Effects Tab */}
-          <TabsContent value="effects" className="flex-1 mt-4">
-            <EffectsTab 
-              searchQuery={searchQuery}
-              onEffectsComplete={() => setCurrentStep('photo')} // Auto-advance to photo
-            />
-          </TabsContent>
-
-          {/* Photo Tab */}
-          <TabsContent value="photo" className="flex-1 mt-4">
-            <PhotoTab 
-              selectedTemplate={selectedTemplate}
-              searchQuery={searchQuery}
-            />
-          </TabsContent>
-        </Tabs>
+        {currentStep === 'frames' && (
+          <FramesStep 
+            selectedTemplate={selectedTemplate}
+            onSelectTemplate={(templateId) => {
+              onSelectTemplate(templateId);
+              handleStepComplete('elements');
+            }}
+            searchQuery={searchQuery}
+          />
+        )}
+        
+        {currentStep === 'elements' && (
+          <ElementsStep 
+            searchQuery={searchQuery} 
+            onAddElement={onAddElement}
+            onElementsComplete={() => handleStepComplete('preview')}
+          />
+        )}
+        
+        {currentStep === 'preview' && (
+          <PreviewStep 
+            selectedTemplate={selectedTemplate}
+            onContinueToEffects={() => handleStepComplete('effects')}
+          />
+        )}
+        
+        {currentStep === 'effects' && (
+          <EffectsStep 
+            searchQuery={searchQuery}
+            onEffectsComplete={() => handleStepComplete('photo')}
+          />
+        )}
+        
+        {currentStep === 'photo' && (
+          <PhotoStep 
+            selectedTemplate={selectedTemplate}
+            searchQuery={searchQuery}
+          />
+        )}
       </div>
     </div>
   );
