@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import type { ManualRegion, DragState } from './types';
 
@@ -45,6 +46,7 @@ export const useCanvasInteractions = ({
         y,
         width: 0,
         height: 0,
+        confidence: 1.0,
         isManual: true
       };
       

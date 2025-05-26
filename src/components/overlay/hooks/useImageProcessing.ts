@@ -54,6 +54,7 @@ export const useImageProcessing = () => {
         y: region.y,
         width: region.width,
         height: region.height,
+        confidence: region.confidence,
         isManual: false
       }));
       
