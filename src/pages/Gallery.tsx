@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -13,6 +14,8 @@ import { useCards } from '@/hooks/useCards';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCreators } from '@/hooks/useCreators';
 import { Filter } from 'lucide-react';
+import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
+import { toast } from 'sonner';
 
 const GallerySection = ({ 
   title, 
@@ -29,9 +32,52 @@ const GallerySection = ({
 
 const Gallery = () => {
   const [activeTab, setActiveTab] = useState('featured');
+  const [selectedCard, setSelectedCard] = useState<any>(null);
+  const [showImmersiveViewer, setShowImmersiveViewer] = useState(false);
+  
   const { collections, loading: collectionsLoading } = useAllCollections(1, 3);
   const { featuredCards, loading: cardsLoading } = useCards();
   const { popularCreators, loading: creatorsLoading } = useCreators();
+
+  const handleCardClick = (card: any) => {
+    setSelectedCard(card);
+    setShowImmersiveViewer(true);
+  };
+
+  const handleCloseViewer = () => {
+    setShowImmersiveViewer(false);
+    setSelectedCard(null);
+  };
+
+  const handleShareCard = () => {
+    if (selectedCard) {
+      const shareUrl = `${window.location.origin}/card/${selectedCard.id}`;
+      
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrl)
+          .then(() => toast.success('Card link copied to clipboard'))
+          .catch(() => toast.error('Failed to copy link'));
+      } else {
+        toast.error('Sharing not supported in this browser');
+      }
+    }
+  };
+
+  const handleDownloadCard = () => {
+    if (selectedCard) {
+      const dataStr = JSON.stringify(selectedCard, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${selectedCard.title.replace(/\s+/g, '_')}_card.json`;
+      link.click();
+      
+      URL.revokeObjectURL(url);
+      toast.success('Card exported successfully');
+    }
+  };
 
   return (
     <div className="container mx-auto p-6 max-w-7xl bg-[#121212]">
@@ -146,10 +192,14 @@ const Gallery = () => {
                       <Skeleton key={i} className="h-64 rounded-lg" />
                     ))
                   ) : featuredCards && featuredCards.length > 0 ? (
-                    featuredCards.slice(0, 4).map((card, index) => (
-                      <Card key={card.id} className="bg-[#23262F] border-[#353945] overflow-hidden">
+                    featuredCards.slice(0, 8).map((card, index) => (
+                      <Card 
+                        key={card.id} 
+                        className="bg-[#23262F] border-[#353945] overflow-hidden cursor-pointer hover:border-[#3772FF] transition-colors group"
+                        onClick={() => handleCardClick(card)}
+                      >
                         <div 
-                          className="h-48 bg-cover bg-center"
+                          className="h-48 bg-cover bg-center group-hover:scale-105 transition-transform"
                           style={{ 
                             backgroundImage: card.image_url 
                               ? `url(${card.image_url})` 
@@ -157,10 +207,29 @@ const Gallery = () => {
                           }}
                         ></div>
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-[#FCFCFD] text-lg">{card.title}</CardTitle>
+                          <CardTitle className="text-[#FCFCFD] text-lg group-hover:text-[#3772FF] transition-colors">{card.title}</CardTitle>
                         </CardHeader>
+                        <CardContent className="pb-2">
+                          <p className="text-[#777E90] text-sm line-clamp-2">{card.description}</p>
+                          {card.rarity && (
+                            <div className="mt-2">
+                              <span className="inline-block bg-[#3772FF] text-white text-xs px-2 py-1 rounded">
+                                {card.rarity}
+                              </span>
+                            </div>
+                          )}
+                        </CardContent>
                         <CardFooter>
-                          <Button variant="outline" className="w-full border-[#353945] text-white hover:bg-[#353945]">View Card</Button>
+                          <Button 
+                            variant="outline" 
+                            className="w-full border-[#353945] text-white hover:bg-[#3772FF] hover:border-[#3772FF] transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCardClick(card);
+                            }}
+                          >
+                            View in 3D
+                          </Button>
                         </CardFooter>
                       </Card>
                     ))
@@ -185,6 +254,20 @@ const Gallery = () => {
           </Tabs>
         </div>
       </div>
+
+      {/* Immersive Card Viewer */}
+      {showImmersiveViewer && selectedCard && (
+        <ImmersiveCardViewer
+          card={selectedCard}
+          isOpen={showImmersiveViewer}
+          onClose={handleCloseViewer}
+          onShare={handleShareCard}
+          onDownload={handleDownloadCard}
+          allowRotation={true}
+          showStats={true}
+          ambient={true}
+        />
+      )}
     </div>
   );
 };
