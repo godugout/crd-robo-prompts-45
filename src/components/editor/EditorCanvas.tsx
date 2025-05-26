@@ -100,7 +100,7 @@ const InteractivePreview = ({
   const handleTextChange = (field: string, value: string) => {
     setEditingText(prev => ({ ...prev, [field]: value }));
     if (cardEditor) {
-      cardEditor.updateCardData({ [field]: value });
+      cardEditor.updateCardField(field as keyof typeof cardEditor.cardData, value);
     }
   };
 
