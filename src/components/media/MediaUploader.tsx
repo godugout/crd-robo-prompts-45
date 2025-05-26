@@ -49,12 +49,9 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     }
   };
   
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
+  const handleFileSelect = (files: File[]) => {
+    if (files.length > 0) {
+      const file = files[0];
       setSelectedFile(file);
       createPreview(file);
     }
@@ -112,7 +109,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
         <DropZone
           onBrowse={handleBrowseClick}
           onCamera={handleCameraClick}
-          onDrop={handleDrop}
+          onFileSelect={handleFileSelect}
         />
       ) : (
         <MediaPreview

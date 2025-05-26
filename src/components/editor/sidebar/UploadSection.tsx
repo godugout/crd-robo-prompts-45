@@ -18,20 +18,6 @@ export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      handleFileSelection(acceptedFiles[0]);
-    }
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': []
-    },
-    maxFiles: 1
-  });
-
   const handleFileSelection = (file: File) => {
     setFileToUpload(file);
     
@@ -44,12 +30,6 @@ export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
     toast.success('File selected', { 
       description: file.name
     });
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleFileSelection(e.target.files[0]);
-    }
   };
 
   const handleUpload = async () => {
@@ -104,12 +84,7 @@ export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
   return (
     <div className="space-y-4">
       {!fileToUpload ? (
-        <DropZone
-          isDragActive={isDragActive}
-          getRootProps={getRootProps}
-          getInputProps={getInputProps}
-          onFileChange={handleFileChange}
-        />
+        <DropZone onFileSelect={handleFileSelection} />
       ) : (
         <FilePreview
           file={fileToUpload}
