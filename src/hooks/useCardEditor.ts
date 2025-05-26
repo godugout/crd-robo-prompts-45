@@ -104,7 +104,7 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     onTagRemoved: (tag) => updateCardField('tags', cardData.tags.filter(t => t !== tag))
   });
 
-  const { saveCard, publishCard, isSaving, lastSaved } = useCardOperations(
+  const { saveCard: saveCardToServer, publishCard, isSaving, lastSaved } = useCardOperations(
     cardData,
     updateCardData
   );
@@ -124,12 +124,27 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     }
   }, [lastSaveTime]);
 
+  // Create a saveCard function that returns a Promise<boolean>
+  const saveCard = async (): Promise<boolean> => {
+    try {
+      // Force sync to server and use the server save function
+      const success = await saveCardToServer();
+      if (success) {
+        setIsDirty(false);
+      }
+      return success;
+    } catch (error) {
+      console.error('Error saving card:', error);
+      return false;
+    }
+  };
+
   return {
     cardData,
     updateCardData,
     updateCardField,
     updateDesignMetadata,
-    saveCard: forceSyncToServer, // Manual save now forces sync to server
+    saveCard,
     publishCard,
     isLoading: false,
     isSaving,
