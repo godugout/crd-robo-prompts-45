@@ -23,7 +23,8 @@ export const useCardOperations = (cardData: CardData, updateCardData: (data: Par
             rarity: cardData.rarity,
             tags: cardData.tags,
             shop_id: cardData.shop_id,
-            template_id: cardData.template_id,
+            // Only include template_id if it's a valid UUID format
+            template_id: cardData.template_id && cardData.template_id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) ? cardData.template_id : null,
             marketplace_listing: cardData.publishing_options.marketplace_listing,
             crd_catalog_inclusion: cardData.publishing_options.crd_catalog_inclusion,
             print_available: cardData.publishing_options.print_available,
@@ -61,7 +62,8 @@ export const useCardOperations = (cardData: CardData, updateCardData: (data: Par
             tags: cardData.tags || [],
             is_public: cardData.visibility === 'public',
             shop_id: cardData.shop_id,
-            template_id: cardData.template_id,
+            // Only include template_id if it's a valid UUID format
+            template_id: cardData.template_id && cardData.template_id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) ? cardData.template_id : null,
             marketplace_listing: cardData.publishing_options.marketplace_listing || false,
             crd_catalog_inclusion: cardData.publishing_options.crd_catalog_inclusion !== false,
             print_available: cardData.publishing_options.print_available || false,
