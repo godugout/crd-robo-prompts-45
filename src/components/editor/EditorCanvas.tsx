@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { SimplifiedCanvas } from './canvas/SimplifiedCanvas';
 import { CanvasPreviewArea } from './canvas/CanvasPreviewArea';
+import { PhotoUploadCanvas } from './canvas/PhotoUploadCanvas';
 import { useCardEditor } from '@/hooks/useCardEditor';
 
 interface EditorCanvasProps {
@@ -11,21 +12,41 @@ interface EditorCanvasProps {
 }
 
 export const EditorCanvas = ({ zoom, cardEditor, onAddElement }: EditorCanvasProps) => {
-  const [previewMode, setPreviewMode] = useState<'canvas' | 'preview'>('preview');
+  const [previewMode, setPreviewMode] = useState<'canvas' | 'preview' | 'photo'>('preview');
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
+  const [currentPhoto, setCurrentPhoto] = useState<{file: File, preview: string} | null>(null);
 
-  // Listen for messages from sidebar to switch to preview mode
+  // Listen for messages from sidebar to switch modes
   useEffect(() => {
     const handlePreviewMode = (event: CustomEvent) => {
       setPreviewMode('preview');
     };
 
+    const handlePhotoAction = (event: CustomEvent) => {
+      const { action } = event.detail;
+      if (action === 'upload') {
+        setPreviewMode('photo');
+      }
+    };
+
     window.addEventListener('switchToPreview' as any, handlePreviewMode);
-    return () => window.removeEventListener('switchToPreview' as any, handlePreviewMode);
+    window.addEventListener('photoAction' as any, handlePhotoAction);
+    
+    return () => {
+      window.removeEventListener('switchToPreview' as any, handlePreviewMode);
+      window.removeEventListener('photoAction' as any, handlePhotoAction);
+    };
   }, []);
 
   const title = cardEditor?.cardData.title || 'Card Title';
   const description = cardEditor?.cardData.description || 'Card description goes here...';
+
+  const handlePhotoSelect = (file: File, preview: string) => {
+    setCurrentPhoto({ file, preview });
+    if (cardEditor) {
+      cardEditor.updateCardField('image_url', preview);
+    }
+  };
 
   return (
     <div className="flex-1 bg-editor-dark rounded-xl flex flex-col">
@@ -44,6 +65,16 @@ export const EditorCanvas = ({ zoom, cardEditor, onAddElement }: EditorCanvasPro
             Preview
           </button>
           <button
+            onClick={() => setPreviewMode('photo')}
+            className={`px-3 py-1 rounded text-sm ${
+              previewMode === 'photo' 
+                ? 'bg-crd-green text-black' 
+                : 'bg-editor-tool text-white hover:bg-editor-border'
+            }`}
+          >
+            Photo
+          </button>
+          <button
             onClick={() => setPreviewMode('canvas')}
             className={`px-3 py-1 rounded text-sm ${
               previewMode === 'canvas' 
@@ -58,15 +89,22 @@ export const EditorCanvas = ({ zoom, cardEditor, onAddElement }: EditorCanvasPro
 
       {/* Main Canvas Area */}
       <div className="flex-1 flex items-center justify-center p-8">
-        {previewMode === 'preview' ? (
+        {previewMode === 'preview' && (
           <InteractivePreview
             title={title}
             description={description}
             cardEditor={cardEditor}
             onElementSelect={setSelectedElement}
             selectedElement={selectedElement}
+            currentPhoto={currentPhoto}
           />
-        ) : (
+        )}
+        
+        {previewMode === 'photo' && (
+          <PhotoUploadCanvas onPhotoSelect={handlePhotoSelect} />
+        )}
+        
+        {previewMode === 'canvas' && (
           <SimplifiedCanvas 
             zoom={zoom} 
             cardEditor={cardEditor}
@@ -78,19 +116,21 @@ export const EditorCanvas = ({ zoom, cardEditor, onAddElement }: EditorCanvasPro
   );
 };
 
-// New interactive preview component for the middle column
+// Updated interactive preview component with photo support
 const InteractivePreview = ({ 
   title, 
   description, 
   cardEditor, 
   onElementSelect, 
-  selectedElement 
+  selectedElement,
+  currentPhoto
 }: {
   title: string;
   description: string;
   cardEditor?: ReturnType<typeof useCardEditor>;
   onElementSelect: (element: string | null) => void;
   selectedElement: string | null;
+  currentPhoto: {file: File, preview: string} | null;
 }) => {
   const [editingText, setEditingText] = useState<{[key: string]: string}>({
     title,
@@ -110,8 +150,9 @@ const InteractivePreview = ({
         className="relative bg-editor-canvas rounded-xl shadow-xl overflow-hidden"
         style={{ width: 320, height: 420 }}
       >
+        {/* Background image - either uploaded photo or default */}
         <img 
-          src="public/lovable-uploads/25cbcac9-64c0-4969-9baa-7a3fdf9eb00a.png" 
+          src={currentPhoto?.preview || "public/lovable-uploads/25cbcac9-64c0-4969-9baa-7a3fdf9eb00a.png"} 
           alt="Card preview" 
           className="w-full h-full object-cover"
         />
@@ -179,6 +220,11 @@ const InteractivePreview = ({
         {selectedElement && (
           <p className="text-crd-green text-xs mt-1">
             Press Enter or click outside to finish editing
+          </p>
+        )}
+        {currentPhoto && (
+          <p className="text-crd-green text-xs mt-1">
+            Custom photo applied • Switch to Photo mode to edit
           </p>
         )}
       </div>
