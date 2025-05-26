@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase-client';
 import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
+import { v4 as uuidv4 } from 'uuid';
 import type { CardData } from './types';
 
 export const useCardOperations = (
@@ -16,46 +17,70 @@ export const useCardOperations = (
   const saveCard = async (): Promise<boolean> => {
     setIsSaving(true);
     try {
-      // Prepare the card data for saving
+      // Ensure we have a card ID
+      let cardId = cardData.id;
+      if (!cardId) {
+        cardId = uuidv4();
+        updateCardData({ id: cardId });
+      }
+
+      // Validate required fields
+      if (!cardData.title?.trim()) {
+        toast.error('Please enter a card title');
+        return false;
+      }
+
+      // Prepare the card data for saving with all required fields
       const cardToSave = {
-        id: cardData.id,
-        title: cardData.title,
-        description: cardData.description,
-        creator_id: user?.id || null, // Explicitly set to null for anonymous users
-        design_metadata: cardData.design_metadata,
-        image_url: cardData.image_url,
-        thumbnail_url: cardData.thumbnail_url,
-        rarity: cardData.rarity,
-        tags: cardData.tags,
+        id: cardId,
+        title: cardData.title.trim(),
+        description: cardData.description?.trim() || '',
+        creator_id: user?.id || null,
+        design_metadata: cardData.design_metadata || {},
+        image_url: cardData.image_url || null,
+        thumbnail_url: cardData.thumbnail_url || null,
+        rarity: cardData.rarity || 'common',
+        tags: cardData.tags || [],
         is_public: cardData.is_public || false,
-        template_id: cardData.template_id && cardData.template_id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) ? cardData.template_id : null,
-        creator_attribution: cardData.creator_attribution,
-        publishing_options: cardData.publishing_options,
+        template_id: cardData.template_id || null,
+        creator_attribution: cardData.creator_attribution || { collaboration_type: 'solo' },
+        publishing_options: cardData.publishing_options || {
+          marketplace_listing: false,
+          crd_catalog_inclusion: true,
+          print_available: false,
+          pricing: { currency: 'USD' },
+          distribution: { limited_edition: false }
+        },
         verification_status: 'pending' as const,
-        print_metadata: cardData.print_metadata
+        print_metadata: cardData.print_metadata || {},
+        edition_size: 1,
+        marketplace_listing: false,
+        print_available: false,
+        crd_catalog_inclusion: true
       };
 
       console.log('Attempting to save card:', { 
         cardId: cardToSave.id, 
         userId: user?.id, 
-        isAuthenticated: !!user 
+        isAuthenticated: !!user,
+        title: cardToSave.title
       });
 
       const { error } = await supabase
         .from('cards')
-        .upsert(cardToSave);
+        .upsert(cardToSave, { onConflict: 'id' });
 
       if (error) {
-        console.error('Error saving card:', error);
-        toast.error('Failed to save card to cloud');
+        console.error('Database error saving card:', error);
+        toast.error(`Failed to save card: ${error.message}`);
         return false;
       }
       
       setLastSaved(new Date());
       if (user) {
-        toast.success('Card saved to cloud');
+        toast.success('Card saved to cloud successfully');
       } else {
-        toast.success('Card saved (sign in to sync to cloud)');
+        toast.success('Card saved locally (sign in to sync to cloud)');
       }
       return true;
     } catch (error) {
@@ -70,6 +95,11 @@ export const useCardOperations = (
   const publishCard = async (): Promise<boolean> => {
     if (!user) {
       toast.error('Please sign in to publish cards');
+      return false;
+    }
+
+    if (!cardData.id) {
+      toast.error('Please save the card first before publishing');
       return false;
     }
 

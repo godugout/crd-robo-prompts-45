@@ -9,15 +9,26 @@ import { RaritySection } from './right-sidebar/RaritySection';
 import { PublishingSection } from './right-sidebar/PublishingSection';
 import { CustomizeDesignSection } from './right-sidebar/CustomizeDesignSection';
 
-export const RightSidebar = () => {
-  const cardEditor = useCardEditor({
-    autoSave: true,
-    autoSaveInterval: 30000, // 30 seconds
-  });
+interface RightSidebarProps {
+  cardEditor?: ReturnType<typeof useCardEditor>;
+}
 
+export const RightSidebar = ({ cardEditor: providedCardEditor }: RightSidebarProps) => {
+  // Use provided card editor or create a fallback one
+  const fallbackCardEditor = useCardEditor({
+    autoSave: true,
+    autoSaveInterval: 30000,
+  });
+  
+  const cardEditor = providedCardEditor || fallbackCardEditor;
   const { saveCard, publishCard, isSaving, isDirty } = cardEditor;
 
   const handleCreateCard = async () => {
+    // Ensure we have minimum required data
+    if (!cardEditor.cardData.title?.trim()) {
+      cardEditor.updateCardField('title', 'My New Card');
+    }
+    
     const success = await saveCard();
     if (success) {
       toast.success('Card created successfully!', {
@@ -31,6 +42,15 @@ export const RightSidebar = () => {
   };
   
   const handlePublishCard = async () => {
+    // Save first if there are unsaved changes
+    if (isDirty) {
+      const saved = await saveCard();
+      if (!saved) {
+        toast.error('Please save the card first');
+        return;
+      }
+    }
+    
     const success = await publishCard();
     if (success) {
       toast.success('Card published successfully!', {
@@ -59,7 +79,7 @@ export const RightSidebar = () => {
           onClick={handleCreateCard}
           disabled={isSaving}
         >
-          {isSaving ? 'Saving...' : isDirty ? 'Save Card' : 'Create Card'}
+          {isSaving ? 'Saving...' : isDirty ? 'Save Changes' : 'Save Card'}
         </CRDButton>
 
         <CRDButton 
@@ -67,6 +87,7 @@ export const RightSidebar = () => {
           size="lg" 
           className="w-full py-3 rounded-full bg-crd-orange hover:bg-crd-orange/90"
           onClick={handlePublishCard}
+          disabled={isSaving}
         >
           Publish Card
         </CRDButton>

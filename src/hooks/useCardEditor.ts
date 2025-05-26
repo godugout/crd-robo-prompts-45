@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { useTags } from '@/components/memory/hooks/useTags';
 import { useLocalAutoSave } from './card-editor/useLocalAutoSave';
 import { useCardOperations } from './card-editor/useCardOperations';
@@ -15,54 +16,58 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     autoSaveInterval = 5000,
   } = options;
 
-  const [cardData, setCardData] = useState<CardData>({
-    title: initialData.title || '',
-    description: initialData.description || '',
-    type: initialData.type || 'Handcrafted',
-    series: initialData.series || '80s VCR',
-    category: initialData.category || 'Movies',
-    rarity: (initialData.rarity as CardRarity) || 'common',
-    tags: initialData.tags || [],
-    image_url: initialData.image_url,
-    design_metadata: initialData.design_metadata || {},
-    visibility: initialData.visibility || 'private',
-    is_public: initialData.is_public || false,
-    shop_id: initialData.shop_id,
-    template_id: initialData.template_id,
-    creator_attribution: initialData.creator_attribution || {
-      collaboration_type: 'solo'
-    },
-    publishing_options: initialData.publishing_options || {
-      marketplace_listing: false,
-      crd_catalog_inclusion: true,
-      print_available: false,
-      pricing: {
-        currency: 'USD'
+  // Initialize card data with proper defaults and unique ID
+  const [cardData, setCardData] = useState<CardData>(() => {
+    const baseData: CardData = {
+      id: initialData.id || uuidv4(),
+      title: initialData.title || '',
+      description: initialData.description || '',
+      type: initialData.type || 'Handcrafted',
+      series: initialData.series || '80s VCR',
+      category: initialData.category || 'Movies',
+      rarity: (initialData.rarity as CardRarity) || 'common',
+      tags: initialData.tags || [],
+      image_url: initialData.image_url,
+      design_metadata: initialData.design_metadata || {},
+      visibility: initialData.visibility || 'private',
+      is_public: initialData.is_public || false,
+      shop_id: initialData.shop_id,
+      template_id: initialData.template_id,
+      creator_attribution: initialData.creator_attribution || {
+        collaboration_type: 'solo'
       },
-      distribution: {
-        limited_edition: false
-      }
-    },
-    verification_status: initialData.verification_status || 'pending',
-    print_metadata: initialData.print_metadata || {}
-  });
+      publishing_options: initialData.publishing_options || {
+        marketplace_listing: false,
+        crd_catalog_inclusion: true,
+        print_available: false,
+        pricing: {
+          currency: 'USD'
+        },
+        distribution: {
+          limited_edition: false
+        }
+      },
+      verification_status: initialData.verification_status || 'pending',
+      print_metadata: initialData.print_metadata || {}
+    };
 
-  const [isDirty, setIsDirty] = useState(false);
-
-  // Load existing card data if we have an ID
-  useEffect(() => {
+    // Load from local storage if available
     if (initialData.id) {
       const localCard = localCardStorage.getCard(initialData.id);
       if (localCard) {
-        setCardData(prev => ({
-          ...prev,
+        return {
+          ...baseData,
           ...localCard,
           id: localCard.id,
           rarity: localCard.rarity as CardRarity
-        }));
+        };
       }
     }
-  }, [initialData.id]);
+
+    return baseData;
+  });
+
+  const [isDirty, setIsDirty] = useState(false);
 
   const updateCardData = (updates: Partial<CardData>) => {
     setCardData(prev => ({ ...prev, ...updates }));
@@ -109,7 +114,6 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     updateCardData
   );
 
-  // Use local auto-save instead of regular auto-save
   const { lastSaveTime, forceSyncToServer } = useLocalAutoSave(
     cardData,
     isDirty,
@@ -124,10 +128,13 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     }
   }, [lastSaveTime]);
 
-  // Create a saveCard function that returns a Promise<boolean>
   const saveCard = async (): Promise<boolean> => {
     try {
-      // Force sync to server and use the server save function
+      // Ensure we have a title before saving
+      if (!cardData.title?.trim()) {
+        updateCardData({ title: 'Untitled Card' });
+      }
+      
       const success = await saveCardToServer();
       if (success) {
         setIsDirty(false);

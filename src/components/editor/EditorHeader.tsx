@@ -16,20 +16,19 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
   const { user } = useCustomAuth();
 
   const handleSave = async () => {
-    if (cardEditor) {
-      if (user) {
-        // Force sync to server if user is authenticated
-        const success = await cardEditor.saveCard();
-        if (success) {
-          toast.success('Card saved to cloud');
-        }
-      } else {
-        // Just save locally if not authenticated
-        if (cardEditor.cardData.id) {
-          localCardStorage.saveCard(cardEditor.cardData);
-          toast.success('Card saved locally - sign in to sync to cloud');
-        }
-      }
+    if (!cardEditor) {
+      toast.error('Card editor not available');
+      return;
+    }
+
+    // Ensure we have minimum required data
+    if (!cardEditor.cardData.title?.trim()) {
+      cardEditor.updateCardField('title', 'Untitled Card');
+    }
+
+    const success = await cardEditor.saveCard();
+    if (success) {
+      console.log('Card saved successfully');
     }
   };
 
@@ -53,7 +52,7 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${cardEditor.cardData.title.replace(/\s+/g, '_')}_card.json`;
+    link.download = `${(cardEditor.cardData.title || 'card').replace(/\s+/g, '_')}_card.json`;
     link.click();
     URL.revokeObjectURL(url);
     toast.success('Card exported successfully');
@@ -65,24 +64,35 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
       return;
     }
     
-    if (cardEditor) {
-      const success = await cardEditor.publishCard();
-      if (success) {
-        toast.success('Card published successfully');
+    if (!cardEditor) {
+      toast.error('Card editor not available');
+      return;
+    }
+
+    // Save first if needed
+    if (cardEditor.isDirty) {
+      const saved = await cardEditor.saveCard();
+      if (!saved) {
+        toast.error('Please save the card first');
+        return;
       }
+    }
+    
+    const success = await cardEditor.publishCard();
+    if (success) {
+      toast.success('Card published successfully');
     }
   };
 
   const isDirty = cardEditor?.isDirty || false;
   const isSaving = cardEditor?.isSaving || false;
   
-  // Check if card is saved locally
   const isLocalCard = cardEditor?.cardData.id ? 
     localCardStorage.getCard(cardEditor.cardData.id)?.isLocal : false;
 
   const getStatusDisplay = () => {
     if (isSaving) return 'Saving...';
-    if (isDirty) return 'Editing...';
+    if (isDirty) return 'Unsaved changes';
     if (!user) return 'Saved locally';
     if (isLocalCard && user) return 'Syncing...';
     return 'Saved';
@@ -90,7 +100,7 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
 
   const getStatusIcon = () => {
     if (isSaving) return 'bg-yellow-500';
-    if (isDirty) return 'bg-blue-500';
+    if (isDirty) return 'bg-red-500';
     if (!user) return 'bg-orange-500';
     if (isLocalCard && user) return 'bg-yellow-500';
     return 'bg-crd-green';
@@ -119,7 +129,7 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
         
         <Button variant="ghost" size="sm" onClick={handleSave} disabled={isSaving}>
           <Save className="w-5 h-5 mr-2" />
-          {user ? 'Save' : 'Save Local'}
+          Save Card
         </Button>
         
         <Button variant="ghost" size="sm" onClick={handleShare}>

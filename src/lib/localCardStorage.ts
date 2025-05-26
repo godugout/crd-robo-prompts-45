@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import type { CardRarity } from '@/hooks/card-editor/types';
 
@@ -23,7 +24,6 @@ export interface LocalCard {
 const LOCAL_CARDS_KEY = 'crd_local_cards';
 
 export const localCardStorage = {
-  // Save card to local storage
   saveCard: (cardData: Partial<LocalCard>): string => {
     const cards = localCardStorage.getAllCards();
     const cardId = cardData.id || uuidv4();
@@ -54,18 +54,22 @@ export const localCardStorage = {
     };
 
     cards[cardId] = card;
-    localStorage.setItem(LOCAL_CARDS_KEY, JSON.stringify(cards));
+    
+    try {
+      localStorage.setItem(LOCAL_CARDS_KEY, JSON.stringify(cards));
+      console.log('Card saved to local storage:', cardId);
+    } catch (error) {
+      console.error('Failed to save to localStorage:', error);
+    }
     
     return cardId;
   },
 
-  // Get a specific card
   getCard: (id: string): LocalCard | null => {
     const cards = localCardStorage.getAllCards();
     return cards[id] || null;
   },
 
-  // Get all cards
   getAllCards: (): Record<string, LocalCard> => {
     try {
       const stored = localStorage.getItem(LOCAL_CARDS_KEY);
@@ -76,30 +80,36 @@ export const localCardStorage = {
     }
   },
 
-  // Get cards that need syncing
   getCardsNeedingSync: (): LocalCard[] => {
     const cards = localCardStorage.getAllCards();
     return Object.values(cards).filter(card => card.needsSync);
   },
 
-  // Mark card as synced
   markAsSynced: (id: string): void => {
     const cards = localCardStorage.getAllCards();
     if (cards[id]) {
       cards[id].needsSync = false;
       cards[id].isLocal = false;
-      localStorage.setItem(LOCAL_CARDS_KEY, JSON.stringify(cards));
+      try {
+        localStorage.setItem(LOCAL_CARDS_KEY, JSON.stringify(cards));
+        console.log('Card marked as synced:', id);
+      } catch (error) {
+        console.error('Failed to update sync status:', error);
+      }
     }
   },
 
-  // Delete card
   deleteCard: (id: string): void => {
     const cards = localCardStorage.getAllCards();
     delete cards[id];
-    localStorage.setItem(LOCAL_CARDS_KEY, JSON.stringify(cards));
+    try {
+      localStorage.setItem(LOCAL_CARDS_KEY, JSON.stringify(cards));
+      console.log('Card deleted from local storage:', id);
+    } catch (error) {
+      console.error('Failed to delete card:', error);
+    }
   },
 
-  // Check if card was recently modified (within last X seconds)
   isRecentlyModified: (id: string, thresholdSeconds: number = 30): boolean => {
     const card = localCardStorage.getCard(id);
     if (!card) return false;
