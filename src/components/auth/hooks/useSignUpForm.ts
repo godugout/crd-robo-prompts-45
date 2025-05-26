@@ -41,10 +41,7 @@ export const useSignUpForm = () => {
 
     setIsLoading(true);
 
-    const { error } = await signUp(formData.email, formData.password, {
-      username: formData.username,
-      full_name: formData.fullName,
-    });
+    const { error } = await signUp(formData.email, formData.password);
     
     if (!error) {
       navigate('/auth/signin');
