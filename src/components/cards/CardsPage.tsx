@@ -1,114 +1,141 @@
 
 import React, { useState } from 'react';
-import { CardsPageHeader } from './CardsPageHeader';
-import { CardsControlsBar } from './CardsControlsBar';
-import { CardsTabsNavigation } from './CardsTabsNavigation';
-import { CardsTabContent } from './CardsTabContent';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
-import { useMemories } from '@/hooks/useMemories';
-import { GeneratedCardsView } from './GeneratedCardsView';
-
-type ViewMode = 'feed' | 'grid' | 'masonry';
-type SortOption = 'recent' | 'popular' | 'price-high' | 'price-low' | 'trending';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Plus, Grid, List, Filter } from 'lucide-react';
+import { CardCollectionUpload } from './CardCollectionUpload';
+import { ExtractedCard } from '@/services/cardExtractor';
 
 export const CardsPage = () => {
-  const [activeTab, setActiveTab] = useState('discover');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('recent');
-  const [filterBy, setFilterBy] = useState('all');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showUpload, setShowUpload] = useState(true);
+  const [cards, setCards] = useState<ExtractedCard[]>([]);
 
-  const {
-    memories: cards,
-    loading: isLoading,
-    hasMore,
-    loadMore
-  } = useMemories({ visibility: activeTab === 'discover' ? 'public' : activeTab === 'following' ? 'public' : 'public' });
-
-  const handleViewModeChange = (mode: ViewMode) => {
-    setViewMode(mode);
+  const handleCardsAdded = (newCards: ExtractedCard[]) => {
+    setCards(prev => [...prev, ...newCards]);
+    setShowUpload(false);
   };
-
-  const handleFilterToggle = () => {
-    setShowFilters(!showFilters);
-  };
-
-  const handleClearFilters = () => {
-    setSearchQuery('');
-    setSortBy('recent');
-    setFilterBy('all');
-  };
-
-  // Convert memories to the expected CardData format
-  const filteredCards = cards.map(memory => ({
-    id: memory.id,
-    title: memory.title,
-    description: memory.description,
-    image_url: memory.media?.[0]?.url,
-    thumbnail_url: memory.media?.[0]?.thumbnailUrl,
-    price: undefined // No price field in Memory type
-  }));
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <CardsPageHeader />
-      
-      <div className="mb-8">
-        <CardsControlsBar 
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          showFilters={showFilters}
-          onFilterToggle={handleFilterToggle}
-          viewMode={viewMode}
-          onViewModeChange={handleViewModeChange}
-        />
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <CardsTabsNavigation />
-        
-        <div className="mt-6">
-          <TabsContent value="discover" className="mt-0">
-            <CardsTabContent 
-              activeTab="forYou"
-              filteredCards={filteredCards}
-              cardsLoading={isLoading}
-              viewMode={viewMode}
-              user={null}
-              onClearFilters={handleClearFilters}
-            />
-          </TabsContent>
+    <div className="min-h-screen bg-crd-darkest pt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">My Cards</h1>
+            <p className="text-crd-lightGray">
+              Upload and manage your trading card collection
+            </p>
+          </div>
           
-          <TabsContent value="following" className="mt-0">
-            <CardsTabContent 
-              activeTab="following"
-              filteredCards={filteredCards}
-              cardsLoading={isLoading}
-              viewMode={viewMode}
-              user={null}
-              onClearFilters={handleClearFilters}
-            />
-          </TabsContent>
-          
-          <TabsContent value="trending" className="mt-0">
-            <CardsTabContent 
-              activeTab="trending"
-              filteredCards={filteredCards}
-              cardsLoading={isLoading}
-              viewMode={viewMode}
-              user={null}
-              onClearFilters={handleClearFilters}
-            />
-          </TabsContent>
-
-          <TabsContent value="generated" className="mt-0">
-            <GeneratedCardsView />
-          </TabsContent>
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => setShowUpload(!showUpload)}
+              className="bg-crd-green hover:bg-crd-green/80 text-black"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Cards
+            </Button>
+            
+            <div className="flex items-center border border-editor-border rounded-lg">
+              <Button
+                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className="border-0 rounded-r-none"
+              >
+                <Grid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="border-0 rounded-l-none"
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
         </div>
-      </Tabs>
+
+        {/* Upload Section */}
+        {showUpload && (
+          <div className="mb-8">
+            <CardCollectionUpload onCardsAdded={handleCardsAdded} />
+          </div>
+        )}
+
+        {/* Cards Collection */}
+        {cards.length > 0 ? (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-white">
+                Your Collection ({cards.length} cards)
+              </h2>
+              <Button variant="outline" size="sm">
+                <Filter className="w-4 h-4 mr-2" />
+                Filter
+              </Button>
+            </div>
+
+            {viewMode === 'grid' ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+                {cards.map((card, index) => (
+                  <Card key={index} className="bg-editor-dark border-editor-border overflow-hidden group hover:border-crd-green/50 transition-colors">
+                    <div className="aspect-[3/4] relative">
+                      <img
+                        src={URL.createObjectURL(card.imageBlob)}
+                        alt={`Card ${index + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {cards.map((card, index) => (
+                  <Card key={index} className="bg-editor-dark border-editor-border">
+                    <CardContent className="p-4 flex items-center gap-4">
+                      <div className="w-16 h-20 rounded-lg overflow-hidden bg-editor-tool">
+                        <img
+                          src={URL.createObjectURL(card.imageBlob)}
+                          alt={`Card ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-white font-medium">Card {index + 1}</h3>
+                        <p className="text-crd-lightGray text-sm">
+                          Confidence: {Math.round(card.confidence * 100)}%
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : !showUpload ? (
+          <Card className="bg-editor-dark border-editor-border">
+            <CardContent className="p-12 text-center">
+              <Grid className="w-16 h-16 text-crd-lightGray mx-auto mb-4" />
+              <h3 className="text-white font-medium text-lg mb-2">No cards yet</h3>
+              <p className="text-crd-lightGray mb-6">
+                Start building your collection by uploading card images
+              </p>
+              <Button
+                onClick={() => setShowUpload(true)}
+                className="bg-crd-green hover:bg-crd-green/80 text-black"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Your First Cards
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null}
+      </div>
     </div>
   );
 };
