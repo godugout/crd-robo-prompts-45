@@ -30,11 +30,23 @@ export const SimpleCardWizard = ({ onComplete }: SimpleCardWizardProps) => {
       };
       reader.readAsDataURL(file);
     }
+    // Reset the input so the same file can be selected again if needed
+    event.target.value = '';
+  };
+
+  const handleContinueToTemplates = () => {
+    if (selectedPhoto) {
+      setCurrentStep(2);
+    } else {
+      toast.error('Please select a photo first');
+    }
   };
 
   const handleComplete = () => {
     if (selectedPhoto && selectedTemplate) {
       onComplete({ photo: selectedPhoto, templateId: selectedTemplate });
+    } else {
+      toast.error('Please complete both steps');
     }
   };
 
@@ -68,30 +80,46 @@ export const SimpleCardWizard = ({ onComplete }: SimpleCardWizardProps) => {
           <div className="space-y-6">
             <h2 className="text-xl font-semibold text-white text-center">Upload Your Photo</h2>
             
-            <div className="border-2 border-dashed border-editor-border rounded-xl p-8 text-center">
+            <div className="border-2 border-dashed border-editor-border rounded-xl p-8 text-center relative">
               {selectedPhoto ? (
                 <div className="space-y-4">
                   <img src={selectedPhoto} alt="Selected" className="w-32 h-32 object-cover rounded-lg mx-auto" />
                   <p className="text-crd-green">Photo selected!</p>
+                  <Button
+                    onClick={() => document.getElementById('photo-input')?.click()}
+                    variant="outline"
+                    size="sm"
+                    className="border-editor-border text-white hover:bg-editor-border"
+                  >
+                    Choose Different Photo
+                  </Button>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <Image className="w-16 h-16 text-gray-400 mx-auto" />
-                  <p className="text-crd-lightGray">Click to upload your photo</p>
+                  <p className="text-crd-lightGray mb-4">Click to upload your photo</p>
+                  <Button
+                    onClick={() => document.getElementById('photo-input')?.click()}
+                    className="bg-crd-green hover:bg-crd-green/90 text-black"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Select Photo
+                  </Button>
                 </div>
               )}
               <input
+                id="photo-input"
                 type="file"
                 accept="image/*"
                 onChange={handlePhotoUpload}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="hidden"
               />
             </div>
 
             <Button 
-              onClick={() => setCurrentStep(2)}
+              onClick={handleContinueToTemplates}
               disabled={!selectedPhoto}
-              className="w-full bg-crd-green hover:bg-crd-green/90 text-black"
+              className="w-full bg-crd-green hover:bg-crd-green/90 text-black disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Continue to Frame Selection
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -125,14 +153,14 @@ export const SimpleCardWizard = ({ onComplete }: SimpleCardWizardProps) => {
               <Button 
                 onClick={() => setCurrentStep(1)}
                 variant="outline"
-                className="flex-1 border-editor-border text-white"
+                className="flex-1 border-editor-border text-white hover:bg-editor-border"
               >
                 Back
               </Button>
               <Button 
                 onClick={handleComplete}
                 disabled={!selectedTemplate}
-                className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black"
+                className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Create Card
                 <ArrowRight className="w-4 h-4 ml-2" />
