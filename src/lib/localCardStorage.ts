@@ -1,6 +1,6 @@
 
 import { v4 as uuidv4 } from 'uuid';
-import type { CardRarity } from '@/hooks/card-editor/types';
+import type { CardRarity, CardVisibility } from '@/hooks/useCardEditor';
 
 export interface LocalCard {
   id: string;
@@ -16,6 +16,7 @@ export interface LocalCard {
   publishing_options: any;
   print_metadata: Record<string, any>;
   is_public?: boolean;
+  visibility?: CardVisibility;
   lastModified: number;
   needsSync: boolean;
   isLocal: boolean;
@@ -48,6 +49,7 @@ export const localCardStorage = {
       },
       print_metadata: cardData.print_metadata || {},
       is_public: cardData.is_public || false,
+      visibility: cardData.visibility || 'private',
       lastModified: Date.now(),
       needsSync: true,
       isLocal: true

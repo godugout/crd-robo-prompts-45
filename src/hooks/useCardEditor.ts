@@ -51,6 +51,7 @@ export interface CardData {
   description?: string;
   type?: string;
   series?: string;
+  category?: string;
   rarity: CardRarity;
   tags: string[];
   image_url?: string;
@@ -85,6 +86,7 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     description: initialData.description || '',
     type: initialData.type || '',
     series: initialData.series || '',
+    category: initialData.category || '',
     image_url: initialData.image_url,
     thumbnail_url: initialData.thumbnail_url,
     rarity: initialData.rarity || 'common',
@@ -208,8 +210,7 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
       // Update in local storage
       localCardStorage.saveCard({
         ...cardData,
-        is_public: true,
-        visibility: 'public'
+        is_public: true
       });
       
       toast.success('Card published locally (will sync when online)');
