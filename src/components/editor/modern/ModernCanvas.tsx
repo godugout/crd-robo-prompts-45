@@ -8,12 +8,19 @@ export const ModernCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
+  const fabricCanvasRef = useRef<FabricCanvas | null>(null);
   
   const { selectedTool, zoom, showGrid, setSelectedElement, cardEditor } = useModernEditor();
 
   // Initialize Fabric Canvas
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
+
+    // Dispose existing canvas if it exists
+    if (fabricCanvasRef.current) {
+      fabricCanvasRef.current.dispose();
+      fabricCanvasRef.current = null;
+    }
 
     const canvas = new FabricCanvas(canvasRef.current, {
       width: 800,
@@ -22,10 +29,13 @@ export const ModernCanvas = () => {
       selection: selectedTool === 'select',
     });
 
-    // Initialize drawing brush
-    canvas.freeDrawingBrush.color = '#000000';
-    canvas.freeDrawingBrush.width = 2;
+    // Properly initialize the drawing brush after canvas creation
+    if (canvas.freeDrawingBrush) {
+      canvas.freeDrawingBrush.color = '#000000';
+      canvas.freeDrawingBrush.width = 2;
+    }
 
+    fabricCanvasRef.current = canvas;
     setFabricCanvas(canvas);
 
     // Handle object selection
@@ -50,9 +60,12 @@ export const ModernCanvas = () => {
     });
 
     return () => {
-      canvas.dispose();
+      if (fabricCanvasRef.current) {
+        fabricCanvasRef.current.dispose();
+        fabricCanvasRef.current = null;
+      }
     };
-  }, []);
+  }, []); // Remove dependencies to prevent re-initialization
 
   // Update canvas based on selected tool
   useEffect(() => {
@@ -60,6 +73,13 @@ export const ModernCanvas = () => {
 
     fabricCanvas.isDrawingMode = selectedTool === 'pen';
     fabricCanvas.selection = selectedTool === 'select';
+    
+    // Ensure brush exists before setting properties
+    if (selectedTool === 'pen' && fabricCanvas.freeDrawingBrush) {
+      fabricCanvas.freeDrawingBrush.color = '#000000';
+      fabricCanvas.freeDrawingBrush.width = 2;
+    }
+    
     fabricCanvas.forEachObject((obj) => {
       obj.selectable = selectedTool === 'select';
       obj.evented = selectedTool === 'select';
