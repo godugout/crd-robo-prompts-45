@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Eye, Maximize, Download, Share2, ArrowRight, Sparkles } from 'lucide-react';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
+import AdvancedCardRenderer from '@/components/renderer/AdvancedCardRenderer';
 import type { CardData } from '@/hooks/useCardEditor';
 
 interface PreviewTabProps {
@@ -37,18 +37,15 @@ export const PreviewTab = ({ selectedTemplate, cardData, onContinueToEffects }: 
   };
 
   const handleDownloadCard = (card: CardData) => {
-    // Create a JSON blob of the card data
     const dataStr = JSON.stringify(card, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     
-    // Create a download link and trigger a click
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
     link.download = `${card.title.replace(/\s+/g, '_')}_card.json`;
     link.click();
     
-    // Clean up
     URL.revokeObjectURL(url);
     toast.success('Card exported successfully');
   };
@@ -71,23 +68,35 @@ export const PreviewTab = ({ selectedTemplate, cardData, onContinueToEffects }: 
         <div className="text-center">
           <h3 className="text-white font-medium text-lg mb-2">Card Preview</h3>
           <p className="text-crd-lightGray text-sm">
-            Review your card design before adding effects and final touches
+            Review your card design with advanced visual effects
           </p>
         </div>
 
-        {/* High Resolution Preview */}
+        {/* Advanced Card Preview */}
         <div className="space-y-4">
-          <h4 className="text-white font-medium text-sm uppercase tracking-wide">High Resolution Preview</h4>
-          <div className="aspect-[3/4] bg-editor-dark rounded-xl border border-editor-border relative overflow-hidden">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-crd-green to-crd-orange rounded-xl mb-4 mx-auto flex items-center justify-center">
-                  <span className="text-black font-bold text-lg">CARD</span>
+          <h4 className="text-white font-medium text-sm uppercase tracking-wide">Advanced Preview</h4>
+          <div className="flex justify-center">
+            {cardData ? (
+              <AdvancedCardRenderer
+                card={cardData}
+                width={240}
+                height={336}
+                interactive={true}
+                showEffectControls={false}
+              />
+            ) : (
+              <div className="aspect-[3/4] w-60 bg-editor-dark rounded-xl border border-editor-border relative overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-20 h-20 bg-gradient-to-br from-crd-green to-crd-orange rounded-xl mb-4 mx-auto flex items-center justify-center">
+                      <span className="text-black font-bold text-lg">CARD</span>
+                    </div>
+                    <p className="text-crd-lightGray text-sm">Advanced Preview</p>
+                    <p className="text-crd-lightGray text-xs mt-1">Template: {selectedTemplate}</p>
+                  </div>
                 </div>
-                <p className="text-crd-lightGray text-sm">Full Resolution Preview</p>
-                <p className="text-crd-lightGray text-xs mt-1">Template: {selectedTemplate}</p>
               </div>
-            </div>
+            )}
           </div>
         </div>
 

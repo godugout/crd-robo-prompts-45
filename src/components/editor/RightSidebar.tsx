@@ -8,6 +8,7 @@ import { PropertiesSection } from './right-sidebar/PropertiesSection';
 import { RaritySection } from './right-sidebar/RaritySection';
 import { PublishingSection } from './right-sidebar/PublishingSection';
 import { CustomizeDesignSection } from './right-sidebar/CustomizeDesignSection';
+import { AdvancedEffectsSection } from './right-sidebar/AdvancedEffectsSection';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
 import { Sparkles } from 'lucide-react';
 
@@ -107,6 +108,7 @@ export const RightSidebar = ({ cardEditor: providedCardEditor }: RightSidebarPro
       <CardDetailsSection cardEditor={cardEditor} />
       <PropertiesSection cardEditor={cardEditor} />
       <RaritySection cardEditor={cardEditor} />
+      <AdvancedEffectsSection cardEditor={cardEditor} />
       <PublishingSection cardEditor={cardEditor} />
       <CustomizeDesignSection cardEditor={cardEditor} />
       
