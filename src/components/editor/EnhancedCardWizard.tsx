@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, ArrowLeft, Upload, Image, Check, Star, Globe, Lock, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { useCardEditor, CardData, DesignTemplate, PublishingOptions, CreatorAttribution } from '@/hooks/useCardEditor';
+import { useCardEditor, CardData, CardRarity, CardVisibility, DesignTemplate, PublishingOptions, CreatorAttribution } from '@/hooks/useCardEditor';
 
 interface EnhancedCardWizardProps {
   onComplete: (cardData: CardData) => void;
@@ -328,7 +328,7 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
 
                     <div>
                       <Label className="text-white">Rarity</Label>
-                      <Select value={cardData.rarity} onValueChange={(value) => updateCardField('rarity', value)}>
+                      <Select value={cardData.rarity} onValueChange={(value) => updateCardField('rarity', value as CardRarity)}>
                         <SelectTrigger className="bg-editor-tool border-editor-border text-white">
                           <SelectValue placeholder="Select rarity" />
                         </SelectTrigger>
@@ -375,7 +375,7 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
 
                     <div>
                       <Label className="text-white">Visibility</Label>
-                      <Select value={cardData.visibility} onValueChange={(value) => updateCardField('visibility', value)}>
+                      <Select value={cardData.visibility} onValueChange={(value) => updateCardField('visibility', value as CardVisibility)}>
                         <SelectTrigger className="bg-editor-tool border-editor-border text-white">
                           <SelectValue placeholder="Select visibility" />
                         </SelectTrigger>

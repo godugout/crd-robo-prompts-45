@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { useTags } from '@/components/memory/hooks/useTags';
 import { useAutoSave } from './card-editor/useAutoSave';
 import { useCardOperations } from './card-editor/useCardOperations';
-import type { CardData, UseCardEditorOptions } from './card-editor/types';
+import type { CardData, UseCardEditorOptions, CardRarity, CardVisibility, DesignTemplate, PublishingOptions, CreatorAttribution } from './card-editor/types';
 
-export type { CardData, CardRarity } from './card-editor/types';
+export type { CardData, CardRarity, CardVisibility, DesignTemplate, PublishingOptions, CreatorAttribution } from './card-editor/types';
 
 export const useCardEditor = (options: UseCardEditorOptions = {}) => {
   const {
