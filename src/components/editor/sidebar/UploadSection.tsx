@@ -2,9 +2,9 @@
 import React, { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useDropzone } from 'react-dropzone';
-import { supabase } from '@/lib/supabase-client';
 import { uploadCardImage } from '@/lib/cardImageUploader';
 import { useCardEditor } from '@/hooks/useCardEditor';
+import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
 import { DropZone } from '../upload/DropZone';
 import { FilePreview } from '../upload/FilePreview';
 
@@ -17,6 +17,7 @@ export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
   const [uploadPreview, setUploadPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const { user } = useCustomAuth();
 
   const handleFileSelection = (file: File) => {
     setFileToUpload(file);
@@ -38,30 +39,31 @@ export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
       return;
     }
 
+    if (!user) {
+      toast.error('You must be logged in to upload images');
+      return;
+    }
+
     setIsUploading(true);
     setUploadProgress(0);
 
     try {
-      // Generate a mock user ID for development/testing
-      const mockUserId = 'test-user-' + Math.random().toString(36).substring(2, 9);
-      
       const result = await uploadCardImage({
         file: fileToUpload,
         cardId: cardEditor.cardData.id,
-        userId: mockUserId,
+        userId: user.id,
         onProgress: setUploadProgress
       });
 
       if (result) {
         cardEditor.updateCardField('image_url', result.url);
-        cardEditor.updateDesignMetadata('thumbnailUrl', result.thumbnailUrl);
+        if (result.thumbnailUrl) {
+          cardEditor.updateCardField('thumbnail_url', result.thumbnailUrl);
+          cardEditor.updateDesignMetadata('thumbnailUrl', result.thumbnailUrl);
+        }
         
         toast.success('Image uploaded successfully', {
           description: 'Your card image has been updated.',
-          action: {
-            label: 'View',
-            onClick: () => window.open(result.url, '_blank')
-          }
         });
 
         cancelUpload();
