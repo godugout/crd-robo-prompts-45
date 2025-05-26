@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export const DiscoverSection: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
-  const { trendingCards, loading } = useCards();
+  const { cards, loading } = useCards();
   
   const categories = [
     "All Categories",
@@ -54,11 +54,11 @@ export const DiscoverSection: React.FC = () => {
   ];
 
   // Use real data if available, otherwise use fallback
-  const displayCards = trendingCards && trendingCards.length > 0 
-    ? trendingCards.slice(0, 8).map(card => ({
+  const displayCards = cards && cards.length > 0 
+    ? cards.slice(0, 8).map(card => ({
         id: card.id,
         title: card.title,
-        price: card.price ? `${card.price} ETH` : "1.5 ETH",
+        price: "1.5 ETH", // Default price since Card interface doesn't have price
         image: card.image_url || card.thumbnail_url || fallbackCards[0].image,
         stock: "3 in stock",
         highestBid: "0.001 ETH",

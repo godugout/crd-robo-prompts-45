@@ -42,7 +42,7 @@ export const FeaturedCards: React.FC = () => {
   // Use real data if available, otherwise fallback to mock data
   const cards = featuredCards.length > 0 ? featuredCards.map(card => ({
     title: card.title,
-    price: card.price ? `${card.price} ETH` : "1.5 ETH",
+    price: "1.5 ETH", // Default price since Card interface doesn't have price
     image: card.image_url || card.thumbnail_url || fallbackCards[0].image,
     stock: "3 in stock",
     highestBid: "0.001 ETH",
