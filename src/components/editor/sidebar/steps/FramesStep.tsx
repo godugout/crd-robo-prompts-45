@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Instagram, Scissors, Wand2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { InstagramImportModal } from '../InstagramImportModal';
-import { CardExtractionUpload } from '../upload/CardExtractionUpload';
+import { CardExtractionUpload } from '../../upload/CardExtractionUpload';
 import { GeneratorTab } from '../GeneratorTab';
 import { DetectedCard } from '@/services/cardDetector';
 import type { ExtractedCard } from '@/services/cardExtractor';
