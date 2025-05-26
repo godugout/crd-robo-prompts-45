@@ -64,6 +64,7 @@ export interface CardData {
   thumbnail_url?: string;
   design_metadata: Record<string, any>;
   visibility: CardVisibility;
+  is_public?: boolean;
   shop_id?: string;
   template_id?: string;
   creator_attribution: CreatorAttribution;

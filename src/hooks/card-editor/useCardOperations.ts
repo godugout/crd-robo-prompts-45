@@ -33,7 +33,7 @@ export const useCardOperations = (
           thumbnail_url: cardData.thumbnail_url,
           rarity: cardData.rarity,
           tags: cardData.tags,
-          is_public: false,
+          is_public: cardData.is_public || false,
           template_id: cardData.template_id && cardData.template_id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) ? cardData.template_id : null,
           creator_attribution: cardData.creator_attribution,
           publishing_options: cardData.publishing_options,

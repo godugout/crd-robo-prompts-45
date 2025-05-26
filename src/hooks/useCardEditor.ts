@@ -26,6 +26,7 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     image_url: initialData.image_url,
     design_metadata: initialData.design_metadata || {},
     visibility: initialData.visibility || 'private',
+    is_public: initialData.is_public || false,
     shop_id: initialData.shop_id,
     template_id: initialData.template_id,
     creator_attribution: initialData.creator_attribution || {
