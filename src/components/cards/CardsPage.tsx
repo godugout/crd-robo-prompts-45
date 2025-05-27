@@ -1,88 +1,24 @@
 
-import React, { useState, useEffect } from 'react';
-import { useCardCatalog } from '@/hooks/useCardCatalog';
-import { DetectedCard } from '@/services/cardCatalog/types';
-import { toast } from 'sonner';
+import React, { useState } from 'react';
 import { CardsPageHeader } from './components/CardsPageHeader';
 import { CardsWorkflowSection } from './components/CardsWorkflowSection';
 import { CardsCatalogSection } from './components/CardsCatalogSection';
 
 export const CardsPage = () => {
-  const [workflowStep, setWorkflowStep] = useState<'upload' | 'detecting' | 'review' | 'finalizing' | 'complete'>('upload');
-  const { 
-    detectedCards, 
-    selectedCards, 
-    processingStatus, 
-    showReview,
-    isProcessing,
-    toggleCardSelection,
-    createSelectedCards,
-    clearDetectedCards,
-    editCardBounds,
-    processQueue
-  } = useCardCatalog();
-  
-  const totalCards = detectedCards.size;
-  const detectedCardsArray = Array.from(detectedCards.values()) as DetectedCard[];
-
-  // Simplified workflow state management
-  useEffect(() => {
-    console.log('🔄 CardsPage workflow state:', { 
-      isProcessing, 
-      showReview, 
-      totalCards, 
-      currentStep: workflowStep,
-      detectedCardsSize: detectedCards.size,
-      selectedCardsSize: selectedCards.size
-    });
-    
-    if (isProcessing && workflowStep !== 'detecting') {
-      console.log('🔄 → Transitioning to detecting step');
-      setWorkflowStep('detecting');
-    } else if (!isProcessing && totalCards > 0 && showReview && workflowStep !== 'review') {
-      console.log('🎉 → Transitioning to review step');
-      setWorkflowStep('review');
-      toast.success(`Found ${totalCards} cards!`);
-    } else if (!isProcessing && (totalCards === 0 || !showReview) && workflowStep !== 'upload') {
-      console.log('📤 → Transitioning to upload step');
-      setWorkflowStep('upload');
-    }
-  }, [isProcessing, showReview, totalCards, workflowStep]);
-
   const handleUploadComplete = (count: number) => {
-    console.log('📤 Upload complete:', count, 'files');
-    setWorkflowStep('detecting');
-    toast.success(`Processing ${count} images...`);
-    
-    // Process the queue
-    setTimeout(() => {
-      processQueue();
-    }, 100);
+    console.log('Upload complete:', count, 'files');
   };
 
   const handleReviewComplete = () => {
-    console.log('✅ Review complete');
-    setWorkflowStep('finalizing');
-    createSelectedCards();
-    
-    setTimeout(() => {
-      setWorkflowStep('complete');
-      toast.success('Cards added to collection!');
-      
-      setTimeout(() => {
-        setWorkflowStep('upload');
-      }, 3000);
-    }, 1000);
+    console.log('Review complete');
   };
 
   const handleStartOver = () => {
-    console.log('🔄 Starting over');
-    clearDetectedCards();
-    setWorkflowStep('upload');
+    console.log('Starting over');
   };
 
-  const handleCardBoundsEdit = (cardId: string, bounds: DetectedCard['bounds']) => {
-    editCardBounds(cardId, bounds);
+  const handleCardBoundsEdit = (cardId: string, bounds: any) => {
+    console.log('Card bounds edit:', cardId, bounds);
   };
 
   return (
@@ -98,34 +34,19 @@ export const CardsPage = () => {
         {/* Card Creation Workflow */}
         <div className="py-8">
           <CardsWorkflowSection
-            currentStep={workflowStep}
-            totalCards={totalCards}
-            selectedCards={selectedCards.size}
-            detectedCardsArray={detectedCardsArray}
-            selectedCardsSet={selectedCards}
-            isProcessing={isProcessing}
+            currentStep="upload"
+            totalCards={0}
+            selectedCards={0}
+            detectedCardsArray={[]}
+            selectedCardsSet={new Set()}
+            isProcessing={false}
             onUploadComplete={handleUploadComplete}
-            onCardToggle={toggleCardSelection}
+            onCardToggle={() => {}}
             onCardEdit={handleCardBoundsEdit}
             onReviewComplete={handleReviewComplete}
             onStartOver={handleStartOver}
           />
         </div>
-
-        {/* Debug Info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-4 p-4 bg-gray-800 rounded text-white text-sm space-y-2">
-            <div className="font-bold text-yellow-400">🐛 Debug Information:</div>
-            <div>Current Step: <span className="text-blue-400 font-mono">{workflowStep}</span></div>
-            <div>Total Cards: <span className="text-green-400 font-mono">{totalCards}</span></div>
-            <div>Selected Cards: <span className="text-purple-400 font-mono">{selectedCards.size}</span></div>
-            <div>Is Processing: <span className="text-orange-400 font-mono">{isProcessing.toString()}</span></div>
-            <div>Show Review: <span className="text-pink-400 font-mono">{showReview.toString()}</span></div>
-            <div className="text-xs text-gray-400">
-              Processing Status: <span className="font-mono">Total: {processingStatus.total}, Completed: {processingStatus.completed}</span>
-            </div>
-          </div>
-        )}
 
         {/* Divider */}
         <div className="border-t border-crd-mediumGray/20 my-8"></div>

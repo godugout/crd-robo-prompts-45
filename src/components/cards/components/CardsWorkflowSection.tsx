@@ -1,120 +1,143 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Upload, Search, Eye, Sparkles } from 'lucide-react';
-import { DetectedCard } from '@/services/cardCatalog/types';
-import { CardsUploadFeature } from './CardsUploadFeature';
-import { CardsDetectionProgress } from './CardsDetectionProgress';
-import { CardsReviewStep } from './CardsReviewStep';
-import { CardsFinalizingStep } from './CardsFinalizingStep';
-import { CardsCompleteStep } from './CardsCompleteStep';
+import { CardsImageUpload } from './CardsImageUpload';
+import { CardsImageProcessor } from './CardsImageProcessor';
+
+interface UploadedImage {
+  id: string;
+  file: File;
+  preview: string;
+  processed?: boolean;
+}
+
+interface ProcessedCard {
+  id: string;
+  originalImageId: string;
+  croppedImage: string;
+  bounds: { x: number; y: number; width: number; height: number };
+  confidence: number;
+}
 
 interface CardsWorkflowSectionProps {
-  currentStep: 'upload' | 'detecting' | 'review' | 'finalizing' | 'complete';
+  currentStep: string;
   totalCards: number;
   selectedCards: number;
-  detectedCardsArray: DetectedCard[];
+  detectedCardsArray: any[];
   selectedCardsSet: Set<string>;
   isProcessing: boolean;
   onUploadComplete: (count: number) => void;
   onCardToggle: (cardId: string) => void;
-  onCardEdit: (cardId: string, bounds: DetectedCard['bounds']) => void;
+  onCardEdit: (cardId: string, bounds: any) => void;
   onReviewComplete: () => void;
   onStartOver: () => void;
 }
 
-const workflowSteps = [
-  { id: 'upload', label: 'Upload', icon: Upload },
-  { id: 'detecting', label: 'Detect', icon: Search },
-  { id: 'review', label: 'Review', icon: Eye },
-  { id: 'finalizing', label: 'Create', icon: Sparkles },
-  { id: 'complete', label: 'Done', icon: CheckCircle }
-];
-
 export const CardsWorkflowSection: React.FC<CardsWorkflowSectionProps> = ({
-  currentStep,
-  totalCards,
-  selectedCards,
-  detectedCardsArray,
-  selectedCardsSet,
-  isProcessing,
-  onUploadComplete,
-  onCardToggle,
-  onCardEdit,
   onReviewComplete,
   onStartOver
 }) => {
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 'upload':
-        return <CardsUploadFeature onUploadComplete={onUploadComplete} />;
-      case 'detecting':
-        return <CardsDetectionProgress isProcessing={isProcessing} />;
-      case 'review':
-        return (
-          <CardsReviewStep
-            detectedCards={detectedCardsArray}
-            selectedCards={selectedCardsSet}
-            onCardToggle={onCardToggle}
-            onCardEdit={onCardEdit}
-            onReviewComplete={onReviewComplete}
-            onStartOver={onStartOver}
-          />
-        );
-      case 'finalizing':
-        return <CardsFinalizingStep selectedCards={selectedCards} />;
-      case 'complete':
-        return <CardsCompleteStep selectedCards={selectedCards} onStartOver={onStartOver} />;
-      default:
-        return null;
-    }
+  const [uploadedImages, setUploadedImages] = React.useState<UploadedImage[]>([]);
+  const [extractedCards, setExtractedCards] = React.useState<ProcessedCard[]>([]);
+  const [currentStep, setCurrentStep] = React.useState<'upload' | 'process' | 'complete'>('upload');
+
+  const handleImagesProcessed = (images: UploadedImage[]) => {
+    setUploadedImages(images);
+    setCurrentStep('process');
+  };
+
+  const handleCardsExtracted = (cards: ProcessedCard[]) => {
+    setExtractedCards(cards);
+    setCurrentStep('complete');
+    // Simulate adding to collection
+    setTimeout(() => {
+      onReviewComplete();
+      setCurrentStep('upload');
+      setUploadedImages([]);
+      setExtractedCards([]);
+    }, 2000);
+  };
+
+  const handleStartOver = () => {
+    setCurrentStep('upload');
+    setUploadedImages([]);
+    setExtractedCards([]);
+    onStartOver();
   };
 
   return (
-    <Card className="bg-crd-dark border-crd-mediumGray">
-      <CardContent className="p-6">
-        {/* Progress Bar */}
-        <div className="flex items-center justify-between max-w-2xl mx-auto mb-8">
-          {workflowSteps.map((step, index) => {
-            const isActive = step.id === currentStep;
-            const isCompleted = workflowSteps.findIndex(s => s.id === currentStep) > index;
-            const Icon = step.icon;
-            
-            return (
-              <div key={step.id} className="flex items-center">
-                <div className={`flex flex-col items-center ${isActive ? 'text-crd-green' : isCompleted ? 'text-green-400' : 'text-crd-lightGray'}`}>
-                  <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center mb-2 transition-all duration-300 ${
-                    isActive ? 'border-crd-green bg-crd-green/20' : 
-                    isCompleted ? 'border-green-400 bg-green-400/20' : 
-                    'border-crd-mediumGray bg-crd-mediumGray/10'
-                  }`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <span className="text-xs font-medium">{step.label}</span>
-                </div>
-                {index < workflowSteps.length - 1 && (
-                  <div className={`w-12 h-0.5 mx-2 transition-colors duration-300 ${
-                    isCompleted ? 'bg-green-400' : 'bg-crd-mediumGray/50'
-                  }`} />
-                )}
-              </div>
-            );
-          })}
-        </div>
+    <div className="bg-editor-dark rounded-xl p-6 border border-crd-mediumGray/20">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-white mb-2">Create New Cards</h2>
+        <p className="text-crd-lightGray">
+          Upload images of your trading cards to detect, crop, and add them to your collection
+        </p>
+      </div>
 
-        {/* Status Badge */}
-        {totalCards > 0 && (
-          <div className="text-center mb-6">
-            <Badge variant="secondary" className="bg-crd-green/20 text-crd-green border-crd-green/30">
-              {totalCards} cards detected • {selectedCards} selected
-            </Badge>
+      {/* Progress indicator */}
+      <div className="flex items-center mb-8">
+        <div className={`flex items-center ${currentStep === 'upload' ? 'text-crd-green' : 'text-white'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+            currentStep === 'upload' ? 'border-crd-green bg-crd-green text-black' : 'border-crd-mediumGray'
+          }`}>
+            1
           </div>
-        )}
+          <span className="ml-2 font-medium">Upload</span>
+        </div>
+        
+        <div className={`h-0.5 w-16 mx-4 ${uploadedImages.length > 0 ? 'bg-crd-green' : 'bg-crd-mediumGray'}`} />
+        
+        <div className={`flex items-center ${currentStep === 'process' ? 'text-crd-green' : uploadedImages.length > 0 ? 'text-white' : 'text-crd-lightGray'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+            currentStep === 'process' ? 'border-crd-green bg-crd-green text-black' : 
+            uploadedImages.length > 0 ? 'border-white' : 'border-crd-mediumGray'
+          }`}>
+            2
+          </div>
+          <span className="ml-2 font-medium">Process</span>
+        </div>
+        
+        <div className={`h-0.5 w-16 mx-4 ${extractedCards.length > 0 ? 'bg-crd-green' : 'bg-crd-mediumGray'}`} />
+        
+        <div className={`flex items-center ${currentStep === 'complete' ? 'text-crd-green' : extractedCards.length > 0 ? 'text-white' : 'text-crd-lightGray'}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+            currentStep === 'complete' ? 'border-crd-green bg-crd-green text-black' : 
+            extractedCards.length > 0 ? 'border-white' : 'border-crd-mediumGray'
+          }`}>
+            3
+          </div>
+          <span className="ml-2 font-medium">Complete</span>
+        </div>
+      </div>
 
-        {/* Step Content */}
-        {renderStepContent()}
-      </CardContent>
-    </Card>
+      {/* Step content */}
+      {currentStep === 'upload' && (
+        <CardsImageUpload onImagesProcessed={handleImagesProcessed} />
+      )}
+
+      {currentStep === 'process' && (
+        <CardsImageProcessor 
+          images={uploadedImages}
+          onCardsExtracted={handleCardsExtracted}
+        />
+      )}
+
+      {currentStep === 'complete' && (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-crd-green rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-8 h-8 bg-black rounded-full" />
+          </div>
+          <h3 className="text-white font-semibold text-lg mb-2">Cards Added Successfully!</h3>
+          <p className="text-crd-lightGray mb-6">
+            {extractedCards.length} cards have been processed and added to your collection.
+          </p>
+          <button
+            onClick={handleStartOver}
+            className="bg-crd-green hover:bg-crd-green/90 text-black px-6 py-2 rounded-lg font-medium"
+          >
+            Add More Cards
+          </button>
+        </div>
+      )}
+    </div>
   );
 };
