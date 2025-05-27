@@ -34,10 +34,12 @@ export const CardDetectionTester: React.FC = () => {
     
     const img = new Image();
     img.onload = () => {
+      console.log('🖼️ Image loaded:', { width: img.width, height: img.height, file: file.name });
       setImage(img);
       toast.success('Image loaded! Click "Run Detection" to test.');
     };
     img.onerror = () => {
+      console.error('❌ Failed to load image');
       toast.error('Failed to load image');
     };
     img.src = URL.createObjectURL(file);
@@ -49,11 +51,28 @@ export const CardDetectionTester: React.FC = () => {
       return;
     }
 
+    console.log('🚀 Starting detection process...');
     setIsProcessing(true);
     toast.loading('Running enhanced rectangle detection...');
 
+    // Create a timeout to prevent infinite hanging
+    const detectionTimeout = setTimeout(() => {
+      console.error('⏰ Detection timeout after 30 seconds');
+      setIsProcessing(false);
+      toast.dismiss();
+      toast.error('Detection timed out. The image might be too complex or large.');
+    }, 30000);
+
     try {
+      console.log('🔍 Calling enhancedRectangleDetector.detectCardRectangles...');
+      
+      // Add a small delay to allow the UI to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const result = await enhancedRectangleDetector.detectCardRectangles(image);
+      
+      console.log('✅ Detection completed:', result);
+      clearTimeout(detectionTimeout);
       
       setRectangles(result.rectangles);
       setDebugInfo(result.debugInfo);
@@ -66,15 +85,18 @@ export const CardDetectionTester: React.FC = () => {
         toast.info('No rectangles detected. Try adjusting the image or detection parameters.');
       }
     } catch (error) {
-      console.error('Detection error:', error);
+      clearTimeout(detectionTimeout);
+      console.error('💥 Detection error:', error);
       toast.dismiss();
       toast.error('Detection failed. Check console for details.');
     } finally {
       setIsProcessing(false);
+      console.log('🏁 Detection process finished');
     }
   }, [image]);
 
   const reset = useCallback(() => {
+    console.log('🔄 Resetting detection tester...');
     setImage(null);
     setImageFile(null);
     setRectangles([]);
@@ -129,6 +151,7 @@ export const CardDetectionTester: React.FC = () => {
           <CRDButton
             variant="outline"
             onClick={reset}
+            disabled={isProcessing}
             className="border-crd-mediumGray text-crd-lightGray hover:text-crd-white"
           >
             <RotateCcw className="w-4 h-4 mr-2" />
@@ -140,6 +163,16 @@ export const CardDetectionTester: React.FC = () => {
           <div className="mt-4 text-sm text-gray-400">
             Loaded: {imageFile.name} ({(imageFile.size / 1024 / 1024).toFixed(2)} MB)
             {image && ` • ${image.width}×${image.height}px`}
+          </div>
+        )}
+
+        {isProcessing && (
+          <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-600 rounded">
+            <p className="text-yellow-400 text-sm">
+              🔄 Detection is running... This may take up to 30 seconds for complex images.
+              <br />
+              If it takes longer, the process will timeout automatically.
+            </p>
           </div>
         )}
       </Card>
