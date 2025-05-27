@@ -110,7 +110,7 @@ export const CardsPage = () => {
     if (!image) return '';
 
     return new Promise((resolve) => {
-      const img = new Image();
+      const img = document.createElement('img');
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -240,7 +240,7 @@ export const CardsPage = () => {
           const isCompleted = index < currentIndex;
           
           return (
-            <React.Fragment key={phaseItem.key}>
+            <div key={phaseItem.key} className="flex items-center">
               <div className={`flex items-center ${
                 isActive ? 'text-crd-green' : isCompleted ? 'text-white' : 'text-crd-lightGray'
               }`}>
@@ -258,7 +258,7 @@ export const CardsPage = () => {
                   index < currentIndex ? 'bg-crd-green' : 'bg-crd-mediumGray'
                 }`} />
               )}
-            </React.Fragment>
+            </div>
           );
         })}
       </div>
