@@ -99,14 +99,12 @@ export const CardDetectionTester: React.FC = () => {
               className="hidden"
               id="image-upload"
             />
-            <label htmlFor="image-upload">
-              <CRDButton variant="primary" asChild className="cursor-pointer">
-                <span>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload Image
-                </span>
-              </CRDButton>
-            </label>
+            <CRDButton variant="primary" asChild>
+              <label htmlFor="image-upload" className="cursor-pointer">
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Image
+              </label>
+            </CRDButton>
           </div>
           
           <CRDButton
