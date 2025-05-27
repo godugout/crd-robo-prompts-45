@@ -76,13 +76,12 @@ async function performActualCardDetection(file: File, sessionId: string) {
     // Run enhanced card detection
     const detectedRegions = await enhancedCardDetection(img, file);
     
-    // Create detection result in the expected format
-    const detectedCards = detectedRegions.map((region, index) => ({
+    // First create the basic card objects without cropped images
+    const detectedCardsBase = detectedRegions.map((region, index) => ({
       id: `${sessionId}_${file.name}_${index}_${Date.now()}`,
       confidence: region.confidence,
       originalImageId: file.name,
       originalImageUrl: URL.createObjectURL(file),
-      croppedImageUrl: await createCroppedImage(img, region),
       bounds: {
         x: region.x,
         y: region.y,
@@ -94,6 +93,17 @@ async function performActualCardDetection(file: File, sessionId: string) {
         processingTime: Date.now(),
         cardType: 'Trading Card'
       }
+    }));
+    
+    // Now create all the cropped images in parallel
+    const croppedImageUrls = await Promise.all(
+      detectedRegions.map(region => createCroppedImage(img, region))
+    );
+    
+    // Merge the cropped image URLs with the card objects
+    const detectedCards = detectedCardsBase.map((card, index) => ({
+      ...card,
+      croppedImageUrl: croppedImageUrls[index]
     }));
 
     return {
