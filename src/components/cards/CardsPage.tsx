@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCardCatalog } from '@/hooks/useCardCatalog';
 import { DetectedCard } from '@/services/cardCatalog/types';
 import { toast } from 'sonner';
@@ -15,6 +15,7 @@ export const CardsPage = () => {
     selectedCards, 
     processingStatus, 
     showReview,
+    isProcessing,
     toggleCardSelection,
     createSelectedCards,
     clearDetectedCards,
@@ -27,24 +28,37 @@ export const CardsPage = () => {
     ? detectedCardsArray.reduce((sum, card) => sum + (card.confidence || 0), 0) / totalCards 
     : 0;
 
+  // Auto-navigate to review when cards are detected
+  useEffect(() => {
+    if (showReview && totalCards > 0 && !isProcessing) {
+      setActiveTab('review');
+      toast.success(`🎉 Found ${totalCards} cards! Review them below.`, {
+        description: 'Select the cards you want to add to your collection',
+        duration: 5000
+      });
+    }
+  }, [showReview, totalCards, isProcessing]);
+
   const handleCardEdit = (card: DetectedCard) => {
-    // TODO: Open card editor/viewer modal
     toast.info('Card viewer coming soon!');
   };
 
   const handleCardCreate = (card: DetectedCard) => {
-    // TODO: Navigate to card creator with pre-filled data
     toast.success('Creating card from detection...');
-    // This would typically navigate to the card editor with the detected card data
   };
 
   const handleUploadComplete = (count: number) => {
-    toast.success(`Successfully processed ${count} images!`);
+    toast.success(`Successfully processed ${count} images!`, {
+      description: 'Cards are being analyzed, please wait...'
+    });
   };
 
   const handleReviewComplete = () => {
     createSelectedCards();
     setActiveTab('catalog');
+    toast.success('Cards added to your collection!', {
+      description: 'Check them out in the catalog tab'
+    });
   };
 
   const handleAddCards = () => {
@@ -71,7 +85,7 @@ export const CardsPage = () => {
           processedCards={processingStatus.completed}
         />
 
-        {showReview && (
+        {showReview && totalCards > 0 && (
           <CardsReviewAlert
             totalCards={totalCards}
             onReviewClick={handleReviewClick}

@@ -34,9 +34,14 @@ export const useCardProcessing = ({
     processingRef.current = new AbortController();
 
     try {
-      toast.info(`Processing ${uploadQueue.length} images...`);
+      const processingToast = toast.loading(`🔍 Analyzing ${uploadQueue.length} images for trading cards...`, {
+        description: 'This may take a moment for large images'
+      });
       
       const results = await cardDetectionService.processBatch(uploadQueue);
+      
+      // Dismiss the loading toast
+      toast.dismiss(processingToast);
       
       // Flatten all detected cards from all results
       const allCards = new Map<string, any>();
@@ -52,7 +57,6 @@ export const useCardProcessing = ({
       setDetectedCards(allCards);
       setUploadQueue([]);
       setIsProcessing(false);
-      setShowReview(totalDetected > 0);
       setProcessingStatus({
         total: uploadQueue.length,
         completed: totalDetected,
@@ -60,20 +64,44 @@ export const useCardProcessing = ({
         inProgress: []
       });
 
-      toast.success(`Successfully detected ${totalDetected} cards from ${results.length} images!`);
+      if (totalDetected > 0) {
+        setShowReview(true);
+        // Auto-select all detected cards for user convenience
+        const allCardIds = new Set(Array.from(allCards.keys()));
+        setSelectedCards(allCardIds);
+        
+        toast.success(`🎉 Successfully detected ${totalDetected} cards!`, {
+          description: `From ${results.length} images. Redirecting to review...`,
+          duration: 4000
+        });
+      } else {
+        toast.warning('No trading cards detected in the uploaded images', {
+          description: 'Try uploading clearer images with visible trading cards'
+        });
+      }
     } catch (error) {
       console.error('Batch processing failed:', error);
       setIsProcessing(false);
-      toast.error('Processing failed. Please try again.');
+      toast.error('Processing failed. Please try again.', {
+        description: 'Make sure your images are clear and contain trading cards'
+      });
     }
-  }, [uploadQueue, setDetectedCards, setUploadQueue, setIsProcessing, setShowReview, setProcessingStatus]);
+  }, [uploadQueue, setDetectedCards, setUploadQueue, setIsProcessing, setShowReview, setProcessingStatus, setSelectedCards]);
 
   const createSelectedCards = useCallback((detectedCards: Map<string, any>, selectedCards: Set<string>) => {
     const selectedCardData = Array.from(detectedCards.values())
       .filter(card => selectedCards.has(card.id));
     
-    // TODO: Integrate with card creation service
-    toast.success(`Creating ${selectedCardData.length} cards...`);
+    if (selectedCardData.length === 0) {
+      toast.warning('No cards selected', {
+        description: 'Please select at least one card to add to your collection'
+      });
+      return;
+    }
+    
+    toast.success(`🎴 Adding ${selectedCardData.length} cards to your collection...`, {
+      description: 'Your cards are being processed and added'
+    });
     
     // Clear after creation
     setDetectedCards(new Map());

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, ArrowRight } from 'lucide-react';
 import { BulkCardUploader } from '@/components/catalog/BulkCardUploader';
 
 interface CardsUploadFeatureProps {
@@ -27,6 +27,17 @@ export const CardsUploadFeature: React.FC<CardsUploadFeatureProps> = ({
               Upload multiple images and let our advanced AI automatically detect, crop, and enhance 
               individual trading cards. Perfect for digitizing entire collections quickly.
             </p>
+          </div>
+
+          {/* Process Flow */}
+          <div className="flex items-center justify-center mb-8 text-sm text-crd-lightGray">
+            <span className="bg-editor-tool px-3 py-1 rounded-full">1. Upload Images</span>
+            <ArrowRight className="w-4 h-4 mx-3" />
+            <span className="bg-editor-tool px-3 py-1 rounded-full">2. AI Detection</span>
+            <ArrowRight className="w-4 h-4 mx-3" />
+            <span className="bg-crd-green/20 px-3 py-1 rounded-full text-crd-green">3. Review & Select</span>
+            <ArrowRight className="w-4 h-4 mx-3" />
+            <span className="bg-editor-tool px-3 py-1 rounded-full">4. Add to Collection</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

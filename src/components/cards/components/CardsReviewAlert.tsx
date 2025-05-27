@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, Sparkles } from 'lucide-react';
 
 interface CardsReviewAlertProps {
   totalCards: number;
@@ -14,28 +14,25 @@ export const CardsReviewAlert: React.FC<CardsReviewAlertProps> = ({
   onReviewClick
 }) => {
   return (
-    <Card className="bg-blue-600/20 border-blue-500 mb-8">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Eye className="w-5 h-5 text-blue-400" />
-            <div>
-              <h3 className="text-white font-medium">
-                {totalCards} cards detected and ready for review
-              </h3>
-              <p className="text-blue-200 text-sm">
-                Review the detected cards below, make any adjustments, and create your digital cards
-              </p>
-            </div>
-          </div>
-          <Button
-            onClick={onReviewClick}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            Review Cards
-          </Button>
+    <Alert className="mb-6 bg-gradient-to-r from-crd-green/20 to-blue-600/20 border-crd-green/30">
+      <Sparkles className="h-5 w-5 text-crd-green" />
+      <AlertDescription className="flex items-center justify-between">
+        <div>
+          <p className="text-white font-medium">
+            🎉 Great! We detected {totalCards} trading cards in your images.
+          </p>
+          <p className="text-crd-lightGray text-sm mt-1">
+            Review and select which cards you want to add to your collection.
+          </p>
         </div>
-      </CardContent>
-    </Card>
+        <Button 
+          onClick={onReviewClick}
+          className="bg-crd-green hover:bg-crd-green/80 text-black font-medium ml-4"
+        >
+          <Eye className="w-4 h-4 mr-2" />
+          Review Cards
+        </Button>
+      </AlertDescription>
+    </Alert>
   );
 };
