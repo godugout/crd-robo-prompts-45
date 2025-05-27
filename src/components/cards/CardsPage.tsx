@@ -25,8 +25,9 @@ export const CardsPage = () => {
   } = useCardCatalog();
   
   const totalCards = detectedCards.size;
+  const detectedCardsArray = Array.from(detectedCards.values()) as DetectedCard[];
   const averageConfidence = totalCards > 0 
-    ? Array.from(detectedCards.values()).reduce((sum, card) => sum + card.confidence, 0) / totalCards 
+    ? detectedCardsArray.reduce((sum, card) => sum + (card.confidence || 0), 0) / totalCards 
     : 0;
 
   const handleCardEdit = (card: DetectedCard) => {
@@ -133,7 +134,7 @@ export const CardsPage = () => {
         {showReview && activeTab === 'upload' && (
           <div className="mb-8">
             <DetectedCardsReview
-              detectedCards={Array.from(detectedCards.values())}
+              detectedCards={detectedCardsArray}
               selectedCards={selectedCards}
               onCardToggle={toggleCardSelection}
               onCardEdit={editCardBounds}
@@ -231,7 +232,7 @@ export const CardsPage = () => {
           <TabsContent value="review" className="mt-0">
             {showReview && (
               <DetectedCardsReview
-                detectedCards={Array.from(detectedCards.values())}
+                detectedCards={detectedCardsArray}
                 selectedCards={selectedCards}
                 onCardToggle={toggleCardSelection}
                 onCardEdit={editCardBounds}

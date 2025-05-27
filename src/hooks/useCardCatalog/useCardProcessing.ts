@@ -49,7 +49,7 @@ export const useCardProcessing = ({
         });
       });
 
-      setDetectedCards(prev => new Map([...prev, ...allCards]));
+      setDetectedCards(allCards);
       setUploadQueue([]);
       setIsProcessing(false);
       setShowReview(totalDetected > 0);
