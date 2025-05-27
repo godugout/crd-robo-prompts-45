@@ -1,10 +1,11 @@
+
 import React from "react";
 
 interface CreatorBoxProps {
   rank: number;
   name: string;
   avatar: string;
-  eth: string;
+  credits: string;
   badgeColor?: string;
 }
 
@@ -12,7 +13,7 @@ export const CreatorBox: React.FC<CreatorBoxProps> = ({
   rank,
   name,
   avatar,
-  eth,
+  credits,
   badgeColor = "#3772FF",
 }) => {
   return (
@@ -55,10 +56,10 @@ export const CreatorBox: React.FC<CreatorBoxProps> = ({
           </div>
           <div className="flex w-full items-center gap-0.5 text-xs leading-loose justify-center">
             <div className="text-[#E6E8EC] font-semibold self-stretch my-auto">
-              {eth}
+              {credits}
             </div>
             <div className="text-[#777E90] font-normal self-stretch my-auto">
-              ETH
+              C
             </div>
           </div>
         </div>

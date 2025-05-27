@@ -1,13 +1,12 @@
 
 import React from "react";
 
-const formatCoins = (amount: number | string) => {
-  const n = typeof amount === "number" ? amount : parseFloat(amount);
+const formatCredits = (amount: number | string) => {
+  const n = typeof amount === "number" ? amount : parseInt(amount);
   return (
     <>
-      <span className="inline-block mr-0.5 text-base align-middle">🪙</span>
-      <span className="align-middle">{Math.ceil(n)}</span>
-      <span className="ml-1">CC</span>
+      <span className="align-middle">{n}</span>
+      <span className="ml-1">C</span>
     </>
   );
 };
@@ -26,7 +25,7 @@ export const CardItem: React.FC<CardItemProps> = ({
   price,
   image,
   stock = "3 in stock",
-  highestBid = "0.001",
+  highestBid = "10",
   avatars = [],
 }) => {
   return (
@@ -44,7 +43,7 @@ export const CardItem: React.FC<CardItemProps> = ({
             {title}
           </div>
           <div className="self-stretch rounded gap-2.5 text-xs text-[#45B26B] uppercase leading-none my-auto pt-2 pb-1.5 px-2 flex items-center">
-            {formatCoins(price)}
+            {formatCredits(price)}
           </div>
         </div>
         <div className="flex w-full items-center gap-3 mt-3">
@@ -82,7 +81,7 @@ export const CardItem: React.FC<CardItemProps> = ({
               Highest bid
             </div>
             <div className="text-[#FCFCFD] font-semibold self-stretch my-auto flex items-center">
-              {formatCoins(highestBid ?? 0)}
+              {formatCredits(highestBid ?? 0)}
             </div>
           </div>
           <div className="self-stretch gap-1 text-[#777E90] font-normal my-auto">

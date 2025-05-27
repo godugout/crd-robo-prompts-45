@@ -2,22 +2,21 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 
-const formatCoins = (amount: number | string) => {
-  const n = typeof amount === "number" ? amount : parseFloat(amount);
+const formatCredits = (amount: number | string) => {
+  const n = typeof amount === "number" ? amount : parseInt(amount);
   return (
     <>
-      <span className="inline-block mr-0.5 text-lg align-middle">🪙</span>
-      <span className="align-middle font-extrabold">{Math.ceil(n)}</span>
-      <span className="ml-1">CC</span>
+      <span className="align-middle font-extrabold">{n}</span>
+      <span className="ml-1">C</span>
     </>
   );
 };
 
 export const CardBidInfo = () => {
-  const highestBid = 1.46;
-  const usd = 2764.89;
-  const serviceFeeCoin = 2.563;
-  const serviceFeeUsd = 4540.62;
+  const highestBid = 146;
+  const usd = 2764;
+  const serviceFeeCredits = 256;
+  const serviceFeeUsd = 4540;
 
   return (
     <div className="flex flex-col gap-8 px-4 py-4 border border-[#353945] bg-[#23262F] rounded-2xl shadow-[0px_64px_64px_-48px_rgba(31,47,70,0.12)]">
@@ -30,10 +29,10 @@ export const CardBidInfo = () => {
             Kohaku Tora
           </span>
           <span className="text-xl font-raleway font-bold text-white flex items-center gap-1">
-            {formatCoins(highestBid)}
+            {formatCredits(highestBid)}
           </span>
           <span className="text-xl font-raleway font-bold text-[#777E90]">
-            ${Math.ceil(usd).toLocaleString()}
+            ${usd.toLocaleString()}
           </span>
         </div>
         <div className="w-12 h-12 rounded-full bg-[#45B26B] relative">
@@ -63,10 +62,10 @@ export const CardBidInfo = () => {
         </span>
         <span className="text-sm font-poppins text-white">1.5%</span>
         <span className="text-sm font-poppins text-white flex items-center gap-1">
-          {formatCoins(serviceFeeCoin)}
+          {formatCredits(serviceFeeCredits)}
         </span>
         <span className="text-sm font-poppins text-[#777E90]">
-          ${Math.ceil(serviceFeeUsd).toLocaleString()}
+          ${serviceFeeUsd.toLocaleString()}
         </span>
       </div>
     </div>

@@ -1,32 +1,32 @@
 
 import React from "react";
 
-const formatCoins = (amount: number | string) => {
-  const n = typeof amount === "number" ? amount : parseFloat(amount);
+const formatCredits = (amount: number | string) => {
+  const n = typeof amount === "number" ? amount : parseInt(amount);
   return (
     <>
-      <span className="inline-block mr-0.5 text-lg align-middle">🪙</span>
-      <span className="align-middle font-extrabold">{Math.ceil(n)}</span>
-      <span className="ml-1">CC</span>
+      <span className="align-middle font-extrabold">{n}</span>
+      <span className="ml-1">C</span>
     </>
   );
 };
 
 export const CardInfo = () => {
-  // Demo data as before
-  const coinValue = 2.5;
-  const usdValue = 4429.87;
+  // Demo data updated to use credits instead of coins/ETH
+  const creditValue = 25;
+  const usdValue = 4429;
   const stock = 10;
+  
   return (
     <div className="flex-1 space-y-16">
       <div className="space-y-10">
         <h1 className="font-raleway text-4xl font-black">The amazing art</h1>
         <div className="flex items-center gap-2 flex-wrap">
           <span className="px-2 py-1 text-lg font-raleway font-extrabold border-2 border-[#45B26B] text-[#45B26B] rounded flex items-center gap-1">
-            {formatCoins(coinValue)}
+            {formatCredits(creditValue)}
           </span>
           <span className="px-2 py-1 text-lg font-raleway font-extrabold border-2 border-[#353945] text-[#777E90] rounded">
-            ${Math.ceil(usdValue).toLocaleString()}
+            ${usdValue.toLocaleString()}
           </span>
           <span className="text-lg font-raleway font-extrabold text-[#777E90]">
             {stock} in stock
