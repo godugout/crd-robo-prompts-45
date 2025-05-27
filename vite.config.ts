@@ -25,4 +25,10 @@ export default defineConfig(({ mode }) => ({
     environment: 'jsdom',
     setupFiles: ['./src/components/cards/hooks/__tests__/setup.ts'],
   },
+  worker: {
+    format: 'es'
+  },
+  optimizeDeps: {
+    exclude: ['@/workers/cardDetectionWorker.ts']
+  }
 }));

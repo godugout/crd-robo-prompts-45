@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useCardUploadSession } from './hooks/useCardUploadSession';
 import { useCardOperations } from './hooks/useCardOperations';
@@ -7,7 +8,9 @@ import { CardsUploadPhase } from './components/CardsUploadPhase';
 import { CardsProcessingPhases } from './components/CardsProcessingPhases';
 import { CardsReviewPhase } from './components/CardsReviewPhase';
 import { CardsCollection } from './components/CardsCollection';
+import { BulkCardsUploader } from './components/BulkCardsUploader';
 import type { UploadedImage } from './types';
+import type { CardDetectionResult } from '@/services/cardDetection';
 
 export const CardsPage: React.FC = () => {
   const {
@@ -38,6 +41,21 @@ export const CardsPage: React.FC = () => {
     startDetection(images, setPhase, setDetectionResults, setSelectedCards);
   };
 
+  // Handle bulk processing results
+  const handleBulkResultsReady = (results: CardDetectionResult[]): void => {
+    console.log('Bulk processing completed with results:', results);
+    
+    setDetectionResults(results);
+    
+    // Auto-select all detected cards
+    const allCardIds = results.flatMap(result => 
+      result.detectedCards.map(card => card.id)
+    );
+    setSelectedCards(new Set(allCardIds));
+    
+    setPhase('reviewing');
+  };
+
   // Card selection toggle
   const toggleCardSelection = (cardId: string): void => {
     setSelectedCards(prev => {
@@ -62,9 +80,6 @@ export const CardsPage: React.FC = () => {
     );
   };
 
-  // Get all detected cards for display
-  const allDetectedCards = detectionResults.flatMap(result => result.detectedCards);
-
   return (
     <div className="min-h-screen bg-crd-darkest">
       {/* Header */}
@@ -81,13 +96,39 @@ export const CardsPage: React.FC = () => {
 
         {/* Main Content */}
         <div className="bg-editor-dark rounded-xl p-8 border border-crd-mediumGray/20 mb-8">
-          {/* IDLE PHASE - Upload */}
+          {/* IDLE PHASE - Upload with Bulk Option */}
           {phase === 'idle' && (
-            <CardsUploadPhase
-              uploadedImages={uploadedImages}
-              onImagesUploaded={handleImagesUploaded}
-              onStartDetection={handleStartDetection}
-            />
+            <div className="space-y-8">
+              {/* Bulk Uploader */}
+              <div>
+                <h3 className="text-white text-lg font-medium mb-4">
+                  Bulk Upload (Recommended for 10+ images)
+                </h3>
+                <BulkCardsUploader onResultsReady={handleBulkResultsReady} />
+              </div>
+              
+              {/* Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-crd-mediumGray/20"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-editor-dark text-crd-lightGray">OR</span>
+                </div>
+              </div>
+              
+              {/* Simple Upload */}
+              <div>
+                <h3 className="text-white text-lg font-medium mb-4">
+                  Simple Upload (For a few images)
+                </h3>
+                <CardsUploadPhase
+                  uploadedImages={uploadedImages}
+                  onImagesUploaded={handleImagesUploaded}
+                  onStartDetection={handleStartDetection}
+                />
+              </div>
+            </div>
           )}
 
           {/* PROCESSING PHASES */}
