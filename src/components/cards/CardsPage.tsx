@@ -4,12 +4,11 @@ import { useCardCatalog } from '@/hooks/useCardCatalog';
 import { DetectedCard } from '@/services/cardCatalog/types';
 import { toast } from 'sonner';
 import { CardsPageHeader } from './components/CardsPageHeader';
-import { CardsStatsOverview } from './components/CardsStatsOverview';
-import { CardsReviewAlert } from './components/CardsReviewAlert';
-import { CardsMainContent } from './components/CardsMainContent';
+import { CardsWorkflowSection } from './components/CardsWorkflowSection';
+import { CardsCatalogSection } from './components/CardsCatalogSection';
 
 export const CardsPage = () => {
-  const [activeTab, setActiveTab] = useState('upload');
+  const [workflowStep, setWorkflowStep] = useState<'upload' | 'detecting' | 'review' | 'finalizing' | 'complete'>('upload');
   const { 
     detectedCards, 
     selectedCards, 
@@ -24,49 +23,49 @@ export const CardsPage = () => {
   
   const totalCards = detectedCards.size;
   const detectedCardsArray = Array.from(detectedCards.values()) as DetectedCard[];
-  const averageConfidence = totalCards > 0 
-    ? detectedCardsArray.reduce((sum, card) => sum + (card.confidence || 0), 0) / totalCards 
-    : 0;
 
-  // Auto-navigate to review when cards are detected
+  // Auto-navigate workflow steps based on processing state
   useEffect(() => {
-    if (showReview && totalCards > 0 && !isProcessing) {
-      setActiveTab('review');
+    if (isProcessing) {
+      setWorkflowStep('detecting');
+    } else if (showReview && totalCards > 0) {
+      setWorkflowStep('review');
       toast.success(`🎉 Found ${totalCards} cards! Review them below.`, {
         description: 'Select the cards you want to add to your collection',
         duration: 5000
       });
+    } else if (!showReview && totalCards === 0) {
+      setWorkflowStep('upload');
     }
-  }, [showReview, totalCards, isProcessing]);
-
-  const handleCardEdit = (card: DetectedCard) => {
-    toast.info('Card viewer coming soon!');
-  };
-
-  const handleCardCreate = (card: DetectedCard) => {
-    toast.success('Creating card from detection...');
-  };
+  }, [isProcessing, showReview, totalCards]);
 
   const handleUploadComplete = (count: number) => {
+    setWorkflowStep('detecting');
     toast.success(`Successfully processed ${count} images!`, {
-      description: 'Cards are being analyzed, please wait...'
+      description: 'AI is analyzing your images for trading cards...'
     });
   };
 
   const handleReviewComplete = () => {
+    setWorkflowStep('finalizing');
     createSelectedCards();
-    setActiveTab('catalog');
-    toast.success('Cards added to your collection!', {
-      description: 'Check them out in the catalog tab'
-    });
+    
+    setTimeout(() => {
+      setWorkflowStep('complete');
+      toast.success('Cards added to your collection!', {
+        description: 'Check them out in the catalog below'
+      });
+      
+      // Reset to upload after a brief success state
+      setTimeout(() => {
+        setWorkflowStep('upload');
+      }, 3000);
+    }, 1000);
   };
 
-  const handleAddCards = () => {
-    setActiveTab('upload');
-  };
-
-  const handleReviewClick = () => {
-    setActiveTab('review');
+  const handleStartOver = () => {
+    clearDetectedCards();
+    setWorkflowStep('upload');
   };
 
   const handleCardBoundsEdit = (cardId: string, bounds: DetectedCard['bounds']) => {
@@ -76,36 +75,27 @@ export const CardsPage = () => {
   return (
     <div className="min-h-screen bg-crd-darkest pt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <CardsPageHeader onAddCards={handleAddCards} />
+        <CardsPageHeader />
 
-        <CardsStatsOverview
-          totalCards={totalCards}
-          selectedCards={selectedCards.size}
-          averageConfidence={averageConfidence}
-          processedCards={processingStatus.completed}
-        />
-
-        {showReview && totalCards > 0 && (
-          <CardsReviewAlert
+        {/* Top Half - Workflow Section */}
+        <div className="mb-8">
+          <CardsWorkflowSection
+            currentStep={workflowStep}
             totalCards={totalCards}
-            onReviewClick={handleReviewClick}
+            selectedCards={selectedCards.size}
+            detectedCardsArray={detectedCardsArray}
+            selectedCardsSet={selectedCards}
+            isProcessing={isProcessing}
+            onUploadComplete={handleUploadComplete}
+            onCardToggle={toggleCardSelection}
+            onCardEdit={handleCardBoundsEdit}
+            onReviewComplete={handleReviewComplete}
+            onStartOver={handleStartOver}
           />
-        )}
+        </div>
 
-        <CardsMainContent
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          showReview={showReview}
-          totalCards={totalCards}
-          detectedCardsArray={detectedCardsArray}
-          selectedCards={selectedCards}
-          onCardToggle={toggleCardSelection}
-          onCardEdit={handleCardBoundsEdit}
-          onCreateSelected={handleReviewComplete}
-          onClearAll={clearDetectedCards}
-          onUploadComplete={handleUploadComplete}
-          onCardCreate={handleCardCreate}
-        />
+        {/* Bottom Half - Card Catalog */}
+        <CardsCatalogSection />
       </div>
     </div>
   );
