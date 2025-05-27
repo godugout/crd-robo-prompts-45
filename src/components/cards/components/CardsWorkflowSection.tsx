@@ -72,14 +72,14 @@ export const CardsWorkflowSection: React.FC<CardsWorkflowSectionProps> = ({
   };
 
   return (
-    <Card className="bg-editor-dark border-editor-border">
-      <CardContent className="p-6">
+    <Card className="bg-crd-dark border-crd-mediumGray relative">
+      <CardContent className="p-8">
         {/* Workflow Progress Bar */}
         <div className="mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <h2 className="text-xl font-bold text-white mr-4">Card Creation Workflow</h2>
+          <div className="flex items-center justify-center mb-6">
+            <h3 className="text-xl font-bold text-white mr-4">Card Creation Workflow</h3>
             {totalCards > 0 && (
-              <Badge variant="secondary" className="bg-crd-green/20 text-crd-green">
+              <Badge variant="secondary" className="bg-crd-green/20 text-crd-green border-crd-green/30">
                 {totalCards} cards detected, {selectedCards} selected
               </Badge>
             )}
@@ -94,18 +94,18 @@ export const CardsWorkflowSection: React.FC<CardsWorkflowSectionProps> = ({
               return (
                 <div key={step.id} className="flex items-center">
                   <div className={`flex flex-col items-center ${isActive ? 'text-crd-green' : isCompleted ? 'text-green-400' : 'text-crd-lightGray'}`}>
-                    <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center mb-2 transition-colors ${
-                      isActive ? 'border-crd-green bg-crd-green/20' : 
+                    <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center mb-3 transition-all duration-300 ${
+                      isActive ? 'border-crd-green bg-crd-green/20 shadow-lg shadow-crd-green/25' : 
                       isCompleted ? 'border-green-400 bg-green-400/20' : 
-                      'border-crd-mediumGray'
+                      'border-crd-mediumGray bg-crd-mediumGray/10'
                     }`}>
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-6 h-6" />
                     </div>
-                    <span className="text-xs font-medium text-center">{step.label}</span>
+                    <span className="text-sm font-medium text-center">{step.label}</span>
                   </div>
                   {index < workflowSteps.length - 1 && (
-                    <div className={`w-16 h-0.5 mx-4 transition-colors ${
-                      isCompleted ? 'bg-green-400' : 'bg-crd-mediumGray'
+                    <div className={`w-16 h-0.5 mx-4 transition-colors duration-300 ${
+                      isCompleted ? 'bg-green-400' : 'bg-crd-mediumGray/50'
                     }`} />
                   )}
                 </div>
@@ -115,7 +115,9 @@ export const CardsWorkflowSection: React.FC<CardsWorkflowSectionProps> = ({
         </div>
 
         {/* Step Content */}
-        {renderStepContent()}
+        <div className="relative">
+          {renderStepContent()}
+        </div>
       </CardContent>
     </Card>
   );
