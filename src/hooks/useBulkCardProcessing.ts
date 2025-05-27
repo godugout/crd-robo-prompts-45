@@ -149,7 +149,8 @@ export const useBulkCardProcessing = () => {
       // Wait for batch completion before starting next batch
       await new Promise<void>((resolve) => {
         const checkBatchComplete = () => {
-          const batch = batches.find(b => b.id === batchStatus.id);
+          const currentBatches = batches;
+          const batch = currentBatches.find(b => b.id === batchStatus.id);
           if (batch?.status === 'completed' || batch?.status === 'error' || !canCancel) {
             resolve();
           } else {
@@ -163,7 +164,7 @@ export const useBulkCardProcessing = () => {
     setIsProcessing(false);
     setCanCancel(false);
     currentBatchRef.current = null;
-  }, [queue, canCancel]);
+  }, [queue, canCancel, batches]);
 
   const cancelProcessing = useCallback(() => {
     if (!isProcessing) return;
