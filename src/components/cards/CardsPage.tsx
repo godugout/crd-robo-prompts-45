@@ -55,9 +55,8 @@ export const CardsPage = () => {
     setActiveTab('review');
   };
 
-  const handleCardBoundsEdit = (card: DetectedCard) => {
-    // Extract cardId and bounds from the card object
-    editCardBounds(card.id, card.bounds);
+  const handleCardBoundsEdit = (cardId: string, bounds: DetectedCard['bounds']) => {
+    editCardBounds(cardId, bounds);
   };
 
   return (

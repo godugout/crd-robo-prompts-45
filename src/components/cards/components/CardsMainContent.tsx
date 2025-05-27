@@ -15,7 +15,7 @@ interface CardsMainContentProps {
   detectedCardsArray: DetectedCard[];
   selectedCards: Set<string>;
   onCardToggle: (cardId: string) => void;
-  onCardEdit: (card: DetectedCard) => void;
+  onCardEdit: (cardId: string, bounds: DetectedCard['bounds']) => void;
   onCreateSelected: () => void;
   onClearAll: () => void;
   onUploadComplete: (count: number) => void;
@@ -36,6 +36,11 @@ export const CardsMainContent: React.FC<CardsMainContentProps> = ({
   onUploadComplete,
   onCardCreate
 }) => {
+  const handleCardEditForGrid = (card: DetectedCard) => {
+    // TODO: Open card editor/viewer modal for grid view
+    console.log('Card editor coming soon for grid view!', card);
+  };
+
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
       <TabsList className="bg-[#1A1A1A] p-1 rounded-md mb-8">
@@ -83,7 +88,7 @@ export const CardsMainContent: React.FC<CardsMainContentProps> = ({
 
       <TabsContent value="catalog" className="mt-0">
         <SmartCardGrid 
-          onCardEdit={onCardEdit}
+          onCardEdit={handleCardEditForGrid}
           onCardCreate={onCardCreate}
         />
       </TabsContent>
