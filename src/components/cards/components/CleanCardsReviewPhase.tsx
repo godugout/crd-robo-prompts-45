@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CardDetectionInterface } from './CardDetectionInterface';
+import { FullPageOverlay } from '@/components/overlay/FullPageOverlay';
+import { EnhancedCardReviewInterface } from './EnhancedCardReviewInterface';
 import { CardDetectionResult } from '@/services/cardDetection';
 
 interface CleanCardsReviewPhaseProps {
@@ -20,6 +21,7 @@ export const CleanCardsReviewPhase: React.FC<CleanCardsReviewPhaseProps> = ({
   onStartOver
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isFullScreenOpen, setIsFullScreenOpen] = useState(true);
 
   if (!detectionResults.length) {
     return (
@@ -32,55 +34,95 @@ export const CleanCardsReviewPhase: React.FC<CleanCardsReviewPhaseProps> = ({
     );
   }
 
-  const currentResult = detectionResults[currentImageIndex];
   const allDetectedCards = detectionResults.flatMap(result => result.detectedCards);
+  const selectedCount = allDetectedCards.filter(card => selectedCards.has(card.id)).length;
 
-  const handleCardUpdate = (cardId: string, bounds: any) => {
-    // Update card bounds - you can implement this based on your data structure
-    console.log('Updating card bounds:', cardId, bounds);
+  const handleSelectAll = () => {
+    allDetectedCards.forEach(card => {
+      if (!selectedCards.has(card.id)) {
+        onToggleCardSelection(card.id);
+      }
+    });
   };
 
-  const detectedCardsWithSelection = currentResult.detectedCards.map(card => ({
-    ...card,
-    selected: selectedCards.has(card.id)
-  }));
-
-  // Get original image URL from the first detected card, or create one from the original file
-  const originalImageUrl = currentResult.detectedCards.length > 0 
-    ? currentResult.detectedCards[0].originalImageUrl 
-    : URL.createObjectURL(currentResult.originalImage);
+  const handleDeselectAll = () => {
+    allDetectedCards.forEach(card => {
+      if (selectedCards.has(card.id)) {
+        onToggleCardSelection(card.id);
+      }
+    });
+  };
 
   return (
-    <div className="h-[80vh]">
-      {/* Navigation for multiple images */}
-      {detectionResults.length > 1 && (
-        <div className="flex items-center justify-between p-4 bg-gray-800 border-b border-gray-700">
-          <h3 className="text-white font-medium">
-            Image {currentImageIndex + 1} of {detectionResults.length}
-          </h3>
-          <div className="flex gap-2">
-            {detectionResults.map((_, index) => (
-              <Button
-                key={index}
-                variant={index === currentImageIndex ? "default" : "outline"}
-                size="sm"
-                onClick={() => setCurrentImageIndex(index)}
-                className={index === currentImageIndex ? "bg-blue-600" : ""}
-              >
-                {index + 1}
-              </Button>
-            ))}
-          </div>
+    <>
+      {/* Compact Summary View */}
+      <div className="p-6 text-center">
+        <h3 className="text-2xl font-semibold text-white mb-4">Review Detected Cards</h3>
+        <p className="text-crd-lightGray mb-6">
+          Found {allDetectedCards.length} cards across {detectionResults.length} images • {selectedCount} selected
+        </p>
+        
+        <div className="flex justify-center gap-4">
+          <Button
+            onClick={() => setIsFullScreenOpen(true)}
+            className="bg-crd-green hover:bg-crd-green/90 text-black"
+          >
+            Open Full Review Interface
+          </Button>
+          <Button
+            variant="outline"
+            onClick={onStartOver}
+            className="text-crd-lightGray border-crd-mediumGray"
+          >
+            Start Over
+          </Button>
         </div>
-      )}
+      </div>
 
-      <CardDetectionInterface
-        originalImageUrl={originalImageUrl}
-        detectedCards={detectedCardsWithSelection}
-        onCardUpdate={handleCardUpdate}
-        onCardToggle={onToggleCardSelection}
-        onFinalize={onCreateSelectedCards}
-      />
-    </div>
+      {/* Full-Screen Enhanced Review Interface */}
+      <FullPageOverlay
+        isOpen={isFullScreenOpen}
+        onClose={() => setIsFullScreenOpen(false)}
+        title="Card Detection Review"
+        actions={
+          <div className="flex items-center gap-4">
+            <span className="text-gray-300 text-sm">
+              {selectedCount} of {allDetectedCards.length} cards selected
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSelectAll}
+              className="text-gray-300"
+            >
+              Select All
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDeselectAll}
+              className="text-gray-300"
+            >
+              Deselect All
+            </Button>
+            <Button
+              onClick={onCreateSelectedCards}
+              disabled={selectedCount === 0}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Create {selectedCount} Cards
+            </Button>
+          </div>
+        }
+      >
+        <EnhancedCardReviewInterface
+          detectionResults={detectionResults}
+          selectedCards={selectedCards}
+          currentImageIndex={currentImageIndex}
+          onImageIndexChange={setCurrentImageIndex}
+          onToggleCardSelection={onToggleCardSelection}
+        />
+      </FullPageOverlay>
+    </>
   );
 };
