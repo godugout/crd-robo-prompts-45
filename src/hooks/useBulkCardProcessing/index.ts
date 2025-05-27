@@ -10,7 +10,7 @@ export const useBulkCardProcessing = () => {
   const [canCancel, setCanCancel] = useState(false);
   
   const workerManagerRef = useRef<WorkerManager | null>(null);
-  const currentBatchRef = useRef<string | null>(null);
+  const processingPromiseRef = useRef<Promise<void> | null>(null);
 
   const {
     batches,
@@ -84,48 +84,60 @@ export const useBulkCardProcessing = () => {
       return;
     }
 
+    if (isProcessing) {
+      toast.warning('Already processing');
+      return;
+    }
+
     setIsProcessing(true);
     setCanCancel(true);
 
-    // Create batches of 5-10 files
-    const batchSize = Math.min(8, Math.max(5, Math.floor(pendingItems.length / 10)));
-    const newBatches = createBatches(pendingItems.map(item => item.file), batchSize);
-    setBatchList(newBatches);
+    try {
+      // Create batches of 5-10 files
+      const batchSize = Math.min(8, Math.max(5, Math.floor(pendingItems.length / 10)));
+      const newBatches = createBatches(pendingItems.map(item => item.file), batchSize);
+      setBatchList(newBatches);
 
-    // Process batches sequentially
-    for (const batchStatus of newBatches) {
-      if (!canCancel) break;
+      // Process all batches
+      const processingPromises = newBatches.map(async (batchStatus) => {
+        updateBatchStatus(batchStatus.id, 'processing');
+        markItemsAsProcessing(batchStatus.files, batchStatus.id);
 
-      currentBatchRef.current = batchStatus.id;
-      
-      updateBatchStatus(batchStatus.id, 'processing');
-      markItemsAsProcessing(batchStatus.files, batchStatus.id);
+        return new Promise<void>((resolve) => {
+          // Start processing this batch
+          workerManagerRef.current?.processBatch(
+            batchStatus.files,
+            batchStatus.id,
+            `session_${Date.now()}`
+          );
 
-      workerManagerRef.current?.processBatch(
-        batchStatus.files,
-        batchStatus.id,
-        `session_${Date.now()}`
-      );
-
-      // Wait for batch completion
-      await new Promise<void>((resolve) => {
-        const checkBatchComplete = () => {
-          const currentBatches = batches;
-          const batch = currentBatches.find(b => b.id === batchStatus.id);
-          if (batch?.status === 'completed' || batch?.status === 'error' || !canCancel) {
-            resolve();
-          } else {
-            setTimeout(checkBatchComplete, 100);
-          }
-        };
-        checkBatchComplete();
+          // Listen for completion
+          const checkComplete = () => {
+            const currentBatch = batches.find(b => b.id === batchStatus.id);
+            if (currentBatch?.status === 'completed' || currentBatch?.status === 'error') {
+              resolve();
+            } else {
+              setTimeout(checkComplete, 100);
+            }
+          };
+          
+          // Start checking after a small delay to ensure state updates
+          setTimeout(checkComplete, 100);
+        });
       });
-    }
 
-    setIsProcessing(false);
-    setCanCancel(false);
-    currentBatchRef.current = null;
-  }, [getPendingItems, canCancel, createBatches, setBatchList, updateBatchStatus, markItemsAsProcessing, batches]);
+      // Wait for all batches to complete
+      await Promise.all(processingPromises);
+      
+      toast.success('All batches completed successfully!');
+    } catch (error) {
+      console.error('Batch processing failed:', error);
+      toast.error('Batch processing failed');
+    } finally {
+      setIsProcessing(false);
+      setCanCancel(false);
+    }
+  }, [getPendingItems, isProcessing, createBatches, setBatchList, updateBatchStatus, markItemsAsProcessing, batches]);
 
   const cancelProcessing = useCallback(() => {
     if (!isProcessing) return;
@@ -137,6 +149,7 @@ export const useBulkCardProcessing = () => {
     cancelAllBatches();
 
     toast.warning('Processing cancelled');
+    setIsProcessing(false);
   }, [isProcessing, resetProcessingItems, cancelAllBatches]);
 
   return {
