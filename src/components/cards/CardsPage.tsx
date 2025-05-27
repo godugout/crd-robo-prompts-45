@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
@@ -86,7 +85,7 @@ export const CardsPage = () => {
     }
   };
 
-  // Create selected cards
+  // Create selected cards with actual cropping
   const createSelectedCards = async () => {
     if (selectedCards.size === 0) {
       toast.error('Please select at least one card');
@@ -105,13 +104,11 @@ export const CardsPage = () => {
       for (let i = 0; i < cardsToCreate.length; i++) {
         const card = cardsToCreate[i];
         
-        // Crop the card image
-        const croppedImage = await cropCardFromImage(card.croppedImageUrl, card.bounds);
-        
+        // Use the already cropped image from detection
         newCreatedCards.push({
           id: `created-${card.id}`,
           title: `${card.metadata.cardType || 'Card'} ${i + 1}`,
-          image: croppedImage,
+          image: card.croppedImageUrl, // Use the cropped image
           confidence: card.confidence,
           metadata: card.metadata,
           createdAt: new Date()
@@ -303,6 +300,9 @@ export const CardsPage = () => {
                   <p className="text-crd-lightGray">
                     Found {allDetectedCards.length} cards • {selectedCards.size} selected
                   </p>
+                  <p className="text-crd-lightGray text-sm mt-1">
+                    Cards have been automatically cropped to standard dimensions
+                  </p>
                 </div>
                 <div className="flex gap-3">
                   <Button
@@ -322,41 +322,89 @@ export const CardsPage = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {allDetectedCards.map((card) => {
                   const isSelected = selectedCards.has(card.id);
                   
                   return (
                     <div
                       key={card.id}
-                      className={`relative group cursor-pointer border-2 rounded-lg transition-all ${
+                      className={`relative group border-2 rounded-lg transition-all p-4 ${
                         isSelected 
                           ? 'border-crd-green bg-crd-green/10' 
                           : 'border-crd-mediumGray hover:border-crd-green/50'
                       }`}
-                      onClick={() => toggleCardSelection(card.id)}
                     >
-                      <div className="aspect-[3/4] bg-editor-tool rounded-lg overflow-hidden">
-                        <img
-                          src={card.croppedImageUrl}
-                          alt={`Detected card ${card.id}`}
-                          className="w-full h-full object-cover"
-                        />
+                      {/* Original vs Cropped comparison */}
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                          <p className="text-crd-lightGray text-xs mb-1">Original</p>
+                          <div className="aspect-video bg-editor-tool rounded overflow-hidden">
+                            <img
+                              src={card.originalImageUrl}
+                              alt="Original"
+                              className="w-full h-full object-cover"
+                            />
+                            {/* Overlay showing detection bounds */}
+                            <div className="absolute inset-0 pointer-events-none">
+                              <div 
+                                className="absolute border-2 border-crd-green bg-crd-green/20"
+                                style={{
+                                  left: `${(card.bounds.x / 800) * 100}%`, // Assuming 800px width for demo
+                                  top: `${(card.bounds.y / 600) * 100}%`,   // Assuming 600px height for demo
+                                  width: `${(card.bounds.width / 800) * 100}%`,
+                                  height: `${(card.bounds.height / 600) * 100}%`
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
                         
-                        {/* Selection indicator */}
-                        <div className={`absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center transition-all ${
-                          isSelected ? 'bg-crd-green text-black' : 'bg-black/50 text-white'
-                        }`}>
-                          {isSelected ? <Check className="w-4 h-4" /> : <div className="w-3 h-3 border border-white rounded-full" />}
+                        <div>
+                          <p className="text-crd-lightGray text-xs mb-1">Cropped Card</p>
+                          <div className="aspect-[3/4] bg-editor-tool rounded overflow-hidden">
+                            <img
+                              src={card.croppedImageUrl}
+                              alt={`Cropped card ${card.id}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         </div>
+                      </div>
 
-                        {/* Card info overlay */}
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-2">
-                          <p className="text-white text-xs font-medium">{card.metadata.cardType || 'Card'}</p>
-                          <p className="text-crd-lightGray text-xs">
-                            {Math.round(card.confidence * 100)}% confidence
-                          </p>
-                        </div>
+                      {/* Card info */}
+                      <div className="mb-3">
+                        <p className="text-white text-sm font-medium">{card.metadata.cardType || 'Card'}</p>
+                        <p className="text-crd-lightGray text-xs">
+                          {Math.round(card.confidence * 100)}% confidence
+                        </p>
+                        <p className="text-crd-lightGray text-xs">
+                          Dimensions: {Math.round(card.bounds.width)}×{Math.round(card.bounds.height)}px
+                        </p>
+                      </div>
+
+                      {/* Selection controls */}
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() => toggleCardSelection(card.id)}
+                          className={`flex items-center gap-2 px-3 py-1 rounded text-sm transition-all ${
+                            isSelected 
+                              ? 'bg-crd-green text-black' 
+                              : 'bg-crd-mediumGray text-white hover:bg-crd-lightGray'
+                          }`}
+                        >
+                          {isSelected ? <Check className="w-4 h-4" /> : <div className="w-4 h-4 border border-white rounded" />}
+                          {isSelected ? 'Selected' : 'Select'}
+                        </button>
+
+                        {/* Future: Add adjust bounds button */}
+                        <button
+                          className="text-crd-lightGray hover:text-white text-xs opacity-50 cursor-not-allowed"
+                          disabled
+                          title="Crop adjustment coming soon"
+                        >
+                          Adjust Crop
+                        </button>
                       </div>
                     </div>
                   );
