@@ -2542,6 +2542,10 @@ export type Database = {
         Args: { p_table_name: string; p_column_name: string }
         Returns: boolean
       }
+      get_current_user_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_table_exists: {
         Args: { table_name: string }
         Returns: boolean

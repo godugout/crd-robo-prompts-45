@@ -2,18 +2,37 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Grid, List, Filter } from 'lucide-react';
-import { CardCollectionUpload } from './CardCollectionUpload';
-import { ExtractedCard } from '@/services/cardExtractor';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Sparkles, BarChart3 } from 'lucide-react';
+import { BulkCardUploader } from '@/components/catalog/BulkCardUploader';
+import { SmartCardGrid } from '@/components/catalog/SmartCardGrid';
+import { useCardCatalog } from '@/hooks/useCardCatalog';
+import { DetectedCard } from '@/services/cardCatalog/CardDetectionService';
+import { toast } from 'sonner';
 
 export const CardsPage = () => {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [showUpload, setShowUpload] = useState(true);
-  const [cards, setCards] = useState<ExtractedCard[]>([]);
+  const [activeTab, setActiveTab] = useState('upload');
+  const { detectedCards, selectedCards, processingStatus } = useCardCatalog();
+  
+  const totalCards = detectedCards.size;
+  const averageConfidence = totalCards > 0 
+    ? Array.from(detectedCards.values()).reduce((sum, card) => sum + card.confidence, 0) / totalCards 
+    : 0;
 
-  const handleCardsAdded = (newCards: ExtractedCard[]) => {
-    setCards(prev => [...prev, ...newCards]);
-    setShowUpload(false);
+  const handleCardEdit = (card: DetectedCard) => {
+    // TODO: Open card editor/viewer modal
+    toast.info('Card viewer coming soon!');
+  };
+
+  const handleCardCreate = (card: DetectedCard) => {
+    // TODO: Navigate to card creator with pre-filled data
+    toast.success('Creating card from detection...');
+    // This would typically navigate to the card editor with the detected card data
+  };
+
+  const handleUploadComplete = (count: number) => {
+    setActiveTab('catalog');
+    toast.success(`Successfully processed ${count} images!`);
   };
 
   return (
@@ -22,119 +41,136 @@ export const CardsPage = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">My Cards</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">Card Catalog Manager</h1>
             <p className="text-crd-lightGray">
-              Upload and manage your trading card collection
+              AI-powered card detection and collection management
             </p>
           </div>
           
           <div className="flex items-center gap-3">
             <Button
-              onClick={() => setShowUpload(!showUpload)}
+              onClick={() => setActiveTab('upload')}
               className="bg-crd-green hover:bg-crd-green/80 text-black"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Cards
             </Button>
-            
-            <div className="flex items-center border border-editor-border rounded-lg">
-              <Button
-                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="border-0 rounded-r-none"
-              >
-                <Grid className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="border-0 rounded-l-none"
-              >
-                <List className="w-4 h-4" />
-              </Button>
-            </div>
           </div>
         </div>
 
-        {/* Upload Section */}
-        {showUpload && (
-          <div className="mb-8">
-            <CardCollectionUpload onCardsAdded={handleCardsAdded} />
+        {/* Stats Overview */}
+        {totalCards > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <Card className="bg-editor-dark border-editor-border">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-crd-green">{totalCards}</div>
+                <div className="text-xs text-crd-lightGray">Total Cards Detected</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-editor-dark border-editor-border">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-blue-400">{selectedCards.size}</div>
+                <div className="text-xs text-crd-lightGray">Cards Selected</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-editor-dark border-editor-border">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-yellow-400">{Math.round(averageConfidence * 100)}%</div>
+                <div className="text-xs text-crd-lightGray">Avg. Confidence</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-editor-dark border-editor-border">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-purple-400">{processingStatus.completed}</div>
+                <div className="text-xs text-crd-lightGray">Processed</div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
-        {/* Cards Collection */}
-        {cards.length > 0 ? (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-white">
-                Your Collection ({cards.length} cards)
-              </h2>
-              <Button variant="outline" size="sm">
-                <Filter className="w-4 h-4 mr-2" />
-                Filter
-              </Button>
-            </div>
+        {/* Main Content Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="bg-[#1A1A1A] p-1 rounded-md mb-8">
+            <TabsTrigger 
+              value="upload" 
+              className={`px-6 py-3 ${activeTab === 'upload' ? 'bg-[#3772FF] text-white' : 'text-[#777E90]'}`}
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Smart Upload
+            </TabsTrigger>
+            <TabsTrigger 
+              value="catalog" 
+              className={`px-6 py-3 ${activeTab === 'catalog' ? 'bg-[#3772FF] text-white' : 'text-[#777E90]'}`}
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Card Catalog ({totalCards})
+            </TabsTrigger>
+          </TabsList>
 
-            {viewMode === 'grid' ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
-                {cards.map((card, index) => (
-                  <Card key={index} className="bg-editor-dark border-editor-border overflow-hidden group hover:border-crd-green/50 transition-colors">
-                    <div className="aspect-[3/4] relative">
-                      <img
-                        src={URL.createObjectURL(card.imageBlob)}
-                        alt={`Card ${index + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+          <TabsContent value="upload" className="mt-0">
+            <div className="space-y-8">
+              {/* Feature Overview */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardContent className="p-8">
+                  <div className="text-center mb-8">
+                    <div className="w-20 h-20 rounded-full bg-crd-green/20 flex items-center justify-center mx-auto mb-4">
+                      <Sparkles className="w-10 h-10 text-crd-green" />
                     </div>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {cards.map((card, index) => (
-                  <Card key={index} className="bg-editor-dark border-editor-border">
-                    <CardContent className="p-4 flex items-center gap-4">
-                      <div className="w-16 h-20 rounded-lg overflow-hidden bg-editor-tool">
-                        <img
-                          src={URL.createObjectURL(card.imageBlob)}
-                          alt={`Card ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
+                    <h2 className="text-2xl font-bold text-white mb-2">
+                      AI-Powered Card Detection
+                    </h2>
+                    <p className="text-crd-lightGray max-w-2xl mx-auto">
+                      Upload multiple images and let our advanced AI automatically detect, crop, and enhance 
+                      individual trading cards. Perfect for digitizing entire collections quickly.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="text-center p-4">
+                      <div className="w-12 h-12 rounded-full bg-blue-600/20 flex items-center justify-center mx-auto mb-3">
+                        <Sparkles className="w-6 h-6 text-blue-400" />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-white font-medium">Card {index + 1}</h3>
-                        <p className="text-crd-lightGray text-sm">
-                          Confidence: {Math.round(card.confidence * 100)}%
-                        </p>
+                      <h3 className="text-white font-medium mb-2">Multi-Card Detection</h3>
+                      <p className="text-crd-lightGray text-sm">
+                        Automatically detect multiple cards in a single photo with precise boundary detection.
+                      </p>
+                    </div>
+                    
+                    <div className="text-center p-4">
+                      <div className="w-12 h-12 rounded-full bg-green-600/20 flex items-center justify-center mx-auto mb-3">
+                        <Sparkles className="w-6 h-6 text-green-400" />
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : !showUpload ? (
-          <Card className="bg-editor-dark border-editor-border">
-            <CardContent className="p-12 text-center">
-              <Grid className="w-16 h-16 text-crd-lightGray mx-auto mb-4" />
-              <h3 className="text-white font-medium text-lg mb-2">No cards yet</h3>
-              <p className="text-crd-lightGray mb-6">
-                Start building your collection by uploading card images
-              </p>
-              <Button
-                onClick={() => setShowUpload(true)}
-                className="bg-crd-green hover:bg-crd-green/80 text-black"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Your First Cards
-              </Button>
-            </CardContent>
-          </Card>
-        ) : null}
+                      <h3 className="text-white font-medium mb-2">Smart Enhancement</h3>
+                      <p className="text-crd-lightGray text-sm">
+                        AI-powered perspective correction, background removal, and image enhancement.
+                      </p>
+                    </div>
+                    
+                    <div className="text-center p-4">
+                      <div className="w-12 h-12 rounded-full bg-purple-600/20 flex items-center justify-center mx-auto mb-3">
+                        <Sparkles className="w-6 h-6 text-purple-400" />
+                      </div>
+                      <h3 className="text-white font-medium mb-2">Batch Processing</h3>
+                      <p className="text-crd-lightGray text-sm">
+                        Process hundreds of images at once with intelligent queuing and progress tracking.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Upload Component */}
+              <BulkCardUploader onUploadComplete={handleUploadComplete} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="catalog" className="mt-0">
+            <SmartCardGrid 
+              onCardEdit={handleCardEdit}
+              onCardCreate={handleCardCreate}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
