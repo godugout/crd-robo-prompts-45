@@ -1,218 +1,44 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { Button } from '@/components/ui/button';
-import { Upload, Image, Check, X, Download, RotateCw, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { detectCardsInImages, DetectedCard, CardDetectionResult } from '@/services/cardDetection';
 
-interface UploadedImage {
-  id: string;
-  file: File;
-  preview: string;
-}
-
-interface CreatedCard {
-  id: string;
-  title: string;
-  image: string;
-  confidence: number;
-  metadata: any;
-  createdAt: Date;
-}
-
-type WorkflowPhase = 'idle' | 'uploading' | 'detecting' | 'reviewing' | 'creating' | 'complete';
-
-interface SessionState {
-  phase: WorkflowPhase;
-  uploadedImages: UploadedImage[];
-  detectionResults: CardDetectionResult[];
-  selectedCards: string[];
-  createdCards: CreatedCard[];
-  sessionId: string;
-}
-
-const SESSION_STORAGE_KEY = 'cardshow_upload_session';
+import React from 'react';
+import { useCardUploadSession } from './hooks/useCardUploadSession';
+import { useCardOperations } from './hooks/useCardOperations';
+import { CardsSessionHeader } from './components/CardsSessionHeader';
+import { CardsPhaseIndicator } from './components/CardsPhaseIndicator';
+import { CardsUploadPhase } from './components/CardsUploadPhase';
+import { CardsProcessingPhases } from './components/CardsProcessingPhases';
+import { CardsReviewPhase } from './components/CardsReviewPhase';
+import { CardsCollection } from './components/CardsCollection';
 
 export const CardsPage = () => {
-  const [phase, setPhase] = useState<WorkflowPhase>('idle');
-  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
-  const [detectionResults, setDetectionResults] = useState<CardDetectionResult[]>([]);
-  const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
-  const [createdCards, setCreatedCards] = useState<CreatedCard[]>([]);
-  const [sessionId, setSessionId] = useState<string>('');
+  const {
+    phase,
+    setPhase,
+    uploadedImages,
+    setUploadedImages,
+    detectionResults,
+    setDetectionResults,
+    selectedCards,
+    setSelectedCards,
+    createdCards,
+    setCreatedCards,
+    sessionId,
+    clearSession
+  } = useCardUploadSession();
 
-  // Load session state on component mount
-  useEffect(() => {
-    const savedSession = localStorage.getItem(SESSION_STORAGE_KEY);
-    if (savedSession) {
-      try {
-        const sessionState: SessionState = JSON.parse(savedSession);
-        console.log('Restoring session state:', sessionState);
-        
-        setPhase(sessionState.phase);
-        setUploadedImages(sessionState.uploadedImages || []);
-        setDetectionResults(sessionState.detectionResults || []);
-        setSelectedCards(new Set(sessionState.selectedCards || []));
-        setCreatedCards(sessionState.createdCards || []);
-        setSessionId(sessionState.sessionId || `session-${Date.now()}`);
-        
-        if (sessionState.phase !== 'idle' && sessionState.phase !== 'complete') {
-          toast.success('Session restored! Continuing from where you left off.');
-        }
-      } catch (error) {
-        console.error('Failed to restore session:', error);
-        clearSession();
-      }
-    } else {
-      setSessionId(`session-${Date.now()}`);
-    }
-  }, []);
+  const { startDetection, createSelectedCards } = useCardOperations();
 
-  // Save session state whenever it changes
-  useEffect(() => {
-    if (sessionId) {
-      const sessionState: SessionState = {
-        phase,
-        uploadedImages,
-        detectionResults,
-        selectedCards: Array.from(selectedCards),
-        createdCards,
-        sessionId
-      };
-      
-      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionState));
-      console.log('Session state saved:', sessionState);
-    }
-  }, [phase, uploadedImages, detectionResults, selectedCards, createdCards, sessionId]);
-
-  // Clear session and reset to initial state
-  const clearSession = () => {
-    localStorage.removeItem(SESSION_STORAGE_KEY);
-    setPhase('idle');
-    setUploadedImages([]);
-    setDetectionResults([]);
-    setSelectedCards(new Set());
-    setCreatedCards([]);
-    setSessionId(`session-${Date.now()}`);
-    toast.success('Session cleared. Starting fresh!');
-  };
-
-  // File upload handling
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+  // Handle image upload
+  const handleImagesUploaded = (newImages: any[]) => {
     setPhase('uploading');
-    toast.loading('Uploading images...');
-
-    // Simulate upload time
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const newImages: UploadedImage[] = acceptedFiles.map((file, index) => ({
-      id: `img-${Date.now()}-${index}`,
-      file,
-      preview: URL.createObjectURL(file)
-    }));
-
     setUploadedImages(prev => [...prev, ...newImages]);
-    toast.dismiss();
-    toast.success(`Uploaded ${acceptedFiles.length} images`);
-    
-    // Auto-start detection after upload
-    setTimeout(() => startDetection([...uploadedImages, ...newImages]), 500);
-  }, [uploadedImages]);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] },
-    maxFiles: 10
-  });
-
-  // Detection phase
-  const startDetection = async (images: UploadedImage[]) => {
-    setPhase('detecting');
-    toast.loading('Detecting cards in images...');
-
-    try {
-      const files = images.map(img => img.file);
-      const results = await detectCardsInImages(files);
-      
-      setDetectionResults(results);
-      
-      // Auto-select all detected cards
-      const allCardIds = results.flatMap(result => 
-        result.detectedCards.map(card => card.id)
-      );
-      setSelectedCards(new Set(allCardIds));
-      
-      toast.dismiss();
-      toast.success(`Detected ${allCardIds.length} cards across ${results.length} images`);
-      setPhase('reviewing');
-    } catch (error) {
-      console.error('Detection failed:', error);
-      toast.dismiss();
-      toast.error('Card detection failed');
-      setPhase('idle');
-    }
   };
 
-  // Create selected cards with actual cropping
-  const createSelectedCards = async () => {
-    if (selectedCards.size === 0) {
-      toast.error('Please select at least one card');
-      return;
-    }
-
-    setPhase('creating');
-    toast.loading('Creating cards...');
-
-    try {
-      const allDetectedCards = detectionResults.flatMap(result => result.detectedCards);
-      const cardsToCreate = allDetectedCards.filter(card => selectedCards.has(card.id));
-      const newCreatedCards: CreatedCard[] = [];
-
-      // Process each selected card
-      for (let i = 0; i < cardsToCreate.length; i++) {
-        const card = cardsToCreate[i];
-        
-        // Save card to persistent storage (simulated with localStorage for now)
-        const createdCard = {
-          id: `created-${card.id}`,
-          title: `${card.metadata.cardType || 'Card'} ${i + 1}`,
-          image: card.croppedImageUrl,
-          confidence: card.confidence,
-          metadata: card.metadata,
-          createdAt: new Date()
-        };
-
-        // Save to localStorage as a simple persistence layer
-        const existingCards = JSON.parse(localStorage.getItem('cardshow_created_cards') || '[]');
-        existingCards.push(createdCard);
-        localStorage.setItem('cardshow_created_cards', JSON.stringify(existingCards));
-
-        newCreatedCards.push(createdCard);
-
-        // Show progress
-        toast.dismiss();
-        toast.loading(`Creating cards... ${i + 1}/${cardsToCreate.length}`);
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
-
-      setCreatedCards(prev => [...prev, ...newCreatedCards]);
-      
-      toast.dismiss();
-      toast.success(`Created ${newCreatedCards.length} cards and saved to collection!`);
-      setPhase('complete');
-      
-      // Auto-reset after showing success
-      setTimeout(() => {
-        clearSession();
-      }, 3000);
-    } catch (error) {
-      console.error('Card creation failed:', error);
-      toast.dismiss();
-      toast.error('Failed to create cards');
-    }
+  // Handle detection start
+  const handleStartDetection = (images: any[]) => {
+    startDetection(images, setPhase, setDetectionResults, setSelectedCards);
   };
 
-  // Card selection
+  // Card selection toggle
   const toggleCardSelection = (cardId: string) => {
     setSelectedCards(prev => {
       const newSet = new Set(prev);
@@ -225,68 +51,14 @@ export const CardsPage = () => {
     });
   };
 
-  // Download card
-  const downloadCard = (card: CreatedCard) => {
-    const link = document.createElement('a');
-    link.download = `${card.title.toLowerCase().replace(/\s+/g, '-')}.jpg`;
-    link.href = card.image;
-    link.click();
-    toast.success('Card downloaded!');
-  };
-
-  // Start over
-  const startOver = () => {
-    clearSession();
-  };
-
-  // Render phase indicator
-  const renderPhaseIndicator = () => {
-    const phases = [
-      { key: 'idle', label: 'Upload', icon: Upload },
-      { key: 'detecting', label: 'Detect', icon: Image },
-      { key: 'reviewing', label: 'Review', icon: Check },
-      { key: 'complete', label: 'Complete', icon: Check }
-    ];
-
-    const getCurrentPhaseIndex = () => {
-      if (phase === 'idle' || phase === 'uploading') return 0;
-      if (phase === 'detecting') return 1;
-      if (phase === 'reviewing' || phase === 'creating') return 2;
-      return 3;
-    };
-
-    const currentIndex = getCurrentPhaseIndex();
-
-    return (
-      <div className="flex items-center justify-center mb-8">
-        {phases.map((phaseItem, index) => {
-          const Icon = phaseItem.icon;
-          const isActive = index === currentIndex;
-          const isCompleted = index < currentIndex;
-          
-          return (
-            <div key={phaseItem.key} className="flex items-center">
-              <div className={`flex items-center ${
-                isActive ? 'text-crd-green' : isCompleted ? 'text-white' : 'text-crd-lightGray'
-              }`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                  isActive ? 'border-crd-green bg-crd-green text-black' :
-                  isCompleted ? 'border-white bg-white text-black' : 'border-crd-mediumGray'
-                }`}>
-                  <Icon className="w-5 h-5" />
-                </div>
-                <span className="ml-2 font-medium">{phaseItem.label}</span>
-              </div>
-              
-              {index < phases.length - 1 && (
-                <div className={`h-0.5 w-16 mx-4 ${
-                  index < currentIndex ? 'bg-crd-green' : 'bg-crd-mediumGray'
-                }`} />
-              )}
-            </div>
-          );
-        })}
-      </div>
+  // Handle card creation
+  const handleCreateSelectedCards = () => {
+    createSelectedCards(
+      detectionResults,
+      selectedCards,
+      setPhase,
+      setCreatedCards,
+      clearSession
     );
   };
 
@@ -296,296 +68,48 @@ export const CardsPage = () => {
   return (
     <div className="min-h-screen bg-crd-darkest">
       {/* Header */}
-      <div className="pt-20 pb-6 border-b border-crd-mediumGray/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-white mb-4">Card Detection & Upload</h1>
-            <p className="text-xl text-crd-lightGray">
-              Upload images to automatically detect and crop trading cards
-            </p>
-            
-            {/* Session controls */}
-            {(phase !== 'idle' || uploadedImages.length > 0) && (
-              <div className="mt-4 flex justify-center gap-3">
-                <Button
-                  variant="outline"
-                  onClick={clearSession}
-                  className="text-red-400 border-red-400 hover:bg-red-400/10"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Clear Session
-                </Button>
-                <div className="text-sm text-crd-lightGray bg-crd-mediumGray/20 px-3 py-2 rounded">
-                  Session ID: {sessionId.slice(-8)}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <CardsSessionHeader
+        phase={phase}
+        uploadedImages={uploadedImages}
+        sessionId={sessionId}
+        onClearSession={clearSession}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Progress Indicator */}
-        {renderPhaseIndicator()}
+        <CardsPhaseIndicator phase={phase} />
 
         {/* Main Content */}
         <div className="bg-editor-dark rounded-xl p-8 border border-crd-mediumGray/20 mb-8">
           {/* IDLE PHASE - Upload */}
           {phase === 'idle' && (
-            <div className="text-center">
-              <div
-                {...getRootProps()}
-                className={`border-2 border-dashed rounded-xl p-12 transition-all cursor-pointer ${
-                  isDragActive 
-                    ? 'border-crd-green bg-crd-green/10' 
-                    : 'border-crd-mediumGray hover:border-crd-green/50'
-                }`}
-              >
-                <input {...getInputProps()} />
-                <Upload className="w-16 h-16 text-crd-lightGray mx-auto mb-4" />
-                <h3 className="text-2xl font-semibold text-white mb-2">
-                  {isDragActive ? 'Drop images here' : 'Upload Card Images'}
-                </h3>
-                <p className="text-crd-lightGray text-lg">
-                  Drag and drop your trading card images, or click to browse
-                </p>
-                <p className="text-crd-lightGray text-sm mt-2">
-                  Supports JPG, PNG, WebP • Max 10 images
-                </p>
-              </div>
-              
-              {/* Show existing images if any */}
-              {uploadedImages.length > 0 && (
-                <div className="mt-6">
-                  <p className="text-crd-lightGray mb-4">
-                    {uploadedImages.length} images ready for detection
-                  </p>
-                  <Button
-                    onClick={() => startDetection(uploadedImages)}
-                    className="bg-crd-green hover:bg-crd-green/90 text-black"
-                  >
-                    Continue Detection
-                  </Button>
-                </div>
-              )}
-            </div>
+            <CardsUploadPhase
+              uploadedImages={uploadedImages}
+              onImagesUploaded={handleImagesUploaded}
+              onStartDetection={handleStartDetection}
+            />
           )}
 
-          {/* UPLOADING PHASE */}
-          {phase === 'uploading' && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 border-4 border-crd-green border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <h3 className="text-2xl font-semibold text-white mb-2">Uploading Images</h3>
-              <p className="text-crd-lightGray">Please wait while we process your images...</p>
-            </div>
-          )}
-
-          {/* DETECTING PHASE */}
-          {phase === 'detecting' && (
-            <div className="text-center py-12">
-              <div className="relative">
-                <Image className="w-16 h-16 text-crd-green mx-auto mb-4 animate-pulse" />
-                <div className="absolute inset-0 border-4 border-crd-green border-t-transparent rounded-full animate-spin" />
-              </div>
-              <h3 className="text-2xl font-semibold text-white mb-2">Detecting Cards</h3>
-              <p className="text-crd-lightGray">AI is analyzing your images to find trading cards...</p>
-            </div>
-          )}
+          {/* PROCESSING PHASES */}
+          <CardsProcessingPhases
+            phase={phase}
+            onStartOver={clearSession}
+          />
 
           {/* REVIEWING PHASE */}
           {phase === 'reviewing' && (
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-2xl font-semibold text-white mb-2">Review Detected Cards</h3>
-                  <p className="text-crd-lightGray">
-                    Found {allDetectedCards.length} cards • {selectedCards.size} selected
-                  </p>
-                  <p className="text-crd-lightGray text-sm mt-1">
-                    Cards have been automatically cropped to standard dimensions
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={startOver}
-                    className="text-crd-lightGray border-crd-mediumGray"
-                  >
-                    Start Over
-                  </Button>
-                  <Button
-                    onClick={createSelectedCards}
-                    disabled={selectedCards.size === 0}
-                    className="bg-crd-green hover:bg-crd-green/90 text-black"
-                  >
-                    Create {selectedCards.size} Cards
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {allDetectedCards.map((card) => {
-                  const isSelected = selectedCards.has(card.id);
-                  
-                  return (
-                    <div
-                      key={card.id}
-                      className={`relative group border-2 rounded-lg transition-all p-4 ${
-                        isSelected 
-                          ? 'border-crd-green bg-crd-green/10' 
-                          : 'border-crd-mediumGray hover:border-crd-green/50'
-                      }`}
-                    >
-                      {/* Original vs Cropped comparison */}
-                      <div className="grid grid-cols-2 gap-3 mb-3">
-                        <div>
-                          <p className="text-crd-lightGray text-xs mb-1">Original</p>
-                          <div className="aspect-video bg-editor-tool rounded overflow-hidden">
-                            <img
-                              src={card.originalImageUrl}
-                              alt="Original"
-                              className="w-full h-full object-cover"
-                            />
-                            {/* Overlay showing detection bounds */}
-                            <div className="absolute inset-0 pointer-events-none">
-                              <div 
-                                className="absolute border-2 border-crd-green bg-crd-green/20"
-                                style={{
-                                  left: `${(card.bounds.x / 800) * 100}%`, // Assuming 800px width for demo
-                                  top: `${(card.bounds.y / 600) * 100}%`,   // Assuming 600px height for demo
-                                  width: `${(card.bounds.width / 800) * 100}%`,
-                                  height: `${(card.bounds.height / 600) * 100}%`
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <p className="text-crd-lightGray text-xs mb-1">Cropped Card</p>
-                          <div className="aspect-[3/4] bg-editor-tool rounded overflow-hidden">
-                            <img
-                              src={card.croppedImageUrl}
-                              alt={`Cropped card ${card.id}`}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Card info */}
-                      <div className="mb-3">
-                        <p className="text-white text-sm font-medium">{card.metadata.cardType || 'Card'}</p>
-                        <p className="text-crd-lightGray text-xs">
-                          {Math.round(card.confidence * 100)}% confidence
-                        </p>
-                        <p className="text-crd-lightGray text-xs">
-                          Dimensions: {Math.round(card.bounds.width)}×{Math.round(card.bounds.height)}px
-                        </p>
-                      </div>
-
-                      {/* Selection controls */}
-                      <div className="flex items-center justify-between">
-                        <button
-                          onClick={() => toggleCardSelection(card.id)}
-                          className={`flex items-center gap-2 px-3 py-1 rounded text-sm transition-all ${
-                            isSelected 
-                              ? 'bg-crd-green text-black' 
-                              : 'bg-crd-mediumGray text-white hover:bg-crd-lightGray'
-                          }`}
-                        >
-                          {isSelected ? <Check className="w-4 h-4" /> : <div className="w-4 h-4 border border-white rounded" />}
-                          {isSelected ? 'Selected' : 'Select'}
-                        </button>
-
-                        {/* Future: Add adjust bounds button */}
-                        <button
-                          className="text-crd-lightGray hover:text-white text-xs opacity-50 cursor-not-allowed"
-                          disabled
-                          title="Crop adjustment coming soon"
-                        >
-                          Adjust Crop
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* CREATING PHASE */}
-          {phase === 'creating' && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 border-4 border-crd-green border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <h3 className="text-2xl font-semibold text-white mb-2">Creating Cards</h3>
-              <p className="text-crd-lightGray">Processing and saving your selected cards...</p>
-            </div>
-          )}
-
-          {/* COMPLETE PHASE */}
-          {phase === 'complete' && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-crd-green rounded-full flex items-center justify-center mx-auto mb-4">
-                <Check className="w-8 h-8 text-black" />
-              </div>
-              <h3 className="text-2xl font-semibold text-white mb-2">Cards Created Successfully!</h3>
-              <p className="text-crd-lightGray mb-6">
-                Your cards have been processed and saved to your collection
-              </p>
-              <Button
-                onClick={startOver}
-                className="bg-crd-green hover:bg-crd-green/90 text-black"
-              >
-                Upload More Cards
-              </Button>
-            </div>
+            <CardsReviewPhase
+              detectionResults={detectionResults}
+              selectedCards={selectedCards}
+              onToggleCardSelection={toggleCardSelection}
+              onCreateSelectedCards={handleCreateSelectedCards}
+              onStartOver={clearSession}
+            />
           )}
         </div>
 
         {/* Card Collection */}
-        {createdCards.length > 0 && (
-          <div className="bg-editor-dark rounded-xl p-8 border border-crd-mediumGray/20">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-2">Your Card Collection</h2>
-                <p className="text-crd-lightGray">{createdCards.length} cards in your collection</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-              {createdCards.map((card) => (
-                <div key={card.id} className="relative group">
-                  <div className="aspect-[3/4] bg-editor-tool rounded-lg overflow-hidden border border-crd-mediumGray">
-                    <img
-                      src={card.image}
-                      alt={card.title}
-                      className="w-full h-full object-cover"
-                    />
-                    
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => downloadCard(card)}
-                        className="w-8 h-8 p-0 bg-black/70 hover:bg-black/90 text-white"
-                      >
-                        <Download className="w-3 h-3" />
-                      </Button>
-                    </div>
-
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-2">
-                      <p className="text-white text-xs font-medium">{card.title}</p>
-                      <p className="text-crd-lightGray text-xs">
-                        {Math.round(card.confidence * 100)}% confidence
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <CardsCollection createdCards={createdCards} />
       </div>
     </div>
   );
