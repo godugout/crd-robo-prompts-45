@@ -1,9 +1,10 @@
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
-import { Upload, Image, Check, X, Download, RotateCw, Move, Square } from 'lucide-react';
+import { Upload, Image, Check, X, Download, RotateCw } from 'lucide-react';
 import { toast } from 'sonner';
+import { detectCardsInImages, cropCardFromImage, DetectedCard, CardDetectionResult } from '@/services/cardDetection';
 
 interface UploadedImage {
   id: string;
@@ -11,19 +12,12 @@ interface UploadedImage {
   preview: string;
 }
 
-interface DetectedCard {
-  id: string;
-  imageId: string;
-  bounds: { x: number; y: number; width: number; height: number };
-  confidence: number;
-  croppedImage?: string;
-}
-
 interface CreatedCard {
   id: string;
   title: string;
   image: string;
   confidence: number;
+  metadata: any;
   createdAt: Date;
 }
 
@@ -32,12 +26,9 @@ type WorkflowPhase = 'idle' | 'uploading' | 'detecting' | 'reviewing' | 'creatin
 export const CardsPage = () => {
   const [phase, setPhase] = useState<WorkflowPhase>('idle');
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
-  const [detectedCards, setDetectedCards] = useState<DetectedCard[]>([]);
+  const [detectionResults, setDetectionResults] = useState<CardDetectionResult[]>([]);
   const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
   const [createdCards, setCreatedCards] = useState<CreatedCard[]>([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [editingCard, setEditingCard] = useState<string | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // File upload handling
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -72,68 +63,27 @@ export const CardsPage = () => {
     setPhase('detecting');
     toast.loading('Detecting cards in images...');
 
-    // Simulate AI detection with realistic timing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const detected: DetectedCard[] = [];
-    
-    images.forEach((image, imgIndex) => {
-      // Generate 1-3 mock detections per image
-      const numCards = Math.floor(Math.random() * 3) + 1;
+    try {
+      const files = images.map(img => img.file);
+      const results = await detectCardsInImages(files);
       
-      for (let i = 0; i < numCards; i++) {
-        detected.push({
-          id: `card-${image.id}-${i}`,
-          imageId: image.id,
-          bounds: {
-            x: Math.random() * 200 + 50,
-            y: Math.random() * 200 + 50,
-            width: 150 + Math.random() * 100,
-            height: 200 + Math.random() * 100
-          },
-          confidence: 0.7 + Math.random() * 0.3
-        });
-      }
-    });
-
-    setDetectedCards(detected);
-    setSelectedCards(new Set(detected.map(card => card.id)));
-    
-    toast.dismiss();
-    toast.success(`Detected ${detected.length} cards`);
-    setPhase('reviewing');
-  };
-
-  // Card cropping
-  const cropCard = async (card: DetectedCard): Promise<string> => {
-    const image = uploadedImages.find(img => img.id === card.imageId);
-    if (!image) return '';
-
-    return new Promise((resolve) => {
-      const img = document.createElement('img');
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          resolve('');
-          return;
-        }
-
-        // Standard card dimensions
-        canvas.width = 300;
-        canvas.height = 420;
-
-        // Draw cropped region
-        ctx.drawImage(
-          img,
-          card.bounds.x, card.bounds.y, card.bounds.width, card.bounds.height,
-          0, 0, canvas.width, canvas.height
-        );
-
-        resolve(canvas.toDataURL('image/jpeg', 0.9));
-      };
-      img.src = image.preview;
-    });
+      setDetectionResults(results);
+      
+      // Auto-select all detected cards
+      const allCardIds = results.flatMap(result => 
+        result.detectedCards.map(card => card.id)
+      );
+      setSelectedCards(new Set(allCardIds));
+      
+      toast.dismiss();
+      toast.success(`Detected ${allCardIds.length} cards across ${results.length} images`);
+      setPhase('reviewing');
+    } catch (error) {
+      console.error('Detection failed:', error);
+      toast.dismiss();
+      toast.error('Card detection failed');
+      setPhase('idle');
+    }
   };
 
   // Create selected cards
@@ -146,40 +96,51 @@ export const CardsPage = () => {
     setPhase('creating');
     toast.loading('Creating cards...');
 
-    const cardsToCreate = detectedCards.filter(card => selectedCards.has(card.id));
-    const newCreatedCards: CreatedCard[] = [];
+    try {
+      const allDetectedCards = detectionResults.flatMap(result => result.detectedCards);
+      const cardsToCreate = allDetectedCards.filter(card => selectedCards.has(card.id));
+      const newCreatedCards: CreatedCard[] = [];
 
-    // Process each selected card
-    for (const card of cardsToCreate) {
-      const croppedImage = await cropCard(card);
+      // Process each selected card
+      for (let i = 0; i < cardsToCreate.length; i++) {
+        const card = cardsToCreate[i];
+        
+        // Crop the card image
+        const croppedImage = await cropCardFromImage(card.croppedImageUrl, card.bounds);
+        
+        newCreatedCards.push({
+          id: `created-${card.id}`,
+          title: `${card.metadata.cardType || 'Card'} ${i + 1}`,
+          image: croppedImage,
+          confidence: card.confidence,
+          metadata: card.metadata,
+          createdAt: new Date()
+        });
+
+        // Show progress
+        toast.dismiss();
+        toast.loading(`Creating cards... ${i + 1}/${cardsToCreate.length}`);
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+
+      setCreatedCards(prev => [...prev, ...newCreatedCards]);
       
-      newCreatedCards.push({
-        id: `created-${card.id}`,
-        title: `Card ${newCreatedCards.length + 1}`,
-        image: croppedImage,
-        confidence: card.confidence,
-        createdAt: new Date()
-      });
-
-      // Show progress
       toast.dismiss();
-      toast.loading(`Creating cards... ${newCreatedCards.length}/${cardsToCreate.length}`);
-      await new Promise(resolve => setTimeout(resolve, 800));
+      toast.success(`Created ${newCreatedCards.length} cards!`);
+      setPhase('complete');
+      
+      // Auto-reset after showing success
+      setTimeout(() => {
+        setPhase('idle');
+        setUploadedImages([]);
+        setDetectionResults([]);
+        setSelectedCards(new Set());
+      }, 3000);
+    } catch (error) {
+      console.error('Card creation failed:', error);
+      toast.dismiss();
+      toast.error('Failed to create cards');
     }
-
-    setCreatedCards(prev => [...prev, ...newCreatedCards]);
-    
-    toast.dismiss();
-    toast.success(`Created ${newCreatedCards.length} cards!`);
-    setPhase('complete');
-    
-    // Auto-reset after showing success
-    setTimeout(() => {
-      setPhase('idle');
-      setUploadedImages([]);
-      setDetectedCards([]);
-      setSelectedCards(new Set());
-    }, 3000);
   };
 
   // Card selection
@@ -208,10 +169,8 @@ export const CardsPage = () => {
   const startOver = () => {
     setPhase('idle');
     setUploadedImages([]);
-    setDetectedCards([]);
+    setDetectionResults([]);
     setSelectedCards(new Set());
-    setCurrentImageIndex(0);
-    setEditingCard(null);
   };
 
   // Render phase indicator
@@ -264,6 +223,9 @@ export const CardsPage = () => {
       </div>
     );
   };
+
+  // Get all detected cards for display
+  const allDetectedCards = detectionResults.flatMap(result => result.detectedCards);
 
   return (
     <div className="min-h-screen bg-crd-darkest">
@@ -339,7 +301,7 @@ export const CardsPage = () => {
                 <div>
                   <h3 className="text-2xl font-semibold text-white mb-2">Review Detected Cards</h3>
                   <p className="text-crd-lightGray">
-                    Found {detectedCards.length} cards • {selectedCards.size} selected
+                    Found {allDetectedCards.length} cards • {selectedCards.size} selected
                   </p>
                 </div>
                 <div className="flex gap-3">
@@ -361,7 +323,7 @@ export const CardsPage = () => {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {detectedCards.map((card) => {
+                {allDetectedCards.map((card) => {
                   const isSelected = selectedCards.has(card.id);
                   
                   return (
@@ -375,20 +337,25 @@ export const CardsPage = () => {
                       onClick={() => toggleCardSelection(card.id)}
                     >
                       <div className="aspect-[3/4] bg-editor-tool rounded-lg overflow-hidden">
-                        {/* Mock card preview */}
-                        <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center">
-                          <div className="text-center text-white">
-                            <Image className="w-8 h-8 mx-auto mb-2 opacity-70" />
-                            <p className="text-xs opacity-70">Card Preview</p>
-                            <p className="text-xs mt-1">{Math.round(card.confidence * 100)}%</p>
-                          </div>
-                        </div>
+                        <img
+                          src={card.croppedImageUrl}
+                          alt={`Detected card ${card.id}`}
+                          className="w-full h-full object-cover"
+                        />
                         
                         {/* Selection indicator */}
                         <div className={`absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center transition-all ${
                           isSelected ? 'bg-crd-green text-black' : 'bg-black/50 text-white'
                         }`}>
                           {isSelected ? <Check className="w-4 h-4" /> : <div className="w-3 h-3 border border-white rounded-full" />}
+                        </div>
+
+                        {/* Card info overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-2">
+                          <p className="text-white text-xs font-medium">{card.metadata.cardType || 'Card'}</p>
+                          <p className="text-crd-lightGray text-xs">
+                            {Math.round(card.confidence * 100)}% confidence
+                          </p>
                         </div>
                       </div>
                     </div>
