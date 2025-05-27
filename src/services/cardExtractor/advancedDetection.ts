@@ -1,4 +1,3 @@
-
 import { CardRegion } from './types';
 import { detectFaces } from '@/lib/faceDetection';
 import { calculateRegionConfidence, removeOverlappingRegions } from './confidenceCalculator';
@@ -130,14 +129,12 @@ const detectCardsByEdges = (
   canvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
   config: DetectionConfig
-): Promise<CardRegion[]> => {
-  return new Promise(resolve => {
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const edges = applySobelEdgeDetection(imageData);
-    
-    const regions = findRectangularRegionsInEdges(edges, canvas, config);
-    resolve(regions);
-  });
+): CardRegion[] => {
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const edges = applySobelEdgeDetection(imageData);
+  
+  const regions = findRectangularRegionsInEdges(edges, canvas, config);
+  return regions;
 };
 
 const applySobelEdgeDetection = (imageData: ImageData): ImageData => {
