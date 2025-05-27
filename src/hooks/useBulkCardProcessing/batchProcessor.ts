@@ -7,6 +7,7 @@ export interface BatchStatus {
   status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'error';
   current: number;
   total: number;
+  progress: number;
   currentFileName?: string;
 }
 
@@ -23,7 +24,8 @@ export const useBatchProcessor = () => {
         files: batchFiles,
         status: 'pending',
         current: 0,
-        total: batchFiles.length
+        total: batchFiles.length,
+        progress: 0
       });
     }
     
@@ -36,6 +38,7 @@ export const useBatchProcessor = () => {
         ? { 
             ...batch, 
             current,
+            progress: batch.total > 0 ? (current / batch.total) * 100 : 0,
             currentFileName: fileName 
           }
         : batch
@@ -45,7 +48,11 @@ export const useBatchProcessor = () => {
   const updateBatchStatus = useCallback((batchId: string, status: BatchStatus['status']) => {
     setBatches(prev => prev.map(batch => 
       batch.id === batchId
-        ? { ...batch, status }
+        ? { 
+            ...batch, 
+            status,
+            progress: status === 'completed' ? 100 : batch.progress
+          }
         : batch
     ));
   }, []);
