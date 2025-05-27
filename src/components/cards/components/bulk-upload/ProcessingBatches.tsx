@@ -2,15 +2,8 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Clock, AlertCircle } from 'lucide-react';
-
-interface BatchStatus {
-  id: string;
-  files: File[];
-  status: 'pending' | 'processing' | 'completed' | 'error';
-  progress: number;
-  currentFile?: string;
-}
+import { CheckCircle, Clock, AlertCircle, XCircle } from 'lucide-react';
+import type { BatchStatus } from '@/hooks/useBulkCardProcessing/batchProcessor';
 
 interface ProcessingBatchesProps {
   batches: BatchStatus[];
@@ -19,12 +12,14 @@ interface ProcessingBatchesProps {
 export const ProcessingBatches: React.FC<ProcessingBatchesProps> = ({ batches }) => {
   if (batches.length === 0) return null;
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: BatchStatus['status']) => {
     switch (status) {
       case 'completed':
         return <CheckCircle className="w-5 h-5 text-green-400" />;
       case 'processing':
         return <Clock className="w-5 h-5 text-blue-400 animate-spin" />;
+      case 'cancelled':
+        return <XCircle className="w-5 h-5 text-orange-400" />;
       case 'error':
         return <AlertCircle className="w-5 h-5 text-red-400" />;
       default:
@@ -32,12 +27,14 @@ export const ProcessingBatches: React.FC<ProcessingBatchesProps> = ({ batches })
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: BatchStatus['status']) => {
     switch (status) {
       case 'completed':
         return 'bg-green-600/20 border-green-600/30';
       case 'processing':
         return 'bg-blue-600/20 border-blue-600/30';
+      case 'cancelled':
+        return 'bg-orange-600/20 border-orange-600/30';
       case 'error':
         return 'bg-red-600/20 border-red-600/30';
       default:
@@ -70,9 +67,9 @@ export const ProcessingBatches: React.FC<ProcessingBatchesProps> = ({ batches })
             {batch.status === 'processing' && (
               <>
                 <Progress value={batch.progress} className="h-2 mb-2" />
-                {batch.currentFile && (
+                {batch.currentFileName && (
                   <p className="text-xs text-crd-lightGray">
-                    Processing: {batch.currentFile}
+                    Processing: {batch.currentFileName}
                   </p>
                 )}
               </>
