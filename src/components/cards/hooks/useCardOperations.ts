@@ -2,15 +2,21 @@
 import { useCallback } from 'react';
 import { toast } from 'sonner';
 import { detectCardsInImages } from '@/services/cardDetection';
-import { UploadedImage, CreatedCard } from './useCardUploadSession';
+import type { 
+  UploadedImage, 
+  CreatedCard, 
+  WorkflowPhase, 
+  UseCardOperationsReturn 
+} from '../types';
+import type { CardDetectionResult } from '@/services/cardDetection';
 
-export const useCardOperations = () => {
+export const useCardOperations = (): UseCardOperationsReturn => {
   const startDetection = useCallback(async (
     images: UploadedImage[],
-    setPhase: (phase: any) => void,
-    setDetectionResults: (results: any) => void,
-    setSelectedCards: (cards: Set<string>) => void
-  ) => {
+    setPhase: (phase: WorkflowPhase) => void,
+    setDetectionResults: React.Dispatch<React.SetStateAction<CardDetectionResult[]>>,
+    setSelectedCards: React.Dispatch<React.SetStateAction<Set<string>>>
+  ): Promise<void> => {
     setPhase('detecting');
     toast.loading('Detecting cards in images...');
 
@@ -38,12 +44,12 @@ export const useCardOperations = () => {
   }, []);
 
   const createSelectedCards = useCallback(async (
-    detectionResults: any[],
+    detectionResults: CardDetectionResult[],
     selectedCards: Set<string>,
-    setPhase: (phase: any) => void,
+    setPhase: (phase: WorkflowPhase) => void,
     setCreatedCards: (updater: (prev: CreatedCard[]) => CreatedCard[]) => void,
     clearSession: () => void
-  ) => {
+  ): Promise<void> => {
     if (selectedCards.size === 0) {
       toast.error('Please select at least one card');
       return;

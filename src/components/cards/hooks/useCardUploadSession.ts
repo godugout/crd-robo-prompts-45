@@ -1,37 +1,17 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { DetectedCard, CardDetectionResult } from '@/services/cardDetection';
-
-interface UploadedImage {
-  id: string;
-  file: File;
-  preview: string;
-}
-
-interface CreatedCard {
-  id: string;
-  title: string;
-  image: string;
-  confidence: number;
-  metadata: any;
-  createdAt: Date;
-}
-
-type WorkflowPhase = 'idle' | 'uploading' | 'detecting' | 'reviewing' | 'creating' | 'complete';
-
-interface SessionState {
-  phase: WorkflowPhase;
-  uploadedImages: UploadedImage[];
-  detectionResults: CardDetectionResult[];
-  selectedCards: string[];
-  createdCards: CreatedCard[];
-  sessionId: string;
-}
+import type { 
+  UploadedImage, 
+  CreatedCard, 
+  WorkflowPhase, 
+  SessionState, 
+  UseCardUploadSessionReturn 
+} from '../types';
 
 const SESSION_STORAGE_KEY = 'cardshow_upload_session';
 
-export const useCardUploadSession = () => {
+export const useCardUploadSession = (): UseCardUploadSessionReturn => {
   const [phase, setPhase] = useState<WorkflowPhase>('idle');
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [detectionResults, setDetectionResults] = useState<CardDetectionResult[]>([]);

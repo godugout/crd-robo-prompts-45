@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useCardUploadSession } from './hooks/useCardUploadSession';
 import { useCardOperations } from './hooks/useCardOperations';
@@ -8,8 +7,9 @@ import { CardsUploadPhase } from './components/CardsUploadPhase';
 import { CardsProcessingPhases } from './components/CardsProcessingPhases';
 import { CardsReviewPhase } from './components/CardsReviewPhase';
 import { CardsCollection } from './components/CardsCollection';
+import type { UploadedImage } from './types';
 
-export const CardsPage = () => {
+export const CardsPage: React.FC = () => {
   const {
     phase,
     setPhase,
@@ -28,18 +28,18 @@ export const CardsPage = () => {
   const { startDetection, createSelectedCards } = useCardOperations();
 
   // Handle image upload
-  const handleImagesUploaded = (newImages: any[]) => {
+  const handleImagesUploaded = (newImages: UploadedImage[]): void => {
     setPhase('uploading');
     setUploadedImages(prev => [...prev, ...newImages]);
   };
 
   // Handle detection start
-  const handleStartDetection = (images: any[]) => {
+  const handleStartDetection = (images: UploadedImage[]): void => {
     startDetection(images, setPhase, setDetectionResults, setSelectedCards);
   };
 
   // Card selection toggle
-  const toggleCardSelection = (cardId: string) => {
+  const toggleCardSelection = (cardId: string): void => {
     setSelectedCards(prev => {
       const newSet = new Set(prev);
       if (newSet.has(cardId)) {
@@ -52,7 +52,7 @@ export const CardsPage = () => {
   };
 
   // Handle card creation
-  const handleCreateSelectedCards = () => {
+  const handleCreateSelectedCards = (): void => {
     createSelectedCards(
       detectionResults,
       selectedCards,
