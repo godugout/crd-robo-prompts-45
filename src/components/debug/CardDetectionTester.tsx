@@ -100,7 +100,7 @@ export const CardDetectionTester: React.FC = () => {
               id="image-upload"
             />
             <CRDButton variant="primary" asChild>
-              <label htmlFor="image-upload" className="cursor-pointer">
+              <label htmlFor="image-upload" className="cursor-pointer flex items-center">
                 <Upload className="w-4 h-4 mr-2" />
                 Upload Image
               </label>
