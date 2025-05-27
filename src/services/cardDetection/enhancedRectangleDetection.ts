@@ -26,108 +26,108 @@ export class EnhancedRectangleDetector {
     this.debugInfo = { processingSteps: [] };
     this.log('Starting enhanced rectangle detection');
 
-    // Step 1: Preprocess image
-    const processedCanvas = this.preprocessImage(image);
-    
-    // Step 2: Edge detection
-    const edgeCanvas = this.detectEdges(processedCanvas);
-    this.debugInfo.edgeCanvas = edgeCanvas;
-    
-    // Step 3: Find contours and rectangles
-    const rectangles = this.findRectangularContours(edgeCanvas, image.width, image.height);
-    
-    // Step 4: Filter and rank rectangles
-    const filteredRectangles = this.filterAndRankRectangles(rectangles, image.width, image.height);
-    
-    this.log(`Detection complete. Found ${filteredRectangles.length} potential cards`);
-    
-    return {
-      rectangles: filteredRectangles,
-      debugInfo: this.debugInfo
-    };
+    try {
+      // Step 1: Resize image if too large to prevent performance issues
+      const processedImage = await this.resizeImageIfNeeded(image);
+      
+      // Step 2: Preprocess image
+      const processedCanvas = await this.preprocessImageAsync(processedImage);
+      
+      // Step 3: Edge detection with yield for UI updates
+      const edgeCanvas = await this.detectEdgesAsync(processedCanvas);
+      this.debugInfo.edgeCanvas = edgeCanvas;
+      
+      // Step 4: Find rectangles with optimized algorithm
+      const rectangles = await this.findRectangularContoursOptimized(edgeCanvas, processedImage.width, processedImage.height);
+      
+      // Step 5: Filter and rank rectangles
+      const filteredRectangles = this.filterAndRankRectangles(rectangles, processedImage.width, processedImage.height);
+      
+      this.log(`Detection complete. Found ${filteredRectangles.length} potential cards`);
+      
+      return {
+        rectangles: filteredRectangles,
+        debugInfo: this.debugInfo
+      };
+    } catch (error) {
+      this.log(`Detection failed: ${error.message}`);
+      throw error;
+    }
   }
 
-  private preprocessImage(image: HTMLImageElement): HTMLCanvasElement {
-    this.log('Preprocessing image - sharpening and contrast enhancement');
+  private async resizeImageIfNeeded(image: HTMLImageElement): Promise<HTMLImageElement> {
+    const maxDimension = 800; // Limit size for performance
+    
+    if (image.width <= maxDimension && image.height <= maxDimension) {
+      this.log(`Image size OK: ${image.width}x${image.height}`);
+      return image;
+    }
+    
+    this.log(`Resizing large image from ${image.width}x${image.height}`);
     
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
-    canvas.width = image.width;
-    canvas.height = image.height;
     
-    // Draw original image
-    ctx.drawImage(image, 0, 0);
+    const scale = Math.min(maxDimension / image.width, maxDimension / image.height);
+    canvas.width = image.width * scale;
+    canvas.height = image.height * scale;
     
-    // Apply sharpening filter
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const sharpened = this.applySharpeningFilter(imageData);
-    ctx.putImageData(sharpened, 0, 0);
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
     
-    return canvas;
+    return new Promise((resolve) => {
+      const resizedImage = new Image();
+      resizedImage.onload = () => {
+        this.log(`Image resized to: ${resizedImage.width}x${resizedImage.height}`);
+        resolve(resizedImage);
+      };
+      resizedImage.src = canvas.toDataURL();
+    });
   }
 
-  private applySharpeningFilter(imageData: ImageData): ImageData {
-    const data = imageData.data;
-    const width = imageData.width;
-    const height = imageData.height;
-    const output = new ImageData(width, height);
+  private async preprocessImageAsync(image: HTMLImageElement): Promise<HTMLCanvasElement> {
+    this.log('Preprocessing image - converting to grayscale and enhancing contrast');
     
-    // Sharpening kernel
-    const kernel = [
-      0, -1, 0,
-      -1, 5, -1,
-      0, -1, 0
-    ];
-    
-    for (let y = 1; y < height - 1; y++) {
-      for (let x = 1; x < width - 1; x++) {
-        let r = 0, g = 0, b = 0;
+    return new Promise((resolve) => {
+      // Use requestAnimationFrame to yield to UI
+      requestAnimationFrame(() => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+        canvas.width = image.width;
+        canvas.height = image.height;
         
-        for (let ky = -1; ky <= 1; ky++) {
-          for (let kx = -1; kx <= 1; kx++) {
-            const idx = ((y + ky) * width + (x + kx)) * 4;
-            const kernelIdx = (ky + 1) * 3 + (kx + 1);
-            const weight = kernel[kernelIdx];
-            
-            r += data[idx] * weight;
-            g += data[idx + 1] * weight;
-            b += data[idx + 2] * weight;
-          }
-        }
+        // Draw original image
+        ctx.drawImage(image, 0, 0);
         
-        const outputIdx = (y * width + x) * 4;
-        output.data[outputIdx] = Math.max(0, Math.min(255, r));
-        output.data[outputIdx + 1] = Math.max(0, Math.min(255, g));
-        output.data[outputIdx + 2] = Math.max(0, Math.min(255, b));
-        output.data[outputIdx + 3] = 255;
-      }
-    }
-    
-    return output;
+        // Convert to grayscale for better edge detection
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const grayscale = this.toGrayscale(imageData);
+        ctx.putImageData(grayscale, 0, 0);
+        
+        resolve(canvas);
+      });
+    });
   }
 
-  private detectEdges(canvas: HTMLCanvasElement): HTMLCanvasElement {
-    this.log('Applying Canny edge detection');
+  private async detectEdgesAsync(canvas: HTMLCanvasElement): Promise<HTMLCanvasElement> {
+    this.log('Applying simplified edge detection');
     
-    const ctx = canvas.getContext('2d')!;
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    
-    // Convert to grayscale
-    const grayscale = this.toGrayscale(imageData);
-    
-    // Apply Gaussian blur
-    const blurred = this.gaussianBlur(grayscale, 1.4);
-    
-    // Apply Canny edge detection
-    const edges = this.cannyEdgeDetection(blurred);
-    
-    const edgeCanvas = document.createElement('canvas');
-    edgeCanvas.width = canvas.width;
-    edgeCanvas.height = canvas.height;
-    const edgeCtx = edgeCanvas.getContext('2d')!;
-    edgeCtx.putImageData(edges, 0, 0);
-    
-    return edgeCanvas;
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        const ctx = canvas.getContext('2d')!;
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        
+        // Simple edge detection using basic gradient
+        const edges = this.simpleEdgeDetection(imageData);
+        
+        const edgeCanvas = document.createElement('canvas');
+        edgeCanvas.width = canvas.width;
+        edgeCanvas.height = canvas.height;
+        const edgeCtx = edgeCanvas.getContext('2d')!;
+        edgeCtx.putImageData(edges, 0, 0);
+        
+        resolve(edgeCanvas);
+      });
+    });
   }
 
   private toGrayscale(imageData: ImageData): ImageData {
@@ -145,34 +145,25 @@ export class EnhancedRectangleDetector {
     return output;
   }
 
-  private gaussianBlur(imageData: ImageData, sigma: number): ImageData {
-    // Simple box blur approximation for performance
+  private simpleEdgeDetection(imageData: ImageData): ImageData {
     const data = imageData.data;
     const width = imageData.width;
     const height = imageData.height;
     const output = new ImageData(width, height);
     
-    const radius = Math.ceil(sigma * 3);
-    
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        let sum = 0;
-        let count = 0;
-        
-        for (let dy = -radius; dy <= radius; dy++) {
-          for (let dx = -radius; dx <= radius; dx++) {
-            const ny = y + dy;
-            const nx = x + dx;
-            
-            if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
-              sum += data[(ny * width + nx) * 4];
-              count++;
-            }
-          }
-        }
-        
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        // Simple gradient calculation
         const idx = (y * width + x) * 4;
-        const value = sum / count;
+        const rightIdx = (y * width + x + 1) * 4;
+        const bottomIdx = ((y + 1) * width + x) * 4;
+        
+        const gx = Math.abs(data[rightIdx] - data[idx]);
+        const gy = Math.abs(data[bottomIdx] - data[idx]);
+        const gradient = gx + gy;
+        
+        const value = gradient > 30 ? 255 : 0; // Simple threshold
+        
         output.data[idx] = value;
         output.data[idx + 1] = value;
         output.data[idx + 2] = value;
@@ -183,127 +174,115 @@ export class EnhancedRectangleDetector {
     return output;
   }
 
-  private cannyEdgeDetection(imageData: ImageData): ImageData {
-    // Simplified Canny - just use Sobel operators
-    const data = imageData.data;
-    const width = imageData.width;
-    const height = imageData.height;
-    const output = new ImageData(width, height);
+  private async findRectangularContoursOptimized(edgeCanvas: HTMLCanvasElement, originalWidth: number, originalHeight: number): Promise<DetectedRectangle[]> {
+    this.log('Finding rectangular contours with optimized algorithm');
     
-    // Sobel kernels
-    const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
-    const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
-    
-    for (let y = 1; y < height - 1; y++) {
-      for (let x = 1; x < width - 1; x++) {
-        let gx = 0, gy = 0;
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        const ctx = edgeCanvas.getContext('2d')!;
+        const imageData = ctx.getImageData(0, 0, edgeCanvas.width, edgeCanvas.height);
+        const data = imageData.data;
+        const width = imageData.width;
+        const height = imageData.height;
         
-        for (let ky = -1; ky <= 1; ky++) {
-          for (let kx = -1; kx <= 1; kx++) {
-            const idx = ((y + ky) * width + (x + kx)) * 4;
-            const kernelIdx = (ky + 1) * 3 + (kx + 1);
-            const pixel = data[idx];
+        const rectangles: DetectedRectangle[] = [];
+        
+        // Much more conservative approach - only try reasonable card sizes
+        const cardAspectRatio = 2.5 / 3.5;
+        const minCardWidth = Math.max(50, Math.min(originalWidth * 0.1, 100));
+        const minCardHeight = minCardWidth / cardAspectRatio;
+        
+        // Limit the search space significantly
+        const stepSize = Math.max(20, Math.min(width, height) / 20);
+        const maxAttempts = 100; // Hard limit on attempts
+        let attempts = 0;
+        
+        this.log(`Optimized search: step=${stepSize}, minSize=${minCardWidth}x${minCardHeight}`);
+        
+        // Try common card sizes first
+        const commonSizes = [
+          { w: minCardWidth, h: minCardHeight },
+          { w: minCardWidth * 1.5, h: minCardHeight * 1.5 },
+          { w: minCardWidth * 2, h: minCardHeight * 2 }
+        ];
+        
+        for (const size of commonSizes) {
+          if (attempts >= maxAttempts) break;
+          
+          for (let y = 0; y < height - size.h; y += stepSize) {
+            if (attempts >= maxAttempts) break;
             
-            gx += pixel * sobelX[kernelIdx];
-            gy += pixel * sobelY[kernelIdx];
-          }
-        }
-        
-        const magnitude = Math.sqrt(gx * gx + gy * gy);
-        const outputIdx = (y * width + x) * 4;
-        const value = magnitude > 50 ? 255 : 0; // Threshold
-        
-        output.data[outputIdx] = value;
-        output.data[outputIdx + 1] = value;
-        output.data[outputIdx + 2] = value;
-        output.data[outputIdx + 3] = 255;
-      }
-    }
-    
-    return output;
-  }
-
-  private findRectangularContours(edgeCanvas: HTMLCanvasElement, originalWidth: number, originalHeight: number): DetectedRectangle[] {
-    this.log('Finding rectangular contours');
-    
-    const ctx = edgeCanvas.getContext('2d')!;
-    const imageData = ctx.getImageData(0, 0, edgeCanvas.width, edgeCanvas.height);
-    const data = imageData.data;
-    const width = imageData.width;
-    const height = imageData.height;
-    
-    const rectangles: DetectedRectangle[] = [];
-    
-    // Use a sliding window approach to find rectangular regions
-    const minCardWidth = Math.min(originalWidth * 0.1, 100);
-    const minCardHeight = Math.min(originalHeight * 0.1, 140);
-    const maxCardWidth = originalWidth * 0.8;
-    const maxCardHeight = originalHeight * 0.8;
-    
-    const step = Math.max(10, Math.min(originalWidth, originalHeight) / 50);
-    
-    for (let y = 0; y < height - minCardHeight; y += step) {
-      for (let x = 0; x < width - minCardWidth; x += step) {
-        // Try different sizes
-        for (let w = minCardWidth; w <= maxCardWidth && x + w < width; w += step) {
-          for (let h = minCardHeight; h <= maxCardHeight && y + h < height; h += step) {
-            const confidence = this.evaluateRectangle(data, width, x, y, w, h);
-            
-            if (confidence > 0.3) {
-              const aspectRatio = w / h;
-              rectangles.push({
-                x,
-                y,
-                width: w,
-                height: h,
-                confidence,
-                aspectRatio,
-                corners: [
-                  { x, y },
-                  { x: x + w, y },
-                  { x: x + w, y: y + h },
-                  { x, y: y + h }
-                ]
-              });
+            for (let x = 0; x < width - size.w; x += stepSize) {
+              if (attempts >= maxAttempts) break;
+              attempts++;
+              
+              const confidence = this.evaluateRectangleFast(data, width, x, y, size.w, size.h);
+              
+              if (confidence > 0.4) {
+                const aspectRatio = size.w / size.h;
+                rectangles.push({
+                  x,
+                  y,
+                  width: size.w,
+                  height: size.h,
+                  confidence,
+                  aspectRatio,
+                  corners: [
+                    { x, y },
+                    { x: x + size.w, y },
+                    { x: x + size.w, y: y + size.h },
+                    { x, y: y + size.h }
+                  ]
+                });
+              }
             }
           }
         }
-      }
-    }
-    
-    this.log(`Found ${rectangles.length} potential rectangles`);
-    return rectangles;
+        
+        this.log(`Found ${rectangles.length} potential rectangles in ${attempts} attempts`);
+        resolve(rectangles);
+      });
+    });
   }
 
-  private evaluateRectangle(data: Uint8ClampedArray, width: number, x: number, y: number, w: number, h: number): number {
+  private evaluateRectangleFast(data: Uint8ClampedArray, width: number, x: number, y: number, w: number, h: number): number {
     let edgePixels = 0;
-    let totalPixels = 0;
+    let totalChecked = 0;
     
-    // Check perimeter for edges
-    const checkPositions = [
+    // Sample only a subset of perimeter points for speed
+    const sampleRate = 5;
+    
+    // Check top and bottom edges
+    for (let i = 0; i < w; i += sampleRate) {
       // Top edge
-      ...Array.from({ length: w }, (_, i) => ({ x: x + i, y })),
+      let idx = (y * width + (x + i)) * 4;
+      if (data[idx] > 200) edgePixels++;
+      totalChecked++;
+      
       // Bottom edge
-      ...Array.from({ length: w }, (_, i) => ({ x: x + i, y: y + h - 1 })),
-      // Left edge
-      ...Array.from({ length: h }, (_, i) => ({ x, y: y + i })),
-      // Right edge
-      ...Array.from({ length: h }, (_, i) => ({ x: x + w - 1, y: y + i }))
-    ];
-    
-    for (const pos of checkPositions) {
-      if (pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < data.length / width / 4) {
-        const idx = (pos.y * width + pos.x) * 4;
-        if (data[idx] > 200) edgePixels++; // White pixels (edges)
-        totalPixels++;
-      }
+      idx = ((y + h - 1) * width + (x + i)) * 4;
+      if (data[idx] > 200) edgePixels++;
+      totalChecked++;
     }
     
-    const edgeRatio = totalPixels > 0 ? edgePixels / totalPixels : 0;
+    // Check left and right edges
+    for (let i = 0; i < h; i += sampleRate) {
+      // Left edge
+      let idx = ((y + i) * width + x) * 4;
+      if (data[idx] > 200) edgePixels++;
+      totalChecked++;
+      
+      // Right edge
+      idx = ((y + i) * width + (x + w - 1)) * 4;
+      if (data[idx] > 200) edgePixels++;
+      totalChecked++;
+    }
+    
+    const edgeRatio = totalChecked > 0 ? edgePixels / totalChecked : 0;
     
     // Bonus for card-like aspect ratios
     const aspectRatio = w / h;
-    const cardAspectRatio = 2.5 / 3.5; // Standard trading card
+    const cardAspectRatio = 2.5 / 3.5;
     const aspectBonus = 1 - Math.abs(aspectRatio - cardAspectRatio) / cardAspectRatio;
     
     return edgeRatio * 0.7 + Math.max(0, aspectBonus) * 0.3;
@@ -318,16 +297,14 @@ export class EnhancedRectangleDetector {
     // Sort by confidence
     filtered.sort((a, b) => b.confidence - a.confidence);
     
-    // Apply additional filters
+    // Apply size and aspect ratio filters
     const final = filtered.filter(rect => {
-      // Size constraints (more relaxed)
       const minSize = Math.min(imageWidth, imageHeight) * 0.05;
       const maxSize = Math.max(imageWidth, imageHeight) * 0.9;
       
       if (rect.width < minSize || rect.height < minSize) return false;
       if (rect.width > maxSize || rect.height > maxSize) return false;
       
-      // Aspect ratio constraints (more relaxed)
       const aspectRatio = rect.width / rect.height;
       if (aspectRatio < 0.4 || aspectRatio > 2.0) return false;
       
@@ -335,7 +312,7 @@ export class EnhancedRectangleDetector {
     });
     
     this.log(`Final result: ${final.length} rectangles after filtering`);
-    return final.slice(0, 10); // Limit to top 10
+    return final.slice(0, 10);
   }
 
   private removeOverlapping(rectangles: DetectedRectangle[]): DetectedRectangle[] {
@@ -349,7 +326,6 @@ export class EnhancedRectangleDetector {
       if (!overlapping) {
         result.push(rect);
       } else if (rect.confidence > overlapping.confidence) {
-        // Replace with higher confidence rectangle
         const index = result.indexOf(overlapping);
         result[index] = rect;
       }
