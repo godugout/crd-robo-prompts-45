@@ -1,4 +1,3 @@
-
 import React from "react";
 import { CreatorBox } from "../shared/CreatorBox";
 import { useCreators } from "@/hooks/useCreators";
