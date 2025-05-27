@@ -45,6 +45,11 @@ export const CleanCardsReviewPhase: React.FC<CleanCardsReviewPhaseProps> = ({
     selected: selectedCards.has(card.id)
   }));
 
+  // Get original image URL from the first detected card, or create one from the original file
+  const originalImageUrl = currentResult.detectedCards.length > 0 
+    ? currentResult.detectedCards[0].originalImageUrl 
+    : URL.createObjectURL(currentResult.originalImage);
+
   return (
     <div className="h-[80vh]">
       {/* Navigation for multiple images */}
@@ -70,7 +75,7 @@ export const CleanCardsReviewPhase: React.FC<CleanCardsReviewPhaseProps> = ({
       )}
 
       <CardDetectionInterface
-        originalImageUrl={currentResult.originalImageUrl}
+        originalImageUrl={originalImageUrl}
         detectedCards={detectedCardsWithSelection}
         onCardUpdate={handleCardUpdate}
         onCardToggle={onToggleCardSelection}
