@@ -8,8 +8,10 @@ import { useQueueManager } from './queueManager';
 export const useBulkCardProcessing = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [canCancel, setCanCancel] = useState(false);
+  const [processingComplete, setProcessingComplete] = useState(false);
   
   const workerManagerRef = useRef<WorkerManager | null>(null);
+  const processingRef = useRef(false);
 
   const {
     batches,
@@ -57,6 +59,7 @@ export const useBulkCardProcessing = () => {
         },
         onProcessingCancelled: () => {
           console.log('🛑 Processing cancelled');
+          processingRef.current = false;
           setIsProcessing(false);
           setCanCancel(false);
         }
@@ -77,6 +80,7 @@ export const useBulkCardProcessing = () => {
   const addToQueue = useCallback((files: File[]) => {
     console.log('📁 Adding files to queue:', files.length);
     addFilesToQueue(files);
+    setProcessingComplete(false);
     toast.success(`Added ${files.length} files to processing queue`);
   }, [addFilesToQueue]);
 
@@ -88,6 +92,7 @@ export const useBulkCardProcessing = () => {
     console.log('🗑️ Clearing queue...');
     clearQueueItems();
     clearBatches();
+    setProcessingComplete(false);
     toast.success('Queue cleared');
   }, [isProcessing, clearQueueItems, clearBatches]);
 
@@ -102,7 +107,7 @@ export const useBulkCardProcessing = () => {
       return;
     }
 
-    if (isProcessing) {
+    if (processingRef.current) {
       console.log('⚠️ Already processing');
       toast.warning('Already processing');
       return;
@@ -114,8 +119,11 @@ export const useBulkCardProcessing = () => {
       return;
     }
 
+    // Set processing state
+    processingRef.current = true;
     setIsProcessing(true);
     setCanCancel(true);
+    setProcessingComplete(false);
     
     console.log(`📦 Processing ${pendingItems.length} pending items...`);
 
@@ -131,7 +139,7 @@ export const useBulkCardProcessing = () => {
 
       // Process batches sequentially for better reliability
       for (const batchStatus of newBatches) {
-        if (!isProcessing) {
+        if (!processingRef.current) {
           console.log('🛑 Processing cancelled, stopping...');
           break;
         }
@@ -154,6 +162,9 @@ export const useBulkCardProcessing = () => {
             if (currentBatch?.status === 'completed' || currentBatch?.status === 'error') {
               console.log(`✅ Batch ${batchStatus.id} finished with status: ${currentBatch.status}`);
               resolve();
+            } else if (!processingRef.current) {
+              console.log('🛑 Processing cancelled during batch wait');
+              resolve();
             } else {
               setTimeout(checkComplete, 100);
             }
@@ -163,23 +174,28 @@ export const useBulkCardProcessing = () => {
         });
       }
       
-      console.log('🎉 All batches completed successfully!');
-      toast.success('All batches completed successfully!');
+      if (processingRef.current) {
+        console.log('🎉 All batches completed successfully!');
+        setProcessingComplete(true);
+        toast.success('All batches completed successfully!');
+      }
     } catch (error) {
       console.error('💥 Batch processing failed:', error);
       toast.error('Batch processing failed: ' + (error.message || 'Unknown error'));
     } finally {
+      processingRef.current = false;
       setIsProcessing(false);
       setCanCancel(false);
       console.log('🏁 Processing finished');
     }
-  }, [getPendingItems, isProcessing, createBatches, setBatchList, updateBatchStatus, markItemsAsProcessing, batches]);
+  }, [getPendingItems, createBatches, setBatchList, updateBatchStatus, markItemsAsProcessing, batches]);
 
   const cancelProcessing = useCallback(() => {
-    if (!isProcessing) return;
+    if (!processingRef.current) return;
 
     console.log('🛑 Cancelling processing...');
     setCanCancel(false);
+    processingRef.current = false;
     workerManagerRef.current?.cancelProcessing();
     
     resetProcessingItems();
@@ -187,13 +203,14 @@ export const useBulkCardProcessing = () => {
 
     toast.warning('Processing cancelled');
     setIsProcessing(false);
-  }, [isProcessing, resetProcessingItems, cancelAllBatches]);
+  }, [resetProcessingItems, cancelAllBatches]);
 
   return {
     queue,
     batches,
     isProcessing,
     canCancel,
+    processingComplete,
     addToQueue,
     removeFromQueue,
     clearQueue,

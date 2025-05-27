@@ -1,27 +1,24 @@
 
 import React from 'react';
-import { Card } from '@/components/ui/card';
 import { useBulkCardProcessing } from '@/hooks/useBulkCardProcessing';
-import type { CardDetectionResult } from '@/services/cardDetection';
-
-import { UploadDropArea } from './bulk-upload/UploadDropArea';
+import { BulkUploadDropZone } from './bulk-upload/BulkUploadDropZone';
 import { UploadStats } from './bulk-upload/UploadStats';
-import { BatchProgress } from './bulk-upload/BatchProgress';
-import { QueueItem } from './bulk-upload/QueueItem';
 import { ProcessingControls } from './bulk-upload/ProcessingControls';
+import { ProcessingBatches } from './bulk-upload/ProcessingBatches';
+import { CompletedResults } from './bulk-upload/CompletedResults';
+import type { CardDetectionResult } from '@/services/cardDetection';
 
 interface BulkCardsUploaderProps {
   onResultsReady: (results: CardDetectionResult[]) => void;
 }
 
-export const BulkCardsUploader: React.FC<BulkCardsUploaderProps> = ({
-  onResultsReady
-}) => {
+export const BulkCardsUploader: React.FC<BulkCardsUploaderProps> = ({ onResultsReady }) => {
   const {
     queue,
     batches,
     isProcessing,
     canCancel,
+    processingComplete,
     addToQueue,
     removeFromQueue,
     clearQueue,
@@ -33,71 +30,59 @@ export const BulkCardsUploader: React.FC<BulkCardsUploaderProps> = ({
 
   const stats = getQueueStats();
 
-  const handleStartProcessing = async () => {
-    await processBatches();
-    
-    // Once processing completes, get results and pass them up
-    const results = getCompletedResults();
-    if (results.length > 0) {
-      onResultsReady(results);
+  // Handle completion and advance to next step
+  React.useEffect(() => {
+    if (processingComplete && stats.completed > 0) {
+      const results = getCompletedResults();
+      console.log('🎯 Processing complete, advancing with results:', results);
+      if (results.length > 0) {
+        onResultsReady(results);
+      }
     }
-  };
-
-  const currentBatch = batches.find(b => b.status === 'processing');
-  const batchProgress = currentBatch ? (currentBatch.current / currentBatch.total) * 100 : 0;
+  }, [processingComplete, stats.completed, getCompletedResults, onResultsReady]);
 
   return (
-    <Card className="p-6 bg-editor-dark border-crd-mediumGray/20">
-      {/* Upload Area */}
-      <UploadDropArea onFilesAdded={addToQueue} />
+    <div className="space-y-6">
+      {/* Upload Drop Zone */}
+      <BulkUploadDropZone onFilesAdded={addToQueue} />
 
-      {/* Processing Queue */}
+      {/* Stats */}
       {stats.total > 0 && (
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-white font-medium">Processing Queue ({stats.total} files)</h4>
-            <ProcessingControls
-              isProcessing={isProcessing}
-              canCancel={canCancel}
-              pendingCount={stats.pending}
-              onStartProcessing={handleStartProcessing}
-              onCancelProcessing={cancelProcessing}
-              onClearQueue={clearQueue}
-            />
-          </div>
-
-          {/* Stats Cards */}
-          <UploadStats
-            pending={stats.pending}
-            processing={stats.processing}
-            completed={stats.completed}
-            error={stats.error}
-          />
-
-          {/* Batch Progress */}
-          {currentBatch && (
-            <BatchProgress
-              batchId={currentBatch.id}
-              current={currentBatch.current}
-              total={currentBatch.total}
-              progress={batchProgress}
-              currentFileName={currentBatch.currentFileName}
-            />
-          )}
-
-          {/* Queue Items */}
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {queue.map((item) => (
-              <QueueItem
-                key={item.id}
-                item={item}
-                isProcessing={isProcessing}
-                onRemove={removeFromQueue}
-              />
-            ))}
-          </div>
-        </div>
+        <UploadStats
+          pending={stats.pending}
+          processing={stats.processing}
+          completed={stats.completed}
+          error={stats.error}
+        />
       )}
-    </Card>
+
+      {/* Processing Controls */}
+      {stats.total > 0 && (
+        <ProcessingControls
+          isProcessing={isProcessing}
+          canCancel={canCancel}
+          pendingCount={stats.pending}
+          onStartProcessing={processBatches}
+          onCancelProcessing={cancelProcessing}
+          onClearQueue={clearQueue}
+        />
+      )}
+
+      {/* Processing Batches */}
+      {batches.length > 0 && (
+        <ProcessingBatches batches={batches} />
+      )}
+
+      {/* Completed Results */}
+      {processingComplete && stats.completed > 0 && (
+        <CompletedResults 
+          completedCount={stats.completed}
+          onAdvance={() => {
+            const results = getCompletedResults();
+            onResultsReady(results);
+          }}
+        />
+      )}
+    </div>
   );
 };
