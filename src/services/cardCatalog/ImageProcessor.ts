@@ -1,5 +1,4 @@
 
-import { enhancedCardDetection } from '../cardExtractor/enhancedDetection';
 import { DetectedCard, AutoExtractedData } from './types';
 
 export class ImageProcessor {
@@ -71,60 +70,92 @@ export class ImageProcessor {
   }
 
   async processImage(file: File, sessionId: string): Promise<DetectedCard[]> {
+    console.log('🖼️ ImageProcessor.processImage called with:', { fileName: file.name, sessionId });
+    
     const startTime = Date.now();
 
-    // 1. Load and analyze image
-    const imageData = await this.loadImage(file);
-    
-    // 2. Detect card boundaries using enhanced detection
-    const detections = await enhancedCardDetection(imageData, file);
-    
-    // 3. Extract and enhance each detected card
-    const cards: DetectedCard[] = [];
-    
-    for (let i = 0; i < detections.length; i++) {
-      const detection = detections[i];
+    try {
+      // 1. Load and analyze image
+      console.log('📖 Loading image...');
+      const imageData = await this.loadImage(file);
+      console.log('✅ Image loaded successfully');
       
-      try {
-        const extractedCard = await this.extractCard(imageData, detection, i);
-        const enhancedCard = await this.enhanceCard(extractedCard);
-        const enrichedCard = await this.extractMetadata(enhancedCard);
+      // 2. For now, create mock detections to test the flow
+      console.log('🔍 Creating mock detections for testing...');
+      const mockDetections = [
+        {
+          x: 50,
+          y: 50,
+          width: 200,
+          height: 280,
+          confidence: 0.95
+        },
+        {
+          x: 300,
+          y: 50,
+          width: 200,
+          height: 280,
+          confidence: 0.87
+        }
+      ];
+      
+      console.log('🎯 Mock detections created:', mockDetections);
+      
+      // 3. Extract and enhance each detected card
+      const cards: DetectedCard[] = [];
+      
+      for (let i = 0; i < mockDetections.length; i++) {
+        const detection = mockDetections[i];
         
-        cards.push({
-          id: `${sessionId}_card_${i}`,
-          originalFile: file,
-          imageBlob: enrichedCard.imageBlob,
-          confidence: detection.confidence,
-          bounds: {
-            x: detection.x,
-            y: detection.y,
-            width: detection.width,
-            height: detection.height
-          },
-          metadata: enrichedCard.metadata,
-          status: 'enhanced',
-          processingTime: Date.now() - startTime
-        });
-      } catch (error) {
-        console.error(`Failed to process card ${i}:`, error);
-        cards.push({
-          id: `${sessionId}_card_${i}`,
-          originalFile: file,
-          imageBlob: new Blob(),
-          confidence: detection.confidence,
-          bounds: {
-            x: detection.x,
-            y: detection.y,
-            width: detection.width,
-            height: detection.height
-          },
-          status: 'error',
-          processingTime: Date.now() - startTime
-        });
+        try {
+          console.log(`🔧 Processing card ${i}...`);
+          const extractedCard = await this.extractCard(imageData, detection, i);
+          const enhancedCard = await this.enhanceCard(extractedCard);
+          const enrichedCard = await this.extractMetadata(enhancedCard);
+          
+          const card: DetectedCard = {
+            id: `${sessionId}_card_${i}`,
+            originalFile: file,
+            imageBlob: enrichedCard.imageBlob,
+            confidence: detection.confidence,
+            bounds: {
+              x: detection.x,
+              y: detection.y,
+              width: detection.width,
+              height: detection.height
+            },
+            metadata: enrichedCard.metadata,
+            status: 'enhanced',
+            processingTime: Date.now() - startTime
+          };
+          
+          cards.push(card);
+          console.log(`✅ Card ${i} processed successfully`);
+        } catch (error) {
+          console.error(`❌ Failed to process card ${i}:`, error);
+          cards.push({
+            id: `${sessionId}_card_${i}`,
+            originalFile: file,
+            imageBlob: new Blob(),
+            confidence: detection.confidence,
+            bounds: {
+              x: detection.x,
+              y: detection.y,
+              width: detection.width,
+              height: detection.height
+            },
+            status: 'error',
+            processingTime: Date.now() - startTime
+          });
+        }
       }
-    }
 
-    return cards;
+      console.log('🎉 processImage completed with', cards.length, 'cards');
+      return cards;
+    } catch (error) {
+      console.error('💥 processImage failed:', error);
+      throw error;
+    }
   }
 
   chunkArray<T>(array: T[], size: number): T[][] {

@@ -25,64 +25,56 @@ export const useCardProcessing = ({
   const processingRef = useRef<AbortController | null>(null);
 
   const processQueue = useCallback(async () => {
+    console.log('🎯 processQueue called with uploadQueue length:', uploadQueue.length);
+    
     if (uploadQueue.length === 0) {
+      console.log('❌ No files to process');
       toast.warning('No files in queue to process');
       return;
     }
 
-    console.log('🎯 Starting processQueue with', uploadQueue.length, 'files');
+    console.log('🔄 Starting processing workflow...');
     
-    // Clear previous state and set processing
+    // Clear previous state
     setDetectedCards(new Map());
     setSelectedCards(new Set());
     setShowReview(false);
     setIsProcessing(true);
     
-    processingRef.current = new AbortController();
+    console.log('✅ Initial state cleared, processing started');
 
     try {
-      const processingToast = toast.loading(`🔍 Analyzing ${uploadQueue.length} images for trading cards...`, {
-        description: 'This may take a moment for large images'
-      });
+      const processingToast = toast.loading(`🔍 Analyzing ${uploadQueue.length} images...`);
       
-      console.log('🔄 Processing started, calling cardDetectionService...');
-      const startTime = Date.now();
+      console.log('📡 Calling cardDetectionService.processBatch...');
       const results = await cardDetectionService.processBatch(uploadQueue);
-      const processingTime = Date.now() - startTime;
+      console.log('📊 processBatch results:', results);
       
-      console.log('📊 Raw processing results:', results);
-      
-      // Ensure minimum 2 seconds in detection state for better UX
-      const minProcessingTime = 2000;
-      if (processingTime < minProcessingTime) {
-        console.log('⏱️ Waiting for minimum processing time...');
-        await new Promise(resolve => setTimeout(resolve, minProcessingTime - processingTime));
-      }
-      
-      // Dismiss the loading toast
       toast.dismiss(processingToast);
       
-      // Flatten all detected cards from all results
+      // Process results
       const allCards = new Map<string, any>();
       let totalDetected = 0;
 
       results.forEach((result, resultIndex) => {
         console.log(`📋 Processing result ${resultIndex}:`, result);
-        result.cards.forEach((card, cardIndex) => {
-          const uniqueId = `${result.sessionId}_${resultIndex}_${cardIndex}`;
-          console.log(`➕ Adding card ${uniqueId}:`, card);
-          allCards.set(uniqueId, { ...card, id: uniqueId });
-          totalDetected++;
-        });
+        if (result.cards && Array.isArray(result.cards)) {
+          result.cards.forEach((card, cardIndex) => {
+            const uniqueId = `${result.sessionId}_${resultIndex}_${cardIndex}`;
+            console.log(`➕ Adding card ${uniqueId}:`, card);
+            allCards.set(uniqueId, { ...card, id: uniqueId });
+            totalDetected++;
+          });
+        }
       });
 
-      console.log('🎯 Final detection results:', { 
+      console.log('🎯 Final processing results:', { 
         totalDetected, 
         allCardsSize: allCards.size,
         allCardsKeys: Array.from(allCards.keys())
       });
 
-      // Update processing status first
+      // Update processing status
       setProcessingStatus({
         total: uploadQueue.length,
         completed: totalDetected,
@@ -93,67 +85,59 @@ export const useCardProcessing = ({
       if (totalDetected > 0) {
         // Auto-select all detected cards
         const allCardIds = new Set(Array.from(allCards.keys()));
-        console.log('✅ Auto-selecting cards:', Array.from(allCardIds));
         
-        // Update states in sequence to ensure proper propagation
+        console.log('✅ Setting detected cards and selected cards...');
         setDetectedCards(allCards);
         setSelectedCards(allCardIds);
+        
+        console.log('🧹 Clearing upload queue...');
         setUploadQueue([]);
         
-        // Small delay to ensure state updates are processed
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Set processing to false BEFORE enabling review
+        console.log('⏹️ Setting processing to false...');
         setIsProcessing(false);
         
-        // Enable review state after another small delay
+        // Short delay before enabling review
         setTimeout(() => {
-          console.log('🎉 Setting showReview to true - should trigger review step');
+          console.log('👀 Enabling review mode...');
           setShowReview(true);
-        }, 200);
+        }, 100);
         
-        toast.success(`🎉 Successfully detected ${totalDetected} cards!`, {
-          description: `From ${results.length} images. Review your cards below.`,
-          duration: 4000
-        });
+        toast.success(`🎉 Successfully detected ${totalDetected} cards!`);
       } else {
-        console.log('❌ No cards detected');
+        console.log('❌ No cards detected - cleaning up state');
         setIsProcessing(false);
         setShowReview(false);
         setDetectedCards(new Map());
         setSelectedCards(new Set());
         setUploadQueue([]);
-        toast.warning('No trading cards detected in the uploaded images', {
-          description: 'Try uploading clearer images with visible trading cards'
-        });
+        toast.warning('No trading cards detected in the uploaded images');
       }
     } catch (error) {
-      console.error('💥 Batch processing failed:', error);
+      console.error('💥 Processing failed:', error);
       setIsProcessing(false);
       setShowReview(false);
       setDetectedCards(new Map());
       setSelectedCards(new Set());
       setUploadQueue([]);
-      toast.error('Processing failed. Please try again.', {
-        description: 'Make sure your images are clear and contain trading cards'
-      });
+      toast.error('Processing failed. Please try again.');
     }
   }, [uploadQueue, setDetectedCards, setUploadQueue, setIsProcessing, setShowReview, setProcessingStatus, setSelectedCards]);
 
   const createSelectedCards = useCallback((detectedCards: Map<string, any>, selectedCards: Set<string>) => {
+    console.log('🎴 createSelectedCards called with:', {
+      detectedCardsSize: detectedCards.size,
+      selectedCardsSize: selectedCards.size
+    });
+    
     const selectedCardData = Array.from(detectedCards.values())
       .filter(card => selectedCards.has(card.id));
     
     if (selectedCardData.length === 0) {
-      toast.warning('No cards selected', {
-        description: 'Please select at least one card to add to your collection'
-      });
+      toast.warning('No cards selected');
       return;
     }
     
-    toast.success(`🎴 Adding ${selectedCardData.length} cards to your collection...`, {
-      description: 'Your cards are being processed and added'
-    });
+    toast.success(`🎴 Adding ${selectedCardData.length} cards to your collection...`);
     
     // Clear after creation
     setDetectedCards(new Map());
