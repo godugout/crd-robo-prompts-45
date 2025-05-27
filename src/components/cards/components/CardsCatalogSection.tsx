@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { SmartCardGrid } from '@/components/catalog/SmartCardGrid';
 import { DetectedCard } from '@/services/cardCatalog/types';
 
@@ -16,14 +16,8 @@ export const CardsCatalogSection: React.FC = () => {
   };
 
   return (
-    <Card className="bg-editor-dark border-editor-border">
-      <CardHeader>
-        <CardTitle className="text-white">Your Card Catalog</CardTitle>
-        <p className="text-crd-lightGray">
-          Browse and manage your entire collection of CRDs
-        </p>
-      </CardHeader>
-      <CardContent>
+    <Card className="bg-crd-dark border-crd-mediumGray">
+      <CardContent className="p-6">
         <SmartCardGrid 
           onCardEdit={handleCardEdit}
           onCardCreate={handleCardCreate}
