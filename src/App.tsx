@@ -1,7 +1,7 @@
 
 import { Routes, Route } from 'react-router-dom';
-import { Navbar } from '@/components/home/Navbar';
 import { OverlayProvider } from '@/components/overlay';
+import { MainLayout } from '@/components/layout/MainLayout';
 import Index from '@/pages/Index';
 import Editor from '@/pages/Editor';
 import Gallery from '@/pages/Gallery';
@@ -14,16 +14,17 @@ function App() {
   return (
     <OverlayProvider>
       <div className="min-h-screen bg-crd-darkest">
-        <Navbar />
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/editor" element={<Editor />} />
-          <Route path="/editor/:cardId" element={<Editor />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/cards" element={<CardsPage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/creators" element={<Creators />} />
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Index />} />
+            <Route path="editor" element={<Editor />} />
+            <Route path="editor/:cardId" element={<Editor />} />
+            <Route path="gallery" element={<Gallery />} />
+            <Route path="cards" element={<CardsPage />} />
+            <Route path="auth" element={<AuthPage />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="creators" element={<Creators />} />
+          </Route>
         </Routes>
       </div>
     </OverlayProvider>
