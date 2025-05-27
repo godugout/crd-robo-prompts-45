@@ -1,70 +1,88 @@
 
-import { CardRegion } from './types';
-import { multiStrategyCardDetection, DETECTION_STRATEGIES } from './multiStrategyDetection';
+import { enhancedRectangleDetector } from '@/services/cardDetection/enhancedRectangleDetection';
+import type { DetectedRectangle } from '@/services/cardDetection/enhancedRectangleDetection';
 
-export const enhancedCardDetection = async (image: HTMLImageElement, file: File): Promise<CardRegion[]> => {
+export interface EnhancedDetectionRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  confidence: number;
+  corners?: Array<{ x: number; y: number }>;
+  aspectRatio?: number;
+}
+
+export const enhancedCardDetection = async (
+  image: HTMLImageElement,
+  file: File
+): Promise<EnhancedDetectionRegion[]> => {
+  console.log('🔍 Starting enhanced card detection with new rectangle detector');
+  
   try {
-    console.log('🎯 Starting enhanced card detection with multi-strategy approach...');
+    // Use the new enhanced rectangle detector
+    const result = await enhancedRectangleDetector.detectCardRectangles(image);
     
-    // Use multi-strategy detection for best results
-    const regions = await multiStrategyCardDetection(image, file, DETECTION_STRATEGIES);
+    console.log('📊 Detection result:', {
+      rectanglesFound: result.rectangles.length,
+      processingSteps: result.debugInfo.processingSteps.length
+    });
     
-    console.log(`✅ Enhanced detection completed: ${regions.length} regions found`);
+    // Convert to the expected format
+    const regions: EnhancedDetectionRegion[] = result.rectangles.map(rect => ({
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+      confidence: rect.confidence,
+      corners: rect.corners,
+      aspectRatio: rect.aspectRatio
+    }));
+    
+    console.log('✅ Enhanced detection complete:', regions.length, 'regions found');
+    
+    // Store debug info globally for potential debugging
+    if (typeof window !== 'undefined') {
+      (window as any).lastDetectionDebug = result.debugInfo;
+    }
+    
     return regions;
-    
   } catch (error) {
     console.error('❌ Enhanced detection failed:', error);
     
-    // Fallback to basic grid detection
+    // Fallback to simple grid-based detection
+    console.log('🔄 Falling back to simple detection');
     return fallbackDetection(image);
   }
 };
 
-const fallbackDetection = (image: HTMLImageElement): CardRegion[] => {
-  console.log('🔄 Using fallback detection method...');
+function fallbackDetection(image: HTMLImageElement): EnhancedDetectionRegion[] {
+  console.log('📝 Using fallback detection method');
   
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return [];
-
-  canvas.width = image.width;
-  canvas.height = image.height;
-  ctx.drawImage(image, 0, 0);
-
-  // Improved fallback with better grid coverage
-  const regions: CardRegion[] = [];
-  const targetRatio = 2.5 / 3.5;
-  const minSize = Math.min(image.width, image.height) * 0.08;
-  const maxSize = Math.min(image.width, image.height) * 0.6;
+  const regions: EnhancedDetectionRegion[] = [];
+  const cardAspectRatio = 2.5 / 3.5;
   
-  // Create more systematic grid coverage
-  const gridSteps = 4;
-  const sizeSteps = 3;
+  // Try a few different sizes and positions
+  const sizes = [
+    { width: image.width * 0.2, height: image.width * 0.2 / cardAspectRatio },
+    { width: image.width * 0.3, height: image.width * 0.3 / cardAspectRatio },
+    { width: image.width * 0.25, height: image.width * 0.25 / cardAspectRatio }
+  ];
   
-  for (let gridY = 0; gridY < gridSteps; gridY++) {
-    for (let gridX = 0; gridX < gridSteps; gridX++) {
-      for (let sizeStep = 0; sizeStep < sizeSteps; sizeStep++) {
-        const width = minSize + (maxSize - minSize) * (sizeStep / (sizeSteps - 1));
-        const height = width / targetRatio;
-        
-        const x = (image.width / gridSteps) * gridX + 
-                 (image.width / gridSteps - width) * 0.5;
-        const y = (image.height / gridSteps) * gridY + 
-                 (image.height / gridSteps - height) * 0.5;
-        
-        if (x >= 0 && y >= 0 && x + width <= image.width && y + height <= image.height) {
-          regions.push({
-            x: Math.round(x),
-            y: Math.round(y),
-            width: Math.round(width),
-            height: Math.round(height),
-            confidence: 0.4 - (sizeStep * 0.05) // Prefer medium sizes
-          });
-        }
-      }
+  sizes.forEach((size, index) => {
+    if (size.height < image.height * 0.8) {
+      const x = (image.width - size.width) * (index * 0.3);
+      const y = (image.height - size.height) * 0.1;
+      
+      regions.push({
+        x: Math.max(0, x),
+        y: Math.max(0, y),
+        width: size.width,
+        height: size.height,
+        confidence: 0.6 - index * 0.1,
+        aspectRatio: size.width / size.height
+      });
     }
-  }
+  });
   
-  console.log(`🔄 Fallback generated ${regions.length} candidate regions`);
   return regions;
-};
+}
