@@ -40,15 +40,22 @@ export interface CRDButtonProps extends Omit<ShadcnButtonProps, 'variant' | 'siz
 }
 
 export const CRDButton = React.forwardRef<HTMLButtonElement, CRDButtonProps>(
-  ({ className, variant, size, icon, children, ...props }, ref) => {
+  ({ className, variant, size, icon, children, asChild, ...props }, ref) => {
     return (
       <ShadcnButton
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        asChild={asChild}
         {...props}
       >
-        {icon && <span className="flex-shrink-0">{icon}</span>}
-        {children}
+        {asChild ? (
+          children
+        ) : (
+          <>
+            {icon && <span className="flex-shrink-0">{icon}</span>}
+            {children}
+          </>
+        )}
       </ShadcnButton>
     );
   }
