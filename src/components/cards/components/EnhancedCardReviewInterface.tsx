@@ -39,13 +39,14 @@ export const EnhancedCardReviewInterface: React.FC<EnhancedCardReviewInterfacePr
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [imageData, setImageData] = useState<{ width: number; height: number } | null>(null);
 
   const currentResult = detectionResults[currentImageIndex];
   const currentCards = currentResult?.detectedCards || [];
 
   useEffect(() => {
     drawCanvas();
-  }, [currentResult, selectedCards, selectedCardId, showAllBoxes, zoom, pan]);
+  }, [currentResult, selectedCards, selectedCardId, showAllBoxes, zoom, pan, imageData]);
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
@@ -56,6 +57,9 @@ export const EnhancedCardReviewInterface: React.FC<EnhancedCardReviewInterfacePr
 
     const img = new Image();
     img.onload = () => {
+      // Store image dimensions for later use
+      setImageData({ width: img.width, height: img.height });
+
       // Set canvas size
       const maxWidth = 1200;
       const maxHeight = 800;
@@ -127,7 +131,7 @@ export const EnhancedCardReviewInterface: React.FC<EnhancedCardReviewInterfacePr
 
   const handleCanvasClick = (event: React.MouseEvent) => {
     const canvas = canvasRef.current;
-    if (!canvas || isDragging) return;
+    if (!canvas || isDragging || !imageData) return;
 
     const rect = canvas.getBoundingClientRect();
     const x = (event.clientX - rect.left - pan.x) / zoom;
@@ -135,10 +139,10 @@ export const EnhancedCardReviewInterface: React.FC<EnhancedCardReviewInterfacePr
 
     // Find clicked card
     const clickedCard = currentCards.find(card => {
-      const cardX = (card.bounds.x * canvas.width) / (currentResult.originalImage.width || 800);
-      const cardY = (card.bounds.y * canvas.height) / (currentResult.originalImage.height || 600);
-      const cardWidth = (card.bounds.width * canvas.width) / (currentResult.originalImage.width || 800);
-      const cardHeight = (card.bounds.height * canvas.height) / (currentResult.originalImage.height || 600);
+      const cardX = (card.bounds.x * canvas.width) / imageData.width;
+      const cardY = (card.bounds.y * canvas.height) / imageData.height;
+      const cardWidth = (card.bounds.width * canvas.width) / imageData.width;
+      const cardHeight = (card.bounds.height * canvas.height) / imageData.height;
       
       return x >= cardX && 
              x <= cardX + cardWidth &&
