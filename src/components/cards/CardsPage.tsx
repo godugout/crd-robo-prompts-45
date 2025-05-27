@@ -30,9 +30,8 @@ export const CardsPage = () => {
       setWorkflowStep('detecting');
     } else if (showReview && totalCards > 0) {
       setWorkflowStep('review');
-      toast.success(`🎉 Found ${totalCards} cards! Review them below.`, {
-        description: 'Select the cards you want to add to your collection',
-        duration: 5000
+      toast.success(`Found ${totalCards} cards!`, {
+        description: 'Select the cards you want to add to your collection'
       });
     } else if (!showReview && totalCards === 0) {
       setWorkflowStep('upload');
@@ -41,9 +40,7 @@ export const CardsPage = () => {
 
   const handleUploadComplete = (count: number) => {
     setWorkflowStep('detecting');
-    toast.success(`Successfully processed ${count} images!`, {
-      description: 'AI is analyzing your images for trading cards...'
-    });
+    toast.success(`Processing ${count} images...`);
   };
 
   const handleReviewComplete = () => {
@@ -52,11 +49,8 @@ export const CardsPage = () => {
     
     setTimeout(() => {
       setWorkflowStep('complete');
-      toast.success('Cards added to your collection!', {
-        description: 'Check them out in the catalog below'
-      });
+      toast.success('Cards added to collection!');
       
-      // Reset to upload after a brief success state
       setTimeout(() => {
         setWorkflowStep('upload');
       }, 3000);
@@ -81,17 +75,9 @@ export const CardsPage = () => {
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Top Half - Card Creation Workflow */}
+        {/* Card Creation Workflow */}
         <div className="py-8">
-          <div className="mb-4">
-            <h2 className="text-2xl font-bold text-white mb-2">Create New Cards</h2>
-            <p className="text-crd-lightGray">
-              Upload images and let AI detect individual trading cards for your collection
-            </p>
-          </div>
-          
           <CardsWorkflowSection
             currentStep={workflowStep}
             totalCards={totalCards}
@@ -110,15 +96,12 @@ export const CardsPage = () => {
         {/* Divider */}
         <div className="border-t border-crd-mediumGray/20 my-8"></div>
 
-        {/* Bottom Half - Card Catalog */}
+        {/* Card Collection */}
         <div className="pb-8">
-          <div className="mb-4">
-            <h2 className="text-2xl font-bold text-white mb-2">Your Card Collection</h2>
-            <p className="text-crd-lightGray">
-              Browse and manage all your created CRDs
-            </p>
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-white mb-2">Your Collection</h2>
+            <p className="text-crd-lightGray">Browse and manage your CRDs</p>
           </div>
-          
           <CardsCatalogSection />
         </div>
       </div>
