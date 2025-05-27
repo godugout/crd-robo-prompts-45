@@ -10,7 +10,6 @@ export const useBulkCardProcessing = () => {
   const [canCancel, setCanCancel] = useState(false);
   
   const workerManagerRef = useRef<WorkerManager | null>(null);
-  const processingPromiseRef = useRef<Promise<void> | null>(null);
 
   const {
     batches,
@@ -38,30 +37,45 @@ export const useBulkCardProcessing = () => {
 
   // Initialize Worker Manager
   useEffect(() => {
-    workerManagerRef.current = new WorkerManager({
-      onBatchProgress: (data) => {
-        updateBatchProgress(data.batchId, data.current, data.fileName);
-      },
-      onBatchComplete: (data) => {
-        updateBatchStatus(data.batchId, 'completed');
-        updateItemsWithResults(data.batchId, data.results);
-        toast.success(`Batch completed: ${data.results.length} cards detected`);
-      },
-      onBatchError: (data) => {
-        updateItemError(data.fileName, data.error);
-      },
-      onProcessingCancelled: () => {
-        setIsProcessing(false);
-        setCanCancel(false);
-      }
-    });
+    console.log('🔧 Initializing Worker Manager...');
+    
+    try {
+      workerManagerRef.current = new WorkerManager({
+        onBatchProgress: (data) => {
+          console.log('📊 Batch progress:', data);
+          updateBatchProgress(data.batchId, data.current, data.fileName);
+        },
+        onBatchComplete: (data) => {
+          console.log('✅ Batch completed:', data);
+          updateBatchStatus(data.batchId, 'completed');
+          updateItemsWithResults(data.batchId, data.results);
+          toast.success(`Batch completed: ${data.results.length} cards detected`);
+        },
+        onBatchError: (data) => {
+          console.log('❌ Batch error:', data);
+          updateItemError(data.fileName, data.error);
+        },
+        onProcessingCancelled: () => {
+          console.log('🛑 Processing cancelled');
+          setIsProcessing(false);
+          setCanCancel(false);
+        }
+      });
+      
+      console.log('✅ Worker Manager initialized successfully');
+    } catch (error) {
+      console.error('💥 Failed to initialize Worker Manager:', error);
+      toast.error('Failed to initialize processing system');
+    }
 
     return () => {
+      console.log('🧹 Cleaning up Worker Manager...');
       workerManagerRef.current?.terminate();
     };
   }, [updateBatchProgress, updateBatchStatus, updateItemsWithResults, updateItemError]);
 
   const addToQueue = useCallback((files: File[]) => {
+    console.log('📁 Adding files to queue:', files.length);
     addFilesToQueue(files);
     toast.success(`Added ${files.length} files to processing queue`);
   }, [addFilesToQueue]);
@@ -71,77 +85,100 @@ export const useBulkCardProcessing = () => {
       toast.error('Cannot clear queue while processing');
       return;
     }
+    console.log('🗑️ Clearing queue...');
     clearQueueItems();
     clearBatches();
     toast.success('Queue cleared');
   }, [isProcessing, clearQueueItems, clearBatches]);
 
   const processBatches = useCallback(async () => {
+    console.log('🚀 Starting batch processing...');
+    
     const pendingItems = getPendingItems();
     
     if (pendingItems.length === 0) {
+      console.log('⚠️ No pending items to process');
       toast.warning('No pending items to process');
       return;
     }
 
     if (isProcessing) {
+      console.log('⚠️ Already processing');
       toast.warning('Already processing');
+      return;
+    }
+
+    if (!workerManagerRef.current) {
+      console.error('💥 Worker Manager not initialized');
+      toast.error('Processing system not ready. Please refresh and try again.');
       return;
     }
 
     setIsProcessing(true);
     setCanCancel(true);
+    
+    console.log(`📦 Processing ${pendingItems.length} pending items...`);
 
     try {
-      // Create batches of 5-10 files
-      const batchSize = Math.min(8, Math.max(5, Math.floor(pendingItems.length / 10)));
+      // Create smaller batches for more reliable processing
+      const batchSize = Math.min(3, Math.max(1, Math.floor(pendingItems.length / 5)));
+      console.log(`📊 Creating batches with size: ${batchSize}`);
+      
       const newBatches = createBatches(pendingItems.map(item => item.file), batchSize);
       setBatchList(newBatches);
+      
+      console.log(`🎯 Created ${newBatches.length} batches`);
 
-      // Process all batches
-      const processingPromises = newBatches.map(async (batchStatus) => {
+      // Process batches sequentially for better reliability
+      for (const batchStatus of newBatches) {
+        if (!isProcessing) {
+          console.log('🛑 Processing cancelled, stopping...');
+          break;
+        }
+        
+        console.log(`🔄 Processing batch: ${batchStatus.id}`);
         updateBatchStatus(batchStatus.id, 'processing');
         markItemsAsProcessing(batchStatus.files, batchStatus.id);
 
-        return new Promise<void>((resolve) => {
-          // Start processing this batch
-          workerManagerRef.current?.processBatch(
-            batchStatus.files,
-            batchStatus.id,
-            `session_${Date.now()}`
-          );
+        // Start processing this batch
+        workerManagerRef.current?.processBatch(
+          batchStatus.files,
+          batchStatus.id,
+          `session_${Date.now()}`
+        );
 
-          // Listen for completion
+        // Wait for this batch to complete before starting the next
+        await new Promise<void>((resolve) => {
           const checkComplete = () => {
             const currentBatch = batches.find(b => b.id === batchStatus.id);
             if (currentBatch?.status === 'completed' || currentBatch?.status === 'error') {
+              console.log(`✅ Batch ${batchStatus.id} finished with status: ${currentBatch.status}`);
               resolve();
             } else {
               setTimeout(checkComplete, 100);
             }
           };
           
-          // Start checking after a small delay to ensure state updates
           setTimeout(checkComplete, 100);
         });
-      });
-
-      // Wait for all batches to complete
-      await Promise.all(processingPromises);
+      }
       
+      console.log('🎉 All batches completed successfully!');
       toast.success('All batches completed successfully!');
     } catch (error) {
-      console.error('Batch processing failed:', error);
-      toast.error('Batch processing failed');
+      console.error('💥 Batch processing failed:', error);
+      toast.error('Batch processing failed: ' + (error.message || 'Unknown error'));
     } finally {
       setIsProcessing(false);
       setCanCancel(false);
+      console.log('🏁 Processing finished');
     }
   }, [getPendingItems, isProcessing, createBatches, setBatchList, updateBatchStatus, markItemsAsProcessing, batches]);
 
   const cancelProcessing = useCallback(() => {
     if (!isProcessing) return;
 
+    console.log('🛑 Cancelling processing...');
     setCanCancel(false);
     workerManagerRef.current?.cancelProcessing();
     
