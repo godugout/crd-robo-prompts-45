@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { DetectedCardsReview } from '@/components/catalog/DetectedCardsReview';
 import { useCardCatalog } from '@/hooks/useCardCatalog';
 import { DetectedCard } from '@/services/cardCatalog/types';
 import { toast } from 'sonner';
@@ -56,13 +55,16 @@ export const CardsPage = () => {
     setActiveTab('review');
   };
 
+  const handleCardBoundsEdit = (card: DetectedCard) => {
+    // Extract cardId and bounds from the card object
+    editCardBounds(card.id, card.bounds);
+  };
+
   return (
     <div className="min-h-screen bg-crd-darkest pt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <CardsPageHeader onAddCards={handleAddCards} />
 
-        {/* Stats Overview */}
         <CardsStatsOverview
           totalCards={totalCards}
           selectedCards={selectedCards.size}
@@ -70,7 +72,6 @@ export const CardsPage = () => {
           processedCards={processingStatus.completed}
         />
 
-        {/* Review Alert */}
         {showReview && (
           <CardsReviewAlert
             totalCards={totalCards}
@@ -78,21 +79,6 @@ export const CardsPage = () => {
           />
         )}
 
-        {/* Detection Review */}
-        {showReview && activeTab === 'upload' && (
-          <div className="mb-8">
-            <DetectedCardsReview
-              detectedCards={detectedCardsArray}
-              selectedCards={selectedCards}
-              onCardToggle={toggleCardSelection}
-              onCardEdit={editCardBounds}
-              onCreateSelected={handleReviewComplete}
-              onClearAll={clearDetectedCards}
-            />
-          </div>
-        )}
-
-        {/* Main Content Tabs */}
         <CardsMainContent
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -101,7 +87,7 @@ export const CardsPage = () => {
           detectedCardsArray={detectedCardsArray}
           selectedCards={selectedCards}
           onCardToggle={toggleCardSelection}
-          onCardEdit={editCardBounds}
+          onCardEdit={handleCardBoundsEdit}
           onCreateSelected={handleReviewComplete}
           onClearAll={clearDetectedCards}
           onUploadComplete={handleUploadComplete}
