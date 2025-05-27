@@ -1,5 +1,7 @@
 
 // Web Worker for card detection to prevent UI blocking
+import { enhancedCardDetection } from '../services/cardExtractor/enhancedDetection';
+
 self.onmessage = async function(e) {
   const { type, data } = e.data;
   
@@ -36,20 +38,21 @@ async function processBatch({ files, batchId, sessionId }: {
         }
       });
       
-      // Simulate card detection (replace with actual detection logic)
-      const detectionResult = await simulateCardDetection(file, sessionId);
+      // Use actual card detection
+      const detectionResult = await performActualCardDetection(file, sessionId);
       results.push(detectionResult);
       
       // Small delay to prevent overwhelming the main thread
       await new Promise(resolve => setTimeout(resolve, 100));
       
     } catch (error) {
+      console.error('Card detection error:', error);
       self.postMessage({
         type: 'BATCH_ERROR',
         data: {
           batchId,
           fileName: file.name,
-          error: error.message
+          error: error.message || 'Detection failed'
         }
       });
     }
@@ -65,30 +68,83 @@ async function processBatch({ files, batchId, sessionId }: {
   });
 }
 
-async function simulateCardDetection(file: File, sessionId: string) {
-  // Simulate processing time
-  await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 1000));
-  
-  // Mock detection result
-  return {
-    sessionId,
-    originalImage: file,
-    detectedCards: [
-      {
-        id: `${sessionId}_${file.name}_${Date.now()}`,
-        confidence: 0.8 + Math.random() * 0.2,
-        originalImageId: file.name,
-        originalImageUrl: URL.createObjectURL(file),
-        croppedImageUrl: URL.createObjectURL(file),
-        bounds: { x: 50, y: 50, width: 200, height: 280 },
-        metadata: {
-          detectedAt: new Date(),
-          processingTime: Math.random() * 2000 + 1000,
-          cardType: ['Pokemon', 'Magic', 'Yu-Gi-Oh'][Math.floor(Math.random() * 3)]
-        }
+async function performActualCardDetection(file: File, sessionId: string) {
+  try {
+    // Create image element from file
+    const img = await createImageFromFile(file);
+    
+    // Run enhanced card detection
+    const detectedRegions = await enhancedCardDetection(img, file);
+    
+    // Create detection result in the expected format
+    const detectedCards = detectedRegions.map((region, index) => ({
+      id: `${sessionId}_${file.name}_${index}_${Date.now()}`,
+      confidence: region.confidence,
+      originalImageId: file.name,
+      originalImageUrl: URL.createObjectURL(file),
+      croppedImageUrl: await createCroppedImage(img, region),
+      bounds: {
+        x: region.x,
+        y: region.y,
+        width: region.width,
+        height: region.height
+      },
+      metadata: {
+        detectedAt: new Date(),
+        processingTime: Date.now(),
+        cardType: 'Trading Card'
       }
-    ],
-    processingTime: Math.random() * 2000 + 1000,
-    totalDetected: 1
-  };
+    }));
+
+    return {
+      sessionId,
+      originalImage: file,
+      detectedCards,
+      processingTime: Date.now(),
+      totalDetected: detectedCards.length
+    };
+  } catch (error) {
+    console.error('Detection failed for file:', file.name, error);
+    
+    // Return empty result on failure
+    return {
+      sessionId,
+      originalImage: file,
+      detectedCards: [],
+      processingTime: Date.now(),
+      totalDetected: 0
+    };
+  }
+}
+
+async function createImageFromFile(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+async function createCroppedImage(img: HTMLImageElement, region: any): Promise<string> {
+  try {
+    const canvas = new OffscreenCanvas(350, 490);
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) throw new Error('Cannot get canvas context');
+    
+    // Draw cropped region
+    ctx.drawImage(
+      img,
+      region.x, region.y, region.width, region.height,
+      0, 0, 350, 490
+    );
+    
+    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.95 });
+    return URL.createObjectURL(blob);
+  } catch (error) {
+    console.error('Failed to create cropped image:', error);
+    // Return original image URL as fallback
+    return URL.createObjectURL(new Blob());
+  }
 }
