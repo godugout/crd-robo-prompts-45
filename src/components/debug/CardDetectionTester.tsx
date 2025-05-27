@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
+import { CRDButton } from '@/components/ui/design-system/Button';
 import { Card } from '@/components/ui/card';
 import { Upload, Play, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
@@ -100,19 +100,20 @@ export const CardDetectionTester: React.FC = () => {
               id="image-upload"
             />
             <label htmlFor="image-upload">
-              <Button asChild className="cursor-pointer">
+              <CRDButton variant="primary" asChild className="cursor-pointer">
                 <span>
                   <Upload className="w-4 h-4 mr-2" />
                   Upload Image
                 </span>
-              </Button>
+              </CRDButton>
             </label>
           </div>
           
-          <Button
+          <CRDButton
+            variant="primary"
             onClick={runDetection}
             disabled={!image || isProcessing}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-crd-green hover:bg-crd-green/90"
           >
             {isProcessing ? (
               <>
@@ -125,16 +126,16 @@ export const CardDetectionTester: React.FC = () => {
                 Run Detection
               </>
             )}
-          </Button>
+          </CRDButton>
           
-          <Button
-            onClick={reset}
+          <CRDButton
             variant="outline"
-            className="text-white border-gray-600"
+            onClick={reset}
+            className="border-crd-mediumGray text-crd-lightGray hover:text-crd-white"
           >
             <RotateCcw className="w-4 h-4 mr-2" />
             Reset
-          </Button>
+          </CRDButton>
         </div>
 
         {imageFile && (

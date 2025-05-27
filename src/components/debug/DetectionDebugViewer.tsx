@@ -1,7 +1,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { CRDButton } from '@/components/ui/design-system/Button';
 import { Eye, Download } from 'lucide-react';
 import type { DetectedRectangle, DetectionDebugInfo } from '@/services/cardDetection/enhancedRectangleDetection';
 
@@ -137,15 +137,15 @@ export const DetectionDebugViewer: React.FC<DetectionDebugViewerProps> = ({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-white font-semibold">Detection Results</h3>
           <div className="flex gap-2">
-            <Button
-              size="sm"
+            <CRDButton
               variant="outline"
+              size="sm"
               onClick={downloadDebugImage}
-              className="text-white border-gray-600"
+              className="border-crd-mediumGray text-crd-lightGray hover:text-crd-white"
             >
               <Download className="w-4 h-4 mr-2" />
               Download
-            </Button>
+            </CRDButton>
           </div>
         </div>
         
@@ -164,14 +164,14 @@ export const DetectionDebugViewer: React.FC<DetectionDebugViewerProps> = ({
           <div>
             <div className="flex items-center justify-between mb-2">
               <h4 className="text-gray-300 text-sm">Edge Detection</h4>
-              <Button
-                size="sm"
+              <CRDButton
                 variant="ghost"
+                size="sm"
                 onClick={downloadEdgeImage}
-                className="text-gray-400 hover:text-white p-1"
+                className="text-crd-lightGray hover:text-crd-white p-1"
               >
                 <Download className="w-3 h-3" />
-              </Button>
+              </CRDButton>
             </div>
             <canvas
               ref={edgeCanvasRef}
