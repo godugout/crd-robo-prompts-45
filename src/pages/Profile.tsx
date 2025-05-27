@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -69,7 +68,7 @@ const Profile = () => {
     userId: card.creator_id,
     title: card.title,
     description: card.description,
-    teamId: card.team_id || '',
+    teamId: '', // Set empty string since team_id doesn't exist on Card type
     visibility: 'public' as const,
     createdAt: card.created_at,
     tags: card.tags || [],
