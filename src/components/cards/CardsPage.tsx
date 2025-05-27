@@ -1,9 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
-import { Upload, Image, Check, X, Download, RotateCw } from 'lucide-react';
+import { Upload, Image, Check, X, Download, RotateCw, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { detectCardsInImages, cropCardFromImage, DetectedCard, CardDetectionResult } from '@/services/cardDetection';
+import { detectCardsInImages, DetectedCard, CardDetectionResult } from '@/services/cardDetection';
 
 interface UploadedImage {
   id: string;
@@ -22,12 +22,80 @@ interface CreatedCard {
 
 type WorkflowPhase = 'idle' | 'uploading' | 'detecting' | 'reviewing' | 'creating' | 'complete';
 
+interface SessionState {
+  phase: WorkflowPhase;
+  uploadedImages: UploadedImage[];
+  detectionResults: CardDetectionResult[];
+  selectedCards: string[];
+  createdCards: CreatedCard[];
+  sessionId: string;
+}
+
+const SESSION_STORAGE_KEY = 'cardshow_upload_session';
+
 export const CardsPage = () => {
   const [phase, setPhase] = useState<WorkflowPhase>('idle');
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [detectionResults, setDetectionResults] = useState<CardDetectionResult[]>([]);
   const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
   const [createdCards, setCreatedCards] = useState<CreatedCard[]>([]);
+  const [sessionId, setSessionId] = useState<string>('');
+
+  // Load session state on component mount
+  useEffect(() => {
+    const savedSession = localStorage.getItem(SESSION_STORAGE_KEY);
+    if (savedSession) {
+      try {
+        const sessionState: SessionState = JSON.parse(savedSession);
+        console.log('Restoring session state:', sessionState);
+        
+        setPhase(sessionState.phase);
+        setUploadedImages(sessionState.uploadedImages || []);
+        setDetectionResults(sessionState.detectionResults || []);
+        setSelectedCards(new Set(sessionState.selectedCards || []));
+        setCreatedCards(sessionState.createdCards || []);
+        setSessionId(sessionState.sessionId || `session-${Date.now()}`);
+        
+        if (sessionState.phase !== 'idle' && sessionState.phase !== 'complete') {
+          toast.success('Session restored! Continuing from where you left off.');
+        }
+      } catch (error) {
+        console.error('Failed to restore session:', error);
+        clearSession();
+      }
+    } else {
+      setSessionId(`session-${Date.now()}`);
+    }
+  }, []);
+
+  // Save session state whenever it changes
+  useEffect(() => {
+    if (sessionId) {
+      const sessionState: SessionState = {
+        phase,
+        uploadedImages,
+        detectionResults,
+        selectedCards: Array.from(selectedCards),
+        createdCards,
+        sessionId
+      };
+      
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionState));
+      console.log('Session state saved:', sessionState);
+    }
+  }, [phase, uploadedImages, detectionResults, selectedCards, createdCards, sessionId]);
+
+  // Clear session and reset to initial state
+  const clearSession = () => {
+    localStorage.removeItem(SESSION_STORAGE_KEY);
+    setPhase('idle');
+    setUploadedImages([]);
+    setDetectionResults([]);
+    setSelectedCards(new Set());
+    setCreatedCards([]);
+    setSessionId(`session-${Date.now()}`);
+    toast.success('Session cleared. Starting fresh!');
+  };
 
   // File upload handling
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -43,13 +111,13 @@ export const CardsPage = () => {
       preview: URL.createObjectURL(file)
     }));
 
-    setUploadedImages(newImages);
+    setUploadedImages(prev => [...prev, ...newImages]);
     toast.dismiss();
     toast.success(`Uploaded ${acceptedFiles.length} images`);
     
     // Auto-start detection after upload
-    setTimeout(() => startDetection(newImages), 500);
-  }, []);
+    setTimeout(() => startDetection([...uploadedImages, ...newImages]), 500);
+  }, [uploadedImages]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -104,15 +172,22 @@ export const CardsPage = () => {
       for (let i = 0; i < cardsToCreate.length; i++) {
         const card = cardsToCreate[i];
         
-        // Use the already cropped image from detection
-        newCreatedCards.push({
+        // Save card to persistent storage (simulated with localStorage for now)
+        const createdCard = {
           id: `created-${card.id}`,
           title: `${card.metadata.cardType || 'Card'} ${i + 1}`,
-          image: card.croppedImageUrl, // Use the cropped image
+          image: card.croppedImageUrl,
           confidence: card.confidence,
           metadata: card.metadata,
           createdAt: new Date()
-        });
+        };
+
+        // Save to localStorage as a simple persistence layer
+        const existingCards = JSON.parse(localStorage.getItem('cardshow_created_cards') || '[]');
+        existingCards.push(createdCard);
+        localStorage.setItem('cardshow_created_cards', JSON.stringify(existingCards));
+
+        newCreatedCards.push(createdCard);
 
         // Show progress
         toast.dismiss();
@@ -123,15 +198,12 @@ export const CardsPage = () => {
       setCreatedCards(prev => [...prev, ...newCreatedCards]);
       
       toast.dismiss();
-      toast.success(`Created ${newCreatedCards.length} cards!`);
+      toast.success(`Created ${newCreatedCards.length} cards and saved to collection!`);
       setPhase('complete');
       
       // Auto-reset after showing success
       setTimeout(() => {
-        setPhase('idle');
-        setUploadedImages([]);
-        setDetectionResults([]);
-        setSelectedCards(new Set());
+        clearSession();
       }, 3000);
     } catch (error) {
       console.error('Card creation failed:', error);
@@ -164,10 +236,7 @@ export const CardsPage = () => {
 
   // Start over
   const startOver = () => {
-    setPhase('idle');
-    setUploadedImages([]);
-    setDetectionResults([]);
-    setSelectedCards(new Set());
+    clearSession();
   };
 
   // Render phase indicator
@@ -234,6 +303,23 @@ export const CardsPage = () => {
             <p className="text-xl text-crd-lightGray">
               Upload images to automatically detect and crop trading cards
             </p>
+            
+            {/* Session controls */}
+            {(phase !== 'idle' || uploadedImages.length > 0) && (
+              <div className="mt-4 flex justify-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={clearSession}
+                  className="text-red-400 border-red-400 hover:bg-red-400/10"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Clear Session
+                </Button>
+                <div className="text-sm text-crd-lightGray bg-crd-mediumGray/20 px-3 py-2 rounded">
+                  Session ID: {sessionId.slice(-8)}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -267,6 +353,21 @@ export const CardsPage = () => {
                   Supports JPG, PNG, WebP • Max 10 images
                 </p>
               </div>
+              
+              {/* Show existing images if any */}
+              {uploadedImages.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-crd-lightGray mb-4">
+                    {uploadedImages.length} images ready for detection
+                  </p>
+                  <Button
+                    onClick={() => startDetection(uploadedImages)}
+                    className="bg-crd-green hover:bg-crd-green/90 text-black"
+                  >
+                    Continue Detection
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
@@ -418,7 +519,7 @@ export const CardsPage = () => {
             <div className="text-center py-12">
               <div className="w-16 h-16 border-4 border-crd-green border-t-transparent rounded-full animate-spin mx-auto mb-4" />
               <h3 className="text-2xl font-semibold text-white mb-2">Creating Cards</h3>
-              <p className="text-crd-lightGray">Processing and cropping your selected cards...</p>
+              <p className="text-crd-lightGray">Processing and saving your selected cards...</p>
             </div>
           )}
 
@@ -430,7 +531,7 @@ export const CardsPage = () => {
               </div>
               <h3 className="text-2xl font-semibold text-white mb-2">Cards Created Successfully!</h3>
               <p className="text-crd-lightGray mb-6">
-                Your cards have been processed and added to your collection
+                Your cards have been processed and saved to your collection
               </p>
               <Button
                 onClick={startOver}
@@ -462,7 +563,6 @@ export const CardsPage = () => {
                       className="w-full h-full object-cover"
                     />
                     
-                    {/* Actions */}
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button
                         size="sm"
@@ -474,7 +574,6 @@ export const CardsPage = () => {
                       </Button>
                     </div>
 
-                    {/* Card info */}
                     <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-2">
                       <p className="text-white text-xs font-medium">{card.title}</p>
                       <p className="text-crd-lightGray text-xs">
