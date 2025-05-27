@@ -9,7 +9,12 @@ interface CardsUploadFeatureProps {
 export const CardsUploadFeature: React.FC<CardsUploadFeatureProps> = ({
   onUploadComplete
 }) => {
+  const handleUploadComplete = (count: number) => {
+    console.log('CardsUploadFeature: Upload complete with', count, 'files');
+    onUploadComplete(count);
+  };
+
   return (
-    <BulkCardUploader onUploadComplete={onUploadComplete} />
+    <BulkCardUploader onUploadComplete={handleUploadComplete} />
   );
 };

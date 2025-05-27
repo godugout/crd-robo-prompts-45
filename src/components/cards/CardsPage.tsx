@@ -18,7 +18,8 @@ export const CardsPage = () => {
     toggleCardSelection,
     createSelectedCards,
     clearDetectedCards,
-    editCardBounds
+    editCardBounds,
+    processQueue
   } = useCardCatalog();
   
   const totalCards = detectedCards.size;
@@ -26,21 +27,31 @@ export const CardsPage = () => {
 
   // Auto-navigate workflow steps based on processing state
   useEffect(() => {
-    if (isProcessing) {
+    console.log('Workflow state check:', { isProcessing, showReview, totalCards, currentStep: workflowStep });
+    
+    if (isProcessing && workflowStep !== 'detecting') {
+      console.log('Setting step to detecting');
       setWorkflowStep('detecting');
-    } else if (showReview && totalCards > 0) {
+    } else if (!isProcessing && showReview && totalCards > 0 && workflowStep === 'detecting') {
+      console.log('Setting step to review');
       setWorkflowStep('review');
       toast.success(`Found ${totalCards} cards!`, {
         description: 'Select the cards you want to add to your collection'
       });
-    } else if (!showReview && totalCards === 0) {
+    } else if (!isProcessing && !showReview && totalCards === 0 && workflowStep !== 'upload') {
+      console.log('Setting step to upload');
       setWorkflowStep('upload');
     }
-  }, [isProcessing, showReview, totalCards]);
+  }, [isProcessing, showReview, totalCards, workflowStep]);
 
   const handleUploadComplete = (count: number) => {
+    console.log('Upload complete, starting detection for', count, 'files');
     setWorkflowStep('detecting');
     toast.success(`Processing ${count} images...`);
+    // Trigger processing after a short delay to ensure UI updates
+    setTimeout(() => {
+      processQueue();
+    }, 100);
   };
 
   const handleReviewComplete = () => {

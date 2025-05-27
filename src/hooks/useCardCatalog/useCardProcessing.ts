@@ -30,7 +30,9 @@ export const useCardProcessing = ({
       return;
     }
 
+    console.log('Starting processQueue with', uploadQueue.length, 'files');
     setIsProcessing(true);
+    setShowReview(false); // Reset review state
     processingRef.current = new AbortController();
 
     try {
@@ -38,7 +40,16 @@ export const useCardProcessing = ({
         description: 'This may take a moment for large images'
       });
       
+      // Add a minimum processing time to ensure users see the detection step
+      const startTime = Date.now();
       const results = await cardDetectionService.processBatch(uploadQueue);
+      const processingTime = Date.now() - startTime;
+      
+      // Ensure minimum 2 seconds in detection state for better UX
+      const minProcessingTime = 2000;
+      if (processingTime < minProcessingTime) {
+        await new Promise(resolve => setTimeout(resolve, minProcessingTime - processingTime));
+      }
       
       // Dismiss the loading toast
       toast.dismiss(processingToast);
@@ -54,6 +65,8 @@ export const useCardProcessing = ({
         });
       });
 
+      console.log('Processing complete:', { totalDetected, allCards: allCards.size });
+
       setDetectedCards(allCards);
       setUploadQueue([]);
       setIsProcessing(false);
@@ -65,16 +78,22 @@ export const useCardProcessing = ({
       });
 
       if (totalDetected > 0) {
-        setShowReview(true);
         // Auto-select all detected cards for user convenience
         const allCardIds = new Set(Array.from(allCards.keys()));
         setSelectedCards(allCardIds);
         
+        // Set review state with a small delay to ensure state updates are processed
+        setTimeout(() => {
+          setShowReview(true);
+          console.log('Setting showReview to true');
+        }, 100);
+        
         toast.success(`🎉 Successfully detected ${totalDetected} cards!`, {
-          description: `From ${results.length} images. Redirecting to review...`,
+          description: `From ${results.length} images. Review your cards below.`,
           duration: 4000
         });
       } else {
+        setIsProcessing(false);
         toast.warning('No trading cards detected in the uploaded images', {
           description: 'Try uploading clearer images with visible trading cards'
         });
