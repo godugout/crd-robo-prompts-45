@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
@@ -137,7 +136,7 @@ export const BulkCardUploader = ({ onUploadComplete }: BulkCardUploaderProps) =>
                       e.stopPropagation();
                       open();
                     }}
-                    className="bg-crd-green hover:bg-crd-green/80 text-black"
+                    className="bg-crd-green hover:bg-crd-green/80 text-black font-medium"
                   >
                     <Upload className="w-4 h-4 mr-2" />
                     Select Images
@@ -148,8 +147,8 @@ export const BulkCardUploader = ({ onUploadComplete }: BulkCardUploaderProps) =>
                       e.stopPropagation();
                       handleFolderUpload();
                     }}
-                    variant="outline"
-                    className="border-editor-border text-white hover:bg-gray-800"
+                    variant="secondary"
+                    className="bg-white hover:bg-gray-100 text-black font-medium border-0"
                   >
                     <FolderOpen className="w-4 h-4 mr-2" />
                     Upload Folder
@@ -160,8 +159,8 @@ export const BulkCardUploader = ({ onUploadComplete }: BulkCardUploaderProps) =>
                       e.stopPropagation();
                       handleCameraCapture();
                     }}
-                    variant="outline"
-                    className="border-editor-border text-white hover:bg-gray-800"
+                    variant="secondary"
+                    className="bg-white hover:bg-gray-100 text-black font-medium border-0"
                   >
                     <Camera className="w-4 h-4 mr-2" />
                     Take Photo
@@ -185,7 +184,7 @@ export const BulkCardUploader = ({ onUploadComplete }: BulkCardUploaderProps) =>
                 <Button
                   onClick={processQueue}
                   disabled={isProcessing}
-                  className="bg-crd-green hover:bg-crd-green/80 text-black"
+                  className="bg-crd-green hover:bg-crd-green/80 text-black font-medium"
                 >
                   {isProcessing ? (
                     <>
