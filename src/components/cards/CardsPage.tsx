@@ -25,35 +25,41 @@ export const CardsPage = () => {
   const totalCards = detectedCards.size;
   const detectedCardsArray = Array.from(detectedCards.values()) as DetectedCard[];
 
-  // Auto-navigate workflow steps based on processing state
+  // Enhanced workflow state management
   useEffect(() => {
-    console.log('=== Workflow State Update ===', { 
+    console.log('🔄 CardsPage workflow state update:', { 
       isProcessing, 
       showReview, 
       totalCards, 
       currentStep: workflowStep,
       detectedCardsArrayLength: detectedCardsArray.length,
       detectedCardsMapSize: detectedCards.size,
-      selectedCardsSize: selectedCards.size
+      selectedCardsSize: selectedCards.size,
+      detectedCardsKeys: Array.from(detectedCards.keys()).slice(0, 3)
     });
     
+    // Handle detection in progress
     if (isProcessing && workflowStep !== 'detecting') {
-      console.log('→ Transitioning to detecting step');
+      console.log('🔄 → Transitioning to detecting step');
       setWorkflowStep('detecting');
-    } else if (!isProcessing && totalCards > 0 && showReview && workflowStep !== 'review') {
-      console.log('→ Transitioning to review step - cards available');
+    } 
+    // Handle successful detection with cards to review
+    else if (!isProcessing && totalCards > 0 && showReview && workflowStep !== 'review') {
+      console.log('🎉 → Transitioning to review step - cards available for review');
       setWorkflowStep('review');
       toast.success(`Found ${totalCards} cards!`, {
         description: 'Select the cards you want to add to your collection'
       });
-    } else if (!isProcessing && totalCards === 0 && !showReview && workflowStep !== 'upload') {
-      console.log('→ Transitioning to upload step - no cards');
+    } 
+    // Handle no cards detected or cleared state
+    else if (!isProcessing && (totalCards === 0 || !showReview) && workflowStep !== 'upload') {
+      console.log('📤 → Transitioning to upload step - no cards or review cleared');
       setWorkflowStep('upload');
     }
   }, [isProcessing, showReview, totalCards, workflowStep, detectedCardsArray.length, detectedCards.size]);
 
   const handleUploadComplete = (count: number) => {
-    console.log('Upload complete, starting detection for', count, 'files');
+    console.log('📤 Upload complete, starting detection for', count, 'files');
     setWorkflowStep('detecting');
     toast.success(`Processing ${count} images...`);
     // Trigger processing after a short delay to ensure UI updates
@@ -115,16 +121,19 @@ export const CardsPage = () => {
         {/* Enhanced Debug Info */}
         {process.env.NODE_ENV === 'development' && (
           <div className="mb-4 p-4 bg-gray-800 rounded text-white text-sm space-y-2">
-            <div className="font-bold text-yellow-400">Debug Information:</div>
-            <div>Current Step: <span className="text-blue-400">{workflowStep}</span></div>
-            <div>Total Cards: <span className="text-green-400">{totalCards}</span></div>
-            <div>Cards Map Size: <span className="text-green-400">{detectedCards.size}</span></div>
-            <div>Cards Array Length: <span className="text-green-400">{detectedCardsArray.length}</span></div>
-            <div>Selected Cards: <span className="text-purple-400">{selectedCards.size}</span></div>
-            <div>Is Processing: <span className="text-orange-400">{isProcessing.toString()}</span></div>
-            <div>Show Review: <span className="text-pink-400">{showReview.toString()}</span></div>
+            <div className="font-bold text-yellow-400">🐛 Debug Information:</div>
+            <div>Current Step: <span className="text-blue-400 font-mono">{workflowStep}</span></div>
+            <div>Total Cards: <span className="text-green-400 font-mono">{totalCards}</span></div>
+            <div>Cards Map Size: <span className="text-green-400 font-mono">{detectedCards.size}</span></div>
+            <div>Cards Array Length: <span className="text-green-400 font-mono">{detectedCardsArray.length}</span></div>
+            <div>Selected Cards: <span className="text-purple-400 font-mono">{selectedCards.size}</span></div>
+            <div>Is Processing: <span className="text-orange-400 font-mono">{isProcessing.toString()}</span></div>
+            <div>Show Review: <span className="text-pink-400 font-mono">{showReview.toString()}</span></div>
             <div className="text-xs text-gray-400">
-              Cards IDs: {Array.from(detectedCards.keys()).slice(0, 3).join(', ')}{detectedCards.size > 3 ? '...' : ''}
+              Cards IDs: <span className="font-mono">{Array.from(detectedCards.keys()).slice(0, 3).join(', ')}{detectedCards.size > 3 ? '...' : ''}</span>
+            </div>
+            <div className="text-xs text-gray-400">
+              Processing Status: <span className="font-mono">Total: {processingStatus.total}, Completed: {processingStatus.completed}, Failed: {processingStatus.failed}</span>
             </div>
           </div>
         )}
