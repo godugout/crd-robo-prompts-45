@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MemoryCard } from '@/components/memory/MemoryCard';
+import { CardGrid } from '@/components/cards/CardGrid';
 import { Loader, Image } from 'lucide-react';
 import type { Memory } from '@/types/memory';
 
@@ -24,10 +25,18 @@ export const ProfileTabs = ({
   hasMore, 
   onLoadMore 
 }: ProfileTabsProps) => {
+  // Separate cards from memories based on the presence of card-specific fields
+  const cards = memories.filter(item => 
+    'rarity' in item || 'design_metadata' in item || 'creator_id' in item
+  );
+  const actualMemories = memories.filter(item => 
+    !('rarity' in item) && !('design_metadata' in item) && !('creator_id' in item)
+  );
+
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList className="mb-6">
-        <TabsTrigger value="memories">My Cards</TabsTrigger>
+        <TabsTrigger value="memories">My Cards ({cards.length})</TabsTrigger>
         <TabsTrigger value="collections">Collections</TabsTrigger>
         <TabsTrigger value="liked">Liked</TabsTrigger>
       </TabsList>
@@ -36,10 +45,10 @@ export const ProfileTabs = ({
         {memoriesLoading && memories.length === 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((item) => (
-              <div key={item} className="h-64 animate-pulse bg-gray-100"></div>
+              <div key={item} className="h-64 animate-pulse bg-gray-100 rounded-lg"></div>
             ))}
           </div>
-        ) : memories.length === 0 ? (
+        ) : cards.length === 0 ? (
           <div className="text-center py-16">
             <Image className="h-12 w-12 mx-auto text-gray-300 mb-4" />
             <h3 className="text-xl font-medium mb-2">No cards yet</h3>
@@ -50,11 +59,11 @@ export const ProfileTabs = ({
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {memories.map((memory) => (
-                <MemoryCard key={memory.id} memory={memory} onReaction={() => {}} />
-              ))}
-            </div>
+            <CardGrid 
+              cards={cards} 
+              loading={memoriesLoading} 
+              viewMode="grid" 
+            />
             
             {hasMore && (
               <div className="flex justify-center mt-8">
