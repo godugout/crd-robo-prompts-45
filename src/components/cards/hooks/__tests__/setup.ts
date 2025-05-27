@@ -24,7 +24,12 @@ export const createMockDetectedCard = (id: string = 'card-1'): any => ({
   id,
   confidence: 0.9,
   originalImageId: '1',
+  originalImageUrl: `blob:original${id}`,
   croppedImageUrl: `blob:cropped${id}`,
   bounds: { x: 0, y: 0, width: 100, height: 140 },
-  metadata: { cardType: 'Pokemon' },
+  metadata: { 
+    detectedAt: new Date('2024-01-01T00:00:00.000Z'),
+    processingTime: 500,
+    cardType: 'Pokemon' 
+  },
 });

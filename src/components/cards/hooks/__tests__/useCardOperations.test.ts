@@ -4,6 +4,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useCardOperations } from '../useCardOperations';
 import { detectCardsInImages } from '@/services/cardDetection';
 import type { UploadedImage, CreatedCard } from '../../types';
+import { createMockDetectedCard } from './setup';
 
 // Mock the card detection service
 vi.mock('@/services/cardDetection', () => ({
@@ -48,9 +49,7 @@ describe('useCardOperations', () => {
         {
           sessionId: 'session-123',
           originalImage: mockImages[0].file,
-          detectedCards: [
-            { id: 'card-1', confidence: 0.9, originalImageId: '1', bounds: { x: 0, y: 0, width: 100, height: 140 } },
-          ],
+          detectedCards: [createMockDetectedCard('card-1')],
           processingTime: 500,
           totalDetected: 1,
         },
@@ -118,16 +117,20 @@ describe('useCardOperations', () => {
           originalImage: new File([], 'test.jpg'),
           detectedCards: [
             {
-              id: 'card-1',
-              confidence: 0.9,
-              croppedImageUrl: 'blob:cropped1',
-              metadata: { cardType: 'Pokemon' },
+              ...createMockDetectedCard('card-1'),
+              metadata: { 
+                detectedAt: new Date('2024-01-01T00:00:00.000Z'),
+                processingTime: 500,
+                cardType: 'Pokemon' 
+              },
             },
             {
-              id: 'card-2',
-              confidence: 0.8,
-              croppedImageUrl: 'blob:cropped2',
-              metadata: { cardType: 'Magic' },
+              ...createMockDetectedCard('card-2'),
+              metadata: { 
+                detectedAt: new Date('2024-01-01T00:00:00.000Z'),
+                processingTime: 500,
+                cardType: 'Magic' 
+              },
             },
           ],
           processingTime: 500,
@@ -181,7 +184,16 @@ describe('useCardOperations', () => {
         {
           sessionId: 'session-123',
           originalImage: new File([], 'test.jpg'),
-          detectedCards: [{ id: 'card-1', confidence: 0.9 }],
+          detectedCards: [
+            {
+              ...createMockDetectedCard('card-1'),
+              metadata: { 
+                detectedAt: new Date('2024-01-01T00:00:00.000Z'),
+                processingTime: 500,
+                cardType: 'Pokemon' 
+              },
+            }
+          ],
           processingTime: 500,
           totalDetected: 1,
         },
