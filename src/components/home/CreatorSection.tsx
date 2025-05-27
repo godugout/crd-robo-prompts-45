@@ -13,28 +13,28 @@ export const CreatorSection: React.FC = () => {
       rank: 1,
       name: "@randomdash",
       avatar: "https://cdn.builder.io/api/v1/image/assets/55d1eea1cc5a43f6bced987c3407a299/d95bd2a5c1fda0f04a12b61d44ee1d9ad2acd3af?placeholderIfAbsent=true",
-      eth: "2.456",
+      credits: "2456",
       badgeColor: "#3772FF",
     },
     {
       rank: 2,
       name: "@tranmautritam",
       avatar: "https://cdn.builder.io/api/v1/image/assets/55d1eea1cc5a43f6bced987c3407a299/f6caac64d16e17f3f15df6f4d5025ff7abc64fa5?placeholderIfAbsent=true",
-      eth: "2.456",
+      credits: "2456",
       badgeColor: "#9757D7",
     },
     {
       rank: 3,
       name: "@aaronfinch",
       avatar: "https://cdn.builder.io/api/v1/image/assets/55d1eea1cc5a43f6bced987c3407a299/61c3d18b79da00e4d4a71ab2c4f04cf9a7da8c20?placeholderIfAbsent=true",
-      eth: "2.456",
+      credits: "2456",
       badgeColor: "#45B26B",
     },
     {
       rank: 4,
       name: "@chrisferrel",
       avatar: "https://cdn.builder.io/api/v1/image/assets/55d1eea1cc5a43f6bced987c3407a299/dc93ec7df0f6fef1c98de06c8c9d95cd2ac44f34?placeholderIfAbsent=true",
-      eth: "2.456",
+      credits: "2456",
       badgeColor: "#23262F",
     },
   ];
@@ -45,7 +45,7 @@ export const CreatorSection: React.FC = () => {
         rank: index + 1,
         name: creator.username ? `@${creator.username}` : `@${creator.full_name?.toLowerCase().replace(/\s+/g, '') || 'user'}`,
         avatar: creator.avatar_url || fallbackCreators[index % fallbackCreators.length].avatar,
-        eth: "2.456", // Placeholder
+        credits: "2456", // Placeholder
         badgeColor: fallbackCreators[index % fallbackCreators.length].badgeColor,
       }))
     : fallbackCreators;
@@ -95,7 +95,7 @@ export const CreatorSection: React.FC = () => {
               rank={creator.rank}
               name={creator.name}
               avatar={creator.avatar}
-              eth={creator.eth}
+              credits={creator.credits}
               badgeColor={creator.badgeColor}
             />
           ))
