@@ -11,6 +11,18 @@ import { ProfileTabs } from '@/components/profile/ProfileTabs';
 import { useProfilePage } from '@/hooks/useProfilePage';
 import { useCards } from '@/hooks/useCards';
 import { useUserMemories } from '@/hooks/useUserMemories';
+import type { Memory } from '@/types/memory';
+
+// Create a unified card interface that matches both Memory and Card types
+interface UnifiedCard extends Memory {
+  // Add card-specific properties as optional
+  rarity?: string;
+  design_metadata?: Record<string, any>;
+  creator_id?: string;
+  image_url?: string;
+  thumbnail_url?: string;
+  is_public?: boolean;
+}
 
 const Profile = () => {
   const {
@@ -48,8 +60,28 @@ const Profile = () => {
   }
 
   const displayName = user.full_name || user.username || user.email || 'User';
-  const bioText = profile?.bio || '';
+  const bioText = profile?.bio_extended || '';
   const avatarUrl = profile?.avatar_url || '';
+
+  // Convert cards to unified format
+  const unifiedCards: UnifiedCard[] = userCards.map(card => ({
+    id: card.id,
+    userId: card.creator_id,
+    title: card.title,
+    description: card.description,
+    teamId: card.team_id || '',
+    visibility: 'public' as const,
+    createdAt: card.created_at,
+    tags: card.tags || [],
+    metadata: card.design_metadata || {},
+    // Card-specific properties
+    rarity: card.rarity,
+    design_metadata: card.design_metadata,
+    creator_id: card.creator_id,
+    image_url: card.image_url,
+    thumbnail_url: card.thumbnail_url,
+    is_public: card.is_public
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -64,7 +96,7 @@ const Profile = () => {
 
         <Card className="mb-8">
           <ProfileStats
-            memoriesCount={userCards.length + memories.length}
+            memoriesCount={unifiedCards.length + memories.length}
             followers={followers}
             following={following}
           />
@@ -73,7 +105,7 @@ const Profile = () => {
         <ProfileTabs
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          memories={[...userCards, ...memories]}
+          memories={[...unifiedCards, ...memories]}
           memoriesLoading={cardsLoading || memoriesLoading}
           hasMore={false}
           onLoadMore={() => {}}

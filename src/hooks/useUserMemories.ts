@@ -8,31 +8,31 @@ export const useUserMemories = (userId?: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchMemories = async () => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const result = await getMemoriesByUserId(userId, {
+        page: 1,
+        pageSize: 50
+      });
+      setMemories(result.memories);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching user memories:', err);
+      setError('Failed to load memories');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchMemories = async () => {
-      if (!userId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const result = await getMemoriesByUserId(userId, {
-          page: 1,
-          pageSize: 50
-        });
-        setMemories(result.memories);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching user memories:', err);
-        setError('Failed to load memories');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchMemories();
   }, [userId]);
 
-  return { memories, loading, error, refetch: () => fetchMemories() };
+  return { memories, loading, error, refetch: fetchMemories };
 };
