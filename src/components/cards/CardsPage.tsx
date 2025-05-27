@@ -27,22 +27,28 @@ export const CardsPage = () => {
 
   // Auto-navigate workflow steps based on processing state
   useEffect(() => {
-    console.log('Workflow state check:', { isProcessing, showReview, totalCards, currentStep: workflowStep });
+    console.log('Workflow state check:', { 
+      isProcessing, 
+      showReview, 
+      totalCards, 
+      currentStep: workflowStep,
+      detectedCardsArrayLength: detectedCardsArray.length 
+    });
     
     if (isProcessing && workflowStep !== 'detecting') {
       console.log('Setting step to detecting');
       setWorkflowStep('detecting');
-    } else if (!isProcessing && showReview && totalCards > 0 && workflowStep === 'detecting') {
-      console.log('Setting step to review');
+    } else if (!isProcessing && totalCards > 0 && showReview && workflowStep !== 'review') {
+      console.log('Setting step to review - cards available');
       setWorkflowStep('review');
       toast.success(`Found ${totalCards} cards!`, {
         description: 'Select the cards you want to add to your collection'
       });
-    } else if (!isProcessing && !showReview && totalCards === 0 && workflowStep !== 'upload') {
-      console.log('Setting step to upload');
+    } else if (!isProcessing && totalCards === 0 && !showReview && workflowStep !== 'upload') {
+      console.log('Setting step to upload - no cards');
       setWorkflowStep('upload');
     }
-  }, [isProcessing, showReview, totalCards, workflowStep]);
+  }, [isProcessing, showReview, totalCards, workflowStep, detectedCardsArray.length]);
 
   const handleUploadComplete = (count: number) => {
     console.log('Upload complete, starting detection for', count, 'files');
@@ -103,6 +109,18 @@ export const CardsPage = () => {
             onStartOver={handleStartOver}
           />
         </div>
+
+        {/* Debug Info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 p-4 bg-gray-800 rounded text-white text-sm">
+            <div>Current Step: {workflowStep}</div>
+            <div>Total Cards: {totalCards}</div>
+            <div>Selected Cards: {selectedCards.size}</div>
+            <div>Is Processing: {isProcessing.toString()}</div>
+            <div>Show Review: {showReview.toString()}</div>
+            <div>Cards Array Length: {detectedCardsArray.length}</div>
+          </div>
+        )}
 
         {/* Divider */}
         <div className="border-t border-crd-mediumGray/20 my-8"></div>
