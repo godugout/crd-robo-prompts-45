@@ -1,9 +1,9 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Upload, Camera, FolderOpen, Trash2, Play, Pause } from 'lucide-react';
+import { Upload, Camera, FolderOpen, Trash2, Play, Pause, Clipboard } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCardCatalog } from '@/hooks/useCardCatalog';
 
@@ -23,6 +23,46 @@ export const BulkCardUploader = ({ onUploadComplete }: BulkCardUploaderProps) =>
   } = useCardCatalog();
 
   const [dragActive, setDragActive] = useState(false);
+
+  // Handle clipboard paste
+  const handlePaste = useCallback(async (e: ClipboardEvent) => {
+    e.preventDefault();
+    
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const imageFiles: File[] = [];
+    
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          // Create a proper File object with a name
+          const namedFile = new File([file], `pasted-image-${Date.now()}-${i}.png`, {
+            type: file.type
+          });
+          imageFiles.push(namedFile);
+        }
+      }
+    }
+
+    if (imageFiles.length > 0) {
+      addToQueue(imageFiles);
+      toast.success(`Pasted ${imageFiles.length} image${imageFiles.length > 1 ? 's' : ''} from clipboard`);
+    } else {
+      toast.warning('No images found in clipboard');
+    }
+  }, [addToQueue]);
+
+  // Add paste event listener
+  useEffect(() => {
+    document.addEventListener('paste', handlePaste);
+    return () => {
+      document.removeEventListener('paste', handlePaste);
+    };
+  }, [handlePaste]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const imageFiles = acceptedFiles.filter(file => file.type.startsWith('image/'));
@@ -124,7 +164,7 @@ export const BulkCardUploader = ({ onUploadComplete }: BulkCardUploaderProps) =>
                 <p className="text-crd-lightGray text-sm max-w-md mx-auto">
                   {dragActive 
                     ? 'Release to add these images to your processing queue'
-                    : 'Drag and drop multiple card images, or use the upload options below'
+                    : 'Drag and drop multiple card images, paste from clipboard (Ctrl+V), or use the upload options below'
                   }
                 </p>
               </div>
@@ -164,6 +204,18 @@ export const BulkCardUploader = ({ onUploadComplete }: BulkCardUploaderProps) =>
                   >
                     <Camera className="w-4 h-4 mr-2" />
                     Take Photo
+                  </Button>
+
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toast.info('Copy an image and paste it here with Ctrl+V (or Cmd+V on Mac)');
+                    }}
+                    variant="secondary"
+                    className="bg-white hover:bg-gray-100 text-black font-medium border-0"
+                  >
+                    <Clipboard className="w-4 h-4 mr-2" />
+                    Paste Images
                   </Button>
                 </div>
               )}
