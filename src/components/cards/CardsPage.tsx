@@ -41,9 +41,21 @@ export const CardsPage: React.FC = () => {
     startDetection(images, setPhase, setDetectionResults, setSelectedCards);
   };
 
+  // Handle bulk processing start
+  const handleBulkProcessingStart = (): void => {
+    console.log('🚀 Bulk processing started - updating phase');
+    setPhase('detecting');
+  };
+
+  // Handle bulk processing completion  
+  const handleBulkProcessingComplete = (): void => {
+    console.log('✅ Bulk processing completed - ready for review');
+    // Phase will be updated when results are ready
+  };
+
   // Handle bulk processing results
   const handleBulkResultsReady = (results: CardDetectionResult[]): void => {
-    console.log('Bulk processing completed with results:', results);
+    console.log('🎯 Bulk processing completed with results:', results);
     
     setDetectionResults(results);
     
@@ -53,6 +65,7 @@ export const CardsPage: React.FC = () => {
     );
     setSelectedCards(new Set(allCardIds));
     
+    // Advance to review phase
     setPhase('reviewing');
   };
 
@@ -104,7 +117,11 @@ export const CardsPage: React.FC = () => {
                 <h3 className="text-white text-lg font-medium mb-4">
                   Bulk Upload (Recommended for 10+ images)
                 </h3>
-                <BulkCardsUploader onResultsReady={handleBulkResultsReady} />
+                <BulkCardsUploader 
+                  onResultsReady={handleBulkResultsReady}
+                  onProcessingStart={handleBulkProcessingStart}
+                  onProcessingComplete={handleBulkProcessingComplete}
+                />
               </div>
               
               {/* Divider */}

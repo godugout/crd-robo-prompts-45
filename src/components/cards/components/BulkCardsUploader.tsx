@@ -10,9 +10,15 @@ import type { CardDetectionResult } from '@/services/cardDetection';
 
 interface BulkCardsUploaderProps {
   onResultsReady: (results: CardDetectionResult[]) => void;
+  onProcessingStart?: () => void;
+  onProcessingComplete?: () => void;
 }
 
-export const BulkCardsUploader: React.FC<BulkCardsUploaderProps> = ({ onResultsReady }) => {
+export const BulkCardsUploader: React.FC<BulkCardsUploaderProps> = ({ 
+  onResultsReady,
+  onProcessingStart,
+  onProcessingComplete
+}) => {
   const {
     queue,
     batches,
@@ -30,16 +36,26 @@ export const BulkCardsUploader: React.FC<BulkCardsUploaderProps> = ({ onResultsR
 
   const stats = getQueueStats();
 
+  // Handle processing start
+  const handleStartProcessing = () => {
+    onProcessingStart?.();
+    processBatches();
+  };
+
   // Handle completion and advance to next step
   React.useEffect(() => {
     if (processingComplete && stats.completed > 0) {
       const results = getCompletedResults();
       console.log('🎯 Processing complete, advancing with results:', results);
+      
+      // Notify parent that processing is complete
+      onProcessingComplete?.();
+      
       if (results.length > 0) {
         onResultsReady(results);
       }
     }
-  }, [processingComplete, stats.completed, getCompletedResults, onResultsReady]);
+  }, [processingComplete, stats.completed, getCompletedResults, onResultsReady, onProcessingComplete]);
 
   return (
     <div className="space-y-6">
@@ -62,7 +78,7 @@ export const BulkCardsUploader: React.FC<BulkCardsUploaderProps> = ({ onResultsR
           isProcessing={isProcessing}
           canCancel={canCancel}
           pendingCount={stats.pending}
-          onStartProcessing={processBatches}
+          onStartProcessing={handleStartProcessing}
           onCancelProcessing={cancelProcessing}
           onClearQueue={clearQueue}
         />
