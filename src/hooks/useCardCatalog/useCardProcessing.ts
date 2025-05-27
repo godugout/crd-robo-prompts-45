@@ -31,8 +31,13 @@ export const useCardProcessing = ({
     }
 
     console.log('Starting processQueue with', uploadQueue.length, 'files');
+    
+    // Set processing state first
     setIsProcessing(true);
-    setShowReview(false); // Reset review state
+    setShowReview(false);
+    setDetectedCards(new Map()); // Clear previous results
+    setSelectedCards(new Set());
+    
     processingRef.current = new AbortController();
 
     try {
@@ -44,6 +49,8 @@ export const useCardProcessing = ({
       const startTime = Date.now();
       const results = await cardDetectionService.processBatch(uploadQueue);
       const processingTime = Date.now() - startTime;
+      
+      console.log('Raw processing results:', results);
       
       // Ensure minimum 2 seconds in detection state for better UX
       const minProcessingTime = 2000;
@@ -58,18 +65,25 @@ export const useCardProcessing = ({
       const allCards = new Map<string, any>();
       let totalDetected = 0;
 
-      results.forEach(result => {
-        result.cards.forEach(card => {
-          allCards.set(card.id, card);
+      results.forEach((result, resultIndex) => {
+        console.log(`Processing result ${resultIndex}:`, result);
+        result.cards.forEach((card, cardIndex) => {
+          const uniqueId = `${result.sessionId}_${resultIndex}_${cardIndex}`;
+          console.log(`Adding card ${uniqueId}:`, card);
+          allCards.set(uniqueId, { ...card, id: uniqueId });
           totalDetected++;
         });
       });
 
-      console.log('Processing complete:', { totalDetected, allCards: allCards.size });
+      console.log('Final state update:', { 
+        totalDetected, 
+        allCardsSize: allCards.size,
+        allCardsEntries: Array.from(allCards.entries()).length 
+      });
 
+      // Update all states synchronously
       setDetectedCards(allCards);
       setUploadQueue([]);
-      setIsProcessing(false);
       setProcessingStatus({
         total: uploadQueue.length,
         completed: totalDetected,
@@ -80,13 +94,17 @@ export const useCardProcessing = ({
       if (totalDetected > 0) {
         // Auto-select all detected cards for user convenience
         const allCardIds = new Set(Array.from(allCards.keys()));
+        console.log('Auto-selecting cards:', Array.from(allCardIds));
         setSelectedCards(allCardIds);
         
-        // Set review state with a small delay to ensure state updates are processed
+        // Important: Set processing to false BEFORE setting showReview
+        setIsProcessing(false);
+        
+        // Set review state with a delay to ensure state updates are processed
         setTimeout(() => {
+          console.log('Setting showReview to true after successful detection');
           setShowReview(true);
-          console.log('Setting showReview to true');
-        }, 100);
+        }, 200);
         
         toast.success(`🎉 Successfully detected ${totalDetected} cards!`, {
           description: `From ${results.length} images. Review your cards below.`,
@@ -94,6 +112,7 @@ export const useCardProcessing = ({
         });
       } else {
         setIsProcessing(false);
+        setShowReview(false);
         toast.warning('No trading cards detected in the uploaded images', {
           description: 'Try uploading clearer images with visible trading cards'
         });
@@ -101,6 +120,9 @@ export const useCardProcessing = ({
     } catch (error) {
       console.error('Batch processing failed:', error);
       setIsProcessing(false);
+      setShowReview(false);
+      setDetectedCards(new Map());
+      setSelectedCards(new Set());
       toast.error('Processing failed. Please try again.', {
         description: 'Make sure your images are clear and contain trading cards'
       });

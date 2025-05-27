@@ -27,28 +27,30 @@ export const CardsPage = () => {
 
   // Auto-navigate workflow steps based on processing state
   useEffect(() => {
-    console.log('Workflow state check:', { 
+    console.log('=== Workflow State Update ===', { 
       isProcessing, 
       showReview, 
       totalCards, 
       currentStep: workflowStep,
-      detectedCardsArrayLength: detectedCardsArray.length 
+      detectedCardsArrayLength: detectedCardsArray.length,
+      detectedCardsMapSize: detectedCards.size,
+      selectedCardsSize: selectedCards.size
     });
     
     if (isProcessing && workflowStep !== 'detecting') {
-      console.log('Setting step to detecting');
+      console.log('→ Transitioning to detecting step');
       setWorkflowStep('detecting');
     } else if (!isProcessing && totalCards > 0 && showReview && workflowStep !== 'review') {
-      console.log('Setting step to review - cards available');
+      console.log('→ Transitioning to review step - cards available');
       setWorkflowStep('review');
       toast.success(`Found ${totalCards} cards!`, {
         description: 'Select the cards you want to add to your collection'
       });
     } else if (!isProcessing && totalCards === 0 && !showReview && workflowStep !== 'upload') {
-      console.log('Setting step to upload - no cards');
+      console.log('→ Transitioning to upload step - no cards');
       setWorkflowStep('upload');
     }
-  }, [isProcessing, showReview, totalCards, workflowStep, detectedCardsArray.length]);
+  }, [isProcessing, showReview, totalCards, workflowStep, detectedCardsArray.length, detectedCards.size]);
 
   const handleUploadComplete = (count: number) => {
     console.log('Upload complete, starting detection for', count, 'files');
@@ -110,15 +112,20 @@ export const CardsPage = () => {
           />
         </div>
 
-        {/* Debug Info */}
+        {/* Enhanced Debug Info */}
         {process.env.NODE_ENV === 'development' && (
-          <div className="mb-4 p-4 bg-gray-800 rounded text-white text-sm">
-            <div>Current Step: {workflowStep}</div>
-            <div>Total Cards: {totalCards}</div>
-            <div>Selected Cards: {selectedCards.size}</div>
-            <div>Is Processing: {isProcessing.toString()}</div>
-            <div>Show Review: {showReview.toString()}</div>
-            <div>Cards Array Length: {detectedCardsArray.length}</div>
+          <div className="mb-4 p-4 bg-gray-800 rounded text-white text-sm space-y-2">
+            <div className="font-bold text-yellow-400">Debug Information:</div>
+            <div>Current Step: <span className="text-blue-400">{workflowStep}</span></div>
+            <div>Total Cards: <span className="text-green-400">{totalCards}</span></div>
+            <div>Cards Map Size: <span className="text-green-400">{detectedCards.size}</span></div>
+            <div>Cards Array Length: <span className="text-green-400">{detectedCardsArray.length}</span></div>
+            <div>Selected Cards: <span className="text-purple-400">{selectedCards.size}</span></div>
+            <div>Is Processing: <span className="text-orange-400">{isProcessing.toString()}</span></div>
+            <div>Show Review: <span className="text-pink-400">{showReview.toString()}</span></div>
+            <div className="text-xs text-gray-400">
+              Cards IDs: {Array.from(detectedCards.keys()).slice(0, 3).join(', ')}{detectedCards.size > 3 ? '...' : ''}
+            </div>
           </div>
         )}
 
