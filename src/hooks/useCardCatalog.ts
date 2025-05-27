@@ -30,6 +30,7 @@ export interface CatalogState {
   sortBy: SortOption;
   viewMode: 'grid' | 'list';
   isProcessing: boolean;
+  showReview: boolean;
 }
 
 export const useCardCatalog = () => {
@@ -52,7 +53,8 @@ export const useCardCatalog = () => {
     },
     sortBy: { field: 'confidence', direction: 'desc' },
     viewMode: 'grid',
-    isProcessing: false
+    isProcessing: false,
+    showReview: false
   });
 
   const processingRef = useRef<AbortController | null>(null);
@@ -95,6 +97,7 @@ export const useCardCatalog = () => {
         detectedCards: new Map([...prev.detectedCards, ...allCards]),
         uploadQueue: [],
         isProcessing: false,
+        showReview: totalDetected > 0,
         processingStatus: {
           total: state.uploadQueue.length,
           completed: totalDetected,
@@ -195,6 +198,45 @@ export const useCardCatalog = () => {
     }));
   }, []);
 
+  const clearDetectedCards = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      detectedCards: new Map(),
+      selectedCards: new Set(),
+      showReview: false
+    }));
+  }, []);
+
+  const createSelectedCards = useCallback(() => {
+    const selectedCardData = Array.from(state.detectedCards.values())
+      .filter(card => state.selectedCards.has(card.id));
+    
+    // TODO: Integrate with card creation service
+    toast.success(`Creating ${selectedCardData.length} cards...`);
+    
+    // Clear after creation
+    setState(prev => ({
+      ...prev,
+      detectedCards: new Map(),
+      selectedCards: new Set(),
+      showReview: false
+    }));
+  }, [state.detectedCards, state.selectedCards]);
+
+  const editCardBounds = useCallback((cardId: string, bounds: DetectedCard['bounds']) => {
+    setState(prev => {
+      const newCards = new Map(prev.detectedCards);
+      const card = newCards.get(cardId);
+      if (card) {
+        newCards.set(cardId, { ...card, bounds });
+      }
+      return {
+        ...prev,
+        detectedCards: newCards
+      };
+    });
+  }, []);
+
   const getFilteredCards = useCallback((): DetectedCard[] => {
     let cards = Array.from(state.detectedCards.values());
 
@@ -282,6 +324,9 @@ export const useCardCatalog = () => {
     deleteSelected,
     updateFilters,
     updateSort,
-    setViewMode
+    setViewMode,
+    clearDetectedCards,
+    createSelectedCards,
+    editCardBounds
   };
 };

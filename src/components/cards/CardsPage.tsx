@@ -3,16 +3,26 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Sparkles, BarChart3 } from 'lucide-react';
+import { Plus, Sparkles, BarChart3, Eye } from 'lucide-react';
 import { BulkCardUploader } from '@/components/catalog/BulkCardUploader';
 import { SmartCardGrid } from '@/components/catalog/SmartCardGrid';
+import { DetectedCardsReview } from '@/components/catalog/DetectedCardsReview';
 import { useCardCatalog } from '@/hooks/useCardCatalog';
 import { DetectedCard } from '@/services/cardCatalog/CardDetectionService';
 import { toast } from 'sonner';
 
 export const CardsPage = () => {
   const [activeTab, setActiveTab] = useState('upload');
-  const { detectedCards, selectedCards, processingStatus } = useCardCatalog();
+  const { 
+    detectedCards, 
+    selectedCards, 
+    processingStatus, 
+    showReview,
+    toggleCardSelection,
+    createSelectedCards,
+    clearDetectedCards,
+    editCardBounds
+  } = useCardCatalog();
   
   const totalCards = detectedCards.size;
   const averageConfidence = totalCards > 0 
@@ -31,8 +41,12 @@ export const CardsPage = () => {
   };
 
   const handleUploadComplete = (count: number) => {
-    setActiveTab('catalog');
     toast.success(`Successfully processed ${count} images!`);
+  };
+
+  const handleReviewComplete = () => {
+    createSelectedCards();
+    setActiveTab('catalog');
   };
 
   return (
@@ -88,6 +102,47 @@ export const CardsPage = () => {
           </div>
         )}
 
+        {/* Review Alert */}
+        {showReview && (
+          <Card className="bg-blue-600/20 border-blue-500 mb-8">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Eye className="w-5 h-5 text-blue-400" />
+                  <div>
+                    <h3 className="text-white font-medium">
+                      {totalCards} cards detected and ready for review
+                    </h3>
+                    <p className="text-blue-200 text-sm">
+                      Review the detected cards below, make any adjustments, and create your digital cards
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => setActiveTab('review')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Review Cards
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Detection Review */}
+        {showReview && activeTab === 'upload' && (
+          <div className="mb-8">
+            <DetectedCardsReview
+              detectedCards={Array.from(detectedCards.values())}
+              selectedCards={selectedCards}
+              onCardToggle={toggleCardSelection}
+              onCardEdit={editCardBounds}
+              onCreateSelected={handleReviewComplete}
+              onClearAll={clearDetectedCards}
+            />
+          </div>
+        )}
+
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-[#1A1A1A] p-1 rounded-md mb-8">
@@ -98,12 +153,21 @@ export const CardsPage = () => {
               <Sparkles className="w-4 h-4 mr-2" />
               Smart Upload
             </TabsTrigger>
+            {showReview && (
+              <TabsTrigger 
+                value="review" 
+                className={`px-6 py-3 ${activeTab === 'review' ? 'bg-[#3772FF] text-white' : 'text-[#777E90]'}`}
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Review ({totalCards})
+              </TabsTrigger>
+            )}
             <TabsTrigger 
               value="catalog" 
               className={`px-6 py-3 ${activeTab === 'catalog' ? 'bg-[#3772FF] text-white' : 'text-[#777E90]'}`}
             >
               <BarChart3 className="w-4 h-4 mr-2" />
-              Card Catalog ({totalCards})
+              Card Catalog
             </TabsTrigger>
           </TabsList>
 
@@ -162,6 +226,19 @@ export const CardsPage = () => {
               {/* Upload Component */}
               <BulkCardUploader onUploadComplete={handleUploadComplete} />
             </div>
+          </TabsContent>
+
+          <TabsContent value="review" className="mt-0">
+            {showReview && (
+              <DetectedCardsReview
+                detectedCards={Array.from(detectedCards.values())}
+                selectedCards={selectedCards}
+                onCardToggle={toggleCardSelection}
+                onCardEdit={editCardBounds}
+                onCreateSelected={handleReviewComplete}
+                onClearAll={clearDetectedCards}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="catalog" className="mt-0">
