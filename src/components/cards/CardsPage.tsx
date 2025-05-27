@@ -6,7 +6,7 @@ import { CardsSessionHeader } from './components/CardsSessionHeader';
 import { CardsPhaseIndicator } from './components/CardsPhaseIndicator';
 import { CardsUploadPhase } from './components/CardsUploadPhase';
 import { CardsProcessingPhases } from './components/CardsProcessingPhases';
-import { CardsReviewPhase } from './components/CardsReviewPhase';
+import { CleanCardsReviewPhase } from './components/CleanCardsReviewPhase';
 import { CardsCollection } from './components/CardsCollection';
 import { BulkCardsUploader } from './components/BulkCardsUploader';
 import type { UploadedImage } from './types';
@@ -95,10 +95,10 @@ export const CardsPage: React.FC = () => {
         <CardsPhaseIndicator phase={phase} />
 
         {/* Main Content */}
-        <div className="bg-editor-dark rounded-xl p-8 border border-crd-mediumGray/20 mb-8">
+        <div className="bg-editor-dark rounded-xl border border-crd-mediumGray/20 mb-8">
           {/* IDLE PHASE - Upload with Bulk Option */}
           {phase === 'idle' && (
-            <div className="space-y-8">
+            <div className="p-8 space-y-8">
               {/* Bulk Uploader */}
               <div>
                 <h3 className="text-white text-lg font-medium mb-4">
@@ -137,9 +137,9 @@ export const CardsPage: React.FC = () => {
             onStartOver={clearSession}
           />
 
-          {/* REVIEWING PHASE */}
+          {/* REVIEWING PHASE - New Clean Interface */}
           {phase === 'reviewing' && (
-            <CardsReviewPhase
+            <CleanCardsReviewPhase
               detectionResults={detectionResults}
               selectedCards={selectedCards}
               onToggleCardSelection={toggleCardSelection}
