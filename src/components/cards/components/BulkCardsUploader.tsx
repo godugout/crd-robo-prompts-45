@@ -6,6 +6,7 @@ import { UploadStats } from './bulk-upload/UploadStats';
 import { ProcessingControls } from './bulk-upload/ProcessingControls';
 import { ProcessingBatches } from './bulk-upload/ProcessingBatches';
 import { CompletedResults } from './bulk-upload/CompletedResults';
+import { ProgressBar } from './bulk-upload/ProgressBar';
 import type { CardDetectionResult } from '@/services/cardDetection';
 
 interface BulkCardsUploaderProps {
@@ -61,6 +62,17 @@ export const BulkCardsUploader: React.FC<BulkCardsUploaderProps> = ({
     <div className="space-y-6">
       {/* Upload Drop Zone */}
       <BulkUploadDropZone onFilesAdded={addToQueue} />
+
+      {/* Overall Progress Bar */}
+      {isProcessing && stats.total > 0 && (
+        <div className="bg-editor-dark border border-editor-border rounded-lg p-4">
+          <ProgressBar
+            current={stats.completed}
+            total={stats.total}
+            label="Overall Processing Progress"
+          />
+        </div>
+      )}
 
       {/* Stats */}
       {stats.total > 0 && (

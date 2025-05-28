@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { CheckCircle, Clock, AlertCircle, XCircle } from 'lucide-react';
+import { ProgressBar } from './ProgressBar';
 import type { BatchStatus } from '@/hooks/useBulkCardProcessing/batchProcessor';
 
 interface ProcessingBatchesProps {
@@ -46,33 +46,38 @@ export const ProcessingBatches: React.FC<ProcessingBatchesProps> = ({ batches })
     <Card className="bg-editor-dark border-editor-border p-6">
       <h4 className="text-white font-medium mb-4">Processing Batches</h4>
       
-      <div className="space-y-3">
+      <div className="space-y-4">
         {batches.map((batch) => (
           <div
             key={batch.id}
             className={`p-4 rounded-lg border ${getStatusColor(batch.status)}`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                {getStatusIcon(batch.status)}
-                <span className="text-white font-medium">
-                  Batch {batch.id.slice(-4)} ({batch.files.length} files)
-                </span>
-              </div>
-              <span className="text-sm text-crd-lightGray">
-                {Math.round(batch.progress)}%
+            <div className="flex items-center gap-3 mb-3">
+              {getStatusIcon(batch.status)}
+              <span className="text-white font-medium">
+                Batch {batch.id.slice(-4)} ({batch.files.length} files)
               </span>
             </div>
             
             {batch.status === 'processing' && (
-              <>
-                <Progress value={batch.progress} className="h-2 mb-2" />
+              <div className="space-y-2">
+                <ProgressBar
+                  current={batch.current}
+                  total={batch.total}
+                  showPercentage={true}
+                />
                 {batch.currentFileName && (
                   <p className="text-xs text-crd-lightGray">
                     Processing: {batch.currentFileName}
                   </p>
                 )}
-              </>
+              </div>
+            )}
+
+            {batch.status === 'completed' && (
+              <div className="text-sm text-green-400">
+                ✓ All {batch.files.length} files processed
+              </div>
             )}
           </div>
         ))}
