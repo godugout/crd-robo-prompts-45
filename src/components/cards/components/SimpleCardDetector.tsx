@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Play, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { extractCardsFromImage } from '@/services/cardExtractor';
+import { detectCardsInImage } from '@/services/cardDetection';
 import type { CardDetectionResult } from '@/services/cardDetection';
 
 interface UploadedImage {
@@ -45,23 +45,11 @@ export const SimpleCardDetector: React.FC<SimpleCardDetectorProps> = ({
         console.log(`Processing image ${i + 1}/${images.length}: ${images[i].file.name}`);
         
         try {
-          const extractedCards = await extractCardsFromImage(images[i].file);
+          const result = await detectCardsInImage(images[i].file);
           
-          if (extractedCards.length > 0) {
-            const result: CardDetectionResult = {
-              sessionId: `session_${Date.now()}`,
-              originalImage: images[i].file,
-              detectedCards: extractedCards.map((card, index) => ({
-                id: `${images[i].id}_card_${index}`,
-                imageBlob: card.imageBlob,
-                confidence: card.confidence,
-                bounds: card.bounds,
-                originalImage: card.originalImage
-              }))
-            };
-            
+          if (result.detectedCards.length > 0) {
             allResults.push(result);
-            console.log(`Found ${extractedCards.length} cards in ${images[i].file.name}`);
+            console.log(`Found ${result.detectedCards.length} cards in ${images[i].file.name}`);
           } else {
             console.log(`No cards detected in ${images[i].file.name}`);
           }

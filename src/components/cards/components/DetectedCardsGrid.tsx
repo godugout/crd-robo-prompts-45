@@ -106,7 +106,6 @@ export const DetectedCardsGrid: React.FC<DetectedCardsGridProps> = ({
         {results.map((result) =>
           result.detectedCards.map((card) => {
             const isSelected = selectedCards.has(card.id);
-            const imageUrl = URL.createObjectURL(card.imageBlob);
             
             return (
               <Card
@@ -120,7 +119,7 @@ export const DetectedCardsGrid: React.FC<DetectedCardsGridProps> = ({
               >
                 <div className="aspect-[2.5/3.5] bg-black rounded-lg overflow-hidden">
                   <img
-                    src={imageUrl}
+                    src={card.croppedImageUrl}
                     alt={`Detected card ${card.id}`}
                     className="w-full h-full object-cover"
                   />
