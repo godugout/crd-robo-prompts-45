@@ -12,6 +12,7 @@ export const useBulkCardProcessing = () => {
   
   const workerManagerRef = useRef<WorkerManager | null>(null);
   const processingRef = useRef(false);
+  const completedBatchesRef = useRef<Set<string>>(new Set());
 
   const {
     batches,
@@ -51,11 +52,13 @@ export const useBulkCardProcessing = () => {
           console.log('✅ Batch completed:', data);
           updateBatchStatus(data.batchId, 'completed');
           updateItemsWithResults(data.batchId, data.results);
+          completedBatchesRef.current.add(data.batchId);
           toast.success(`Batch completed: ${data.results.length} cards detected`);
         },
         onBatchError: (data) => {
           console.log('❌ Batch error:', data);
           updateItemError(data.fileName, data.error);
+          completedBatchesRef.current.add(data.batchId); // Mark as completed to avoid infinite wait
         },
         onProcessingCancelled: () => {
           console.log('🛑 Processing cancelled');
@@ -81,6 +84,7 @@ export const useBulkCardProcessing = () => {
     console.log('📁 Adding files to queue:', files.length);
     addFilesToQueue(files);
     setProcessingComplete(false);
+    completedBatchesRef.current.clear();
     toast.success(`Added ${files.length} files to processing queue`);
   }, [addFilesToQueue]);
 
@@ -93,6 +97,7 @@ export const useBulkCardProcessing = () => {
     clearQueueItems();
     clearBatches();
     setProcessingComplete(false);
+    completedBatchesRef.current.clear();
     toast.success('Queue cleared');
   }, [isProcessing, clearQueueItems, clearBatches]);
 
@@ -124,6 +129,7 @@ export const useBulkCardProcessing = () => {
     setIsProcessing(true);
     setCanCancel(true);
     setProcessingComplete(false);
+    completedBatchesRef.current.clear();
     
     console.log(`📦 Processing ${pendingItems.length} pending items...`);
 
@@ -155,12 +161,11 @@ export const useBulkCardProcessing = () => {
           `session_${Date.now()}`
         );
 
-        // Wait for this batch to complete before starting the next
+        // Wait for this batch to complete using the ref instead of state
         await new Promise<void>((resolve) => {
           const checkComplete = () => {
-            const currentBatch = batches.find(b => b.id === batchStatus.id);
-            if (currentBatch?.status === 'completed' || currentBatch?.status === 'error') {
-              console.log(`✅ Batch ${batchStatus.id} finished with status: ${currentBatch.status}`);
+            if (completedBatchesRef.current.has(batchStatus.id)) {
+              console.log(`✅ Batch ${batchStatus.id} completed`);
               resolve();
             } else if (!processingRef.current) {
               console.log('🛑 Processing cancelled during batch wait');
@@ -188,7 +193,7 @@ export const useBulkCardProcessing = () => {
       setCanCancel(false);
       console.log('🏁 Processing finished');
     }
-  }, [getPendingItems, createBatches, setBatchList, updateBatchStatus, markItemsAsProcessing, batches]);
+  }, [getPendingItems, createBatches, setBatchList, updateBatchStatus, markItemsAsProcessing]);
 
   const cancelProcessing = useCallback(() => {
     if (!processingRef.current) return;
@@ -200,6 +205,7 @@ export const useBulkCardProcessing = () => {
     
     resetProcessingItems();
     cancelAllBatches();
+    completedBatchesRef.current.clear();
 
     toast.warning('Processing cancelled');
     setIsProcessing(false);
