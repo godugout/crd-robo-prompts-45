@@ -2,7 +2,7 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
-import { Upload, Image, Crop, Save, X } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface UploadedImage {
@@ -20,7 +20,6 @@ export const CardsImageUpload: React.FC<CardsImageUploadProps> = ({
   onImagesProcessed
 }) => {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newImages: UploadedImage[] = acceptedFiles.map((file, index) => ({
@@ -53,37 +52,13 @@ export const CardsImageUpload: React.FC<CardsImageUploadProps> = ({
     });
   };
 
-  const processImages = async () => {
+  const proceedToDetection = () => {
     if (uploadedImages.length === 0) {
       toast.error('Please upload some images first');
       return;
     }
 
-    setIsProcessing(true);
-    toast.loading('Processing images for card detection...');
-
-    try {
-      // Simulate processing with actual image handling
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Mark all images as processed
-      const processedImages = uploadedImages.map(img => ({
-        ...img,
-        processed: true
-      }));
-
-      setUploadedImages(processedImages);
-      onImagesProcessed(processedImages);
-      
-      toast.dismiss();
-      toast.success(`Successfully processed ${uploadedImages.length} images!`);
-    } catch (error) {
-      console.error('Processing failed:', error);
-      toast.dismiss();
-      toast.error('Failed to process images');
-    } finally {
-      setIsProcessing(false);
-    }
+    onImagesProcessed(uploadedImages);
   };
 
   const clearAll = () => {
@@ -132,26 +107,14 @@ export const CardsImageUpload: React.FC<CardsImageUploadProps> = ({
                 variant="outline"
                 onClick={clearAll}
                 className="text-crd-lightGray border-crd-mediumGray hover:text-white"
-                disabled={isProcessing}
               >
                 Clear All
               </Button>
               <Button
-                onClick={processImages}
-                disabled={isProcessing}
+                onClick={proceedToDetection}
                 className="bg-crd-green hover:bg-crd-green/90 text-black"
               >
-                {isProcessing ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Process Images
-                  </>
-                )}
+                Continue to Detection →
               </Button>
             </div>
           </div>
@@ -166,22 +129,13 @@ export const CardsImageUpload: React.FC<CardsImageUploadProps> = ({
                     className="w-full h-full object-cover"
                   />
                   
-                  {/* Status indicator */}
-                  <div className="absolute top-2 left-2">
-                    {image.processed ? (
-                      <div className="w-6 h-6 bg-crd-green rounded-full flex items-center justify-center">
-                        <div className="w-3 h-3 bg-black rounded-full" />
-                      </div>
-                    ) : (
-                      <div className="w-6 h-6 bg-gray-500 rounded-full" />
-                    )}
-                  </div>
-
                   {/* Remove button */}
                   <button
-                    onClick={() => removeImage(image.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage(image.id);
+                    }}
                     className="absolute top-2 right-2 w-6 h-6 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                    disabled={isProcessing}
                   >
                     <X className="w-3 h-3" />
                   </button>
