@@ -63,7 +63,10 @@ export const EditorCanvas = ({ zoom, cardEditor, onAddElement }: EditorCanvasPro
               )}
               
               {previewMode === 'photo' && (
-                <PhotoUploadCanvas onPhotoSelect={handlePhotoSelect} />
+                <PhotoUploadCanvas 
+                  onPhotoSelect={handlePhotoSelect}
+                  cardEditor={cardEditor}
+                />
               )}
               
               {previewMode === 'canvas' && (

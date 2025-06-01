@@ -7,12 +7,14 @@ import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { ImageCropper } from '../ImageCropper';
 import { useImageCropper } from '@/hooks/useImageCropper';
+import { useCardEditor } from '@/hooks/useCardEditor';
 
 interface PhotoUploadCanvasProps {
   onPhotoSelect: (file: File, preview: string) => void;
+  cardEditor?: ReturnType<typeof useCardEditor>;
 }
 
-export const PhotoUploadCanvas = ({ onPhotoSelect }: PhotoUploadCanvasProps) => {
+export const PhotoUploadCanvas = ({ onPhotoSelect, cardEditor }: PhotoUploadCanvasProps) => {
   const [mode, setMode] = useState<'upload' | 'crop' | 'results'>('upload');
   const {
     originalImage,
@@ -50,8 +52,27 @@ export const PhotoUploadCanvas = ({ onPhotoSelect }: PhotoUploadCanvasProps) => 
 
   const handleCropComplete = useCallback((croppedImageUrl: string) => {
     addCropResult(croppedImageUrl);
+    
+    // Automatically set as card image if card editor is available
+    if (cardEditor) {
+      cardEditor.updateCardField('image_url', croppedImageUrl);
+      cardEditor.updateCardField('thumbnail_url', croppedImageUrl);
+      toast.success('Cropped image set as card photo');
+    }
+    
     setMode('results');
-  }, [addCropResult]);
+  }, [addCropResult, cardEditor]);
+
+  const handleUseAsCrop = useCallback((croppedImageUrl: string) => {
+    if (cardEditor) {
+      cardEditor.updateCardField('image_url', croppedImageUrl);
+      cardEditor.updateCardField('thumbnail_url', croppedImageUrl);
+      toast.success('Image set as card photo');
+      
+      // Switch to preview mode to show the card with the new image
+      window.dispatchEvent(new CustomEvent('switchToPreview'));
+    }
+  }, [cardEditor]);
 
   const handleNewCrop = useCallback(() => {
     setMode('crop');
@@ -168,10 +189,20 @@ export const PhotoUploadCanvas = ({ onPhotoSelect }: PhotoUploadCanvasProps) => 
                 
                 {/* Overlay controls */}
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  {cardEditor && (
+                    <Button
+                      size="sm"
+                      onClick={() => handleUseAsCrop(result.croppedImageUrl)}
+                      className="bg-crd-green hover:bg-crd-green/90 text-black"
+                    >
+                      <Camera className="w-4 h-4" />
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     onClick={() => downloadCrop(result, `crop_${index + 1}.png`)}
-                    className="bg-crd-green hover:bg-crd-green/90 text-black"
+                    variant="outline"
+                    className="border-editor-border text-white"
                   >
                     <Download className="w-4 h-4" />
                   </Button>
@@ -184,6 +215,12 @@ export const PhotoUploadCanvas = ({ onPhotoSelect }: PhotoUploadCanvasProps) => 
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
+              </div>
+              
+              <div className="p-2">
+                <p className="text-xs text-crd-lightGray text-center">
+                  {cardEditor ? 'Click camera to use as card photo' : 'Download to save'}
+                </p>
               </div>
             </Card>
           ))}
@@ -203,11 +240,21 @@ export const PhotoUploadCanvas = ({ onPhotoSelect }: PhotoUploadCanvasProps) => 
           <Button
             onClick={downloadAllCrops}
             disabled={croppedResults.length === 0}
-            className="bg-crd-green hover:bg-crd-green/90 text-black"
+            variant="outline"
+            className="border-editor-border text-white"
           >
             <Download className="w-4 h-4 mr-2" />
             Download All ({croppedResults.length})
           </Button>
+          
+          {cardEditor && cardEditor.cardData.image_url && (
+            <Button
+              onClick={() => window.dispatchEvent(new CustomEvent('switchToPreview'))}
+              className="bg-crd-green hover:bg-crd-green/90 text-black"
+            >
+              View Card Preview
+            </Button>
+          )}
           
           <Button
             onClick={handleStartOver}

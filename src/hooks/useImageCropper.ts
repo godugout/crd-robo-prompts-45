@@ -46,7 +46,7 @@ export const useImageCropper = () => {
     };
 
     setCroppedResults(prev => [...prev, newResult]);
-    toast.success('Crop added successfully!');
+    toast.success('Crop extracted successfully!');
   }, [originalImage]);
 
   const removeCropResult = useCallback((index: number) => {
@@ -97,6 +97,20 @@ export const useImageCropper = () => {
     });
   }, [croppedResults, downloadCrop]);
 
+  const saveCropAsCard = useCallback((result: CropResult, cardData: any) => {
+    // This function can be used to integrate with card saving
+    return {
+      ...cardData,
+      image_url: result.croppedImageUrl,
+      thumbnail_url: result.croppedImageUrl,
+      extraction_metadata: {
+        original_image: result.originalImageUrl,
+        crop_area: result.cropData,
+        extracted_at: new Date().toISOString()
+      }
+    };
+  }, []);
+
   return {
     originalImage,
     croppedResults,
@@ -107,6 +121,7 @@ export const useImageCropper = () => {
     removeCropResult,
     clearAll,
     downloadCrop,
-    downloadAllCrops
+    downloadAllCrops,
+    saveCropAsCard
   };
 };
