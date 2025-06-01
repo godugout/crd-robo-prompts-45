@@ -21,15 +21,9 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
       return;
     }
 
-    // Ensure we have minimum required data
-    if (!cardEditor.cardData.title?.trim()) {
-      cardEditor.updateCardField('title', 'Untitled Card');
-    }
-
+    console.log('Save button clicked, attempting to save...');
     const success = await cardEditor.saveCard();
-    if (success) {
-      console.log('Card saved successfully');
-    }
+    console.log('Save result:', success);
   };
 
   const handleShare = () => {
@@ -69,19 +63,9 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
       return;
     }
 
-    // Save first if needed
-    if (cardEditor.isDirty) {
-      const saved = await cardEditor.saveCard();
-      if (!saved) {
-        toast.error('Please save the card first');
-        return;
-      }
-    }
-    
+    console.log('Publish button clicked...');
     const success = await cardEditor.publishCard();
-    if (success) {
-      toast.success('Card published successfully');
-    }
+    console.log('Publish result:', success);
   };
 
   const isDirty = cardEditor?.isDirty || false;
@@ -129,7 +113,7 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
         
         <Button variant="ghost" size="sm" onClick={handleSave} disabled={isSaving}>
           <Save className="w-5 h-5 mr-2" />
-          Save Card
+          {isSaving ? 'Saving...' : 'Save Card'}
         </Button>
         
         <Button variant="ghost" size="sm" onClick={handleShare}>
@@ -154,8 +138,9 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
           <Button 
             className="ml-2 bg-crd-orange hover:bg-crd-orange/90 text-white rounded-full" 
             onClick={handlePublish}
+            disabled={isSaving}
           >
-            Publish
+            {isSaving ? 'Publishing...' : 'Publish'}
           </Button>
         ) : (
           <Button 

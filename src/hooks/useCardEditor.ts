@@ -82,7 +82,7 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
   
   const [cardData, setCardData] = useState<CardData>({
     id: initialData.id || uuidv4(),
-    title: initialData.title || '',
+    title: initialData.title || 'My New Card',
     description: initialData.description || '',
     type: initialData.type || '',
     series: initialData.series || '',
@@ -156,61 +156,70 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
   };
 
   const saveCard = async (): Promise<boolean> => {
+    console.log('Starting card save...', { cardData, user });
+    
     if (!user) {
       toast.error('Please sign in to save cards');
       return false;
     }
 
-    if (!cardData.title.trim()) {
-      toast.error('Please enter a card title');
-      return false;
-    }
+    // Ensure minimum required data
+    const finalCardData = {
+      ...cardData,
+      title: cardData.title?.trim() || 'My New Card',
+      creator_id: user.id
+    };
 
     setIsSaving(true);
     try {
       // Convert to database format with proper JSON fields
       const cardToSave = {
-        id: cardData.id,
-        title: cardData.title.trim(),
-        description: cardData.description,
-        type: cardData.type,
-        series: cardData.series,
-        category: cardData.category,
-        rarity: cardData.rarity,
-        tags: cardData.tags,
-        image_url: cardData.image_url,
-        thumbnail_url: cardData.thumbnail_url,
-        design_metadata: cardData.design_metadata as any,
-        visibility: cardData.visibility,
-        is_public: cardData.visibility === 'public',
-        shop_id: cardData.shop_id,
-        template_id: cardData.template_id,
-        collection_id: cardData.collection_id,
-        team_id: cardData.team_id,
-        creator_attribution: cardData.creator_attribution as any,
-        publishing_options: cardData.publishing_options as any,
-        verification_status: cardData.verification_status,
-        print_metadata: cardData.print_metadata as any,
+        id: finalCardData.id,
+        title: finalCardData.title,
+        description: finalCardData.description || null,
+        type: finalCardData.type || null,
+        series: finalCardData.series || null,
+        category: finalCardData.category || null,
+        rarity: finalCardData.rarity,
+        tags: finalCardData.tags,
+        image_url: finalCardData.image_url || null,
+        thumbnail_url: finalCardData.thumbnail_url || null,
+        design_metadata: finalCardData.design_metadata as any,
+        visibility: finalCardData.visibility,
+        is_public: finalCardData.visibility === 'public',
+        shop_id: finalCardData.shop_id || null,
+        template_id: finalCardData.template_id || null,
+        collection_id: finalCardData.collection_id || null,
+        team_id: finalCardData.team_id || null,
+        creator_attribution: finalCardData.creator_attribution as any,
+        publishing_options: finalCardData.publishing_options as any,
+        verification_status: finalCardData.verification_status || 'pending',
+        print_metadata: finalCardData.print_metadata as any,
         creator_id: user.id
       };
 
-      const { error } = await supabase
+      console.log('Attempting to save card:', cardToSave);
+
+      const { data, error } = await supabase
         .from('cards')
-        .upsert(cardToSave, { onConflict: 'id' });
+        .upsert(cardToSave, { onConflict: 'id' })
+        .select()
+        .single();
 
       if (error) {
-        console.error('Error saving card:', error);
-        toast.error('Failed to save card');
+        console.error('Supabase error saving card:', error);
+        toast.error(`Failed to save card: ${error.message}`);
         return false;
       }
 
+      console.log('Card saved successfully:', data);
       setLastSaved(new Date());
       setIsDirty(false);
       toast.success('Card saved successfully');
       return true;
     } catch (error) {
       console.error('Error saving card:', error);
-      toast.error('Failed to save card');
+      toast.error('Failed to save card. Please try again.');
       return false;
     } finally {
       setIsSaving(false);
@@ -228,6 +237,7 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
         .eq('id', cardData.id);
 
       if (error) {
+        console.error('Error publishing card:', error);
         toast.error('Failed to publish card');
         return false;
       }
@@ -237,6 +247,7 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
       toast.success('Card published successfully');
       return true;
     } catch (error) {
+      console.error('Error publishing card:', error);
       toast.error('Failed to publish card');
       return false;
     }

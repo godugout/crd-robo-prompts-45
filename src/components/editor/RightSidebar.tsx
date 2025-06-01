@@ -21,7 +21,7 @@ export const RightSidebar = ({ cardEditor: providedCardEditor }: RightSidebarPro
   
   // Use provided card editor or create a fallback one
   const fallbackCardEditor = useCardEditor({
-    autoSave: true,
+    autoSave: false,
     autoSaveInterval: 30000,
   });
   
@@ -29,26 +29,24 @@ export const RightSidebar = ({ cardEditor: providedCardEditor }: RightSidebarPro
   const { saveCard, publishCard, isSaving, isDirty } = cardEditor;
 
   const handleCreateCard = async () => {
-    // Ensure we have minimum required data
-    if (!cardEditor.cardData.title?.trim()) {
-      cardEditor.updateCardField('title', 'My New Card');
-    }
+    console.log('Create card button clicked, current data:', cardEditor.cardData);
     
     const success = await saveCard();
+    console.log('Save result in sidebar:', success);
+    
     if (success) {
       toast.success('Card created successfully!', {
         description: 'Your card has been saved and is ready for publishing.',
-        action: {
-          label: 'View Card',
-          onClick: () => console.log('Viewing card')
-        }
       });
     }
   };
   
   const handlePublishCard = async () => {
+    console.log('Publish card button clicked...');
+    
     // Save first if there are unsaved changes
     if (isDirty) {
+      console.log('Card has unsaved changes, saving first...');
       const saved = await saveCard();
       if (!saved) {
         toast.error('Please save the card first');
@@ -57,13 +55,11 @@ export const RightSidebar = ({ cardEditor: providedCardEditor }: RightSidebarPro
     }
     
     const success = await publishCard();
+    console.log('Publish result in sidebar:', success);
+    
     if (success) {
       toast.success('Card published successfully!', {
         description: 'Your card is now publicly available.',
-        action: {
-          label: 'View Card',
-          onClick: () => console.log('Viewing card')
-        }
       });
     }
   };
@@ -140,7 +136,7 @@ export const RightSidebar = ({ cardEditor: providedCardEditor }: RightSidebarPro
           onClick={handlePublishCard}
           disabled={isSaving}
         >
-          Publish Card
+          {isSaving ? 'Publishing...' : 'Publish Card'}
         </CRDButton>
       </div>
 
