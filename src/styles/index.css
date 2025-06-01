@@ -5,3 +5,18 @@
 @import './components.css';
 @import './utilities.css';
 @import './custom.css';
+
+/* Ensure button text color utilities take priority */
+@layer utilities {
+  .btn-text-dark {
+    color: #121212 !important;
+  }
+  
+  .btn-text-light {
+    color: #FCFCFD !important;
+  }
+  
+  .btn-text-gray {
+    color: #777E90 !important;
+  }
+}
