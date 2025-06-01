@@ -1,157 +1,149 @@
 
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { EditorHeader } from './EditorHeader';
+import { EditorSidebar } from './EditorSidebar';
+import { EditorCanvas } from './EditorCanvas';
+import { RightSidebar } from './RightSidebar';
 import { useCardEditor } from '@/hooks/useCardEditor';
+import { localCardStorage } from '@/lib/localCardStorage';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RotateCcw, Sparkles } from 'lucide-react';
+import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
+import { toast } from 'sonner';
 
 interface SimpleEditorProps {
-  initialData?: any;
+  initialData: { photo: string; templateId: string } | null;
+  onStartOver?: () => void;
 }
 
-export const SimpleEditor: React.FC<SimpleEditorProps> = ({ initialData }) => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-  const { cardData, updateCardField, saveCard, publishCard, isSaving } = useCardEditor(initialData);
+export const SimpleEditor = ({ initialData, onStartOver }: SimpleEditorProps) => {
+  const [selectedTemplate, setSelectedTemplate] = useState(initialData?.templateId || 'template1');
+  const [zoom, setZoom] = useState(100);
+  const [showImmersiveViewer, setShowImmersiveViewer] = useState(false);
 
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
-    }
-  }, [user, loading, navigate]);
+  const cardEditor = useCardEditor({
+    initialData: {
+      image_url: initialData?.photo,
+      template_id: initialData?.templateId,
+      title: 'My New Card',
+      rarity: 'common',
+      tags: [],
+      design_metadata: {},
+      visibility: 'private',
+      creator_attribution: {
+        collaboration_type: 'solo'
+      },
+      publishing_options: {
+        marketplace_listing: false,
+        crd_catalog_inclusion: true,
+        print_available: false,
+        pricing: { currency: 'USD' },
+        distribution: { limited_edition: false }
+      }
+    },
+    autoSave: true,
+    autoSaveInterval: 30000
+  });
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  const handleSave = async () => {
-    await saveCard();
+  const handleAddElement = (elementType: string, elementId: string) => {
+    console.log('Adding element:', elementType, elementId);
   };
 
-  const handlePublish = async () => {
-    await publishCard();
+  const handleViewImmersive = () => {
+    if (!cardEditor.cardData.title?.trim()) {
+      toast.error('Please add a card title before viewing in immersive mode');
+      return;
+    }
+    setShowImmersiveViewer(true);
+  };
+
+  const handleDownloadCard = () => {
+    const card = cardEditor.cardData;
+    const dataStr = JSON.stringify(card, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${card.title.replace(/\s+/g, '_')}_card.json`;
+    link.click();
+    
+    URL.revokeObjectURL(url);
+    toast.success('Card exported successfully');
+  };
+
+  const handleShareCard = () => {
+    const shareUrl = window.location.href;
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl)
+        .then(() => toast.success('Card link copied to clipboard'))
+        .catch(() => toast.error('Failed to copy link'));
+    } else {
+      toast.error('Sharing not supported in this browser');
+    }
   };
 
   return (
-    <div className="min-h-screen bg-crd-darkest p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-6 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-crd-white">Card Editor</h1>
-          <div className="flex gap-2">
+    <div className="h-screen bg-crd-darkest flex flex-col">
+      {/* Enhanced Header with Start Over option */}
+      <div className="relative">
+        <EditorHeader cardEditor={cardEditor} />
+        {onStartOver && (
+          <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
             <Button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="bg-crd-blue hover:bg-crd-blue/90"
+              variant="ghost"
+              size="sm"
+              onClick={onStartOver}
+              className="text-crd-lightGray hover:text-white hover:bg-editor-border mr-2"
             >
-              {isSaving ? 'Saving...' : 'Save'}
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Start Over
             </Button>
             <Button
-              onClick={handlePublish}
-              disabled={isSaving}
-              className="bg-crd-green hover:bg-crd-green/90"
+              onClick={handleViewImmersive}
+              className="bg-crd-purple hover:bg-crd-purple/90 text-white px-4 py-2 rounded-full"
+              disabled={!cardEditor.cardData.title?.trim()}
             >
-              Publish
+              <Sparkles className="w-4 h-4 mr-2" />
+              View 3D Card
             </Button>
           </div>
-        </div>
+        )}
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Editor Panel */}
-          <Card className="bg-crd-dark border-crd-mediumGray">
-            <CardHeader>
-              <CardTitle className="text-crd-white">Card Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-crd-lightGray mb-2">Title</label>
-                <Input
-                  value={cardData.title}
-                  onChange={(e) => updateCardField('title', e.target.value)}
-                  placeholder="Enter card title"
-                  className="bg-crd-mediumGray border-crd-lightGray text-crd-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-crd-lightGray mb-2">Description</label>
-                <Textarea
-                  value={cardData.description || ''}
-                  onChange={(e) => updateCardField('description', e.target.value)}
-                  placeholder="Enter card description"
-                  className="bg-crd-mediumGray border-crd-lightGray text-crd-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-crd-lightGray mb-2">Image URL</label>
-                <Input
-                  value={cardData.image_url || ''}
-                  onChange={(e) => updateCardField('image_url', e.target.value)}
-                  placeholder="Enter image URL"
-                  className="bg-crd-mediumGray border-crd-lightGray text-crd-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-crd-lightGray mb-2">Rarity</label>
-                <Select value={cardData.rarity} onValueChange={(value: any) => updateCardField('rarity', value)}>
-                  <SelectTrigger className="bg-crd-mediumGray border-crd-lightGray text-crd-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="common">Common</SelectItem>
-                    <SelectItem value="rare">Rare</SelectItem>
-                    <SelectItem value="legendary">Legendary</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Preview Panel */}
-          <Card className="bg-crd-dark border-crd-mediumGray">
-            <CardHeader>
-              <CardTitle className="text-crd-white">Preview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="aspect-[3/4] bg-crd-mediumGray rounded-lg flex flex-col">
-                {cardData.image_url ? (
-                  <img
-                    src={cardData.image_url}
-                    alt={cardData.title}
-                    className="w-full h-2/3 object-cover rounded-t-lg"
-                  />
-                ) : (
-                  <div className="w-full h-2/3 bg-crd-lightGray rounded-t-lg flex items-center justify-center text-crd-darkGray">
-                    No Image
-                  </div>
-                )}
-                <div className="p-4 flex-1">
-                  <h3 className="text-crd-white font-bold text-lg">{cardData.title || 'Untitled Card'}</h3>
-                  <p className="text-crd-lightGray text-sm mt-1">{cardData.description}</p>
-                  <div className="mt-2">
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      cardData.rarity === 'legendary' ? 'bg-crd-orange text-white' :
-                      cardData.rarity === 'rare' ? 'bg-crd-purple text-white' :
-                      'bg-crd-lightGray text-crd-darkGray'
-                    }`}>
-                      {cardData.rarity.toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {/* Main Editor Layout */}
+      <div className="flex-1 flex">
+        <EditorSidebar
+          selectedTemplate={selectedTemplate}
+          onSelectTemplate={setSelectedTemplate}
+          onAddElement={handleAddElement}
+        />
+        
+        <div className="flex-1 flex">
+          <EditorCanvas
+            zoom={zoom}
+            cardEditor={cardEditor}
+            onAddElement={handleAddElement}
+          />
+          
+          <RightSidebar cardEditor={cardEditor} />
         </div>
       </div>
+
+      {/* Immersive Card Viewer */}
+      {showImmersiveViewer && (
+        <ImmersiveCardViewer
+          card={cardEditor.cardData}
+          isOpen={showImmersiveViewer}
+          onClose={() => setShowImmersiveViewer(false)}
+          onShare={handleShareCard}
+          onDownload={handleDownloadCard}
+          allowRotation={true}
+          showStats={true}
+          ambient={true}
+        />
+      )}
     </div>
   );
 };

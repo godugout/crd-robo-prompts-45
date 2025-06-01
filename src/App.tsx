@@ -1,5 +1,5 @@
 
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { OverlayProvider } from '@/components/overlay';
 import { MainLayout } from '@/components/layout/MainLayout';
 import Index from '@/pages/Index';
@@ -8,7 +8,6 @@ import Gallery from '@/pages/Gallery';
 import Profile from '@/pages/Profile';
 import Creators from '@/pages/Creators';
 import DebugDetection from '@/pages/DebugDetection';
-import { CardsPage } from '@/components/cards/CardsPage';
 import { AuthPage } from '@/components/auth/AuthPage';
 
 function App() {
@@ -20,8 +19,9 @@ function App() {
             <Route index element={<Index />} />
             <Route path="editor" element={<Editor />} />
             <Route path="editor/:cardId" element={<Editor />} />
+            {/* Redirect /cards to /editor for unified experience */}
+            <Route path="cards" element={<Navigate to="/editor" replace />} />
             <Route path="gallery" element={<Gallery />} />
-            <Route path="cards" element={<CardsPage />} />
             <Route path="auth" element={<AuthPage />} />
             <Route path="profile" element={<Profile />} />
             <Route path="creators" element={<Creators />} />
