@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { 
   X, 
   Maximize2, 
@@ -173,10 +173,14 @@ const LIGHTING_PRESETS: LightingPreset[] = [
 ];
 
 const VISUAL_EFFECTS = [
-  { id: 'holographic', name: 'Holographic', description: 'Rainbow prismatic finish' },
-  { id: 'premiumfoil', name: 'Premium Foil', description: 'Luxury metallic shine' },
-  { id: 'vintage', name: 'Vintage Classic', description: 'Aged premium look' },
-  { id: 'cosmic', name: 'Cosmic Flare', description: 'Deep space shimmer' }
+  { id: 'holographic', name: 'Holographic Film', description: 'Rainbow prismatic film overlay' },
+  { id: 'foilspray', name: 'Foil Spray', description: 'Metallic spray treatment' },
+  { id: 'prizm', name: 'Prizm Refractor', description: 'Geometric rainbow patterns' },
+  { id: 'chrome', name: 'Chrome Finish', description: 'Mirror-like surface coating' },
+  { id: 'interference', name: 'Interference Pattern', description: 'Soap bubble color shifting' },
+  { id: 'brushedmetal', name: 'Brushed Metal', description: 'Directional metallic finish' },
+  { id: 'crystal', name: 'Crystal Coating', description: 'Faceted light patterns' },
+  { id: 'vintage', name: 'Vintage Classic', description: 'Aged premium look' }
 ];
 
 export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
@@ -200,6 +204,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   const [showEffects, setShowEffects] = useState(true);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [showCustomizePanel, setShowCustomizePanel] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   
   // Advanced settings
   const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[3]); // Twilight
@@ -352,50 +357,214 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     }
   };
 
-  // Apply effects based on mouse position and settings
-  const getEffectStyles = useCallback(() => {
+  // Enhanced physical effects calculation
+  const getPhysicalEffectStyles = useCallback(() => {
     const styles: React.CSSProperties = {};
     
     if (showEffects) {
       const intensity = effectIntensity[0] / 100;
       const brightness = overallBrightness[0] / 100;
       
-      // Apply lighting effects
-      const hueRotate = interactiveLighting ? mousePosition.x * 360 : 0;
-      const shimmerX = mousePosition.x * 100;
-      const shimmerY = mousePosition.y * 100;
+      // Calculate light angle and position for realistic effects
+      const lightAngle = Math.atan2(mousePosition.y - 0.5, mousePosition.x - 0.5) * (180 / Math.PI);
+      const lightDistance = Math.sqrt(Math.pow(mousePosition.x - 0.5, 2) + Math.pow(mousePosition.y - 0.5, 2));
+      const highlightX = mousePosition.x * 100;
+      const highlightY = mousePosition.y * 100;
       
-      styles.filter = `brightness(${brightness}) hue-rotate(${hueRotate}deg) contrast(${selectedLighting.settings.contrast}%) saturate(${1 + intensity})`;
-      
-      // Apply selected visual effect
+      // Apply selected physical effect
       switch (selectedEffect.id) {
         case 'holographic':
-          styles.background = `radial-gradient(circle at ${shimmerX}% ${shimmerY}%, 
-            rgba(255,0,150,${intensity * 0.3}), 
-            rgba(0,255,150,${intensity * 0.2}), 
-            rgba(150,0,255,${intensity * 0.1}), 
-            transparent 60%)`;
+          // Multi-layer holographic film effect
+          styles.background = `
+            radial-gradient(circle at ${highlightX}% ${highlightY}%, 
+              rgba(255,0,150,${intensity * 0.4}) 0%, 
+              rgba(0,255,150,${intensity * 0.3}) 25%, 
+              rgba(150,0,255,${intensity * 0.4}) 50%, 
+              rgba(255,100,0,${intensity * 0.3}) 75%, 
+              transparent 100%),
+            conic-gradient(from ${lightAngle}deg at ${highlightX}% ${highlightY}%, 
+              #ff006e ${intensity * 30}%, 
+              #8338ec ${intensity * 40}%, 
+              #3a86ff ${intensity * 30}%, 
+              #06ffa5 ${intensity * 40}%, 
+              #ffbe0b ${intensity * 30}%, 
+              #ff006e ${intensity * 30}%),
+            repeating-linear-gradient(${lightAngle + 45}deg, 
+              transparent, 
+              transparent 2px, 
+              rgba(255,255,255,${intensity * 0.1}) 2px, 
+              rgba(255,255,255,${intensity * 0.1}) 4px)
+          `;
+          styles.backgroundBlendMode = 'screen, color-dodge, overlay';
           break;
-        case 'premiumfoil':
-          styles.background = `linear-gradient(135deg, 
-            rgba(255,215,0,${intensity * 0.4}), 
-            rgba(255,223,0,${intensity * 0.6}), 
-            rgba(255,215,0,${intensity * 0.3}))`;
+          
+        case 'foilspray':
+          // Metallic spray treatment
+          styles.background = `
+            radial-gradient(ellipse ${150 + lightDistance * 100}% ${80 + lightDistance * 50}% at ${highlightX}% ${highlightY}%, 
+              rgba(255,215,0,${intensity * 0.8}) 0%, 
+              rgba(255,223,0,${intensity * 0.6}) 30%, 
+              rgba(218,165,32,${intensity * 0.4}) 60%, 
+              transparent 100%),
+            linear-gradient(${lightAngle}deg, 
+              rgba(255,215,0,${intensity * 0.3}), 
+              rgba(255,223,0,${intensity * 0.5}), 
+              rgba(218,165,32,${intensity * 0.3})),
+            radial-gradient(circle at ${highlightX + 10}% ${highlightY - 10}%, 
+              rgba(255,255,255,${intensity * 0.6}) 0%, 
+              transparent 20%)
+          `;
+          styles.backgroundBlendMode = 'multiply, screen, color-dodge';
           break;
+          
+        case 'prizm':
+          // Geometric prismatic patterns
+          styles.background = `
+            conic-gradient(from ${lightAngle}deg at ${highlightX}% ${highlightY}%, 
+              #ff0080 0deg, 
+              #ff8000 ${60 * intensity}deg, 
+              #80ff00 ${120 * intensity}deg, 
+              #00ff80 ${180 * intensity}deg, 
+              #0080ff ${240 * intensity}deg, 
+              #8000ff ${300 * intensity}deg, 
+              #ff0080 360deg),
+            repeating-conic-gradient(from ${lightAngle + 30}deg at ${highlightX}% ${highlightY}%, 
+              transparent 0deg, 
+              rgba(255,255,255,${intensity * 0.2}) ${15 * intensity}deg, 
+              transparent ${30 * intensity}deg)
+          `;
+          styles.backgroundBlendMode = 'screen, overlay';
+          styles.clipPath = `polygon(
+            ${10 + lightDistance * 5}% ${10 + lightDistance * 5}%, 
+            ${90 - lightDistance * 5}% ${10 + lightDistance * 5}%, 
+            ${90 - lightDistance * 5}% ${90 - lightDistance * 5}%, 
+            ${10 + lightDistance * 5}% ${90 - lightDistance * 5}%
+          )`;
+          break;
+          
+        case 'chrome':
+          // Mirror-like chrome finish
+          styles.background = `
+            linear-gradient(${lightAngle}deg, 
+              rgba(192,192,192,${intensity * 0.4}) 0%, 
+              rgba(255,255,255,${intensity * 0.8}) 45%, 
+              rgba(169,169,169,${intensity * 0.6}) 50%, 
+              rgba(255,255,255,${intensity * 0.8}) 55%, 
+              rgba(128,128,128,${intensity * 0.4}) 100%),
+            radial-gradient(ellipse at ${highlightX}% ${highlightY}%, 
+              rgba(255,255,255,${intensity * 0.9}) 0%, 
+              rgba(255,255,255,${intensity * 0.3}) 30%, 
+              transparent 60%)
+          `;
+          styles.backgroundBlendMode = 'screen, color-dodge';
+          break;
+          
+        case 'interference':
+          // Soap bubble interference patterns
+          styles.background = `
+            radial-gradient(circle at ${highlightX}% ${highlightY}%, 
+              rgba(138,43,226,${intensity * 0.3}) 0%, 
+              rgba(75,0,130,${intensity * 0.4}) 20%, 
+              rgba(0,191,255,${intensity * 0.3}) 40%, 
+              rgba(50,205,50,${intensity * 0.4}) 60%, 
+              rgba(255,215,0,${intensity * 0.3}) 80%, 
+              transparent 100%),
+            repeating-radial-gradient(circle at ${highlightX}% ${highlightY}%, 
+              transparent 0px, 
+              rgba(255,255,255,${intensity * 0.1}) ${5 + lightDistance * 10}px, 
+              transparent ${10 + lightDistance * 20}px)
+          `;
+          styles.backgroundBlendMode = 'multiply, screen';
+          break;
+          
+        case 'brushedmetal':
+          // Directional brushed metal
+          styles.background = `
+            repeating-linear-gradient(${lightAngle}deg, 
+              rgba(192,192,192,${intensity * 0.2}) 0px, 
+              rgba(255,255,255,${intensity * 0.4}) 1px, 
+              rgba(169,169,169,${intensity * 0.3}) 2px, 
+              rgba(192,192,192,${intensity * 0.2}) 3px),
+            linear-gradient(${lightAngle + 90}deg, 
+              rgba(255,255,255,${intensity * 0.6}) 0%, 
+              transparent 50%, 
+              rgba(255,255,255,${intensity * 0.6}) 100%)
+          `;
+          styles.backgroundBlendMode = 'multiply, screen';
+          break;
+          
+        case 'crystal':
+          // Faceted crystal patterns
+          styles.background = `
+            conic-gradient(from ${lightAngle}deg at ${highlightX}% ${highlightY}%, 
+              transparent 0deg, 
+              rgba(255,255,255,${intensity * 0.4}) ${30 * intensity}deg, 
+              transparent ${60 * intensity}deg, 
+              rgba(255,255,255,${intensity * 0.6}) ${90 * intensity}deg, 
+              transparent ${120 * intensity}deg, 
+              rgba(255,255,255,${intensity * 0.4}) ${150 * intensity}deg, 
+              transparent 180deg),
+            radial-gradient(circle at ${highlightX}% ${highlightY}%, 
+              rgba(255,255,255,${intensity * 0.5}) 0%, 
+              rgba(200,200,255,${intensity * 0.3}) 30%, 
+              transparent 60%)
+          `;
+          styles.backgroundBlendMode = 'screen, color-dodge';
+          break;
+          
         case 'vintage':
-          styles.filter += ` sepia(${intensity * 0.5})`;
-          break;
-        case 'cosmic':
-          styles.background = `radial-gradient(circle at ${shimmerX}% ${shimmerY}%, 
-            rgba(138,43,226,${intensity * 0.3}), 
-            rgba(75,0,130,${intensity * 0.2}), 
-            transparent 50%)`;
+          // Vintage film effect
+          styles.background = `
+            radial-gradient(circle at ${highlightX}% ${highlightY}%, 
+              rgba(139,69,19,${intensity * 0.2}) 0%, 
+              rgba(160,82,45,${intensity * 0.1}) 50%, 
+              transparent 80%),
+            repeating-linear-gradient(45deg, 
+              transparent, 
+              transparent 8px, 
+              rgba(139,69,19,${intensity * 0.05}) 8px, 
+              rgba(139,69,19,${intensity * 0.05}) 16px)
+          `;
+          styles.filter = `sepia(${intensity * 0.6}) contrast(${1 + intensity * 0.2})`;
           break;
       }
+      
+      // Add surface texture overlay
+      styles.position = 'relative';
+      styles.overflow = 'hidden';
     }
     
     return styles;
-  }, [card.template_id, mousePosition, showEffects, selectedEffect, effectIntensity, overallBrightness, interactiveLighting, selectedLighting]);
+  }, [selectedEffect, mousePosition, showEffects, effectIntensity, overallBrightness, interactiveLighting]);
+
+  // Enhanced surface texture component
+  const SurfaceTexture = useMemo(() => {
+    if (!showEffects || effectIntensity[0] === 0) return null;
+    
+    const intensity = effectIntensity[0] / 100;
+    
+    return (
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `
+            repeating-linear-gradient(45deg, 
+              transparent, 
+              transparent 1px, 
+              rgba(255,255,255,${intensity * 0.02}) 1px, 
+              rgba(255,255,255,${intensity * 0.02}) 2px),
+            repeating-linear-gradient(-45deg, 
+              transparent, 
+              transparent 1px, 
+              rgba(0,0,0,${intensity * 0.01}) 1px, 
+              rgba(0,0,0,${intensity * 0.01}) 2px)
+          `,
+          mixBlendMode: 'overlay',
+          opacity: 0.3
+        }}
+      />
+    );
+  }, [showEffects, effectIntensity]);
 
   if (!isOpen) return null;
 
@@ -406,27 +575,27 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
         isFullscreen ? 'p-0' : 'p-8'
       }`}
       style={{
-        background: `linear-gradient(135deg, ${selectedScene.gradient.split(' ').map(color => 
-          color.includes('from-') ? color.replace('from-', 'rgba(0,0,0,0.8), ') :
-          color.includes('via-') ? color.replace('via-', 'rgba(0,0,0,0.7), ') :
-          color.includes('to-') ? color.replace('to-', 'rgba(0,0,0,0.9)') :
-          color
-        ).join(', ')})`
+        background: `linear-gradient(135deg, 
+          rgba(0,0,0,0.95) 0%, 
+          rgba(20,20,30,0.95) 25%, 
+          rgba(10,10,20,0.95) 50%, 
+          rgba(30,20,40,0.95) 75%, 
+          rgba(0,0,0,0.95) 100%)`
       }}
       onMouseMove={handleMouseMove}
       onMouseUp={handleDragEnd}
       onMouseLeave={handleDragEnd}
     >
-      {/* Dark Overlay for Better Card Visibility */}
-      <div className="absolute inset-0 bg-black/50" />
+      {/* Enhanced Dark Overlay */}
+      <div className="absolute inset-0 bg-black/80" />
 
-      {/* Ambient Background Effect - More Subtle */}
+      {/* Subtle Ambient Background Effect */}
       {ambient && (
         <div 
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-5"
           style={{
             background: `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-              ${selectedScene.lighting.color} 0%, transparent 40%)`
+              ${selectedScene.lighting.color} 0%, transparent 30%)`
           }}
         />
       )}
@@ -692,18 +861,20 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
         </div>
       )}
 
-      {/* Card Container - Higher z-index for prominence */}
+      {/* Enhanced Card Container */}
       <div 
         className={`relative z-20 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         style={{
           transform: `scale(${zoom})`,
           transition: isDragging ? 'none' : 'transform 0.3s ease',
-          filter: 'brightness(1.1) contrast(1.05)' // Slightly enhance card visibility
+          filter: 'brightness(1.2) contrast(1.1)'
         }}
         onMouseDown={handleDragStart}
         onMouseMove={handleDrag}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
       >
-        {/* 3D Card */}
+        {/* Enhanced 3D Card */}
         <div
           ref={cardRef}
           className="relative"
@@ -713,11 +884,11 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
             transform: `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
             transformStyle: 'preserve-3d',
             transition: isDragging ? 'none' : 'transform 0.1s ease',
-            filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))' // Enhanced shadow for better separation
+            filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.8))'
           }}
           onClick={() => setIsFlipped(!isFlipped)}
         >
-          {/* Front of Card */}
+          {/* Front of Card with Enhanced Effects */}
           <div
             className="absolute inset-0 rounded-xl overflow-hidden backface-hidden"
             style={{
@@ -726,14 +897,33 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
               backfaceVisibility: 'hidden'
             }}
           >
-            {/* Background Layer */}
+            {/* Base Card Layer */}
             <div className="absolute inset-0" style={getFrameStyles()} />
             
-            {/* Effects Layer */}
-            <div className="absolute inset-0 pointer-events-none" style={getEffectStyles()} />
+            {/* Surface Texture Layer */}
+            {SurfaceTexture}
+            
+            {/* Physical Effects Layer */}
+            <div 
+              className="absolute inset-0 pointer-events-none" 
+              style={getPhysicalEffectStyles()} 
+            />
+            
+            {/* Specular Highlight Layer */}
+            {showEffects && isHovering && (
+              <div 
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: `radial-gradient(ellipse 200px 100px at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
+                    rgba(255,255,255,${effectIntensity[0] * 0.003}) 0%, 
+                    transparent 70%)`,
+                  mixBlendMode: 'screen'
+                }}
+              />
+            )}
             
             {/* Card Content */}
-            <div className="relative h-full p-6 flex flex-col">
+            <div className="relative h-full p-6 flex flex-col z-10">
               {/* Image Section */}
               {card.image_url && (
                 <div className="flex-1 mb-6 relative overflow-hidden rounded-lg">
@@ -795,6 +985,22 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* Enhanced Moving Shine Effect */}
+            {isHovering && showEffects && (
+              <div 
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: `linear-gradient(${Math.atan2(mousePosition.y - 0.5, mousePosition.x - 0.5) * 180 / Math.PI + 90}deg, 
+                    transparent 30%, 
+                    rgba(255, 255, 255, ${effectIntensity[0] * 0.008}) 50%, 
+                    transparent 70%)`,
+                  transform: `translateX(${(mousePosition.x - 0.5) * 50}%) translateY(${(mousePosition.y - 0.5) * 30}%)`,
+                  transition: 'transform 0.1s ease',
+                  mixBlendMode: 'screen'
+                }}
+              />
+            )}
           </div>
 
           {/* Back of Card */}
