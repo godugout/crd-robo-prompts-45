@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { 
   X, 
@@ -407,30 +406,38 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
         isFullscreen ? 'p-0' : 'p-8'
       }`}
       style={{
-        background: `linear-gradient(135deg, ${selectedScene.gradient.split(' ').join(', ')})`
+        background: `linear-gradient(135deg, ${selectedScene.gradient.split(' ').map(color => 
+          color.includes('from-') ? color.replace('from-', 'rgba(0,0,0,0.8), ') :
+          color.includes('via-') ? color.replace('via-', 'rgba(0,0,0,0.7), ') :
+          color.includes('to-') ? color.replace('to-', 'rgba(0,0,0,0.9)') :
+          color
+        ).join(', ')})`
       }}
       onMouseMove={handleMouseMove}
       onMouseUp={handleDragEnd}
       onMouseLeave={handleDragEnd}
     >
-      {/* Ambient Background Effect */}
+      {/* Dark Overlay for Better Card Visibility */}
+      <div className="absolute inset-0 bg-black/50" />
+
+      {/* Ambient Background Effect - More Subtle */}
       {ambient && (
         <div 
-          className="absolute inset-0 opacity-30"
+          className="absolute inset-0 opacity-10"
           style={{
             background: `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-              ${selectedScene.lighting.color} 0%, transparent 50%)`
+              ${selectedScene.lighting.color} 0%, transparent 40%)`
           }}
         />
       )}
 
       {/* Main Controls */}
-      <div className="absolute top-4 right-4 flex space-x-2">
+      <div className="absolute top-4 right-4 flex space-x-2 z-10">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setShowCustomizePanel(!showCustomizePanel)}
-          className={`bg-white bg-opacity-10 hover:bg-opacity-20 backdrop-blur ${showCustomizePanel ? 'bg-opacity-30' : ''}`}
+          className={`bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 ${showCustomizePanel ? 'bg-opacity-40' : ''}`}
         >
           <Settings className="w-4 h-4 text-white" />
         </Button>
@@ -438,7 +445,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
           variant="ghost"
           size="sm"
           onClick={() => setShowEffects(!showEffects)}
-          className="bg-white bg-opacity-10 hover:bg-opacity-20 backdrop-blur"
+          className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
         >
           {showEffects ? <Eye className="w-4 h-4 text-white" /> : <EyeOff className="w-4 h-4 text-white" />}
         </Button>
@@ -446,7 +453,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
           variant="ghost"
           size="sm"
           onClick={() => setAutoRotate(!autoRotate)}
-          className={`bg-white bg-opacity-10 hover:bg-opacity-20 backdrop-blur ${autoRotate ? 'bg-opacity-30' : ''}`}
+          className={`bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 ${autoRotate ? 'bg-opacity-40' : ''}`}
         >
           <RotateCw className="w-4 h-4 text-white" />
         </Button>
@@ -454,7 +461,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
           variant="ghost"
           size="sm"
           onClick={handleReset}
-          className="bg-white bg-opacity-10 hover:bg-opacity-20 backdrop-blur"
+          className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
         >
           <Move className="w-4 h-4 text-white" />
         </Button>
@@ -462,7 +469,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
           variant="ghost"
           size="sm"
           onClick={() => handleZoom(0.1)}
-          className="bg-white bg-opacity-10 hover:bg-opacity-20 backdrop-blur"
+          className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
         >
           <ZoomIn className="w-4 h-4 text-white" />
         </Button>
@@ -470,7 +477,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
           variant="ghost"
           size="sm"
           onClick={() => handleZoom(-0.1)}
-          className="bg-white bg-opacity-10 hover:bg-opacity-20 backdrop-blur"
+          className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
         >
           <ZoomOut className="w-4 h-4 text-white" />
         </Button>
@@ -478,7 +485,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
           variant="ghost"
           size="sm"
           onClick={toggleFullscreen}
-          className="bg-white bg-opacity-10 hover:bg-opacity-20 backdrop-blur"
+          className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
         >
           {isFullscreen ? <Minimize2 className="w-4 h-4 text-white" /> : <Maximize2 className="w-4 h-4 text-white" />}
         </Button>
@@ -487,7 +494,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => onShare(card)}
-            className="bg-white bg-opacity-10 hover:bg-opacity-20 backdrop-blur"
+            className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
           >
             <Share2 className="w-4 h-4 text-white" />
           </Button>
@@ -497,7 +504,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => onDownload(card)}
-            className="bg-white bg-opacity-10 hover:bg-opacity-20 backdrop-blur"
+            className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
           >
             <Download className="w-4 h-4 text-white" />
           </Button>
@@ -507,7 +514,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="bg-white bg-opacity-10 hover:bg-opacity-20 backdrop-blur"
+            className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
           >
             <X className="w-4 h-4 text-white" />
           </Button>
@@ -516,9 +523,9 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
 
       {/* Customize Panel */}
       {showCustomizePanel && (
-        <div className="absolute top-4 right-4 mt-12 w-80 max-h-[80vh] bg-black bg-opacity-90 backdrop-blur rounded-lg overflow-hidden">
+        <div className="absolute top-4 right-4 mt-12 w-80 max-h-[80vh] bg-black bg-opacity-95 backdrop-blur-lg rounded-lg overflow-hidden border border-white/10 z-10">
           <Tabs defaultValue="scenes" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+            <TabsList className="grid w-full grid-cols-2 bg-gray-900 border-b border-white/10">
               <TabsTrigger value="scenes" className="text-white data-[state=active]:bg-blue-600">Scenes</TabsTrigger>
               <TabsTrigger value="customize" className="text-white data-[state=active]:bg-blue-600">Customize</TabsTrigger>
             </TabsList>
@@ -685,12 +692,13 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
         </div>
       )}
 
-      {/* Card Container */}
+      {/* Card Container - Higher z-index for prominence */}
       <div 
-        className={`relative ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        className={`relative z-20 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         style={{
           transform: `scale(${zoom})`,
-          transition: isDragging ? 'none' : 'transform 0.3s ease'
+          transition: isDragging ? 'none' : 'transform 0.3s ease',
+          filter: 'brightness(1.1) contrast(1.05)' // Slightly enhance card visibility
         }}
         onMouseDown={handleDragStart}
         onMouseMove={handleDrag}
@@ -704,7 +712,8 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
             height: '560px',
             transform: `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
             transformStyle: 'preserve-3d',
-            transition: isDragging ? 'none' : 'transform 0.1s ease'
+            transition: isDragging ? 'none' : 'transform 0.1s ease',
+            filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))' // Enhanced shadow for better separation
           }}
           onClick={() => setIsFlipped(!isFlipped)}
         >
@@ -884,10 +893,10 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
         </div>
       </div>
 
-      {/* Info Panel */}
+      {/* Info Panel - Enhanced visibility */}
       {showStats && !isFlipped && !showCustomizePanel && (
-        <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto">
-          <div className="bg-white bg-opacity-10 backdrop-blur rounded-lg p-4">
+        <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10">
+          <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
             <div className="flex items-center justify-between text-white">
               <div className="flex space-x-4 text-sm">
                 <span>Click card to flip</span>
