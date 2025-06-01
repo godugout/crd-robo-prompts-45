@@ -119,20 +119,6 @@ export const EditorPropertiesPanel = ({ cardEditor }: EditorPropertiesPanelProps
                   <option value="retro-wave">Retro Wave</option>
                 </select>
               </div>
-              <div>
-                <Label className="text-gray-300">Category</Label>
-                <select 
-                  className="w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
-                  value={cardEditor?.cardData.category || ''}
-                  onChange={(e) => cardEditor?.updateCardField('category', e.target.value)}
-                >
-                  <option value="">Select Category</option>
-                  <option value="movies">Movies</option>
-                  <option value="music">Music</option>
-                  <option value="art">Art</option>
-                  <option value="sports">Sports</option>
-                </select>
-              </div>
             </div>
           </div>
 

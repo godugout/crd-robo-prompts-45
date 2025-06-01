@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '@/contexts/AuthContext';
@@ -51,7 +50,6 @@ export interface CardData {
   description?: string;
   type?: string;
   series?: string;
-  category?: string;
   rarity: CardRarity;
   tags: string[];
   image_url?: string;
@@ -86,7 +84,6 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     description: initialData.description || '',
     type: initialData.type || '',
     series: initialData.series || '',
-    category: initialData.category || '',
     image_url: initialData.image_url,
     thumbnail_url: initialData.thumbnail_url,
     rarity: initialData.rarity || 'common',
@@ -172,14 +169,13 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
 
     setIsSaving(true);
     try {
-      // Convert to database format with proper JSON fields
+      // Convert to database format with proper JSON fields - removing category field
       const cardToSave = {
         id: finalCardData.id,
         title: finalCardData.title,
         description: finalCardData.description || null,
         type: finalCardData.type || null,
         series: finalCardData.series || null,
-        category: finalCardData.category || null,
         rarity: finalCardData.rarity,
         tags: finalCardData.tags,
         image_url: finalCardData.image_url || null,

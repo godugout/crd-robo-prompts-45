@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useCardEditor, CardData } from '@/hooks/useCardEditor';
@@ -49,9 +48,9 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
       
       setWizardState(prev => ({ ...prev, aiAnalysisComplete: true }));
       
+      // Find template based on tags only since category field doesn't exist in database
       const suggestedTemplate = DEFAULT_TEMPLATES.find(t => 
-        analysis.tags.some(tag => t.tags.includes(tag)) ||
-        t.category.toLowerCase().includes(analysis.category.toLowerCase())
+        analysis.tags.some(tag => t.tags.includes(tag))
       ) || DEFAULT_TEMPLATES[0];
       
       setWizardState(prev => ({ ...prev, selectedTemplate: suggestedTemplate }));
@@ -127,6 +126,5 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
     handlers,
     isSaving,
     templates: DEFAULT_TEMPLATES,
-    updateCardField
   };
 };
