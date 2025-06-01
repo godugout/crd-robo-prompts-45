@@ -2,7 +2,7 @@
 import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Camera, RotateCw, Maximize, Minimize, Crop } from 'lucide-react';
+import { Camera, RotateCw, Maximize, Minimize, Crop, Target, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PhotoStepProps {
@@ -41,22 +41,30 @@ export const PhotoStep = ({ selectedTemplate, searchQuery }: PhotoStepProps) => 
     <ScrollArea className="h-full px-4">
       <div className="space-y-6">
         <div className="text-center">
-          <h3 className="text-white font-medium text-lg mb-2">Photo Settings</h3>
+          <h3 className="text-white font-medium text-lg mb-2">Photo & Crop Tools</h3>
           <p className="text-crd-lightGray text-sm">
-            Upload and edit your photo in the center canvas
+            Upload images and extract perfect rectangular crops
           </p>
         </div>
 
         {/* Photo Actions */}
         <div className="space-y-4">
-          <h4 className="text-white font-medium text-sm uppercase tracking-wide">Photo Actions</h4>
+          <h4 className="text-white font-medium text-sm uppercase tracking-wide">Upload & Crop</h4>
           <div className="grid grid-cols-1 gap-2">
             <Button
               onClick={() => handlePhotoAction('upload')}
               className="w-full bg-crd-green hover:bg-crd-green/90 text-black"
             >
               <Camera className="w-4 h-4 mr-2" />
-              Upload New Photo
+              Upload & Crop Image
+            </Button>
+            <Button
+              onClick={() => handlePhotoAction('autofit')}
+              variant="outline"
+              className="w-full border-editor-border text-white"
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Auto-Fit Rectangle
             </Button>
             <Button
               onClick={() => handlePhotoAction('crop')}
@@ -64,16 +72,36 @@ export const PhotoStep = ({ selectedTemplate, searchQuery }: PhotoStepProps) => 
               className="w-full border-editor-border text-white"
             >
               <Crop className="w-4 h-4 mr-2" />
-              Crop & Adjust
+              Manual Crop
             </Button>
-            <Button
-              onClick={() => handlePhotoAction('autofit')}
-              variant="outline"
-              className="w-full border-editor-border text-white"
-            >
-              <RotateCw className="w-4 h-4 mr-2" />
-              Auto Fit to Frame
-            </Button>
+          </div>
+        </div>
+
+        {/* Crop Settings */}
+        <div className="space-y-4">
+          <h4 className="text-white font-medium text-sm uppercase tracking-wide">Crop Settings</h4>
+          <div className="space-y-3">
+            <div>
+              <label className="text-white text-xs font-medium">Aspect Ratio</label>
+              <select className="w-full mt-1 bg-editor-dark border border-editor-border rounded text-white p-2">
+                <option value="free">Free Crop</option>
+                <option value="card">Trading Card (2.5:3.5)</option>
+                <option value="document">Document (8.5:11)</option>
+                <option value="square">Square (1:1)</option>
+                <option value="photo">Photo (4:6)</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-white text-xs font-medium">Output Quality</label>
+              <input
+                type="range"
+                min="50"
+                max="100"
+                defaultValue="95"
+                className="w-full mt-1 accent-crd-green"
+              />
+              <span className="text-crd-lightGray text-xs">95% Quality</span>
+            </div>
           </div>
         </div>
 
@@ -117,44 +145,27 @@ export const PhotoStep = ({ selectedTemplate, searchQuery }: PhotoStepProps) => 
           </div>
         </div>
 
-        {/* Photo Filters */}
-        <div className="space-y-4">
-          <h4 className="text-white font-medium text-sm uppercase tracking-wide">Filters</h4>
-          <div className="grid grid-cols-2 gap-2">
-            {['Original', 'Vintage', 'B&W', 'Sepia', 'Vibrant', 'Cool'].map((filter) => (
-              <Button
-                key={filter}
-                onClick={() => handlePhotoAction(`filter-${filter.toLowerCase()}`)}
-                variant="outline"
-                size="sm"
-                className="border-editor-border text-white hover:bg-crd-green hover:text-black"
-              >
-                {filter}
-              </Button>
-            ))}
-          </div>
+        {/* Cropping Tips */}
+        <div className="bg-editor-tool p-4 rounded-lg">
+          <h4 className="text-white font-medium text-sm mb-2">Cropping Tips</h4>
+          <ul className="text-crd-lightGray text-xs space-y-1">
+            <li>• Drag corners to resize the crop area</li>
+            <li>• Click and drag inside to move the crop</li>
+            <li>• Use Auto-Fit for quick rectangle detection</li>
+            <li>• High-quality extraction preserves details</li>
+            <li>• Perfect for cards, documents, and photos</li>
+          </ul>
         </div>
 
         {/* Frame Compatibility */}
         <div className="bg-editor-tool p-4 rounded-lg">
-          <h4 className="text-white font-medium text-sm mb-2">Current Frame</h4>
+          <h4 className="text-white font-medium text-sm mb-2">Current Template</h4>
           <p className="text-crd-lightGray text-xs mb-3">
             Template: {selectedTemplate}
           </p>
           <p className="text-crd-lightGray text-xs">
-            Your photo will automatically adjust to fit this frame while preserving important elements.
+            Your cropped images will automatically adjust to fit this template while preserving quality.
           </p>
-        </div>
-
-        {/* Photo Tips */}
-        <div className="bg-editor-tool p-4 rounded-lg">
-          <h4 className="text-white font-medium text-sm mb-2">Photo Tips</h4>
-          <ul className="text-crd-lightGray text-xs space-y-1">
-            <li>• Use high-resolution images for best quality</li>
-            <li>• Portrait orientation works best for cards</li>
-            <li>• Center your subject for optimal framing</li>
-            <li>• Supported: JPG, PNG, WebP</li>
-          </ul>
         </div>
       </div>
     </ScrollArea>

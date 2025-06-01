@@ -1,37 +1,42 @@
 
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Camera, Crop, RotateCw, X } from 'lucide-react';
+import { Upload, Camera, Crop, RotateCw, X, Download, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { ImageCropper } from '../ImageCropper';
+import { useImageCropper } from '@/hooks/useImageCropper';
 
 interface PhotoUploadCanvasProps {
   onPhotoSelect: (file: File, preview: string) => void;
 }
 
 export const PhotoUploadCanvas = ({ onPhotoSelect }: PhotoUploadCanvasProps) => {
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [cropMode, setCropMode] = useState(false);
-  const [cropSettings, setCropSettings] = useState({
-    scale: 1,
-    rotation: 0,
-    offsetX: 0,
-    offsetY: 0
-  });
+  const [mode, setMode] = useState<'upload' | 'crop' | 'results'>('upload');
+  const {
+    originalImage,
+    croppedResults,
+    loadImage,
+    addCropResult,
+    removeCropResult,
+    clearAll,
+    downloadCrop,
+    downloadAllCrops
+  } = useImageCropper();
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
-      const reader = new FileReader();
-      reader.onload = () => {
-        const preview = reader.result as string;
-        setUploadedImage(preview);
-        onPhotoSelect(file, preview);
-        toast.success('Photo uploaded successfully!');
-      };
-      reader.readAsDataURL(file);
+      try {
+        await loadImage(file);
+        setMode('crop');
+        onPhotoSelect(file, URL.createObjectURL(file));
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Failed to load image');
+      }
     }
-  }, [onPhotoSelect]);
+  }, [loadImage, onPhotoSelect]);
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
@@ -39,34 +44,26 @@ export const PhotoUploadCanvas = ({ onPhotoSelect }: PhotoUploadCanvasProps) => 
       'image/*': []
     },
     maxFiles: 1,
-    noClick: !!uploadedImage,
+    noClick: mode !== 'upload',
     noKeyboard: true
   });
 
-  const handleCropSetting = (setting: keyof typeof cropSettings, value: number) => {
-    setCropSettings(prev => ({
-      ...prev,
-      [setting]: value
-    }));
-  };
+  const handleCropComplete = useCallback((croppedImageUrl: string) => {
+    addCropResult(croppedImageUrl);
+    setMode('results');
+  }, [addCropResult]);
 
-  const applyChanges = () => {
-    toast.success('Photo changes applied!');
-    setCropMode(false);
-  };
+  const handleNewCrop = useCallback(() => {
+    setMode('crop');
+  }, []);
 
-  const removePhoto = () => {
-    setUploadedImage(null);
-    setCropSettings({
-      scale: 1,
-      rotation: 0,
-      offsetX: 0,
-      offsetY: 0
-    });
-    toast.success('Photo removed');
-  };
+  const handleStartOver = useCallback(() => {
+    clearAll();
+    setMode('upload');
+  }, [clearAll]);
 
-  if (!uploadedImage) {
+  // Upload mode
+  if (mode === 'upload') {
     return (
       <div className="w-full h-full flex items-center justify-center">
         <div 
@@ -81,12 +78,12 @@ export const PhotoUploadCanvas = ({ onPhotoSelect }: PhotoUploadCanvasProps) => 
           <div className="flex flex-col items-center gap-6">
             <Upload className="w-16 h-16 text-crd-lightGray" />
             <div className="text-white text-xl font-medium">
-              {isDragActive ? 'Drop photo here' : 'Upload Your Photo'}
+              {isDragActive ? 'Drop image here' : 'Upload Image to Crop'}
             </div>
             <div className="text-crd-lightGray text-sm max-w-md">
               {isDragActive 
-                ? 'Release to upload your photo' 
-                : 'Drag and drop your photo here, or click to browse files'
+                ? 'Release to upload your image' 
+                : 'Drag and drop any image here, or click to browse files. Perfect for extracting cards, documents, or any rectangular objects.'
               }
             </div>
             <Button 
@@ -97,7 +94,7 @@ export const PhotoUploadCanvas = ({ onPhotoSelect }: PhotoUploadCanvasProps) => 
               className="bg-crd-green hover:bg-crd-green/90 text-black"
             >
               <Camera className="w-4 h-4 mr-2" />
-              Choose Photo
+              Choose Image
             </Button>
           </div>
         </div>
@@ -105,138 +102,125 @@ export const PhotoUploadCanvas = ({ onPhotoSelect }: PhotoUploadCanvasProps) => 
     );
   }
 
-  return (
-    <div className="w-full h-full flex flex-col items-center justify-center gap-6">
-      {/* Photo Preview */}
-      <div className="relative">
-        <div 
-          className="relative bg-editor-canvas rounded-xl shadow-xl overflow-hidden"
-          style={{ width: 320, height: 420 }}
-        >
-          <img 
-            src={uploadedImage}
-            alt="Uploaded photo" 
-            className="w-full h-full object-cover"
-            style={{
-              transform: `scale(${cropSettings.scale}) rotate(${cropSettings.rotation}deg) translate(${cropSettings.offsetX}px, ${cropSettings.offsetY}px)`
-            }}
+  // Crop mode
+  if (mode === 'crop' && originalImage) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-6 p-6">
+        <div className="text-center">
+          <h3 className="text-white text-xl font-medium mb-2">Crop Your Image</h3>
+          <p className="text-crd-lightGray">
+            Drag the crop area to select the rectangle you want to extract
+          </p>
+        </div>
+
+        <div className="w-full max-w-4xl">
+          <ImageCropper
+            imageUrl={originalImage}
+            onCropComplete={handleCropComplete}
+            aspectRatio={2.5 / 3.5} // Default to trading card ratio
           />
-          
-          {/* Frame overlay simulation */}
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="w-full h-full border-4 border-gray-800/50 rounded-xl"></div>
-            <div className="absolute top-2 left-2 right-2 h-8 bg-black/70 rounded flex items-center justify-center">
-              <span className="text-white text-xs font-bold">FRAME HEADER</span>
-            </div>
-            <div className="absolute bottom-2 left-2 right-2 h-6 bg-black/70 rounded flex items-center justify-center">
-              <span className="text-white text-xs">Frame Footer</span>
-            </div>
-          </div>
+        </div>
 
-          {/* Remove button */}
-          <button
-            onClick={removePhoto}
-            className="absolute top-4 right-4 w-8 h-8 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center text-white"
+        <div className="flex gap-4">
+          <Button
+            onClick={handleStartOver}
+            variant="outline"
+            className="border-editor-border text-white"
           >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Photo Controls */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          onClick={() => setCropMode(!cropMode)}
-          className={`border-editor-border text-white ${cropMode ? 'bg-crd-green text-black' : ''}`}
-        >
-          <Crop className="w-4 h-4 mr-2" />
-          {cropMode ? 'Done Editing' : 'Edit Photo'}
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => {
-            setCropSettings({
-              scale: 1,
-              rotation: 0,
-              offsetX: 0,
-              offsetY: 0
-            });
-            toast.success('Photo reset to original');
-          }}
-          className="border-editor-border text-white"
-        >
-          <RotateCw className="w-4 h-4 mr-2" />
-          Reset
-        </Button>
-      </div>
-
-      {/* Crop Controls */}
-      {cropMode && (
-        <div className="bg-editor-tool p-4 rounded-lg w-80">
-          <h4 className="text-white font-medium text-sm mb-4">Photo Adjustments</h4>
-          <div className="space-y-3">
-            <div>
-              <label className="text-white text-xs font-medium">Scale</label>
-              <input
-                type="range"
-                min="0.5"
-                max="2"
-                step="0.1"
-                value={cropSettings.scale}
-                onChange={(e) => handleCropSetting('scale', parseFloat(e.target.value))}
-                className="w-full mt-1 accent-crd-green"
-              />
-              <span className="text-crd-lightGray text-xs">{cropSettings.scale}x</span>
-            </div>
-            <div>
-              <label className="text-white text-xs font-medium">Rotation</label>
-              <input
-                type="range"
-                min="-180"
-                max="180"
-                step="1"
-                value={cropSettings.rotation}
-                onChange={(e) => handleCropSetting('rotation', parseInt(e.target.value))}
-                className="w-full mt-1 accent-crd-green"
-              />
-              <span className="text-crd-lightGray text-xs">{cropSettings.rotation}°</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-white text-xs font-medium">X Position</label>
-                <input
-                  type="range"
-                  min="-50"
-                  max="50"
-                  step="1"
-                  value={cropSettings.offsetX}
-                  onChange={(e) => handleCropSetting('offsetX', parseInt(e.target.value))}
-                  className="w-full mt-1 accent-crd-green"
-                />
-              </div>
-              <div>
-                <label className="text-white text-xs font-medium">Y Position</label>
-                <input
-                  type="range"
-                  min="-50"
-                  max="50"
-                  step="1"
-                  value={cropSettings.offsetY}
-                  onChange={(e) => handleCropSetting('offsetY', parseInt(e.target.value))}
-                  className="w-full mt-1 accent-crd-green"
-                />
-              </div>
-            </div>
-            <Button 
-              className="w-full bg-crd-green hover:bg-crd-green/90 text-black mt-4" 
-              onClick={applyChanges}
+            <Upload className="w-4 h-4 mr-2" />
+            Upload Different Image
+          </Button>
+          
+          {croppedResults.length > 0 && (
+            <Button
+              onClick={() => setMode('results')}
+              className="bg-crd-green hover:bg-crd-green/90 text-black"
             >
-              Apply Changes
+              View Results ({croppedResults.length})
             </Button>
-          </div>
+          )}
         </div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
+
+  // Results mode
+  if (mode === 'results') {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-6 p-6">
+        <div className="text-center">
+          <h3 className="text-white text-xl font-medium mb-2">Extracted Crops</h3>
+          <p className="text-crd-lightGray">
+            {croppedResults.length} crop{croppedResults.length !== 1 ? 's' : ''} extracted successfully
+          </p>
+        </div>
+
+        {/* Results Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl w-full max-h-96 overflow-auto">
+          {croppedResults.map((result, index) => (
+            <Card key={index} className="relative group bg-editor-dark border-editor-border overflow-hidden">
+              <div className="aspect-[3/4] relative">
+                <img
+                  src={result.croppedImageUrl}
+                  alt={`Crop ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                
+                {/* Overlay controls */}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => downloadCrop(result, `crop_${index + 1}.png`)}
+                    className="bg-crd-green hover:bg-crd-green/90 text-black"
+                  >
+                    <Download className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => removeCropResult(index)}
+                    className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Controls */}
+        <div className="flex gap-4 flex-wrap">
+          <Button
+            onClick={handleNewCrop}
+            variant="outline"
+            className="border-editor-border text-white"
+          >
+            <Crop className="w-4 h-4 mr-2" />
+            Make Another Crop
+          </Button>
+          
+          <Button
+            onClick={downloadAllCrops}
+            disabled={croppedResults.length === 0}
+            className="bg-crd-green hover:bg-crd-green/90 text-black"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Download All ({croppedResults.length})
+          </Button>
+          
+          <Button
+            onClick={handleStartOver}
+            variant="outline"
+            className="border-editor-border text-white"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Start Over
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 };
