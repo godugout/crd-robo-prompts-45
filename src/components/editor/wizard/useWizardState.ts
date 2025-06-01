@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useCardEditor, CardData } from '@/hooks/useCardEditor';
@@ -126,5 +127,6 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
     handlers,
     isSaving,
     templates: DEFAULT_TEMPLATES,
+    updateCardField
   };
 };
