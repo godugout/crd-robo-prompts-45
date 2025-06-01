@@ -10,21 +10,20 @@ import { Button } from '@/components/ui/button';
 import { RotateCcw, Sparkles } from 'lucide-react';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
 import { toast } from 'sonner';
+import type { CardData } from '@/hooks/useCardEditor';
 
 interface SimpleEditorProps {
-  initialData: { photo: string; templateId: string } | null;
+  initialData: CardData | null;
   onStartOver?: () => void;
 }
 
 export const SimpleEditor = ({ initialData, onStartOver }: SimpleEditorProps) => {
-  const [selectedTemplate, setSelectedTemplate] = useState(initialData?.templateId || 'template1');
+  const [selectedTemplate, setSelectedTemplate] = useState(initialData?.template_id || 'template1');
   const [zoom, setZoom] = useState(100);
   const [showImmersiveViewer, setShowImmersiveViewer] = useState(false);
 
   const cardEditor = useCardEditor({
-    initialData: {
-      image_url: initialData?.photo,
-      template_id: initialData?.templateId,
+    initialData: initialData || {
       title: 'My New Card',
       rarity: 'common',
       tags: [],

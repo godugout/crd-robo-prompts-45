@@ -5,6 +5,7 @@ import { SimpleEditor } from './SimpleEditor';
 import { Button } from '@/components/ui/button';
 import { Upload, Plus, ArrowLeft } from 'lucide-react';
 import { CardsPage } from '@/components/cards/CardsPage';
+import type { CardData } from '@/hooks/useCardEditor';
 
 type FlowType = 'single' | 'bulk' | 'editing';
 
@@ -15,9 +16,9 @@ interface CardCreationFlowProps {
 export const CardCreationFlow = ({ initialCardId }: CardCreationFlowProps) => {
   const [flowType, setFlowType] = useState<FlowType>(initialCardId ? 'editing' : 'single');
   const [wizardComplete, setWizardComplete] = useState(!!initialCardId);
-  const [cardData, setCardData] = useState<{ photo: string; templateId: string } | null>(null);
+  const [cardData, setCardData] = useState<CardData | null>(null);
 
-  const handleWizardComplete = (data: { photo: string; templateId: string }) => {
+  const handleWizardComplete = (data: CardData) => {
     setCardData(data);
     setWizardComplete(true);
     setFlowType('editing');
