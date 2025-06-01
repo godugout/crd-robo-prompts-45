@@ -9,7 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // CRD Design System variants with explicit text colors
+        // CRD Design System variants with proper text colors
         primary: "bg-crd-blue text-white hover:bg-crd-blue/90",
         secondary: "bg-crd-lightGray text-black hover:bg-crd-lightGray/90",
         outline: "bg-transparent border border-crd-lightGray text-crd-lightGray hover:border-crd-lightGray hover:text-black hover:bg-crd-lightGray",
@@ -41,12 +41,9 @@ export interface CRDButtonProps extends Omit<ShadcnButtonProps, 'variant' | 'siz
 
 export const CRDButton = React.forwardRef<HTMLButtonElement, CRDButtonProps>(
   ({ className, variant, size, icon, children, asChild, ...props }, ref) => {
-    // Apply explicit text color classes based on variant
-    const textColorClass = variant === 'secondary' || variant === 'outline' ? 'btn-text-dark' : '';
-    
     return (
       <ShadcnButton
-        className={cn(buttonVariants({ variant, size }), textColorClass, className)}
+        className={cn(buttonVariants({ variant, size }), className)}
         ref={ref}
         asChild={asChild}
         {...props}

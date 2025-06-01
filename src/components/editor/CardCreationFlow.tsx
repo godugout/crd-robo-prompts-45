@@ -64,20 +64,17 @@ export const CardCreationFlow = ({ initialCardId }: CardCreationFlowProps) => {
   if (!wizardComplete) {
     return (
       <div className="min-h-screen bg-crd-darkest">
-        {/* Header with bulk upload option */}
+        {/* Header with proper vertical alignment and no extra space */}
         <div className="border-b border-editor-border bg-editor-dark">
           <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-white">Create Your Card</h1>
-              <div className="text-crd-lightGray text-sm">
-                Upload a photo and let AI suggest the perfect details
-              </div>
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setFlowType('bulk')}
-              className="bg-transparent border-crd-lightGray text-black hover:bg-crd-lightGray hover:text-black hover:border-crd-lightGray transition-colors"
+              className="bg-transparent border-crd-lightGray text-crd-lightGray hover:bg-crd-lightGray hover:text-black hover:border-crd-lightGray transition-colors"
             >
               <Upload className="w-4 h-4 mr-2" />
               Bulk Upload
@@ -85,7 +82,7 @@ export const CardCreationFlow = ({ initialCardId }: CardCreationFlowProps) => {
           </div>
         </div>
 
-        {/* Main wizard content */}
+        {/* Main wizard content with no extra padding */}
         <div className="flex-1">
           <SimpleCardWizard onComplete={handleWizardComplete} />
         </div>

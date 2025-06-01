@@ -63,7 +63,7 @@ export const SimpleCardWizard = ({ onComplete }: SimpleCardWizardProps) => {
             variant="outline"
             onClick={handlers.handleBack}
             disabled={wizardState.currentStep === 1}
-            className="border-editor-border text-white hover:bg-editor-border"
+            className="border-editor-border text-white hover:bg-editor-border hover:text-white"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
@@ -73,7 +73,7 @@ export const SimpleCardWizard = ({ onComplete }: SimpleCardWizardProps) => {
             {wizardState.currentStep < 4 ? (
               <Button
                 onClick={handlers.handleNext}
-                className="bg-crd-green hover:bg-crd-green/90 text-black"
+                className="bg-crd-green hover:bg-crd-green/90 text-black font-medium"
                 disabled={isSaving}
               >
                 {wizardState.currentStep === 1 && wizardState.aiAnalysisComplete && wizardState.selectedTemplate 
@@ -84,7 +84,7 @@ export const SimpleCardWizard = ({ onComplete }: SimpleCardWizardProps) => {
             ) : (
               <Button
                 onClick={handlers.handleComplete}
-                className="bg-crd-green hover:bg-crd-green/90 text-black"
+                className="bg-crd-green hover:bg-crd-green/90 text-black font-medium"
                 disabled={isSaving}
               >
                 {isSaving ? 'Creating...' : 'Create Card'}
