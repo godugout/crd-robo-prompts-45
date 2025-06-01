@@ -36,6 +36,19 @@ export const EnhancedInteractivePreview = ({
     setShowImmersiveViewer(true);
   };
 
+  const handleEffectChange = (effects: any[]) => {
+    if (cardEditor) {
+      // Convert effects array to object for storage
+      const effectsObject = effects.reduce((acc, effect) => {
+        acc[effect.type] = effect.intensity;
+        return acc;
+      }, {});
+      
+      cardEditor.updateDesignMetadata('effects', effectsObject);
+      toast.success('Effects updated');
+    }
+  };
+
   const handleDownloadCard = () => {
     if (!cardEditor?.cardData) {
       toast.error('No card data available');
@@ -76,7 +89,7 @@ export const EnhancedInteractivePreview = ({
     image_url: currentPhoto?.preview || cardEditor.cardData.image_url,
     design_metadata: {
       ...cardEditor.cardData.design_metadata,
-      effects: cardState?.effects || {}
+      effects: cardState?.effects || cardEditor.cardData.design_metadata?.effects || {}
     }
   } : null;
 
@@ -91,13 +104,8 @@ export const EnhancedInteractivePreview = ({
             height={420}
             interactive={true}
             showEffectControls={false}
-            className="cursor-pointer"
-            onEffectChange={(effects) => {
-              // Update card state with new effects
-              window.dispatchEvent(new CustomEvent('effectChange', {
-                detail: { effects }
-              }));
-            }}
+            className="cursor-pointer shadow-2xl"
+            onEffectChange={handleEffectChange}
           />
         ) : (
           <div className="aspect-[3/4] w-80 rounded-xl shadow-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300 flex items-center justify-center">

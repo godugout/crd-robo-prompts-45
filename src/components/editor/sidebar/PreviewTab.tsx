@@ -28,12 +28,10 @@ export const PreviewTab = ({ selectedTemplate, cardData, onContinueToEffects }: 
 
   const handleExport = () => {
     toast.success('Exporting high-resolution card...');
-    // This would export the card at full resolution
   };
 
   const handleShare = () => {
     toast.success('Generating share link...');
-    // This would create a shareable link
   };
 
   const handleDownloadCard = (card: CardData) => {

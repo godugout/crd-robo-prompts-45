@@ -11,6 +11,15 @@ interface CardState {
     holographic: boolean;
     neonGlow: boolean;
     vintage: boolean;
+    // Add advanced effects
+    holographicIntensity: number;
+    refractorIntensity: number;
+    foilIntensity: number;
+    prizmIntensity: number;
+    rainbowIntensity: number;
+    chromeIntensity: number;
+    goldIntensity: number;
+    blackIntensity: number;
   };
   template: {
     id: string;
@@ -50,7 +59,16 @@ export const EditorCanvasContainer = ({ cardEditor, children }: EditorCanvasCont
       filter: 'none',
       holographic: false,
       neonGlow: false,
-      vintage: false
+      vintage: false,
+      // Initialize advanced effects
+      holographicIntensity: 0,
+      refractorIntensity: 0,
+      foilIntensity: 0,
+      prizmIntensity: 0,
+      rainbowIntensity: 0,
+      chromeIntensity: 0,
+      goldIntensity: 0,
+      blackIntensity: 0
     },
     template: {
       id: 'template1',
@@ -66,6 +84,27 @@ export const EditorCanvasContainer = ({ cardEditor, children }: EditorCanvasCont
     }
   });
 
+  // Sync card editor effects with card state
+  useEffect(() => {
+    if (cardEditor?.cardData?.design_metadata?.effects) {
+      const effects = cardEditor.cardData.design_metadata.effects;
+      setCardState(prev => ({
+        ...prev,
+        effects: {
+          ...prev.effects,
+          holographicIntensity: effects.holographic || 0,
+          refractorIntensity: effects.refractor || 0,
+          foilIntensity: effects.foil || 0,
+          prizmIntensity: effects.prizm || 0,
+          rainbowIntensity: effects.rainbow || 0,
+          chromeIntensity: effects.chrome || 0,
+          goldIntensity: effects.gold || 0,
+          blackIntensity: effects.black || 0
+        }
+      }));
+    }
+  }, [cardEditor?.cardData?.design_metadata?.effects]);
+
   // Listen for all sidebar events
   useEffect(() => {
     const handlePhotoAction = (event: CustomEvent) => {
@@ -80,11 +119,31 @@ export const EditorCanvasContainer = ({ cardEditor, children }: EditorCanvasCont
     };
 
     const handleEffectChange = (event: CustomEvent) => {
-      const { effectType, value, enabled } = event.detail;
-      setCardState(prev => ({
-        ...prev,
-        effects: { ...prev.effects, [effectType]: enabled !== undefined ? enabled : value }
-      }));
+      const { effectType, value, enabled, effects } = event.detail;
+      
+      // Handle advanced effects object update
+      if (effects) {
+        setCardState(prev => ({
+          ...prev,
+          effects: {
+            ...prev.effects,
+            holographicIntensity: effects.holographic || 0,
+            refractorIntensity: effects.refractor || 0,
+            foilIntensity: effects.foil || 0,
+            prizmIntensity: effects.prizm || 0,
+            rainbowIntensity: effects.rainbow || 0,
+            chromeIntensity: effects.chrome || 0,
+            goldIntensity: effects.gold || 0,
+            blackIntensity: effects.black || 0
+          }
+        }));
+      } else {
+        // Handle individual effect updates
+        setCardState(prev => ({
+          ...prev,
+          effects: { ...prev.effects, [effectType]: enabled !== undefined ? enabled : value }
+        }));
+      }
     };
 
     const handleTemplateChange = (event: CustomEvent) => {
