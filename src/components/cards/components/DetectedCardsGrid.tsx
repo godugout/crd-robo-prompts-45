@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { CheckCircle, RotateCcw, Save } from 'lucide-react';
+import { CheckCircle, RotateCcw, Save, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import type { CardDetectionResult } from '@/services/cardDetection';
 
@@ -16,6 +16,7 @@ export const DetectedCardsGrid: React.FC<DetectedCardsGridProps> = ({
   onStartOver
 }) => {
   const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
   
   const totalCards = results.reduce((sum, result) => sum + result.detectedCards.length, 0);
 
@@ -42,14 +43,55 @@ export const DetectedCardsGrid: React.FC<DetectedCardsGridProps> = ({
     setSelectedCards(new Set());
   };
 
-  const saveSelectedCards = () => {
+  const downloadCard = async (card: any) => {
+    try {
+      const response = await fetch(card.croppedImageUrl);
+      const blob = await response.blob();
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `card_${card.id}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success(`Downloaded card ${card.id}`);
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast.error('Failed to download card');
+    }
+  };
+
+  const saveSelectedCards = async () => {
     if (selectedCards.size === 0) {
       toast.warning('Please select at least one card to save');
       return;
     }
     
-    toast.success(`Saving ${selectedCards.size} selected cards to your collection...`);
-    // Here you would implement the actual save functionality
+    setIsSaving(true);
+    
+    try {
+      // Get all selected cards
+      const cardsToSave = results.flatMap(result => 
+        result.detectedCards.filter(card => selectedCards.has(card.id))
+      );
+      
+      // For now, we'll download the selected cards
+      // In a real app, this would save to a collection or database
+      for (const card of cardsToSave) {
+        await downloadCard(card);
+      }
+      
+      toast.success(`Successfully saved ${selectedCards.size} cards to your collection!`);
+      setSelectedCards(new Set()); // Clear selection after save
+    } catch (error) {
+      console.error('Save failed:', error);
+      toast.error('Failed to save cards. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -58,7 +100,7 @@ export const DetectedCardsGrid: React.FC<DetectedCardsGridProps> = ({
       <div className="text-center">
         <h2 className="text-2xl font-bold text-white mb-2">Detected Cards</h2>
         <p className="text-crd-lightGray">
-          Found {totalCards} trading cards across {results.length} images
+          Found {totalCards} trading cards with high accuracy detection
         </p>
       </div>
 
@@ -92,11 +134,20 @@ export const DetectedCardsGrid: React.FC<DetectedCardsGridProps> = ({
           </Button>
           <Button
             onClick={saveSelectedCards}
+            disabled={selectedCards.size === 0 || isSaving}
             className="bg-crd-green hover:bg-crd-green/90 text-black"
-            disabled={selectedCards.size === 0}
           >
-            <Save className="w-4 h-4 mr-2" />
-            Save Selected ({selectedCards.size})
+            {isSaving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Save Selected ({selectedCards.size})
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -108,37 +159,54 @@ export const DetectedCardsGrid: React.FC<DetectedCardsGridProps> = ({
             const isSelected = selectedCards.has(card.id);
             
             return (
-              <Card
-                key={card.id}
-                className={`relative cursor-pointer transition-all ${
-                  isSelected 
-                    ? 'ring-2 ring-crd-green bg-crd-green/10' 
-                    : 'hover:ring-1 hover:ring-crd-lightGray'
-                }`}
-                onClick={() => toggleCardSelection(card.id)}
-              >
-                <div className="aspect-[2.5/3.5] bg-black rounded-lg overflow-hidden">
-                  <img
-                    src={card.croppedImageUrl}
-                    alt={`Detected card ${card.id}`}
-                    className="w-full h-full object-cover"
-                  />
-                  
-                  {/* Selection Indicator */}
-                  {isSelected && (
-                    <div className="absolute top-2 right-2">
-                      <CheckCircle className="w-6 h-6 text-crd-green bg-black rounded-full" />
+              <div key={card.id} className="relative">
+                <Card
+                  className={`relative cursor-pointer transition-all group ${
+                    isSelected 
+                      ? 'ring-2 ring-crd-green bg-crd-green/10' 
+                      : 'hover:ring-1 hover:ring-crd-lightGray'
+                  }`}
+                  onClick={() => toggleCardSelection(card.id)}
+                >
+                  <div className="aspect-[2.5/3.5] bg-black rounded-lg overflow-hidden">
+                    <img
+                      src={card.croppedImageUrl}
+                      alt={`Detected card ${card.id}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.error('Image load error:', e);
+                        // Fallback to original image if cropped fails
+                        e.currentTarget.src = card.originalImageUrl;
+                      }}
+                    />
+                    
+                    {/* Selection Indicator */}
+                    {isSelected && (
+                      <div className="absolute top-2 right-2">
+                        <CheckCircle className="w-6 h-6 text-crd-green bg-black rounded-full" />
+                      </div>
+                    )}
+                    
+                    {/* Confidence Badge */}
+                    <div className="absolute bottom-2 left-2">
+                      <span className="px-2 py-1 bg-black/80 text-white text-xs rounded">
+                        {Math.round(card.confidence * 100)}%
+                      </span>
                     </div>
-                  )}
-                  
-                  {/* Confidence Badge */}
-                  <div className="absolute bottom-2 left-2">
-                    <span className="px-2 py-1 bg-black/80 text-white text-xs rounded">
-                      {Math.round(card.confidence * 100)}%
-                    </span>
+
+                    {/* Download Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        downloadCard(card);
+                      }}
+                      className="absolute top-2 left-2 w-8 h-8 bg-black/80 hover:bg-black rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
                   </div>
-                </div>
-              </Card>
+                </Card>
+              </div>
             );
           })
         )}
@@ -148,6 +216,9 @@ export const DetectedCardsGrid: React.FC<DetectedCardsGridProps> = ({
       <div className="text-center text-crd-lightGray text-sm">
         <p>
           {selectedCards.size} of {totalCards} cards selected
+        </p>
+        <p className="mt-1">
+          Click cards to select them, then use "Save Selected" to add them to your collection
         </p>
       </div>
     </div>

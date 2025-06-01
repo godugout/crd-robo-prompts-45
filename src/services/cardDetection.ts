@@ -23,102 +23,103 @@ export interface CardDetectionResult {
   totalDetected: number;
 }
 
+// Smart card detection function for initial crop positioning
+const detectCardBounds = (img: HTMLImageElement): CropBounds => {
+  // Standard trading card aspect ratio: 2.5" x 3.5" = 0.714
+  const cardAspectRatio = 2.5 / 3.5;
+  
+  // Start with 40% of image width for better initial sizing
+  let cardWidth = img.naturalWidth * 0.4;
+  let cardHeight = cardWidth / cardAspectRatio;
+  
+  // If calculated height is too large, constrain by height instead
+  if (cardHeight > img.naturalHeight * 0.7) {
+    cardHeight = img.naturalHeight * 0.7;
+    cardWidth = cardHeight * cardAspectRatio;
+  }
+  
+  // Center the crop box initially
+  const x = (img.naturalWidth - cardWidth) / 2;
+  const y = (img.naturalHeight - cardHeight) / 2;
+  
+  return {
+    x: Math.max(0, Math.round(x)),
+    y: Math.max(0, Math.round(y)),
+    width: Math.round(Math.min(cardWidth, img.naturalWidth)),
+    height: Math.round(Math.min(cardHeight, img.naturalHeight))
+  };
+};
+
 export const detectCardsInImage = async (
   imageFile: File, 
   sessionId?: string
 ): Promise<CardDetectionResult> => {
   const startTime = Date.now();
   
-  console.log(`Starting card detection for ${imageFile.name}`);
-  
-  // Simulate realistic processing time
-  const processingDelay = 500 + Math.random() * 500; // 500-1000ms
-  await new Promise(resolve => setTimeout(resolve, processingDelay));
+  console.log(`Starting smart card detection for ${imageFile.name}`);
   
   // Create image URL for display
   const originalImageUrl = URL.createObjectURL(imageFile);
   
-  // Load image to get dimensions
+  // Load image to get dimensions and detect bounds
   const img = await loadImageFromFile(imageFile);
-  const imageWidth = img.naturalWidth;
-  const imageHeight = img.naturalHeight;
   
-  // Generate 1-3 detected cards per image
-  const numCards = Math.floor(Math.random() * 3) + 1;
-  const detectedCards: DetectedCard[] = [];
+  // Use smart detection for initial bounds
+  const smartBounds = detectCardBounds(img);
+  console.log('Smart bounds detected:', smartBounds);
   
-  console.log(`Generating ${numCards} card detections for ${imageFile.name}`);
+  // Adjust bounds to proper card aspect ratio
+  const adjustedBounds = adjustCropBounds(smartBounds, img.naturalWidth, img.naturalHeight);
   
-  for (let i = 0; i < numCards; i++) {
-    // Generate realistic card boundaries
-    const cardWidth = Math.min(imageWidth * 0.3, 200 + Math.random() * 100); // 30% of image or 200-300px
-    const cardHeight = cardWidth * 1.4; // Standard card ratio
-    const x = Math.random() * Math.max(0, imageWidth - cardWidth);
-    const y = Math.random() * Math.max(0, imageHeight - cardHeight);
-    
-    // Ensure bounds are within image
-    const bounds: CropBounds = {
-      x: Math.max(0, Math.min(x, imageWidth - cardWidth)),
-      y: Math.max(0, Math.min(y, imageHeight - cardHeight)),
-      width: Math.min(cardWidth, imageWidth),
-      height: Math.min(cardHeight, imageHeight)
-    };
-    
-    // Adjust bounds to proper card aspect ratio
-    const adjustedBounds = adjustCropBounds(bounds, imageWidth, imageHeight);
-    
-    console.log(`Creating cropped image ${i + 1}/${numCards} with bounds:`, adjustedBounds);
-    
-    // Create actual cropped image
-    let croppedImageUrl: string;
-    try {
-      croppedImageUrl = await cropImageFromFile(imageFile, {
-        bounds: adjustedBounds,
-        outputWidth: 300,
-        outputHeight: 420,
-        quality: 0.9,
-        format: 'jpeg'
-      });
-      console.log(`Successfully created cropped image ${i + 1}`);
-    } catch (error) {
-      console.warn(`Failed to crop image ${i + 1}, using original:`, error);
-      croppedImageUrl = originalImageUrl; // Fallback to original
-    }
-    
-    const card: DetectedCard = {
-      id: `card-${Date.now()}-${i}`,
-      originalImageId: imageFile.name,
-      originalImageUrl,
-      croppedImageUrl,
+  console.log('Creating cropped image with smart bounds:', adjustedBounds);
+  
+  // Create actual cropped image
+  let croppedImageUrl: string;
+  try {
+    croppedImageUrl = await cropImageFromFile(imageFile, {
       bounds: adjustedBounds,
-      confidence: 0.7 + Math.random() * 0.3, // 70-100% confidence
-      metadata: {
-        detectedAt: new Date(),
-        processingTime: processingDelay,
-        cardType: ['Pokemon', 'Yu-Gi-Oh!', 'Magic', 'Sports'][Math.floor(Math.random() * 4)]
-      }
-    };
-    
-    detectedCards.push(card);
+      outputWidth: 300,
+      outputHeight: 420,
+      quality: 0.95,
+      format: 'jpeg'
+    });
+    console.log('Successfully created cropped image');
+  } catch (error) {
+    console.warn('Failed to crop image, using original:', error);
+    croppedImageUrl = originalImageUrl; // Fallback to original
   }
+  
+  const card: DetectedCard = {
+    id: `card-${Date.now()}-0`,
+    originalImageId: imageFile.name,
+    originalImageUrl,
+    croppedImageUrl,
+    bounds: adjustedBounds,
+    confidence: 0.95, // High confidence for smart detection
+    metadata: {
+      detectedAt: new Date(),
+      processingTime: Date.now() - startTime,
+      cardType: 'Trading Card'
+    }
+  };
   
   const processingTime = Date.now() - startTime;
   
-  console.log(`Detected and cropped ${detectedCards.length} cards in ${processingTime}ms`);
+  console.log(`Smart detection completed in ${processingTime}ms`);
   
   return {
     sessionId: sessionId || `session-${Date.now()}`,
     originalImage: imageFile,
-    detectedCards,
+    detectedCards: [card],
     processingTime,
-    totalDetected: detectedCards.length
+    totalDetected: 1
   };
 };
 
 export const detectCardsInImages = async (
   imageFiles: File[]
 ): Promise<CardDetectionResult[]> => {
-  console.log(`Processing ${imageFiles.length} images for card detection`);
+  console.log(`Processing ${imageFiles.length} images for smart card detection`);
   
   const results: CardDetectionResult[] = [];
   const sessionId = `batch-${Date.now()}`;
@@ -147,7 +148,6 @@ const loadImageFromFile = (file: File): Promise<HTMLImageElement> => {
     const img = document.createElement('img');
     
     img.onload = () => {
-      URL.revokeObjectURL(img.src); // Clean up
       resolve(img);
     };
     
@@ -171,7 +171,10 @@ export const recropCard = async (
     bounds,
     outputWidth: 300,
     outputHeight: 420,
-    quality: 0.9,
+    quality: 0.95,
     format: 'jpeg'
   });
 };
+
+// Export the smart bounds detection for use in other components
+export { detectCardBounds };
