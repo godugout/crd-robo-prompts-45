@@ -18,3 +18,18 @@
   --x: calc(random() * 60px - 30px);
   --y: calc(random() * -70px - 20px);
 }
+
+/* Button text color utilities to ensure proper contrast */
+@layer utilities {
+  .btn-text-dark {
+    color: #121212 !important;
+  }
+  
+  .btn-text-light {
+    color: #FCFCFD !important;
+  }
+  
+  .btn-text-gray {
+    color: #777E90 !important;
+  }
+}

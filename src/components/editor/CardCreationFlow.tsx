@@ -39,14 +39,14 @@ export const CardCreationFlow = ({ initialCardId }: CardCreationFlowProps) => {
   if (flowType === 'bulk') {
     return (
       <div className="min-h-screen bg-crd-darkest">
-        <div className="p-4 border-b border-editor-border bg-editor-dark">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
+        <div className="border-b border-editor-border bg-editor-dark">
+          <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setFlowType('single')}
-                className="text-white hover:bg-editor-border"
+                className="text-white hover:bg-editor-border hover:text-white"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Single Card Creation
@@ -65,8 +65,8 @@ export const CardCreationFlow = ({ initialCardId }: CardCreationFlowProps) => {
     return (
       <div className="min-h-screen bg-crd-darkest">
         {/* Header with bulk upload option */}
-        <div className="px-4 py-3 border-b border-editor-border bg-editor-dark">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
+        <div className="border-b border-editor-border bg-editor-dark">
+          <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-white">Create Your Card</h1>
               <div className="text-crd-lightGray text-sm">
@@ -77,7 +77,7 @@ export const CardCreationFlow = ({ initialCardId }: CardCreationFlowProps) => {
               variant="outline"
               size="sm"
               onClick={() => setFlowType('bulk')}
-              className="border-editor-border text-crd-lightGray hover:bg-editor-border hover:text-crd-darkest bg-transparent"
+              className="bg-transparent border-crd-lightGray text-crd-lightGray hover:bg-crd-lightGray hover:text-crd-darkest hover:border-crd-lightGray transition-colors"
             >
               <Upload className="w-4 h-4 mr-2" />
               Bulk Upload

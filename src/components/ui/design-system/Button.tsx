@@ -5,16 +5,16 @@ import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        // CRD Design System variants
-        primary: "bg-crd-blue text-crd-white hover:bg-opacity-90",
-        secondary: "bg-crd-lightGray text-crd-darkest hover:bg-opacity-90",
-        outline: "bg-transparent border border-crd-lightGray text-crd-lightGray hover:border-crd-white hover:text-crd-darkest hover:bg-crd-lightGray",
-        ghost: "bg-transparent text-crd-lightGray hover:bg-crd-mediumGray/20 hover:text-crd-white",
-        action: "p-3 rounded-full border-2 border-crd-mediumGray bg-transparent hover:bg-crd-mediumGray/10",
+        // CRD Design System variants with explicit text colors
+        primary: "bg-crd-blue text-white hover:bg-crd-blue/90",
+        secondary: "bg-crd-lightGray text-crd-darkest hover:bg-crd-lightGray/90",
+        outline: "bg-transparent border border-crd-lightGray text-crd-lightGray hover:border-crd-lightGray hover:text-crd-darkest hover:bg-crd-lightGray",
+        ghost: "bg-transparent text-crd-lightGray hover:bg-crd-mediumGray/20 hover:text-white",
+        action: "p-3 rounded-full border-2 border-crd-mediumGray bg-transparent hover:bg-crd-mediumGray/10 text-crd-lightGray hover:text-white",
         // Standard variants
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
@@ -43,7 +43,7 @@ export const CRDButton = React.forwardRef<HTMLButtonElement, CRDButtonProps>(
   ({ className, variant, size, icon, children, asChild, ...props }, ref) => {
     return (
       <ShadcnButton
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant, size }), className)}
         ref={ref}
         asChild={asChild}
         {...props}
