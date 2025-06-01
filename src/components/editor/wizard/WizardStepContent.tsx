@@ -43,10 +43,7 @@ export const WizardStepContent = ({
       return (
         <CardDetailsStep
           cardData={cardData}
-          onFieldUpdate={(field, value) => {
-            // We need to access updateCardField from the hook, but it's not in handlers
-            // This is a limitation of the current refactor - we'll handle it in the main component
-          }}
+          onFieldUpdate={handlers.updateCardField}
           onCreatorAttributionUpdate={handlers.updateCreatorAttribution}
           aiAnalysisComplete={wizardState.aiAnalysisComplete}
         />

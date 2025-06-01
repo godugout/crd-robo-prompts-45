@@ -24,6 +24,7 @@ export interface WizardHandlers {
   handleComplete: () => Promise<void>;
   updatePublishingOptions: (key: keyof PublishingOptions, value: any) => void;
   updateCreatorAttribution: (key: keyof CreatorAttribution, value: any) => void;
+  updateCardField: <K extends keyof CardData>(field: K, value: CardData[K]) => void;
 }
 
 export interface EnhancedCardWizardProps {

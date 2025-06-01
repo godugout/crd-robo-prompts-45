@@ -44,7 +44,6 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
       updateCardField('description', analysis.description);
       updateCardField('rarity', analysis.rarity);
       updateCardField('tags', analysis.tags);
-      // Remove category field update since it doesn't exist in the database
       updateCardField('type', analysis.type);
       updateCardField('series', analysis.series);
       
@@ -117,7 +116,9 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
         ...cardData.creator_attribution,
         [key]: value
       });
-    }
+    },
+
+    updateCardField: updateCardField
   };
 
   return {

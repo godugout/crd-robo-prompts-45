@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
@@ -11,7 +12,7 @@ interface SimpleCardWizardProps {
 }
 
 export const SimpleCardWizard = ({ onComplete }: SimpleCardWizardProps) => {
-  const { wizardState, cardData, handlers, isSaving, templates, updateCardField } = useWizardState(onComplete);
+  const { wizardState, cardData, handlers, isSaving, templates } = useWizardState(onComplete);
 
   return (
     <div className="min-h-screen bg-crd-darkest flex items-center justify-center p-4">
@@ -52,18 +53,7 @@ export const SimpleCardWizard = ({ onComplete }: SimpleCardWizardProps) => {
             wizardState={wizardState}
             cardData={cardData}
             templates={templates}
-            handlers={{
-              ...handlers,
-              handlePhotoSelect: handlers.handlePhotoSelect,
-              handleTemplateSelect: handlers.handleTemplateSelect,
-              handleNext: handlers.handleNext,
-              handleBack: handlers.handleBack,
-              handleComplete: handlers.handleComplete,
-              updatePublishingOptions: handlers.updatePublishingOptions,
-              updateCreatorAttribution: handlers.updateCreatorAttribution,
-              handleAiAnalysis: handlers.handleAiAnalysis
-            }}
-            updateCardField={updateCardField}
+            handlers={handlers}
           />
         </div>
 
