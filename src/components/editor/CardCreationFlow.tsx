@@ -65,7 +65,7 @@ export const CardCreationFlow = ({ initialCardId }: CardCreationFlowProps) => {
     return (
       <div className="min-h-screen bg-crd-darkest">
         {/* Header with bulk upload option */}
-        <div className="p-4 border-b border-editor-border bg-editor-dark">
+        <div className="px-4 py-3 border-b border-editor-border bg-editor-dark">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-white">Create Your Card</h1>
@@ -77,7 +77,7 @@ export const CardCreationFlow = ({ initialCardId }: CardCreationFlowProps) => {
               variant="outline"
               size="sm"
               onClick={() => setFlowType('bulk')}
-              className="border-editor-border text-crd-lightGray hover:bg-editor-border hover:text-white"
+              className="border-editor-border text-crd-lightGray hover:bg-editor-border hover:text-crd-darkest bg-transparent"
             >
               <Upload className="w-4 h-4 mr-2" />
               Bulk Upload
