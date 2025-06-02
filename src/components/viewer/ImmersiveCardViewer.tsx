@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -87,6 +86,21 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     };
   }, [autoRotate, isDragging]);
 
+  // Handle wheel events for zooming
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const zoomDelta = e.deltaY > 0 ? -0.1 : 0.1;
+      setZoom(prev => Math.max(0.5, Math.min(3, prev + zoomDelta)));
+    };
+
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('wheel', handleWheel, { passive: false });
+      return () => container.removeEventListener('wheel', handleWheel);
+    }
+  }, []);
+
   // Handle mouse movement for effects
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging && containerRef.current) {
@@ -138,7 +152,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
 
   // Handle zoom
   const handleZoom = useCallback((delta: number) => {
-    setZoom(prev => Math.max(0.5, Math.min(2, prev + delta)));
+    setZoom(prev => Math.max(0.5, Math.min(3, prev + delta)));
   }, []);
 
   // Toggle fullscreen
@@ -274,6 +288,8 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
                 <span>Click card to flip</span>
                 <span>•</span>
                 <span>Drag to rotate manually</span>
+                <span>•</span>
+                <span>Scroll to zoom</span>
                 <span>•</span>
                 <span>Move mouse for effects</span>
               </div>
