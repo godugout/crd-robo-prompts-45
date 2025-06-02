@@ -126,7 +126,10 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
           <div className="flex-1 relative h-full w-full">
             <Enhanced3DEnvironment 
               scene={selectedScene}
+              card={card}
               allowRotation={allowRotation}
+              effectIntensity={effectIntensity}
+              selectedEffect={selectedEffect}
             />
             
             {/* Top Controls */}

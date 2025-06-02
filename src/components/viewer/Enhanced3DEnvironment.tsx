@@ -1,15 +1,19 @@
 
 import React, { useRef, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, Text } from '@react-three/drei';
 import { Card } from '@/components/ui/card';
 import * as THREE from 'three';
 import type { EnvironmentScene } from './types';
+import type { CardData } from '@/hooks/useCardEditor';
 
 interface Enhanced3DEnvironmentProps {
   scene: EnvironmentScene;
+  card?: CardData;
   children?: React.ReactNode;
   allowRotation?: boolean;
+  effectIntensity?: number[];
+  selectedEffect?: any;
 }
 
 // Photo background URLs for each scene type
@@ -159,26 +163,130 @@ const EnvironmentBackground: React.FC<{ scene: EnvironmentScene }> = ({ scene })
   return null;
 };
 
-const Card3D: React.FC<{ scene: EnvironmentScene }> = ({ scene }) => {
+const Card3D: React.FC<{ 
+  scene: EnvironmentScene; 
+  card?: CardData; 
+  effectIntensity?: number[];
+  selectedEffect?: any;
+}> = ({ scene, card, effectIntensity, selectedEffect }) => {
   const meshRef = useRef<THREE.Mesh>(null);
+  const textureRef = useRef<THREE.Texture | null>(null);
   
   useFrame(() => {
     if (meshRef.current) {
       meshRef.current.rotation.y += 0.003;
     }
   });
+
+  // Create card texture from image or use default
+  useEffect(() => {
+    if (card?.image_url) {
+      const textureLoader = new THREE.TextureLoader();
+      textureLoader.load(
+        card.image_url,
+        (texture) => {
+          textureRef.current = texture;
+          if (meshRef.current) {
+            (meshRef.current.material as THREE.MeshStandardMaterial).map = texture;
+            (meshRef.current.material as THREE.MeshStandardMaterial).needsUpdate = true;
+          }
+        },
+        undefined,
+        (error) => {
+          console.log('Failed to load card image:', error);
+        }
+      );
+    }
+  }, [card?.image_url]);
+
+  // Apply visual effects based on selection
+  const getEffectMaterial = () => {
+    const intensity = (effectIntensity?.[0] || 50) / 100;
+    
+    const baseMaterial = {
+      color: "#ffffff",
+      roughness: 0.1,
+      metalness: 0.05,
+      envMapIntensity: 1.2,
+      side: THREE.DoubleSide,
+      map: textureRef.current,
+    };
+
+    if (selectedEffect) {
+      switch (selectedEffect.id) {
+        case 'holographic':
+          return {
+            ...baseMaterial,
+            roughness: 0.05,
+            metalness: 0.8,
+            envMapIntensity: 2 + intensity,
+            color: new THREE.Color().setHSL(0.5 + intensity * 0.3, 0.8, 0.9),
+          };
+        case 'foilspray':
+          return {
+            ...baseMaterial,
+            roughness: 0.02,
+            metalness: 0.9,
+            envMapIntensity: 1.5 + intensity,
+          };
+        case 'chrome':
+          return {
+            ...baseMaterial,
+            roughness: 0.01,
+            metalness: 0.95,
+            envMapIntensity: 2.5 + intensity,
+            color: new THREE.Color(0.9 + intensity * 0.1, 0.9 + intensity * 0.1, 0.9 + intensity * 0.1),
+          };
+        default:
+          return baseMaterial;
+      }
+    }
+
+    return baseMaterial;
+  };
   
   return (
-    <mesh ref={meshRef} position={[0, 0, 0]}>
-      <boxGeometry args={[4, 5.6, 0.1]} />
-      <meshStandardMaterial 
-        color="#ffffff"
-        roughness={0.1}
-        metalness={0.05}
-        envMapIntensity={1.2}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
+    <group>
+      {/* Main card mesh */}
+      <mesh ref={meshRef} position={[0, 0, 0]}>
+        <boxGeometry args={[3, 4.2, 0.05]} />
+        <meshStandardMaterial {...getEffectMaterial()} />
+      </mesh>
+      
+      {/* Card title text */}
+      {card?.title && (
+        <Text
+          position={[0, -2.5, 0.1]}
+          fontSize={0.3}
+          color="white"
+          anchorX="center"
+          anchorY="middle"
+          font="/fonts/inter-bold.woff"
+        >
+          {card.title}
+        </Text>
+      )}
+      
+      {/* Card rarity indicator */}
+      {card?.rarity && (
+        <Text
+          position={[0, -3, 0.1]}
+          fontSize={0.2}
+          color={
+            card.rarity === 'legendary' ? '#FFD700' :
+            card.rarity === 'epic' ? '#9F7AEA' :
+            card.rarity === 'rare' ? '#4299E1' :
+            card.rarity === 'uncommon' ? '#48BB78' :
+            '#CBD5E0'
+          }
+          anchorX="center"
+          anchorY="middle"
+          font="/fonts/inter-medium.woff"
+        >
+          {card.rarity.toUpperCase()}
+        </Text>
+      )}
+    </group>
   );
 };
 
@@ -210,13 +318,16 @@ const SceneLighting: React.FC<{ scene: EnvironmentScene }> = ({ scene }) => {
 
 export const Enhanced3DEnvironment: React.FC<Enhanced3DEnvironmentProps> = ({
   scene,
+  card,
   children,
-  allowRotation = true
+  allowRotation = true,
+  effectIntensity,
+  selectedEffect
 }) => {
   return (
     <div className="w-full h-full">
       <Canvas
-        camera={{ position: [0, 0, 10], fov: 50 }}
+        camera={{ position: [0, 0, 8], fov: 50 }}
         gl={{ 
           antialias: true,
           alpha: false,
@@ -225,19 +336,24 @@ export const Enhanced3DEnvironment: React.FC<Enhanced3DEnvironmentProps> = ({
       >
         <EnvironmentBackground scene={scene} />
         <SceneLighting scene={scene} />
-        <Card3D scene={scene} />
+        <Card3D 
+          scene={scene} 
+          card={card} 
+          effectIntensity={effectIntensity}
+          selectedEffect={selectedEffect}
+        />
         {allowRotation && (
           <OrbitControls 
             enablePan={false} 
             enableZoom={true}
-            minDistance={6}
-            maxDistance={20}
+            minDistance={4}
+            maxDistance={15}
             autoRotate={false}
             enableDamping={true}
             dampingFactor={0.05}
           />
         )}
-        <fog attach="fog" args={[scene.lighting.color, 20, 35]} />
+        <fog attach="fog" args={[scene.lighting.color, 15, 25]} />
       </Canvas>
     </div>
   );
