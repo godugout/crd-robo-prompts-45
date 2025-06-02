@@ -18,62 +18,105 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
 }) => {
   if (!showEffects) return null;
 
-  // Cap the effect intensity to prevent blinding effects
-  const cappedIntensity = Math.min(effectIntensity[0], 80);
+  // Enhanced intensity cap for more visible effects
+  const cappedIntensity = Math.min(effectIntensity[0], 95);
+  const intensityFactor = cappedIntensity / 100;
 
   return (
     <>
-      {/* Physical Effects Layer - z-index 4 - Normal opacity */}
+      {/* Physical Effects Layer - z-index 4 - Enhanced visibility */}
       <div 
         className="absolute inset-0 pointer-events-none z-40" 
         style={{
           ...physicalEffectStyles,
-          opacity: Math.min(1, (physicalEffectStyles.opacity as number || 1) * 1.2)
+          opacity: Math.min(1, (physicalEffectStyles.opacity as number || 1) * 1.8)
         }} 
       />
       
-      {/* Subtle Specular Highlight Layer - z-index 5 - Much softer */}
+      {/* Enhanced Specular Highlight Layer - z-index 5 */}
       {isHovering && (
         <div 
           className="absolute inset-0 pointer-events-none z-50"
           style={{
-            background: `radial-gradient(ellipse 400px 200px at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-              rgba(255,255,255,${cappedIntensity * 0.003}) 0%, 
-              rgba(255,255,255,${cappedIntensity * 0.002}) 40%,
-              transparent 80%)`,
-            mixBlendMode: 'overlay'
+            background: `radial-gradient(ellipse 350px 180px at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
+              rgba(255,255,255,${cappedIntensity * 0.015}) 0%, 
+              rgba(255,255,255,${cappedIntensity * 0.012}) 30%,
+              rgba(200,220,255,${cappedIntensity * 0.008}) 60%,
+              transparent 90%)`,
+            mixBlendMode: 'screen'
           }}
         />
       )}
 
-      {/* Subtle Moving Shine Effect - z-index 6 - Much more gentle */}
+      {/* Dynamic Moving Shine Effect - z-index 6 */}
       {isHovering && (
         <div 
           className="absolute inset-0 pointer-events-none z-60"
           style={{
             background: `linear-gradient(${Math.atan2(mousePosition.y - 0.5, mousePosition.x - 0.5) * 180 / Math.PI + 90}deg, 
-              transparent 30%, 
-              rgba(255, 255, 255, ${cappedIntensity * 0.006}) 45%,
-              rgba(255, 255, 255, ${cappedIntensity * 0.008}) 50%, 
-              rgba(255, 255, 255, ${cappedIntensity * 0.006}) 55%,
-              transparent 70%)`,
-            transform: `translateX(${(mousePosition.x - 0.5) * 40}%) translateY(${(mousePosition.y - 0.5) * 25}%)`,
-            transition: 'transform 0.15s ease',
-            mixBlendMode: 'soft-light'
+              transparent 25%, 
+              rgba(255, 255, 255, ${cappedIntensity * 0.025}) 40%,
+              rgba(255, 255, 255, ${cappedIntensity * 0.035}) 50%, 
+              rgba(255, 255, 255, ${cappedIntensity * 0.025}) 60%,
+              transparent 75%)`,
+            transform: `translateX(${(mousePosition.x - 0.5) * 35}%) translateY(${(mousePosition.y - 0.5) * 20}%)`,
+            transition: 'transform 0.12s ease',
+            mixBlendMode: 'overlay'
           }}
         />
       )}
       
-      {/* Gentle Interactive Light Effect - z-index 7 - Very subtle */}
-      {isHovering && cappedIntensity > 40 && (
+      {/* Vibrant Interactive Light Effect - z-index 7 */}
+      {isHovering && cappedIntensity > 30 && (
         <div 
           className="absolute inset-0 pointer-events-none z-70"
           style={{
             background: `conic-gradient(from ${mousePosition.x * 360}deg at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-              rgba(255,255,255,${cappedIntensity * 0.002}) 0deg,
-              rgba(200,200,255,${cappedIntensity * 0.003}) 120deg,
-              rgba(255,255,255,${cappedIntensity * 0.002}) 240deg,
-              rgba(255,200,255,${cappedIntensity * 0.003}) 360deg)`,
+              rgba(255,80,150,${cappedIntensity * 0.012}) 0deg,
+              rgba(80,150,255,${cappedIntensity * 0.015}) 90deg,
+              rgba(150,255,80,${cappedIntensity * 0.012}) 180deg,
+              rgba(255,150,80,${cappedIntensity * 0.015}) 270deg,
+              rgba(255,80,150,${cappedIntensity * 0.012}) 360deg)`,
+            mixBlendMode: 'color-dodge'
+          }}
+        />
+      )}
+
+      {/* Fresnel Edge Lighting - z-index 8 */}
+      {isHovering && (
+        <div 
+          className="absolute inset-0 pointer-events-none z-[80]"
+          style={{
+            background: `
+              radial-gradient(ellipse 120% 100% at 0% 50%, 
+                rgba(255,255,255,${intensityFactor * 0.08}) 0%, 
+                transparent 40%),
+              radial-gradient(ellipse 120% 100% at 100% 50%, 
+                rgba(255,255,255,${intensityFactor * 0.08}) 0%, 
+                transparent 40%),
+              radial-gradient(ellipse 100% 120% at 50% 0%, 
+                rgba(255,255,255,${intensityFactor * 0.06}) 0%, 
+                transparent 40%),
+              radial-gradient(ellipse 100% 120% at 50% 100%, 
+                rgba(255,255,255,${intensityFactor * 0.06}) 0%, 
+                transparent 40%)
+            `,
+            mixBlendMode: 'soft-light'
+          }}
+        />
+      )}
+
+      {/* Color Temperature Shift - z-index 9 */}
+      {isHovering && cappedIntensity > 50 && (
+        <div 
+          className="absolute inset-0 pointer-events-none z-90"
+          style={{
+            background: `
+              linear-gradient(${mousePosition.x * 180}deg,
+                rgba(255,180,100,${intensityFactor * 0.06}) 0%,
+                transparent 50%,
+                rgba(100,180,255,${intensityFactor * 0.06}) 100%)
+            `,
             mixBlendMode: 'overlay'
           }}
         />
