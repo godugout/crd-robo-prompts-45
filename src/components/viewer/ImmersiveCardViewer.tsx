@@ -1,5 +1,6 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, VisualEffect, MaterialSettings } from './types';
 import { ENVIRONMENT_SCENES, LIGHTING_PRESETS, VISUAL_EFFECTS } from './constants';
@@ -8,8 +9,18 @@ import { ViewerControls } from './components/ViewerControls';
 import { CustomizePanel } from './components/CustomizePanel';
 import { CardContainer } from './components/CardContainer';
 
-export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
+// Update the interface to support card navigation
+interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
+  cards?: any[];
+  currentCardIndex?: number;
+  onCardChange?: (index: number) => void;
+}
+
+export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = ({
   card,
+  cards = [],
+  currentCardIndex = 0,
+  onCardChange,
   isOpen = true,
   onClose,
   onShare,
@@ -52,6 +63,40 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
 
+  // Determine if we have multiple cards to navigate
+  const hasMultipleCards = cards.length > 1;
+  const canGoNext = hasMultipleCards && currentCardIndex < cards.length - 1;
+  const canGoPrev = hasMultipleCards && currentCardIndex > 0;
+
+  // Navigation handlers
+  const handlePreviousCard = useCallback(() => {
+    if (canGoPrev && onCardChange) {
+      onCardChange(currentCardIndex - 1);
+      setIsFlipped(false); // Reset flip state when changing cards
+    }
+  }, [canGoPrev, currentCardIndex, onCardChange]);
+
+  const handleNextCard = useCallback(() => {
+    if (canGoNext && onCardChange) {
+      onCardChange(currentCardIndex + 1);
+      setIsFlipped(false); // Reset flip state when changing cards
+    }
+  }, [canGoNext, currentCardIndex, onCardChange]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        handlePreviousCard();
+      } else if (e.key === 'ArrowRight') {
+        handleNextCard();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handlePreviousCard, handleNextCard]);
+
   // Custom hooks
   const { getFrameStyles, getPhysicalEffectStyles, SurfaceTexture } = useCardEffects({
     card,
@@ -87,7 +132,6 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     };
   }, [autoRotate, isDragging]);
 
-  // Handle wheel events for zooming
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -102,7 +146,6 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     }
   }, []);
 
-  // Handle mouse movement for effects and control hover detection
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
@@ -110,7 +153,6 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
       const y = (e.clientY - rect.top) / rect.height;
       setMousePosition({ x, y });
       
-      // Check if hovering over bottom left area (controls zone)
       const isInControlsArea = e.clientX - rect.left < 300 && e.clientY - rect.top > rect.height - 100;
       setIsHoveringControls(isInControlsArea);
       
@@ -123,7 +165,6 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     }
   }, [isDragging, allowRotation, autoRotate]);
 
-  // Handle drag start
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     if (allowRotation) {
       setIsDragging(true);
@@ -132,7 +173,6 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     }
   }, [rotation, allowRotation]);
 
-  // Handle drag
   const handleDrag = useCallback((e: React.MouseEvent) => {
     if (isDragging && allowRotation) {
       setRotation({
@@ -142,12 +182,10 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     }
   }, [isDragging, dragStart, allowRotation]);
 
-  // Handle drag end
   const handleDragEnd = useCallback(() => {
     setIsDragging(false);
   }, []);
 
-  // Reset view
   const handleReset = useCallback(() => {
     setRotation({ x: 0, y: 0 });
     setZoom(1);
@@ -155,12 +193,10 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     setAutoRotate(false);
   }, []);
 
-  // Handle zoom
   const handleZoom = useCallback((delta: number) => {
     setZoom(prev => Math.max(0.5, Math.min(3, prev + delta)));
   }, []);
 
-  // Toggle fullscreen
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       containerRef.current?.requestFullscreen();
@@ -233,6 +269,37 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
         />
       </div>
 
+      {/* Card Navigation Controls */}
+      {hasMultipleCards && (
+        <div className="absolute bottom-4 right-4 z-10">
+          <div className="flex items-center space-x-2 bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-3 border border-white/10">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handlePreviousCard}
+              disabled={!canGoPrev}
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            <div className="text-white text-sm px-3">
+              {currentCardIndex + 1} / {cards.length}
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleNextCard}
+              disabled={!canGoNext}
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Full Height Customize Panel */}
       {showCustomizePanel && (
         <CustomizePanel
@@ -288,7 +355,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
 
       {/* Info Panel - Enhanced visibility */}
       {showStats && !isFlipped && !showCustomizePanel && (
-        <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10">
+        <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: hasMultipleCards ? '180px' : '20px' }}>
           <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
             <div className="flex items-center justify-between text-white">
               <div className="flex space-x-4 text-sm">
@@ -299,6 +366,12 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
                 <span>Scroll to zoom</span>
                 <span>•</span>
                 <span>Move mouse for effects</span>
+                {hasMultipleCards && (
+                  <>
+                    <span>•</span>
+                    <span>Use ← → keys to navigate</span>
+                  </>
+                )}
               </div>
               <div className="flex items-center space-x-2">
                 <Sparkles className="w-4 h-4" />

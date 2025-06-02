@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -32,7 +31,7 @@ const GallerySection = ({
 
 const Gallery = () => {
   const [activeTab, setActiveTab] = useState('featured');
-  const [selectedCard, setSelectedCard] = useState<any>(null);
+  const [selectedCardIndex, setSelectedCardIndex] = useState(0);
   const [showImmersiveViewer, setShowImmersiveViewer] = useState(false);
   
   const { collections, loading: collectionsLoading } = useAllCollections(1, 3);
@@ -40,16 +39,21 @@ const Gallery = () => {
   const { popularCreators, loading: creatorsLoading } = useCreators();
 
   const handleCardClick = (card: any) => {
-    setSelectedCard(card);
+    const cardIndex = featuredCards.findIndex(c => c.id === card.id);
+    setSelectedCardIndex(cardIndex >= 0 ? cardIndex : 0);
     setShowImmersiveViewer(true);
+  };
+
+  const handleCardChange = (newIndex: number) => {
+    setSelectedCardIndex(newIndex);
   };
 
   const handleCloseViewer = () => {
     setShowImmersiveViewer(false);
-    setSelectedCard(null);
   };
 
   const handleShareCard = () => {
+    const selectedCard = featuredCards[selectedCardIndex];
     if (selectedCard) {
       const shareUrl = `${window.location.origin}/card/${selectedCard.id}`;
       
@@ -64,6 +68,7 @@ const Gallery = () => {
   };
 
   const handleDownloadCard = () => {
+    const selectedCard = featuredCards[selectedCardIndex];
     if (selectedCard) {
       const dataStr = JSON.stringify(selectedCard, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -78,6 +83,8 @@ const Gallery = () => {
       toast.success('Card exported successfully');
     }
   };
+
+  const currentCard = featuredCards[selectedCardIndex];
 
   return (
     <div className="container mx-auto p-6 max-w-7xl bg-[#121212]">
@@ -255,10 +262,13 @@ const Gallery = () => {
         </div>
       </div>
 
-      {/* Immersive Card Viewer */}
-      {showImmersiveViewer && selectedCard && (
+      {/* Enhanced Immersive Card Viewer with Navigation */}
+      {showImmersiveViewer && currentCard && featuredCards.length > 0 && (
         <ImmersiveCardViewer
-          card={selectedCard}
+          card={currentCard}
+          cards={featuredCards}
+          currentCardIndex={selectedCardIndex}
+          onCardChange={handleCardChange}
           isOpen={showImmersiveViewer}
           onClose={handleCloseViewer}
           onShare={handleShareCard}
