@@ -1,12 +1,15 @@
 
 import React from 'react';
-import { useParams } from 'react-router-dom';
-import { CardCreationFlow } from '@/components/editor/CardCreationFlow';
+import { SimpleCardForm } from '@/components/editor/SimpleCardForm';
 
 const Editor = () => {
-  const { cardId } = useParams<{ cardId?: string }>();
-
-  return <CardCreationFlow initialCardId={cardId} />;
+  return (
+    <div className="min-h-screen bg-crd-darkest">
+      <div className="container mx-auto py-8">
+        <SimpleCardForm />
+      </div>
+    </div>
+  );
 };
 
 export default Editor;

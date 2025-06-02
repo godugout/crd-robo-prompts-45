@@ -1,5 +1,5 @@
 
-import type { CardData, CardRarity } from '@/hooks/useCardEditor';
+import type { CardData, CardRarity } from '@/types/card';
 
 interface Card {
   id: string;
@@ -11,6 +11,9 @@ interface Card {
   rarity: string;
   tags: string[];
   design_metadata: Record<string, any>;
+  is_public?: boolean;
+  creator_attribution?: Record<string, any>;
+  publishing_options?: Record<string, any>;
 }
 
 export const useCardConversion = () => {
@@ -24,18 +27,19 @@ export const useCardConversion = () => {
       rarity: (card.rarity as CardRarity) || 'common',
       tags: card.tags || [],
       design_metadata: card.design_metadata || {},
-      visibility: 'public',
-      creator_attribution: {
+      visibility: card.is_public ? 'public' : 'private',
+      is_public: card.is_public || false,
+      creator_attribution: card.creator_attribution || {
         creator_name: '',
-        creator_id: card.creator_id
+        creator_id: card.creator_id,
+        collaboration_type: 'solo'
       },
-      publishing_options: {
+      publishing_options: card.publishing_options || {
         marketplace_listing: false,
         crd_catalog_inclusion: true,
         print_available: false,
-        pricing: {
-          currency: 'USD'
-        }
+        pricing: { currency: 'USD' },
+        distribution: { limited_edition: false }
       }
     }));
   };
