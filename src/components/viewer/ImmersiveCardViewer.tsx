@@ -94,6 +94,18 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [handleKeyPress]);
 
+  const handleShare = () => {
+    if (onShare) {
+      onShare(cards);
+    }
+  };
+
+  const handleDownload = () => {
+    if (onDownload) {
+      onDownload(cards);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -201,8 +213,8 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
               onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
               onMaterialSettingsChange={setMaterialSettings}
               onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
-              onDownload={onDownload}
-              onShare={onShare}
+              onDownload={handleDownload}
+              onShare={handleShare}
               onClose={() => setShowCustomizePanel(false)}
               card={card}
             />

@@ -1,7 +1,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Environment, OrbitControls, PerspectiveCamera } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import { Card } from '@/components/ui/card';
 import * as THREE from 'three';
 import type { EnvironmentScene } from './types';
