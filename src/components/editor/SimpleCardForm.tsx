@@ -9,12 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useSimpleCardEditor } from '@/hooks/useSimpleCardEditor';
 import { useDropzone } from 'react-dropzone';
 import { uploadCardImage } from '@/lib/cardImageUploader';
-import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import type { CardRarity } from '@/types/card';
 
 export const SimpleCardForm = () => {
-  const { user } = useCustomAuth();
+  const { user } = useAuth();
   const { cardData, updateField, saveCard, publishCard, isSaving } = useSimpleCardEditor();
   const [isUploading, setIsUploading] = useState(false);
   const [tagInput, setTagInput] = useState('');
