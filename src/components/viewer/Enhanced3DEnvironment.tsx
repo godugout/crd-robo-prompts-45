@@ -170,7 +170,7 @@ const Card3D: React.FC<{ scene: EnvironmentScene }> = ({ scene }) => {
   
   return (
     <mesh ref={meshRef} position={[0, 0, 0]}>
-      <boxGeometry args={[3, 4.2, 0.08]} />
+      <boxGeometry args={[4, 5.6, 0.1]} />
       <meshStandardMaterial 
         color="#ffffff"
         roughness={0.1}
@@ -216,12 +216,11 @@ export const Enhanced3DEnvironment: React.FC<Enhanced3DEnvironmentProps> = ({
   return (
     <div className="w-full h-full">
       <Canvas
-        camera={{ position: [0, 0, 8], fov: 45 }}
+        camera={{ position: [0, 0, 10], fov: 50 }}
         gl={{ 
           antialias: true,
           alpha: false,
-          powerPreference: "high-performance",
-          shadowMap: true
+          powerPreference: "high-performance"
         }}
       >
         <EnvironmentBackground scene={scene} />
@@ -231,14 +230,14 @@ export const Enhanced3DEnvironment: React.FC<Enhanced3DEnvironmentProps> = ({
           <OrbitControls 
             enablePan={false} 
             enableZoom={true}
-            minDistance={5}
-            maxDistance={15}
+            minDistance={6}
+            maxDistance={20}
             autoRotate={false}
             enableDamping={true}
             dampingFactor={0.05}
           />
         )}
-        <fog attach="fog" args={[scene.lighting.color, 15, 25]} />
+        <fog attach="fog" args={[scene.lighting.color, 20, 35]} />
       </Canvas>
     </div>
   );

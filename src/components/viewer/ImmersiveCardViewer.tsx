@@ -111,40 +111,41 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose?.()}>
       <DialogContent 
-        className="max-w-none h-screen w-screen p-0 bg-black border-none m-0"
+        className="max-w-none h-screen w-screen p-0 bg-black border-none m-0 fixed inset-0"
+        style={{ borderRadius: 0 }}
       >
-        <div className="relative w-full h-full flex">
+        <div className="relative w-full h-full flex overflow-hidden">
           {/* Main 3D Environment Area - Full Screen */}
-          <div className="flex-1 relative h-full">
+          <div className="flex-1 relative h-full w-full">
             <Enhanced3DEnvironment 
               scene={selectedScene}
               allowRotation={allowRotation}
             />
             
             {/* Top Controls */}
-            <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
-              <div className="flex items-center space-x-2">
+            <div className="absolute top-6 left-6 right-6 flex justify-between items-center z-20">
+              <div className="flex items-center space-x-3">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={onClose}
-                  className="bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white border border-white/20"
+                  className="bg-black/70 backdrop-blur-md hover:bg-black/90 text-white border border-white/20 h-10 w-10 p-0"
                 >
                   <X className="w-5 h-5" />
                 </Button>
                 {cards.length > 1 && (
-                  <div className="bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full text-white text-sm border border-white/20">
+                  <div className="bg-black/70 backdrop-blur-md px-4 py-2 rounded-full text-white text-sm border border-white/20">
                     {currentCardIndex + 1} of {cards.length}
                   </div>
                 )}
               </div>
               
-              <div className="flex space-x-2">
+              <div className="flex space-x-3">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowCustomizePanel(!showCustomizePanel)}
-                  className="bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white border border-white/20"
+                  className="bg-black/70 backdrop-blur-md hover:bg-black/90 text-white border border-white/20 h-10 w-10 p-0"
                 >
                   <Settings className="w-5 h-5" />
                 </Button>
@@ -158,7 +159,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
                   variant="ghost"
                   size="lg"
                   onClick={handlePreviousCard}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white border border-white/20"
+                  className="absolute left-6 top-1/2 transform -translate-y-1/2 bg-black/70 backdrop-blur-md hover:bg-black/90 text-white border border-white/20 h-12 w-12 p-0 z-10"
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </Button>
@@ -166,7 +167,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
                   variant="ghost"
                   size="lg"
                   onClick={handleNextCard}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white border border-white/20"
+                  className="absolute right-6 top-1/2 transform -translate-y-1/2 bg-black/70 backdrop-blur-md hover:bg-black/90 text-white border border-white/20 h-12 w-12 p-0 z-10"
                 >
                   <ChevronRight className="w-6 h-6" />
                 </Button>
@@ -175,13 +176,13 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
 
             {/* Card Info Overlay */}
             {showStats && (
-              <div className="absolute bottom-4 left-4 bg-black/70 backdrop-blur-lg p-4 rounded-lg text-white max-w-sm border border-white/20">
-                <h3 className="font-bold text-lg mb-2">{card.title}</h3>
+              <div className="absolute bottom-6 left-6 bg-black/80 backdrop-blur-lg p-6 rounded-xl text-white max-w-sm border border-white/20 z-10">
+                <h3 className="font-bold text-xl mb-3">{card.title}</h3>
                 {card.description && (
-                  <p className="text-sm text-gray-300 mb-2">{card.description}</p>
+                  <p className="text-sm text-gray-300 mb-3 leading-relaxed">{card.description}</p>
                 )}
                 <div className="flex items-center justify-between">
-                  <span className="text-xs bg-blue-600 px-2 py-1 rounded">
+                  <span className="text-xs bg-blue-600 px-3 py-1 rounded-full font-medium">
                     {card.rarity}
                   </span>
                   <span className="text-xs text-gray-400">
