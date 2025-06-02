@@ -1,6 +1,8 @@
 
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
+import { CardFront } from './CardFront';
+import { CardBack } from './CardBack';
 
 interface CardContainerProps {
   card: CardData;
@@ -67,252 +69,30 @@ export const CardContainer: React.FC<CardContainerProps> = ({
         }}
         onClick={onClick}
       >
-        {/* Front of Card with Enhanced Effects */}
-        <div
-          className="absolute inset-0 rounded-xl overflow-hidden backface-hidden"
-          style={{
-            ...frameStyles,
-            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-            backfaceVisibility: 'hidden'
-          }}
-        >
-          {/* Base Card Layer - z-index 1 */}
-          <div className="absolute inset-0 z-10" style={frameStyles} />
-          
-          {/* Surface Texture Layer - z-index 2 */}
-          <div className="absolute inset-0 z-20">
-            {SurfaceTexture}
-          </div>
-          
-          {/* Card Content - z-index 3 */}
-          <div className="relative h-full p-6 flex flex-col z-30">
-            {/* Image Section */}
-            {card.image_url && (
-              <div className="flex-1 mb-6 relative overflow-hidden rounded-lg">
-                <img 
-                  src={card.image_url} 
-                  alt={card.title}
-                  className="w-full h-full object-cover"
-                />
-                {/* Image overlay effects */}
-                {showEffects && (
-                  <div className="absolute inset-0 mix-blend-overlay">
-                    <div className="w-full h-full bg-gradient-to-br from-transparent via-white to-transparent opacity-20" />
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {/* Details Section */}
-            <div className={`mt-auto p-4 rounded-lg ${
-              card.template_id === 'neon'
-                ? 'bg-black bg-opacity-80'
-                : 'bg-white bg-opacity-90'
-            }`}>
-              <h2 className={`text-2xl font-bold mb-1 ${
-                card.template_id === 'neon'
-                  ? 'text-white'
-                  : 'text-gray-900'
-              }`}>
-                {card.title}
-              </h2>
-              {card.description && (
-                <p className={`text-lg ${
-                  card.template_id === 'neon'
-                    ? 'text-gray-300'
-                    : 'text-gray-600'
-                }`}>
-                  {card.description}
-                </p>
-              )}
-              {card.series && (
-                <p className={`text-sm ${
-                  card.template_id === 'neon'
-                    ? 'text-gray-400'
-                    : 'text-gray-500'
-                }`}>
-                  Series: {card.series}
-                </p>
-              )}
-              <div className="flex items-center justify-between mt-2">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  card.rarity === 'legendary' ? 'bg-yellow-100 text-yellow-800' :
-                  card.rarity === 'epic' ? 'bg-purple-100 text-purple-800' :
-                  card.rarity === 'rare' ? 'bg-blue-100 text-blue-800' :
-                  card.rarity === 'uncommon' ? 'bg-green-100 text-green-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {card.rarity}
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Physical Effects Layer - z-index 4 - Higher opacity for better visibility */}
-          {showEffects && (
-            <div 
-              className="absolute inset-0 pointer-events-none z-40" 
-              style={{
-                ...physicalEffectStyles,
-                opacity: Math.min(1, (physicalEffectStyles.opacity as number || 1) * 1.8) // Increase opacity significantly
-              }} 
-            />
-          )}
-          
-          {/* Enhanced Specular Highlight Layer - z-index 5 - More intense */}
-          {showEffects && isHovering && (
-            <div 
-              className="absolute inset-0 pointer-events-none z-50"
-              style={{
-                background: `radial-gradient(ellipse 300px 150px at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-                  rgba(255,255,255,${effectIntensity[0] * 0.012}) 0%, 
-                  rgba(255,255,255,${effectIntensity[0] * 0.008}) 30%,
-                  transparent 70%)`,
-                mixBlendMode: 'screen'
-              }}
-            />
-          )}
+        {/* Front of Card */}
+        <CardFront
+          card={card}
+          isFlipped={isFlipped}
+          isHovering={isHovering}
+          showEffects={showEffects}
+          effectIntensity={effectIntensity}
+          mousePosition={mousePosition}
+          frameStyles={frameStyles}
+          physicalEffectStyles={physicalEffectStyles}
+          SurfaceTexture={SurfaceTexture}
+        />
 
-          {/* Enhanced Moving Shine Effect - z-index 6 - Much more visible */}
-          {isHovering && showEffects && (
-            <div 
-              className="absolute inset-0 pointer-events-none z-60"
-              style={{
-                background: `linear-gradient(${Math.atan2(mousePosition.y - 0.5, mousePosition.x - 0.5) * 180 / Math.PI + 90}deg, 
-                  transparent 20%, 
-                  rgba(255, 255, 255, ${effectIntensity[0] * 0.025}) 35%,
-                  rgba(255, 255, 255, ${effectIntensity[0] * 0.035}) 50%, 
-                  rgba(255, 255, 255, ${effectIntensity[0] * 0.025}) 65%,
-                  transparent 80%)`,
-                transform: `translateX(${(mousePosition.x - 0.5) * 60}%) translateY(${(mousePosition.y - 0.5) * 40}%)`,
-                transition: 'transform 0.1s ease',
-                mixBlendMode: 'screen'
-              }}
-            />
-          )}
-          
-          {/* Additional Interactive Light Effect - z-index 7 */}
-          {showEffects && isHovering && (
-            <div 
-              className="absolute inset-0 pointer-events-none z-70"
-              style={{
-                background: `conic-gradient(from ${mousePosition.x * 360}deg at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-                  rgba(255,255,255,${effectIntensity[0] * 0.006}) 0deg,
-                  rgba(200,200,255,${effectIntensity[0] * 0.008}) 120deg,
-                  rgba(255,255,255,${effectIntensity[0] * 0.006}) 240deg,
-                  rgba(255,200,255,${effectIntensity[0] * 0.008}) 360deg)`,
-                mixBlendMode: 'color-dodge'
-              }}
-            />
-          )}
-        </div>
-
-        {/* Back of Card - Dark Pattern Background for Testing Effects */}
-        <div
-          className="absolute inset-0 rounded-xl overflow-hidden backface-hidden"
-          style={{
-            transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(-180deg)',
-            backfaceVisibility: 'hidden'
-          }}
-        >
-          {/* Dark Pattern Background Base */}
-          <div 
-            className="absolute inset-0"
-            style={{
-              background: `
-                linear-gradient(45deg, #1a1a1a 25%, transparent 25%), 
-                linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, #1a1a1a 75%), 
-                linear-gradient(-45deg, transparent 75%, #1a1a1a 75%)
-              `,
-              backgroundSize: '20px 20px',
-              backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
-              backgroundColor: '#0a0a0a'
-            }}
-          />
-          
-          {/* Surface Texture Layer on Back */}
-          {SurfaceTexture}
-          
-          {/* Physical Effects Layer on Back - More Visible */}
-          <div 
-            className="absolute inset-0 pointer-events-none" 
-            style={{
-              ...physicalEffectStyles,
-              opacity: (physicalEffectStyles.opacity as number || 1) * 1.5 // Make effects more visible on dark background
-            }} 
-          />
-          
-          {/* Enhanced Specular Highlight on Back */}
-          {showEffects && isHovering && (
-            <div 
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `radial-gradient(ellipse 300px 150px at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-                  rgba(255,255,255,${effectIntensity[0] * 0.01}) 0%, 
-                  transparent 70%)`,
-                mixBlendMode: 'screen'
-              }}
-            />
-          )}
-          
-          {/* Card Back Content */}
-          <div className="relative h-full p-6 flex flex-col z-10">
-            <h3 className="text-xl font-bold mb-4 text-white">
-              Card Details
-            </h3>
-            
-            <div className="space-y-3 mb-4">
-              <div className="flex justify-between p-2 rounded bg-gray-800 bg-opacity-60">
-                <span className="text-sm text-gray-300">Type:</span>
-                <span className="font-medium text-white">{card.type || 'Character'}</span>
-              </div>
-              
-              <div className="flex justify-between p-2 rounded bg-gray-800 bg-opacity-60">
-                <span className="text-sm text-gray-300">Rarity:</span>
-                <span className="font-medium text-white">{card.rarity}</span>
-              </div>
-
-              {card.tags.length > 0 && (
-                <div className="p-2 rounded bg-gray-800 bg-opacity-60">
-                  <span className="text-sm block mb-1 text-gray-300">Tags:</span>
-                  <div className="flex flex-wrap gap-1">
-                    {card.tags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-700 bg-opacity-60 text-gray-200"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {card.description && (
-              <p className="text-sm mt-auto text-gray-300">
-                {card.description}
-              </p>
-            )}
-          </div>
-
-          {/* Enhanced Moving Shine Effect on Back */}
-          {isHovering && showEffects && (
-            <div 
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: `linear-gradient(${Math.atan2(mousePosition.y - 0.5, mousePosition.x - 0.5) * 180 / Math.PI + 90}deg, 
-                  transparent 20%, 
-                  rgba(255, 255, 255, ${effectIntensity[0] * 0.015}) 50%, 
-                  transparent 80%)`,
-                transform: `translateX(${(mousePosition.x - 0.5) * 50}%) translateY(${(mousePosition.y - 0.5) * 30}%)`,
-                transition: 'transform 0.1s ease',
-                mixBlendMode: 'screen'
-              }}
-            />
-          )}
-        </div>
+        {/* Back of Card */}
+        <CardBack
+          card={card}
+          isFlipped={isFlipped}
+          isHovering={isHovering}
+          showEffects={showEffects}
+          effectIntensity={effectIntensity}
+          mousePosition={mousePosition}
+          physicalEffectStyles={physicalEffectStyles}
+          SurfaceTexture={SurfaceTexture}
+        />
       </div>
     </div>
   );
