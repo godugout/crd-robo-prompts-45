@@ -5,6 +5,7 @@ import { useAllCollections } from '@/hooks/useCollections';
 import { useCards } from '@/hooks/useCards';
 import { useCreators } from '@/hooks/useCreators';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
+import { Interactive3DCardDemo } from '@/components/viewer/Interactive3DCardDemo';
 import { GallerySection } from './Gallery/components/GallerySection';
 import { GalleryHeader } from './Gallery/components/GalleryHeader';
 import { CollectionsGrid } from './Gallery/components/CollectionsGrid';
@@ -41,6 +42,10 @@ const Gallery = () => {
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsContent value="featured" className="mt-8">
+          <GallerySection title="Interactive 3D Experience">
+            <Interactive3DCardDemo />
+          </GallerySection>
+
           <GallerySection title="Featured Collections">
             <CollectionsGrid collections={collections || []} loading={collectionsLoading} />
           </GallerySection>
