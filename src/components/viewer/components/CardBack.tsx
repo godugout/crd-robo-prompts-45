@@ -1,6 +1,7 @@
 
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
+import { CardEffectsLayer } from './CardEffectsLayer';
 
 interface CardBackProps {
   card: CardData;
@@ -48,32 +49,12 @@ export const CardBack: React.FC<CardBackProps> = ({
       />
       
       {/* Surface Texture Layer on Back */}
-      {SurfaceTexture}
-      
-      {/* Physical Effects Layer on Back - More Visible */}
-      <div 
-        className="absolute inset-0 pointer-events-none" 
-        style={{
-          ...physicalEffectStyles,
-          opacity: (physicalEffectStyles.opacity as number || 1) * 1.5
-        }} 
-      />
-      
-      {/* Enhanced Specular Highlight on Back */}
-      {showEffects && isHovering && (
-        <div 
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `radial-gradient(ellipse 300px 150px at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-              rgba(255,255,255,${effectIntensity[0] * 0.01}) 0%, 
-              transparent 70%)`,
-            mixBlendMode: 'screen'
-          }}
-        />
-      )}
+      <div className="absolute inset-0 z-20">
+        {SurfaceTexture}
+      </div>
       
       {/* Card Back Content */}
-      <div className="relative h-full p-6 flex flex-col z-10">
+      <div className="relative h-full p-6 flex flex-col z-30">
         <h3 className="text-xl font-bold mb-4 text-white">
           Card Details
         </h3>
@@ -113,21 +94,14 @@ export const CardBack: React.FC<CardBackProps> = ({
         )}
       </div>
 
-      {/* Enhanced Moving Shine Effect on Back */}
-      {isHovering && showEffects && (
-        <div 
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `linear-gradient(${Math.atan2(mousePosition.y - 0.5, mousePosition.x - 0.5) * 180 / Math.PI + 90}deg, 
-              transparent 20%, 
-              rgba(255, 255, 255, ${effectIntensity[0] * 0.015}) 50%, 
-              transparent 80%)`,
-            transform: `translateX(${(mousePosition.x - 0.5) * 50}%) translateY(${(mousePosition.y - 0.5) * 30}%)`,
-            transition: 'transform 0.1s ease',
-            mixBlendMode: 'screen'
-          }}
-        />
-      )}
+      {/* Unified Effects Layer - Same as front */}
+      <CardEffectsLayer
+        showEffects={showEffects}
+        isHovering={isHovering}
+        effectIntensity={effectIntensity}
+        mousePosition={mousePosition}
+        physicalEffectStyles={physicalEffectStyles}
+      />
     </div>
   );
 };
