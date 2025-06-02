@@ -65,142 +65,134 @@ export const useCardEffects = ({
       holographic: {
         background: `
           radial-gradient(circle at ${mouseX * 100}% ${mouseY * 100}%, 
-            rgba(0, 150, 255, ${cappedIntensity * 0.25}) 0%, 
-            rgba(100, 200, 255, ${cappedIntensity * 0.18}) 25%, 
-            rgba(50, 255, 150, ${cappedIntensity * 0.22}) 50%, 
-            rgba(150, 100, 255, ${cappedIntensity * 0.20}) 75%, 
+            rgba(255, 0, 150, ${cappedIntensity * 0.15}) 0%, 
+            rgba(0, 255, 255, ${cappedIntensity * 0.1}) 25%, 
+            rgba(255, 255, 0, ${cappedIntensity * 0.15}) 50%, 
+            rgba(150, 0, 255, ${cappedIntensity * 0.1}) 75%, 
             transparent 100%),
           repeating-linear-gradient(
             ${Math.atan2(mouseY - 0.5, mouseX - 0.5) * 180 / Math.PI}deg,
             transparent 0px,
-            rgba(0, 200, 255, ${cappedIntensity * 0.06}) 2px,
-            transparent 4px,
-            rgba(100, 150, 255, ${cappedIntensity * 0.04}) 6px,
-            transparent 8px
+            rgba(255, 255, 255, ${cappedIntensity * 0.04}) 1px,
+            transparent 2px,
+            rgba(255, 255, 255, ${cappedIntensity * 0.02}) 3px,
+            transparent 4px
           )
         `,
-        mixBlendMode: 'color-dodge' as const,
-        opacity: cappedIntensity * 0.9,
-        filter: 'blur(1px)' // Soften geometric lines
+        mixBlendMode: 'overlay' as const,
+        opacity: cappedIntensity * 0.8,
       },
       foilspray: {
         background: `
           linear-gradient(${(mouseX - 0.5) * 180 + 90}deg,
-            rgba(0, 150, 255, ${cappedIntensity * 0.5}) 0%,
-            rgba(100, 200, 255, ${cappedIntensity * 0.4}) 25%,
-            rgba(150, 255, 200, ${cappedIntensity * 0.55}) 50%,
-            rgba(50, 100, 255, ${cappedIntensity * 0.35}) 75%,
-            rgba(0, 200, 255, ${cappedIntensity * 0.45}) 100%),
+            rgba(255, 255, 255, ${cappedIntensity * 0.4}) 0%,
+            rgba(192, 192, 192, ${cappedIntensity * 0.3}) 25%,
+            rgba(255, 255, 255, ${cappedIntensity * 0.45}) 50%,
+            rgba(169, 169, 169, ${cappedIntensity * 0.25}) 75%,
+            rgba(255, 255, 255, ${cappedIntensity * 0.35}) 100%),
           radial-gradient(circle at ${mouseX * 100}% ${mouseY * 100}%,
-            rgba(100, 150, 255, ${cappedIntensity * 0.3}) 0%,
+            rgba(255, 255, 255, ${cappedIntensity * 0.2}) 0%,
             transparent 60%)
         `,
-        mixBlendMode: 'screen' as const,
-        opacity: cappedIntensity * 0.8,
-        filter: 'blur(1.5px)'
+        mixBlendMode: 'overlay' as const,
+        opacity: cappedIntensity * 0.6,
       },
       prizm: {
         background: `
           conic-gradient(from ${mouseX * 360}deg at 50% 50%,
-            rgba(0, 100, 255, ${cappedIntensity * 0.3}),
-            rgba(100, 200, 255, ${cappedIntensity * 0.25}),
-            rgba(50, 255, 200, ${cappedIntensity * 0.3}),
-            rgba(0, 150, 255, ${cappedIntensity * 0.28}),
-            rgba(150, 100, 255, ${cappedIntensity * 0.32}),
-            rgba(0, 200, 255, ${cappedIntensity * 0.25}),
-            rgba(100, 150, 255, ${cappedIntensity * 0.28}),
-            rgba(0, 100, 255, ${cappedIntensity * 0.3})),
+            rgba(255, 0, 0, ${cappedIntensity * 0.2}),
+            rgba(255, 165, 0, ${cappedIntensity * 0.2}),
+            rgba(255, 255, 0, ${cappedIntensity * 0.2}),
+            rgba(0, 255, 0, ${cappedIntensity * 0.2}),
+            rgba(0, 255, 255, ${cappedIntensity * 0.2}),
+            rgba(0, 0, 255, ${cappedIntensity * 0.2}),
+            rgba(138, 43, 226, ${cappedIntensity * 0.2}),
+            rgba(255, 0, 0, ${cappedIntensity * 0.2})),
           repeating-conic-gradient(from ${mouseY * 360}deg,
             transparent 0deg,
-            rgba(50, 150, 255, ${cappedIntensity * 0.12}) 20deg,
-            transparent 40deg)
+            rgba(255, 255, 255, ${cappedIntensity * 0.08}) 15deg,
+            transparent 30deg)
         `,
-        mixBlendMode: 'color-dodge' as const,
-        opacity: cappedIntensity * 1.0,
-        filter: 'blur(2px)'
+        mixBlendMode: 'soft-light' as const,
+        opacity: cappedIntensity * 0.8,
       },
       chrome: {
         background: `
           linear-gradient(${(mouseX - 0.5) * 180 + 90}deg,
-            rgba(0, 150, 255, ${cappedIntensity * 0.55}) 0%,
-            rgba(100, 200, 255, ${cappedIntensity * 0.6}) 20%,
-            rgba(150, 255, 255, ${cappedIntensity * 0.45}) 40%,
-            rgba(50, 100, 255, ${cappedIntensity * 0.6}) 60%,
-            rgba(0, 180, 255, ${cappedIntensity * 0.5}) 80%,
-            rgba(100, 150, 255, ${cappedIntensity * 0.6}) 100%),
+            rgba(220, 220, 220, ${cappedIntensity * 0.45}) 0%,
+            rgba(255, 255, 255, ${cappedIntensity * 0.5}) 20%,
+            rgba(200, 200, 200, ${cappedIntensity * 0.35}) 40%,
+            rgba(255, 255, 255, ${cappedIntensity * 0.5}) 60%,
+            rgba(180, 180, 180, ${cappedIntensity * 0.4}) 80%,
+            rgba(255, 255, 255, ${cappedIntensity * 0.5}) 100%),
           radial-gradient(ellipse at ${mouseX * 100}% ${mouseY * 100}%,
-            rgba(0, 200, 255, ${cappedIntensity * 0.4}) 0%,
+            rgba(255, 255, 255, ${cappedIntensity * 0.3}) 0%,
             transparent 50%)
         `,
-        mixBlendMode: 'screen' as const,
-        opacity: cappedIntensity * 0.85,
-        filter: 'blur(1px)'
+        mixBlendMode: 'overlay' as const,
+        opacity: cappedIntensity * 0.7,
       },
       interference: {
         background: `
           radial-gradient(circle at ${mouseX * 100}% ${mouseY * 100}%,
-            rgba(0, 150, 255, ${cappedIntensity * 0.25}) 0%,
-            rgba(100, 255, 200, ${cappedIntensity * 0.22}) 30%,
-            rgba(150, 100, 255, ${cappedIntensity * 0.25}) 60%,
+            rgba(255, 0, 255, ${cappedIntensity * 0.15}) 0%,
+            rgba(0, 255, 255, ${cappedIntensity * 0.15}) 30%,
+            rgba(255, 255, 0, ${cappedIntensity * 0.15}) 60%,
             transparent 100%),
           repeating-radial-gradient(circle at ${mouseX * 100}% ${mouseY * 100}%,
             transparent 0px,
-            rgba(50, 200, 255, ${cappedIntensity * 0.08}) 15px,
-            transparent 30px)
+            rgba(255, 255, 255, ${cappedIntensity * 0.04}) 10px,
+            transparent 20px)
         `,
-        mixBlendMode: 'color-dodge' as const,
-        opacity: cappedIntensity * 0.7,
-        filter: 'blur(2px)'
+        mixBlendMode: 'overlay' as const,
+        opacity: cappedIntensity * 0.5,
       },
       brushedmetal: {
         background: `
           repeating-linear-gradient(${(mouseX - 0.5) * 90 + 45}deg,
-            rgba(0, 150, 255, ${cappedIntensity * 0.5}) 0px,
-            rgba(100, 200, 255, ${cappedIntensity * 0.6}) 2px,
-            rgba(50, 180, 255, ${cappedIntensity * 0.4}) 4px,
-            rgba(150, 220, 255, ${cappedIntensity * 0.45}) 6px),
+            rgba(200, 200, 200, ${cappedIntensity * 0.4}) 0px,
+            rgba(255, 255, 255, ${cappedIntensity * 0.5}) 1px,
+            rgba(180, 180, 180, ${cappedIntensity * 0.3}) 2px,
+            rgba(220, 220, 220, ${cappedIntensity * 0.35}) 3px),
           linear-gradient(${(mouseY - 0.5) * 180 + 90}deg,
-            rgba(0, 200, 255, ${cappedIntensity * 0.35}) 0%,
+            rgba(255, 255, 255, ${cappedIntensity * 0.25}) 0%,
             transparent 50%,
-            rgba(100, 150, 255, ${cappedIntensity * 0.25}) 100%)
+            rgba(255, 255, 255, ${cappedIntensity * 0.15}) 100%)
         `,
-        mixBlendMode: 'screen' as const,
-        opacity: cappedIntensity * 0.8,
-        filter: 'blur(0.5px)'
+        mixBlendMode: 'overlay' as const,
+        opacity: cappedIntensity * 0.6,
       },
       crystal: {
         background: `
           conic-gradient(from ${mouseX * 360}deg at ${mouseX * 100}% ${mouseY * 100}%,
-            rgba(0, 150, 255, ${cappedIntensity * 0.4}) 0deg,
-            rgba(100, 200, 255, ${cappedIntensity * 0.3}) 60deg,
-            rgba(150, 255, 200, ${cappedIntensity * 0.5}) 120deg,
-            rgba(50, 100, 255, ${cappedIntensity * 0.3}) 180deg,
-            rgba(0, 200, 255, ${cappedIntensity * 0.4}) 240deg,
-            rgba(100, 150, 255, ${cappedIntensity * 0.3}) 300deg,
-            rgba(0, 150, 255, ${cappedIntensity * 0.4}) 360deg),
+            rgba(255, 255, 255, ${cappedIntensity * 0.3}) 0deg,
+            rgba(200, 200, 255, ${cappedIntensity * 0.2}) 60deg,
+            rgba(255, 255, 255, ${cappedIntensity * 0.4}) 120deg,
+            rgba(255, 200, 255, ${cappedIntensity * 0.2}) 180deg,
+            rgba(255, 255, 255, ${cappedIntensity * 0.3}) 240deg,
+            rgba(200, 255, 255, ${cappedIntensity * 0.2}) 300deg,
+            rgba(255, 255, 255, ${cappedIntensity * 0.3}) 360deg),
           repeating-conic-gradient(from ${mouseY * 180}deg,
             transparent 0deg,
-            rgba(50, 180, 255, ${cappedIntensity * 0.18}) 40deg,
-            transparent 80deg)
+            rgba(255, 255, 255, ${cappedIntensity * 0.12}) 30deg,
+            transparent 60deg)
         `,
-        mixBlendMode: 'color-dodge' as const,
-        opacity: cappedIntensity * 0.9,
-        filter: 'blur(1.5px)'
+        mixBlendMode: 'soft-light' as const,
+        opacity: cappedIntensity * 0.7,
       },
       vintage: {
         background: `
           radial-gradient(circle at ${mouseX * 100}% ${mouseY * 100}%,
-            rgba(0, 120, 180, ${cappedIntensity * 0.2}) 0%,
-            rgba(80, 150, 200, ${cappedIntensity * 0.15}) 50%,
+            rgba(139, 115, 85, ${cappedIntensity * 0.15}) 0%,
+            rgba(160, 130, 98, ${cappedIntensity * 0.1}) 50%,
             transparent 100%),
           linear-gradient(45deg,
-            rgba(0, 100, 160, ${cappedIntensity * 0.08}) 0%,
-            rgba(60, 140, 190, ${cappedIntensity * 0.12}) 50%,
-            rgba(0, 120, 180, ${cappedIntensity * 0.08}) 100%)
+            rgba(139, 115, 85, ${cappedIntensity * 0.05}) 0%,
+            rgba(160, 130, 98, ${cappedIntensity * 0.1}) 50%,
+            rgba(139, 115, 85, ${cappedIntensity * 0.05}) 100%)
         `,
-        mixBlendMode: 'overlay' as const,
-        opacity: cappedIntensity * 0.6,
-        filter: 'blur(1px)'
+        mixBlendMode: 'multiply' as const,
+        opacity: cappedIntensity * 0.4,
       }
     };
 
@@ -210,7 +202,7 @@ export const useCardEffects = ({
   const SurfaceTexture = React.useMemo(() => {
     if (!showEffects) return null;
 
-    const textureIntensity = effectIntensity[0] / 100 * 0.2; // Reduced for subtlety
+    const textureIntensity = effectIntensity[0] / 100 * 0.3;
 
     return (
       <div 
@@ -219,16 +211,15 @@ export const useCardEffects = ({
           background: `
             repeating-linear-gradient(0deg,
               transparent 0px,
-              rgba(0, 150, 255, ${textureIntensity * 0.3}) 1px,
-              transparent 3px),
+              rgba(255, 255, 255, ${textureIntensity * 0.5}) 1px,
+              transparent 2px),
             repeating-linear-gradient(90deg,
               transparent 0px,
-              rgba(100, 200, 255, ${textureIntensity * 0.2}) 1px,
-              transparent 3px)
+              rgba(0, 0, 0, ${textureIntensity * 0.3}) 1px,
+              transparent 2px)
           `,
-          mixBlendMode: 'soft-light',
-          opacity: 0.3,
-          filter: 'blur(0.5px)' // Soften the texture lines
+          mixBlendMode: 'overlay',
+          opacity: 0.4,
         }}
       />
     );
