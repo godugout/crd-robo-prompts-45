@@ -111,10 +111,17 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose?.()}>
       <DialogContent 
-        className="max-w-none h-screen w-screen p-0 bg-black border-none m-0 fixed inset-0"
-        style={{ borderRadius: 0 }}
+        className="fixed inset-0 z-[100] w-screen h-screen max-w-none max-h-none p-0 m-0 bg-black border-none overflow-hidden"
+        style={{ 
+          borderRadius: 0,
+          transform: 'none',
+          left: 0,
+          top: 0,
+          width: '100vw',
+          height: '100vh'
+        }}
       >
-        <div className="relative w-full h-full flex overflow-hidden">
+        <div className="absolute inset-0 w-full h-full flex overflow-hidden">
           {/* Main 3D Environment Area - Full Screen */}
           <div className="flex-1 relative h-full w-full">
             <Enhanced3DEnvironment 
