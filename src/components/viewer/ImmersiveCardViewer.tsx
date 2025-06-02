@@ -30,6 +30,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [showCustomizePanel, setShowCustomizePanel] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const [isHoveringControls, setIsHoveringControls] = useState(false);
   
   // Advanced settings
   const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[3]); // Twilight
@@ -101,13 +102,17 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     }
   }, []);
 
-  // Handle mouse movement for effects
+  // Handle mouse movement for effects and control hover detection
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
       const y = (e.clientY - rect.top) / rect.height;
       setMousePosition({ x, y });
+      
+      // Check if hovering over bottom left area (controls zone)
+      const isInControlsArea = e.clientX - rect.left < 300 && e.clientY - rect.top > rect.height - 100;
+      setIsHoveringControls(isInControlsArea);
       
       if (allowRotation && !autoRotate) {
         setRotation({
@@ -215,16 +220,18 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
         </div>
       )}
 
-      {/* Basic Controls */}
-      <ViewerControls
-        showEffects={showEffects}
-        autoRotate={autoRotate}
-        onToggleEffects={() => setShowEffects(!showEffects)}
-        onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
-        onReset={handleReset}
-        onZoomIn={() => handleZoom(0.1)}
-        onZoomOut={() => handleZoom(-0.1)}
-      />
+      {/* Basic Controls with hover visibility */}
+      <div className={`transition-opacity duration-200 ${isHoveringControls ? 'opacity-100 z-20' : 'opacity-100 z-10'}`}>
+        <ViewerControls
+          showEffects={showEffects}
+          autoRotate={autoRotate}
+          onToggleEffects={() => setShowEffects(!showEffects)}
+          onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
+          onReset={handleReset}
+          onZoomIn={() => handleZoom(0.1)}
+          onZoomOut={() => handleZoom(-0.1)}
+        />
+      </div>
 
       {/* Full Height Customize Panel */}
       {showCustomizePanel && (

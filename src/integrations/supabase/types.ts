@@ -559,6 +559,652 @@ export type Database = {
           },
         ]
       }
+      crd_ai_generations: {
+        Row: {
+          card_id: string | null
+          cost: number | null
+          created_at: string
+          generation_type: string
+          id: string
+          prompt: string
+          provider: string | null
+          result: Json | null
+          user_id: string
+        }
+        Insert: {
+          card_id?: string | null
+          cost?: number | null
+          created_at?: string
+          generation_type: string
+          id?: string
+          prompt: string
+          provider?: string | null
+          result?: Json | null
+          user_id: string
+        }
+        Update: {
+          card_id?: string | null
+          cost?: number | null
+          created_at?: string
+          generation_type?: string
+          id?: string
+          prompt?: string
+          provider?: string | null
+          result?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crd_ai_generations_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "crd_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crd_cards: {
+        Row: {
+          collection_id: string | null
+          crd_catalog_inclusion: boolean | null
+          created_at: string
+          creator_attribution: Json | null
+          creator_id: string
+          description: string | null
+          design_metadata: Json | null
+          edition_size: number
+          id: string
+          image_url: string | null
+          is_public: boolean | null
+          marketplace_listing: boolean | null
+          price: number | null
+          print_available: boolean | null
+          print_metadata: Json | null
+          publishing_options: Json | null
+          rarity: string
+          tags: string[] | null
+          team_id: string | null
+          template_id: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          user_id: string | null
+          verification_status: string | null
+        }
+        Insert: {
+          collection_id?: string | null
+          crd_catalog_inclusion?: boolean | null
+          created_at?: string
+          creator_attribution?: Json | null
+          creator_id: string
+          description?: string | null
+          design_metadata?: Json | null
+          edition_size?: number
+          id?: string
+          image_url?: string | null
+          is_public?: boolean | null
+          marketplace_listing?: boolean | null
+          price?: number | null
+          print_available?: boolean | null
+          print_metadata?: Json | null
+          publishing_options?: Json | null
+          rarity: string
+          tags?: string[] | null
+          team_id?: string | null
+          template_id?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          user_id?: string | null
+          verification_status?: string | null
+        }
+        Update: {
+          collection_id?: string | null
+          crd_catalog_inclusion?: boolean | null
+          created_at?: string
+          creator_attribution?: Json | null
+          creator_id?: string
+          description?: string | null
+          design_metadata?: Json | null
+          edition_size?: number
+          id?: string
+          image_url?: string | null
+          is_public?: boolean | null
+          marketplace_listing?: boolean | null
+          price?: number | null
+          print_available?: boolean | null
+          print_metadata?: Json | null
+          publishing_options?: Json | null
+          rarity?: string
+          tags?: string[] | null
+          team_id?: string | null
+          template_id?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+          verification_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crd_cards_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "crd_collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crd_cards_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "crd_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crd_cards_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "crd_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crd_collection_cards: {
+        Row: {
+          card_id: string
+          collection_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          card_id: string
+          collection_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          card_id?: string
+          collection_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crd_collection_cards_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "crd_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crd_collection_cards_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "crd_collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crd_collections: {
+        Row: {
+          allow_comments: boolean | null
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          design_metadata: Json | null
+          id: string
+          owner_id: string
+          team_id: string | null
+          title: string
+          updated_at: string
+          visibility: string | null
+        }
+        Insert: {
+          allow_comments?: boolean | null
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          design_metadata?: Json | null
+          id?: string
+          owner_id: string
+          team_id?: string | null
+          title: string
+          updated_at?: string
+          visibility?: string | null
+        }
+        Update: {
+          allow_comments?: boolean | null
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          design_metadata?: Json | null
+          id?: string
+          owner_id?: string
+          team_id?: string | null
+          title?: string
+          updated_at?: string
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crd_collections_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "crd_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crd_comments: {
+        Row: {
+          card_id: string | null
+          collection_id: string | null
+          content: string
+          created_at: string
+          id: string
+          parent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_id?: string | null
+          collection_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string | null
+          collection_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crd_comments_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "crd_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crd_comments_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "crd_collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crd_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "crd_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crd_digital_assets: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_size: number
+          height: number | null
+          id: string
+          metadata: Json | null
+          mime_type: string
+          original_filename: string
+          storage_path: string
+          tags: string[] | null
+          thumbnail_path: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+          width: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_size: number
+          height?: number | null
+          id?: string
+          metadata?: Json | null
+          mime_type: string
+          original_filename: string
+          storage_path: string
+          tags?: string[] | null
+          thumbnail_path?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+          width?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_size?: number
+          height?: number | null
+          id?: string
+          metadata?: Json | null
+          mime_type?: string
+          original_filename?: string
+          storage_path?: string
+          tags?: string[] | null
+          thumbnail_path?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
+      crd_marketplace_listings: {
+        Row: {
+          card_id: string
+          created_at: string
+          currency: string | null
+          id: string
+          price: number
+          seller_id: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          price: number
+          seller_id: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          price?: number
+          seller_id?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crd_marketplace_listings_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "crd_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crd_owned_cards: {
+        Row: {
+          card_id: string
+          created_at: string
+          edition_number: number
+          id: string
+          owner_id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          edition_number: number
+          id?: string
+          owner_id: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          edition_number?: number
+          id?: string
+          owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crd_owned_cards_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "crd_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crd_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          bio_extended: string | null
+          created_at: string
+          creator_badge: string | null
+          creator_verified: boolean | null
+          display_name: string | null
+          id: string
+          is_public: boolean | null
+          portfolio_links: Json | null
+          specialties: string[] | null
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          bio_extended?: string | null
+          created_at?: string
+          creator_badge?: string | null
+          creator_verified?: boolean | null
+          display_name?: string | null
+          id: string
+          is_public?: boolean | null
+          portfolio_links?: Json | null
+          specialties?: string[] | null
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          bio_extended?: string | null
+          created_at?: string
+          creator_badge?: string | null
+          creator_verified?: boolean | null
+          display_name?: string | null
+          id?: string
+          is_public?: boolean | null
+          portfolio_links?: Json | null
+          specialties?: string[] | null
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      crd_reactions: {
+        Row: {
+          card_id: string | null
+          collection_id: string | null
+          comment_id: string | null
+          created_at: string
+          id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          card_id?: string | null
+          collection_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string | null
+          collection_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crd_reactions_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "crd_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crd_reactions_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "crd_collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crd_reactions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "crd_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crd_team_members: {
+        Row: {
+          id: string
+          joined_at: string
+          role: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          role?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          role?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crd_team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "crd_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crd_teams: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      crd_templates: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          layout_json: Json
+          name: string
+          thumbnail_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          layout_json?: Json
+          name: string
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          layout_json?: Json
+          name?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      crd_trades: {
+        Row: {
+          created_at: string
+          id: string
+          initiator_cards: string[] | null
+          initiator_id: string
+          recipient_cards: string[] | null
+          recipient_id: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          initiator_cards?: string[] | null
+          initiator_id: string
+          recipient_cards?: string[] | null
+          recipient_id: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          initiator_cards?: string[] | null
+          initiator_id?: string
+          recipient_cards?: string[] | null
+          recipient_id?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       custom_users: {
         Row: {
           created_at: string
