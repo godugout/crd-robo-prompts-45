@@ -15,6 +15,7 @@ import { useCreators } from '@/hooks/useCreators';
 import { Filter } from 'lucide-react';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
 import { toast } from 'sonner';
+import type { CardData } from '@/hooks/useCardEditor';
 
 const GallerySection = ({ 
   title, 
@@ -38,6 +39,15 @@ const Gallery = () => {
   const { featuredCards, loading: cardsLoading } = useCards();
   const { popularCreators, loading: creatorsLoading } = useCreators();
 
+  // Convert cards to CardData format for the viewer
+  const convertedCards: CardData[] = featuredCards.map(card => ({
+    ...card,
+    visibility: card.visibility || 'public',
+    creator_attribution: card.creator_attribution || '',
+    publishing_options: card.publishing_options || {},
+    tags: card.tags || []
+  }));
+
   const handleCardClick = (card: any) => {
     const cardIndex = featuredCards.findIndex(c => c.id === card.id);
     setSelectedCardIndex(cardIndex >= 0 ? cardIndex : 0);
@@ -53,7 +63,7 @@ const Gallery = () => {
   };
 
   const handleShareCard = () => {
-    const selectedCard = featuredCards[selectedCardIndex];
+    const selectedCard = convertedCards[selectedCardIndex];
     if (selectedCard) {
       const shareUrl = `${window.location.origin}/card/${selectedCard.id}`;
       
@@ -68,7 +78,7 @@ const Gallery = () => {
   };
 
   const handleDownloadCard = () => {
-    const selectedCard = featuredCards[selectedCardIndex];
+    const selectedCard = convertedCards[selectedCardIndex];
     if (selectedCard) {
       const dataStr = JSON.stringify(selectedCard, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -84,7 +94,7 @@ const Gallery = () => {
     }
   };
 
-  const currentCard = featuredCards[selectedCardIndex];
+  const currentCard = convertedCards[selectedCardIndex];
 
   return (
     <div className="container mx-auto p-6 max-w-7xl bg-[#121212]">
@@ -263,10 +273,10 @@ const Gallery = () => {
       </div>
 
       {/* Enhanced Immersive Card Viewer with Navigation */}
-      {showImmersiveViewer && currentCard && featuredCards.length > 0 && (
+      {showImmersiveViewer && currentCard && convertedCards.length > 0 && (
         <ImmersiveCardViewer
           card={currentCard}
-          cards={featuredCards}
+          cards={convertedCards}
           currentCardIndex={selectedCardIndex}
           onCardChange={handleCardChange}
           isOpen={showImmersiveViewer}
