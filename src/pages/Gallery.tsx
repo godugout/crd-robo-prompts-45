@@ -15,7 +15,7 @@ import { useCreators } from '@/hooks/useCreators';
 import { Filter } from 'lucide-react';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
 import { toast } from 'sonner';
-import type { CardData } from '@/hooks/useCardEditor';
+import type { CardData, CardRarity } from '@/hooks/useCardEditor';
 
 const GallerySection = ({ 
   title, 
@@ -41,11 +41,27 @@ const Gallery = () => {
 
   // Convert cards to CardData format for the viewer
   const convertedCards: CardData[] = featuredCards.map(card => ({
-    ...card,
-    visibility: card.visibility || 'public',
-    creator_attribution: card.creator_attribution || '',
-    publishing_options: card.publishing_options || {},
-    tags: card.tags || []
+    id: card.id,
+    title: card.title,
+    description: card.description || '',
+    image_url: card.image_url,
+    thumbnail_url: card.thumbnail_url,
+    rarity: (card.rarity as CardRarity) || 'common',
+    tags: card.tags || [],
+    design_metadata: card.design_metadata || {},
+    visibility: 'public',
+    creator_attribution: {
+      creator_name: '',
+      creator_id: card.creator_id
+    },
+    publishing_options: {
+      marketplace_listing: false,
+      crd_catalog_inclusion: true,
+      print_available: false,
+      pricing: {
+        currency: 'USD'
+      }
+    }
   }));
 
   const handleCardClick = (card: any) => {
