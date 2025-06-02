@@ -111,13 +111,11 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose?.()}>
       <DialogContent 
-        className={`max-w-none h-screen w-screen p-0 bg-black ${
-          isFullscreen ? 'border-none' : ''
-        }`}
+        className="max-w-none h-screen w-screen p-0 bg-black border-none m-0"
       >
         <div className="relative w-full h-full flex">
-          {/* Main 3D Environment Area */}
-          <div className="flex-1 relative">
+          {/* Main 3D Environment Area - Full Screen */}
+          <div className="flex-1 relative h-full">
             <Enhanced3DEnvironment 
               scene={selectedScene}
               allowRotation={allowRotation}
@@ -130,12 +128,12 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={onClose}
-                  className="bg-black bg-opacity-50 hover:bg-opacity-70 text-white border border-white/20"
+                  className="bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white border border-white/20"
                 >
                   <X className="w-5 h-5" />
                 </Button>
                 {cards.length > 1 && (
-                  <div className="bg-black bg-opacity-50 px-3 py-1 rounded-full text-white text-sm border border-white/20">
+                  <div className="bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full text-white text-sm border border-white/20">
                     {currentCardIndex + 1} of {cards.length}
                   </div>
                 )}
@@ -146,7 +144,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowCustomizePanel(!showCustomizePanel)}
-                  className="bg-black bg-opacity-50 hover:bg-opacity-70 text-white border border-white/20"
+                  className="bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white border border-white/20"
                 >
                   <Settings className="w-5 h-5" />
                 </Button>
@@ -160,7 +158,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
                   variant="ghost"
                   size="lg"
                   onClick={handlePreviousCard}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white border border-white/20"
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white border border-white/20"
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </Button>
@@ -168,7 +166,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
                   variant="ghost"
                   size="lg"
                   onClick={handleNextCard}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white border border-white/20"
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/60 backdrop-blur-sm hover:bg-black/80 text-white border border-white/20"
                 >
                   <ChevronRight className="w-6 h-6" />
                 </Button>
@@ -177,7 +175,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
 
             {/* Card Info Overlay */}
             {showStats && (
-              <div className="absolute bottom-4 left-4 bg-black bg-opacity-70 backdrop-blur-lg p-4 rounded-lg text-white max-w-sm border border-white/20">
+              <div className="absolute bottom-4 left-4 bg-black/70 backdrop-blur-lg p-4 rounded-lg text-white max-w-sm border border-white/20">
                 <h3 className="font-bold text-lg mb-2">{card.title}</h3>
                 {card.description && (
                   <p className="text-sm text-gray-300 mb-2">{card.description}</p>
