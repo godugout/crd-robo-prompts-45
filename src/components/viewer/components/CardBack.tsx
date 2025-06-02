@@ -53,31 +53,48 @@ export const CardBack: React.FC<CardBackProps> = ({
         {SurfaceTexture}
       </div>
       
-      {/* Card Back Content */}
+      {/* Enhanced Card Back Content with All Information */}
       <div className="relative h-full p-6 flex flex-col z-30">
-        <h3 className="text-xl font-bold mb-4 text-white">
-          Card Details
-        </h3>
+        {/* Card Title */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-white mb-2">
+            {card.title}
+          </h1>
+          {card.series && (
+            <p className="text-sm text-gray-400 uppercase tracking-wide">
+              {card.series}
+            </p>
+          )}
+        </div>
         
-        <div className="space-y-3 mb-4">
-          <div className="flex justify-between p-2 rounded bg-gray-800 bg-opacity-60">
+        {/* Card Details Grid */}
+        <div className="space-y-3 mb-6">
+          <div className="flex justify-between p-3 rounded-lg bg-gray-800 bg-opacity-70">
             <span className="text-sm text-gray-300">Type:</span>
             <span className="font-medium text-white">{card.type || 'Character'}</span>
           </div>
           
-          <div className="flex justify-between p-2 rounded bg-gray-800 bg-opacity-60">
+          <div className="flex justify-between p-3 rounded-lg bg-gray-800 bg-opacity-70">
             <span className="text-sm text-gray-300">Rarity:</span>
-            <span className="font-medium text-white">{card.rarity}</span>
+            <span className={`font-medium capitalize ${
+              card.rarity === 'legendary' ? 'text-yellow-400' :
+              card.rarity === 'epic' ? 'text-purple-400' :
+              card.rarity === 'rare' ? 'text-blue-400' :
+              card.rarity === 'uncommon' ? 'text-green-400' :
+              'text-gray-300'
+            }`}>
+              {card.rarity}
+            </span>
           </div>
 
           {card.tags.length > 0 && (
-            <div className="p-2 rounded bg-gray-800 bg-opacity-60">
-              <span className="text-sm block mb-1 text-gray-300">Tags:</span>
-              <div className="flex flex-wrap gap-1">
+            <div className="p-3 rounded-lg bg-gray-800 bg-opacity-70">
+              <span className="text-sm block mb-2 text-gray-300">Tags:</span>
+              <div className="flex flex-wrap gap-2">
                 {card.tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-700 bg-opacity-60 text-gray-200"
+                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-700 bg-opacity-80 text-gray-200 border border-gray-600"
                   >
                     {tag}
                   </span>
@@ -87,11 +104,27 @@ export const CardBack: React.FC<CardBackProps> = ({
           )}
         </div>
         
+        {/* Description - Takes remaining space */}
         {card.description && (
-          <p className="text-sm mt-auto text-gray-300">
-            {card.description}
-          </p>
+          <div className="mt-auto">
+            <h3 className="text-sm font-semibold text-gray-300 mb-2 uppercase tracking-wide">
+              Description
+            </h3>
+            <p className="text-sm text-gray-200 leading-relaxed">
+              {card.description}
+            </p>
+          </div>
         )}
+
+        {/* Card ID or additional metadata at bottom */}
+        <div className="mt-4 pt-4 border-t border-gray-700 border-opacity-50">
+          <div className="flex justify-between items-center text-xs text-gray-400">
+            <span>Card ID: {card.id || 'N/A'}</span>
+            {card.template_id && (
+              <span className="capitalize">{card.template_id} Edition</span>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Unified Effects Layer - Same as front */}
