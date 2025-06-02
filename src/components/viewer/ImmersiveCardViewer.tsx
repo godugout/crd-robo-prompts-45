@@ -1,6 +1,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, VisualEffect, MaterialSettings } from './types';
 import { ENVIRONMENT_SCENES, LIGHTING_PRESETS, VISUAL_EFFECTS } from './constants';
 import { useCardEffects } from './hooks/useCardEffects';
@@ -158,7 +159,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
       ref={containerRef}
       className={`fixed inset-0 z-50 flex items-center justify-center ${
         isFullscreen ? 'p-0' : 'p-8'
-      }`}
+      } ${showCustomizePanel ? 'pr-80' : ''}`}
       style={{
         background: `linear-gradient(135deg, 
           rgba(0,0,0,0.95) 0%, 
@@ -185,26 +186,33 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
         />
       )}
 
-      {/* Main Controls */}
+      {/* Settings Panel Toggle Button */}
+      {!showCustomizePanel && (
+        <div className="absolute top-4 right-4 z-10">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowCustomizePanel(true)}
+            className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
+          >
+            <Sparkles className="w-4 h-4 text-white mr-2" />
+            <span className="text-white text-sm">Customize</span>
+          </Button>
+        </div>
+      )}
+
+      {/* Basic Controls */}
       <ViewerControls
-        isFullscreen={isFullscreen}
-        showCustomizePanel={showCustomizePanel}
         showEffects={showEffects}
         autoRotate={autoRotate}
-        onToggleCustomizePanel={() => setShowCustomizePanel(!showCustomizePanel)}
         onToggleEffects={() => setShowEffects(!showEffects)}
         onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
         onReset={handleReset}
         onZoomIn={() => handleZoom(0.1)}
         onZoomOut={() => handleZoom(-0.1)}
-        onToggleFullscreen={toggleFullscreen}
-        onShare={onShare}
-        onDownload={onDownload}
-        onClose={onClose}
-        card={card}
       />
 
-      {/* Customize Panel */}
+      {/* Full Height Customize Panel */}
       {showCustomizePanel && (
         <CustomizePanel
           selectedScene={selectedScene}
@@ -214,6 +222,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
           overallBrightness={overallBrightness}
           interactiveLighting={interactiveLighting}
           materialSettings={materialSettings}
+          isFullscreen={isFullscreen}
           onSceneChange={setSelectedScene}
           onLightingChange={setSelectedLighting}
           onEffectChange={setSelectedEffect}
@@ -221,8 +230,16 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
           onBrightnessChange={setOverallBrightness}
           onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
           onMaterialSettingsChange={setMaterialSettings}
+          onToggleFullscreen={toggleFullscreen}
           onDownload={onDownload}
           onShare={onShare}
+          onClose={() => {
+            if (onClose) {
+              onClose();
+            } else {
+              setShowCustomizePanel(false);
+            }
+          }}
           card={card}
         />
       )}
