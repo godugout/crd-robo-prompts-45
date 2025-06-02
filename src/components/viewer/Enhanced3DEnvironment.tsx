@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
@@ -36,8 +35,6 @@ const EnvironmentBackground: React.FC<{ scene: EnvironmentScene }> = ({ scene })
   
   useEffect(() => {
     const textureLoader = new THREE.TextureLoader();
-    
-    // Get the photo URL for this scene
     const photoUrl = SCENE_PHOTOS[scene.id as keyof typeof SCENE_PHOTOS];
     
     if (photoUrl) {
@@ -50,17 +47,15 @@ const EnvironmentBackground: React.FC<{ scene: EnvironmentScene }> = ({ scene })
         },
         undefined,
         () => {
-          // Fallback to simple color background
+          // Fallback to simple color
           threeScene.background = new THREE.Color(scene.lighting.color);
         }
       );
     } else {
-      // Simple color fallback
       threeScene.background = new THREE.Color(scene.lighting.color);
     }
     
     return () => {
-      // Cleanup
       if (threeScene.background && threeScene.background instanceof THREE.Texture) {
         threeScene.background.dispose();
       }
@@ -105,27 +100,38 @@ const Card3D: React.FC<{
     }
   }, [card?.image_url]);
 
-  // Create material with effects
-  const createCardMaterial = () => {
+  // Create material with visual effects
+  const createMaterial = () => {
     const intensity = (effectIntensity?.[0] || 50) / 100;
     
-    const material = new THREE.MeshStandardMaterial({
-      color: "#ffffff",
-      roughness: 0.1,
-      metalness: 0.05,
-      envMapIntensity: 1.2,
-      side: THREE.DoubleSide,
-      map: cardTexture,
-    });
+    let material;
+    
+    if (cardTexture) {
+      material = new THREE.MeshStandardMaterial({
+        map: cardTexture,
+        roughness: 0.1,
+        metalness: 0.05,
+        envMapIntensity: 1.2,
+      });
+    } else {
+      // Fallback material when no image
+      material = new THREE.MeshStandardMaterial({
+        color: '#e5e7eb',
+        roughness: 0.3,
+        metalness: 0.1,
+      });
+    }
 
-    // Apply visual effects
+    // Apply visual effects based on selected effect
     if (selectedEffect && selectedEffect.id) {
       switch (selectedEffect.id) {
         case 'holographic':
           material.roughness = 0.05;
           material.metalness = 0.8;
           material.envMapIntensity = 2 + intensity;
-          material.color = new THREE.Color().setHSL(0.5 + intensity * 0.3, 0.8, 0.9);
+          if (!cardTexture) {
+            material.color = new THREE.Color().setHSL(0.5 + intensity * 0.3, 0.8, 0.9);
+          }
           break;
         case 'foilspray':
           material.roughness = 0.02;
@@ -136,7 +142,12 @@ const Card3D: React.FC<{
           material.roughness = 0.01;
           material.metalness = 0.95;
           material.envMapIntensity = 2.5 + intensity;
-          material.color = new THREE.Color(0.9 + intensity * 0.1, 0.9 + intensity * 0.1, 0.9 + intensity * 0.1);
+          if (!cardTexture) {
+            material.color = new THREE.Color(0.9 + intensity * 0.1, 0.9 + intensity * 0.1, 0.9 + intensity * 0.1);
+          }
+          break;
+        default:
+          // Keep default material properties
           break;
       }
     }
@@ -147,8 +158,9 @@ const Card3D: React.FC<{
   return (
     <group>
       {/* Main card mesh */}
-      <mesh ref={meshRef} position={[0, 0, 0]} material={createCardMaterial()}>
+      <mesh ref={meshRef} position={[0, 0, 0]}>
         <boxGeometry args={[3, 4.2, 0.05]} />
+        <primitive object={createMaterial()} />
       </mesh>
       
       {/* Card title text */}
