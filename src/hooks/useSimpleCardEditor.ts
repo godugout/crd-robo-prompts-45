@@ -120,11 +120,58 @@ export const useSimpleCardEditor = () => {
     }
   };
 
+  const downloadCardAsImage = async () => {
+    try {
+      // Find the card preview element
+      const cardElement = document.querySelector('.card-preview') as HTMLElement;
+      
+      if (!cardElement) {
+        toast.error('Card preview not found. Please make sure the card is visible.');
+        return;
+      }
+
+      // Import html2canvas dynamically
+      const html2canvas = (await import('html2canvas')).default;
+      
+      // Capture the card element as canvas
+      const canvas = await html2canvas(cardElement, {
+        backgroundColor: null,
+        scale: 2, // Higher resolution
+        useCORS: true,
+        allowTaint: true,
+      });
+
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          toast.error('Failed to generate image');
+          return;
+        }
+
+        // Create download link
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${cardData.title.replace(/\s+/g, '_')}_card.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        toast.success('Card image downloaded successfully!');
+      }, 'image/png');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download card image');
+    }
+  };
+
   return {
     cardData,
     updateField,
     saveCard,
     publishCard,
+    downloadCardAsImage,
     isSaving,
     lastSaved
   };

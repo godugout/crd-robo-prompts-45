@@ -72,19 +72,50 @@ export const RightSidebar = ({ cardEditor: providedCardEditor }: RightSidebarPro
     setShowImmersiveViewer(true);
   };
 
-  const handleDownloadCard = () => {
-    const card = cardEditor.cardData;
-    const dataStr = JSON.stringify(card, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${card.title.replace(/\s+/g, '_')}_card.json`;
-    link.click();
-    
-    URL.revokeObjectURL(url);
-    toast.success('Card exported successfully');
+  const handleDownloadCard = async () => {
+    try {
+      // Find the card preview element
+      const cardElement = document.querySelector('.card-preview') as HTMLElement;
+      
+      if (!cardElement) {
+        toast.error('Card preview not found. Please make sure the card is visible.');
+        return;
+      }
+
+      // Import html2canvas dynamically
+      const html2canvas = (await import('html2canvas')).default;
+      
+      // Capture the card element as canvas
+      const canvas = await html2canvas(cardElement, {
+        backgroundColor: null,
+        scale: 2, // Higher resolution
+        useCORS: true,
+        allowTaint: true,
+      });
+
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          toast.error('Failed to generate image');
+          return;
+        }
+
+        // Create download link
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${cardEditor.cardData.title.replace(/\s+/g, '_')}_card.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        toast.success('Card image downloaded successfully!');
+      }, 'image/png');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download card image');
+    }
   };
 
   const handleShareCard = () => {
