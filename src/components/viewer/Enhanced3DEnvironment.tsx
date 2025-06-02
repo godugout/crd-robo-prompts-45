@@ -5,7 +5,7 @@ import { OrbitControls, Text } from '@react-three/drei';
 import { Card } from '@/components/ui/card';
 import * as THREE from 'three';
 import type { EnvironmentScene } from './types';
-import type { CardData } from '@/hooks/useCardEditor';
+import type { CardData } from '@/types/card';
 
 interface Enhanced3DEnvironmentProps {
   scene: EnvironmentScene;
@@ -36,124 +36,31 @@ const EnvironmentBackground: React.FC<{ scene: EnvironmentScene }> = ({ scene })
   
   useEffect(() => {
     const textureLoader = new THREE.TextureLoader();
-    const canvas = document.createElement('canvas');
-    canvas.width = 2048;
-    canvas.height = 1024;
-    const ctx = canvas.getContext('2d')!;
-
-    // Create color overlay gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     
-    switch (scene.id) {
-      case 'studio':
-        gradient.addColorStop(0, 'rgba(74, 85, 104, 0.3)');
-        gradient.addColorStop(0.5, 'rgba(45, 55, 72, 0.5)');
-        gradient.addColorStop(1, 'rgba(26, 32, 44, 0.7)');
-        break;
-      case 'gallery':
-        gradient.addColorStop(0, 'rgba(247, 250, 252, 0.2)');
-        gradient.addColorStop(0.5, 'rgba(226, 232, 240, 0.3)');
-        gradient.addColorStop(1, 'rgba(203, 213, 224, 0.4)');
-        break;
-      case 'stadium':
-        gradient.addColorStop(0, 'rgba(135, 206, 235, 0.3)');
-        gradient.addColorStop(0.3, 'rgba(34, 139, 34, 0.4)');
-        gradient.addColorStop(1, 'rgba(0, 100, 0, 0.5)');
-        break;
-      case 'twilight':
-        gradient.addColorStop(0, 'rgba(255, 127, 80, 0.4)');
-        gradient.addColorStop(0.5, 'rgba(138, 43, 226, 0.5)');
-        gradient.addColorStop(1, 'rgba(25, 25, 112, 0.6)');
-        break;
-      case 'quarry':
-        gradient.addColorStop(0, 'rgba(255, 235, 59, 0.3)');
-        gradient.addColorStop(0.5, 'rgba(255, 152, 0, 0.4)');
-        gradient.addColorStop(1, 'rgba(211, 47, 47, 0.5)');
-        break;
-      case 'coastline':
-        gradient.addColorStop(0, 'rgba(135, 206, 235, 0.3)');
-        gradient.addColorStop(0.5, 'rgba(70, 130, 180, 0.4)');
-        gradient.addColorStop(1, 'rgba(47, 79, 79, 0.5)');
-        break;
-      case 'hillside':
-        gradient.addColorStop(0, 'rgba(144, 238, 144, 0.3)');
-        gradient.addColorStop(0.5, 'rgba(34, 139, 34, 0.4)');
-        gradient.addColorStop(1, 'rgba(0, 100, 0, 0.5)');
-        break;
-      case 'milkyway':
-        gradient.addColorStop(0, 'rgba(25, 25, 112, 0.4)');
-        gradient.addColorStop(0.5, 'rgba(75, 0, 130, 0.5)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.7)');
-        break;
-      case 'esplanade':
-        gradient.addColorStop(0, 'rgba(255, 215, 0, 0.3)');
-        gradient.addColorStop(0.5, 'rgba(255, 165, 0, 0.4)');
-        gradient.addColorStop(1, 'rgba(255, 140, 0, 0.5)');
-        break;
-      case 'neonclub':
-        gradient.addColorStop(0, 'rgba(255, 105, 180, 0.4)');
-        gradient.addColorStop(0.5, 'rgba(138, 43, 226, 0.5)');
-        gradient.addColorStop(1, 'rgba(0, 255, 255, 0.4)');
-        break;
-      case 'industrial':
-        gradient.addColorStop(0, 'rgba(105, 105, 105, 0.4)');
-        gradient.addColorStop(0.5, 'rgba(220, 20, 60, 0.5)');
-        gradient.addColorStop(1, 'rgba(255, 69, 0, 0.6)');
-        break;
-      default:
-        gradient.addColorStop(0, 'rgba(135, 206, 235, 0.3)');
-        gradient.addColorStop(1, 'rgba(70, 130, 180, 0.4)');
-    }
-
-    // Try to load photo background
+    // Get the photo URL for this scene
     const photoUrl = SCENE_PHOTOS[scene.id as keyof typeof SCENE_PHOTOS];
     
     if (photoUrl) {
       textureLoader.load(
         photoUrl,
-        (photoTexture) => {
-          // Photo loaded successfully - create composite
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          img.onload = () => {
-            // Draw photo
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            // Apply color overlay
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.mapping = THREE.EquirectangularReflectionMapping;
-            threeScene.background = texture;
-            threeScene.environment = texture;
-          };
-          img.src = photoUrl;
-        },
-        undefined,
-        () => {
-          // Fallback to gradient only
-          ctx.fillStyle = gradient;
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          
-          const texture = new THREE.CanvasTexture(canvas);
+        (texture) => {
           texture.mapping = THREE.EquirectangularReflectionMapping;
           threeScene.background = texture;
           threeScene.environment = texture;
+        },
+        undefined,
+        () => {
+          // Fallback to simple color background
+          threeScene.background = new THREE.Color(scene.lighting.color);
         }
       );
     } else {
-      // Fallback to gradient only
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.mapping = THREE.EquirectangularReflectionMapping;
-      threeScene.background = texture;
-      threeScene.environment = texture;
+      // Simple color fallback
+      threeScene.background = new THREE.Color(scene.lighting.color);
     }
     
     return () => {
-      // Cleanup textures
+      // Cleanup
       if (threeScene.background && threeScene.background instanceof THREE.Texture) {
         threeScene.background.dispose();
       }
@@ -170,7 +77,7 @@ const Card3D: React.FC<{
   selectedEffect?: any;
 }> = ({ scene, card, effectIntensity, selectedEffect }) => {
   const meshRef = useRef<THREE.Mesh>(null);
-  const textureRef = useRef<THREE.Texture | null>(null);
+  const [cardTexture, setCardTexture] = React.useState<THREE.Texture | null>(null);
   
   useFrame(() => {
     if (meshRef.current) {
@@ -178,79 +85,70 @@ const Card3D: React.FC<{
     }
   });
 
-  // Create card texture from image or use default
+  // Load card texture
   useEffect(() => {
     if (card?.image_url) {
       const textureLoader = new THREE.TextureLoader();
       textureLoader.load(
         card.image_url,
         (texture) => {
-          textureRef.current = texture;
-          if (meshRef.current) {
-            (meshRef.current.material as THREE.MeshStandardMaterial).map = texture;
-            (meshRef.current.material as THREE.MeshStandardMaterial).needsUpdate = true;
-          }
+          setCardTexture(texture);
         },
         undefined,
         (error) => {
           console.log('Failed to load card image:', error);
+          setCardTexture(null);
         }
       );
+    } else {
+      setCardTexture(null);
     }
   }, [card?.image_url]);
 
-  // Apply visual effects based on selection
-  const getEffectMaterial = () => {
+  // Create material with effects
+  const createCardMaterial = () => {
     const intensity = (effectIntensity?.[0] || 50) / 100;
     
-    const baseMaterial = {
+    const material = new THREE.MeshStandardMaterial({
       color: "#ffffff",
       roughness: 0.1,
       metalness: 0.05,
       envMapIntensity: 1.2,
       side: THREE.DoubleSide,
-      map: textureRef.current,
-    };
+      map: cardTexture,
+    });
 
-    if (selectedEffect) {
+    // Apply visual effects
+    if (selectedEffect && selectedEffect.id) {
       switch (selectedEffect.id) {
         case 'holographic':
-          return {
-            ...baseMaterial,
-            roughness: 0.05,
-            metalness: 0.8,
-            envMapIntensity: 2 + intensity,
-            color: new THREE.Color().setHSL(0.5 + intensity * 0.3, 0.8, 0.9),
-          };
+          material.roughness = 0.05;
+          material.metalness = 0.8;
+          material.envMapIntensity = 2 + intensity;
+          material.color = new THREE.Color().setHSL(0.5 + intensity * 0.3, 0.8, 0.9);
+          break;
         case 'foilspray':
-          return {
-            ...baseMaterial,
-            roughness: 0.02,
-            metalness: 0.9,
-            envMapIntensity: 1.5 + intensity,
-          };
+          material.roughness = 0.02;
+          material.metalness = 0.9;
+          material.envMapIntensity = 1.5 + intensity;
+          break;
         case 'chrome':
-          return {
-            ...baseMaterial,
-            roughness: 0.01,
-            metalness: 0.95,
-            envMapIntensity: 2.5 + intensity,
-            color: new THREE.Color(0.9 + intensity * 0.1, 0.9 + intensity * 0.1, 0.9 + intensity * 0.1),
-          };
-        default:
-          return baseMaterial;
+          material.roughness = 0.01;
+          material.metalness = 0.95;
+          material.envMapIntensity = 2.5 + intensity;
+          material.color = new THREE.Color(0.9 + intensity * 0.1, 0.9 + intensity * 0.1, 0.9 + intensity * 0.1);
+          break;
       }
     }
 
-    return baseMaterial;
+    return material;
   };
   
   return (
     <group>
       {/* Main card mesh */}
-      <mesh ref={meshRef} position={[0, 0, 0]}>
+      <mesh ref={meshRef} position={[0, 0, 0]} material={createCardMaterial()}>
         <boxGeometry args={[3, 4.2, 0.05]} />
-        <meshStandardMaterial {...getEffectMaterial()} />
       </mesh>
       
       {/* Card title text */}
@@ -261,7 +159,6 @@ const Card3D: React.FC<{
           color="white"
           anchorX="center"
           anchorY="middle"
-          font="/fonts/inter-bold.woff"
         >
           {card.title}
         </Text>
@@ -281,7 +178,6 @@ const Card3D: React.FC<{
           }
           anchorX="center"
           anchorY="middle"
-          font="/fonts/inter-medium.woff"
         >
           {card.rarity.toUpperCase()}
         </Text>
