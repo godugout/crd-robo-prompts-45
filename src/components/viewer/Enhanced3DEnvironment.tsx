@@ -263,6 +263,8 @@ export const Enhanced3DEnvironment: React.FC<Enhanced3DEnvironmentProps> = ({
             autoRotate={false}
             enableDamping={true}
             dampingFactor={0.05}
+            minPolarAngle={Math.PI / 6}
+            maxPolarAngle={Math.PI - Math.PI / 6}
           />
         )}
         <fog attach="fog" args={[scene.lighting.color, 15, 25]} />
