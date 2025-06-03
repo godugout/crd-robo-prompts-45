@@ -4,7 +4,6 @@ import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 import type { EnvironmentScene } from '../types';
 import type { CardData } from '@/types/card';
-import { ParticleSystem } from './ParticleSystem';
 
 interface Card3DProps {
   scene: EnvironmentScene;
@@ -170,14 +169,6 @@ export const Card3D: React.FC<Card3DProps> = ({
   
   return (
     <group ref={groupRef}>
-      {/* Particle system for physics effects in stationary mode */}
-      {stationaryBackground && (
-        <ParticleSystem 
-          cardPosition={position.current} 
-          intensity={(effectIntensity?.[0] || 50) / 100} 
-        />
-      )}
-      
       {/* Main card mesh */}
       <mesh ref={meshRef} position={[0, 0, 0]}>
         <boxGeometry args={[3, 4.2, 0.05]} />
