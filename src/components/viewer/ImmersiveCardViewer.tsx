@@ -2,12 +2,16 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, VisualEffect, MaterialSettings } from './types';
-import { ENVIRONMENT_SCENES, LIGHTING_PRESETS, VISUAL_EFFECTS } from './constants';
-import { useCardEffects } from './hooks/useCardEffects';
+import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
+import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from './constants';
+import { 
+  useEnhancedCardEffects, 
+  ENHANCED_VISUAL_EFFECTS,
+  type EffectValues 
+} from './hooks/useEnhancedCardEffects';
 import { ViewerControls } from './components/ViewerControls';
-import { CustomizePanel } from './components/CustomizePanel';
-import { CardContainer } from './components/CardContainer';
+import { EnhancedCustomizePanel } from './components/EnhancedCustomizePanel';
+import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -43,11 +47,21 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [isHovering, setIsHovering] = useState(false);
   const [isHoveringControls, setIsHoveringControls] = useState(false);
   
+  // Enhanced effects state
+  const [effectValues, setEffectValues] = useState<EffectValues>(() => {
+    const initialValues: EffectValues = {};
+    ENHANCED_VISUAL_EFFECTS.forEach(effect => {
+      initialValues[effect.id] = {};
+      effect.parameters.forEach(param => {
+        initialValues[effect.id][param.id] = param.defaultValue;
+      });
+    });
+    return initialValues;
+  });
+  
   // Advanced settings
   const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[3]); // Twilight
   const [selectedLighting, setSelectedLighting] = useState<LightingPreset>(LIGHTING_PRESETS[0]);
-  const [selectedEffect, setSelectedEffect] = useState<VisualEffect>(VISUAL_EFFECTS[0]);
-  const [effectIntensity, setEffectIntensity] = useState([70]);
   const [overallBrightness, setOverallBrightness] = useState([120]);
   const [interactiveLighting, setInteractiveLighting] = useState(true);
   
@@ -97,13 +111,48 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handlePreviousCard, handleNextCard]);
 
+  // Enhanced effects handlers
+  const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
+    setEffectValues(prev => ({
+      ...prev,
+      [effectId]: {
+        ...prev[effectId],
+        [parameterId]: value
+      }
+    }));
+  }, []);
+
+  const handleResetEffect = useCallback((effectId: string) => {
+    const effect = ENHANCED_VISUAL_EFFECTS.find(e => e.id === effectId);
+    if (effect) {
+      const resetValues: Record<string, any> = {};
+      effect.parameters.forEach(param => {
+        resetValues[param.id] = param.defaultValue;
+      });
+      setEffectValues(prev => ({
+        ...prev,
+        [effectId]: resetValues
+      }));
+    }
+  }, []);
+
+  const handleResetAllEffects = useCallback(() => {
+    const resetValues: EffectValues = {};
+    ENHANCED_VISUAL_EFFECTS.forEach(effect => {
+      resetValues[effect.id] = {};
+      effect.parameters.forEach(param => {
+        resetValues[effect.id][param.id] = param.defaultValue;
+      });
+    });
+    setEffectValues(resetValues);
+  }, []);
+
   // Custom hooks
-  const { getFrameStyles, getPhysicalEffectStyles, SurfaceTexture } = useCardEffects({
+  const { getFrameStyles, getEnhancedEffectStyles, SurfaceTexture } = useEnhancedCardEffects({
     card,
-    selectedEffect,
+    effectValues,
     mousePosition,
     showEffects,
-    effectIntensity,
     overallBrightness,
     interactiveLighting
   });
@@ -300,21 +349,21 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         </div>
       )}
 
-      {/* Full Height Customize Panel */}
+      {/* Enhanced Customize Panel */}
       {showCustomizePanel && (
-        <CustomizePanel
+        <EnhancedCustomizePanel
           selectedScene={selectedScene}
           selectedLighting={selectedLighting}
-          selectedEffect={selectedEffect}
-          effectIntensity={effectIntensity}
+          effectValues={effectValues}
           overallBrightness={overallBrightness}
           interactiveLighting={interactiveLighting}
           materialSettings={materialSettings}
           isFullscreen={isFullscreen}
           onSceneChange={setSelectedScene}
           onLightingChange={setSelectedLighting}
-          onEffectChange={setSelectedEffect}
-          onEffectIntensityChange={setEffectIntensity}
+          onEffectChange={handleEffectChange}
+          onResetEffect={handleResetEffect}
+          onResetAllEffects={handleResetAllEffects}
           onBrightnessChange={setOverallBrightness}
           onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
           onMaterialSettingsChange={setMaterialSettings}
@@ -333,18 +382,18 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
       )}
 
       {/* Enhanced Card Container */}
-      <CardContainer
+      <EnhancedCardContainer
         card={card}
         isFlipped={isFlipped}
         isHovering={isHovering}
         showEffects={showEffects}
-        effectIntensity={effectIntensity}
+        effectValues={effectValues}
         mousePosition={mousePosition}
         rotation={rotation}
         zoom={zoom}
         isDragging={isDragging}
         frameStyles={getFrameStyles()}
-        physicalEffectStyles={getPhysicalEffectStyles()}
+        enhancedEffectStyles={getEnhancedEffectStyles()}
         SurfaceTexture={SurfaceTexture}
         onMouseDown={handleDragStart}
         onMouseMove={handleDrag}
@@ -376,7 +425,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
               <div className="flex items-center space-x-2">
                 <Sparkles className="w-4 h-4" />
                 <span className="text-sm">
-                  Scene: {selectedScene.name} | Effect: {selectedEffect.name}
+                  Enhanced Effects System | Scene: {selectedScene.name}
                 </span>
               </div>
             </div>
