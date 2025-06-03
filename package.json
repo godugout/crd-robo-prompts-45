@@ -53,6 +53,7 @@
     "embla-carousel-react": "^8.3.0",
     "fabric": "^6.6.5",
     "face-api.js": "^0.22.2",
+    "gif.js": "^0.2.0",
     "html2canvas": "^1.4.1",
     "input-otp": "^1.2.4",
     "jsdom": "^26.1.0",

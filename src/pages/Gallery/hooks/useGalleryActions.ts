@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import type { CardData } from '@/hooks/useCardEditor';
@@ -37,20 +36,7 @@ export const useGalleryActions = () => {
   };
 
   const handleDownloadCard = (convertedCards: CardData[]) => {
-    const selectedCard = convertedCards[selectedCardIndex];
-    if (selectedCard) {
-      const dataStr = JSON.stringify(selectedCard, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      
-      const url = URL.createObjectURL(dataBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${selectedCard.title.replace(/\s+/g, '_')}_card.json`;
-      link.click();
-      
-      URL.revokeObjectURL(url);
-      toast.success('Card exported successfully');
-    }
+    console.log('Download triggered - handled by export dialog');
   };
 
   return {
