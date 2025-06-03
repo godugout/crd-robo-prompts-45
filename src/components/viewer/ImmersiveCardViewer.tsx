@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -43,7 +42,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [autoRotate, setAutoRotate] = useState(false);
   const [showEffects, setShowEffects] = useState(true);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [showCustomizePanel, setShowCustomizePanel] = useState(false);
+  const [showCustomizePanel, setShowCustomizePanel] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
   const [isHoveringControls, setIsHoveringControls] = useState(false);
   
@@ -290,7 +289,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         />
       )}
 
-      {/* Settings Panel Toggle Button */}
+      {/* Settings Panel Toggle Button - Updated text */}
       {!showCustomizePanel && (
         <div className="absolute top-4 right-4 z-10">
           <Button
@@ -300,7 +299,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
           >
             <Sparkles className="w-4 h-4 text-white mr-2" />
-            <span className="text-white text-sm">Customize</span>
+            <span className="text-white text-sm">Open Studio</span>
           </Button>
         </div>
       )}
