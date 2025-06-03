@@ -34,14 +34,7 @@ export const PreviewTab = ({ selectedTemplate, cardData, onContinueToEffects }: 
     toast.success('Generating share link...');
   };
 
-  const handleDownloadCard = (cards: CardData[]) => {
-    // Handle the first card in the array (since PreviewTab works with single cards)
-    const card = cards[0];
-    if (!card) {
-      toast.error('No card data available for download');
-      return;
-    }
-
+  const handleDownloadCard = (card: CardData) => {
     const dataStr = JSON.stringify(card, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     
@@ -55,14 +48,7 @@ export const PreviewTab = ({ selectedTemplate, cardData, onContinueToEffects }: 
     toast.success('Card exported successfully');
   };
 
-  const handleShareCard = (cards: CardData[]) => {
-    // Handle the first card in the array (since PreviewTab works with single cards)
-    const card = cards[0];
-    if (!card) {
-      toast.error('No card data available for sharing');
-      return;
-    }
-
+  const handleShareCard = (card: CardData) => {
     const shareUrl = window.location.href;
     
     if (navigator.clipboard) {
@@ -172,8 +158,6 @@ export const PreviewTab = ({ selectedTemplate, cardData, onContinueToEffects }: 
       {showImmersiveViewer && cardData && (
         <ImmersiveCardViewer
           card={cardData}
-          cards={[cardData]}
-          currentCardIndex={0}
           isOpen={showImmersiveViewer}
           onClose={() => setShowImmersiveViewer(false)}
           onShare={handleShareCard}
