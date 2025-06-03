@@ -37,30 +37,30 @@ export const Card3D: React.FC<Card3DProps> = ({
     if (!groupRef.current) return;
 
     if (stationaryBackground) {
-      // Enhanced physics-based movement in stationary mode
+      // Enhanced physics-based movement in stationary mode with reduced movement
       const time = state.clock.getElapsedTime();
       
-      // Apply subtle forces for floating effect
+      // Apply subtle forces for floating effect - reduced intensity
       acceleration.current.set(
-        Math.sin(time * 0.5) * 0.001,
-        Math.cos(time * 0.3) * 0.001,
-        Math.sin(time * 0.7) * 0.0005
+        Math.sin(time * 0.5) * 0.0005, // Reduced from 0.001
+        Math.cos(time * 0.3) * 0.0005, // Reduced from 0.001
+        Math.sin(time * 0.7) * 0.00025 // Reduced from 0.0005
       );
       
-      // Add some randomness for more organic movement
-      acceleration.current.x += (Math.random() - 0.5) * 0.0002;
-      acceleration.current.y += (Math.random() - 0.5) * 0.0002;
-      acceleration.current.z += (Math.random() - 0.5) * 0.0001;
+      // Add some randomness for more organic movement - reduced intensity
+      acceleration.current.x += (Math.random() - 0.5) * 0.0001; // Reduced from 0.0002
+      acceleration.current.y += (Math.random() - 0.5) * 0.0001; // Reduced from 0.0002
+      acceleration.current.z += (Math.random() - 0.5) * 0.00005; // Reduced from 0.0001
       
-      // Update velocity with acceleration and damping
+      // Update velocity with acceleration and increased damping
       velocity.current.add(acceleration.current);
-      velocity.current.multiplyScalar(0.98); // Damping
+      velocity.current.multiplyScalar(0.95); // Increased damping from 0.98
       
       // Update position
       position.current.add(velocity.current);
       
-      // Boundary constraints to keep card visible
-      const boundary = 3;
+      // Tighter boundary constraints to keep card more centered
+      const boundary = 1.5; // Reduced from 3
       if (Math.abs(position.current.x) > boundary) {
         position.current.x = Math.sign(position.current.x) * boundary;
         velocity.current.x *= -0.5;
@@ -69,16 +69,16 @@ export const Card3D: React.FC<Card3DProps> = ({
         position.current.y = Math.sign(position.current.y) * boundary;
         velocity.current.y *= -0.5;
       }
-      if (Math.abs(position.current.z) > boundary * 0.5) {
-        position.current.z = Math.sign(position.current.z) * boundary * 0.5;
+      if (Math.abs(position.current.z) > boundary * 0.3) { // Even tighter Z constraint
+        position.current.z = Math.sign(position.current.z) * boundary * 0.3;
         velocity.current.z *= -0.5;
       }
       
-      // Apply physics-based rotation
+      // Apply physics-based rotation - slightly reduced
       angularVelocity.current.set(
-        Math.sin(time * 0.4) * 0.002,
-        Math.cos(time * 0.6) * 0.003,
-        Math.sin(time * 0.8) * 0.001
+        Math.sin(time * 0.4) * 0.0015, // Reduced from 0.002
+        Math.cos(time * 0.6) * 0.002, // Reduced from 0.003
+        Math.sin(time * 0.8) * 0.0008 // Reduced from 0.001
       );
       
       // Apply transformations

@@ -51,6 +51,7 @@ export const Enhanced3DEnvironment: React.FC<Enhanced3DEnvironmentProps> = ({
         />
         {allowRotation && (
           <OrbitControls 
+            target={[0, 0, 0]}
             enablePan={stationaryBackground}
             enableZoom={true}
             minDistance={stationaryBackground ? 2 : 4}
@@ -60,8 +61,8 @@ export const Enhanced3DEnvironment: React.FC<Enhanced3DEnvironmentProps> = ({
             dampingFactor={0.05}
             minPolarAngle={Math.PI / 6}
             maxPolarAngle={Math.PI - Math.PI / 6}
-            panSpeed={stationaryBackground ? 2 : 0}
-            rotateSpeed={stationaryBackground ? 1.5 : 1}
+            panSpeed={stationaryBackground ? 0.8 : 0}
+            rotateSpeed={stationaryBackground ? 1.2 : 1}
           />
         )}
         <fog attach="fog" args={[scene.lighting.color, 15, 25]} />
