@@ -104,18 +104,176 @@ const EnvironmentBackground: React.FC<{ scene: EnvironmentScene; stationary?: bo
   return null;
 };
 
+// Particle system for physics effects
+const ParticleSystem: React.FC<{ cardPosition: THREE.Vector3; intensity: number }> = ({ cardPosition, intensity }) => {
+  const particlesRef = useRef<THREE.Points>(null);
+  const particlePositions = useRef<Float32Array>();
+  const particleVelocities = useRef<Float32Array>();
+  const particleLifetimes = useRef<Float32Array>();
+
+  useEffect(() => {
+    const particleCount = 50;
+    const positions = new Float32Array(particleCount * 3);
+    const velocities = new Float32Array(particleCount * 3);
+    const lifetimes = new Float32Array(particleCount);
+
+    // Initialize particles around the card
+    for (let i = 0; i < particleCount; i++) {
+      const i3 = i * 3;
+      positions[i3] = cardPosition.x + (Math.random() - 0.5) * 6;
+      positions[i3 + 1] = cardPosition.y + (Math.random() - 0.5) * 6;
+      positions[i3 + 2] = cardPosition.z + (Math.random() - 0.5) * 6;
+      
+      velocities[i3] = (Math.random() - 0.5) * 0.02;
+      velocities[i3 + 1] = (Math.random() - 0.5) * 0.02;
+      velocities[i3 + 2] = (Math.random() - 0.5) * 0.02;
+      
+      lifetimes[i] = Math.random() * 100;
+    }
+
+    particlePositions.current = positions;
+    particleVelocities.current = velocities;
+    particleLifetimes.current = lifetimes;
+  }, [cardPosition]);
+
+  useFrame(() => {
+    if (!particlesRef.current || !particlePositions.current || !particleVelocities.current || !particleLifetimes.current) return;
+
+    const positions = particlePositions.current;
+    const velocities = particleVelocities.current;
+    const lifetimes = particleLifetimes.current;
+
+    for (let i = 0; i < positions.length / 3; i++) {
+      const i3 = i * 3;
+      
+      // Update particle positions with physics
+      positions[i3] += velocities[i3];
+      positions[i3 + 1] += velocities[i3 + 1];
+      positions[i3 + 2] += velocities[i3 + 2];
+      
+      // Apply gravity
+      velocities[i3 + 1] -= 0.0005;
+      
+      // Apply air resistance
+      velocities[i3] *= 0.998;
+      velocities[i3 + 1] *= 0.998;
+      velocities[i3 + 2] *= 0.998;
+      
+      // Update lifetime
+      lifetimes[i] -= 1;
+      
+      // Reset particle when it dies
+      if (lifetimes[i] <= 0) {
+        positions[i3] = cardPosition.x + (Math.random() - 0.5) * 6;
+        positions[i3 + 1] = cardPosition.y + (Math.random() - 0.5) * 6;
+        positions[i3 + 2] = cardPosition.z + (Math.random() - 0.5) * 6;
+        
+        velocities[i3] = (Math.random() - 0.5) * 0.02;
+        velocities[i3 + 1] = (Math.random() - 0.5) * 0.02;
+        velocities[i3 + 2] = (Math.random() - 0.5) * 0.02;
+        
+        lifetimes[i] = Math.random() * 100;
+      }
+    }
+
+    particlesRef.current.geometry.attributes.position.needsUpdate = true;
+  });
+
+  return (
+    <points ref={particlesRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={50}
+          array={particlePositions.current}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.05}
+        color="#ffffff"
+        transparent
+        opacity={0.6 * intensity}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+};
+
 const Card3D: React.FC<{ 
   scene: EnvironmentScene; 
   card?: CardData; 
   effectIntensity?: number[];
   selectedEffect?: any;
   autoRotate?: boolean;
-}> = ({ scene, card, effectIntensity, selectedEffect, autoRotate = true }) => {
+  stationaryBackground?: boolean;
+}> = ({ scene, card, effectIntensity, selectedEffect, autoRotate = true, stationaryBackground = false }) => {
   const meshRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
   const [cardTexture, setCardTexture] = React.useState<THREE.Texture | null>(null);
   
-  useFrame(() => {
-    if (meshRef.current && autoRotate) {
+  // Physics state for enhanced movement in stationary mode
+  const velocity = useRef(new THREE.Vector3());
+  const acceleration = useRef(new THREE.Vector3());
+  const position = useRef(new THREE.Vector3(0, 0, 0));
+  const angularVelocity = useRef(new THREE.Vector3());
+
+  useFrame((state) => {
+    if (!groupRef.current) return;
+
+    if (stationaryBackground) {
+      // Enhanced physics-based movement in stationary mode
+      const time = state.clock.getElapsedTime();
+      
+      // Apply subtle forces for floating effect
+      acceleration.current.set(
+        Math.sin(time * 0.5) * 0.001,
+        Math.cos(time * 0.3) * 0.001,
+        Math.sin(time * 0.7) * 0.0005
+      );
+      
+      // Add some randomness for more organic movement
+      acceleration.current.x += (Math.random() - 0.5) * 0.0002;
+      acceleration.current.y += (Math.random() - 0.5) * 0.0002;
+      acceleration.current.z += (Math.random() - 0.5) * 0.0001;
+      
+      // Update velocity with acceleration and damping
+      velocity.current.add(acceleration.current);
+      velocity.current.multiplyScalar(0.98); // Damping
+      
+      // Update position
+      position.current.add(velocity.current);
+      
+      // Boundary constraints to keep card visible
+      const boundary = 3;
+      if (Math.abs(position.current.x) > boundary) {
+        position.current.x = Math.sign(position.current.x) * boundary;
+        velocity.current.x *= -0.5;
+      }
+      if (Math.abs(position.current.y) > boundary) {
+        position.current.y = Math.sign(position.current.y) * boundary;
+        velocity.current.y *= -0.5;
+      }
+      if (Math.abs(position.current.z) > boundary * 0.5) {
+        position.current.z = Math.sign(position.current.z) * boundary * 0.5;
+        velocity.current.z *= -0.5;
+      }
+      
+      // Apply physics-based rotation
+      angularVelocity.current.set(
+        Math.sin(time * 0.4) * 0.002,
+        Math.cos(time * 0.6) * 0.003,
+        Math.sin(time * 0.8) * 0.001
+      );
+      
+      // Apply transformations
+      groupRef.current.position.copy(position.current);
+      groupRef.current.rotation.x += angularVelocity.current.x;
+      groupRef.current.rotation.y += angularVelocity.current.y;
+      groupRef.current.rotation.z += angularVelocity.current.z;
+      
+    } else if (autoRotate && meshRef.current) {
+      // Standard auto-rotation for non-stationary mode
       meshRef.current.rotation.y += 0.003;
     }
   });
@@ -196,7 +354,15 @@ const Card3D: React.FC<{
   };
   
   return (
-    <group>
+    <group ref={groupRef}>
+      {/* Particle system for physics effects in stationary mode */}
+      {stationaryBackground && (
+        <ParticleSystem 
+          cardPosition={position.current} 
+          intensity={(effectIntensity?.[0] || 50) / 100} 
+        />
+      )}
+      
       {/* Main card mesh */}
       <mesh ref={meshRef} position={[0, 0, 0]}>
         <boxGeometry args={[3, 4.2, 0.05]} />
@@ -292,18 +458,21 @@ export const Enhanced3DEnvironment: React.FC<Enhanced3DEnvironmentProps> = ({
           effectIntensity={effectIntensity}
           selectedEffect={selectedEffect}
           autoRotate={autoRotate}
+          stationaryBackground={stationaryBackground}
         />
         {allowRotation && (
           <OrbitControls 
-            enablePan={false} 
+            enablePan={stationaryBackground}
             enableZoom={true}
-            minDistance={4}
-            maxDistance={15}
+            minDistance={stationaryBackground ? 2 : 4}
+            maxDistance={stationaryBackground ? 25 : 15}
             autoRotate={false}
             enableDamping={true}
             dampingFactor={0.05}
             minPolarAngle={Math.PI / 6}
             maxPolarAngle={Math.PI - Math.PI / 6}
+            panSpeed={stationaryBackground ? 2 : 0}
+            rotateSpeed={stationaryBackground ? 1.5 : 1}
           />
         )}
         <fog attach="fog" args={[scene.lighting.color, 15, 25]} />
