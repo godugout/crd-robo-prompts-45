@@ -115,6 +115,15 @@ export const EnhancedCustomizePanel: React.FC<EnhancedCustomizePanelProps> = ({
     }
   };
 
+  // Calculate active effects count safely
+  const getActiveEffectsCount = () => {
+    return Object.values(effectValues).filter(effect => {
+      // Check if the effect has an intensity parameter and it's greater than 0
+      const intensity = effect.intensity;
+      return typeof intensity === 'number' && intensity > 0;
+    }).length;
+  };
+
   return (
     <>
       <div className="fixed top-0 right-0 w-80 h-full bg-black bg-opacity-95 backdrop-blur-lg overflow-hidden border-l border-white/10 z-10 flex flex-col">
@@ -338,11 +347,7 @@ export const EnhancedCustomizePanel: React.FC<EnhancedCustomizePanelProps> = ({
                   <div className="space-y-1 text-sm text-crd-lightGray">
                     <p>Scene: {selectedScene.name}</p>
                     <p>Lighting: {selectedLighting.name}</p>
-                    <p>Active Effects: {
-                      Object.values(effectValues).filter(effect => 
-                        effect.intensity && effect.intensity > 0
-                      ).length
-                    }</p>
+                    <p>Active Effects: {getActiveEffectsCount()}</p>
                   </div>
                 </div>
               </div>
