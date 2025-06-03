@@ -8,7 +8,9 @@ import {
   RotateCcw, 
   Share2, 
   Download,
-  Settings
+  Settings,
+  Play,
+  Pause
 } from 'lucide-react';
 import { CustomizePanel } from './components/CustomizePanel';
 import { Enhanced3DEnvironment } from './Enhanced3DEnvironment';
@@ -57,6 +59,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showCustomizePanel, setShowCustomizePanel] = useState(false);
+  const [autoRotate, setAutoRotate] = useState(true);
 
   const handlePreviousCard = useCallback(() => {
     if (cards.length > 1 && onCardChange) {
@@ -105,6 +108,10 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     }
   };
 
+  const toggleAutoRotate = () => {
+    setAutoRotate(!autoRotate);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -129,6 +136,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
               allowRotation={allowRotation}
               effectIntensity={effectIntensity}
               selectedEffect={selectedEffect}
+              autoRotate={autoRotate}
             />
             
             {/* Top Controls */}
@@ -150,6 +158,17 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
               </div>
               
               <div className="flex space-x-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleAutoRotate}
+                  className={`bg-black/70 backdrop-blur-md hover:bg-black/90 text-white border border-white/20 h-10 w-10 p-0 ${
+                    autoRotate ? 'bg-blue-600/70 border-blue-400/50' : ''
+                  }`}
+                  title={autoRotate ? 'Stop auto-rotation' : 'Start auto-rotation'}
+                >
+                  {autoRotate ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -194,9 +213,16 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
                   <span className="text-xs bg-blue-600 px-3 py-1 rounded-full font-medium">
                     {card.rarity}
                   </span>
-                  <span className="text-xs text-gray-400">
-                    Scene: {selectedScene.name}
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-gray-400">
+                      Scene: {selectedScene.name}
+                    </span>
+                    {autoRotate && (
+                      <span className="text-xs bg-green-600 px-2 py-1 rounded-full">
+                        Auto-rotating
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

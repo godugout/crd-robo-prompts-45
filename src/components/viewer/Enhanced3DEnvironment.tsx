@@ -13,6 +13,7 @@ interface Enhanced3DEnvironmentProps {
   allowRotation?: boolean;
   effectIntensity?: number[];
   selectedEffect?: any;
+  autoRotate?: boolean;
 }
 
 // Photo background URLs for each scene type
@@ -70,12 +71,13 @@ const Card3D: React.FC<{
   card?: CardData; 
   effectIntensity?: number[];
   selectedEffect?: any;
-}> = ({ scene, card, effectIntensity, selectedEffect }) => {
+  autoRotate?: boolean;
+}> = ({ scene, card, effectIntensity, selectedEffect, autoRotate = true }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [cardTexture, setCardTexture] = React.useState<THREE.Texture | null>(null);
   
   useFrame(() => {
-    if (meshRef.current) {
+    if (meshRef.current && autoRotate) {
       meshRef.current.rotation.y += 0.003;
     }
   });
@@ -230,7 +232,8 @@ export const Enhanced3DEnvironment: React.FC<Enhanced3DEnvironmentProps> = ({
   children,
   allowRotation = true,
   effectIntensity,
-  selectedEffect
+  selectedEffect,
+  autoRotate = true
 }) => {
   return (
     <div className="w-full h-full">
@@ -249,6 +252,7 @@ export const Enhanced3DEnvironment: React.FC<Enhanced3DEnvironmentProps> = ({
           card={card} 
           effectIntensity={effectIntensity}
           selectedEffect={selectedEffect}
+          autoRotate={autoRotate}
         />
         {allowRotation && (
           <OrbitControls 
