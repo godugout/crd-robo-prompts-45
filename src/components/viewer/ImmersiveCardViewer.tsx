@@ -10,7 +10,8 @@ import {
   Download,
   Settings,
   Play,
-  Pause
+  Pause,
+  Move3D
 } from 'lucide-react';
 import { CustomizePanel } from './components/CustomizePanel';
 import { Enhanced3DEnvironment } from './Enhanced3DEnvironment';
@@ -60,6 +61,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showCustomizePanel, setShowCustomizePanel] = useState(false);
   const [autoRotate, setAutoRotate] = useState(true);
+  const [stationaryBackground, setStationaryBackground] = useState(false);
 
   const handlePreviousCard = useCallback(() => {
     if (cards.length > 1 && onCardChange) {
@@ -112,6 +114,10 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     setAutoRotate(!autoRotate);
   };
 
+  const toggleStationaryBackground = () => {
+    setStationaryBackground(!stationaryBackground);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -137,6 +143,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
               effectIntensity={effectIntensity}
               selectedEffect={selectedEffect}
               autoRotate={autoRotate}
+              stationaryBackground={stationaryBackground}
             />
             
             {/* Top Controls */}
@@ -168,6 +175,17 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
                   title={autoRotate ? 'Stop auto-rotation' : 'Start auto-rotation'}
                 >
                   {autoRotate ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleStationaryBackground}
+                  className={`bg-black/70 backdrop-blur-md hover:bg-black/90 text-white border border-white/20 h-10 w-10 p-0 ${
+                    stationaryBackground ? 'bg-green-600/70 border-green-400/50' : ''
+                  }`}
+                  title={stationaryBackground ? 'Background follows camera' : 'Keep background stationary'}
+                >
+                  <Move3D className="w-5 h-5" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -220,6 +238,11 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
                     {autoRotate && (
                       <span className="text-xs bg-green-600 px-2 py-1 rounded-full">
                         Auto-rotating
+                      </span>
+                    )}
+                    {stationaryBackground && (
+                      <span className="text-xs bg-purple-600 px-2 py-1 rounded-full">
+                        Fixed BG
                       </span>
                     )}
                   </div>

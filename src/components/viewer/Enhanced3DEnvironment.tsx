@@ -14,6 +14,7 @@ interface Enhanced3DEnvironmentProps {
   effectIntensity?: number[];
   selectedEffect?: any;
   autoRotate?: boolean;
+  stationaryBackground?: boolean;
 }
 
 // Photo background URLs for each scene type
@@ -31,14 +32,48 @@ const SCENE_PHOTOS = {
   industrial: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1920&h=1080&fit=crop'
 };
 
-const EnvironmentBackground: React.FC<{ scene: EnvironmentScene }> = ({ scene }) => {
-  const { scene: threeScene } = useThree();
+const EnvironmentBackground: React.FC<{ scene: EnvironmentScene; stationary?: boolean }> = ({ scene, stationary = false }) => {
+  const { scene: threeScene, camera } = useThree();
+  const backgroundRef = useRef<THREE.Mesh>(null);
   
   useEffect(() => {
     const textureLoader = new THREE.TextureLoader();
     const photoUrl = SCENE_PHOTOS[scene.id as keyof typeof SCENE_PHOTOS];
     
-    if (photoUrl) {
+    if (photoUrl && stationary) {
+      // Create a large sphere for stationary background
+      textureLoader.load(
+        photoUrl,
+        (texture) => {
+          texture.mapping = THREE.EquirectangularReflectionMapping;
+          
+          // Create background sphere
+          const geometry = new THREE.SphereGeometry(50, 32, 16);
+          const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            side: THREE.BackSide
+          });
+          
+          if (backgroundRef.current) {
+            threeScene.remove(backgroundRef.current);
+          }
+          
+          const backgroundSphere = new THREE.Mesh(geometry, material);
+          backgroundRef.current = backgroundSphere;
+          threeScene.add(backgroundSphere);
+          
+          // Also set as environment for reflections
+          threeScene.environment = texture;
+          threeScene.background = null;
+        },
+        undefined,
+        () => {
+          // Fallback to simple color
+          threeScene.background = new THREE.Color(scene.lighting.color);
+        }
+      );
+    } else if (photoUrl) {
+      // Standard background that moves with camera
       textureLoader.load(
         photoUrl,
         (texture) => {
@@ -57,11 +92,14 @@ const EnvironmentBackground: React.FC<{ scene: EnvironmentScene }> = ({ scene })
     }
     
     return () => {
+      if (backgroundRef.current) {
+        threeScene.remove(backgroundRef.current);
+      }
       if (threeScene.background && threeScene.background instanceof THREE.Texture) {
         threeScene.background.dispose();
       }
     };
-  }, [scene, threeScene]);
+  }, [scene, threeScene, stationary]);
   
   return null;
 };
@@ -233,7 +271,8 @@ export const Enhanced3DEnvironment: React.FC<Enhanced3DEnvironmentProps> = ({
   allowRotation = true,
   effectIntensity,
   selectedEffect,
-  autoRotate = true
+  autoRotate = true,
+  stationaryBackground = false
 }) => {
   return (
     <div className="w-full h-full">
@@ -245,7 +284,7 @@ export const Enhanced3DEnvironment: React.FC<Enhanced3DEnvironmentProps> = ({
           powerPreference: "high-performance"
         }}
       >
-        <EnvironmentBackground scene={scene} />
+        <EnvironmentBackground scene={scene} stationary={stationaryBackground} />
         <SceneLighting scene={scene} />
         <Card3D 
           scene={scene} 
