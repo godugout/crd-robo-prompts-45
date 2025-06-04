@@ -42,6 +42,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   console.log('EnhancedCardCanvas rendering, isFlipped:', isFlipped);
 
@@ -50,6 +51,28 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
     setIsFlipped(!isFlipped);
     console.log('Card flipped to:', !isFlipped);
   };
+
+  // Mock frame styles for the container
+  const frameStyles: React.CSSProperties = {
+    background: `linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)`,
+    border: '1px solid rgba(255,255,255,0.1)'
+  };
+
+  // Mock enhanced effect styles
+  const enhancedEffectStyles: React.CSSProperties = {
+    filter: `brightness(${overallBrightness / 100}) contrast(1.1)`
+  };
+
+  // Simple surface texture component
+  const SurfaceTexture = (
+    <div 
+      className="absolute inset-0 opacity-20"
+      style={{
+        backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 1px, transparent 1px)',
+        backgroundSize: '20px 20px'
+      }}
+    />
+  );
 
   return (
     <div
@@ -85,15 +108,26 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
         >
           <EnhancedCardContainer
             card={card}
+            isFlipped={false}
+            isHovering={isHovering}
+            showEffects={true}
             effectValues={effectValues}
             mousePosition={mousePosition}
-            isHovering={isHovering}
-            selectedScene={selectedScene}
-            selectedLighting={selectedLighting}
-            overallBrightness={overallBrightness}
+            rotation={rotation}
+            zoom={1}
+            isDragging={isDragging}
+            frameStyles={frameStyles}
+            enhancedEffectStyles={enhancedEffectStyles}
+            SurfaceTexture={SurfaceTexture}
             interactiveLighting={interactiveLighting}
-            materialSettings={materialSettings}
-            isFlipped={false}
+            onMouseDown={() => setIsDragging(true)}
+            onMouseMove={onMouseMove}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={() => {
+              setIsDragging(false);
+              onMouseLeave();
+            }}
+            onClick={handleCardClick}
           />
         </div>
 
