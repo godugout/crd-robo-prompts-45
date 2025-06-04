@@ -77,14 +77,6 @@ export const ViewerContainer: React.FC<ViewerContainerProps> = ({
         />
       )}
 
-      {/* Debug overlay - updated to show top trigger info */}
-      <div className="absolute top-2 left-2 text-white text-xs bg-black/70 p-2 rounded z-[100] border border-crd-green/30">
-        <div>Drawer: {isDrawerOpen ? 'Open' : 'Closed'}</div>
-        <div>Device: {isDesktop ? 'Desktop' : 'Mobile'}</div>
-        <div className="text-crd-green">🔝 TOP DRAWER: Open from top position</div>
-        <div className="text-yellow-400">Compact version with reduced height</div>
-      </div>
-
       {children}
     </div>
   );
