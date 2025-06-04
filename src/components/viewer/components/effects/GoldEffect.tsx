@@ -23,6 +23,7 @@ export const GoldEffect: React.FC<GoldEffectProps> = ({
   reflectivity = 85,
   colorEnhancement = true
 }) => {
+  // Only render if there's actual gold intensity
   if (intensity <= 0) return null;
 
   // Gold tone variations
@@ -37,7 +38,7 @@ export const GoldEffect: React.FC<GoldEffectProps> = ({
 
   return (
     <>
-      {/* Base gold layer */}
+      {/* Base gold layer - only apply when gold effect is active */}
       <div
         className="absolute inset-0 z-20"
         style={{
@@ -49,12 +50,12 @@ export const GoldEffect: React.FC<GoldEffectProps> = ({
               ${baseColor}${(intensity / 100) * (0.1 + platingThickness * 0.01)}) 100%
             )
           `,
-          mixBlendMode: colorEnhancement ? 'multiply' : 'overlay',
-          opacity: 0.6 + (reflectivity / 100) * 0.3
+          mixBlendMode: colorEnhancement ? 'soft-light' : 'overlay',
+          opacity: Math.min(0.8, (intensity / 100) * (0.6 + (reflectivity / 100) * 0.3))
         }}
       />
       
-      {/* Shimmer effect */}
+      {/* Gold shimmer effect - more selective */}
       <div
         className="absolute inset-0 z-21"
         style={{
@@ -62,14 +63,14 @@ export const GoldEffect: React.FC<GoldEffectProps> = ({
             linear-gradient(
               ${mousePosition.x * 180 + (shimmerSpeed / 10)}deg,
               transparent 0%,
-              rgba(255, 255, 255, ${(intensity / 100) * 0.4}) 45%,
-              rgba(255, 255, 255, ${(intensity / 100) * 0.6}) 50%,
-              rgba(255, 255, 255, ${(intensity / 100) * 0.4}) 55%,
+              rgba(255, 235, 59, ${(intensity / 100) * 0.3}) 45%,
+              rgba(255, 215, 0, ${(intensity / 100) * 0.5}) 50%,
+              rgba(255, 235, 59, ${(intensity / 100) * 0.3}) 55%,
               transparent 100%
             )
           `,
           mixBlendMode: 'screen',
-          opacity: enhancedLightingData ? 0.3 + enhancedLightingData.lightIntensity * 0.2 : 0.3,
+          opacity: Math.min(0.4, enhancedLightingData ? 0.2 + enhancedLightingData.lightIntensity * 0.2 : 0.2),
           transform: `translateX(${(mousePosition.x - 0.5) * 100}%)`,
           transition: 'transform 0.1s ease'
         }}
