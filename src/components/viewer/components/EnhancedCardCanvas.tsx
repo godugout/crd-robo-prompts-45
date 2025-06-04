@@ -3,6 +3,7 @@ import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
+import { EnhancedCardContainer } from './EnhancedCardContainer';
 
 interface EnhancedCardCanvasProps {
   card: CardData;
@@ -39,72 +40,70 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
   width,
   height
 }) => {
-  // Simple card display for now - this would be enhanced with actual 3D rendering
+  // Calculate frame styles based on scene and lighting
+  const frameStyles: React.CSSProperties = {
+    background: selectedScene.gradient || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    filter: `brightness(${overallBrightness}%)`,
+    boxShadow: selectedLighting.shadowIntensity ? 
+      `0 ${selectedLighting.shadowIntensity * 20}px ${selectedLighting.shadowIntensity * 40}px rgba(0,0,0,${selectedLighting.shadowIntensity * 0.3})` : 
+      '0 20px 40px rgba(0,0,0,0.3)'
+  };
+
+  // Calculate enhanced effect styles based on lighting
+  const enhancedEffectStyles: React.CSSProperties = {
+    background: selectedLighting.gradient || 'transparent',
+    mixBlendMode: selectedLighting.blendMode || 'overlay',
+    opacity: selectedLighting.intensity || 0.5
+  };
+
+  // Create surface texture based on material settings
+  const SurfaceTexture = (
+    <div 
+      className="absolute inset-0"
+      style={{
+        background: `
+          repeating-linear-gradient(
+            45deg,
+            transparent,
+            rgba(255, 255, 255, ${materialSettings.roughness * 0.05}) 1px,
+            transparent 2px
+          )
+        `,
+        opacity: materialSettings.roughness * 0.3
+      }}
+    />
+  );
+
   return (
     <div
-      className="relative cursor-pointer select-none"
+      className="relative flex items-center justify-center"
       style={{
         width: `${width}px`,
         height: `${height}px`,
-        transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
-        transformStyle: 'preserve-3d',
-        transition: 'transform 0.3s ease'
+        background: selectedScene.background || 'radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%)'
       }}
-      onMouseMove={onMouseMove}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
     >
-      {/* Card container */}
-      <div
-        className="absolute inset-0 rounded-lg shadow-2xl overflow-hidden"
-        style={{
-          background: selectedScene.gradient || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          filter: `brightness(${overallBrightness}%)`
-        }}
-      >
-        {/* Card content */}
-        <div className="relative w-full h-full p-4 flex flex-col">
-          {/* Card name */}
-          <div className="text-white text-xl font-bold mb-2">
-            {card.title || 'Card Name'}
-          </div>
-          
-          {/* Card image area */}
-          <div className="flex-1 bg-white/10 rounded backdrop-blur-sm flex items-center justify-center">
-            {card.image_url ? (
-              <img 
-                src={card.image_url} 
-                alt={card.title}
-                className="max-w-full max-h-full object-contain rounded"
-              />
-            ) : (
-              <div className="text-white/70 text-center">
-                <div className="text-4xl mb-2">🃏</div>
-                <div>Card Image</div>
-              </div>
-            )}
-          </div>
-          
-          {/* Card stats */}
-          <div className="mt-2 text-white/90 text-sm">
-            <div>Rarity: {card.rarity || 'Common'}</div>
-            <div>Collection: {card.collection_id || 'Custom Collection'}</div>
-          </div>
-        </div>
-        
-        {/* Effects overlay */}
-        <div 
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            opacity: 0.3,
-            background: `
-              radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                rgba(255, 255, 255, 0.3) 0%,
-                transparent 70%)
-            `
-          }}
-        />
-      </div>
+      <EnhancedCardContainer
+        card={card}
+        isFlipped={false}
+        isHovering={isHovering}
+        showEffects={true}
+        effectValues={effectValues}
+        mousePosition={mousePosition}
+        rotation={rotation}
+        zoom={1}
+        isDragging={false}
+        frameStyles={frameStyles}
+        enhancedEffectStyles={enhancedEffectStyles}
+        SurfaceTexture={SurfaceTexture}
+        onMouseDown={() => {}}
+        onMouseMove={onMouseMove}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onClick={() => {}}
+        materialSettings={materialSettings}
+        interactiveLighting={interactiveLighting}
+      />
     </div>
   );
 };
