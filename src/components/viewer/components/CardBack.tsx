@@ -48,15 +48,15 @@ export const CardBack: React.FC<CardBackProps> = ({
         {SurfaceTexture}
       </div>
       
-      {/* Card Back Content with New Logo */}
+      {/* Card Back Content with CRD Branding */}
       <div className="relative h-full p-6 flex flex-col z-30">
-        {/* New Logo at Top */}
+        {/* CRD Logo at Top */}
         <div className="mb-6 flex justify-center">
           <div className="relative">
             <img 
-              src="/lovable-uploads/a2352583-e5d8-40a2-9378-e29efd277d3c.png" 
-              alt="Card Logo" 
-              className="w-32 h-auto opacity-90"
+              src="/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png" 
+              alt="CRD Logo" 
+              className="w-24 h-auto opacity-90"
             />
           </div>
         </div>

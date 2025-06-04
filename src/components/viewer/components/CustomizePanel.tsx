@@ -16,9 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, VisualEffect, MaterialSettings } from '../types';
 import { ENVIRONMENT_SCENES, LIGHTING_PRESETS, VISUAL_EFFECTS } from '../constants';
-import { QuickEffectsPresets } from './QuickEffectsPresets';
-import { EnvironmentScenes } from './EnvironmentScenes';
-import { LightingPresets } from './LightingPresets';
 
 interface CustomizePanelProps {
   selectedScene: EnvironmentScene;
@@ -66,19 +63,19 @@ export const CustomizePanel: React.FC<CustomizePanelProps> = ({
   card
 }) => {
   return (
-    <div className="fixed top-0 right-0 w-80 h-full bg-black/95 backdrop-blur-lg overflow-hidden border-l border-white/10 z-[9998] flex flex-col">
+    <div className="fixed top-0 right-0 w-80 h-full bg-black bg-opacity-95 backdrop-blur-lg overflow-hidden border-l border-white/10 z-10 flex flex-col">
       {/* Header with toolbar buttons */}
       <div className="p-4 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Settings className="w-5 h-5 text-crd-green" />
-          <h3 className="text-white font-medium">Enhanced Studio</h3>
+          <Settings className="w-5 h-5 text-white" />
+          <h3 className="text-white font-medium">Card Settings</h3>
         </div>
         <div className="flex space-x-1">
           <Button
             variant="ghost"
             size="sm"
             onClick={onToggleFullscreen}
-            className="bg-white/10 hover:bg-white/20 border border-white/10"
+            className="bg-white bg-opacity-10 hover:bg-opacity-20 border border-white/10"
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4 text-white" /> : <Maximize2 className="w-4 h-4 text-white" />}
           </Button>
@@ -87,7 +84,7 @@ export const CustomizePanel: React.FC<CustomizePanelProps> = ({
               variant="ghost"
               size="sm"
               onClick={() => onShare(card)}
-              className="bg-white/10 hover:bg-white/20 border border-white/10"
+              className="bg-white bg-opacity-10 hover:bg-opacity-20 border border-white/10"
             >
               <Share2 className="w-4 h-4 text-white" />
             </Button>
@@ -97,7 +94,7 @@ export const CustomizePanel: React.FC<CustomizePanelProps> = ({
               variant="ghost"
               size="sm"
               onClick={() => onDownload(card)}
-              className="bg-white/10 hover:bg-white/20 border border-white/10"
+              className="bg-white bg-opacity-10 hover:bg-opacity-20 border border-white/10"
             >
               <Download className="w-4 h-4 text-white" />
             </Button>
@@ -107,7 +104,7 @@ export const CustomizePanel: React.FC<CustomizePanelProps> = ({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="bg-white/10 hover:bg-white/20 border border-white/10"
+              className="bg-white bg-opacity-10 hover:bg-opacity-20 border border-white/10"
             >
               <X className="w-4 h-4 text-white" />
             </Button>
@@ -117,72 +114,11 @@ export const CustomizePanel: React.FC<CustomizePanelProps> = ({
 
       {/* Main content area */}
       <div className="flex-1 overflow-hidden">
-        <Tabs defaultValue="enhanced" className="w-full h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-3 bg-gray-900 border-b border-white/10 mx-4 mt-4">
-            <TabsTrigger value="enhanced" className="text-white data-[state=active]:bg-crd-green data-[state=active]:text-black">Enhanced</TabsTrigger>
-            <TabsTrigger value="scenes" className="text-white data-[state=active]:bg-crd-green data-[state=active]:text-black">Scenes</TabsTrigger>
-            <TabsTrigger value="customize" className="text-white data-[state=active]:bg-crd-green data-[state=active]:text-black">Customize</TabsTrigger>
+        <Tabs defaultValue="scenes" className="w-full h-full flex flex-col">
+          <TabsList className="grid w-full grid-cols-2 bg-gray-900 border-b border-white/10 mx-4 mt-4">
+            <TabsTrigger value="scenes" className="text-white data-[state=active]:bg-blue-600">Scenes</TabsTrigger>
+            <TabsTrigger value="customize" className="text-white data-[state=active]:bg-blue-600">Customize</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="enhanced" className="flex-1 p-4 overflow-y-auto space-y-6">
-            {/* Quick Effects Presets */}
-            <div>
-              <h4 className="text-white font-medium mb-3 flex items-center">
-                <Sparkles className="w-4 h-4 mr-2 text-crd-green" />
-                Quick Effects
-              </h4>
-              <QuickEffectsPresets onEffectChange={() => {}} />
-            </div>
-
-            {/* Environment Scenes */}
-            <div>
-              <h4 className="text-white font-medium mb-3">Environment Scenes</h4>
-              <EnvironmentScenes 
-                selectedScene={selectedScene}
-                onSceneChange={onSceneChange}
-              />
-            </div>
-
-            {/* Lighting Presets */}
-            <div>
-              <h4 className="text-white font-medium mb-3 flex items-center">
-                <Sun className="w-4 h-4 mr-2 text-crd-green" />
-                Lighting
-              </h4>
-              <LightingPresets 
-                selectedLighting={selectedLighting}
-                onLightingChange={onLightingChange}
-              />
-              
-              <div className="space-y-3 mt-4">
-                <div>
-                  <label className="text-white text-sm mb-2 block">Overall Brightness: {overallBrightness[0]}%</label>
-                  <Slider
-                    value={overallBrightness}
-                    onValueChange={onBrightnessChange}
-                    min={50}
-                    max={200}
-                    step={5}
-                    className="w-full"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-white text-sm">Interactive Lighting</span>
-                  <button
-                    onClick={onInteractiveLightingToggle}
-                    className={`px-3 py-1 rounded text-xs transition-colors ${
-                      interactiveLighting 
-                        ? 'bg-crd-green text-black' 
-                        : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                    }`}
-                  >
-                    {interactiveLighting ? 'On' : 'Off'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
           
           <TabsContent value="scenes" className="flex-1 p-4 overflow-y-auto">
             <h4 className="text-white font-medium mb-4">Environment Scenes</h4>
@@ -193,7 +129,7 @@ export const CustomizePanel: React.FC<CustomizePanelProps> = ({
                   onClick={() => onSceneChange(scene)}
                   className={`aspect-square rounded-lg p-3 transition-all ${
                     selectedScene.id === scene.id 
-                      ? 'ring-2 ring-crd-green scale-105' 
+                      ? 'ring-2 ring-blue-500 scale-105' 
                       : 'hover:scale-102'
                   }`}
                   style={{
@@ -223,7 +159,7 @@ export const CustomizePanel: React.FC<CustomizePanelProps> = ({
                     onClick={() => onEffectChange(effect)}
                     className={`w-full p-3 rounded-lg text-left transition-colors ${
                       selectedEffect.id === effect.id 
-                        ? 'bg-crd-green text-black' 
+                        ? 'bg-blue-600 text-white' 
                         : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                     }`}
                   >
@@ -243,6 +179,56 @@ export const CustomizePanel: React.FC<CustomizePanelProps> = ({
                     step={1}
                     className="w-full"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Lighting */}
+            <div>
+              <h4 className="text-white font-medium mb-3 flex items-center">
+                <Sun className="w-4 h-4 mr-2" />
+                Lighting
+              </h4>
+              <div className="space-y-2 mb-4">
+                {LIGHTING_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => onLightingChange(preset)}
+                    className={`w-full p-3 rounded-lg text-left transition-colors ${
+                      selectedLighting.id === preset.id 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    }`}
+                  >
+                    <div className="font-medium text-sm">{preset.name}</div>
+                    <div className="text-xs opacity-75">{preset.description}</div>
+                  </button>
+                ))}
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="text-white text-sm mb-2 block">Overall Brightness: {overallBrightness[0]}%</label>
+                  <Slider
+                    value={overallBrightness}
+                    onValueChange={onBrightnessChange}
+                    min={50}
+                    max={200}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-white text-sm">Interactive Lighting</span>
+                  <button
+                    onClick={onInteractiveLightingToggle}
+                    className={`px-3 py-1 rounded text-xs ${
+                      interactiveLighting ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300'
+                    }`}
+                  >
+                    {interactiveLighting ? 'On' : 'Off'}
+                  </button>
                 </div>
               </div>
             </div>
@@ -277,12 +263,13 @@ export const CustomizePanel: React.FC<CustomizePanelProps> = ({
       {/* Footer with save actions */}
       <div className="p-4 border-t border-gray-700">
         <h4 className="text-white font-medium mb-3">Save & Share</h4>
+        <p className="text-gray-400 text-sm mb-4">Save your customized card or share with others</p>
         <div className="grid grid-cols-2 gap-2">
           <Button 
-            className="w-full bg-crd-green hover:bg-crd-green/90 text-black"
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
             onClick={() => onDownload && onDownload(card)}
           >
-            Export
+            Save
           </Button>
           <Button 
             variant="outline" 
