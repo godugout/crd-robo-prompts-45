@@ -1,5 +1,6 @@
 
 import React from 'react';
+import type { MaterialSettings } from '../types';
 
 interface CardEffectsLayerProps {
   showEffects: boolean;
@@ -7,6 +8,7 @@ interface CardEffectsLayerProps {
   effectIntensity: number[];
   mousePosition: { x: number; y: number };
   physicalEffectStyles: React.CSSProperties;
+  materialSettings?: MaterialSettings;
 }
 
 export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
@@ -14,81 +16,102 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   isHovering,
   effectIntensity,
   mousePosition,
-  physicalEffectStyles
+  physicalEffectStyles,
+  materialSettings
 }) => {
   if (!showEffects) return null;
-
-  // Reduced intensity cap for more realistic effects
-  const cappedIntensity = Math.min(effectIntensity[0], 60);
-  const intensityFactor = cappedIntensity / 100;
-
+  
+  const intensity = effectIntensity[0] / 100;
+  
+  // Material-aware reflection
+  const getReflectionStrength = () => {
+    if (!materialSettings) return intensity * 0.5;
+    
+    // Combine reflectivity with clearcoat for more pronounced effect
+    const reflectionBase = materialSettings.reflectivity * 0.7;
+    const clearcoatBoost = materialSettings.clearcoat * 0.3;
+    return (reflectionBase + clearcoatBoost) * intensity;
+  };
+  
+  // Material-aware texture
+  const getTextureIntensity = () => {
+    if (!materialSettings) return intensity * 0.1;
+    
+    // Rougher surfaces get more texture
+    return materialSettings.roughness * intensity * 0.3;
+  };
+  
+  const reflectionStrength = getReflectionStrength();
+  const textureIntensity = getTextureIntensity();
+  
   return (
     <>
-      {/* Physical Effects Layer - z-index 4 */}
-      <div 
-        className="absolute inset-0 pointer-events-none z-40" 
+      {/* Base holographic effect */}
+      <div
+        className="absolute inset-0 z-10"
         style={{
-          ...physicalEffectStyles,
-          opacity: Math.min(0.7, (physicalEffectStyles.opacity as number || 1) * 1.2)
-        }} 
+          background: `conic-gradient(
+            from ${mousePosition.x * 180}deg at 50% 60%,
+            rgba(240, 60, 80, ${intensity * 0.6}) 0deg,
+            rgba(80, 60, 240, ${intensity * 0.4}) 120deg,
+            rgba(60, 240, 180, ${intensity * 0.4}) 240deg,
+            rgba(240, 60, 80, ${intensity * 0.6}) 360deg
+          )`,
+          opacity: showEffects ? 0.5 : 0,
+          mixBlendMode: 'soft-light',
+          ...physicalEffectStyles
+        }}
       />
-      
-      {/* Subtle Specular Highlight Layer - z-index 5 */}
-      {isHovering && (
-        <div 
-          className="absolute inset-0 pointer-events-none z-50"
-          style={{
-            background: `radial-gradient(ellipse 300px 150px at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-              rgba(255,255,255,${cappedIntensity * 0.008}) 0%, 
-              rgba(255,255,255,${cappedIntensity * 0.006}) 30%,
-              rgba(240,245,255,${cappedIntensity * 0.004}) 60%,
-              transparent 90%)`,
-            mixBlendMode: 'screen'
-          }}
-        />
-      )}
 
-      {/* Gentle Moving Shine Effect - z-index 6 */}
+      {/* Interactive high-frequency reflective/foil pattern */}
       {isHovering && (
-        <div 
-          className="absolute inset-0 pointer-events-none z-60"
+        <div
+          className="absolute inset-0 z-20 overflow-hidden"
           style={{
-            background: `linear-gradient(${Math.atan2(mousePosition.y - 0.5, mousePosition.x - 0.5) * 180 / Math.PI + 90}deg, 
-              transparent 35%, 
-              rgba(255, 255, 255, ${cappedIntensity * 0.012}) 45%,
-              rgba(255, 255, 255, ${cappedIntensity * 0.018}) 50%, 
-              rgba(255, 255, 255, ${cappedIntensity * 0.012}) 55%,
-              transparent 65%)`,
-            transform: `translateX(${(mousePosition.x - 0.5) * 20}%) translateY(${(mousePosition.y - 0.5) * 15}%)`,
-            transition: 'transform 0.15s ease',
-            mixBlendMode: 'overlay'
-          }}
-        />
-      )}
-
-      {/* Subtle Edge Lighting - z-index 7 */}
-      {isHovering && (
-        <div 
-          className="absolute inset-0 pointer-events-none z-70"
-          style={{
+            opacity: reflectionStrength,
             background: `
-              radial-gradient(ellipse 120% 100% at 0% 50%, 
-                rgba(255,255,255,${intensityFactor * 0.04}) 0%, 
-                transparent 50%),
-              radial-gradient(ellipse 120% 100% at 100% 50%, 
-                rgba(255,255,255,${intensityFactor * 0.04}) 0%, 
-                transparent 50%),
-              radial-gradient(ellipse 100% 120% at 50% 0%, 
-                rgba(255,255,255,${intensityFactor * 0.03}) 0%, 
-                transparent 50%),
-              radial-gradient(ellipse 100% 120% at 50% 100%, 
-                rgba(255,255,255,${intensityFactor * 0.03}) 0%, 
-                transparent 50%)
+              radial-gradient(
+                circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                rgba(255, 255, 255, 0.9) 0%,
+                rgba(255, 255, 255, 0.7) 15%,
+                rgba(160, 190, 255, 0.3) 30%,
+                transparent 60%
+              )
             `,
-            mixBlendMode: 'soft-light'
+            mixBlendMode: 'screen',
           }}
         />
       )}
+
+      {/* Surface texture */}
+      <div
+        className="absolute inset-0 z-15"
+        style={{
+          opacity: textureIntensity,
+          backgroundImage: `
+            repeating-linear-gradient(
+              ${45 + mousePosition.x * 30}deg,
+              transparent,
+              rgba(255, 255, 255, 0.05) 1px,
+              transparent 2px
+            )
+          `,
+          backgroundSize: '4px 4px',
+          mixBlendMode: 'overlay',
+        }}
+      />
+
+      {/* Edge highlight for depth */}
+      <div
+        className="absolute inset-0 z-25 rounded-xl"
+        style={{
+          boxShadow: `
+            inset 0 0 20px rgba(255, 255, 255, ${intensity * 0.2}),
+            inset 0 0 8px rgba(255, 255, 255, ${intensity * 0.3})
+          `,
+          opacity: 0.7
+        }}
+      />
     </>
   );
 };

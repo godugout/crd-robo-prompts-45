@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,11 +10,10 @@ import {
   type EffectValues 
 } from './hooks/useEnhancedCardEffects';
 import { ViewerControls } from './components/ViewerControls';
-import { EnhancedCustomizePanel } from './components/EnhancedCustomizePanel';
+import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { useCardExport } from './hooks/useCardExport';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
-import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -175,13 +175,19 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [useProgressivePanel, setUseProgressivePanel] = useState(true);
 
   // Custom hooks
-  const { getFrameStyles, getEnhancedEffectStyles, SurfaceTexture } = useEnhancedCardEffects({
+  const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useEnhancedCardEffects({
     card,
     effectValues,
     mousePosition,
     showEffects,
     overallBrightness,
-    interactiveLighting
+    interactiveLighting,
+    selectedScene,
+    selectedLighting,
+    materialSettings,
+    zoom,
+    rotation,
+    isHovering
   });
 
   // Auto-rotation effect
@@ -293,27 +299,23 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           isFullscreen ? 'p-0' : 'p-8'
         } ${showCustomizePanel ? 'pr-80' : ''}`}
         style={{
-          background: `linear-gradient(135deg, 
-            rgba(0,0,0,0.95) 0%, 
-            rgba(20,20,30,0.95) 25%, 
-            rgba(10,10,20,0.95) 50%, 
-            rgba(30,20,40,0.95) 75%, 
-            rgba(0,0,0,0.95) 100%)`
+          ...getEnvironmentStyle(),
         }}
         onMouseMove={handleMouseMove}
         onMouseUp={handleDragEnd}
         onMouseLeave={handleDragEnd}
       >
         {/* Enhanced Dark Overlay */}
-        <div className="absolute inset-0 bg-black/80" />
+        <div className="absolute inset-0 bg-black/60" />
 
         {/* Subtle Ambient Background Effect */}
-        {ambient && (
+        {ambient && selectedScene && (
           <div 
-            className="absolute inset-0 opacity-5"
+            className="absolute inset-0 opacity-30"
             style={{
               background: `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-                ${selectedScene.lighting.color} 0%, transparent 30%)`
+                ${selectedScene.lighting.color} 0%, transparent 40%)`,
+              mixBlendMode: 'screen'
             }}
           />
         )}

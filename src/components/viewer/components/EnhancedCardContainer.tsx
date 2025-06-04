@@ -83,17 +83,19 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             ...frameStyles
           }}
         >
-          {/* Enhanced Effects Layer */}
+          {/* Enhanced Effects Layer - Moved to higher z-index */}
           <div 
-            className="absolute inset-0 pointer-events-none z-10" 
+            className="absolute inset-0 pointer-events-none z-20" 
             style={enhancedEffectStyles}
           />
 
-          {/* Surface Texture */}
-          {SurfaceTexture}
+          {/* Surface Texture - Now layered properly */}
+          <div className="relative z-20">
+            {SurfaceTexture}
+          </div>
 
           {/* Card Content */}
-          <div className="relative h-full p-6 flex flex-col z-20">
+          <div className="relative h-full p-6 flex flex-col z-15">
             {/* Image Section */}
             {card.image_url && (
               <div className="flex-1 mb-6 relative overflow-hidden rounded-lg">
@@ -120,17 +122,18 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             </div>
           </div>
 
-          {/* Interactive Shine Effect */}
+          {/* Interactive Shine Effect - Enhanced with material properties */}
           {isHovering && (
             <div 
               className="absolute inset-0 pointer-events-none z-30"
               style={{
                 background: `linear-gradient(105deg, 
                   transparent 40%, 
-                  rgba(255, 255, 255, 0.3) 50%, 
+                  rgba(255, 255, 255, 0.5) 50%, 
                   transparent 60%)`,
                 transform: `translateX(${(mousePosition.x - 0.5) * 100}%)`,
-                transition: 'transform 0.1s ease'
+                transition: 'transform 0.1s ease',
+                mixBlendMode: 'overlay'
               }}
             />
           )}
@@ -146,17 +149,23 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             transition: 'transform 0.6s ease-in-out, opacity 0.3s ease',
             backfaceVisibility: 'hidden',
             background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-            border: '1px solid rgba(255,255,255,0.1)'
+            border: '1px solid rgba(255,255,255,0.1)',
+            ...frameStyles
           }}
         >
           {/* Back Effects Layer */}
           <div 
-            className="absolute inset-0 pointer-events-none z-10 opacity-50" 
+            className="absolute inset-0 pointer-events-none z-20" 
             style={enhancedEffectStyles}
           />
 
+          {/* Surface Texture on Back */}
+          <div className="relative z-20">
+            {SurfaceTexture}
+          </div>
+
           {/* Back Content */}
-          <div className="relative h-full p-6 flex flex-col items-center justify-center text-center z-20">
+          <div className="relative h-full p-6 flex flex-col items-center justify-center text-center z-15">
             <div className="w-32 h-32 bg-gradient-to-br from-crd-green to-crd-orange rounded-full mb-6 flex items-center justify-center">
               <span className="text-black font-bold text-2xl">CARD</span>
             </div>

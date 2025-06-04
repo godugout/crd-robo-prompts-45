@@ -1,40 +1,40 @@
 
 import type { CardData } from '@/hooks/useCardEditor';
 
-export interface CardEffect {
-  type: 'holographic' | 'refractor' | 'foil' | 'prizm';
-  intensity: number;
-  color?: string;
-}
-
 export interface EnvironmentScene {
   id: string;
   name: string;
   icon: string;
   gradient: string;
+  description: string;
   lighting: {
-    ambient: number;
-    directional: number;
     color: string;
+    intensity: number;
+    elevation: number;
+    azimuth: number;
   };
+  backgroundImage: string;
+  reflections: 'soft' | 'sharp' | 'warm' | 'cold' | 'sparkle' | 'vivid';
 }
 
 export interface LightingPreset {
   id: string;
   name: string;
   description: string;
-  settings: {
-    brightness: number;
-    contrast: number;
-    shadows: number;
-    highlights: number;
-  };
+  brightness: number;
+  contrast: number;
+  shadows: number;
+  highlights: number;
+  temperature: number;
+  position: { x: number; y: number; z: number };
+  shadowSoftness: number;
 }
 
 export interface VisualEffect {
   id: string;
   name: string;
   description: string;
+  category: 'prismatic' | 'metallic' | 'surface' | 'vintage';
 }
 
 export interface MaterialSettings {
