@@ -60,20 +60,20 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     return initialValues;
   });
   
-  // Advanced settings
-  const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[3]); // Twilight
+  // Advanced settings - Updated for more professional defaults
+  const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[0]); // Studio instead of Twilight
   const [selectedLighting, setSelectedLighting] = useState<LightingPreset>(LIGHTING_PRESETS[0]);
-  const [overallBrightness, setOverallBrightness] = useState([120]);
+  const [overallBrightness, setOverallBrightness] = useState([100]); // Reduced from 120
   const [interactiveLighting, setInteractiveLighting] = useState(true);
   
-  // Material properties
+  // Material properties - More balanced defaults
   const [materialSettings, setMaterialSettings] = useState<MaterialSettings>({
-    roughness: 0.30,
-    metalness: 0.60,
-    clearcoat: 0.75,
-    reflectivity: 0.50
+    roughness: 0.40, // Increased from 0.30
+    metalness: 0.45, // Reduced from 0.60
+    clearcoat: 0.60, // Reduced from 0.75
+    reflectivity: 0.40 // Reduced from 0.50
   });
-  
+
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
   const cardContainerRef = useRef<HTMLDivElement>(null);
@@ -174,7 +174,14 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [useProgressivePanel, setUseProgressivePanel] = useState(true);
 
   // Custom hooks
-  const enhancedEffectsHook = useEnhancedCardEffects();
+  const enhancedEffectsHook = {
+    effectValues,
+    handleEffectChange,
+    resetEffect: handleResetEffect,
+    resetAllEffects: handleResetAllEffects,
+    applyPreset: (preset: EffectValues) => setEffectValues(preset)
+  };
+
   const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useEnhancedCardEffects({
     card,
     effectValues,

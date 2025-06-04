@@ -6,11 +6,11 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
     id: 'studio',
     name: 'Studio',
     icon: '🎬',
-    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    gradient: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', // More neutral gradient
     description: 'Clean studio lighting',
     lighting: {
       color: '#ffffff',
-      intensity: 1,
+      intensity: 0.9, // Slightly reduced
       elevation: 45,
       azimuth: 0
     },
@@ -69,13 +69,13 @@ export const LIGHTING_PRESETS: LightingPreset[] = [
     id: 'natural',
     name: 'Natural',
     description: 'Balanced natural lighting',
-    brightness: 100,
-    contrast: 100,
-    shadows: 50,
-    highlights: 75,
+    brightness: 90, // Reduced from 100
+    contrast: 90, // Reduced from 100
+    shadows: 40, // Reduced from 50
+    highlights: 65, // Reduced from 75
     temperature: 5500,
     position: { x: 0, y: 1, z: 1 },
-    shadowSoftness: 20
+    shadowSoftness: 25 // Increased from 20
   },
   {
     id: 'dramatic',
