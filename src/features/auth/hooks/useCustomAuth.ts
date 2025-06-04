@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { customAuthService } from '../services/customAuthService';
-import { customDevAuthService } from '../services/customDevAuthService';
 import { toast } from '@/hooks/use-toast';
 
 interface CustomUser {
@@ -21,36 +20,12 @@ export const useCustomAuth = () => {
   });
 
   useEffect(() => {
-    console.log('🔧 Setting up custom auth listener');
-    
     const subscription = customAuthService.onAuthStateChange((user) => {
-      console.log('🔧 Auth state changed:', user ? user.username : 'signed out');
       setAuthState({
         user,
         loading: false,
       });
     });
-
-    // Check if we should auto-login in dev mode
-    const checkDevAutoLogin = async () => {
-      if (customDevAuthService.isDevMode() && !customAuthService.getCurrentUser()) {
-        console.log('🔧 Dev mode: Checking if auto-login should be performed');
-        
-        // Small delay to let component mount
-        setTimeout(async () => {
-          const stored = localStorage.getItem('cardshow_dev_auto_login');
-          if (!stored || stored === 'true') {
-            console.log('🔧 Dev mode: Attempting auto-login');
-            const result = await customDevAuthService.autoSignIn();
-            if (result.error) {
-              console.log('🔧 Dev auto-login failed, user will need to login manually');
-            }
-          }
-        }, 100);
-      }
-    };
-
-    checkDevAutoLogin();
 
     return () => subscription.unsubscribe();
   }, []);
@@ -70,12 +45,6 @@ export const useCustomAuth = () => {
         title: 'Welcome back!',
         description: `Signed in as ${user?.username}`,
       });
-      
-      // Store dev auto-login preference
-      if (customDevAuthService.isDevMode()) {
-        localStorage.setItem('cardshow_dev_auto_login', 'true');
-      }
-      
       return { error: null };
     }
   };
@@ -101,12 +70,6 @@ export const useCustomAuth = () => {
 
   const signOut = () => {
     customAuthService.signOut();
-    
-    // Clear dev auto-login preference
-    if (customDevAuthService.isDevMode()) {
-      localStorage.setItem('cardshow_dev_auto_login', 'false');
-    }
-    
     toast({
       title: 'Signed Out',
       description: 'You have been signed out successfully.',

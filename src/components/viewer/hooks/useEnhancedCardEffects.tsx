@@ -171,60 +171,24 @@ export const useEnhancedCardEffects = ({
   isHovering = false
 }: UseEnhancedCardEffectsProps) => {
   
-  // Get effective mouse position - static center when interactive lighting is off
-  const effectiveMousePosition = useMemo(() => {
-    if (interactiveLighting) {
-      return mousePosition;
-    }
-    // When interactive lighting is off, use center position for static effects
-    return { x: 0.5, y: 0.5 };
-  }, [interactiveLighting, mousePosition]);
-  
-  // Enhanced Interactive Lighting System with Glare Reduction
+  // Enhanced Interactive Lighting System
   const getInteractiveLightingEffects = () => {
-    if (!interactiveLighting) {
-      // Return static lighting data when interactive lighting is off
-      return {
-        lightPosition: { x: 0, y: 0 },
-        lightIntensity: 0.3, // Reduced static intensity
-        colorTemperature: 5500, // Neutral color temperature
-        isWarm: false,
-        shadowOffset: { x: 0, y: 0 },
-        shadowBlur: 20,
-        shadowOpacity: 0.1, // Reduced static shadow
-        proximityDamping: 1.0
-      };
-    }
+    if (!interactiveLighting) return {};
     
     // Calculate light position relative to mouse (inverted for realistic lighting)
     const lightX = (0.5 - mousePosition.x) * 2; // -1 to 1
     const lightY = (0.5 - mousePosition.y) * 2; // -1 to 1
     const lightDistance = Math.sqrt(lightX * lightX + lightY * lightY);
+    const lightIntensity = Math.max(0.3, 1 - lightDistance * 0.5);
     
-    // Smart proximity damping - reduce intensity when too close to center
-    const proximityThreshold = 0.3; // Distance from center where damping starts
-    let proximityDamping = 1.0;
-    
-    if (lightDistance < proximityThreshold) {
-      // Strong damping when very close to center to prevent glare
-      proximityDamping = 0.2 + (lightDistance / proximityThreshold) * 0.6; // 0.2 to 0.8
-    } else if (lightDistance < 0.6) {
-      // Moderate damping in mid-range
-      proximityDamping = 0.6 + ((lightDistance - proximityThreshold) / (0.6 - proximityThreshold)) * 0.3; // 0.6 to 0.9
-    }
-    
-    // Calculate base light intensity with distance falloff and proximity damping
-    const baseIntensity = Math.max(0.2, 1 - lightDistance * 0.4);
-    const lightIntensity = Math.min(baseIntensity * proximityDamping, 0.7); // Cap at 70%
-    
-    // Dynamic color temperature based on position (reduced range)
-    const colorTemp = 5000 + (mousePosition.x - 0.5) * 1000; // 4500K to 5500K (reduced range)
+    // Dynamic color temperature based on position
+    const colorTemp = 5000 + (mousePosition.x - 0.5) * 2000; // 4000K to 6000K
     const isWarm = colorTemp < 5000;
     
-    // Create dynamic shadow opposite to light (reduced intensity)
-    const shadowX = lightX * -20 * lightIntensity * 0.8; // Reduced shadow intensity
-    const shadowY = lightY * -20 * lightIntensity * 0.8;
-    const shadowBlur = 15 + lightDistance * 15; // Reduced blur range
+    // Create dynamic shadow opposite to light
+    const shadowX = lightX * -30 * lightIntensity;
+    const shadowY = lightY * -30 * lightIntensity;
+    const shadowBlur = 20 + lightDistance * 20;
     
     return {
       lightPosition: { x: lightX, y: lightY },
@@ -233,8 +197,7 @@ export const useEnhancedCardEffects = ({
       isWarm,
       shadowOffset: { x: shadowX, y: shadowY },
       shadowBlur,
-      shadowOpacity: Math.min(0.2 * lightIntensity, 0.15), // Capped shadow opacity
-      proximityDamping
+      shadowOpacity: 0.3 * lightIntensity
     };
   };
 
@@ -250,29 +213,29 @@ export const useEnhancedCardEffects = ({
     let saturationValue = 1;
     let hueRotation = 0;
     
-    // Apply interactive lighting modifications only when enabled (with reduced intensity)
+    // Apply interactive lighting modifications
     if (interactiveLighting && interactive.lightIntensity) {
-      // More conservative brightness adjustment
-      brightnessValue *= (0.9 + interactive.lightIntensity * 0.2); // Reduced from 0.4
+      // Dynamic brightness based on light intensity
+      brightnessValue *= (0.8 + interactive.lightIntensity * 0.4);
       
-      // More conservative contrast for less dramatic effect
-      contrastValue *= (0.95 + interactive.lightIntensity * 0.15); // Reduced from 0.3
+      // Dynamic contrast for more dramatic effect
+      contrastValue *= (0.9 + interactive.lightIntensity * 0.3);
       
-      // Subtle color temperature effects
+      // Color temperature effects
       if (interactive.isWarm) {
-        saturationValue = 1.05; // Reduced from 1.1
-        hueRotation = -3; // Reduced from -5
+        saturationValue = 1.1;
+        hueRotation = -5; // Slightly warmer
       } else {
-        saturationValue = 0.98; // Reduced from 0.95
-        hueRotation = 3; // Reduced from 5
+        saturationValue = 0.95;
+        hueRotation = 5; // Slightly cooler
       }
     }
     
     // Create dynamic shadow based on rotation and interactive lighting
-    let shadowX = Math.sin(rotation.y * 0.017) * 10; // Reduced from 15
-    let shadowY = Math.sin(rotation.x * 0.017) * 10; // Reduced from 15
+    let shadowX = Math.sin(rotation.y * 0.017) * 15;
+    let shadowY = Math.sin(rotation.x * 0.017) * 15;
     let shadowBlur = selectedLighting.shadowSoftness;
-    let shadowOpacity = selectedLighting.shadows / 400; // Reduced from 300
+    let shadowOpacity = selectedLighting.shadows / 300;
     
     if (interactiveLighting && interactive.shadowOffset) {
       shadowX += interactive.shadowOffset.x;
@@ -301,7 +264,7 @@ export const useEnhancedCardEffects = ({
     // Roughness affects blur and texture clarity
     const blurAmount = roughness * 0.5; // px
     
-    // Interactive lighting affects material response only when enabled
+    // Interactive lighting affects material response
     const interactive = getInteractiveLightingEffects();
     let materialMultiplier = 1;
     
@@ -330,7 +293,7 @@ export const useEnhancedCardEffects = ({
       backgroundRepeat: 'no-repeat',
     };
     
-    // Add interactive lighting to environment only when enabled
+    // Add interactive lighting to environment
     if (interactiveLighting) {
       const interactive = getInteractiveLightingEffects();
       return {
@@ -342,56 +305,50 @@ export const useEnhancedCardEffects = ({
     return baseStyle;
   };
   
-  // Enhanced reflective highlights with glare reduction
+  // Enhanced reflective highlights based on material settings and mouse position
   const getReflectionStyles = (): React.CSSProperties => {
     if (!materialSettings || !isHovering) return {};
     
     const { reflectivity, clearcoat, metalness } = materialSettings;
     const interactive = getInteractiveLightingEffects();
     
-    // Calculate reflection position based on effective mouse position (static when interactive lighting off)
-    const reflectionX = (effectiveMousePosition.x - 0.5) * -100; // Inverted for realistic effect
-    const reflectionY = (effectiveMousePosition.y - 0.5) * -100;
+    // Calculate reflection position based on mouse
+    const reflectionX = (mousePosition.x - 0.5) * -100; // Inverted for realistic effect
+    const reflectionY = (mousePosition.y - 0.5) * -100;
     
-    // Base reflection values with reduced intensity
-    let highlightOpacity = reflectivity * 0.5; // Reduced from 0.7
-    let highlightSize = 50 + reflectivity * 20; // Increased size, reduced intensity
-    let clearcoatOpacity = clearcoat * 0.25; // Reduced from 0.4
-    let clearcoatSize = 20 + clearcoat * 15; // Increased size
+    // Interactive lighting dramatically affects reflections
+    let highlightOpacity = reflectivity * 0.7;
+    let highlightSize = 40 + reflectivity * 30;
+    let clearcoatOpacity = clearcoat * 0.4;
+    let clearcoatSize = 15 + clearcoat * 10;
     
-    if (interactiveLighting && interactive.lightIntensity && interactive.proximityDamping) {
-      // Conservative increase with proximity damping
-      const lightingBoost = interactive.lightIntensity * interactive.proximityDamping * 1.2; // Reduced from 2
+    if (interactiveLighting && interactive.lightIntensity) {
+      // Dramatic increase in reflection intensity with interactive lighting
+      const lightingBoost = interactive.lightIntensity * 2;
       highlightOpacity *= (1 + lightingBoost);
       clearcoatOpacity *= (1 + lightingBoost);
       
-      // Metallic surfaces get extra highlights but capped
+      // Metallic surfaces get extra dramatic highlights
       if (metalness > 0.5) {
-        highlightOpacity *= (1 + metalness * 0.4); // Reduced from 1
-        highlightSize += metalness * 10; // Reduced from 20
+        highlightOpacity *= (1 + metalness);
+        highlightSize += metalness * 20;
       }
     }
-    
-    // Cap maximum opacity to prevent glare
-    highlightOpacity = Math.min(highlightOpacity, 0.6); // Reduced cap from 0.9
-    clearcoatOpacity = Math.min(clearcoatOpacity, 0.4); // Reduced cap from 0.6
     
     return {
       background: `
         radial-gradient(
-          circle at ${50 + reflectionX / 4}% ${50 + reflectionY / 4}%,
-          rgba(255, 255, 255, ${highlightOpacity}) 0%,
-          rgba(255, 255, 255, ${highlightOpacity * 0.6}) 30%,
+          circle at ${50 + reflectionX / 3}% ${50 + reflectionY / 3}%,
+          rgba(255, 255, 255, ${Math.min(highlightOpacity, 0.9)}) 0%,
           transparent ${highlightSize}%
         ),
         radial-gradient(
-          circle at ${50 + reflectionX / 2}% ${50 + reflectionY / 2}%,
-          rgba(255, 255, 255, ${clearcoatOpacity}) 0%,
-          rgba(255, 255, 255, ${clearcoatOpacity * 0.4}) 20%,
+          circle at ${50 + reflectionX / 1.5}% ${50 + reflectionY / 1.5}%,
+          rgba(255, 255, 255, ${Math.min(clearcoatOpacity, 0.6)}) 0%,
           transparent ${clearcoatSize}%
         )
       `,
-      mixBlendMode: 'soft-light', // Changed from hard-light to reduce intensity
+      mixBlendMode: 'soft-light',
     };
   };
   
@@ -440,25 +397,21 @@ export const useEnhancedCardEffects = ({
     // Get interactive lighting effects
     const interactive = getInteractiveLightingEffects();
 
-    // Get active effects with their intensities
+    // Get active effects with their intensities increased for more dramatic visual impact
     ENHANCED_VISUAL_EFFECTS.forEach(effect => {
       const values = effectValues[effect.id];
       if (!values || !values.intensity || (values.intensity as number) === 0) return;
 
-      // Base intensity with proximity damping
-      let intensity = ((values.intensity as number) / 100) * 1.2; // Reduced from 1.5
+      // Increase intensity for more dramatic effect
+      let intensity = ((values.intensity as number) / 100) * 1.5;
       
-      // Interactive lighting boosts effect intensity only when enabled (with damping)
-      if (interactiveLighting && interactive.lightIntensity && interactive.proximityDamping) {
-        intensity *= (1 + interactive.lightIntensity * interactive.proximityDamping * 0.5); // Reduced from 0.8
+      // Interactive lighting boosts effect intensity dramatically
+      if (interactiveLighting && interactive.lightIntensity) {
+        intensity *= (1 + interactive.lightIntensity * 0.8);
       }
       
-      // Cap maximum intensity to prevent overwhelming effects
-      intensity = Math.min(intensity, 1.8); // Added cap
-      
-      // Use effective mouse position (static when interactive lighting is off)
-      const mouseX = effectiveMousePosition.x;
-      const mouseY = effectiveMousePosition.y;
+      const mouseX = mousePosition.x;
+      const mouseY = mousePosition.y;
 
       switch (effect.id) {
         case 'holographic':
@@ -468,26 +421,23 @@ export const useEnhancedCardEffects = ({
           const animated = values.animated as boolean;
           
           let hueShift = 0;
-          if (animated && interactiveLighting) {
-            // Reduced hue animation intensity
-            hueShift = mouseX * 180 * (shiftSpeed / 100) * interactive.lightIntensity * interactive.proximityDamping; // Reduced from 360
-          } else if (animated) {
-            hueShift = 20; // Reduced from 30
+          if (animated) {
+            hueShift = interactiveLighting && interactive.lightIntensity ? 
+              mouseX * 360 * (shiftSpeed / 100) * interactive.lightIntensity : 
+              mouseX * 180;
           }
           
           if (hueShift !== 0) {
             filters.push(`hue-rotate(${hueShift}deg)`);
           }
           
-          // Reduced holographic intensity
-          const holoIntensity = intensity * 0.6; // Reduced multiplier
           backgroundLayers.push(`
-            conic-gradient(from ${interactiveLighting ? mouseX * rainbowSpread : rainbowSpread / 2}deg,
-              rgba(255,0,100,${holoIntensity * 0.5 * prismaticDepth}),
-              rgba(0,255,200,${holoIntensity * 0.45 * prismaticDepth}),
-              rgba(255,200,0,${holoIntensity * 0.5 * prismaticDepth}),
-              rgba(100,0,255,${holoIntensity * 0.45 * prismaticDepth}),
-              rgba(255,0,100,${holoIntensity * 0.5 * prismaticDepth}))
+            conic-gradient(from ${mouseX * rainbowSpread}deg,
+              rgba(255,0,100,${intensity * 0.7 * prismaticDepth}),
+              rgba(0,255,200,${intensity * 0.65 * prismaticDepth}),
+              rgba(255,200,0,${intensity * 0.7 * prismaticDepth}),
+              rgba(100,0,255,${intensity * 0.65 * prismaticDepth}),
+              rgba(255,0,100,${intensity * 0.7 * prismaticDepth}))
           `);
           break;
 
@@ -496,24 +446,22 @@ export const useEnhancedCardEffects = ({
           const direction = values.direction as number || 45;
           const pattern = values.pattern as string || 'radial';
           
-          // Reduced foil intensity with proximity damping
-          const foilIntensity = interactiveLighting ? 
-            intensity * (1 + interactive.lightIntensity * interactive.proximityDamping * 0.6) : // Reduced from 1
-            intensity;
+          // Interactive lighting makes foil more responsive
+          const foilIntensity = interactiveLighting ? intensity * (1 + interactive.lightIntensity) : intensity;
           
           if (pattern === 'radial') {
             backgroundLayers.push(`
               radial-gradient(circle at ${mouseX * 100}% ${mouseY * 100}%,
-                rgba(255, 255, 255, ${Math.min(foilIntensity * 0.5 * density, 0.4)}) 0%,
-                rgba(230, 230, 255, ${Math.min(foilIntensity * 0.4 * density, 0.3)}) 40%,
+                rgba(255, 255, 255, ${foilIntensity * 0.8 * density}) 0%,
+                rgba(230, 230, 255, ${foilIntensity * 0.65 * density}) 40%,
                 transparent 70%)
             `);
           } else if (pattern === 'linear') {
             backgroundLayers.push(`
               linear-gradient(${direction}deg,
-                rgba(255, 255, 255, ${Math.min(foilIntensity * 0.5 * density, 0.4)}) 0%,
-                rgba(230, 230, 255, ${Math.min(foilIntensity * 0.4 * density, 0.3)}) 50%,
-                rgba(255, 255, 255, ${Math.min(foilIntensity * 0.5 * density, 0.4)}) 100%)
+                rgba(255, 255, 255, ${foilIntensity * 0.8 * density}) 0%,
+                rgba(230, 230, 255, ${foilIntensity * 0.65 * density}) 50%,
+                rgba(255, 255, 255, ${foilIntensity * 0.75 * density}) 100%)
             `);
           }
           break;
@@ -522,24 +470,22 @@ export const useEnhancedCardEffects = ({
           const sharpness = (values.sharpness as number || 70) / 100;
           const highlightSize = values.highlightSize as number || 40;
           
-          // Chrome effect with proximity damping
-          const chromeIntensity = interactiveLighting ? 
-            intensity * (1 + interactive.lightIntensity * interactive.proximityDamping * 0.3) : // Reduced from 0.5
-            intensity;
+          // Chrome effect enhanced by interactive lighting
+          const chromeIntensity = interactiveLighting ? intensity * (1 + interactive.lightIntensity * 0.5) : intensity;
           
           backgroundLayers.push(`
-            linear-gradient(${(mouseX - 0.5) * (interactiveLighting ? 60 : 0) + 90}deg,
-              rgba(240, 240, 240, ${Math.min(chromeIntensity * 0.6 * sharpness, 0.5)}) 0%,
-              rgba(255, 255, 255, ${Math.min(chromeIntensity * 0.7 * sharpness, 0.6)}) ${50 - highlightSize/2}%,
-              rgba(255, 255, 255, ${Math.min(chromeIntensity * 0.7 * sharpness, 0.6)}) ${50 + highlightSize/2}%,
-              rgba(180, 180, 180, ${Math.min(chromeIntensity * 0.5 * sharpness, 0.4)}) 100%)
+            linear-gradient(${(mouseX - 0.5) * 120 + 90}deg,
+              rgba(240, 240, 240, ${chromeIntensity * 0.9 * sharpness}) 0%,
+              rgba(255, 255, 255, ${chromeIntensity * 1.0 * sharpness}) ${50 - highlightSize/2}%,
+              rgba(255, 255, 255, ${chromeIntensity * 1.0 * sharpness}) ${50 + highlightSize/2}%,
+              rgba(180, 180, 180, ${chromeIntensity * 0.8 * sharpness}) 100%)
           `);
           
-          // Reduced interactive highlight intensity
+          // Add interactive highlight for metallic surfaces
           if (materialSettings && materialSettings.metalness > 0.3 && interactiveLighting) {
             backgroundLayers.push(`
               radial-gradient(circle at ${mouseX * 100}% ${mouseY * 100}%,
-                rgba(255, 255, 255, ${Math.min(chromeIntensity * 0.4 * materialSettings.metalness * interactive.lightIntensity * interactive.proximityDamping, 0.3)}) 0%,
+                rgba(255, 255, 255, ${chromeIntensity * 0.8 * materialSettings.metalness * interactive.lightIntensity}) 0%,
                 transparent 60%)
             `);
           }
@@ -551,7 +497,7 @@ export const useEnhancedCardEffects = ({
           const rotation = values.rotation as number || 0;
           
           backgroundLayers.push(`
-            conic-gradient(from ${rotation + (interactiveLighting ? mouseX * 360 : 180)}deg at 50% 50%,
+            conic-gradient(from ${rotation + mouseX * 360}deg at 50% 50%,
               rgba(255, 0, 0, ${intensity * 0.6 * colorSeparation}),
               rgba(255, 165, 0, ${intensity * 0.6 * colorSeparation}),
               rgba(255, 255, 0, ${intensity * 0.6 * colorSeparation}),
@@ -597,7 +543,7 @@ export const useEnhancedCardEffects = ({
           
           const facetAngle = 360 / facets;
           backgroundLayers.push(`
-            conic-gradient(from ${interactiveLighting ? mouseX * 360 : 180}deg at ${mouseX * 100}% ${mouseY * 100}%,
+            conic-gradient(from ${mouseX * 360}deg at ${mouseX * 100}% ${mouseY * 100}%,
               rgba(255, 255, 255, ${intensity * 0.35 * clarity}) 0deg,
               rgba(200, 200, 255, ${intensity * 0.25 * dispersion}) ${facetAngle/2}deg,
               rgba(255, 255, 255, ${intensity * 0.4 * clarity}) ${facetAngle}deg,
@@ -643,25 +589,25 @@ export const useEnhancedCardEffects = ({
       combinedStyles.boxShadow = boxShadow;
     }
 
-    // Apply more conservative blend modes
+    // Apply proper blend mode based on material settings and interactive lighting
     if (materialSettings) {
       if (interactiveLighting && interactive.lightIntensity > 0.5) {
-        // Less aggressive blend modes when interactive lighting is active
+        // More dramatic blend mode when interactive lighting is active
         if (materialSettings.metalness > 0.7) {
-          combinedStyles.mixBlendMode = 'overlay'; // Reduced from hard-light
+          combinedStyles.mixBlendMode = 'hard-light';
         } else if (materialSettings.clearcoat > 0.7) {
-          combinedStyles.mixBlendMode = 'soft-light';
+          combinedStyles.mixBlendMode = 'overlay';
         } else {
           combinedStyles.mixBlendMode = 'soft-light';
         }
       } else {
         // Standard blend modes
         if (materialSettings.metalness > 0.7) {
-          combinedStyles.mixBlendMode = 'soft-light'; // Reduced from overlay
+          combinedStyles.mixBlendMode = 'overlay';
         } else if (materialSettings.clearcoat > 0.7) {
           combinedStyles.mixBlendMode = 'soft-light';
         } else if (materialSettings.roughness < 0.3) {
-          combinedStyles.mixBlendMode = 'overlay'; // Reduced from hard-light
+          combinedStyles.mixBlendMode = 'hard-light';
         } else {
           combinedStyles.mixBlendMode = 'normal';
         }
@@ -689,13 +635,13 @@ export const useEnhancedCardEffects = ({
     
     // Apply material-specific textures
     const roughnessValue = materialSettings ? materialSettings.roughness : 0.3;
-    let grainOpacity = 0.02 + roughnessValue * 0.08; // Reduced base opacity
-    const grainSize = 1 + Math.floor(roughnessValue * 2);
+    let grainOpacity = 0.03 + roughnessValue * 0.1; // 0.03-0.13
+    const grainSize = 1 + Math.floor(roughnessValue * 2); // 1-3px
     
-    // Reduced interactive lighting texture response
+    // Interactive lighting affects texture visibility
     const interactive = getInteractiveLightingEffects();
-    if (interactiveLighting && interactive.lightIntensity && interactive.proximityDamping) {
-      grainOpacity *= (1 + interactive.lightIntensity * interactive.proximityDamping * 0.3); // Reduced from 0.5
+    if (interactiveLighting && interactive.lightIntensity) {
+      grainOpacity *= (1 + interactive.lightIntensity * 0.5);
     }
     
     // Generate reflections based on material settings
@@ -703,7 +649,7 @@ export const useEnhancedCardEffects = ({
 
     return (
       <>
-        {/* Enhanced surface grain texture with reduced opacity */}
+        {/* Enhanced surface grain texture */}
         <div 
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -714,24 +660,24 @@ export const useEnhancedCardEffects = ({
                 transparent ${grainSize}px),
               repeating-linear-gradient(90deg,
                 transparent 0px,
-                rgba(0, 0, 0, ${grainOpacity * 0.6}) 1px,
+                rgba(0, 0, 0, ${grainOpacity * 0.7}) 1px,
                 transparent ${grainSize}px)
             `,
             mixBlendMode: 'overlay',
-            opacity: 0.4 + roughnessValue * 0.3, // Reduced opacity
+            opacity: 0.5 + roughnessValue * 0.5,
             zIndex: 15
           }}
         />
         
-        {/* Reduced interactive lighting highlight */}
-        {interactiveLighting && interactive.lightIntensity > 0.4 && interactive.proximityDamping > 0.3 && (
+        {/* Interactive lighting highlight */}
+        {interactiveLighting && interactive.lightIntensity > 0.3 && (
           <div 
             className="absolute inset-0 pointer-events-none"
             style={{
               background: `
                 radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                  rgba(255, 255, 255, ${Math.min(interactive.lightIntensity * interactive.proximityDamping * 0.15, 0.2)}) 0%,
-                  rgba(255, 255, 255, ${Math.min(interactive.lightIntensity * interactive.proximityDamping * 0.05, 0.1)}) 40%,
+                  rgba(255, 255, 255, ${interactive.lightIntensity * 0.3}) 0%,
+                  rgba(255, 255, 255, ${interactive.lightIntensity * 0.1}) 40%,
                   transparent 70%)
               `,
               mixBlendMode: 'soft-light',
@@ -750,7 +696,7 @@ export const useEnhancedCardEffects = ({
         />
       </>
     );
-  }, [showEffects, effectValues, materialSettings, isHovering, effectiveMousePosition, interactiveLighting, mousePosition]);
+  }, [showEffects, effectValues, materialSettings, isHovering, mousePosition, interactiveLighting]);
 
   return {
     getFrameStyles,

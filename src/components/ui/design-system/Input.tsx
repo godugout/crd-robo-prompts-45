@@ -10,7 +10,7 @@ const inputVariants = cva(
     variants: {
       variant: {
         default: "bg-background border-input focus-visible:ring-ring",
-        crd: "bg-crd-dark border-crd-mediumGray text-crd-white placeholder:text-crd-lightGray focus-visible:ring-crd-blue focus-visible:border-crd-blue focus:ring-crd-blue focus:border-crd-blue",
+        crd: "bg-crd-dark border-crd-mediumGray text-crd-white placeholder:text-crd-lightGray focus-visible:ring-crd-blue focus-visible:border-crd-blue",
         editor: "bg-editor-darker border-editor-border text-cardshow-white placeholder:text-cardshow-lightGray focus-visible:ring-cardshow-blue focus-visible:border-cardshow-blue",
       },
     },

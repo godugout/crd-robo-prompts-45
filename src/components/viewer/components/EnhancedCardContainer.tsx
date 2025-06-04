@@ -49,13 +49,13 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
 }) => {
   // Calculate dynamic lighting effect for 3D transform
   const getDynamicTransform = () => {
-    let baseTransform = `perspective(1200px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`;
+    let baseTransform = `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`;
     
     // Add subtle interactive lighting-based depth effect
     if (interactiveLighting && isHovering) {
       const lightDepth = (mousePosition.x - 0.5) * 2; // -1 to 1
       const additionalRotateY = lightDepth * 2; // Max 2 degrees
-      baseTransform = `perspective(1200px) rotateX(${rotation.x}deg) rotateY(${rotation.y + additionalRotateY}deg)`;
+      baseTransform = `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y + additionalRotateY}deg)`;
     }
     
     return baseTransform;
@@ -65,14 +65,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
     <div 
       className={`relative z-20 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       style={{
-        // Ensure container has enough space for full card with transforms
-        width: '500px',
-        height: '700px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         transform: `scale(${zoom})`,
-        transformOrigin: 'center center',
         transition: isDragging ? 'none' : 'transform 0.3s ease',
         filter: `brightness(${interactiveLighting && isHovering ? 1.3 : 1.2}) contrast(1.1)`
       }}
@@ -89,7 +82,6 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
           height: '560px',
           transform: getDynamicTransform(),
           transformStyle: 'preserve-3d',
-          transformOrigin: 'center center',
           transition: isDragging ? 'none' : 'transform 0.1s ease',
           filter: `drop-shadow(0 25px 50px rgba(0,0,0,${interactiveLighting && isHovering ? 0.9 : 0.8}))`
         }}
