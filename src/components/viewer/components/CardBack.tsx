@@ -24,6 +24,9 @@ export const CardBack: React.FC<CardBackProps> = ({
   physicalEffectStyles,
   SurfaceTexture
 }) => {
+  // Debug logging to see if this component is being used
+  console.log('CardBack component rendering with isFlipped:', isFlipped);
+  
   return (
     <div
       className="absolute inset-0 rounded-xl overflow-hidden backface-hidden"
@@ -58,6 +61,8 @@ export const CardBack: React.FC<CardBackProps> = ({
             style={{
               filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
             }}
+            onLoad={() => console.log('New CRD logo loaded successfully')}
+            onError={() => console.log('Error loading new CRD logo')}
           />
         </div>
       </div>

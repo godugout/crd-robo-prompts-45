@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useEnhancedCardEffects } from './hooks/useEnhancedCardEffects';
 import { useEnhancedCardInteraction } from './hooks/useEnhancedCardInteraction';
@@ -21,6 +20,9 @@ export const EnhancedCardViewer: React.FC<EnhancedCardViewerProps> = ({
   onShare,
   onClose
 }) => {
+  // Debug logging to see if this viewer is being used
+  console.log('EnhancedCardViewer rendering with card:', card?.title);
+
   // Enhanced effects system
   const {
     effectValues,
