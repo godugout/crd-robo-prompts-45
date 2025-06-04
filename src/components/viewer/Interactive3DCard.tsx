@@ -1,10 +1,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RotateCcw, MousePointer, Smartphone, Zap, Eye, RotateCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/types/card';
+import { CardFront } from './components/CardFront';
+import { CardBack } from './components/CardBack';
 
 export type InteractionMode = 'tilt' | 'orbital' | 'gyroscope' | 'physics' | 'magnetic' | 'carousel';
 
@@ -26,6 +27,7 @@ export const Interactive3DCard = ({
   const [rotation, setRotation] = useState({ x: 0, y: 0, z: 0 });
   const [isInteracting, setIsInteracting] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
   
   const animationRef = useRef<number>();
   const velocityRef = useRef({ x: 0, y: 0 });
@@ -53,6 +55,7 @@ export const Interactive3DCard = ({
   useEffect(() => {
     setRotation({ x: 0, y: 0, z: 0 });
     setIsInteracting(false);
+    setIsFlipped(false);
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
@@ -168,16 +171,24 @@ export const Interactive3DCard = ({
     }
   };
 
+  const handleCardClick = () => {
+    if (mode === 'tilt' || mode === 'gyroscope') {
+      setIsFlipped(!isFlipped);
+    }
+  };
+
   const handleCarouselNext = () => {
     const nextIndex = (carouselIndex + 1) % carouselAngles.length;
     setCarouselIndex(nextIndex);
     setRotation(carouselAngles[nextIndex]);
+    setIsFlipped(nextIndex === 5); // Back view
   };
 
   const handleCarouselPrev = () => {
     const prevIndex = (carouselIndex - 1 + carouselAngles.length) % carouselAngles.length;
     setCarouselIndex(prevIndex);
     setRotation(carouselAngles[prevIndex]);
+    setIsFlipped(prevIndex === 5); // Back view
   };
 
   const getTransformStyle = () => {
@@ -190,7 +201,14 @@ export const Interactive3DCard = ({
 
   const getCardTransform = () => {
     const scale = isInteracting && (mode === 'magnetic' || mode === 'tilt') ? 1.05 : 1;
-    return `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) rotateZ(${rotation.z}deg) scale(${scale})`;
+    const flipY = isFlipped ? 180 : 0;
+    return `rotateX(${rotation.x}deg) rotateY(${rotation.y + flipY}deg) rotateZ(${rotation.z}deg) scale(${scale})`;
+  };
+
+  // Convert mouse position to 0-1 range for card components
+  const normalizedMousePos = {
+    x: (mousePos.x + 1) / 2,
+    y: (mousePos.y + 1) / 2
   };
 
   return (
@@ -216,7 +234,8 @@ export const Interactive3DCard = ({
 
       {/* Mode Description */}
       <p className="text-center text-sm text-muted-foreground">
-        {interactionModes.find(m => m.id === mode)?.description}
+        {interactionModes.find(m => m.id === mode)?.description} 
+        {(mode === 'tilt' || mode === 'gyroscope') && " • Click to flip"}
       </p>
 
       {/* 3D Card Container */}
@@ -232,51 +251,41 @@ export const Interactive3DCard = ({
           onMouseLeave={handleMouseLeave}
           onMouseDown={() => setIsInteracting(true)}
           onMouseUp={() => setIsInteracting(false)}
+          onClick={handleCardClick}
           style={{
             transform: getCardTransform(),
             transition: mode === 'carousel' ? 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)' : 
                        mode === 'tilt' ? 'transform 0.3s ease-out' :
                        mode === 'gyroscope' ? 'none' : 
                        'none',
+            transformStyle: 'preserve-3d'
           }}
         >
-          <Card className="w-full h-full overflow-hidden shadow-2xl border-2 bg-gradient-to-br from-white to-gray-50">
-            {/* Card Image */}
-            {card.image_url ? (
-              <img 
-                src={card.image_url} 
-                alt={card.title}
-                className="w-full h-48 object-cover"
-                draggable={false}
-              />
-            ) : (
-              <div className="w-full h-48 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                <span className="text-white text-4xl font-bold">
-                  {card.title.charAt(0).toUpperCase()}
-                </span>
-              </div>
-            )}
-            
-            {/* Card Content */}
-            <div className="p-4 space-y-2">
-              <h3 className="font-bold text-lg truncate">{card.title}</h3>
-              {card.description && (
-                <p className="text-sm text-gray-600 line-clamp-3">{card.description}</p>
-              )}
-              <div className="flex justify-between items-center pt-2">
-                <span className={cn(
-                  "px-2 py-1 rounded text-xs font-medium",
-                  card.rarity === 'legendary' && "bg-yellow-100 text-yellow-800",
-                  card.rarity === 'epic' && "bg-purple-100 text-purple-800",
-                  card.rarity === 'rare' && "bg-blue-100 text-blue-800",
-                  card.rarity === 'uncommon' && "bg-green-100 text-green-800",
-                  card.rarity === 'common' && "bg-gray-100 text-gray-800"
-                )}>
-                  {card.rarity}
-                </span>
-              </div>
-            </div>
-          </Card>
+          {/* Card Front */}
+          <CardFront
+            card={card}
+            isFlipped={isFlipped}
+            isHovering={isInteracting}
+            showEffects={true}
+            effectIntensity={[50, 30, 20]}
+            mousePosition={normalizedMousePos}
+            frameStyles={{}}
+            physicalEffectStyles={{}}
+            SurfaceTexture={<div />}
+            interactiveLighting={mode === 'magnetic'}
+          />
+
+          {/* Card Back */}
+          <CardBack
+            card={card}
+            isFlipped={isFlipped}
+            isHovering={isInteracting}
+            showEffects={true}
+            effectIntensity={[30, 20, 10]}
+            mousePosition={normalizedMousePos}
+            physicalEffectStyles={{}}
+            SurfaceTexture={<div />}
+          />
         </div>
       </div>
 
