@@ -13,6 +13,9 @@ interface CardFrontProps {
   frameStyles: React.CSSProperties;
   physicalEffectStyles: React.CSSProperties;
   SurfaceTexture: React.ReactNode;
+  effectValues?: any;
+  materialSettings?: any;
+  interactiveLighting?: boolean;
 }
 
 export const CardFront: React.FC<CardFrontProps> = ({
@@ -24,7 +27,10 @@ export const CardFront: React.FC<CardFrontProps> = ({
   mousePosition,
   frameStyles,
   physicalEffectStyles,
-  SurfaceTexture
+  SurfaceTexture,
+  effectValues,
+  materialSettings,
+  interactiveLighting = false
 }) => {
   return (
     <div
@@ -51,12 +57,14 @@ export const CardFront: React.FC<CardFrontProps> = ({
               src={card.image_url} 
               alt={card.title}
               className="w-full h-full object-cover object-center"
+              style={{
+                filter: 'brightness(1.05) contrast(1.02)',
+                transition: 'filter 0.3s ease'
+              }}
             />
-            {/* Image overlay effects */}
+            {/* Subtle image overlay to help effects blend better */}
             {showEffects && (
-              <div className="absolute inset-0 mix-blend-overlay opacity-20">
-                <div className="w-full h-full bg-gradient-to-br from-transparent via-white to-transparent" />
-              </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/2 to-transparent opacity-30" />
             )}
           </div>
         ) : (
@@ -73,13 +81,16 @@ export const CardFront: React.FC<CardFrontProps> = ({
         )}
       </div>
       
-      {/* Effects Layer */}
+      {/* Enhanced Effects Layer with all new effects */}
       <CardEffectsLayer
         showEffects={showEffects}
         isHovering={isHovering}
         effectIntensity={effectIntensity}
         mousePosition={mousePosition}
         physicalEffectStyles={physicalEffectStyles}
+        effectValues={effectValues}
+        materialSettings={materialSettings}
+        interactiveLighting={interactiveLighting}
       />
     </div>
   );
