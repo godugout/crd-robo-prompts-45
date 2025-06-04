@@ -34,6 +34,50 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   const interferenceIntensity = (effectValues?.interference?.intensity as number) || 0;
   const prizemIntensity = (effectValues?.prizm?.intensity as number) || 0;
   const foilsprayIntensity = (effectValues?.foilspray?.intensity as number) || 0;
+  const goldIntensity = (effectValues?.gold?.intensity as number) || 0;
+  
+  // Gold effect specific parameters
+  const goldTone = (effectValues?.gold?.goldTone as string) || 'rich';
+  const goldShimmerSpeed = (effectValues?.gold?.shimmerSpeed as number) || 80;
+  const goldPlatingThickness = (effectValues?.gold?.platingThickness as number) || 5;
+  const goldReflectivity = (effectValues?.gold?.reflectivity as number) || 85;
+  const goldColorEnhancement = (effectValues?.gold?.colorEnhancement as boolean) ?? true;
+  
+  // Gold tone definitions
+  const getGoldColors = (tone: string) => {
+    switch (tone) {
+      case 'rose':
+        return {
+          primary: '#E8B4B8',
+          secondary: '#D4AF37',
+          accent: '#B8860B',
+          highlight: '#F5DEB3'
+        };
+      case 'white':
+        return {
+          primary: '#F8F8FF',
+          secondary: '#E6E6FA',
+          accent: '#D3D3D3',
+          highlight: '#FFFFFF'
+        };
+      case 'antique':
+        return {
+          primary: '#B8860B',
+          secondary: '#DAA520',
+          accent: '#8B7355',
+          highlight: '#F0E68C'
+        };
+      default: // rich
+        return {
+          primary: '#FFD700',
+          secondary: '#FFA500',
+          accent: '#B8860B',
+          highlight: '#FFFF99'
+        };
+    }
+  };
+  
+  const goldColors = getGoldColors(goldTone);
   
   // Interactive lighting calculations
   const getInteractiveLightingData = () => {
@@ -57,6 +101,106 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   
   return (
     <>
+      {/* Gold Effect - Luxurious Gold Plating */}
+      {goldIntensity > 0 && (
+        <>
+          {/* Base gold layer for whitespace areas */}
+          <div
+            className="absolute inset-0 z-20"
+            style={{
+              background: `
+                radial-gradient(
+                  ellipse at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                  ${goldColors.primary}${Math.round((goldIntensity / 100) * 0.4 * 255).toString(16).padStart(2, '0')} 0%,
+                  ${goldColors.secondary}${Math.round((goldIntensity / 100) * 0.3 * 255).toString(16).padStart(2, '0')} 40%,
+                  ${goldColors.accent}${Math.round((goldIntensity / 100) * 0.2 * 255).toString(16).padStart(2, '0')} 70%,
+                  transparent 100%
+                )
+              `,
+              mixBlendMode: 'multiply',
+              opacity: 0.8
+            }}
+          />
+          
+          {/* Gold shimmer layer with animation */}
+          <div
+            className="absolute inset-0 z-21"
+            style={{
+              background: `
+                linear-gradient(
+                  ${45 + mousePosition.x * 90}deg,
+                  transparent 0%,
+                  ${goldColors.highlight}${Math.round((goldIntensity / 100) * 0.6 * 255).toString(16).padStart(2, '0')} 20%,
+                  ${goldColors.primary}${Math.round((goldIntensity / 100) * 0.4 * 255).toString(16).padStart(2, '0')} 50%,
+                  ${goldColors.highlight}${Math.round((goldIntensity / 100) * 0.6 * 255).toString(16).padStart(2, '0')} 80%,
+                  transparent 100%
+                )
+              `,
+              mixBlendMode: 'overlay',
+              opacity: 0.7,
+              animation: `pulse ${3000 / (goldShimmerSpeed / 50)}ms ease-in-out infinite`,
+              transform: `translateX(${Math.sin(Date.now() / (2000 / (goldShimmerSpeed / 50))) * 10}px)`
+            }}
+          />
+          
+          {/* Gold plating texture */}
+          <div
+            className="absolute inset-0 z-22"
+            style={{
+              backgroundImage: `
+                repeating-linear-gradient(
+                  ${mousePosition.x * 180}deg,
+                  transparent 0px,
+                  ${goldColors.accent}${Math.round((goldIntensity / 100) * 0.15 * 255).toString(16).padStart(2, '0')} ${goldPlatingThickness * 0.5}px,
+                  transparent ${goldPlatingThickness}px
+                )
+              `,
+              mixBlendMode: 'screen',
+              opacity: 0.4
+            }}
+          />
+          
+          {/* Interactive gold reflectivity */}
+          {interactiveLighting && interactiveData && (
+            <div
+              className="absolute inset-0 z-23"
+              style={{
+                background: `
+                  radial-gradient(
+                    circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                    ${goldColors.highlight}${Math.round((goldReflectivity / 100) * interactiveData.lightIntensity * 0.8 * 255).toString(16).padStart(2, '0')} 0%,
+                    ${goldColors.primary}${Math.round((goldReflectivity / 100) * interactiveData.lightIntensity * 0.4 * 255).toString(16).padStart(2, '0')} 30%,
+                    transparent 60%
+                  )
+                `,
+                mixBlendMode: 'screen',
+                opacity: 0.6
+              }}
+            />
+          )}
+          
+          {/* Yellow color enhancement for gold plating effect */}
+          {goldColorEnhancement && (
+            <div
+              className="absolute inset-0 z-24"
+              style={{
+                background: `
+                  linear-gradient(
+                    135deg,
+                    ${goldColors.primary}${Math.round((goldIntensity / 100) * 0.3 * 255).toString(16).padStart(2, '0')} 0%,
+                    transparent 50%,
+                    ${goldColors.secondary}${Math.round((goldIntensity / 100) * 0.25 * 255).toString(16).padStart(2, '0')} 100%
+                  )
+                `,
+                mixBlendMode: 'color-burn',
+                opacity: 0.3,
+                filter: 'hue-rotate(15deg) saturate(1.2)'
+              }}
+            />
+          )}
+        </>
+      )}
+
       {/* Crystal Effect - Translucent Stained Glass */}
       {crystalIntensity > 0 && (
         <>
@@ -351,7 +495,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       {(() => {
         const totalIntensity = holographicIntensity + chromeIntensity + brushedmetalIntensity + 
                               crystalIntensity + vintageIntensity + interferenceIntensity + 
-                              prizemIntensity + foilsprayIntensity;
+                              prizemIntensity + foilsprayIntensity + goldIntensity;
         const normalizedIntensity = Math.min(totalIntensity / 100, 1);
         
         return (

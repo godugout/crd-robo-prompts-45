@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -439,3 +438,48 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     </>
   );
 };
+
+const presets = [
+  {
+    name: 'Crystal Prism',
+    description: 'Translucent crystalline finish',
+    effects: {
+      crystal: { intensity: 85, facets: 12, dispersion: 75, clarity: 80, sparkle: true }
+    }
+  },
+  {
+    name: 'Chrome Mirror',
+    description: 'Polished metallic chrome',
+    effects: {
+      chrome: { intensity: 75, sharpness: 85, distortion: 5, highlightSize: 45, polish: 90 }
+    }
+  },
+  {
+    name: 'Brushed Steel',
+    description: 'Industrial brushed metal',
+    effects: {
+      brushedmetal: { intensity: 70, direction: 45, grainDensity: 12, metallic: 85, roughness: 25 }
+    }
+  },
+  {
+    name: 'Vintage Classic',
+    description: 'Aged cardboard patina',
+    effects: {
+      vintage: { intensity: 55, aging: 65, patina: '#8b7355', wear: 45, scratches: true }
+    }
+  },
+  {
+    name: 'Holographic Premium',
+    description: 'Rainbow holographic effect',
+    effects: {
+      holographic: { intensity: 70, shiftSpeed: 100, rainbowSpread: 180, prismaticDepth: 50, animated: true }
+    }
+  },
+  {
+    name: 'Gold Luxury',
+    description: 'Luxurious gold plating',
+    effects: {
+      gold: { intensity: 85, shimmerSpeed: 120, platingThickness: 7, goldTone: 'rich', reflectivity: 90, colorEnhancement: true }
+    }
+  }
+];
