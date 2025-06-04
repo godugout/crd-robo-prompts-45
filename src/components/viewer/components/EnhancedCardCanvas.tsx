@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
-import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
+import type { EffectValues } from '../hooks/useEnhancedCardEffects';
+import { EnhancedCardContainer } from './EnhancedCardContainer';
 
 interface EnhancedCardCanvasProps {
   card: CardData;
@@ -18,8 +19,8 @@ interface EnhancedCardCanvasProps {
   onMouseMove: (event: React.MouseEvent<HTMLDivElement>) => void;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
 }
 
 export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
@@ -36,74 +37,128 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
   onMouseMove,
   onMouseEnter,
   onMouseLeave,
-  width,
-  height
+  width = 400,
+  height = 560
 }) => {
-  // Simple card display for now - this would be enhanced with actual 3D rendering
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [isFlipped, setIsFlipped] = useState(false);
+
+  console.log('EnhancedCardCanvas rendering, isFlipped:', isFlipped);
+
+  // Handle card flip on click
+  const handleCardClick = () => {
+    setIsFlipped(!isFlipped);
+    console.log('Card flipped to:', !isFlipped);
+  };
+
   return (
     <div
-      className="relative cursor-pointer select-none"
+      ref={canvasRef}
+      className="relative flex items-center justify-center"
       style={{
         width: `${width}px`,
         height: `${height}px`,
-        transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
-        transformStyle: 'preserve-3d',
-        transition: 'transform 0.3s ease'
+        perspective: '1000px'
       }}
       onMouseMove={onMouseMove}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onClick={handleCardClick}
     >
-      {/* Card container */}
+      {/* 3D Card Container */}
       <div
-        className="absolute inset-0 rounded-lg shadow-2xl overflow-hidden"
+        className="relative cursor-pointer transition-transform duration-700 preserve-3d"
         style={{
-          background: selectedScene.gradient || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          filter: `brightness(${overallBrightness}%)`
+          width: '300px',
+          height: '420px',
+          transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) ${isFlipped ? 'rotateY(180deg)' : ''}`,
+          transformStyle: 'preserve-3d'
         }}
       >
-        {/* Card content */}
-        <div className="relative w-full h-full p-4 flex flex-col">
-          {/* Card name */}
-          <div className="text-white text-xl font-bold mb-2">
-            {card.title || 'Card Name'}
-          </div>
+        {/* Card Front */}
+        <div
+          className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden"
+          style={{
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(0deg)'
+          }}
+        >
+          <EnhancedCardContainer
+            card={card}
+            effectValues={effectValues}
+            mousePosition={mousePosition}
+            isHovering={isHovering}
+            selectedScene={selectedScene}
+            selectedLighting={selectedLighting}
+            overallBrightness={overallBrightness}
+            interactiveLighting={interactiveLighting}
+            materialSettings={materialSettings}
+            isFlipped={false}
+          />
+        </div>
+
+        {/* Card Back - NEW DESIGN */}
+        <div
+          className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden"
+          style={{
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)'
+          }}
+        >
+          {/* Dark Pattern Background Base */}
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: `
+                linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)
+              `,
+              backgroundColor: '#0a0a0a'
+            }}
+          />
           
-          {/* Card image area */}
-          <div className="flex-1 bg-white/10 rounded backdrop-blur-sm flex items-center justify-center">
-            {card.image_url ? (
+          {/* Centered CRD Logo Only */}
+          <div className="relative h-full flex items-center justify-center z-30">
+            <div className="flex items-center justify-center">
               <img 
-                src={card.image_url} 
-                alt={card.title}
-                className="max-w-full max-h-full object-contain rounded"
+                src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
+                alt="CRD Logo" 
+                className="w-48 h-auto opacity-90"
+                style={{
+                  filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
+                }}
+                onLoad={() => console.log('Enhanced Canvas CRD logo loaded successfully')}
+                onError={() => console.log('Error loading Enhanced Canvas CRD logo')}
               />
-            ) : (
-              <div className="text-white/70 text-center">
-                <div className="text-4xl mb-2">🃏</div>
-                <div>Card Image</div>
-              </div>
+            </div>
+          </div>
+
+          {/* Apply same effects as front for consistency */}
+          <div className="absolute inset-0 pointer-events-none z-40">
+            {/* Lighting effects overlay */}
+            {interactiveLighting && isHovering && (
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: `
+                    radial-gradient(
+                      ellipse 180% 140% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                      rgba(255, 255, 255, 0.02) 0%,
+                      rgba(255, 255, 255, 0.01) 50%,
+                      transparent 85%
+                    )
+                  `,
+                  mixBlendMode: 'overlay',
+                  transition: 'opacity 0.2s ease'
+                }}
+              />
             )}
           </div>
-          
-          {/* Card stats */}
-          <div className="mt-2 text-white/90 text-sm">
-            <div>Rarity: {card.rarity || 'Common'}</div>
-            <div>Collection: {card.collection_id || 'Custom Collection'}</div>
-          </div>
         </div>
-        
-        {/* Effects overlay */}
-        <div 
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            opacity: 0.3,
-            background: `
-              radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                rgba(255, 255, 255, 0.3) 0%,
-                transparent 70%)
-            `
-          }}
-        />
+      </div>
+
+      {/* Click instruction */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white/60 text-sm">
+        Click to flip card
       </div>
     </div>
   );
