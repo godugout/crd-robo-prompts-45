@@ -60,7 +60,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
     return baseTransform;
   };
 
-  // NEW: Calculate dynamic logo effects based on mouse position and lighting
+  // Enhanced logo effects based on mouse position and lighting
   const getLogoEffects = () => {
     if (!interactiveLighting || !isHovering) {
       return {
@@ -188,7 +188,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
           )}
         </div>
 
-        {/* Back of Card - ENHANCED WITH DYNAMIC LOGO EFFECTS */}
+        {/* Back of Card - CLEANED UP VERSION WITHOUT ARTIFACTS */}
         <div 
           className={`absolute inset-0 rounded-xl overflow-hidden ${
             isFlipped ? 'opacity-100' : 'opacity-0'
@@ -219,121 +219,45 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             {SurfaceTexture}
           </div>
 
-          {/* ENHANCED Back Content - Dynamic CRD Logo */}
+          {/* SIMPLIFIED Back Content - Clean CRD Logo */}
           <div className="relative h-full flex items-center justify-center z-30">
-            {/* Logo Container with Dynamic Background Effects */}
-            <div className="relative flex items-center justify-center">
-              {/* Animated Background Gradient */}
-              <div 
-                className="absolute inset-0 -m-8 rounded-full opacity-30 animate-gradient-shift"
-                style={{
-                  background: 'linear-gradient(45deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(59, 130, 246, 0.1) 100%)',
-                  animation: 'gradient-shift 8s ease-in-out infinite'
-                }}
-              />
-              
-              {/* Holographic Flow Effect */}
-              {interactiveLighting && isHovering && (
-                <div 
-                  className="absolute inset-0 -m-12 overflow-hidden rounded-full"
-                  style={{
-                    background: `linear-gradient(
-                      ${(mousePosition.x - 0.5) * 90 + 45}deg,
-                      transparent 0%,
-                      rgba(255, 255, 255, 0.2) 50%,
-                      transparent 100%
-                    )`,
-                    animation: 'holographic-flow 2s ease-in-out infinite'
-                  }}
-                />
-              )}
-              
-              {/* Shimmer Overlay */}
-              <div 
-                className="absolute inset-0 -m-6"
-                style={{
-                  background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%)',
-                  backgroundSize: '200% 100%',
-                  animation: 'logo-shimmer 3s ease-in-out infinite'
-                }}
-              />
-              
-              {/* Enhanced CRD Logo */}
-              <img 
-                src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
-                alt="CRD Logo" 
-                className="w-64 h-auto relative z-10 transition-all duration-300 ease-out"
-                style={{
-                  ...getLogoEffects(),
-                  imageRendering: 'crisp-edges',
-                  objectFit: 'contain',
-                  animation: interactiveLighting && isHovering ? 'logo-glow-pulse 4s ease-in-out infinite' : 'none'
-                }}
-                onLoad={() => console.log('Enhanced CRD logo loaded successfully')}
-                onError={() => console.log('Error loading enhanced CRD logo')}
-              />
-              
-              {/* Interactive Light Ring */}
-              {interactiveLighting && isHovering && (
-                <div 
-                  className="absolute inset-0 -m-16 rounded-full pointer-events-none"
-                  style={{
-                    background: `radial-gradient(
-                      circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                      rgba(255, 215, 0, 0.1) 0%,
-                      rgba(59, 130, 246, 0.05) 40%,
-                      transparent 70%
-                    )`,
-                    animation: 'logo-glow-pulse 2s ease-in-out infinite'
-                  }}
-                />
-              )}
-            </div>
+            {/* Enhanced CRD Logo - No Background Artifacts */}
+            <img 
+              src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
+              alt="CRD Logo" 
+              className="w-64 h-auto relative z-10 transition-all duration-300 ease-out"
+              style={{
+                ...getLogoEffects(),
+                imageRendering: 'crisp-edges',
+                objectFit: 'contain',
+                animation: interactiveLighting && isHovering ? 'logo-glow-pulse 4s ease-in-out infinite' : 'none'
+              }}
+              onLoad={() => console.log('Enhanced CRD logo loaded successfully')}
+              onError={() => console.log('Error loading enhanced CRD logo')}
+            />
           </div>
 
-          {/* Enhanced Lighting Effects */}
-          <div className="absolute inset-0 pointer-events-none z-40">
-            {interactiveLighting && isHovering && (
-              <>
-                {/* Primary Interactive Lighting */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: `
-                      radial-gradient(
-                        ellipse 180% 140% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                        rgba(255, 255, 255, 0.04) 0%,
-                        rgba(255, 215, 0, 0.02) 30%,
-                        rgba(59, 130, 246, 0.01) 60%,
-                        transparent 85%
-                      )
-                    `,
-                    mixBlendMode: 'overlay',
-                    transition: 'opacity 0.2s ease'
-                  }}
-                />
-                
-                {/* Secondary Color Wash */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: `
-                      conic-gradient(
-                        from ${mousePosition.x * 360}deg at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                        rgba(255, 215, 0, 0.03) 0deg,
-                        rgba(59, 130, 246, 0.02) 120deg,
-                        rgba(139, 92, 246, 0.02) 240deg,
-                        rgba(255, 215, 0, 0.03) 360deg
-                      )
-                    `,
-                    mixBlendMode: 'screen',
-                    opacity: 0.7,
-                    transition: 'opacity 0.15s ease-out'
-                  }}
-                />
-              </>
-            )}
-          </div>
+          {/* Subtle Interactive Lighting - No Geometric Shapes */}
+          {interactiveLighting && isHovering && (
+            <div className="absolute inset-0 pointer-events-none z-40">
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: `
+                    radial-gradient(
+                      ellipse 200% 150% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                      rgba(255, 255, 255, 0.02) 0%,
+                      rgba(255, 215, 0, 0.01) 30%,
+                      rgba(59, 130, 246, 0.005) 60%,
+                      transparent 85%
+                    )
+                  `,
+                  mixBlendMode: 'overlay',
+                  transition: 'opacity 0.2s ease'
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
