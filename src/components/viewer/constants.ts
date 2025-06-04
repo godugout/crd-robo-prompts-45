@@ -1,3 +1,4 @@
+
 import type { EnvironmentScene, LightingPreset, VisualEffect } from './types';
 
 export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
@@ -14,11 +15,7 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
       azimuth: 0
     },
     backgroundImage: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-    reflections: 'soft',
-    environmentType: 'hdr',
-    hdrImage: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_03_1k.hdr',
-    hdrIntensity: 1.0,
-    previewImage: 'https://cdn.polyhaven.com/asset_img/primary/studio_small_03.png'
+    reflections: 'soft'
   },
   {
     id: 'neon',
@@ -33,11 +30,7 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
       azimuth: 45
     },
     backgroundImage: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-    reflections: 'vivid',
-    environmentType: 'hdr',
-    hdrImage: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/neon_photostudio_1k.hdr',
-    hdrIntensity: 1.4,
-    previewImage: 'https://cdn.polyhaven.com/asset_img/primary/neon_photostudio.png'
+    reflections: 'vivid'
   },
   {
     id: 'golden',
@@ -52,11 +45,7 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
       azimuth: 60
     },
     backgroundImage: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-    reflections: 'warm',
-    environmentType: 'hdr',
-    hdrImage: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/golden_bay_1k.hdr',
-    hdrIntensity: 1.1,
-    previewImage: 'https://cdn.polyhaven.com/asset_img/primary/golden_bay.png'
+    reflections: 'warm'
   },
   {
     id: 'twilight',
@@ -71,87 +60,7 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
       azimuth: -30
     },
     backgroundImage: 'linear-gradient(135deg, #2c3e50 0%, #3498db 100%)',
-    reflections: 'cold',
-    environmentType: 'hdr',
-    hdrImage: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/blue_photo_studio_1k.hdr',
-    hdrIntensity: 0.9,
-    previewImage: 'https://cdn.polyhaven.com/asset_img/primary/blue_photo_studio.png'
-  },
-  {
-    id: 'urban-rooftop',
-    name: 'Urban Rooftop',
-    icon: '🏙️',
-    gradient: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
-    description: 'Modern city skyline view',
-    lighting: {
-      color: '#74b9ff',
-      intensity: 1.0,
-      elevation: 25,
-      azimuth: 120
-    },
-    backgroundImage: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)',
-    reflections: 'sharp',
-    environmentType: 'hdr',
-    hdrImage: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/rooftop_night_1k.hdr',
-    hdrIntensity: 1.2,
-    previewImage: 'https://cdn.polyhaven.com/asset_img/primary/rooftop_night.png'
-  },
-  {
-    id: 'forest-path',
-    name: 'Forest Path',
-    icon: '🌲',
-    gradient: 'linear-gradient(135deg, #00b894 0%, #00a085 100%)',
-    description: 'Serene forest atmosphere',
-    lighting: {
-      color: '#00b894',
-      intensity: 0.8,
-      elevation: 70,
-      azimuth: -45
-    },
-    backgroundImage: 'linear-gradient(135deg, #00b894 0%, #00a085 100%)',
-    reflections: 'soft',
-    environmentType: 'hdr',
-    hdrImage: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/forest_slope_1k.hdr',
-    hdrIntensity: 0.9,
-    previewImage: 'https://cdn.polyhaven.com/asset_img/primary/forest_slope.png'
-  },
-  {
-    id: 'desert-sunset',
-    name: 'Desert Sunset',
-    icon: '🏜️',
-    gradient: 'linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%)',
-    description: 'Dramatic desert landscape',
-    lighting: {
-      color: '#fd79a8',
-      intensity: 1.3,
-      elevation: 10,
-      azimuth: 90
-    },
-    backgroundImage: 'linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%)',
-    reflections: 'warm',
-    environmentType: 'hdr',
-    hdrImage: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kiara_1_dawn_1k.hdr',
-    hdrIntensity: 1.4,
-    previewImage: 'https://cdn.polyhaven.com/asset_img/primary/kiara_1_dawn.png'
-  },
-  {
-    id: 'industrial',
-    name: 'Industrial',
-    icon: '⚙️',
-    gradient: 'linear-gradient(135deg, #636e72 0%, #2d3436 100%)',
-    description: 'Gritty industrial setting',
-    lighting: {
-      color: '#ddd6fe',
-      intensity: 1.1,
-      elevation: 40,
-      azimuth: 0
-    },
-    backgroundImage: 'linear-gradient(135deg, #636e72 0%, #2d3436 100%)',
-    reflections: 'sharp',
-    environmentType: 'hdr',
-    hdrImage: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/industrial_workshop_foundry_1k.hdr',
-    hdrIntensity: 1.0,
-    previewImage: 'https://cdn.polyhaven.com/asset_img/primary/industrial_workshop_foundry.png'
+    reflections: 'cold'
   }
 ];
 

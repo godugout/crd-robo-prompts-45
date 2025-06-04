@@ -1,12 +1,12 @@
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
+import type { EffectValues } from './useEnhancedCardEffects';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
-import { useHDREnvironment } from './useHDREnvironment';
 
-interface UseCardEffectsProps {
+interface UseCardEffectsParams {
   card: CardData;
-  effectValues: any;
+  effectValues: EffectValues;
   mousePosition: { x: number; y: number };
   showEffects: boolean;
   overallBrightness: number[];
@@ -19,113 +19,76 @@ interface UseCardEffectsProps {
   isHovering: boolean;
 }
 
-export const useCardEffects = ({
-  card,
-  effectValues,
-  mousePosition,
-  showEffects,
-  overallBrightness,
-  interactiveLighting,
-  selectedScene,
-  selectedLighting,
-  materialSettings,
-  zoom,
-  rotation,
-  isHovering
-}: UseCardEffectsProps) => {
-  
+export const useCardEffects = (params: UseCardEffectsParams) => {
   const {
-    isLoading: hdrLoading,
-    getEnvironmentStyle: getHDREnvironmentStyle,
-    getEnvironmentLighting
-  } = useHDREnvironment(selectedScene);
+    selectedScene,
+    selectedLighting,
+    overallBrightness,
+    mousePosition,
+    showEffects,
+    effectValues
+  } = params;
 
   const getFrameStyles = useMemo(() => {
-    const brightness = overallBrightness[0] / 100;
-    const environmentLighting = getEnvironmentLighting();
-    
     return () => ({
-      transform: `
-        perspective(1000px)
-        rotateX(${rotation.x}deg)
-        rotateY(${rotation.y}deg)
-        scale(${zoom})
-      `,
-      filter: `
-        brightness(${brightness * (environmentLighting.isHDR ? environmentLighting.intensity : 1)})
-        contrast(${selectedLighting.contrast / 100})
-        saturate(${materialSettings.metalness > 0.5 ? 1.2 : 1.0})
-      `,
-      transition: 'transform 0.3s ease-out, filter 0.2s ease',
-      boxShadow: environmentLighting.isHDR
-        ? `0 20px 40px rgba(0,0,0,0.3), 0 0 20px ${environmentLighting.color}20`
-        : `0 20px 40px rgba(0,0,0,0.2)`,
+      filter: `brightness(${overallBrightness[0]}%)`,
+      transition: 'all 0.3s ease'
     });
-  }, [rotation, zoom, overallBrightness, selectedLighting, materialSettings, getEnvironmentLighting]);
+  }, [overallBrightness]);
 
   const getEnhancedEffectStyles = useMemo(() => {
-    const environmentLighting = getEnvironmentLighting();
-    
-    return () => ({
-      filter: showEffects && environmentLighting.isHDR
-        ? `brightness(1.1) contrast(1.05) hue-rotate(${mousePosition.x * 10}deg)`
-        : 'none',
-      opacity: showEffects ? 1 : 0,
-      transition: 'opacity 0.3s ease, filter 0.2s ease'
-    });
-  }, [showEffects, mousePosition, getEnvironmentLighting]);
-
-  const getEnvironmentStyle = useMemo(() => {
     return () => {
-      const baseStyle = getHDREnvironmentStyle();
+      if (!showEffects) return {};
       
-      if (interactiveLighting && selectedScene.environmentType === 'hdr') {
-        return {
-          ...baseStyle,
-          background: `
-            ${baseStyle.background},
-            radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-              ${selectedScene.lighting.color}20 0%, transparent 50%)
-          `,
-        };
+      const styles: React.CSSProperties = {};
+      
+      // Check for gold luxury effect (brushed metal with high metallic settings)
+      const goldEffect = effectValues.brushedmetal;
+      if (goldEffect && typeof goldEffect.intensity === 'number' && goldEffect.intensity > 0) {
+        // Enhanced golden effect
+        styles.background = `
+          linear-gradient(
+            ${mousePosition.x * 180}deg,
+            rgba(255, 215, 0, ${goldEffect.intensity / 100 * 0.8}) 0%,
+            rgba(255, 193, 7, ${goldEffect.intensity / 100 * 0.6}) 25%,
+            rgba(255, 235, 59, ${goldEffect.intensity / 100 * 0.9}) 50%,
+            rgba(255, 215, 0, ${goldEffect.intensity / 100 * 0.7}) 75%,
+            rgba(255, 193, 7, ${goldEffect.intensity / 100 * 0.5}) 100%
+          )
+        `;
+        styles.opacity = goldEffect.intensity / 100;
+        styles.mixBlendMode = 'screen';
+        return styles;
       }
       
-      return baseStyle;
+      // Apply holographic effect if no gold
+      const holographic = effectValues.holographic;
+      if (holographic && typeof holographic.intensity === 'number' && holographic.intensity > 0) {
+        styles.background = `linear-gradient(${mousePosition.x * 360}deg, 
+          hsl(${mousePosition.x * 360}, 70%, 50%) 0%, 
+          hsl(${(mousePosition.x * 360 + 60) % 360}, 70%, 50%) 100%)`;
+        styles.opacity = holographic.intensity / 100;
+      }
+      
+      return styles;
     };
-  }, [getHDREnvironmentStyle, interactiveLighting, selectedScene, mousePosition]);
+  }, [showEffects, effectValues, mousePosition]);
+
+  const getEnvironmentStyle = useMemo(() => {
+    return () => ({
+      background: selectedScene.backgroundImage || selectedScene.gradient,
+      filter: `brightness(${selectedLighting.brightness}%)`
+    });
+  }, [selectedScene, selectedLighting]);
 
   const SurfaceTexture = useMemo(() => {
-    if (!showEffects) return null;
-    
-    const environmentLighting = getEnvironmentLighting();
-    
-    return (
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: environmentLighting.isHDR
-            ? `
-              repeating-linear-gradient(
-                ${mousePosition.x * 180}deg,
-                transparent 0px,
-                rgba(255, 255, 255, 0.03) 1px,
-                transparent 2px,
-                transparent 8px
-              )
-            `
-            : 'none',
-          mixBlendMode: 'soft-light',
-          opacity: materialSettings.roughness * 0.6
-        }}
-      />
-    );
-  }, [showEffects, mousePosition, materialSettings, getEnvironmentLighting]);
+    return <div className="absolute inset-0 opacity-20 bg-gradient-to-br from-white/10 to-transparent" />;
+  }, []);
 
   return {
     getFrameStyles,
     getEnhancedEffectStyles,
     getEnvironmentStyle,
-    SurfaceTexture,
-    hdrLoading
+    SurfaceTexture
   };
 };

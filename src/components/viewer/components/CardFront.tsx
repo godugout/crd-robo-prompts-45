@@ -10,12 +10,9 @@ interface CardFrontProps {
   showEffects: boolean;
   effectIntensity: number[];
   mousePosition: { x: number; y: number };
+  frameStyles: React.CSSProperties;
   physicalEffectStyles: React.CSSProperties;
   SurfaceTexture: React.ReactNode;
-  frameStyles?: React.CSSProperties;
-  effectValues?: any;
-  materialSettings?: any;
-  interactiveLighting?: boolean;
 }
 
 export const CardFront: React.FC<CardFrontProps> = ({
@@ -25,94 +22,65 @@ export const CardFront: React.FC<CardFrontProps> = ({
   showEffects,
   effectIntensity,
   mousePosition,
-  physicalEffectStyles,
-  SurfaceTexture,
   frameStyles,
-  effectValues,
-  materialSettings,
-  interactiveLighting
+  physicalEffectStyles,
+  SurfaceTexture
 }) => {
-  // Check if Crystal Prism (holographic) effect is active
-  const isHolographicActive = !effectValues?.gold?.intensity && 
-                             !effectValues?.chrome?.intensity && 
-                             !effectValues?.brushedsteel?.intensity && 
-                             !effectValues?.vintage?.intensity;
-
-  // Reduced translucency for better image visibility
-  const cardOpacity = isHolographicActive && showEffects ? 0.95 : 1.0;
-
   return (
     <div
-      className="absolute inset-0 rounded-xl overflow-hidden"
+      className="absolute inset-0 rounded-xl overflow-hidden backface-hidden"
       style={{
-        transform: 'rotateY(0deg)',
-        backfaceVisibility: 'hidden',
-        opacity: cardOpacity,
-        ...frameStyles
+        ...frameStyles,
+        transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+        backfaceVisibility: 'hidden'
       }}
     >
-      {/* Base Layer */}
-      <div className="absolute inset-0 z-0" style={physicalEffectStyles} />
+      {/* Base Card Layer - z-index 1 */}
+      <div className="absolute inset-0 z-10" style={frameStyles} />
       
-      {/* Image Layer - higher visibility priority */}
-      {card.image_url && (
-        <div 
-          className="absolute inset-0 z-10"
-          style={{
-            opacity: isHolographicActive && showEffects ? 0.95 : 1.0
-          }}
-        >
-          <img 
-            src={card.image_url} 
-            alt={card.title}
-            className="w-full h-full object-cover"
-            style={{
-              filter: isHolographicActive && showEffects ? 
-                'brightness(1.05) contrast(1.02) saturate(1.05)' : 
-                'none'
-            }}
-          />
-        </div>
-      )}
-      
-      {/* Effects Layer - Reduced z-index for subtlety */}
+      {/* Surface Texture Layer - z-index 2 */}
       <div className="absolute inset-0 z-20">
-        <CardEffectsLayer
-          showEffects={showEffects}
-          isHovering={isHovering}
-          effectIntensity={effectIntensity}
-          mousePosition={mousePosition}
-          physicalEffectStyles={physicalEffectStyles}
-          materialSettings={materialSettings}
-          interactiveLighting={interactiveLighting}
-          effectValues={effectValues}
-        />
-      </div>
-      
-      {/* Surface Texture Layer - Subtle overlay */}
-      <div className="absolute inset-0 z-30 pointer-events-none">
         {SurfaceTexture}
       </div>
-
-      {/* Stained Glass Light Transmission - Only for Crystal Prism, very subtle */}
-      {isHolographicActive && showEffects && (
-        <div 
-          className="absolute inset-0 z-35 pointer-events-none"
-          style={{
-            background: `
-              radial-gradient(
-                circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                rgba(255, 255, 255, 0.03) 0%,
-                rgba(200, 255, 255, 0.02) 30%,
-                rgba(255, 200, 255, 0.01) 60%,
-                transparent 80%
-              )
-            `,
-            mixBlendMode: 'soft-light',
-            opacity: 0.6
-          }}
-        />
-      )}
+      
+      {/* Full Image Display - Centered and Full Coverage - z-index 3 */}
+      <div className="relative h-full z-30">
+        {card.image_url ? (
+          <div className="w-full h-full relative overflow-hidden">
+            <img 
+              src={card.image_url} 
+              alt={card.title}
+              className="w-full h-full object-cover object-center"
+            />
+            {/* Image overlay effects */}
+            {showEffects && (
+              <div className="absolute inset-0 mix-blend-overlay opacity-20">
+                <div className="w-full h-full bg-gradient-to-br from-transparent via-white to-transparent" />
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+            <div className="text-center text-gray-500">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-300 rounded-lg flex items-center justify-center">
+                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium">No Image</p>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Effects Layer */}
+      <CardEffectsLayer
+        showEffects={showEffects}
+        isHovering={isHovering}
+        effectIntensity={effectIntensity}
+        mousePosition={mousePosition}
+        physicalEffectStyles={physicalEffectStyles}
+      />
     </div>
   );
 };

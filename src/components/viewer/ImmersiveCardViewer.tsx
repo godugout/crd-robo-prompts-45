@@ -136,14 +136,8 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   // Add state for progressive panel
   const [useProgressivePanel, setUseProgressivePanel] = useState(true);
 
-  // Style generation hook - Updated to use HDR
-  const { 
-    getFrameStyles, 
-    getEnhancedEffectStyles, 
-    getEnvironmentStyle, 
-    SurfaceTexture,
-    hdrLoading 
-  } = useCardEffects({
+  // Style generation hook
+  const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useCardEffects({
     card,
     effectValues,
     mousePosition,
@@ -276,28 +270,13 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         {/* Enhanced Dark Overlay */}
         <div className="absolute inset-0 bg-black/60" />
 
-        {/* HDR Loading Indicator */}
-        {hdrLoading && (
-          <div className="absolute top-4 left-4 z-10">
-            <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-2 border border-white/10">
-              <div className="flex items-center space-x-2 text-white text-sm">
-                <div className="w-3 h-3 border-2 border-crd-green border-t-transparent rounded-full animate-spin"></div>
-                <span>Loading HDR Environment...</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Subtle Ambient Background Effect - Enhanced for HDR */}
+        {/* Subtle Ambient Background Effect */}
         {ambient && selectedScene && (
           <div 
             className="absolute inset-0 opacity-30"
             style={{
-              background: selectedScene.environmentType === 'hdr'
-                ? `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-                   ${selectedScene.lighting.color} 0%, transparent 40%)`
-                : `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-                   ${selectedScene.lighting.color} 0%, transparent 40%)`,
+              background: `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
+                ${selectedScene.lighting.color} 0%, transparent 40%)`,
               mixBlendMode: 'screen'
             }}
           />
@@ -416,7 +395,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         </div>
 
-        {/* Info Panel - Enhanced with HDR status */}
+        {/* Info Panel - Enhanced visibility */}
         {showStats && !isFlipped && !showCustomizePanel && (
           <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: hasMultipleCards ? '180px' : '20px' }}>
             <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
@@ -439,10 +418,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
                 <div className="flex items-center space-x-2">
                   <Sparkles className="w-4 h-4" />
                   <span className="text-sm">
-                    Enhanced Studio | {selectedScene.name}
-                    {selectedScene.environmentType === 'hdr' && (
-                      <span className="ml-1 text-green-400 text-xs">HDR</span>
-                    )}
+                    Enhanced Studio | Scene: {selectedScene.name}
                   </span>
                 </div>
               </div>
