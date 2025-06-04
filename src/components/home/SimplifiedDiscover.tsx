@@ -50,6 +50,7 @@ const FALLBACK_CARDS = [
 export const SimplifiedDiscover: React.FC = () => {
   const { cards, loading } = useCards();
   const { selectedCardIndex, showImmersiveViewer, handleCardClick, handleCardChange, handleCloseViewer, handleShareCard, handleDownloadCard } = useGalleryActions();
+  const { convertCardsToCardData } = useCardConversion();
   
   // Use real cards if available, otherwise use fallback
   const displayCards = cards && cards.length > 0 
@@ -61,7 +62,8 @@ export const SimplifiedDiscover: React.FC = () => {
       }))
     : FALLBACK_CARDS.slice(0, 6);
 
-  const { convertedCards } = useCardConversion(
+  // Convert cards to CardData format for the viewer
+  const convertedCards = convertCardsToCardData(
     cards && cards.length > 0 ? cards.slice(0, 6) : []
   );
 

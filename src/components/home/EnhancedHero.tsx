@@ -12,7 +12,10 @@ export const EnhancedHero: React.FC = () => {
   const { containerPadding, isMobile } = useResponsiveLayout();
   const { featuredCards, loading } = useCards();
   const { selectedCardIndex, showImmersiveViewer, handleCardClick, handleCardChange, handleCloseViewer, handleShareCard, handleDownloadCard } = useGalleryActions();
-  const { convertedCards } = useCardConversion(featuredCards);
+  const { convertCardsToCardData } = useCardConversion();
+  
+  // Convert cards to CardData format
+  const convertedCards = convertCardsToCardData(featuredCards);
   
   // Get top 3 featured cards for showcase
   const showcaseCards = featuredCards.slice(0, 3);
