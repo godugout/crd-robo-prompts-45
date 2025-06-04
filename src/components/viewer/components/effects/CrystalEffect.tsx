@@ -21,137 +21,187 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
   if (crystalIntensity <= 0) return null;
 
   // Calculate intensity-based blur for smoother edges
-  const intensityBlur = Math.max(0, (crystalIntensity / 100) * 3);
+  const intensityBlur = Math.max(0, (crystalIntensity / 100) * 2);
 
   return (
     <>
-      {/* Base crystal translucency with organic gradient mask */}
+      {/* Fine Diamond/Triangle Facet Pattern - Foil-like Film Base */}
       <div
         className="absolute inset-0 z-20"
         style={{
           background: `
-            radial-gradient(
-              ellipse at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-              rgba(200, 220, 255, ${(crystalIntensity / 100) * 0.08}) 0%,
-              rgba(255, 200, 220, ${(crystalIntensity / 100) * 0.06}) 40%,
-              rgba(220, 255, 200, ${(crystalIntensity / 100) * 0.06}) 70%,
-              transparent 100%
-            )
-          `,
-          mixBlendMode: 'soft-light',
-          opacity: 0.6,
-          filter: `blur(${intensityBlur * 0.5}px)`
-        }}
-      />
-      
-      {/* Organic flowing light patterns instead of geometric facets */}
-      <div
-        className="absolute inset-0 z-21"
-        style={{
-          background: `
-            conic-gradient(
-              from ${mousePosition.x * 180}deg at ${30 + mousePosition.x * 40}% ${30 + mousePosition.y * 40}%,
+            repeating-conic-gradient(
+              from ${mousePosition.x * 45}deg at 50% 50%,
               transparent 0deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.15}) 30deg,
-              transparent 90deg,
-              rgba(200, 220, 255, ${(crystalIntensity / 100) * 0.12}) 150deg,
-              transparent 210deg,
-              rgba(255, 200, 255, ${(crystalIntensity / 100) * 0.1}) 270deg,
-              transparent 330deg
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.3}) 15deg,
+              transparent 30deg,
+              rgba(200, 220, 255, ${(crystalIntensity / 100) * 0.25}) 45deg,
+              transparent 60deg
+            ),
+            repeating-linear-gradient(
+              ${30 + mousePosition.x * 60}deg,
+              transparent 0px,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.4}) 1px,
+              transparent 3px,
+              rgba(220, 255, 220, ${(crystalIntensity / 100) * 0.3}) 4px,
+              transparent 8px
             )
           `,
+          backgroundSize: '20px 20px, 15px 15px',
           maskImage: `
             radial-gradient(
-              ellipse at ${50 + mousePosition.x * 20}% ${50 + mousePosition.y * 20}%,
-              rgba(255, 255, 255, 1) 20%,
-              rgba(255, 255, 255, 0.8) 50%,
-              rgba(255, 255, 255, 0.3) 80%,
+              ellipse at ${50 + mousePosition.x * 30}% ${50 + mousePosition.y * 30}%,
+              rgba(255, 255, 255, 1) 10%,
+              rgba(255, 255, 255, 0.8) 40%,
+              rgba(255, 255, 255, 0.3) 70%,
               transparent 100%
             )
           `,
           WebkitMaskImage: `
             radial-gradient(
-              ellipse at ${50 + mousePosition.x * 20}% ${50 + mousePosition.y * 20}%,
-              rgba(255, 255, 255, 1) 20%,
-              rgba(255, 255, 255, 0.8) 50%,
-              rgba(255, 255, 255, 0.3) 80%,
+              ellipse at ${50 + mousePosition.x * 30}% ${50 + mousePosition.y * 30}%,
+              rgba(255, 255, 255, 1) 10%,
+              rgba(255, 255, 255, 0.8) 40%,
+              rgba(255, 255, 255, 0.3) 70%,
               transparent 100%
             )
           `,
           mixBlendMode: 'overlay',
-          opacity: 0.4,
-          filter: `blur(${intensityBlur}px)`
+          opacity: 0.7,
+          filter: `blur(${intensityBlur * 0.5}px)`
         }}
       />
       
-      {/* Flowing prismatic reflections with organic boundaries */}
+      {/* Sharp Crystalline Reflections - Faceted Light */}
       <div
-        className="absolute inset-0 z-22"
+        className="absolute inset-0 z-21"
         style={{
           background: `
             linear-gradient(
               ${45 + mousePosition.y * 90}deg,
               transparent 0%,
-              rgba(255, 0, 127, ${(crystalIntensity / 100) * 0.08}) 25%,
-              rgba(127, 255, 0, ${(crystalIntensity / 100) * 0.1}) 50%,
-              rgba(0, 127, 255, ${(crystalIntensity / 100) * 0.08}) 75%,
-              transparent 100%
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.6}) 2%,
+              transparent 4%,
+              rgba(240, 250, 255, ${(crystalIntensity / 100) * 0.5}) 8%,
+              transparent 12%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.7}) 16%,
+              transparent 20%,
+              rgba(250, 255, 250, ${(crystalIntensity / 100) * 0.4}) 25%,
+              transparent 30%
+            ),
+            linear-gradient(
+              ${135 + mousePosition.x * 90}deg,
+              transparent 0%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.5}) 3%,
+              transparent 6%,
+              rgba(255, 250, 240, ${(crystalIntensity / 100) * 0.6}) 12%,
+              transparent 18%
             )
           `,
           maskImage: `
             radial-gradient(
               circle at ${40 + mousePosition.x * 20}% ${40 + mousePosition.y * 20}%,
               rgba(255, 255, 255, 1) 0%,
-              rgba(255, 255, 255, 0.6) 60%,
-              transparent 90%
+              rgba(255, 255, 255, 0.7) 50%,
+              rgba(255, 255, 255, 0.2) 80%,
+              transparent 100%
             )
           `,
           WebkitMaskImage: `
             radial-gradient(
               circle at ${40 + mousePosition.x * 20}% ${40 + mousePosition.y * 20}%,
               rgba(255, 255, 255, 1) 0%,
-              rgba(255, 255, 255, 0.6) 60%,
-              transparent 90%
+              rgba(255, 255, 255, 0.7) 50%,
+              rgba(255, 255, 255, 0.2) 80%,
+              transparent 100%
             )
           `,
-          mixBlendMode: 'color-dodge',
-          opacity: 0.25,
-          filter: `blur(${intensityBlur * 1.5}px)`
+          mixBlendMode: 'screen',
+          opacity: 0.8,
+          filter: `blur(${intensityBlur * 0.3}px)`
         }}
       />
       
-      {/* Soft crystalline highlights with organic flow */}
+      {/* Metallic Foil Shimmer - Crystal Structure */}
+      <div
+        className="absolute inset-0 z-22"
+        style={{
+          background: `
+            conic-gradient(
+              from ${mousePosition.x * 180}deg at ${30 + mousePosition.x * 40}% ${30 + mousePosition.y * 40}%,
+              transparent 0deg,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.8}) 10deg,
+              transparent 20deg,
+              rgba(240, 240, 255, ${(crystalIntensity / 100) * 0.6}) 30deg,
+              transparent 40deg,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.9}) 50deg,
+              transparent 60deg,
+              rgba(255, 240, 255, ${(crystalIntensity / 100) * 0.5}) 70deg,
+              transparent 80deg
+            )
+          `,
+          backgroundSize: '40px 40px',
+          maskImage: `
+            radial-gradient(
+              ellipse at ${60 + mousePosition.x * 15}% ${60 + mousePosition.y * 15}%,
+              rgba(255, 255, 255, 0.9) 20%,
+              rgba(255, 255, 255, 0.6) 60%,
+              rgba(255, 255, 255, 0.2) 85%,
+              transparent 100%
+            )
+          `,
+          WebkitMaskImage: `
+            radial-gradient(
+              ellipse at ${60 + mousePosition.x * 15}% ${60 + mousePosition.y * 15}%,
+              rgba(255, 255, 255, 0.9) 20%,
+              rgba(255, 255, 255, 0.6) 60%,
+              rgba(255, 255, 255, 0.2) 85%,
+              transparent 100%
+            )
+          `,
+          mixBlendMode: 'hard-light',
+          opacity: 0.4,
+          filter: `blur(${intensityBlur}px)`
+        }}
+      />
+
+      {/* Fine Triangular Facet Details */}
       <div
         className="absolute inset-0 z-23"
         style={{
           background: `
-            conic-gradient(
-              from ${mousePosition.x * 240}deg at ${60 + mousePosition.x * 20}% ${40 + mousePosition.y * 30}%,
-              transparent 0deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.2}) 60deg,
-              transparent 120deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.15}) 180deg,
-              transparent 240deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.1}) 300deg,
-              transparent 360deg
+            repeating-linear-gradient(
+              ${60 + mousePosition.x * 30}deg,
+              transparent 0px,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.7}) 0.5px,
+              transparent 2px
+            ),
+            repeating-linear-gradient(
+              ${120 + mousePosition.y * 30}deg,
+              transparent 0px,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.6}) 0.5px,
+              transparent 2px
             )
           `,
+          backgroundSize: '12px 12px, 18px 18px',
           maskImage: `
-            ellipse at ${50 + mousePosition.x * 15}% ${50 + mousePosition.y * 15}%,
-            rgba(255, 255, 255, 0.8) 30%,
-            rgba(255, 255, 255, 0.4) 70%,
-            transparent 100%
+            radial-gradient(
+              circle at ${50 + mousePosition.x * 10}% ${50 + mousePosition.y * 10}%,
+              rgba(255, 255, 255, 0.8) 30%,
+              rgba(255, 255, 255, 0.4) 70%,
+              transparent 100%
+            )
           `,
           WebkitMaskImage: `
             radial-gradient(
-              ellipse at ${50 + mousePosition.x * 15}% ${50 + mousePosition.y * 15}%,
+              circle at ${50 + mousePosition.x * 10}% ${50 + mousePosition.y * 10}%,
               rgba(255, 255, 255, 0.8) 30%,
               rgba(255, 255, 255, 0.4) 70%,
               transparent 100%
             )
           `,
           mixBlendMode: 'overlay',
-          opacity: 0.3,
+          opacity: 0.5,
           filter: `blur(${intensityBlur * 0.8}px)`
         }}
       />
