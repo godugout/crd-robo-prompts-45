@@ -31,7 +31,8 @@ export const EffectsComboSection: React.FC<EffectsComboSectionProps> = ({
     <div className="space-y-3">
       {effectsConfig.map(({ id, name, color }) => {
         const effect = effectValues[id];
-        const intensity = effect?.intensity || 0;
+        const intensityValue = effect?.intensity;
+        const intensity = typeof intensityValue === 'number' ? intensityValue : 0;
         const isActive = intensity > 0;
 
         return (

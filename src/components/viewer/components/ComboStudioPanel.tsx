@@ -100,7 +100,8 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
     onMaterialSettingsChange({
       metalness: 0.5,
       roughness: 0.5,
-      reflectivity: 0.5
+      reflectivity: 0.5,
+      clearcoat: 0.3
     });
   };
 

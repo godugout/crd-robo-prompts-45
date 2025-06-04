@@ -15,7 +15,8 @@ export const MaterialComboSection: React.FC<MaterialComboSectionProps> = ({
   const materials = [
     { key: 'metalness', label: 'Metalness', description: 'How metallic the surface appears' },
     { key: 'roughness', label: 'Roughness', description: 'Surface roughness affects reflections' },
-    { key: 'reflectivity', label: 'Reflectivity', description: 'How much light reflects off surface' }
+    { key: 'reflectivity', label: 'Reflectivity', description: 'How much light reflects off surface' },
+    { key: 'clearcoat', label: 'Clearcoat', description: 'Clear protective coating effect' }
   ];
 
   return (

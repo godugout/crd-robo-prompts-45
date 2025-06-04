@@ -1,4 +1,3 @@
-
 import type { CardData } from '@/hooks/useCardEditor';
 
 export interface EnvironmentScene {
@@ -38,10 +37,10 @@ export interface VisualEffect {
 }
 
 export interface MaterialSettings {
-  roughness: number;
   metalness: number;
-  clearcoat: number;
+  roughness: number;
   reflectivity: number;
+  clearcoat: number;
 }
 
 export interface ImmersiveCardViewerProps {
