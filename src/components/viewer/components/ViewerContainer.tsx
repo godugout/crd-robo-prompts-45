@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
@@ -29,6 +30,14 @@ export const ViewerContainer: React.FC<ViewerContainerProps> = ({
 }) => {
   const { isDesktop } = useResponsiveLayout();
 
+  console.log('ViewerContainer render:', {
+    isFullscreen,
+    isDrawerOpen,
+    isDesktop,
+    mousePosition,
+    hasSelectedScene: !!selectedScene
+  });
+
   // Calculate card positioning based on drawer state and device type
   const getCardPositioning = () => {
     if (!isDrawerOpen) {
@@ -44,19 +53,25 @@ export const ViewerContainer: React.FC<ViewerContainerProps> = ({
     return 'items-center justify-center';
   };
 
+  const positioning = getCardPositioning();
+  console.log('Card positioning:', positioning);
+
+  // Safe gradient with fallback
+  const backgroundGradient = `linear-gradient(135deg, 
+    rgba(0,0,0,0.95) 0%, 
+    rgba(20,20,30,0.95) 25%, 
+    rgba(10,10,20,0.95) 50%, 
+    rgba(30,20,40,0.95) 75%, 
+    rgba(0,0,0,0.95) 100%)`;
+
   return (
     <div 
       ref={containerRef}
-      className={`fixed inset-0 z-50 flex ${getCardPositioning()} ${
+      className={`fixed inset-0 z-50 flex ${positioning} ${
         isFullscreen ? 'p-0' : 'p-8'
       }`}
       style={{
-        background: `linear-gradient(135deg, 
-          rgba(0,0,0,0.95) 0%, 
-          rgba(20,20,30,0.95) 25%, 
-          rgba(10,10,20,0.95) 50%, 
-          rgba(30,20,40,0.95) 75%, 
-          rgba(0,0,0,0.95) 100%)`
+        background: backgroundGradient
       }}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
@@ -65,16 +80,23 @@ export const ViewerContainer: React.FC<ViewerContainerProps> = ({
       {/* Enhanced Dark Overlay */}
       <div className="absolute inset-0 bg-black/80" />
 
-      {/* Subtle Ambient Background Effect */}
-      {ambient && (
+      {/* Simplified Ambient Background Effect */}
+      {ambient && selectedScene?.lighting?.color && (
         <div 
           className="absolute inset-0 opacity-5"
           style={{
-            background: `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
+            background: `radial-gradient(circle at ${(mousePosition?.x || 0.5) * 100}% ${(mousePosition?.y || 0.5) * 100}%, 
               ${selectedScene.lighting.color} 0%, transparent 30%)`
           }}
         />
       )}
+
+      {/* Debug overlay - remove in production */}
+      <div className="absolute top-2 left-2 text-white text-xs bg-black/50 p-2 rounded z-[100]">
+        Viewer: {isFullscreen ? 'Fullscreen' : 'Normal'} | 
+        Drawer: {isDrawerOpen ? 'Open' : 'Closed'} | 
+        Device: {isDesktop ? 'Desktop' : 'Mobile'}
+      </div>
 
       {children}
     </div>

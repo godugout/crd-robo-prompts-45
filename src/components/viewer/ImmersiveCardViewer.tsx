@@ -1,3 +1,4 @@
+
 import React, { useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
@@ -12,6 +13,7 @@ import { ExportOptionsDialog } from './components/ExportOptionsDialog';
 import { CompactBottomDrawer } from './components/CompactBottomDrawer';
 import { CardNavigationControls } from './components/CardNavigationControls';
 import { ViewerContainer } from './components/ViewerContainer';
+import { ViewerErrorBoundary } from './components/ViewerErrorBoundary';
 import { useViewerState } from './hooks/useViewerState';
 import { useViewerInteractions } from './hooks/useViewerInteractions';
 import { useDrawerState } from './hooks/useDrawerState';
@@ -36,6 +38,26 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   showStats = true,
   ambient = true
 }) => {
+  console.log('ImmersiveCardViewer mounted:', { 
+    isOpen, 
+    hasCard: !!card, 
+    cardTitle: card?.title,
+    cardImageUrl: card?.image_url
+  });
+
+  // Check for basic card data
+  if (!card) {
+    console.error('ImmersiveCardViewer: No card data provided');
+    return (
+      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+        <div className="text-white text-center">
+          <h2 className="text-xl mb-2">Card Not Found</h2>
+          <p className="text-gray-400">No card data available to display</p>
+        </div>
+      </div>
+    );
+  }
+
   // Use the new state management hook
   const {
     isFullscreen,
@@ -70,6 +92,8 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     handleZoom,
     toggleFullscreen
   } = useViewerState();
+
+  console.log('Viewer state:', { isFullscreen, rotation, zoom, showEffects, mousePosition });
 
   // Advanced settings state
   const [selectedScene, setSelectedScene] = React.useState<EnvironmentScene>(ENVIRONMENT_SCENES[3]); // Twilight
@@ -154,28 +178,50 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     setRotation(newRotation);
   }, [setRotation]);
 
-  // Get drawer state for positioning
-  const { isOpen: isDrawerOpen } = require('./hooks/useDrawerState').useDrawerState();
+  // Get drawer state for positioning - FIXED IMPORT
+  const { isOpen: isDrawerOpen } = useDrawerState();
 
   // Update the existing download handler to open export dialog
   const handleDownloadClick = useCallback(() => {
     setShowExportDialog(true);
   }, [setShowExportDialog]);
 
-  // Custom hooks
-  const { getFrameStyles, getEnhancedEffectStyles, SurfaceTexture } = useEnhancedCardEffects({
-    card,
-    effectValues,
-    mousePosition,
-    showEffects,
-    overallBrightness,
-    interactiveLighting
-  });
+  // Custom hooks with error handling
+  let getFrameStyles, getEnhancedEffectStyles, SurfaceTexture;
+  
+  try {
+    const enhancedEffects = useEnhancedCardEffects({
+      card,
+      effectValues,
+      mousePosition,
+      showEffects,
+      overallBrightness,
+      interactiveLighting
+    });
+    
+    getFrameStyles = enhancedEffects.getFrameStyles;
+    getEnhancedEffectStyles = enhancedEffects.getEnhancedEffectStyles;
+    SurfaceTexture = enhancedEffects.SurfaceTexture;
+    
+    console.log('Enhanced effects loaded successfully');
+  } catch (error) {
+    console.error('Error loading enhanced effects:', error);
+    
+    // Fallback styles
+    getFrameStyles = () => ({ backgroundColor: '#333' });
+    getEnhancedEffectStyles = () => ({ opacity: 0.5 });
+    SurfaceTexture = null;
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    console.log('Viewer not open, returning null');
+    return null;
+  }
+
+  console.log('Rendering viewer components');
 
   return (
-    <>
+    <ViewerErrorBoundary>
       <ViewerContainer
         containerRef={containerRef}
         isFullscreen={isFullscreen}
@@ -233,28 +279,30 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           card={card}
         />
 
-        {/* Enhanced Card Container */}
-        <div ref={cardContainerRef}>
-          <EnhancedCardContainer
-            card={card}
-            isFlipped={isFlipped}
-            isHovering={isHovering}
-            showEffects={showEffects}
-            effectValues={effectValues}
-            mousePosition={mousePosition}
-            rotation={rotation}
-            zoom={zoom}
-            isDragging={isDragging}
-            frameStyles={getFrameStyles()}
-            enhancedEffectStyles={getEnhancedEffectStyles()}
-            SurfaceTexture={SurfaceTexture}
-            onMouseDown={handleDragStart}
-            onMouseMove={handleDrag}
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
-            onClick={() => setIsFlipped(!isFlipped)}
-          />
-        </div>
+        {/* Enhanced Card Container with Error Boundary */}
+        <ViewerErrorBoundary>
+          <div ref={cardContainerRef}>
+            <EnhancedCardContainer
+              card={card}
+              isFlipped={isFlipped}
+              isHovering={isHovering}
+              showEffects={showEffects}
+              effectValues={effectValues}
+              mousePosition={mousePosition}
+              rotation={rotation}
+              zoom={zoom}
+              isDragging={isDragging}
+              frameStyles={getFrameStyles()}
+              enhancedEffectStyles={getEnhancedEffectStyles()}
+              SurfaceTexture={SurfaceTexture}
+              onMouseDown={handleDragStart}
+              onMouseMove={handleDrag}
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}
+              onClick={() => setIsFlipped(!isFlipped)}
+            />
+          </div>
+        </ViewerErrorBoundary>
       </ViewerContainer>
 
       {/* Export Options Dialog */}
@@ -266,6 +314,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         exportProgress={exportProgress}
         cardTitle={card.title}
       />
-    </>
+    </ViewerErrorBoundary>
   );
 };
