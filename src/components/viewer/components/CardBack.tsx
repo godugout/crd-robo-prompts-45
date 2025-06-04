@@ -70,7 +70,7 @@ export const CardBack: React.FC<CardBackProps> = ({
         <div className="text-center mb-8">
           <div className="mb-4 flex justify-center">
             <img 
-              src="/lovable-uploads/dac1449a-924d-4d34-9a82-a461fee3505d.png" 
+              src="/lovable-uploads/a10f1aa8-5e9a-4f0b-b7c6-dea5208cebde.png" 
               alt="CRD Logo" 
               className="w-24 h-auto opacity-95"
               style={{
