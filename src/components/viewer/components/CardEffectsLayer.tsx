@@ -1,7 +1,8 @@
-
 import React from 'react';
 import type { MaterialSettings } from '../types';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
+import { useEnhancedInteractiveLighting } from '../hooks/useEnhancedInteractiveLighting';
+import { EnhancedInteractiveLightingLayer } from './EnhancedInteractiveLightingLayer';
 
 interface CardEffectsLayerProps {
   showEffects: boolean;
@@ -23,6 +24,13 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   interactiveLighting = false,
   effectValues
 }) => {
+  // Enhanced interactive lighting hook
+  const enhancedLightingData = useEnhancedInteractiveLighting(
+    mousePosition, 
+    isHovering, 
+    interactiveLighting
+  );
+
   if (!showEffects || !effectValues) return null;
   
   // Get individual effect intensities from effectValues
@@ -79,28 +87,17 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   
   const goldColors = getGoldColors(goldTone);
   
-  // Interactive lighting calculations
-  const getInteractiveLightingData = () => {
-    if (!interactiveLighting) return null;
-    
-    const lightX = (0.5 - mousePosition.x) * 2;
-    const lightY = (0.5 - mousePosition.y) * 2;
-    const lightDistance = Math.sqrt(lightX * lightX + lightY * lightY);
-    const lightIntensity = Math.max(0.3, 1 - lightDistance * 0.5);
-    
-    return {
-      lightX,
-      lightY,
-      lightIntensity,
-      shadowX: lightX * -20,
-      shadowY: lightY * -20
-    };
-  };
-  
-  const interactiveData = getInteractiveLightingData();
-  
   return (
     <>
+      {/* Enhanced Interactive Lighting Layer - NEW */}
+      {interactiveLighting && (
+        <EnhancedInteractiveLightingLayer
+          lightingData={enhancedLightingData}
+          effectValues={effectValues}
+          mousePosition={mousePosition}
+        />
+      )}
+
       {/* Gold Effect - Luxurious Gold Plating */}
       {goldIntensity > 0 && (
         <>
@@ -160,21 +157,23 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
             }}
           />
           
-          {/* Interactive gold reflectivity */}
-          {interactiveLighting && interactiveData && (
+          {/* Interactive gold reflectivity - Enhanced with lighting data */}
+          {interactiveLighting && enhancedLightingData && (
             <div
               className="absolute inset-0 z-23"
               style={{
                 background: `
                   radial-gradient(
                     circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                    ${goldColors.highlight}${Math.round((goldReflectivity / 100) * interactiveData.lightIntensity * 0.8 * 255).toString(16).padStart(2, '0')} 0%,
-                    ${goldColors.primary}${Math.round((goldReflectivity / 100) * interactiveData.lightIntensity * 0.4 * 255).toString(16).padStart(2, '0')} 30%,
+                    ${goldColors.highlight}${Math.round((goldReflectivity / 100) * enhancedLightingData.lightIntensity * 0.9 * 255).toString(16).padStart(2, '0')} 0%,
+                    ${goldColors.primary}${Math.round((goldReflectivity / 100) * enhancedLightingData.lightIntensity * 0.5 * 255).toString(16).padStart(2, '0')} 30%,
                     transparent 60%
                   )
                 `,
                 mixBlendMode: 'screen',
-                opacity: 0.6
+                opacity: 0.8,
+                transform: `translateX(${enhancedLightingData.lightX * 5}px) translateY(${enhancedLightingData.lightY * 5}px)`,
+                transition: 'transform 0.1s ease-out'
               }}
             />
           )}
@@ -376,7 +375,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
           style={{
             background: `
               conic-gradient(
-                from ${mousePosition.x * 180 + (interactiveData ? interactiveData.lightX * 90 : 0)}deg at 50% 60%,
+                from ${mousePosition.x * 180 + (enhancedLightingData ? enhancedLightingData.lightX * 90 : 0)}deg at 50% 60%,
                 rgba(255, 0, 128, ${(holographicIntensity / 100) * 0.2}) 0deg,
                 rgba(0, 255, 128, ${(holographicIntensity / 100) * 0.15}) 60deg,
                 rgba(128, 0, 255, ${(holographicIntensity / 100) * 0.2}) 120deg,
@@ -472,25 +471,6 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         </>
       )}
 
-      {/* Interactive lighting enhancement for all effects */}
-      {interactiveLighting && interactiveData && isHovering && (
-        <div
-          className="absolute inset-0 z-25"
-          style={{
-            background: `
-              radial-gradient(
-                ellipse 40% 60% at ${(mousePosition.x * 0.8 + 0.1) * 100}% ${(mousePosition.y * 0.8 + 0.1) * 100}%,
-                rgba(255, 255, 255, ${interactiveData.lightIntensity * 0.1}) 0%,
-                rgba(255, 255, 255, ${interactiveData.lightIntensity * 0.05}) 30%,
-                transparent 60%
-              )
-            `,
-            mixBlendMode: 'overlay',
-            transform: `translateX(${interactiveData.shadowX * -0.3}px) translateY(${interactiveData.shadowY * -0.3}px)`,
-          }}
-        />
-      )}
-
       {/* Calculate overall intensity for edge enhancement */}
       {(() => {
         const totalIntensity = holographicIntensity + chromeIntensity + brushedmetalIntensity + 
@@ -503,29 +483,14 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
             className="absolute inset-0 z-26 rounded-xl"
             style={{
               boxShadow: `
-                inset 0 0 15px rgba(255, 255, 255, ${normalizedIntensity * (interactiveData ? 0.05 + interactiveData.lightIntensity * 0.1 : 0.05)}),
-                inset 0 0 5px rgba(255, 255, 255, ${normalizedIntensity * (interactiveData ? 0.1 + interactiveData.lightIntensity * 0.15 : 0.1)})
+                inset 0 0 15px rgba(255, 255, 255, ${normalizedIntensity * (enhancedLightingData ? 0.05 + enhancedLightingData.lightIntensity * 0.1 : 0.05)}),
+                inset 0 0 5px rgba(255, 255, 255, ${normalizedIntensity * (enhancedLightingData ? 0.1 + enhancedLightingData.lightIntensity * 0.15 : 0.1)})
               `,
-              opacity: interactiveData ? 0.3 + interactiveData.lightIntensity * 0.2 : 0.3
+              opacity: enhancedLightingData ? 0.3 + enhancedLightingData.lightIntensity * 0.2 : 0.3
             }}
           />
         );
       })()}
-
-      {/* Interactive lighting indicator */}
-      {interactiveLighting && (
-        <div
-          className="absolute top-2 right-2 z-30"
-          style={{
-            width: '4px',
-            height: '4px',
-            borderRadius: '50%',
-            backgroundColor: `rgba(0, 255, 150, ${interactiveData ? 0.2 + interactiveData.lightIntensity * 0.2 : 0.1})`,
-            boxShadow: `0 0 6px rgba(0, 255, 150, ${interactiveData ? 0.15 + interactiveData.lightIntensity * 0.15 : 0.05})`,
-            transition: 'all 0.1s ease'
-          }}
-        />
-      )}
     </>
   );
 };
