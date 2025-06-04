@@ -45,74 +45,33 @@ export const HolographicEffect: React.FC<HolographicEffectProps> = ({
         }}
       />
 
-      {/* Concentric Circle Interference Pattern - Restored */}
+      {/* Subtle Radial Flares */}
       <div
         className="absolute inset-0 z-21"
         style={{
           background: `
-            radial-gradient(
-              circle at ${30 + mousePosition.x * 40}% ${30 + mousePosition.y * 40}%,
-              transparent 0%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.25}) 8%,
-              transparent 12%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.2}) 20%,
-              transparent 24%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.15}) 32%,
-              transparent 36%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.18}) 44%,
-              transparent 48%
-            )
-          `,
-          backgroundSize: '120px 120px',
-          mixBlendMode: 'overlay',
-          opacity: 0.7,
-          filter: `blur(${holographicBlur * 0.8}px)`
-        }}
-      />
-
-      {/* Secondary Circle Pattern - Different Size */}
-      <div
-        className="absolute inset-0 z-22"
-        style={{
-          background: `
-            radial-gradient(
-              circle at ${60 + mousePosition.x * 25}% ${60 + mousePosition.y * 25}%,
-              transparent 0%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.2}) 5%,
-              transparent 10%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.15}) 15%,
-              transparent 20%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.18}) 25%,
-              transparent 30%
-            )
-          `,
-          backgroundSize: '80px 80px',
-          mixBlendMode: 'overlay',
-          opacity: 0.5,
-          filter: `blur(${holographicBlur}px)`
-        }}
-      />
-
-      {/* Iridescent Color Shifts - Restored but Gentler */}
-      <div
-        className="absolute inset-0 z-23"
-        style={{
-          background: `
             conic-gradient(
-              from ${mousePosition.x * 120}deg at ${50 + mousePosition.x * 15}% ${50 + mousePosition.y * 15}%,
-              rgba(255, 200, 255, ${(holographicIntensity / 100) * 0.2}) 0deg,
-              rgba(200, 255, 255, ${(holographicIntensity / 100) * 0.25}) 60deg,
-              rgba(255, 255, 200, ${(holographicIntensity / 100) * 0.2}) 120deg,
-              rgba(200, 255, 200, ${(holographicIntensity / 100) * 0.22}) 180deg,
-              rgba(255, 200, 200, ${(holographicIntensity / 100) * 0.2}) 240deg,
-              rgba(200, 200, 255, ${(holographicIntensity / 100) * 0.25}) 300deg,
-              rgba(255, 200, 255, ${(holographicIntensity / 100) * 0.2}) 360deg
+              from ${mousePosition.x * 90}deg at ${50 + mousePosition.x * 10}% ${50 + mousePosition.y * 10}%,
+              transparent 0deg,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.25}) 15deg,
+              transparent 30deg,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.2}) 75deg,
+              transparent 90deg,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.3}) 135deg,
+              transparent 150deg,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.2}) 195deg,
+              transparent 210deg,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.25}) 255deg,
+              transparent 270deg,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.2}) 315deg,
+              transparent 330deg,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.25}) 360deg
             )
           `,
           maskImage: `
             radial-gradient(
-              ellipse at ${60 + mousePosition.x * 15}% ${40 + mousePosition.y * 20}%,
-              rgba(255, 255, 255, 0.9) 30%,
+              ellipse at ${50 + mousePosition.x * 15}% ${50 + mousePosition.y * 15}%,
+              rgba(255, 255, 255, 0.9) 20%,
               rgba(255, 255, 255, 0.6) 60%,
               rgba(255, 255, 255, 0.2) 85%,
               transparent 100%
@@ -120,10 +79,98 @@ export const HolographicEffect: React.FC<HolographicEffectProps> = ({
           `,
           WebkitMaskImage: `
             radial-gradient(
-              ellipse at ${60 + mousePosition.x * 15}% ${40 + mousePosition.y * 20}%,
-              rgba(255, 255, 255, 0.9) 30%,
+              ellipse at ${50 + mousePosition.x * 15}% ${50 + mousePosition.y * 15}%,
+              rgba(255, 255, 255, 0.9) 20%,
               rgba(255, 255, 255, 0.6) 60%,
               rgba(255, 255, 255, 0.2) 85%,
+              transparent 100%
+            )
+          `,
+          mixBlendMode: 'soft-light',
+          opacity: 0.6,
+          filter: `blur(${holographicBlur * 0.8}px)`
+        }}
+      />
+
+      {/* Concentric Circle Interference Pattern - Restored */}
+      <div
+        className="absolute inset-0 z-22"
+        style={{
+          background: `
+            radial-gradient(
+              circle at ${30 + mousePosition.x * 40}% ${30 + mousePosition.y * 40}%,
+              transparent 0%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.2}) 8%,
+              transparent 12%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.15}) 20%,
+              transparent 24%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.12}) 32%,
+              transparent 36%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.14}) 44%,
+              transparent 48%
+            )
+          `,
+          backgroundSize: '120px 120px',
+          mixBlendMode: 'overlay',
+          opacity: 0.6,
+          filter: `blur(${holographicBlur * 0.8}px)`
+        }}
+      />
+
+      {/* Secondary Circle Pattern - Different Size */}
+      <div
+        className="absolute inset-0 z-23"
+        style={{
+          background: `
+            radial-gradient(
+              circle at ${60 + mousePosition.x * 25}% ${60 + mousePosition.y * 25}%,
+              transparent 0%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.15}) 5%,
+              transparent 10%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.12}) 15%,
+              transparent 20%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.14}) 25%,
+              transparent 30%
+            )
+          `,
+          backgroundSize: '80px 80px',
+          mixBlendMode: 'overlay',
+          opacity: 0.4,
+          filter: `blur(${holographicBlur}px)`
+        }}
+      />
+
+      {/* Enhanced Angular Color Effects */}
+      <div
+        className="absolute inset-0 z-24"
+        style={{
+          background: `
+            conic-gradient(
+              from ${mousePosition.x * 180}deg at ${50 + mousePosition.x * 15}% ${50 + mousePosition.y * 15}%,
+              rgba(255, 0, 255, ${(holographicIntensity / 100) * 0.25}) 0deg,
+              rgba(0, 255, 255, ${(holographicIntensity / 100) * 0.3}) 60deg,
+              rgba(255, 255, 0, ${(holographicIntensity / 100) * 0.25}) 120deg,
+              rgba(255, 0, 128, ${(holographicIntensity / 100) * 0.28}) 180deg,
+              rgba(128, 255, 0, ${(holographicIntensity / 100) * 0.25}) 240deg,
+              rgba(0, 128, 255, ${(holographicIntensity / 100) * 0.3}) 300deg,
+              rgba(255, 0, 255, ${(holographicIntensity / 100) * 0.25}) 360deg
+            )
+          `,
+          maskImage: `
+            radial-gradient(
+              ellipse at ${60 + mousePosition.x * 15}% ${40 + mousePosition.y * 20}%,
+              rgba(255, 255, 255, 0.8) 25%,
+              rgba(255, 255, 255, 0.5) 55%,
+              rgba(255, 255, 255, 0.2) 80%,
+              transparent 100%
+            )
+          `,
+          WebkitMaskImage: `
+            radial-gradient(
+              ellipse at ${60 + mousePosition.x * 15}% ${40 + mousePosition.y * 20}%,
+              rgba(255, 255, 255, 0.8) 25%,
+              rgba(255, 255, 255, 0.5) 55%,
+              rgba(255, 255, 255, 0.2) 80%,
               transparent 100%
             )
           `,
@@ -133,22 +180,61 @@ export const HolographicEffect: React.FC<HolographicEffectProps> = ({
         }}
       />
 
-      {/* Metallic Shimmer Hotspots */}
+      {/* 3D Depth Layer - Offset Colors */}
       <div
-        className="absolute inset-0 z-24"
+        className="absolute inset-0 z-25"
+        style={{
+          background: `
+            linear-gradient(
+              ${45 + mousePosition.y * 90}deg,
+              rgba(255, 100, 200, ${(holographicIntensity / 100) * 0.2}) 0%,
+              rgba(100, 255, 200, ${(holographicIntensity / 100) * 0.25}) 25%,
+              rgba(200, 100, 255, ${(holographicIntensity / 100) * 0.2}) 50%,
+              rgba(255, 200, 100, ${(holographicIntensity / 100) * 0.22}) 75%,
+              rgba(100, 200, 255, ${(holographicIntensity / 100) * 0.2}) 100%
+            )
+          `,
+          maskImage: `
+            radial-gradient(
+              ellipse at ${45 + mousePosition.x * 20}% ${55 + mousePosition.y * 15}%,
+              rgba(255, 255, 255, 0.7) 30%,
+              rgba(255, 255, 255, 0.4) 65%,
+              rgba(255, 255, 255, 0.1) 85%,
+              transparent 100%
+            )
+          `,
+          WebkitMaskImage: `
+            radial-gradient(
+              ellipse at ${45 + mousePosition.x * 20}% ${55 + mousePosition.y * 15}%,
+              rgba(255, 255, 255, 0.7) 30%,
+              rgba(255, 255, 255, 0.4) 65%,
+              rgba(255, 255, 255, 0.1) 85%,
+              transparent 100%
+            )
+          `,
+          mixBlendMode: 'overlay',
+          opacity: 0.5,
+          filter: `blur(${holographicBlur * 0.4}px)`,
+          transform: 'translateX(1px) translateY(1px)' // Subtle offset for depth
+        }}
+      />
+
+      {/* Metallic Shimmer Hotspots - Enhanced */}
+      <div
+        className="absolute inset-0 z-26"
         style={{
           background: `
             radial-gradient(
               ellipse at ${50 + mousePosition.x * 25}% ${50 + mousePosition.y * 25}%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.5}) 0%,
-              rgba(245, 250, 255, ${(holographicIntensity / 100) * 0.3}) 15%,
-              rgba(235, 245, 255, ${(holographicIntensity / 100) * 0.15}) 35%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.4}) 0%,
+              rgba(245, 250, 255, ${(holographicIntensity / 100) * 0.25}) 15%,
+              rgba(235, 245, 255, ${(holographicIntensity / 100) * 0.12}) 35%,
               transparent 50%
             )
           `,
           mixBlendMode: 'screen',
-          opacity: 0.6,
-          filter: `blur(${holographicBlur * 0.4}px)`
+          opacity: 0.7,
+          filter: `blur(${holographicBlur * 0.3}px)`
         }}
       />
     </>
