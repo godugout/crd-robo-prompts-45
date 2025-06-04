@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { MaterialSettings } from '../types';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
@@ -32,64 +33,26 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   );
 
   if (!showEffects || !effectValues) return null;
-  
-  // Get individual effect intensities from effectValues
-  const holographicIntensity = (effectValues?.holographic?.intensity as number) || 0;
-  const chromeIntensity = (effectValues?.chrome?.intensity as number) || 0;
-  const brushedmetalIntensity = (effectValues?.brushedmetal?.intensity as number) || 0;
-  const crystalIntensity = (effectValues?.crystal?.intensity as number) || 0;
-  const vintageIntensity = (effectValues?.vintage?.intensity as number) || 0;
-  const interferenceIntensity = (effectValues?.interference?.intensity as number) || 0;
-  const prizemIntensity = (effectValues?.prizm?.intensity as number) || 0;
-  const foilsprayIntensity = (effectValues?.foilspray?.intensity as number) || 0;
-  const goldIntensity = (effectValues?.gold?.intensity as number) || 0;
-  
-  // Gold effect specific parameters
-  const goldTone = (effectValues?.gold?.goldTone as string) || 'rich';
-  const goldShimmerSpeed = (effectValues?.gold?.shimmerSpeed as number) || 80;
-  const goldPlatingThickness = (effectValues?.gold?.platingThickness as number) || 5;
-  const goldReflectivity = (effectValues?.gold?.reflectivity as number) || 85;
-  const goldColorEnhancement = (effectValues?.gold?.colorEnhancement as boolean) ?? true;
-  
-  // Gold tone definitions
-  const getGoldColors = (tone: string) => {
-    switch (tone) {
-      case 'rose':
-        return {
-          primary: '#E8B4B8',
-          secondary: '#D4AF37',
-          accent: '#B8860B',
-          highlight: '#F5DEB3'
-        };
-      case 'white':
-        return {
-          primary: '#F8F8FF',
-          secondary: '#E6E6FA',
-          accent: '#D3D3D3',
-          highlight: '#FFFFFF'
-        };
-      case 'antique':
-        return {
-          primary: '#B8860B',
-          secondary: '#DAA520',
-          accent: '#8B7355',
-          highlight: '#F0E68C'
-        };
-      default: // rich
-        return {
-          primary: '#FFD700',
-          secondary: '#FFA500',
-          accent: '#B8860B',
-          highlight: '#FFFF99'
-        };
-    }
+
+  // Helper function to safely get effect parameter values
+  const getEffectParam = (effectId: string, paramId: string, defaultValue: any = 0) => {
+    return effectValues?.[effectId]?.[paramId] ?? defaultValue;
   };
   
-  const goldColors = getGoldColors(goldTone);
+  // Get individual effect intensities from effectValues
+  const holographicIntensity = getEffectParam('holographic', 'intensity', 0);
+  const chromeIntensity = getEffectParam('chrome', 'intensity', 0);
+  const brushedmetalIntensity = getEffectParam('brushedmetal', 'intensity', 0);
+  const crystalIntensity = getEffectParam('crystal', 'intensity', 0);
+  const vintageIntensity = getEffectParam('vintage', 'intensity', 0);
+  const interferenceIntensity = getEffectParam('interference', 'intensity', 0);
+  const prizemIntensity = getEffectParam('prizm', 'intensity', 0);
+  const foilsprayIntensity = getEffectParam('foilspray', 'intensity', 0);
+  const goldIntensity = getEffectParam('gold', 'intensity', 0);
   
   return (
     <>
-      {/* Enhanced Interactive Lighting Layer - NEW */}
+      {/* Enhanced Interactive Lighting Layer */}
       {interactiveLighting && (
         <EnhancedInteractiveLightingLayer
           lightingData={enhancedLightingData}
@@ -98,28 +61,28 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         />
       )}
 
-      {/* Gold Effect - Luxurious Gold Plating */}
+      {/* Gold Effect - Only render if intensity > 0 */}
       {goldIntensity > 0 && (
         <>
-          {/* Base gold layer for whitespace areas */}
+          {/* Base gold layer */}
           <div
             className="absolute inset-0 z-20"
             style={{
               background: `
                 radial-gradient(
                   ellipse at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                  ${goldColors.primary}${Math.round((goldIntensity / 100) * 0.4 * 255).toString(16).padStart(2, '0')} 0%,
-                  ${goldColors.secondary}${Math.round((goldIntensity / 100) * 0.3 * 255).toString(16).padStart(2, '0')} 40%,
-                  ${goldColors.accent}${Math.round((goldIntensity / 100) * 0.2 * 255).toString(16).padStart(2, '0')} 70%,
+                  rgba(255, 215, 0, ${(goldIntensity / 100) * 0.25}) 0%,
+                  rgba(255, 165, 0, ${(goldIntensity / 100) * 0.15}) 40%,
+                  rgba(184, 134, 11, ${(goldIntensity / 100) * 0.1}) 70%,
                   transparent 100%
                 )
               `,
-              mixBlendMode: 'multiply',
-              opacity: 0.8
+              mixBlendMode: 'screen',
+              opacity: 0.6
             }}
           />
           
-          {/* Gold shimmer layer with animation */}
+          {/* Gold shimmer */}
           <div
             className="absolute inset-0 z-21"
             style={{
@@ -127,80 +90,20 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
                 linear-gradient(
                   ${45 + mousePosition.x * 90}deg,
                   transparent 0%,
-                  ${goldColors.highlight}${Math.round((goldIntensity / 100) * 0.6 * 255).toString(16).padStart(2, '0')} 20%,
-                  ${goldColors.primary}${Math.round((goldIntensity / 100) * 0.4 * 255).toString(16).padStart(2, '0')} 50%,
-                  ${goldColors.highlight}${Math.round((goldIntensity / 100) * 0.6 * 255).toString(16).padStart(2, '0')} 80%,
+                  rgba(255, 255, 153, ${(goldIntensity / 100) * 0.3}) 20%,
+                  rgba(255, 215, 0, ${(goldIntensity / 100) * 0.2}) 50%,
+                  rgba(255, 255, 153, ${(goldIntensity / 100) * 0.3}) 80%,
                   transparent 100%
                 )
               `,
               mixBlendMode: 'overlay',
-              opacity: 0.7,
-              animation: `pulse ${3000 / (goldShimmerSpeed / 50)}ms ease-in-out infinite`,
-              transform: `translateX(${Math.sin(Date.now() / (2000 / (goldShimmerSpeed / 50))) * 10}px)`
-            }}
-          />
-          
-          {/* Gold plating texture */}
-          <div
-            className="absolute inset-0 z-22"
-            style={{
-              backgroundImage: `
-                repeating-linear-gradient(
-                  ${mousePosition.x * 180}deg,
-                  transparent 0px,
-                  ${goldColors.accent}${Math.round((goldIntensity / 100) * 0.15 * 255).toString(16).padStart(2, '0')} ${goldPlatingThickness * 0.5}px,
-                  transparent ${goldPlatingThickness}px
-                )
-              `,
-              mixBlendMode: 'screen',
               opacity: 0.4
             }}
           />
-          
-          {/* Interactive gold reflectivity - Enhanced with lighting data */}
-          {interactiveLighting && enhancedLightingData && (
-            <div
-              className="absolute inset-0 z-23"
-              style={{
-                background: `
-                  radial-gradient(
-                    circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                    ${goldColors.highlight}${Math.round((goldReflectivity / 100) * enhancedLightingData.lightIntensity * 0.9 * 255).toString(16).padStart(2, '0')} 0%,
-                    ${goldColors.primary}${Math.round((goldReflectivity / 100) * enhancedLightingData.lightIntensity * 0.5 * 255).toString(16).padStart(2, '0')} 30%,
-                    transparent 60%
-                  )
-                `,
-                mixBlendMode: 'screen',
-                opacity: 0.8,
-                transform: `translateX(${enhancedLightingData.lightX * 5}px) translateY(${enhancedLightingData.lightY * 5}px)`,
-                transition: 'transform 0.1s ease-out'
-              }}
-            />
-          )}
-          
-          {/* Yellow color enhancement for gold plating effect */}
-          {goldColorEnhancement && (
-            <div
-              className="absolute inset-0 z-24"
-              style={{
-                background: `
-                  linear-gradient(
-                    135deg,
-                    ${goldColors.primary}${Math.round((goldIntensity / 100) * 0.3 * 255).toString(16).padStart(2, '0')} 0%,
-                    transparent 50%,
-                    ${goldColors.secondary}${Math.round((goldIntensity / 100) * 0.25 * 255).toString(16).padStart(2, '0')} 100%
-                  )
-                `,
-                mixBlendMode: 'color-burn',
-                opacity: 0.3,
-                filter: 'hue-rotate(15deg) saturate(1.2)'
-              }}
-            />
-          )}
         </>
       )}
 
-      {/* Crystal Effect - Translucent Stained Glass */}
+      {/* Crystal Effect - Only render if intensity > 0 */}
       {crystalIntensity > 0 && (
         <>
           {/* Base crystal translucency */}
@@ -235,15 +138,13 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
                 )
               `,
               mixBlendMode: 'overlay',
-              opacity: 0.3,
-              maskImage: `linear-gradient(transparent, black 20%, black 80%, transparent)`,
-              WebkitMaskImage: `linear-gradient(transparent, black 20%, black 80%, transparent)`
+              opacity: 0.3
             }}
           />
         </>
       )}
 
-      {/* Vintage Effect - Cardboard Texture with Aging */}
+      {/* Vintage Effect - Only render if intensity > 0 */}
       {vintageIntensity > 0 && (
         <>
           {/* Cardboard base texture */}
@@ -287,21 +188,98 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         </>
       )}
 
-      {/* Chrome Effect - Sharp Metallic Reflections */}
+      {/* Chrome Mirror Effect - Smooth, Bright, Highly Reflective */}
       {chromeIntensity > 0 && (
         <>
-          {/* Main chrome reflection */}
+          {/* Base chrome reflection - bright white/silver */}
           <div
             className="absolute inset-0 z-20"
             style={{
               background: `
                 linear-gradient(
                   ${45 + mousePosition.x * 90}deg,
-                  rgba(220, 225, 230, ${(chromeIntensity / 100) * 0.25}) 0%,
-                  rgba(245, 248, 250, ${(chromeIntensity / 100) * 0.35}) 25%,
-                  rgba(200, 210, 220, ${(chromeIntensity / 100) * 0.2}) 50%,
-                  rgba(240, 245, 250, ${(chromeIntensity / 100) * 0.3}) 75%,
-                  rgba(210, 220, 230, ${(chromeIntensity / 100) * 0.15}) 100%
+                  rgba(245, 248, 252, ${(chromeIntensity / 100) * 0.4}) 0%,
+                  rgba(255, 255, 255, ${(chromeIntensity / 100) * 0.5}) 25%,
+                  rgba(240, 244, 248, ${(chromeIntensity / 100) * 0.3}) 50%,
+                  rgba(252, 254, 255, ${(chromeIntensity / 100) * 0.6}) 75%,
+                  rgba(248, 250, 252, ${(chromeIntensity / 100) * 0.35}) 100%
+                )
+              `,
+              mixBlendMode: 'screen',
+              opacity: 0.8
+            }}
+          />
+          
+          {/* Mirror-like highlights - no lines, pure reflection */}
+          <div
+            className="absolute inset-0 z-21"
+            style={{
+              background: `
+                radial-gradient(
+                  ellipse at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                  rgba(255, 255, 255, ${(chromeIntensity / 100) * 0.7}) 0%,
+                  rgba(248, 252, 255, ${(chromeIntensity / 100) * 0.4}) 30%,
+                  transparent 60%
+                )
+              `,
+              mixBlendMode: 'overlay',
+              opacity: 0.9
+            }}
+          />
+          
+          {/* Chrome depth reflection */}
+          <div
+            className="absolute inset-0 z-22"
+            style={{
+              background: `
+                linear-gradient(
+                  ${90 + mousePosition.y * 90}deg,
+                  transparent 0%,
+                  rgba(255, 255, 255, ${(chromeIntensity / 100) * 0.8}) 40%,
+                  rgba(250, 250, 250, ${(chromeIntensity / 100) * 0.6}) 60%,
+                  transparent 100%
+                )
+              `,
+              mixBlendMode: 'screen',
+              opacity: 0.5
+            }}
+          />
+        </>
+      )}
+
+      {/* Brushed Steel Effect - Dull, Textured, Matte Gray */}
+      {brushedmetalIntensity > 0 && (
+        <>
+          {/* Base steel - dull gray */}
+          <div
+            className="absolute inset-0 z-20"
+            style={{
+              background: `
+                linear-gradient(
+                  ${getEffectParam('brushedmetal', 'direction', 45)}deg,
+                  rgba(120, 125, 130, ${(brushedmetalIntensity / 100) * 0.3}) 0%,
+                  rgba(135, 140, 145, ${(brushedmetalIntensity / 100) * 0.25}) 50%,
+                  rgba(110, 115, 120, ${(brushedmetalIntensity / 100) * 0.3}) 100%
+                )
+              `,
+              mixBlendMode: 'multiply',
+              opacity: 0.7
+            }}
+          />
+          
+          {/* Prominent brush texture lines */}
+          <div
+            className="absolute inset-0 z-21"
+            style={{
+              backgroundImage: `
+                repeating-linear-gradient(
+                  ${getEffectParam('brushedmetal', 'direction', 45)}deg,
+                  transparent 0px,
+                  rgba(100, 105, 110, ${(brushedmetalIntensity / 100) * 0.25}) 1px,
+                  transparent 2px,
+                  transparent 3px,
+                  rgba(130, 135, 140, ${(brushedmetalIntensity / 100) * 0.2}) 4px,
+                  transparent 5px
                 )
               `,
               mixBlendMode: 'overlay',
@@ -309,66 +287,36 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
             }}
           />
           
-          {/* Sharp directional highlights */}
+          {/* Additional texture for roughness */}
           <div
-            className="absolute inset-0 z-21"
-            style={{
-              background: `
-                repeating-linear-gradient(
-                  ${mousePosition.x * 180}deg,
-                  transparent 0px,
-                  rgba(255, 255, 255, ${(chromeIntensity / 100) * 0.3}) 1px,
-                  transparent 4px
-                )
-              `,
-              mixBlendMode: 'screen',
-              opacity: 0.3
-            }}
-          />
-        </>
-      )}
-
-      {/* Brushed Metal Effect - Anisotropic Grain */}
-      {brushedmetalIntensity > 0 && (
-        <>
-          {/* Metal base */}
-          <div
-            className="absolute inset-0 z-20"
-            style={{
-              background: `
-                linear-gradient(
-                  ${45 + ((effectValues?.brushedmetal?.direction as number) || 45)}deg,
-                  rgba(180, 180, 185, ${(brushedmetalIntensity / 100) * 0.2}) 0%,
-                  rgba(200, 200, 205, ${(brushedmetalIntensity / 100) * 0.15}) 50%,
-                  rgba(170, 170, 175, ${(brushedmetalIntensity / 100) * 0.2}) 100%
-                )
-              `,
-              mixBlendMode: 'multiply',
-              opacity: 0.5
-            }}
-          />
-          
-          {/* Directional brush grain */}
-          <div
-            className="absolute inset-0 z-21"
+            className="absolute inset-0 z-22"
             style={{
               backgroundImage: `
                 repeating-linear-gradient(
-                  ${(effectValues?.brushedmetal?.direction as number) || 45}deg,
+                  ${getEffectParam('brushedmetal', 'direction', 45) + 2}deg,
                   transparent 0px,
-                  rgba(160, 160, 165, ${(brushedmetalIntensity / 100) * 0.15}) 0.5px,
-                  transparent 1px,
-                  transparent 2px
+                  rgba(90, 95, 100, ${(brushedmetalIntensity / 100) * 0.15}) 0.5px,
+                  transparent 1.5px
                 )
               `,
-              mixBlendMode: 'overlay',
+              mixBlendMode: 'multiply',
               opacity: 0.4
+            }}
+          />
+          
+          {/* Matte finish overlay */}
+          <div
+            className="absolute inset-0 z-23"
+            style={{
+              background: `rgba(105, 110, 115, ${(brushedmetalIntensity / 100) * 0.1})`,
+              mixBlendMode: 'darken',
+              opacity: 0.5
             }}
           />
         </>
       )}
 
-      {/* Holographic Effect - Enhanced Color Separation */}
+      {/* Holographic Effect - Only render if intensity > 0 */}
       {holographicIntensity > 0 && (
         <div
           className="absolute inset-0 z-20"
@@ -391,7 +339,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         />
       )}
 
-      {/* Interference Effect - Soap Bubble Patterns */}
+      {/* Interference Effect - Only render if intensity > 0 */}
       {interferenceIntensity > 0 && (
         <div
           className="absolute inset-0 z-20"
@@ -414,7 +362,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         />
       )}
 
-      {/* Prizm Effect - Geometric Light Separation */}
+      {/* Prizm Effect - Only render if intensity > 0 */}
       {prizemIntensity > 0 && (
         <div
           className="absolute inset-0 z-20"
@@ -444,31 +392,28 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         />
       )}
 
-      {/* Foil Spray Effect - Scattered Metallic Particles */}
+      {/* Foil Spray Effect - Only render if intensity > 0 */}
       {foilsprayIntensity > 0 && (
-        <>
-          {/* Main spray pattern */}
-          <div
-            className="absolute inset-0 z-20"
-            style={{
-              backgroundImage: `
-                radial-gradient(circle at 20% 30%, rgba(192, 192, 192, ${(foilsprayIntensity / 100) * 0.2}) 1px, transparent 2px),
-                radial-gradient(circle at 60% 70%, rgba(255, 255, 255, ${(foilsprayIntensity / 100) * 0.15}) 1px, transparent 2px),
-                radial-gradient(circle at 80% 20%, rgba(176, 176, 176, ${(foilsprayIntensity / 100) * 0.2}) 1px, transparent 2px),
-                radial-gradient(circle at 30% 80%, rgba(208, 208, 208, ${(foilsprayIntensity / 100) * 0.15}) 1px, transparent 2px),
-                radial-gradient(circle at 70% 40%, rgba(224, 224, 224, ${(foilsprayIntensity / 100) * 0.15}) 1px, transparent 2px)
-              `,
-              backgroundSize: '40px 40px, 35px 35px, 45px 45px, 38px 38px, 42px 42px',
-              backgroundPosition: `${mousePosition.x * 10}px ${mousePosition.y * 10}px, 
-                                 ${mousePosition.x * -8}px ${mousePosition.y * 12}px,
-                                 ${mousePosition.x * 15}px ${mousePosition.y * -5}px,
-                                 ${mousePosition.x * -12}px ${mousePosition.y * -8}px,
-                                 ${mousePosition.x * 6}px ${mousePosition.y * 14}px`,
-              mixBlendMode: 'screen',
-              opacity: 0.4
-            }}
-          />
-        </>
+        <div
+          className="absolute inset-0 z-20"
+          style={{
+            backgroundImage: `
+              radial-gradient(circle at 20% 30%, rgba(192, 192, 192, ${(foilsprayIntensity / 100) * 0.2}) 1px, transparent 2px),
+              radial-gradient(circle at 60% 70%, rgba(255, 255, 255, ${(foilsprayIntensity / 100) * 0.15}) 1px, transparent 2px),
+              radial-gradient(circle at 80% 20%, rgba(176, 176, 176, ${(foilsprayIntensity / 100) * 0.2}) 1px, transparent 2px),
+              radial-gradient(circle at 30% 80%, rgba(208, 208, 208, ${(foilsprayIntensity / 100) * 0.15}) 1px, transparent 2px),
+              radial-gradient(circle at 70% 40%, rgba(224, 224, 224, ${(foilsprayIntensity / 100) * 0.15}) 1px, transparent 2px)
+            `,
+            backgroundSize: '40px 40px, 35px 35px, 45px 45px, 38px 38px, 42px 42px',
+            backgroundPosition: `${mousePosition.x * 10}px ${mousePosition.y * 10}px, 
+                               ${mousePosition.x * -8}px ${mousePosition.y * 12}px,
+                               ${mousePosition.x * 15}px ${mousePosition.y * -5}px,
+                               ${mousePosition.x * -12}px ${mousePosition.y * -8}px,
+                               ${mousePosition.x * 6}px ${mousePosition.y * 14}px`,
+            mixBlendMode: 'screen',
+            opacity: 0.4
+          }}
+        />
       )}
 
       {/* Calculate overall intensity for edge enhancement */}
@@ -478,7 +423,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
                               prizemIntensity + foilsprayIntensity + goldIntensity;
         const normalizedIntensity = Math.min(totalIntensity / 100, 1);
         
-        return (
+        return totalIntensity > 0 ? (
           <div
             className="absolute inset-0 z-26 rounded-xl"
             style={{
@@ -489,7 +434,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
               opacity: enhancedLightingData ? 0.3 + enhancedLightingData.lightIntensity * 0.2 : 0.3
             }}
           />
-        );
+        ) : null;
       })()}
     </>
   );
