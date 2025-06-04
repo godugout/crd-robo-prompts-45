@@ -158,38 +158,40 @@ export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
 
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
-      {/* Compact Trigger */}
+      {/* Enhanced Compact Trigger */}
       <DrawerTrigger asChild>
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40">
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
           <Button
             variant="secondary"
-            className="bg-black/90 backdrop-blur-lg border border-white/20 text-white hover:bg-black/95 px-4 py-2 rounded-full shadow-xl"
+            className="bg-black/90 backdrop-blur-lg border-2 border-crd-green/30 text-white hover:bg-black/95 hover:border-crd-green/50 px-6 py-3 rounded-2xl shadow-2xl transition-all duration-200 hover:scale-105"
           >
-            <Settings className="w-4 h-4 mr-2" />
-            Studio
-            <div className="ml-2 text-xs opacity-75">
-              {selectedScene.name} • {currentStatusText}
+            <Settings className="w-5 h-5 mr-3 text-crd-green" />
+            <div className="flex flex-col items-start">
+              <span className="font-semibold">Enhanced Studio</span>
+              <span className="text-xs opacity-75">
+                {selectedScene.name} • {currentStatusText}
+              </span>
             </div>
-            <ChevronUp className="w-4 h-4 ml-2" />
+            <ChevronUp className="w-5 h-5 ml-3 text-crd-green" />
           </Button>
         </div>
       </DrawerTrigger>
 
       {/* Compact Drawer Content */}
-      <DrawerContent className="h-[60vh] bg-black/95 backdrop-blur-lg border-t border-white/20">
-        <DrawerHeader className="border-b border-white/10 pb-3">
+      <DrawerContent className="h-[70vh] bg-black/95 backdrop-blur-lg border-t border-white/20">
+        <DrawerHeader className="border-b border-white/10 pb-4">
           <div className="flex items-center justify-between">
-            <DrawerTitle className="text-white text-lg font-semibold flex items-center">
-              <Settings className="w-5 h-5 mr-2 text-crd-green" />
+            <DrawerTitle className="text-white text-xl font-semibold flex items-center">
+              <Settings className="w-6 h-6 mr-3 text-crd-green" />
               Enhanced Studio
             </DrawerTitle>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               {onDownload && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => onDownload(card)}
-                  className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
+                  className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black transition-colors"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Export
@@ -197,26 +199,26 @@ export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
               )}
               <DrawerClose asChild>
                 <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </Button>
               </DrawerClose>
             </div>
           </div>
         </DrawerHeader>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+        <div className="flex-1 overflow-y-auto p-6 space-y-10">
           {/* Quick Effects Presets */}
           <div>
             <h3 className="text-white text-lg font-semibold mb-4 flex items-center">
               <Sparkles className="w-5 h-5 mr-2 text-purple-400" />
               Quick Effects
             </h3>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-4 gap-4">
               {QUICK_PRESETS.map((preset) => (
                 <button
                   key={preset.id}
                   onClick={() => handlePresetApply(preset)}
-                  className={`p-4 rounded-lg border-2 border-transparent hover:border-white/30 transition-all ${preset.color} bg-opacity-20 hover:bg-opacity-30`}
+                  className={`p-4 rounded-xl border-2 border-transparent hover:border-white/30 transition-all ${preset.color} bg-opacity-20 hover:bg-opacity-30 hover:scale-105`}
                 >
                   <div className="flex flex-col items-center space-y-2 text-white">
                     {preset.icon}
@@ -267,7 +269,7 @@ export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
                 <button
                   key={preset.id}
                   onClick={() => onLightingChange(preset)}
-                  className={`p-3 rounded-lg text-left transition-colors ${
+                  className={`p-4 rounded-lg text-left transition-colors ${
                     selectedLighting.id === preset.id 
                       ? 'bg-yellow-600 text-white' 
                       : 'bg-gray-700 text-gray-300 hover:bg-gray-600'

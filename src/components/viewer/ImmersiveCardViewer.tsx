@@ -1,5 +1,6 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
 import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from './constants';
@@ -9,7 +10,6 @@ import {
   type EffectValues 
 } from './hooks/useEnhancedCardEffects';
 import { ViewerControls } from './components/ViewerControls';
-import { EnhancedCustomizePanel } from './components/EnhancedCustomizePanel';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { useCardExport } from './hooks/useCardExport';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
@@ -45,9 +45,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [autoRotate, setAutoRotate] = useState(false);
   const [showEffects, setShowEffects] = useState(true);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [showCustomizePanel, setShowCustomizePanel] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
-  const [isHoveringControls, setIsHoveringControls] = useState(false);
   
   // Enhanced effects state
   const [effectValues, setEffectValues] = useState<EffectValues>(() => {
@@ -171,9 +169,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     setShowExportDialog(true);
   }, []);
 
-  // Add state for progressive panel
-  const [useProgressivePanel, setUseProgressivePanel] = useState(true);
-
   // Custom hooks
   const { getFrameStyles, getEnhancedEffectStyles, SurfaceTexture } = useEnhancedCardEffects({
     card,
@@ -228,9 +223,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
       const x = (e.clientX - rect.left) / rect.width;
       const y = (e.clientY - rect.top) / rect.height;
       setMousePosition({ x, y });
-      
-      const isInControlsArea = e.clientX - rect.left < 300 && e.clientY - rect.top > rect.height - 100;
-      setIsHoveringControls(isInControlsArea);
       
       if (allowRotation && !autoRotate) {
         setRotation({
@@ -318,8 +310,9 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         )}
 
-        {/* Basic Controls - Top Left */}
-        <div className="absolute top-4 left-4 z-10">
+        {/* Top Controls Section */}
+        <div className="absolute top-4 left-4 right-4 z-10 flex items-start justify-between">
+          {/* Basic Controls - Top Left */}
           <ViewerControls
             showEffects={showEffects}
             autoRotate={autoRotate}
@@ -329,38 +322,38 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             onZoomIn={() => handleZoom(0.1)}
             onZoomOut={() => handleZoom(-0.1)}
           />
-        </div>
 
-        {/* Card Navigation Controls - Top Right */}
-        {hasMultipleCards && (
-          <div className="absolute top-4 right-4 z-10">
-            <div className="flex items-center space-x-2 bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-3 border border-white/10">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handlePreviousCard}
-                disabled={!canGoPrev}
-                className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              
-              <div className="text-white text-sm px-3">
-                {currentCardIndex + 1} / {cards.length}
+          {/* Card Navigation Controls - Top Right */}
+          {hasMultipleCards && (
+            <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-3 border border-white/10">
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handlePreviousCard}
+                  disabled={!canGoPrev}
+                  className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                
+                <div className="text-white text-sm px-3">
+                  {currentCardIndex + 1} / {cards.length}
+                </div>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleNextCard}
+                  disabled={!canGoNext}
+                  className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
               </div>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleNextCard}
-                disabled={!canGoNext}
-                className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Compact Bottom Drawer */}
         <CompactBottomDrawer
@@ -406,37 +399,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             onClick={() => setIsFlipped(!isFlipped)}
           />
         </div>
-
-        {/* Info Panel - Enhanced visibility */}
-        {showStats && !isFlipped && (
-          <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: hasMultipleCards ? '180px' : '20px' }}>
-            <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
-              <div className="flex items-center justify-between text-white">
-                <div className="flex space-x-4 text-sm">
-                  <span>Click card to flip</span>
-                  <span>•</span>
-                  <span>Drag to rotate manually</span>
-                  <span>•</span>
-                  <span>Scroll to zoom</span>
-                  <span>•</span>
-                  <span>Move mouse for effects</span>
-                  {hasMultipleCards && (
-                    <>
-                      <span>•</span>
-                      <span>Use ← → keys to navigate</span>
-                    </>
-                  )}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4" />
-                  <span className="text-sm">
-                    Enhanced Studio | Scene: {selectedScene.name}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Export Options Dialog */}

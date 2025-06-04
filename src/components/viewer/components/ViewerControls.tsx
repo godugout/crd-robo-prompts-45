@@ -30,7 +30,7 @@ export const ViewerControls: React.FC<ViewerControlsProps> = ({
   onZoomOut
 }) => {
   return (
-    <div className="absolute bottom-4 left-4 flex space-x-2 z-10">
+    <div className="flex space-x-2">
       <Button
         variant="ghost"
         size="sm"
