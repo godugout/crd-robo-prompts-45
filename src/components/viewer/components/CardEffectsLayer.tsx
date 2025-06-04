@@ -25,9 +25,21 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   
   const intensity = effectIntensity[0] / 100;
   
+  // Get effective mouse position - static center when interactive lighting is off
+  const effectiveMousePosition = interactiveLighting ? mousePosition : { x: 0.5, y: 0.5 };
+  
   // Calculate interactive lighting effects
   const getInteractiveLightingData = () => {
-    if (!interactiveLighting) return null;
+    if (!interactiveLighting) {
+      // Return static lighting data when interactive lighting is off
+      return {
+        lightX: 0,
+        lightY: 0,
+        lightIntensity: 0.5, // Static moderate intensity
+        shadowX: 0,
+        shadowY: 0
+      };
+    }
     
     const lightX = (0.5 - mousePosition.x) * 2; // -1 to 1
     const lightY = (0.5 - mousePosition.y) * 2; // -1 to 1
@@ -45,7 +57,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   
   const interactiveData = getInteractiveLightingData();
   
-  // Material-aware reflection with interactive lighting boost
+  // Material-aware reflection with interactive lighting boost only when enabled
   const getReflectionStrength = () => {
     if (!materialSettings) return intensity * 0.5;
     
@@ -54,23 +66,23 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
     const clearcoatBoost = materialSettings.clearcoat * 0.3;
     let strength = (reflectionBase + clearcoatBoost) * intensity;
     
-    // Interactive lighting dramatically increases reflection strength
-    if (interactiveData) {
+    // Interactive lighting dramatically increases reflection strength only when enabled
+    if (interactiveData && interactiveLighting) {
       strength *= (1 + interactiveData.lightIntensity * 1.5);
     }
     
     return Math.min(strength, 0.95); // Cap at 95%
   };
   
-  // Material-aware texture with interactive response
+  // Material-aware texture with interactive response only when enabled
   const getTextureIntensity = () => {
     if (!materialSettings) return intensity * 0.1;
     
     // Rougher surfaces get more texture
     let textureStrength = materialSettings.roughness * intensity * 0.3;
     
-    // Interactive lighting affects texture visibility
-    if (interactiveData) {
+    // Interactive lighting affects texture visibility only when enabled
+    if (interactiveData && interactiveLighting) {
       textureStrength *= (1 + interactiveData.lightIntensity * 0.5);
     }
     
@@ -82,18 +94,18 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   
   return (
     <>
-      {/* Base holographic effect with interactive enhancement */}
+      {/* Base holographic effect with interactive enhancement only when enabled */}
       <div
         className="absolute inset-0 z-10"
         style={{
           background: `conic-gradient(
-            from ${mousePosition.x * 180 + (interactiveData ? interactiveData.lightX * 90 : 0)}deg at 50% 60%,
-            rgba(240, 60, 80, ${intensity * (interactiveData ? 0.8 + interactiveData.lightIntensity * 0.4 : 0.6)}) 0deg,
-            rgba(80, 60, 240, ${intensity * (interactiveData ? 0.6 + interactiveData.lightIntensity * 0.3 : 0.4)}) 120deg,
-            rgba(60, 240, 180, ${intensity * (interactiveData ? 0.6 + interactiveData.lightIntensity * 0.3 : 0.4)}) 240deg,
-            rgba(240, 60, 80, ${intensity * (interactiveData ? 0.8 + interactiveData.lightIntensity * 0.4 : 0.6)}) 360deg
+            from ${effectiveMousePosition.x * 180 + (interactiveLighting && interactiveData ? interactiveData.lightX * 90 : 0)}deg at 50% 60%,
+            rgba(240, 60, 80, ${intensity * (interactiveLighting && interactiveData ? 0.8 + interactiveData.lightIntensity * 0.4 : 0.6)}) 0deg,
+            rgba(80, 60, 240, ${intensity * (interactiveLighting && interactiveData ? 0.6 + interactiveData.lightIntensity * 0.3 : 0.4)}) 120deg,
+            rgba(60, 240, 180, ${intensity * (interactiveLighting && interactiveData ? 0.6 + interactiveData.lightIntensity * 0.3 : 0.4)}) 240deg,
+            rgba(240, 60, 80, ${intensity * (interactiveLighting && interactiveData ? 0.8 + interactiveData.lightIntensity * 0.4 : 0.6)}) 360deg
           )`,
-          opacity: showEffects ? (interactiveData ? 0.7 + interactiveData.lightIntensity * 0.3 : 0.5) : 0,
+          opacity: showEffects ? (interactiveLighting && interactiveData ? 0.7 + interactiveData.lightIntensity * 0.3 : 0.5) : 0,
           mixBlendMode: 'soft-light',
           ...physicalEffectStyles
         }}
@@ -107,10 +119,10 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
             opacity: reflectionStrength,
             background: `
               radial-gradient(
-                circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                rgba(255, 255, 255, ${interactiveData ? 0.9 + interactiveData.lightIntensity * 0.1 : 0.9}) 0%,
-                rgba(255, 255, 255, ${interactiveData ? 0.7 + interactiveData.lightIntensity * 0.2 : 0.7}) 15%,
-                rgba(160, 190, 255, ${interactiveData ? 0.3 + interactiveData.lightIntensity * 0.4 : 0.3}) 30%,
+                circle at ${effectiveMousePosition.x * 100}% ${effectiveMousePosition.y * 100}%,
+                rgba(255, 255, 255, ${interactiveLighting && interactiveData ? 0.9 + interactiveData.lightIntensity * 0.1 : 0.9}) 0%,
+                rgba(255, 255, 255, ${interactiveLighting && interactiveData ? 0.7 + interactiveData.lightIntensity * 0.2 : 0.7}) 15%,
+                rgba(160, 190, 255, ${interactiveLighting && interactiveData ? 0.3 + interactiveData.lightIntensity * 0.4 : 0.3}) 30%,
                 transparent 60%
               )
             `,
@@ -119,7 +131,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         />
       )}
 
-      {/* Interactive dynamic light source */}
+      {/* Interactive dynamic light source - only when enabled */}
       {interactiveLighting && interactiveData && isHovering && (
         <div
           className="absolute inset-0 z-22 overflow-hidden"
@@ -138,16 +150,16 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         />
       )}
 
-      {/* Surface texture with interactive enhancement */}
+      {/* Surface texture with interactive enhancement only when enabled */}
       <div
         className="absolute inset-0 z-15"
         style={{
           opacity: textureIntensity,
           backgroundImage: `
             repeating-linear-gradient(
-              ${45 + mousePosition.x * 30 + (interactiveData ? interactiveData.lightX * 15 : 0)}deg,
+              ${45 + effectiveMousePosition.x * 30 + (interactiveLighting && interactiveData ? interactiveData.lightX * 15 : 0)}deg,
               transparent,
-              rgba(255, 255, 255, ${interactiveData ? 0.05 + interactiveData.lightIntensity * 0.03 : 0.05}) 1px,
+              rgba(255, 255, 255, ${interactiveLighting && interactiveData ? 0.05 + interactiveData.lightIntensity * 0.03 : 0.05}) 1px,
               transparent 2px
             )
           `,
@@ -156,19 +168,19 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         }}
       />
 
-      {/* Edge highlight for depth with interactive response */}
+      {/* Edge highlight for depth with interactive response only when enabled */}
       <div
         className="absolute inset-0 z-25 rounded-xl"
         style={{
           boxShadow: `
-            inset 0 0 20px rgba(255, 255, 255, ${intensity * (interactiveData ? 0.2 + interactiveData.lightIntensity * 0.3 : 0.2)}),
-            inset 0 0 8px rgba(255, 255, 255, ${intensity * (interactiveData ? 0.3 + interactiveData.lightIntensity * 0.4 : 0.3)})
+            inset 0 0 20px rgba(255, 255, 255, ${intensity * (interactiveLighting && interactiveData ? 0.2 + interactiveData.lightIntensity * 0.3 : 0.2)}),
+            inset 0 0 8px rgba(255, 255, 255, ${intensity * (interactiveLighting && interactiveData ? 0.3 + interactiveData.lightIntensity * 0.4 : 0.3)})
           `,
-          opacity: interactiveData ? 0.7 + interactiveData.lightIntensity * 0.3 : 0.7
+          opacity: interactiveLighting && interactiveData ? 0.7 + interactiveData.lightIntensity * 0.3 : 0.7
         }}
       />
 
-      {/* Interactive lighting indicator (subtle visual feedback) */}
+      {/* Interactive lighting indicator (only shows when interactive lighting is enabled) */}
       {interactiveLighting && (
         <div
           className="absolute top-2 right-2 z-30"
