@@ -21,8 +21,10 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
   if (crystalIntensity <= 0) return null;
 
   // Calculate intensity-based effects for translucency
-  const translucencyLevel = Math.max(0, (crystalIntensity / 100) * 0.15); // Much more subtle
-  const internalGlow = Math.max(0, (crystalIntensity / 100) * 0.8);
+  const translucencyLevel = Math.max(0, (crystalIntensity / 100) * 0.15);
+
+  // Generate unique animation duration for sparkle effect
+  const sparkleAnimation = `crystal-sparkle-${Math.floor(Math.random() * 1000)} ${3 + Math.random() * 2}s ease-in-out infinite alternate`;
 
   return (
     <>
@@ -52,7 +54,7 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
           mixBlendMode: 'overlay',
           opacity: 0.7,
           filter: `blur(${translucencyLevel * 2}px)`,
-          transform: 'translateZ(-1px)' // Simulate depth
+          transform: 'translateZ(-1px)'
         }}
       />
       
@@ -131,7 +133,7 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
       
       {/* Internal Crystal Sparkle Points */}
       <div
-        className="absolute inset-0 z-18"
+        className="absolute inset-0 z-18 animate-pulse"
         style={{
           background: `
             radial-gradient(
@@ -155,8 +157,7 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
           `,
           backgroundSize: '100px 100px, 120px 120px, 80px 80px',
           mixBlendMode: 'screen',
-          opacity: 0.8,
-          animation: `crystal-sparkle ${3 + Math.random() * 2}s ease-in-out infinite alternate`
+          opacity: 0.8
         }}
       />
       
@@ -197,15 +198,6 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
           filter: `blur(${translucencyLevel * 3}px)`
         }}
       />
-
-      {/* CSS Keyframes for sparkle animation */}
-      <style jsx>{`
-        @keyframes crystal-sparkle {
-          0% { opacity: 0.6; transform: scale(1); }
-          50% { opacity: 0.9; transform: scale(1.1); }
-          100% { opacity: 0.7; transform: scale(0.95); }
-        }
-      `}</style>
     </>
   );
 };
