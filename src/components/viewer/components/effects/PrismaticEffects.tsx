@@ -1,12 +1,12 @@
 
 import React from 'react';
 import type { EffectValues } from '../../hooks/useEnhancedCardEffects';
-import type { EnhancedInteractiveLightingData } from '../../hooks/useEnhancedInteractiveLighting';
+import type { EnhancedLightingData } from '../../hooks/useEnhancedInteractiveLighting';
 
 interface PrismaticEffectsProps {
   effectValues: EffectValues;
   mousePosition: { x: number; y: number };
-  enhancedLightingData?: EnhancedInteractiveLightingData;
+  enhancedLightingData?: EnhancedLightingData;
 }
 
 export const PrismaticEffects: React.FC<PrismaticEffectsProps> = ({
