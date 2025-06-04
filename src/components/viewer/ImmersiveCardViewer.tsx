@@ -1,21 +1,18 @@
 
-import React, { useCallback, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
-import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from './constants';
-import { 
-  useEnhancedCardEffects
-} from './hooks/useEnhancedCardEffects';
-import { ViewerControls } from './components/ViewerControls';
-import { EnhancedCardContainer } from './components/EnhancedCardContainer';
-import { useCardExport } from './hooks/useCardExport';
-import { ExportOptionsDialog } from './components/ExportOptionsDialog';
-import { CompactBottomDrawer } from './components/CompactBottomDrawer';
-import { CardNavigationControls } from './components/CardNavigationControls';
+import React, { useCallback } from 'react';
+import type { ImmersiveCardViewerProps } from './types';
 import { ViewerContainer } from './components/ViewerContainer';
 import { ViewerErrorBoundary } from './components/ViewerErrorBoundary';
+import { ViewerTopControls } from './components/ViewerTopControls';
+import { ViewerCardRenderer } from './components/ViewerCardRenderer';
+import { CompactBottomDrawer } from './components/CompactBottomDrawer';
+import { ExportOptionsDialog } from './components/ExportOptionsDialog';
+import { useCardExport } from './hooks/useCardExport';
 import { useViewerState } from './hooks/useViewerState';
 import { useViewerInteractions } from './hooks/useViewerInteractions';
+import { useViewerSettings } from './hooks/useViewerSettings';
+import { useCardNavigation } from './hooks/useCardNavigation';
+import { useEnhancedEffectsProvider } from './hooks/useEnhancedEffectsProvider';
 import { useDrawerState } from './hooks/useDrawerState';
 
 // Update the interface to support card navigation
@@ -58,7 +55,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     );
   }
 
-  // Use the new state management hook
+  // Use the new state management hooks
   const {
     isFullscreen,
     rotation,
@@ -95,19 +92,19 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
   console.log('Viewer state:', { isFullscreen, rotation, zoom, showEffects, mousePosition });
 
-  // Advanced settings state
-  const [selectedScene, setSelectedScene] = React.useState<EnvironmentScene>(ENVIRONMENT_SCENES[3]); // Twilight
-  const [selectedLighting, setSelectedLighting] = React.useState<LightingPreset>(LIGHTING_PRESETS[0]);
-  const [overallBrightness, setOverallBrightness] = React.useState([120]);
-  const [interactiveLighting, setInteractiveLighting] = React.useState(true);
-  
-  // Material properties
-  const [materialSettings, setMaterialSettings] = React.useState<MaterialSettings>({
-    roughness: 0.30,
-    metalness: 0.60,
-    clearcoat: 0.75,
-    reflectivity: 0.50
-  });
+  // Use the new settings hook
+  const {
+    selectedScene,
+    selectedLighting,
+    overallBrightness,
+    interactiveLighting,
+    materialSettings,
+    setSelectedScene,
+    setSelectedLighting,
+    setOverallBrightness,
+    setInteractiveLighting,
+    setMaterialSettings
+  } = useViewerSettings();
 
   // Use the new interactions hook
   const {
@@ -131,39 +128,19 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     setAutoRotate
   });
 
-  // Determine if we have multiple cards to navigate
-  const hasMultipleCards = cards.length > 1;
-  const canGoNext = hasMultipleCards && currentCardIndex < cards.length - 1;
-  const canGoPrev = hasMultipleCards && currentCardIndex > 0;
-
-  // Navigation handlers
-  const handlePreviousCard = useCallback(() => {
-    if (canGoPrev && onCardChange) {
-      onCardChange(currentCardIndex - 1);
-      setIsFlipped(false); // Reset flip state when changing cards
-    }
-  }, [canGoPrev, currentCardIndex, onCardChange, setIsFlipped]);
-
-  const handleNextCard = useCallback(() => {
-    if (canGoNext && onCardChange) {
-      onCardChange(currentCardIndex + 1);
-      setIsFlipped(false); // Reset flip state when changing cards
-    }
-  }, [canGoNext, currentCardIndex, onCardChange, setIsFlipped]);
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        handlePreviousCard();
-      } else if (e.key === 'ArrowRight') {
-        handleNextCard();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handlePreviousCard, handleNextCard]);
+  // Use the new card navigation hook
+  const {
+    hasMultipleCards,
+    canGoNext,
+    canGoPrev,
+    handlePreviousCard,
+    handleNextCard
+  } = useCardNavigation({
+    cards,
+    currentCardIndex,
+    onCardChange,
+    setIsFlipped
+  });
 
   // Add export functionality
   const { exportCard, isExporting, exportProgress } = useCardExport({
@@ -174,11 +151,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     effectValues
   });
 
-  const handleRotationChange = useCallback((newRotation: { x: number; y: number }) => {
-    setRotation(newRotation);
-  }, [setRotation]);
-
-  // Get drawer state for positioning - FIXED IMPORT
+  // Get drawer state for positioning
   const { isOpen: isDrawerOpen } = useDrawerState();
 
   // Update the existing download handler to open export dialog
@@ -186,32 +159,19 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     setShowExportDialog(true);
   }, [setShowExportDialog]);
 
-  // Custom hooks with error handling
-  let getFrameStyles, getEnhancedEffectStyles, SurfaceTexture;
-  
-  try {
-    const enhancedEffects = useEnhancedCardEffects({
-      card,
-      effectValues,
-      mousePosition,
-      showEffects,
-      overallBrightness,
-      interactiveLighting
-    });
-    
-    getFrameStyles = enhancedEffects.getFrameStyles;
-    getEnhancedEffectStyles = enhancedEffects.getEnhancedEffectStyles;
-    SurfaceTexture = enhancedEffects.SurfaceTexture;
-    
-    console.log('Enhanced effects loaded successfully');
-  } catch (error) {
-    console.error('Error loading enhanced effects:', error);
-    
-    // Fallback styles
-    getFrameStyles = () => ({ backgroundColor: '#333' });
-    getEnhancedEffectStyles = () => ({ opacity: 0.5 });
-    SurfaceTexture = null;
-  }
+  // Use the enhanced effects provider hook
+  const {
+    getFrameStyles,
+    getEnhancedEffectStyles,
+    SurfaceTexture
+  } = useEnhancedEffectsProvider({
+    card,
+    effectValues,
+    mousePosition,
+    showEffects,
+    overallBrightness,
+    interactiveLighting
+  });
 
   if (!isOpen) {
     console.log('Viewer not open, returning null');
@@ -234,28 +194,21 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         onMouseLeave={handleDragEnd}
       >
         {/* Top Controls Section */}
-        <div className="absolute top-4 left-4 right-4 z-10 flex items-start justify-between">
-          {/* Basic Controls - Top Left */}
-          <ViewerControls
-            showEffects={showEffects}
-            autoRotate={autoRotate}
-            onToggleEffects={() => setShowEffects(!showEffects)}
-            onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
-            onReset={handleReset}
-            onZoomIn={() => handleZoom(0.1)}
-            onZoomOut={() => handleZoom(-0.1)}
-          />
-
-          {/* Card Navigation Controls - Top Right */}
-          <CardNavigationControls
-            currentCardIndex={currentCardIndex}
-            totalCards={cards.length}
-            onPreviousCard={handlePreviousCard}
-            onNextCard={handleNextCard}
-            canGoPrev={canGoPrev}
-            canGoNext={canGoNext}
-          />
-        </div>
+        <ViewerTopControls
+          showEffects={showEffects}
+          autoRotate={autoRotate}
+          onToggleEffects={() => setShowEffects(!showEffects)}
+          onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
+          onReset={handleReset}
+          onZoomIn={() => handleZoom(0.1)}
+          onZoomOut={() => handleZoom(-0.1)}
+          currentCardIndex={currentCardIndex}
+          totalCards={cards.length}
+          onPreviousCard={handlePreviousCard}
+          onNextCard={handleNextCard}
+          canGoPrev={canGoPrev}
+          canGoNext={canGoNext}
+        />
 
         {/* Compact Bottom Drawer */}
         <CompactBottomDrawer
@@ -280,29 +233,26 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         />
 
         {/* Enhanced Card Container with Error Boundary */}
-        <ViewerErrorBoundary>
-          <div ref={cardContainerRef}>
-            <EnhancedCardContainer
-              card={card}
-              isFlipped={isFlipped}
-              isHovering={isHovering}
-              showEffects={showEffects}
-              effectValues={effectValues}
-              mousePosition={mousePosition}
-              rotation={rotation}
-              zoom={zoom}
-              isDragging={isDragging}
-              frameStyles={getFrameStyles()}
-              enhancedEffectStyles={getEnhancedEffectStyles()}
-              SurfaceTexture={SurfaceTexture}
-              onMouseDown={handleDragStart}
-              onMouseMove={handleDrag}
-              onMouseEnter={() => setIsHovering(true)}
-              onMouseLeave={() => setIsHovering(false)}
-              onClick={() => setIsFlipped(!isFlipped)}
-            />
-          </div>
-        </ViewerErrorBoundary>
+        <ViewerCardRenderer
+          cardContainerRef={cardContainerRef}
+          card={card}
+          isFlipped={isFlipped}
+          isHovering={isHovering}
+          showEffects={showEffects}
+          effectValues={effectValues}
+          mousePosition={mousePosition}
+          rotation={rotation}
+          zoom={zoom}
+          isDragging={isDragging}
+          frameStyles={getFrameStyles()}
+          enhancedEffectStyles={getEnhancedEffectStyles()}
+          SurfaceTexture={SurfaceTexture}
+          onMouseDown={handleDragStart}
+          onMouseMove={handleDrag}
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+          onClick={() => setIsFlipped(!isFlipped)}
+        />
       </ViewerContainer>
 
       {/* Export Options Dialog */}
