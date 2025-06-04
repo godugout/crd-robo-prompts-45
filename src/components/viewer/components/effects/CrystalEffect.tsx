@@ -21,47 +21,20 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
   if (crystalIntensity <= 0) return null;
 
   // Calculate intensity-based blur for crystal clarity
-  const intensityBlur = Math.max(0, (crystalIntensity / 100) * 1);
+  const intensityBlur = Math.max(0, (crystalIntensity / 100) * 0.5);
 
   return (
     <>
-      {/* Large Geometric Facet Structure */}
+      {/* Crystal Base Clarity Layer */}
       <div
         className="absolute inset-0 z-20"
         style={{
           background: `
-            conic-gradient(
-              from ${mousePosition.x * 60}deg at 50% 50%,
-              transparent 0deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.6}) 30deg,
-              transparent 60deg,
-              rgba(240, 250, 255, ${(crystalIntensity / 100) * 0.5}) 90deg,
-              transparent 120deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.7}) 150deg,
-              transparent 180deg,
-              rgba(250, 255, 250, ${(crystalIntensity / 100) * 0.4}) 210deg,
-              transparent 240deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.6}) 270deg,
-              transparent 300deg,
-              rgba(248, 252, 255, ${(crystalIntensity / 100) * 0.5}) 330deg,
-              transparent 360deg
-            )
-          `,
-          maskImage: `
             radial-gradient(
-              ellipse at ${50 + mousePosition.x * 20}% ${50 + mousePosition.y * 20}%,
-              rgba(255, 255, 255, 1) 20%,
-              rgba(255, 255, 255, 0.7) 50%,
-              rgba(255, 255, 255, 0.3) 80%,
-              transparent 100%
-            )
-          `,
-          WebkitMaskImage: `
-            radial-gradient(
-              ellipse at ${50 + mousePosition.x * 20}% ${50 + mousePosition.y * 20}%,
-              rgba(255, 255, 255, 1) 20%,
-              rgba(255, 255, 255, 0.7) 50%,
-              rgba(255, 255, 255, 0.3) 80%,
+              ellipse at ${50 + mousePosition.x * 15}% ${50 + mousePosition.y * 15}%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.3}) 0%,
+              rgba(248, 252, 255, ${(crystalIntensity / 100) * 0.2}) 40%,
+              rgba(240, 248, 255, ${(crystalIntensity / 100) * 0.1}) 70%,
               transparent 100%
             )
           `,
@@ -71,76 +44,104 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
         }}
       />
       
-      {/* Sharp Diamond Reflections */}
+      {/* Hexagonal Crystal Facets */}
       <div
         className="absolute inset-0 z-21"
         style={{
           background: `
-            linear-gradient(
-              ${45 + mousePosition.y * 60}deg,
-              transparent 0%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.9}) 5%,
-              transparent 10%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.8}) 20%,
-              transparent 25%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.9}) 35%,
-              transparent 40%
-            ),
-            linear-gradient(
-              ${135 + mousePosition.x * 60}deg,
-              transparent 0%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.8}) 8%,
-              transparent 16%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.7}) 28%,
-              transparent 36%
+            conic-gradient(
+              from ${mousePosition.x * 30}deg at ${50 + mousePosition.x * 20}% ${50 + mousePosition.y * 20}%,
+              transparent 0deg,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.6}) 30deg,
+              transparent 60deg,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.5}) 90deg,
+              transparent 120deg,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.7}) 150deg,
+              transparent 180deg,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.5}) 210deg,
+              transparent 240deg,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.6}) 270deg,
+              transparent 300deg,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.5}) 330deg,
+              transparent 360deg
             )
           `,
           maskImage: `
-            radial-gradient(
-              circle at ${40 + mousePosition.x * 20}% ${40 + mousePosition.y * 20}%,
-              rgba(255, 255, 255, 1) 0%,
-              rgba(255, 255, 255, 0.8) 40%,
-              rgba(255, 255, 255, 0.3) 70%,
-              transparent 100%
-            )
+            polygon(50% 0%, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%)
           `,
           WebkitMaskImage: `
-            radial-gradient(
-              circle at ${40 + mousePosition.x * 20}% ${40 + mousePosition.y * 20}%,
-              rgba(255, 255, 255, 1) 0%,
-              rgba(255, 255, 255, 0.8) 40%,
-              rgba(255, 255, 255, 0.3) 70%,
-              transparent 100%
-            )
+            polygon(50% 0%, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%)
           `,
-          mixBlendMode: 'screen',
-          opacity: 0.9,
+          mixBlendMode: 'hard-light',
+          opacity: 0.7,
           filter: `blur(${intensityBlur * 0.1}px)`
         }}
       />
       
-      {/* Clean Triangular Facets */}
+      {/* Sharp Diamond Reflections */}
       <div
         className="absolute inset-0 z-22"
         style={{
           background: `
-            conic-gradient(
-              from ${mousePosition.x * 90}deg at ${30 + mousePosition.x * 40}% ${30 + mousePosition.y * 40}%,
-              transparent 0deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.8}) 20deg,
-              transparent 40deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.7}) 60deg,
-              transparent 80deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.9}) 100deg,
-              transparent 120deg
+            linear-gradient(
+              ${30 + mousePosition.y * 45}deg,
+              transparent 45%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.9}) 48%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.95}) 50%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.9}) 52%,
+              transparent 55%
+            ),
+            linear-gradient(
+              ${120 + mousePosition.x * 45}deg,
+              transparent 45%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.8}) 48%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.85}) 50%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.8}) 52%,
+              transparent 55%
             )
           `,
-          backgroundSize: '60px 60px',
+          maskImage: `
+            radial-gradient(
+              circle at ${40 + mousePosition.x * 20}% ${40 + mousePosition.y * 20}%,
+              rgba(255, 255, 255, 1) 0%,
+              rgba(255, 255, 255, 0.8) 50%,
+              rgba(255, 255, 255, 0.2) 80%,
+              transparent 100%
+            )
+          `,
+          WebkitMaskImage: `
+            radial-gradient(
+              circle at ${40 + mousePosition.x * 20}% ${40 + mousePosition.y * 20}%,
+              rgba(255, 255, 255, 1) 0%,
+              rgba(255, 255, 255, 0.8) 50%,
+              rgba(255, 255, 255, 0.2) 80%,
+              transparent 100%
+            )
+          `,
+          mixBlendMode: 'screen',
+          opacity: 0.8
+        }}
+      />
+      
+      {/* Subtle Prismatic Dispersion */}
+      <div
+        className="absolute inset-0 z-23"
+        style={{
+          background: `
+            linear-gradient(
+              ${mousePosition.x * 90}deg,
+              rgba(255, 230, 230, ${(crystalIntensity / 100) * 0.15}) 0%,
+              rgba(230, 255, 230, ${(crystalIntensity / 100) * 0.12}) 25%,
+              rgba(230, 230, 255, ${(crystalIntensity / 100) * 0.15}) 50%,
+              rgba(255, 255, 230, ${(crystalIntensity / 100) * 0.12}) 75%,
+              rgba(255, 230, 255, ${(crystalIntensity / 100) * 0.15}) 100%
+            )
+          `,
           maskImage: `
             radial-gradient(
               ellipse at ${60 + mousePosition.x * 10}% ${60 + mousePosition.y * 10}%,
-              rgba(255, 255, 255, 0.9) 25%,
-              rgba(255, 255, 255, 0.5) 65%,
+              rgba(255, 255, 255, 0.8) 30%,
+              rgba(255, 255, 255, 0.4) 70%,
               rgba(255, 255, 255, 0.1) 90%,
               transparent 100%
             )
@@ -148,15 +149,15 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
           WebkitMaskImage: `
             radial-gradient(
               ellipse at ${60 + mousePosition.x * 10}% ${60 + mousePosition.y * 10}%,
-              rgba(255, 255, 255, 0.9) 25%,
-              rgba(255, 255, 255, 0.5) 65%,
+              rgba(255, 255, 255, 0.8) 30%,
+              rgba(255, 255, 255, 0.4) 70%,
               rgba(255, 255, 255, 0.1) 90%,
               transparent 100%
             )
           `,
-          mixBlendMode: 'hard-light',
+          mixBlendMode: 'color-dodge',
           opacity: 0.6,
-          filter: `blur(${intensityBlur * 0.5}px)`
+          filter: `blur(${intensityBlur}px)`
         }}
       />
     </>
