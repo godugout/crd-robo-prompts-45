@@ -139,9 +139,9 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   // Fix the onShare handler
   const handleShare = useCallback(() => {
     if (onShare) {
-      onShare();
+      onShare(card);
     }
-  }, [onShare]);
+  }, [onShare, card]);
 
   // Style generation hook
   const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useCardEffects({
