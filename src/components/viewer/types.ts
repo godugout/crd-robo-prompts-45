@@ -4,7 +4,7 @@ export interface EnvironmentScene {
   id: string;
   name: string;
   icon: string;
-  gradient: string;
+  gradient: string; // Keep for fallback
   description: string;
   lighting: {
     color: string;
@@ -12,8 +12,13 @@ export interface EnvironmentScene {
     elevation: number;
     azimuth: number;
   };
-  backgroundImage: string;
+  backgroundImage: string; // Keep for fallback
   reflections: 'soft' | 'sharp' | 'warm' | 'cold' | 'sparkle' | 'vivid';
+  // New HDR properties
+  hdrImage?: string;
+  hdrIntensity?: number;
+  environmentType: 'gradient' | 'hdr';
+  previewImage?: string; // Thumbnail for UI
 }
 
 export interface LightingPreset {
