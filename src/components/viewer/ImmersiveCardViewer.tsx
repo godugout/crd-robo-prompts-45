@@ -13,6 +13,7 @@ import { EnhancedCustomizePanel } from './components/EnhancedCustomizePanel';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { useCardExport } from './hooks/useCardExport';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
+import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -169,6 +170,9 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const handleDownloadClick = useCallback(() => {
     setShowExportDialog(true);
   }, []);
+
+  // Add state for progressive panel
+  const [useProgressivePanel, setUseProgressivePanel] = useState(true);
 
   // Custom hooks
   const { getFrameStyles, getEnhancedEffectStyles, SurfaceTexture } = useEnhancedCardEffects({
@@ -373,9 +377,9 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
 
-        {/* Enhanced Customize Panel */}
+        {/* Progressive Disclosure Customize Panel */}
         {showCustomizePanel && (
-          <EnhancedCustomizePanel
+          <ProgressiveCustomizePanel
             selectedScene={selectedScene}
             selectedLighting={selectedLighting}
             effectValues={effectValues}
@@ -386,7 +390,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             onSceneChange={setSelectedScene}
             onLightingChange={setSelectedLighting}
             onEffectChange={handleEffectChange}
-            onResetEffect={handleResetEffect}
             onResetAllEffects={handleResetAllEffects}
             onBrightnessChange={setOverallBrightness}
             onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
@@ -451,7 +454,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
                 <div className="flex items-center space-x-2">
                   <Sparkles className="w-4 h-4" />
                   <span className="text-sm">
-                    Enhanced Effects System | Scene: {selectedScene.name}
+                    Enhanced Studio | Scene: {selectedScene.name}
                   </span>
                 </div>
               </div>
