@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -23,6 +22,7 @@ import {
 } from 'lucide-react';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { EnvironmentScene, LightingPreset } from '../types';
+import { usePremiumFeatures } from '@/hooks/usePremiumFeatures';
 
 interface ComboPreset {
   id: string;
@@ -328,7 +328,7 @@ interface QuickComboPresetsProps {
   currentEffects: EffectValues;
   selectedPresetId?: string;
   onPresetSelect: (presetId: string) => void;
-  isPremiumUser?: boolean; // Add premium access control
+  isPremiumUser?: boolean;
 }
 
 export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({ 
@@ -336,12 +336,13 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
   currentEffects, 
   selectedPresetId, 
   onPresetSelect,
-  isPremiumUser = false // Default to free tier
+  isPremiumUser = false
 }) => {
-  // Filter presets based on user tier
-  const availablePresets = COMBO_PRESETS.filter(preset => 
-    preset.tier === 'free' || isPremiumUser
-  );
+  // Use premium features hook - defaults to premium enabled for testing
+  const { isPremiumUser } = usePremiumFeatures();
+
+  // All presets available for premium users, filter for free users
+  const availablePresets = isPremiumUser ? COMBO_PRESETS : COMBO_PRESETS.filter(preset => preset.tier === 'free');
 
   // Check if current effects match any preset
   const effectsMatchPreset = (presetEffects: EffectValues, currentEffects: EffectValues): boolean => {
@@ -418,6 +419,17 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
   return (
     <TooltipProvider>
       <div className="space-y-3">
+        {/* Premium Status Banner */}
+        {isPremiumUser && (
+          <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-lg p-3 mb-4">
+            <div className="text-center">
+              <Crown className="w-5 h-5 text-amber-400 mx-auto mb-1" />
+              <div className="text-xs text-amber-200 font-medium">Premium Studio Active</div>
+              <div className="text-xs text-gray-300">All 20+ premium presets unlocked</div>
+            </div>
+          </div>
+        )}
+
         {/* Free Tier Section */}
         {categorizedPresets.free && (
           <div className="space-y-1">
@@ -459,7 +471,7 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
           </div>
         )}
 
-        {/* Premium Tier Sections */}
+        {/* Premium Tier Sections - Show all for premium users */}
         {isPremiumUser && (
           <>
             {['prismatic', 'metallic', 'crystal', 'vintage', 'hybrid'].map(category => {

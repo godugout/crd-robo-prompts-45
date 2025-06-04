@@ -1,14 +1,13 @@
-
 import React, { useState } from 'react';
 import { Play, ArrowRight, RotateCcw, Crown, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
+import { usePremiumFeatures } from '@/hooks/usePremiumFeatures';
 
 interface DemoFeatureProps {
   onApplyPreset: (preset: EffectValues) => void;
   onStartTour: () => void;
-  isPremiumUser?: boolean;
 }
 
 // Updated presets to match the new premium structure
@@ -87,17 +86,14 @@ const FEATURED_PRESETS = [
 
 export const DemoFeature: React.FC<DemoFeatureProps> = ({
   onApplyPreset,
-  onStartTour,
-  isPremiumUser = false
+  onStartTour
 }) => {
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
+  
+  // Use premium features hook - defaults to premium enabled
+  const { isPremiumUser } = usePremiumFeatures();
 
   const handleApplyPreset = (preset: typeof FEATURED_PRESETS[0]) => {
-    // Check premium access
-    if (preset.tier === 'premium' && !isPremiumUser) {
-      return; // Could show upgrade modal here
-    }
-    
     setSelectedPreset(preset.id);
     onApplyPreset(preset.effects);
   };
@@ -160,48 +156,32 @@ export const DemoFeature: React.FC<DemoFeatureProps> = ({
         </div>
       </div>
 
-      {/* Premium Presets */}
+      {/* Premium Presets - Always show as unlocked for testing */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h4 className="text-amber-400 font-medium text-sm flex items-center">
             <Crown className="w-4 h-4 mr-1" />
-            Premium Collection
+            Premium Collection {isPremiumUser && <span className="ml-2 text-xs bg-amber-500 text-black px-2 py-0.5 rounded">UNLOCKED</span>}
           </h4>
-          {!isPremiumUser && (
-            <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black text-xs h-6 px-2">
-              Upgrade
-            </Button>
-          )}
         </div>
         
         <div className="grid grid-cols-2 gap-3">
           {premiumPresets.map((preset) => (
             <Card 
               key={preset.id}
-              className={`cursor-pointer transition-all ${
-                isPremiumUser ? 'hover:scale-105' : 'opacity-60'
-              } ${
-                selectedPreset === preset.id && isPremiumUser
+              className={`cursor-pointer transition-all hover:scale-105 ${
+                selectedPreset === preset.id 
                   ? 'ring-2 ring-amber-500 bg-editor-dark border-amber-500' 
-                  : isPremiumUser 
-                    ? 'bg-editor-dark border-amber-600/30 hover:border-amber-500'
-                    : 'bg-editor-dark border-gray-600 cursor-not-allowed'
-              } relative`}
-              onClick={() => isPremiumUser && handleApplyPreset(preset)}
+                  : 'bg-editor-dark border-amber-600/30 hover:border-amber-500'
+              }`}
+              onClick={() => handleApplyPreset(preset)}
             >
-              {/* Premium Lock Overlay */}
-              {!isPremiumUser && (
-                <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center z-10">
-                  <Lock className="w-6 h-6 text-amber-400" />
-                </div>
-              )}
-              
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className="text-2xl">{preset.thumbnail}</div>
                   <div className="flex items-center space-x-1">
                     <Crown className="w-3 h-3 text-amber-400" />
-                    {selectedPreset === preset.id && isPremiumUser && (
+                    {selectedPreset === preset.id && (
                       <div className="w-2 h-2 bg-amber-400 rounded-full" />
                     )}
                   </div>
@@ -220,23 +200,20 @@ export const DemoFeature: React.FC<DemoFeatureProps> = ({
         </div>
       </div>
 
-      {/* Premium Upsell */}
-      {!isPremiumUser && (
-        <div className="p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-lg">
-          <div className="text-center space-y-3">
-            <Crown className="w-8 h-8 text-amber-400 mx-auto" />
+      {/* Premium Status Banner */}
+      {isPremiumUser && (
+        <div className="p-4 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-lg">
+          <div className="text-center space-y-2">
+            <Crown className="w-6 h-6 text-amber-400 mx-auto" />
             <div>
-              <h4 className="text-white font-semibold mb-1">Unlock Premium Effects</h4>
-              <p className="text-crd-lightGray text-sm">Get access to 15+ exclusive visual effect combinations</p>
+              <h4 className="text-white font-semibold mb-1">Premium Studio Active</h4>
+              <p className="text-amber-200 text-sm">All premium effects and studio features unlocked</p>
             </div>
             <div className="grid grid-cols-3 gap-2 text-xs text-amber-200">
-              <div>• Crystal Clarity</div>
-              <div>• Metallic Luxury</div>
-              <div>• Hybrid Effects</div>
+              <div>• 20+ Premium Effects</div>
+              <div>• Advanced Materials</div>
+              <div>• 8K Export</div>
             </div>
-            <Button className="w-full bg-amber-500 hover:bg-amber-600 text-black font-medium">
-              Upgrade to Premium
-            </Button>
           </div>
         </div>
       )}
@@ -261,7 +238,7 @@ export const DemoFeature: React.FC<DemoFeatureProps> = ({
         {selectedPreset && (
           <div className="text-center">
             <p className="text-crd-green text-xs">
-              ✓ Preset applied! Switch to Effects tab to customize further
+              ✓ Preset applied! Switch to {isPremiumUser ? 'Premium Studio' : 'Effects'} tab to customize further
             </p>
           </div>
         )}
