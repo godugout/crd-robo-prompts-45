@@ -13,8 +13,7 @@ import { EnhancedCustomizePanel } from './components/EnhancedCustomizePanel';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { useCardExport } from './hooks/useCardExport';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
-import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
-import { BottomDrawerCustomizePanel } from './components/BottomDrawerCustomizePanel';
+import { CompactBottomDrawer } from './components/CompactBottomDrawer';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -319,8 +318,8 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         )}
 
-        {/* Basic Controls with hover visibility */}
-        <div className={`transition-opacity duration-200 ${isHoveringControls ? 'opacity-100 z-20' : 'opacity-100 z-10'}`}>
+        {/* Basic Controls - Top Left */}
+        <div className="absolute top-4 left-4 z-10">
           <ViewerControls
             showEffects={showEffects}
             autoRotate={autoRotate}
@@ -332,9 +331,9 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         </div>
 
-        {/* Card Navigation Controls */}
+        {/* Card Navigation Controls - Top Right */}
         {hasMultipleCards && (
-          <div className="absolute bottom-20 right-4 z-10">
+          <div className="absolute top-4 right-4 z-10">
             <div className="flex items-center space-x-2 bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-3 border border-white/10">
               <Button
                 variant="ghost"
@@ -363,8 +362,8 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
 
-        {/* Bottom Drawer Customize Panel */}
-        <BottomDrawerCustomizePanel
+        {/* Compact Bottom Drawer */}
+        <CompactBottomDrawer
           selectedScene={selectedScene}
           selectedLighting={selectedLighting}
           effectValues={effectValues}
@@ -385,7 +384,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           card={card}
         />
 
-        {/* Enhanced Card Container - Add ref */}
+        {/* Enhanced Card Container */}
         <div ref={cardContainerRef}>
           <EnhancedCardContainer
             card={card}
