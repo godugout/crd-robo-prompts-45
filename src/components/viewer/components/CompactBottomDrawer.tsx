@@ -43,7 +43,7 @@ interface CompactBottomDrawerProps {
   onDownload?: (card: CardData) => void;
   onShare?: (card: CardData) => void;
   card: CardData;
-  useTopTrigger?: boolean; // New prop for testing
+  useTopTrigger?: boolean;
 }
 
 export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
@@ -55,7 +55,7 @@ export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
   onEffectChange,
   onDownload,
   card,
-  useTopTrigger = true // Default to true for testing
+  useTopTrigger = true
 }) => {
   const { isOpen, setIsOpen, getActiveEffectsCount } = useDrawerState();
   const { isDesktop } = useResponsiveLayout();
@@ -64,8 +64,11 @@ export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
 
   console.log('CompactBottomDrawer render:', { isOpen, activeEffectsCount, useTopTrigger });
 
-  // Responsive height - smaller on desktop for better card visibility
-  const drawerHeight = isDesktop ? 'h-[45vh]' : 'h-[70vh]';
+  // More compact height for top drawer - reduced from previous values
+  const drawerHeight = isDesktop ? 'h-[35vh]' : 'h-[50vh]';
+  
+  // Position from top instead of bottom when using TopTrigger
+  const drawerPosition = useTopTrigger ? 'top-0 inset-x-0 rounded-b-[10px]' : 'inset-x-0 bottom-0 rounded-t-[10px]';
 
   return (
     <>
@@ -83,13 +86,16 @@ export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
           />
         )}
 
-        {/* Drawer Content with ultra-high z-index for testing */}
-        <DrawerContent className={`${drawerHeight} bg-black/95 backdrop-blur-lg border-t border-white/20 z-[10001]`}>
-          <DrawerHeader className="border-b border-white/10 pb-4">
+        {/* Drawer Content with position based on trigger type */}
+        <DrawerContent 
+          className={`${drawerHeight} bg-black/95 backdrop-blur-lg border-b border-white/20 z-[10001] fixed ${drawerPosition}`}
+          style={{ transform: useTopTrigger ? 'translateY(0)' : undefined }}
+        >
+          <DrawerHeader className="border-b border-white/10 p-3">
             <div className="flex items-center justify-between">
-              <DrawerTitle className="text-white text-xl font-semibold flex items-center">
-                <Settings className="w-6 h-6 mr-3 text-crd-green" />
-                Enhanced Studio {useTopTrigger && <span className="text-xs ml-2 text-crd-green">(Top Trigger - Testing)</span>}
+              <DrawerTitle className="text-white text-lg font-semibold flex items-center">
+                <Settings className="w-5 h-5 mr-2 text-crd-green" />
+                Enhanced Studio
               </DrawerTitle>
               <div className="flex items-center space-x-3">
                 {onDownload && (
@@ -97,36 +103,45 @@ export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={() => onDownload(card)}
-                    className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black transition-colors"
+                    className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black transition-colors h-8 py-0"
                   >
-                    <Download className="w-4 h-4 mr-2" />
+                    <Download className="w-3.5 h-3.5 mr-1" />
                     Export
                   </Button>
                 )}
                 <DrawerClose asChild>
-                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
-                    <X className="w-5 h-5" />
+                  <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 h-7 w-7 p-0">
+                    <X className="w-4 h-4" />
                   </Button>
                 </DrawerClose>
               </div>
             </div>
           </DrawerHeader>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-8">
-            {/* Quick Effects Presets */}
-            <QuickEffectsPresets onEffectChange={onEffectChange} />
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Quick Effects Presets - More compact layout */}
+            <div>
+              <h3 className="text-sm font-medium text-white mb-2">Quick Effects</h3>
+              <QuickEffectsPresets onEffectChange={onEffectChange} />
+            </div>
 
-            {/* Environment Scenes */}
-            <EnvironmentScenes 
-              selectedScene={selectedScene}
-              onSceneChange={onSceneChange}
-            />
+            {/* Environment Scenes - More compact layout */}
+            <div>
+              <h3 className="text-sm font-medium text-white mb-2">Environments</h3>
+              <EnvironmentScenes 
+                selectedScene={selectedScene}
+                onSceneChange={onSceneChange}
+              />
+            </div>
 
-            {/* Lighting Presets */}
-            <LightingPresets 
-              selectedLighting={selectedLighting}
-              onLightingChange={onLightingChange}
-            />
+            {/* Lighting Presets - More compact layout */}
+            <div>
+              <h3 className="text-sm font-medium text-white mb-2">Lighting</h3>
+              <LightingPresets 
+                selectedLighting={selectedLighting}
+                onLightingChange={onLightingChange}
+              />
+            </div>
           </div>
         </DrawerContent>
       </Drawer>

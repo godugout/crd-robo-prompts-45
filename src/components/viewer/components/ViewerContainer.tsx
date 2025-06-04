@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
@@ -29,31 +30,17 @@ export const ViewerContainer: React.FC<ViewerContainerProps> = ({
 }) => {
   const { isDesktop } = useResponsiveLayout();
 
-  console.log('ViewerContainer render:', {
-    isFullscreen,
-    isDrawerOpen,
-    isDesktop,
-    mousePosition,
-    hasSelectedScene: !!selectedScene
-  });
-
   // Calculate card positioning based on drawer state and device type
   const getCardPositioning = () => {
     if (!isDrawerOpen) {
       return 'items-center justify-center';
     }
     
-    if (isDesktop) {
-      // On desktop, move card up when drawer is open to give more space
-      return 'items-start justify-center pt-16';
-    }
-    
-    // On mobile, keep centered
-    return 'items-center justify-center';
+    // When drawer is open from top, push card down a bit for both desktop and mobile
+    return 'items-center justify-center pt-[25vh]';
   };
 
   const positioning = getCardPositioning();
-  console.log('Card positioning:', positioning);
 
   // Safe gradient with fallback
   const backgroundGradient = `linear-gradient(135deg, 
@@ -90,13 +77,12 @@ export const ViewerContainer: React.FC<ViewerContainerProps> = ({
         />
       )}
 
-      {/* Debug overlay - shows trigger status */}
+      {/* Debug overlay - updated to show top trigger info */}
       <div className="absolute top-2 left-2 text-white text-xs bg-black/70 p-2 rounded z-[100] border border-crd-green/30">
-        <div>Viewer: {isFullscreen ? 'Fullscreen' : 'Normal'}</div>
         <div>Drawer: {isDrawerOpen ? 'Open' : 'Closed'}</div>
         <div>Device: {isDesktop ? 'Desktop' : 'Mobile'}</div>
-        <div className="text-crd-green">🔝 TOP TRIGGER: Should be visible at top-right z-[10000]</div>
-        <div className="text-yellow-400">Testing mode - moved from bottom</div>
+        <div className="text-crd-green">🔝 TOP DRAWER: Open from top position</div>
+        <div className="text-yellow-400">Compact version with reduced height</div>
       </div>
 
       {children}
