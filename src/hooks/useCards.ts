@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase-client';
-import { useAuth } from '@/features/auth/providers/AuthProvider';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface Card {
