@@ -130,8 +130,8 @@ export const useSimpleCardEditor = () => {
         return;
       }
 
-      // Import html2canvas dynamically
-      const html2canvas = (await import('html2canvas')).default;
+      // Import html2canvas dynamically to match the pattern used in useCardExport
+      const { default: html2canvas } = await import('html2canvas');
       
       // Capture the card element as canvas
       const canvas = await html2canvas(cardElement, {

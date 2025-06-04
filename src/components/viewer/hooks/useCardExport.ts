@@ -1,6 +1,5 @@
 
 import { useCallback, useState } from 'react';
-import html2canvas from 'html2canvas';
 // @ts-ignore
 import GIF from 'gif.js';
 import { toast } from 'sonner';
@@ -40,6 +39,9 @@ export const useCardExport = ({
 
   const captureFrame = useCallback(async (options: ExportOptions): Promise<string> => {
     if (!cardRef.current) throw new Error('Card element not found');
+
+    // Use dynamic import to match the pattern used in useSimpleCardEditor
+    const { default: html2canvas } = await import('html2canvas');
 
     const canvas = await html2canvas(cardRef.current, {
       scale: options.resolution,
@@ -106,6 +108,9 @@ export const useCardExport = ({
         { interference: { intensity: 75 } },
         { foilspray: { intensity: 70 } }
       ];
+
+      // Use dynamic import to match the pattern
+      const { default: html2canvas } = await import('html2canvas');
 
       for (let frame = 0; frame < totalFrames; frame++) {
         const progress = frame / totalFrames;
