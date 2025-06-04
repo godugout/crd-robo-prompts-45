@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ZoomIn, ZoomOut, RotateCw, Download, Settings, Camera, Sparkles } from 'lucide-react';
@@ -13,18 +14,35 @@ import { useEnhancedCardInteraction } from './hooks/useEnhancedCardInteraction';
 import { useCardExport } from './hooks/useCardExport';
 import { ENVIRONMENT_SCENES, LIGHTING_PRESETS, DEFAULT_MATERIAL_SETTINGS } from './constants';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from './types';
-import { CardFront } from './components/CardFront';
 
 interface ImmersiveCardViewerProps {
   card: CardData;
+  cards?: CardData[];
+  currentCardIndex?: number;
+  onCardChange?: (newIndex: number) => void;
   onClose?: () => void;
   onEdit?: () => void;
+  onShare?: () => void;
+  onDownload?: () => void;
+  isOpen?: boolean;
+  allowRotation?: boolean;
+  showStats?: boolean;
+  ambient?: boolean;
 }
 
 export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   card,
+  cards = [],
+  currentCardIndex = 0,
+  onCardChange,
   onClose,
-  onEdit
+  onEdit,
+  onShare,
+  onDownload,
+  isOpen = true,
+  allowRotation = true,
+  showStats = false,
+  ambient = false
 }) => {
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
@@ -64,7 +82,13 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     isHovering
   });
 
-  const { exportCard, isExporting } = useCardExport(cardRef);
+  const { exportCard, isExporting } = useCardExport({
+    cardRef,
+    card,
+    onRotationChange: setRotation,
+    onEffectChange: handleEffectChange,
+    effectValues
+  });
 
   // Event handlers
   const handleZoomIn = useCallback(() => {
@@ -90,19 +114,21 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     }));
   }, []);
 
-  const handleExport = useCallback(async (format: 'png' | 'jpg', quality: number = 0.9) => {
+  const handleExport = useCallback(async (options: { format: 'png' | 'jpg'; quality?: number }) => {
     try {
-      await exportCard(format, quality);
+      await exportCard(options.format, options.quality || 0.9);
       setShowExportDialog(false);
-      toast.success(`Card exported as ${format.toUpperCase()}`);
+      toast.success(`Card exported as ${options.format.toUpperCase()}`);
     } catch (error) {
       toast.error('Failed to export card');
     }
   }, [exportCard]);
 
   const handleTakePhoto = useCallback(() => {
-    handleExport('png', 1.0);
+    handleExport({ format: 'png', quality: 1.0 });
   }, [handleExport]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/95 z-50 flex">
@@ -202,30 +228,11 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
               materialSettings={materialSettings}
               interactiveLighting={interactiveLighting}
             />
-            
-            {/* Enhanced CardFront with Material Effects */}
-            <CardFront
-              card={card}
-              isFlipped={isFlipped}
-              isHovering={isHovering}
-              showEffects={showEffects}
-              effectIntensity={[]}
-              mousePosition={mousePosition}
-              frameStyles={cardEffects.getFrameStyles()}
-              physicalEffectStyles={cardEffects.getEnhancedEffectStyles()}
-              SurfaceTexture={cardEffects.SurfaceTexture}
-              effectValues={effectValues}
-              materialSettings={materialSettings}
-              interactiveLighting={interactiveLighting}
-              materialEffects={cardEffects.getMaterialEffects()}
-              MaterialSurfaceTexture={cardEffects.MaterialSurfaceTexture}
-            />
           </div>
         </div>
 
         {/* Controls */}
         <ViewerControls
-          zoom={zoom}
           onZoomIn={handleZoomIn}
           onZoomOut={handleZoomOut}
           onRotate={handleRotate}
@@ -242,7 +249,9 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
       {showCustomizePanel && (
         <CustomizePanel
           effectValues={effectValues}
-          onEffectChange={handleEffectChange}
+          onEffectChange={(effectId: string, parameterId: string, value: number | boolean | string) => {
+            handleEffectChange(effectId, parameterId, value);
+          }}
           selectedScene={selectedScene}
           onSceneChange={setSelectedScene}
           selectedLighting={selectedLighting}
