@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Sparkles, Zap, Gem, Clock, Flame, Snowflake, Sun, Moon, Star } from 'lucide-react';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { EnvironmentScene, LightingPreset } from '../types';
@@ -18,7 +19,7 @@ interface ComboPreset {
 const COMBO_PRESETS: ComboPreset[] = [
   {
     id: 'holographic-burst',
-    name: 'Holographic Burst',
+    name: 'Holographic',
     icon: Sparkles,
     description: 'Rainbow holographic with chrome accents',
     effects: {
@@ -28,7 +29,7 @@ const COMBO_PRESETS: ComboPreset[] = [
   },
   {
     id: 'metallic-prizm',
-    name: 'Metallic Prizm',
+    name: 'Prizm',
     icon: Gem,
     description: 'Prismatic colors with brushed metal',
     effects: {
@@ -38,7 +39,7 @@ const COMBO_PRESETS: ComboPreset[] = [
   },
   {
     id: 'crystal-interference',
-    name: 'Crystal Interference',
+    name: 'Crystal',
     icon: Zap,
     description: 'Crystal facets with soap bubble effects',
     effects: {
@@ -48,7 +49,7 @@ const COMBO_PRESETS: ComboPreset[] = [
   },
   {
     id: 'vintage-foil',
-    name: 'Vintage Foil',
+    name: 'Vintage',
     icon: Clock,
     description: 'Aged patina with metallic foil spray',
     effects: {
@@ -58,7 +59,7 @@ const COMBO_PRESETS: ComboPreset[] = [
   },
   {
     id: 'golden-fire',
-    name: 'Golden Fire',
+    name: 'Golden',
     icon: Flame,
     description: 'Warm gold tones with chromatic shift',
     effects: {
@@ -68,7 +69,7 @@ const COMBO_PRESETS: ComboPreset[] = [
   },
   {
     id: 'ice-crystal',
-    name: 'Ice Crystal',
+    name: 'Ice',
     icon: Snowflake,
     description: 'Cool crystal with silver highlights',
     effects: {
@@ -78,7 +79,7 @@ const COMBO_PRESETS: ComboPreset[] = [
   },
   {
     id: 'solar-flare',
-    name: 'Solar Flare',
+    name: 'Solar',
     icon: Sun,
     description: 'Bright holographic with gold warmth',
     effects: {
@@ -88,7 +89,7 @@ const COMBO_PRESETS: ComboPreset[] = [
   },
   {
     id: 'lunar-shimmer',
-    name: 'Lunar Shimmer',
+    name: 'Lunar',
     icon: Moon,
     description: 'Subtle interference with vintage charm',
     effects: {
@@ -98,7 +99,7 @@ const COMBO_PRESETS: ComboPreset[] = [
   },
   {
     id: 'starlight-spray',
-    name: 'Starlight Spray',
+    name: 'Starlight',
     icon: Star,
     description: 'Sparkling foil spray with prismatic edge',
     effects: {
@@ -114,24 +115,34 @@ interface QuickComboPresetsProps {
 
 export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({ onApplyCombo }) => {
   return (
-    <div className="grid grid-cols-3 gap-2">
-      {COMBO_PRESETS.map((preset) => {
-        const IconComponent = preset.icon;
-        return (
-          <Button
-            key={preset.id}
-            onClick={() => onApplyCombo(preset)}
-            variant="outline"
-            className="h-auto p-3 flex flex-col items-center space-y-1 border-editor-border hover:border-crd-green hover:bg-crd-green/10"
-          >
-            <IconComponent className="w-5 h-5 text-crd-green" />
-            <span className="text-white text-xs font-medium">{preset.name}</span>
-            <span className="text-crd-lightGray text-xs text-center leading-tight">
-              {preset.description}
-            </span>
-          </Button>
-        );
-      })}
-    </div>
+    <TooltipProvider>
+      <div className="grid grid-cols-3 gap-2">
+        {COMBO_PRESETS.map((preset) => {
+          const IconComponent = preset.icon;
+          return (
+            <Tooltip key={preset.id}>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => onApplyCombo(preset)}
+                  variant="outline"
+                  className="h-16 p-2 flex flex-col items-center justify-center space-y-1 border-editor-border hover:border-crd-green hover:bg-crd-green/10"
+                >
+                  <IconComponent className="w-4 h-4 text-crd-green flex-shrink-0" />
+                  <span className="text-white text-xs font-medium text-center leading-tight">
+                    {preset.name}
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="bg-black border-gray-700 text-white">
+                <div className="text-center">
+                  <div className="font-medium">{preset.name}</div>
+                  <div className="text-xs text-gray-300">{preset.description}</div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </div>
+    </TooltipProvider>
   );
 };
