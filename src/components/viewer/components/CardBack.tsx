@@ -41,15 +41,15 @@ export const CardBack: React.FC<CardBackProps> = ({
         ...frameStyles
       }}
     >
-      {/* Base Material Layer - Same as front */}
+      {/* Base Material Layer */}
       <div className="absolute inset-0" style={physicalEffectStyles} />
       
-      {/* Surface Texture Layer - Same as front */}
+      {/* Surface Texture Layer */}
       <div className="absolute inset-0 z-10">
         {SurfaceTexture}
       </div>
       
-      {/* Material Effects Layer - Same as front */}
+      {/* Material Effects Layer */}
       <CardEffectsLayer
         showEffects={showEffects}
         isHovering={isHovering}
@@ -62,94 +62,111 @@ export const CardBack: React.FC<CardBackProps> = ({
       />
       
       {/* Content Overlay for Readability */}
-      <div className="absolute inset-0 bg-black bg-opacity-40 z-20" />
+      <div className="absolute inset-0 bg-black bg-opacity-30 z-20" />
       
-      {/* Card Back Content with CRD Branding */}
+      {/* Baseball Card-Inspired Layout */}
       <div className="relative h-full p-6 flex flex-col z-30">
-        {/* New Gradient CRD Logo at Top */}
-        <div className="mb-6 flex justify-center">
-          <div className="relative">
+        {/* Header Section - Logo and Title */}
+        <div className="text-center mb-8">
+          <div className="mb-4 flex justify-center">
             <img 
               src="/lovable-uploads/dac1449a-924d-4d34-9a82-a461fee3505d.png" 
               alt="CRD Logo" 
-              className="w-28 h-auto opacity-95"
+              className="w-24 h-auto opacity-95"
               style={{
                 filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.5))'
               }}
             />
           </div>
-        </div>
-        
-        {/* Card Title */}
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">
+          <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg tracking-wide">
             {card.title}
           </h1>
           {card.series && (
-            <p className="text-sm text-gray-200 uppercase tracking-wide drop-shadow-md">
-              {card.series}
+            <p className="text-sm text-gray-200 uppercase tracking-wider drop-shadow-md font-medium">
+              {card.series} Series
             </p>
           )}
         </div>
         
-        {/* Card Details Grid */}
-        <div className="space-y-3 mb-6">
-          <div className="flex justify-between p-3 rounded-lg bg-black bg-opacity-60 backdrop-blur-sm border border-white border-opacity-20">
-            <span className="text-sm text-gray-200">Type:</span>
-            <span className="font-medium text-white">{card.type || 'Character'}</span>
-          </div>
-          
-          <div className="flex justify-between p-3 rounded-lg bg-black bg-opacity-60 backdrop-blur-sm border border-white border-opacity-20">
-            <span className="text-sm text-gray-200">Rarity:</span>
-            <span className={`font-medium capitalize ${
-              card.rarity === 'legendary' ? 'text-yellow-400' :
-              card.rarity === 'epic' ? 'text-purple-400' :
-              card.rarity === 'rare' ? 'text-blue-400' :
-              card.rarity === 'uncommon' ? 'text-green-400' :
-              'text-gray-200'
-            }`}>
-              {card.rarity}
-            </span>
-          </div>
-
-          {card.tags.length > 0 && (
-            <div className="p-3 rounded-lg bg-black bg-opacity-60 backdrop-blur-sm border border-white border-opacity-20">
-              <span className="text-sm block mb-2 text-gray-200">Tags:</span>
-              <div className="flex flex-wrap gap-2">
-                {card.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white bg-opacity-20 text-gray-100 border border-white border-opacity-30 backdrop-blur-sm"
-                  >
-                    {tag}
+        {/* Info Grid Section - Baseball Card Style */}
+        <div className="mb-6">
+          <div className="bg-black bg-opacity-60 backdrop-blur-sm border border-white border-opacity-30 rounded-lg p-4">
+            <div className="grid grid-cols-2 gap-4">
+              {/* Left Column */}
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-xs text-gray-300 uppercase tracking-wide">Edition</span>
+                  <span className="text-sm font-medium text-white">
+                    {card.template_id ? `${card.template_id.charAt(0).toUpperCase()}${card.template_id.slice(1)}` : 'Standard'}
                   </span>
-                ))}
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-xs text-gray-300 uppercase tracking-wide">Card ID</span>
+                  <span className="text-sm font-mono text-white">#{card.id?.slice(-6) || 'N/A'}</span>
+                </div>
+              </div>
+              
+              {/* Right Column */}
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-xs text-gray-300 uppercase tracking-wide">Status</span>
+                  <span className="text-sm font-medium text-green-400">Active</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-xs text-gray-300 uppercase tracking-wide">Year</span>
+                  <span className="text-sm font-medium text-white">2025</span>
+                </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
-        
-        {/* Description - Takes remaining space */}
-        {card.description && (
-          <div className="mt-auto">
-            <h3 className="text-sm font-semibold text-gray-200 mb-2 uppercase tracking-wide drop-shadow-md">
-              Description
+
+        {/* Tags Section */}
+        {card.tags.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-gray-300 mb-3 uppercase tracking-wider">
+              Categories
             </h3>
-            <p className="text-sm text-gray-100 leading-relaxed drop-shadow-md bg-black bg-opacity-40 p-3 rounded-lg border border-white border-opacity-20 backdrop-blur-sm">
-              {card.description}
-            </p>
+            <div className="flex flex-wrap gap-2">
+              {card.tags.slice(0, 4).map((tag, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white bg-opacity-20 text-gray-100 border border-white border-opacity-30 backdrop-blur-sm"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        {/* Description Section - Story */}
+        {card.description && (
+          <div className="flex-1 mb-6">
+            <h3 className="text-xs font-semibold text-gray-300 mb-3 uppercase tracking-wider">
+              Story
+            </h3>
+            <div className="bg-black bg-opacity-50 backdrop-blur-sm border border-white border-opacity-20 rounded-lg p-4">
+              <p className="text-sm text-gray-100 leading-relaxed drop-shadow-md">
+                {card.description}
+              </p>
+            </div>
           </div>
         )}
 
-        {/* Card ID and CRD branding at bottom */}
-        <div className="mt-4 pt-4 border-t border-white border-opacity-30">
-          <div className="flex justify-between items-center text-xs text-gray-200">
-            <span className="drop-shadow-md">Card ID: {card.id || 'N/A'}</span>
-            <div className="flex items-center gap-2">
-              {card.template_id && (
-                <span className="capitalize drop-shadow-md">{card.template_id} Edition</span>
-              )}
-              <span className="text-white font-bold drop-shadow-md tracking-wider">CRD</span>
+        {/* Footer - CRD Branding */}
+        <div className="mt-auto pt-4 border-t border-white border-opacity-20">
+          <div className="flex justify-between items-center">
+            <div className="text-xs text-gray-300">
+              <span className="uppercase tracking-wide">Cardshow Digital</span>
+            </div>
+            <div className="text-right">
+              <div className="text-xl font-bold text-white tracking-wider drop-shadow-lg">
+                CRD
+              </div>
+              <div className="text-xs text-gray-300 -mt-1">
+                Premium Collection
+              </div>
             </div>
           </div>
         </div>
