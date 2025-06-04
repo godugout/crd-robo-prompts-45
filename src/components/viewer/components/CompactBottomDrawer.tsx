@@ -21,6 +21,7 @@ import { EnvironmentScenes } from './EnvironmentScenes';
 import { LightingPresets } from './LightingPresets';
 import { DrawerTrigger } from './DrawerTrigger';
 import { useDrawerState } from '../hooks/useDrawerState';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 interface CompactBottomDrawerProps {
   selectedScene: EnvironmentScene;
@@ -54,10 +55,14 @@ export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
   card
 }) => {
   const { isOpen, setIsOpen, getActiveEffectsCount } = useDrawerState();
+  const { isDesktop } = useResponsiveLayout();
 
   const activeEffectsCount = getActiveEffectsCount(effectValues);
 
   console.log('CompactBottomDrawer render:', { isOpen, activeEffectsCount });
+
+  // Responsive height - smaller on desktop for better card visibility
+  const drawerHeight = isDesktop ? 'h-[45vh]' : 'h-[70vh]';
 
   return (
     <>
@@ -69,7 +74,7 @@ export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
         />
 
         {/* Compact Drawer Content */}
-        <DrawerContent className="h-[70vh] bg-black/95 backdrop-blur-lg border-t border-white/20">
+        <DrawerContent className={`${drawerHeight} bg-black/95 backdrop-blur-lg border-t border-white/20`}>
           <DrawerHeader className="border-b border-white/10 pb-4">
             <div className="flex items-center justify-between">
               <DrawerTitle className="text-white text-xl font-semibold flex items-center">
@@ -97,7 +102,7 @@ export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
             </div>
           </DrawerHeader>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-10">
+          <div className="flex-1 overflow-y-auto p-6 space-y-8">
             {/* Quick Effects Presets */}
             <QuickEffectsPresets onEffectChange={onEffectChange} />
 

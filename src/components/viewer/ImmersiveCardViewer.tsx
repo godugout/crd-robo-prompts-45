@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
@@ -15,6 +14,7 @@ import { CardNavigationControls } from './components/CardNavigationControls';
 import { ViewerContainer } from './components/ViewerContainer';
 import { useViewerState } from './hooks/useViewerState';
 import { useViewerInteractions } from './hooks/useViewerInteractions';
+import { useDrawerState } from './hooks/useDrawerState';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -154,6 +154,9 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     setRotation(newRotation);
   }, [setRotation]);
 
+  // Get drawer state for positioning
+  const { isOpen: isDrawerOpen } = require('./hooks/useDrawerState').useDrawerState();
+
   // Update the existing download handler to open export dialog
   const handleDownloadClick = useCallback(() => {
     setShowExportDialog(true);
@@ -179,6 +182,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         ambient={ambient}
         mousePosition={mousePosition}
         selectedScene={selectedScene}
+        isDrawerOpen={isDrawerOpen}
         onMouseMove={handleMouseMove}
         onMouseUp={handleDragEnd}
         onMouseLeave={handleDragEnd}
