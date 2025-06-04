@@ -45,7 +45,7 @@ export const HolographicEffect: React.FC<HolographicEffectProps> = ({
         }}
       />
 
-      {/* Subtle Radial Flares */}
+      {/* Softer Radial Flares - Classic Spoke Effect */}
       <div
         className="absolute inset-0 z-21"
         style={{
@@ -53,19 +53,19 @@ export const HolographicEffect: React.FC<HolographicEffectProps> = ({
             conic-gradient(
               from ${mousePosition.x * 90}deg at ${50 + mousePosition.x * 10}% ${50 + mousePosition.y * 10}%,
               transparent 0deg,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.25}) 15deg,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.15}) 15deg,
               transparent 30deg,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.2}) 75deg,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.12}) 75deg,
               transparent 90deg,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.3}) 135deg,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.18}) 135deg,
               transparent 150deg,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.2}) 195deg,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.12}) 195deg,
               transparent 210deg,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.25}) 255deg,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.15}) 255deg,
               transparent 270deg,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.2}) 315deg,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.12}) 315deg,
               transparent 330deg,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.25}) 360deg
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.15}) 360deg
             )
           `,
           maskImage: `
@@ -87,56 +87,80 @@ export const HolographicEffect: React.FC<HolographicEffectProps> = ({
             )
           `,
           mixBlendMode: 'soft-light',
-          opacity: 0.6,
-          filter: `blur(${holographicBlur * 0.8}px)`
+          opacity: 0.4,
+          filter: `blur(${holographicBlur * 1.2}px)`
         }}
       />
 
-      {/* Concentric Circle Interference Pattern - Restored */}
+      {/* Diamond Facet Pattern 1 - Primary */}
       <div
         className="absolute inset-0 z-22"
         style={{
           background: `
-            radial-gradient(
-              circle at ${30 + mousePosition.x * 40}% ${30 + mousePosition.y * 40}%,
-              transparent 0%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.2}) 8%,
-              transparent 12%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.15}) 20%,
-              transparent 24%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.12}) 32%,
-              transparent 36%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.14}) 44%,
-              transparent 48%
+            linear-gradient(
+              ${45 + mousePosition.x * 30}deg,
+              transparent 45%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.25}) 48%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.35}) 50%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.25}) 52%,
+              transparent 55%
+            ),
+            linear-gradient(
+              ${135 + mousePosition.y * 30}deg,
+              transparent 45%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.2}) 48%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.3}) 50%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.2}) 52%,
+              transparent 55%
             )
           `,
-          backgroundSize: '120px 120px',
+          clipPath: `polygon(
+            ${30 + mousePosition.x * 10}% ${20 + mousePosition.y * 10}%,
+            ${70 - mousePosition.x * 10}% ${20 + mousePosition.y * 10}%,
+            ${80 - mousePosition.x * 5}% ${50}%,
+            ${70 - mousePosition.x * 10}% ${80 - mousePosition.y * 10}%,
+            ${30 + mousePosition.x * 10}% ${80 - mousePosition.y * 10}%,
+            ${20 + mousePosition.x * 5}% ${50}%
+          )`,
           mixBlendMode: 'overlay',
           opacity: 0.6,
-          filter: `blur(${holographicBlur * 0.8}px)`
+          filter: `blur(${holographicBlur * 0.5}px)`
         }}
       />
 
-      {/* Secondary Circle Pattern - Different Size */}
+      {/* Diamond Facet Pattern 2 - Secondary */}
       <div
         className="absolute inset-0 z-23"
         style={{
           background: `
-            radial-gradient(
-              circle at ${60 + mousePosition.x * 25}% ${60 + mousePosition.y * 25}%,
-              transparent 0%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.15}) 5%,
-              transparent 10%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.12}) 15%,
-              transparent 20%,
-              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.14}) 25%,
-              transparent 30%
+            linear-gradient(
+              ${-45 + mousePosition.y * 25}deg,
+              transparent 40%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.2}) 47%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.28}) 50%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.2}) 53%,
+              transparent 60%
+            ),
+            linear-gradient(
+              ${45 - mousePosition.x * 25}deg,
+              transparent 40%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.15}) 47%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.25}) 50%,
+              rgba(255, 255, 255, ${(holographicIntensity / 100) * 0.15}) 53%,
+              transparent 60%
             )
           `,
-          backgroundSize: '80px 80px',
-          mixBlendMode: 'overlay',
+          clipPath: `polygon(
+            ${40 - mousePosition.x * 5}% ${30 - mousePosition.y * 5}%,
+            ${60 + mousePosition.x * 5}% ${30 - mousePosition.y * 5}%,
+            ${75 + mousePosition.x * 3}% ${50}%,
+            ${60 + mousePosition.x * 5}% ${70 + mousePosition.y * 5}%,
+            ${40 - mousePosition.x * 5}% ${70 + mousePosition.y * 5}%,
+            ${25 - mousePosition.x * 3}% ${50}%
+          )`,
+          mixBlendMode: 'soft-light',
           opacity: 0.4,
-          filter: `blur(${holographicBlur}px)`
+          filter: `blur(${holographicBlur * 0.8}px)`
         }}
       />
 
