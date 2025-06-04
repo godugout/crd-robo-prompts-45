@@ -4,12 +4,17 @@ export interface EnvironmentScene {
   name: string;
   gradient?: string;
   backgroundImage?: string;
+  icon?: string;
+  description?: string;
 }
 
 export interface LightingPreset {
   id: string;
   name: string;
   brightness: number;
+  description?: string;
+  contrast?: number;
+  temperature?: number;
 }
 
 export interface MaterialSettings {
