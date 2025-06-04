@@ -25,6 +25,7 @@ export class CustomAuthService {
     if (storedUser) {
       try {
         this.currentUser = JSON.parse(storedUser);
+        console.log('🔧 Loaded stored session for:', this.currentUser?.username);
         this.notifyListeners();
       } catch (error) {
         console.error('Error loading stored session:', error);
@@ -36,12 +37,14 @@ export class CustomAuthService {
   private storeSession(user: CustomUser) {
     localStorage.setItem('cardshow_user', JSON.stringify(user));
     this.currentUser = user;
+    console.log('🔧 Stored session for:', user.username);
     this.notifyListeners();
   }
 
   private clearSession() {
     localStorage.removeItem('cardshow_user');
     this.currentUser = null;
+    console.log('🔧 Cleared session');
     this.notifyListeners();
   }
 
@@ -139,6 +142,11 @@ export class CustomAuthService {
   signOut(): void {
     console.log('🔧 Signing out user');
     this.clearSession();
+  }
+
+  // Development mode helpers
+  isDevMode(): boolean {
+    return typeof window !== 'undefined' && window.location.hostname === 'localhost';
   }
 }
 
