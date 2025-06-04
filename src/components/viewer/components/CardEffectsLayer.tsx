@@ -12,17 +12,26 @@ import { BrushedMetalEffect } from './effects/BrushedMetalEffect';
 import { SpecialtyEffects } from './effects/SpecialtyEffects';
 
 interface CardEffectsLayerProps {
-  effectValues: EffectValues;
+  effectValues?: EffectValues;
   mousePosition: { x: number; y: number };
   enhancedLightingData?: EnhancedLightingData | null;
   showEffects: boolean;
+  isHovering?: boolean;
+  effectIntensity?: number[];
+  physicalEffectStyles?: React.CSSProperties;
+  materialSettings?: any;
+  interactiveLighting?: boolean;
 }
 
 export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
-  effectValues,
+  effectValues = {},
   mousePosition,
   enhancedLightingData,
-  showEffects
+  showEffects,
+  isHovering = false,
+  effectIntensity = [],
+  materialSettings,
+  interactiveLighting = false
 }) => {
   if (!showEffects) return null;
 
@@ -32,55 +41,62 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
     return total + (typeof intensity === 'number' ? intensity : 0);
   }, 0);
 
+  // Extract effect parameters with defaults
+  const getEffectParams = (effectId: string) => {
+    const effect = effectValues[effectId] || {};
+    return {
+      intensity: (effect.intensity as number) || 0,
+      ...effect
+    };
+  };
+
   return (
     <>
       {/* Holographic Effect */}
       <HolographicEffect
-        intensity={effectValues.holographic?.intensity as number || 0}
+        intensity={getEffectParams('holographic').intensity}
         mousePosition={mousePosition}
         enhancedLightingData={enhancedLightingData}
       />
 
       {/* Gold Effect */}
       <GoldEffect
-        intensity={effectValues.gold?.intensity as number || 0}
+        intensity={getEffectParams('gold').intensity}
         mousePosition={mousePosition}
         enhancedLightingData={enhancedLightingData}
       />
 
       {/* Chrome Effect */}
       <ChromeEffect
-        intensity={effectValues.chrome?.intensity as number || 0}
+        intensity={getEffectParams('chrome').intensity}
         mousePosition={mousePosition}
-        enhancedLightingData={enhancedLightingData}
       />
 
       {/* Crystal Effect */}
       <CrystalEffect
-        intensity={effectValues.crystal?.intensity as number || 0}
+        intensity={getEffectParams('crystal').intensity}
         mousePosition={mousePosition}
-        enhancedLightingData={enhancedLightingData}
       />
 
       {/* Vintage Effect */}
       <VintageEffect
-        intensity={effectValues.vintage?.intensity as number || 0}
+        intensity={getEffectParams('vintage').intensity}
         mousePosition={mousePosition}
-        enhancedLightingData={enhancedLightingData}
       />
 
       {/* Brushed Metal Effect */}
       <BrushedMetalEffect
-        intensity={effectValues.brushedmetal?.intensity as number || 0}
+        intensity={getEffectParams('brushedmetal').intensity}
+        direction={getEffectParams('brushedmetal').direction || 45}
         mousePosition={mousePosition}
-        enhancedLightingData={enhancedLightingData}
       />
 
       {/* Specialty Effects (Foil Spray, Prizm, Interference) */}
       <SpecialtyEffects
-        effectValues={effectValues}
+        interferenceIntensity={getEffectParams('interference').intensity}
+        prizemIntensity={getEffectParams('prizm').intensity}
+        foilsprayIntensity={getEffectParams('foilspray').intensity}
         mousePosition={mousePosition}
-        enhancedLightingData={enhancedLightingData}
       />
 
       {/* Enhanced Edge Effect */}

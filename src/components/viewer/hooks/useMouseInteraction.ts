@@ -28,6 +28,8 @@ export const useMouseInteraction = ({
   setDragStart,
   setZoom
 }: UseMouseInteractionProps) => {
+  const dragStartRef = useRef({ x: 0, y: 0 });
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
@@ -50,18 +52,20 @@ export const useMouseInteraction = ({
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     if (allowRotation) {
       setIsDragging(true);
-      setDragStart({ x: e.clientX - rotation.y, y: e.clientY - rotation.x });
+      const dragStart = { x: e.clientX - rotation.y, y: e.clientY - rotation.x };
+      dragStartRef.current = dragStart;
+      setDragStart(dragStart);
     }
   }, [rotation, allowRotation, setIsDragging, setDragStart]);
 
   const handleDrag = useCallback((e: React.MouseEvent) => {
     if (isDragging && allowRotation) {
       setRotation({
-        x: e.clientY - dragStart.y,
-        y: e.clientX - dragStart.x
+        x: e.clientY - dragStartRef.current.y,
+        y: e.clientX - dragStartRef.current.x
       });
     }
-  }, [isDragging, dragStart, allowRotation, setRotation]);
+  }, [isDragging, allowRotation, setRotation]);
 
   const handleDragEnd = useCallback(() => {
     setIsDragging(false);
