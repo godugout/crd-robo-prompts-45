@@ -57,13 +57,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
       style={{
         width: '350px',
         height: '490px',
-        transformStyle: 'preserve-3d',
-        transform: `
-          perspective(2000px) 
-          rotateX(${rotation.x}deg) 
-          rotateY(${rotation.y}deg) 
-          scale(${zoom})
-        `,
+        transform: `scale(${zoom})`,
         transition: isDragging ? 'none' : 'transform 0.3s ease-out'
       }}
       onMouseDown={onMouseDown}
@@ -72,37 +66,52 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
       onMouseLeave={onMouseLeave}
       onClick={onClick}
     >
-      {/* Card Front */}
-      <CardFront
-        card={card}
-        isFlipped={isFlipped}
-        isHovering={isHovering}
-        showEffects={showEffects}
-        effectIntensity={effectIntensity}
-        mousePosition={mousePosition}
-        physicalEffectStyles={enhancedEffectStyles}
-        SurfaceTexture={SurfaceTexture}
-        frameStyles={frameStyles}
-        effectValues={effectValues}
-        materialSettings={materialSettings}
-        interactiveLighting={interactiveLighting}
-      />
+      {/* 3D Card Container */}
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          transformStyle: 'preserve-3d',
+          transform: `
+            perspective(2000px) 
+            rotateX(${rotation.x}deg) 
+            rotateY(${rotation.y + (isFlipped ? 180 : 0)}deg)
+          `,
+          transition: isDragging ? 'none' : 'transform 0.6s ease-out'
+        }}
+      >
+        {/* Card Front */}
+        <CardFront
+          card={card}
+          isFlipped={false} // Always pass false since we handle flip at container level
+          isHovering={isHovering}
+          showEffects={showEffects}
+          effectIntensity={effectIntensity}
+          mousePosition={mousePosition}
+          physicalEffectStyles={enhancedEffectStyles}
+          SurfaceTexture={SurfaceTexture}
+          frameStyles={{}}
+          effectValues={effectValues}
+          materialSettings={materialSettings}
+          interactiveLighting={interactiveLighting}
+        />
 
-      {/* Card Back - Now with matching material properties */}
-      <CardBack
-        card={card}
-        isFlipped={isFlipped}
-        isHovering={isHovering}
-        showEffects={showEffects}
-        effectIntensity={effectIntensity}
-        mousePosition={mousePosition}
-        physicalEffectStyles={enhancedEffectStyles}
-        SurfaceTexture={SurfaceTexture}
-        frameStyles={frameStyles}
-        effectValues={effectValues}
-        materialSettings={materialSettings}
-        interactiveLighting={interactiveLighting}
-      />
+        {/* Card Back */}
+        <CardBack
+          card={card}
+          isFlipped={false} // Always pass false since we handle flip at container level
+          isHovering={isHovering}
+          showEffects={showEffects}
+          effectIntensity={effectIntensity}
+          mousePosition={mousePosition}
+          physicalEffectStyles={enhancedEffectStyles}
+          SurfaceTexture={SurfaceTexture}
+          frameStyles={{}}
+          effectValues={effectValues}
+          materialSettings={materialSettings}
+          interactiveLighting={interactiveLighting}
+        />
+      </div>
     </div>
   );
 };

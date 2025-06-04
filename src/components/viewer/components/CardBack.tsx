@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import { CardEffectsLayer } from './CardEffectsLayer';
@@ -34,9 +33,9 @@ export const CardBack: React.FC<CardBackProps> = ({
 }) => {
   return (
     <div
-      className="absolute inset-0 rounded-xl overflow-hidden backface-hidden"
+      className="absolute inset-0 rounded-xl overflow-hidden"
       style={{
-        transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)',
+        transform: 'rotateY(180deg)',
         backfaceVisibility: 'hidden',
         ...frameStyles
       }}

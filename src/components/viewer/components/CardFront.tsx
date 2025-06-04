@@ -43,9 +43,9 @@ export const CardFront: React.FC<CardFrontProps> = ({
 
   return (
     <div
-      className="absolute inset-0 rounded-xl overflow-hidden backface-hidden"
+      className="absolute inset-0 rounded-xl overflow-hidden"
       style={{
-        transform: isFlipped ? 'rotateY(-180deg)' : 'rotateY(0deg)',
+        transform: 'rotateY(0deg)',
         backfaceVisibility: 'hidden',
         opacity: cardOpacity,
         ...frameStyles
