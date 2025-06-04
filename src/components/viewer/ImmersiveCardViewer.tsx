@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -54,8 +55,8 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const {
     effectValues,
     handleEffectChange,
-    resetEffect: handleResetEffect,
-    resetAllEffects: handleResetAllEffects
+    resetEffect,
+    resetAllEffects
   } = enhancedEffectsHook;
   
   // Advanced settings - Updated for more professional defaults
@@ -110,42 +111,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handlePreviousCard, handleNextCard]);
-
-  // Enhanced effects handlers
-  const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
-    setEffectValues(prev => ({
-      ...prev,
-      [effectId]: {
-        ...prev[effectId],
-        [parameterId]: value
-      }
-    }));
-  }, []);
-
-  const handleResetEffect = useCallback((effectId: string) => {
-    const effect = ENHANCED_VISUAL_EFFECTS.find(e => e.id === effectId);
-    if (effect) {
-      const resetValues: Record<string, any> = {};
-      effect.parameters.forEach(param => {
-        resetValues[param.id] = param.defaultValue;
-      });
-      setEffectValues(prev => ({
-        ...prev,
-        [effectId]: resetValues
-      }));
-    }
-  }, []);
-
-  const handleResetAllEffects = useCallback(() => {
-    const resetValues: EffectValues = {};
-    ENHANCED_VISUAL_EFFECTS.forEach(effect => {
-      resetValues[effect.id] = {};
-      effect.parameters.forEach(param => {
-        resetValues[effect.id][param.id] = param.defaultValue;
-      });
-    });
-    setEffectValues(resetValues);
-  }, []);
 
   // Add new state for export dialog
   const [showExportDialog, setShowExportDialog] = useState(false);
@@ -389,7 +354,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             onSceneChange={setSelectedScene}
             onLightingChange={setSelectedLighting}
             onEffectChange={handleEffectChange}
-            onResetAllEffects={handleResetAllEffects}
+            onResetAllEffects={resetAllEffects}
             onBrightnessChange={setOverallBrightness}
             onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
             onMaterialSettingsChange={setMaterialSettings}

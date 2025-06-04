@@ -88,7 +88,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
           {/* Card stats */}
           <div className="mt-2 text-white/90 text-sm">
             <div>Rarity: {card.rarity || 'Common'}</div>
-            <div>Set: {card.set_name || 'Custom Set'}</div>
+            <div>Collection: {card.collection_id || 'Custom Collection'}</div>
           </div>
         </div>
         
