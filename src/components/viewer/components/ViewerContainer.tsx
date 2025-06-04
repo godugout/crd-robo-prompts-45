@@ -30,14 +30,14 @@ export const ViewerContainer: React.FC<ViewerContainerProps> = ({
 }) => {
   const { isDesktop } = useResponsiveLayout();
 
-  // Calculate card positioning based on drawer state and device type
+  // Calculate card positioning based on drawer state - much less intrusive positioning
   const getCardPositioning = () => {
     if (!isDrawerOpen) {
       return 'items-center justify-center';
     }
     
-    // When drawer is open from top, push card down a bit for both desktop and mobile
-    return 'items-center justify-center pt-[25vh]';
+    // When drawer is open from top, only push card down slightly
+    return 'items-center justify-center pt-[12vh]';
   };
 
   const positioning = getCardPositioning();
