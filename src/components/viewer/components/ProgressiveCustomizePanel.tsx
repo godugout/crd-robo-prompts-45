@@ -75,6 +75,7 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
 }) => {
   const [activeTab, setActiveTab] = useState('styles');
   const [savedCombosOpen, setSavedCombosOpen] = useState(false);
+  const [selectedPresetId, setSelectedPresetId] = useState<string | undefined>();
 
   // Calculate active effects count
   const getActiveEffectsCount = useCallback(() => {
@@ -97,7 +98,14 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
     if (preset.lighting) onLightingChange(preset.lighting);
   }, [onEffectChange, onSceneChange, onLightingChange]);
 
+  // Handle effect changes to clear selected preset
+  const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
+    setSelectedPresetId(undefined); // Clear selected preset when manually changing effects
+    onEffectChange(effectId, parameterId, value);
+  }, [onEffectChange]);
+
   const handleResetAll = () => {
+    setSelectedPresetId(undefined);
     onResetAllEffects();
     // Reset other settings to defaults
     onBrightnessChange([100]);
@@ -196,7 +204,12 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
               {/* Quick Combos - Compact */}
               <div className="bg-editor-dark border border-editor-border rounded-lg p-3">
                 <h4 className="text-white text-xs font-medium mb-2">Quick Combos</h4>
-                <QuickComboPresets onApplyCombo={handlePresetSelect} />
+                <QuickComboPresets 
+                  onApplyCombo={handlePresetSelect} 
+                  currentEffects={effectValues}
+                  selectedPresetId={selectedPresetId}
+                  onPresetSelect={setSelectedPresetId}
+                />
               </div>
 
               {/* Effects Section - Compact */}
@@ -206,8 +219,9 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                 </h4>
                 <EffectsComboSection
                   effectValues={effectValues}
-                  onEffectChange={onEffectChange}
+                  onEffectChange={handleEffectChange}
                   onResetEffect={(effectId) => {
+                    setSelectedPresetId(undefined);
                     // Reset individual effect - preserve existing functionality
                     const effect = effectValues[effectId];
                     if (effect) {
@@ -240,6 +254,7 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                         brightness: overallBrightness[0]
                       }}
                       onLoadCombo={(combo) => {
+                        setSelectedPresetId(undefined);
                         // Apply loaded combo
                         Object.entries(combo.effects).forEach(([effectId, parameters]) => {
                           Object.entries(parameters).forEach(([parameterId, value]) => {

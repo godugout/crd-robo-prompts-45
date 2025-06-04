@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Sparkles, Zap, Gem, Clock, Flame, Snowflake, Sun, Moon, Star } from 'lucide-react';
+import { Sparkles, Zap, Gem, Clock, Flame, Snowflake, Sun, Moon, Star, User } from 'lucide-react';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { EnvironmentScene, LightingPreset } from '../types';
 
@@ -14,6 +14,7 @@ interface ComboPreset {
   effects: EffectValues;
   scene?: EnvironmentScene;
   lighting?: LightingPreset;
+  isCustom?: boolean;
 }
 
 const COMBO_PRESETS: ComboPreset[] = [
@@ -111,24 +112,90 @@ const COMBO_PRESETS: ComboPreset[] = [
 
 interface QuickComboPresetsProps {
   onApplyCombo: (combo: ComboPreset) => void;
+  currentEffects: EffectValues;
+  selectedPresetId?: string;
+  onPresetSelect: (presetId: string) => void;
 }
 
-export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({ onApplyCombo }) => {
+export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({ 
+  onApplyCombo, 
+  currentEffects, 
+  selectedPresetId, 
+  onPresetSelect 
+}) => {
+  // Check if current effects match any preset
+  const effectsMatchPreset = (presetEffects: EffectValues, currentEffects: EffectValues): boolean => {
+    const presetKeys = Object.keys(presetEffects);
+    const currentKeys = Object.keys(currentEffects).filter(key => {
+      const effect = currentEffects[key];
+      return effect && typeof effect.intensity === 'number' && effect.intensity > 0;
+    });
+
+    if (presetKeys.length !== currentKeys.length) return false;
+
+    return presetKeys.every(key => {
+      const preset = presetEffects[key];
+      const current = currentEffects[key];
+      if (!current || !preset) return false;
+      
+      return Math.abs((current.intensity || 0) - (preset.intensity || 0)) < 5;
+    });
+  };
+
+  // Check if we have custom effects that don't match any preset
+  const hasCustomEffects = (): boolean => {
+    const hasActiveEffects = Object.values(currentEffects).some(effect => 
+      effect && typeof effect.intensity === 'number' && effect.intensity > 0
+    );
+    
+    if (!hasActiveEffects) return false;
+    
+    return !COMBO_PRESETS.some(preset => effectsMatchPreset(preset.effects, currentEffects));
+  };
+
+  // Create custom preset from current effects
+  const createCustomPreset = (): ComboPreset => ({
+    id: 'user-custom',
+    name: "Your Style",
+    icon: User,
+    description: 'Your custom effect combination',
+    effects: currentEffects,
+    isCustom: true
+  });
+
+  const allPresets = hasCustomEffects() ? [...COMBO_PRESETS, createCustomPreset()] : COMBO_PRESETS;
+
+  const handlePresetClick = (preset: ComboPreset) => {
+    onPresetSelect(preset.id);
+    onApplyCombo(preset);
+  };
+
   return (
     <TooltipProvider>
       <div className="space-y-1">
-        {COMBO_PRESETS.map((preset) => {
+        {allPresets.map((preset) => {
           const IconComponent = preset.icon;
+          const isSelected = selectedPresetId === preset.id || 
+            (!selectedPresetId && effectsMatchPreset(preset.effects, currentEffects));
+          
           return (
             <Tooltip key={preset.id}>
               <TooltipTrigger asChild>
                 <Button
-                  onClick={() => onApplyCombo(preset)}
+                  onClick={() => handlePresetClick(preset)}
                   variant="ghost"
-                  className="w-full h-7 px-2 flex items-center justify-start space-x-2 bg-editor-dark border border-editor-border hover:border-crd-green hover:bg-crd-green/20 text-xs transition-colors"
+                  className={`w-full h-7 px-2 flex items-center justify-start space-x-2 border transition-colors ${
+                    isSelected 
+                      ? 'bg-crd-green/30 border-crd-green text-white' 
+                      : 'bg-editor-dark border-editor-border hover:border-crd-green hover:bg-crd-green/20'
+                  } text-xs`}
                 >
-                  <IconComponent className="w-3 h-3 text-crd-green flex-shrink-0" />
-                  <span className="text-white font-medium truncate">
+                  <IconComponent className={`w-3 h-3 flex-shrink-0 ${
+                    isSelected ? 'text-crd-green' : 'text-crd-green'
+                  }`} />
+                  <span className={`font-medium truncate ${
+                    preset.isCustom ? 'text-crd-green' : 'text-white'
+                  }`}>
                     {preset.name}
                   </span>
                 </Button>
