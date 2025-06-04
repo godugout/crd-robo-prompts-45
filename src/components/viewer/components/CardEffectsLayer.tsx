@@ -66,29 +66,29 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   
   const interactiveData = getInteractiveLightingData();
   
-  // Material-aware reflection with interactive lighting boost
+  // Enhanced material-aware reflection for better visibility over images
   const getReflectionStrength = () => {
-    if (!materialSettings) return intensity * 0.5;
+    if (!materialSettings) return intensity * 0.8; // Increased base strength
     
-    const reflectionBase = materialSettings.reflectivity * 0.7;
-    const clearcoatBoost = materialSettings.clearcoat * 0.3;
-    let strength = (reflectionBase + clearcoatBoost) * intensity;
+    const reflectionBase = materialSettings.reflectivity * 0.9; // Boosted
+    const clearcoatBoost = materialSettings.clearcoat * 0.5; // Increased
+    let strength = (reflectionBase + clearcoatBoost) * intensity * 1.2; // Overall boost
     
     if (interactiveData) {
-      strength *= (1 + interactiveData.lightIntensity * 1.5);
+      strength *= (1 + interactiveData.lightIntensity * 2); // Increased interactive boost
     }
     
-    return Math.min(strength, 0.95);
+    return Math.min(strength, 1.0); // Allow higher maximum
   };
   
-  // Material-aware texture with interactive response
+  // Enhanced texture intensity for better material definition
   const getTextureIntensity = () => {
-    if (!materialSettings) return intensity * 0.1;
+    if (!materialSettings) return intensity * 0.2; // Increased base
     
-    let textureStrength = materialSettings.roughness * intensity * 0.3;
+    let textureStrength = materialSettings.roughness * intensity * 0.5; // Boosted
     
     if (interactiveData) {
-      textureStrength *= (1 + interactiveData.lightIntensity * 0.5);
+      textureStrength *= (1 + interactiveData.lightIntensity * 0.8); // Enhanced
     }
     
     return textureStrength;
@@ -98,7 +98,17 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   const textureIntensity = getTextureIntensity();
   
   return (
-    <>
+    <div className="absolute inset-0">
+      {/* Enhanced base overlay for better effect visibility */}
+      <div 
+        className="absolute inset-0 z-5"
+        style={{
+          background: 'rgba(0, 0, 0, 0.1)',
+          mixBlendMode: 'multiply',
+          opacity: isGoldActive || isChromeActive || isBrushedSteelActive || isVintageActive ? 0.3 : 0
+        }}
+      />
+
       <VintageEffect
         isActive={isVintageActive}
         intensity={vintageIntensity}
@@ -149,6 +159,6 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         isBrushedSteelActive={isBrushedSteelActive}
         isVintageActive={isVintageActive}
       />
-    </>
+    </div>
   );
 };

@@ -16,46 +16,49 @@ export const GoldEffect: React.FC<GoldEffectProps> = ({
 }) => {
   if (!isActive) return null;
 
+  // Enhanced intensity for better visibility over images
+  const enhancedIntensity = Math.min(intensity * 1.5, 100);
+
   return (
     <>
-      {/* Primary gold shine layer */}
+      {/* Primary gold shine layer - Enhanced for image overlay */}
       <div
         className="absolute inset-0 z-20"
         style={{
           background: `
             radial-gradient(
               circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-              rgba(255, 215, 0, ${(intensity / 100) * 0.8}) 0%,
-              rgba(255, 193, 7, ${(intensity / 100) * 0.6}) 20%,
-              rgba(255, 235, 59, ${(intensity / 100) * 0.4}) 40%,
+              rgba(255, 215, 0, ${(enhancedIntensity / 100) * 0.95}) 0%,
+              rgba(255, 193, 7, ${(enhancedIntensity / 100) * 0.8}) 20%,
+              rgba(255, 235, 59, ${(enhancedIntensity / 100) * 0.6}) 40%,
               transparent 70%
             )
           `,
-          mixBlendMode: 'screen',
-          opacity: 0.9
+          mixBlendMode: 'color-dodge',
+          opacity: 0.95
         }}
       />
       
-      {/* Secondary golden metallic layer */}
+      {/* Secondary golden metallic layer - Boosted */}
       <div
         className="absolute inset-0 z-19"
         style={{
           background: `
             linear-gradient(
               ${45 + mousePosition.x * 90}deg,
-              rgba(255, 215, 0, ${(intensity / 100) * 0.3}) 0%,
-              rgba(255, 193, 7, ${(intensity / 100) * 0.5}) 25%,
-              rgba(255, 235, 59, ${(intensity / 100) * 0.4}) 50%,
-              rgba(255, 215, 0, ${(intensity / 100) * 0.3}) 75%,
-              rgba(255, 193, 7, ${(intensity / 100) * 0.2}) 100%
+              rgba(255, 215, 0, ${(enhancedIntensity / 100) * 0.5}) 0%,
+              rgba(255, 193, 7, ${(enhancedIntensity / 100) * 0.7}) 25%,
+              rgba(255, 235, 59, ${(enhancedIntensity / 100) * 0.6}) 50%,
+              rgba(255, 215, 0, ${(enhancedIntensity / 100) * 0.5}) 75%,
+              rgba(255, 193, 7, ${(enhancedIntensity / 100) * 0.4}) 100%
             )
           `,
-          mixBlendMode: 'overlay',
-          opacity: 0.8
+          mixBlendMode: 'soft-light',
+          opacity: 0.9
         }}
       />
       
-      {/* Gold shimmer highlights */}
+      {/* Gold shimmer highlights - Enhanced */}
       <div
         className="absolute inset-0 z-21"
         style={{
@@ -63,17 +66,34 @@ export const GoldEffect: React.FC<GoldEffectProps> = ({
             conic-gradient(
               from ${mousePosition.x * 180}deg at 50% 50%,
               transparent 0deg,
-              rgba(255, 215, 0, ${(intensity / 100) * 0.6}) 30deg,
-              rgba(255, 235, 59, ${(intensity / 100) * 0.8}) 60deg,
+              rgba(255, 215, 0, ${(enhancedIntensity / 100) * 0.8}) 30deg,
+              rgba(255, 235, 59, ${(enhancedIntensity / 100) * 1.0}) 60deg,
               transparent 90deg,
-              rgba(255, 193, 7, ${(intensity / 100) * 0.4}) 180deg,
+              rgba(255, 193, 7, ${(enhancedIntensity / 100) * 0.6}) 180deg,
               transparent 210deg,
-              rgba(255, 215, 0, ${(intensity / 100) * 0.5}) 270deg,
+              rgba(255, 215, 0, ${(enhancedIntensity / 100) * 0.7}) 270deg,
               transparent 360deg
             )
           `,
-          mixBlendMode: 'screen',
-          opacity: isHovering ? 0.9 : 0.6
+          mixBlendMode: 'overlay',
+          opacity: isHovering ? 1.0 : 0.8
+        }}
+      />
+
+      {/* Additional gold luster for depth */}
+      <div
+        className="absolute inset-0 z-22"
+        style={{
+          background: `
+            linear-gradient(
+              ${mousePosition.x * 90}deg,
+              rgba(255, 215, 0, ${(enhancedIntensity / 100) * 0.3}) 0%,
+              rgba(255, 255, 255, ${(enhancedIntensity / 100) * 0.4}) 50%,
+              rgba(255, 215, 0, ${(enhancedIntensity / 100) * 0.3}) 100%
+            )
+          `,
+          mixBlendMode: 'hard-light',
+          opacity: 0.7
         }}
       />
     </>

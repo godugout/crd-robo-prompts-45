@@ -42,9 +42,9 @@ export const CardFront: React.FC<CardFrontProps> = ({
       }}
     >
       {/* Base Layer */}
-      <div className="absolute inset-0" style={physicalEffectStyles} />
+      <div className="absolute inset-0 z-0" style={physicalEffectStyles} />
       
-      {/* Image Layer - Full coverage */}
+      {/* Image Layer - Now at lower z-index */}
       {card.image_url && (
         <div className="absolute inset-0 z-10">
           <img 
@@ -55,22 +55,24 @@ export const CardFront: React.FC<CardFrontProps> = ({
         </div>
       )}
       
-      {/* Surface Texture Layer */}
-      <div className="absolute inset-0 z-15">
-        {SurfaceTexture}
+      {/* Effects Layer - NOW ABOVE IMAGE for visibility */}
+      <div className="absolute inset-0 z-30">
+        <CardEffectsLayer
+          showEffects={showEffects}
+          isHovering={isHovering}
+          effectIntensity={effectIntensity}
+          mousePosition={mousePosition}
+          physicalEffectStyles={physicalEffectStyles}
+          materialSettings={materialSettings}
+          interactiveLighting={interactiveLighting}
+          effectValues={effectValues}
+        />
       </div>
       
-      {/* Unified Effects Layer */}
-      <CardEffectsLayer
-        showEffects={showEffects}
-        isHovering={isHovering}
-        effectIntensity={effectIntensity}
-        mousePosition={mousePosition}
-        physicalEffectStyles={physicalEffectStyles}
-        materialSettings={materialSettings}
-        interactiveLighting={interactiveLighting}
-        effectValues={effectValues}
-      />
+      {/* Surface Texture Layer - Above effects for material interaction */}
+      <div className="absolute inset-0 z-40 pointer-events-none">
+        {SurfaceTexture}
+      </div>
     </div>
   );
 };
