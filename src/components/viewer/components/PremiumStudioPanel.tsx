@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Sparkles, 
@@ -60,12 +59,12 @@ const LIGHTING_RIGS = [
 ];
 
 const MATERIAL_PRESETS = [
-  { id: 'carbon-fiber', name: 'Carbon Fiber', settings: { roughness: 0.2, metalness: 0.8, clearcoat: 0.9 } },
-  { id: 'pearl', name: 'Pearl', settings: { roughness: 0.1, metalness: 0.0, clearcoat: 1.0 } },
-  { id: 'silk', name: 'Silk', settings: { roughness: 0.8, metalness: 0.0, clearcoat: 0.1 } },
-  { id: 'brushed-aluminum', name: 'Brushed Aluminum', settings: { roughness: 0.3, metalness: 1.0, clearcoat: 0.5 } },
-  { id: 'ceramic', name: 'Ceramic', settings: { roughness: 0.05, metalness: 0.0, clearcoat: 0.8 } },
-  { id: 'diamond', name: 'Diamond', settings: { roughness: 0.0, metalness: 0.0, clearcoat: 1.0 } }
+  { id: 'carbon-fiber', name: 'Carbon Fiber', settings: { roughness: 0.2, metalness: 0.8, clearcoat: 0.9, reflectivity: 0.5 } },
+  { id: 'pearl', name: 'Pearl', settings: { roughness: 0.1, metalness: 0.0, clearcoat: 1.0, reflectivity: 0.8 } },
+  { id: 'silk', name: 'Silk', settings: { roughness: 0.8, metalness: 0.0, clearcoat: 0.1, reflectivity: 0.2 } },
+  { id: 'brushed-aluminum', name: 'Brushed Aluminum', settings: { roughness: 0.3, metalness: 1.0, clearcoat: 0.5, reflectivity: 0.7 } },
+  { id: 'ceramic', name: 'Ceramic', settings: { roughness: 0.05, metalness: 0.0, clearcoat: 0.8, reflectivity: 0.6 } },
+  { id: 'diamond', name: 'Diamond', settings: { roughness: 0.0, metalness: 0.0, clearcoat: 1.0, reflectivity: 1.0 } }
 ];
 
 export const PremiumStudioPanel: React.FC<PremiumStudioPanelProps> = ({
@@ -148,10 +147,10 @@ export const PremiumStudioPanel: React.FC<PremiumStudioPanelProps> = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-white text-sm">Holographic Intensity</span>
-                  <span className="text-gray-400 text-xs">{Math.round((effectValues.holographic?.intensity || 0) * 100)}%</span>
+                  <span className="text-gray-400 text-xs">{Math.round(((effectValues.holographic?.intensity as number) || 0) * 100)}%</span>
                 </div>
                 <Slider
-                  value={[effectValues.holographic?.intensity || 0]}
+                  value={[(effectValues.holographic?.intensity as number) || 0]}
                   onValueChange={([value]) => onEffectChange('holographic', 'intensity', value)}
                   min={0}
                   max={1}
@@ -164,10 +163,10 @@ export const PremiumStudioPanel: React.FC<PremiumStudioPanelProps> = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-white text-sm">Prizm Intensity</span>
-                  <span className="text-gray-400 text-xs">{Math.round((effectValues.prizm?.intensity || 0) * 100)}%</span>
+                  <span className="text-gray-400 text-xs">{Math.round(((effectValues.prizm?.intensity as number) || 0) * 100)}%</span>
                 </div>
                 <Slider
-                  value={[effectValues.prizm?.intensity || 0]}
+                  value={[(effectValues.prizm?.intensity as number) || 0]}
                   onValueChange={([value]) => onEffectChange('prizm', 'intensity', value)}
                   min={0}
                   max={1}
@@ -180,10 +179,10 @@ export const PremiumStudioPanel: React.FC<PremiumStudioPanelProps> = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-white text-sm">Crystal Clarity</span>
-                  <span className="text-gray-400 text-xs">{Math.round((effectValues.crystal?.intensity || 0) * 100)}%</span>
+                  <span className="text-gray-400 text-xs">{Math.round(((effectValues.crystal?.intensity as number) || 0) * 100)}%</span>
                 </div>
                 <Slider
-                  value={[effectValues.crystal?.intensity || 0]}
+                  value={[(effectValues.crystal?.intensity as number) || 0]}
                   onValueChange={([value]) => onEffectChange('crystal', 'intensity', value)}
                   min={0}
                   max={1}
@@ -196,10 +195,10 @@ export const PremiumStudioPanel: React.FC<PremiumStudioPanelProps> = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-white text-sm">Chrome Finish</span>
-                  <span className="text-gray-400 text-xs">{Math.round((effectValues.chrome?.intensity || 0) * 100)}%</span>
+                  <span className="text-gray-400 text-xs">{Math.round(((effectValues.chrome?.intensity as number) || 0) * 100)}%</span>
                 </div>
                 <Slider
-                  value={[effectValues.chrome?.intensity || 0]}
+                  value={[(effectValues.chrome?.intensity as number) || 0]}
                   onValueChange={([value]) => onEffectChange('chrome', 'intensity', value)}
                   min={0}
                   max={1}
@@ -212,10 +211,10 @@ export const PremiumStudioPanel: React.FC<PremiumStudioPanelProps> = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-white text-sm">Gold Plating</span>
-                  <span className="text-gray-400 text-xs">{Math.round((effectValues.gold?.intensity || 0) * 100)}%</span>
+                  <span className="text-gray-400 text-xs">{Math.round(((effectValues.gold?.intensity as number) || 0) * 100)}%</span>
                 </div>
                 <Slider
-                  value={[effectValues.gold?.intensity || 0]}
+                  value={[(effectValues.gold?.intensity as number) || 0]}
                   onValueChange={([value]) => onEffectChange('gold', 'intensity', value)}
                   min={0}
                   max={1}

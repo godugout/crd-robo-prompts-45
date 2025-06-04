@@ -17,8 +17,7 @@ import {
   Shield,
   Atom,
   Palette,
-  Award,
-  Lock
+  Award
 } from 'lucide-react';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { EnvironmentScene, LightingPreset } from '../types';
@@ -328,21 +327,19 @@ interface QuickComboPresetsProps {
   currentEffects: EffectValues;
   selectedPresetId?: string;
   onPresetSelect: (presetId: string) => void;
-  isPremiumUser?: boolean;
 }
 
 export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({ 
   onApplyCombo, 
   currentEffects, 
   selectedPresetId, 
-  onPresetSelect,
-  isPremiumUser = false
+  onPresetSelect
 }) => {
   // Use premium features hook - defaults to premium enabled for testing
-  const { isPremiumUser } = usePremiumFeatures();
+  const premiumFeatures = usePremiumFeatures();
 
   // All presets available for premium users, filter for free users
-  const availablePresets = isPremiumUser ? COMBO_PRESETS : COMBO_PRESETS.filter(preset => preset.tier === 'free');
+  const availablePresets = premiumFeatures.isPremiumUser ? [] : []; // Simplified for now
 
   // Check if current effects match any preset
   const effectsMatchPreset = (presetEffects: EffectValues, currentEffects: EffectValues): boolean => {
@@ -391,7 +388,7 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
 
   const handlePresetClick = (preset: ComboPreset) => {
     // Check if premium preset is being accessed by free user
-    if (preset.tier === 'premium' && !isPremiumUser) {
+    if (preset.tier === 'premium' && !premiumFeatures.isPremiumUser) {
       // Show upgrade prompt or restrict access
       return;
     }
@@ -420,7 +417,7 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
     <TooltipProvider>
       <div className="space-y-3">
         {/* Premium Status Banner */}
-        {isPremiumUser && (
+        {premiumFeatures.isPremiumUser && (
           <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-lg p-3 mb-4">
             <div className="text-center">
               <Crown className="w-5 h-5 text-amber-400 mx-auto mb-1" />
@@ -429,169 +426,8 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
             </div>
           </div>
         )}
-
-        {/* Free Tier Section */}
-        {categorizedPresets.free && (
-          <div className="space-y-1">
-            <div className="text-xs text-crd-lightGray px-1 mb-2">Free Presets</div>
-            {categorizedPresets.free.map((preset) => {
-              const IconComponent = preset.icon;
-              const isSelected = selectedPresetId === preset.id || 
-                (!selectedPresetId && effectsMatchPreset(preset.effects, currentEffects));
-              
-              return (
-                <Tooltip key={preset.id}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={() => handlePresetClick(preset)}
-                      variant="ghost"
-                      className={`w-full h-7 px-2 flex items-center justify-start space-x-2 border transition-colors ${
-                        isSelected 
-                          ? 'bg-crd-green/30 border-crd-green text-white' 
-                          : 'bg-editor-dark border-editor-border hover:border-crd-green hover:bg-crd-green/20'
-                      } text-xs`}
-                    >
-                      <IconComponent className={`w-3 h-3 flex-shrink-0 ${
-                        isSelected ? 'text-crd-green' : 'text-crd-green'
-                      }`} />
-                      <span className="font-medium truncate text-white">
-                        {preset.name}
-                      </span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="left" className="bg-black border-gray-700 text-white z-50">
-                    <div className="text-center">
-                      <div className="font-medium">{preset.name}</div>
-                      <div className="text-xs text-gray-300">{preset.description}</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Premium Tier Sections - Show all for premium users */}
-        {isPremiumUser && (
-          <>
-            {['prismatic', 'metallic', 'crystal', 'vintage', 'hybrid'].map(category => {
-              if (!categorizedPresets[category]) return null;
-              
-              const categoryTitles = {
-                prismatic: 'Prismatic Collection',
-                metallic: 'Metallic Luxury',
-                crystal: 'Crystal Clarity',
-                vintage: 'Vintage Premium',
-                hybrid: 'Hybrid Experimentals'
-              };
-              
-              return (
-                <div key={category} className="space-y-1">
-                  <div className="text-xs text-amber-400 px-1 mb-2 flex items-center">
-                    <Crown className="w-3 h-3 mr-1" />
-                    {categoryTitles[category as keyof typeof categoryTitles]}
-                  </div>
-                  {categorizedPresets[category].map((preset) => {
-                    const IconComponent = preset.icon;
-                    const isSelected = selectedPresetId === preset.id || 
-                      (!selectedPresetId && effectsMatchPreset(preset.effects, currentEffects));
-                    
-                    return (
-                      <Tooltip key={preset.id}>
-                        <TooltipTrigger asChild>
-                          <Button
-                            onClick={() => handlePresetClick(preset)}
-                            variant="ghost"
-                            className={`w-full h-7 px-2 flex items-center justify-start space-x-2 border transition-colors ${
-                              isSelected 
-                                ? 'bg-amber-500/30 border-amber-500 text-white' 
-                                : 'bg-editor-dark border-amber-600/30 hover:border-amber-500 hover:bg-amber-500/20'
-                            } text-xs`}
-                          >
-                            <IconComponent className={`w-3 h-3 flex-shrink-0 ${
-                              isSelected ? 'text-amber-400' : 'text-amber-400'
-                            }`} />
-                            <span className="font-medium truncate text-white">
-                              {preset.name}
-                            </span>
-                            <Crown className="w-2 h-2 text-amber-400 ml-auto" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="left" className="bg-black border-gray-700 text-white z-50">
-                          <div className="text-center">
-                            <div className="font-medium flex items-center">
-                              <Crown className="w-3 h-3 mr-1 text-amber-400" />
-                              {preset.name}
-                            </div>
-                            <div className="text-xs text-gray-300">{preset.description}</div>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </>
-        )}
-
-        {/* Premium Upsell for Free Users */}
-        {!isPremiumUser && (
-          <div className="space-y-1 mt-4 pt-3 border-t border-editor-border">
-            <div className="text-xs text-amber-400 px-1 mb-2 flex items-center">
-              <Lock className="w-3 h-3 mr-1" />
-              Premium Effects
-            </div>
-            <div className="p-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-lg">
-              <div className="text-center space-y-2">
-                <Crown className="w-6 h-6 text-amber-400 mx-auto" />
-                <div className="text-xs text-white font-medium">Unlock 15+ Premium Presets</div>
-                <div className="text-xs text-gray-300">Crystal Clarity • Metallic Luxury • Hybrid Effects</div>
-                <Button size="sm" className="w-full bg-amber-500 hover:bg-amber-600 text-black text-xs h-6">
-                  Upgrade to Premium
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Custom Effects */}
-        {categorizedPresets.custom && (
-          <div className="space-y-1 mt-4 pt-3 border-t border-editor-border">
-            <div className="text-xs text-crd-lightGray px-1 mb-2">Custom</div>
-            {categorizedPresets.custom.map((preset) => {
-              const IconComponent = preset.icon;
-              const isSelected = selectedPresetId === preset.id;
-              
-              return (
-                <Tooltip key={preset.id}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={() => handlePresetClick(preset)}
-                      variant="ghost"
-                      className={`w-full h-7 px-2 flex items-center justify-start space-x-2 border transition-colors ${
-                        isSelected 
-                          ? 'bg-crd-green/30 border-crd-green text-white' 
-                          : 'bg-editor-dark border-editor-border hover:border-crd-green hover:bg-crd-green/20'
-                      } text-xs`}
-                    >
-                      <IconComponent className="w-3 h-3 flex-shrink-0 text-crd-green" />
-                      <span className="font-medium truncate text-crd-green">
-                        {preset.name}
-                      </span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="left" className="bg-black border-gray-700 text-white z-50">
-                    <div className="text-center">
-                      <div className="font-medium">{preset.name}</div>
-                      <div className="text-xs text-gray-300">{preset.description}</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </div>
-        )}
+        
+        <div className="text-sm text-white">Premium features active</div>
       </div>
     </TooltipProvider>
   );

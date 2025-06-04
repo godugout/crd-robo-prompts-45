@@ -136,6 +136,13 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     setShowExportDialog(true);
   }, []);
 
+  // Fix the onShare handler
+  const handleShare = useCallback(() => {
+    if (onShare) {
+      onShare();
+    }
+  }, [onShare]);
+
   // Style generation hook
   const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useCardEffects({
     card,
@@ -358,7 +365,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
               onBrightnessChange={setOverallBrightness}
               onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
               onExport={handleDownloadClick}
-              onShare={onShare}
+              onShare={handleShare}
               card={card}
             />
             
