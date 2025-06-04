@@ -14,6 +14,7 @@ import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { useCardExport } from './hooks/useCardExport';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
 import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
+import { BottomDrawerCustomizePanel } from './components/BottomDrawerCustomizePanel';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -45,7 +46,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [autoRotate, setAutoRotate] = useState(false);
   const [showEffects, setShowEffects] = useState(true);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [showCustomizePanel, setShowCustomizePanel] = useState(true);
+  const [showCustomizePanel, setShowCustomizePanel] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [isHoveringControls, setIsHoveringControls] = useState(false);
   
@@ -291,7 +292,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         ref={containerRef}
         className={`fixed inset-0 z-50 flex items-center justify-center ${
           isFullscreen ? 'p-0' : 'p-8'
-        } ${showCustomizePanel ? 'pr-80' : ''}`}
+        }`}
         style={{
           background: `linear-gradient(135deg, 
             rgba(0,0,0,0.95) 0%, 
@@ -318,21 +319,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         )}
 
-        {/* Settings Panel Toggle Button - Updated text */}
-        {!showCustomizePanel && (
-          <div className="absolute top-4 right-4 z-10">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowCustomizePanel(true)}
-              className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
-            >
-              <Sparkles className="w-4 h-4 text-white mr-2" />
-              <span className="text-white text-sm">Open Studio</span>
-            </Button>
-          </div>
-        )}
-
         {/* Basic Controls with hover visibility */}
         <div className={`transition-opacity duration-200 ${isHoveringControls ? 'opacity-100 z-20' : 'opacity-100 z-10'}`}>
           <ViewerControls
@@ -348,7 +334,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
         {/* Card Navigation Controls */}
         {hasMultipleCards && (
-          <div className="absolute bottom-4 right-4 z-10">
+          <div className="absolute bottom-20 right-4 z-10">
             <div className="flex items-center space-x-2 bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-3 border border-white/10">
               <Button
                 variant="ghost"
@@ -377,36 +363,27 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
 
-        {/* Progressive Disclosure Customize Panel */}
-        {showCustomizePanel && (
-          <ProgressiveCustomizePanel
-            selectedScene={selectedScene}
-            selectedLighting={selectedLighting}
-            effectValues={effectValues}
-            overallBrightness={overallBrightness}
-            interactiveLighting={interactiveLighting}
-            materialSettings={materialSettings}
-            isFullscreen={isFullscreen}
-            onSceneChange={setSelectedScene}
-            onLightingChange={setSelectedLighting}
-            onEffectChange={handleEffectChange}
-            onResetAllEffects={handleResetAllEffects}
-            onBrightnessChange={setOverallBrightness}
-            onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
-            onMaterialSettingsChange={setMaterialSettings}
-            onToggleFullscreen={toggleFullscreen}
-            onDownload={handleDownloadClick}
-            onShare={onShare}
-            onClose={() => {
-              if (onClose) {
-                onClose();
-              } else {
-                setShowCustomizePanel(false);
-              }
-            }}
-            card={card}
-          />
-        )}
+        {/* Bottom Drawer Customize Panel */}
+        <BottomDrawerCustomizePanel
+          selectedScene={selectedScene}
+          selectedLighting={selectedLighting}
+          effectValues={effectValues}
+          overallBrightness={overallBrightness}
+          interactiveLighting={interactiveLighting}
+          materialSettings={materialSettings}
+          isFullscreen={isFullscreen}
+          onSceneChange={setSelectedScene}
+          onLightingChange={setSelectedLighting}
+          onEffectChange={handleEffectChange}
+          onResetAllEffects={handleResetAllEffects}
+          onBrightnessChange={setOverallBrightness}
+          onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
+          onMaterialSettingsChange={setMaterialSettings}
+          onToggleFullscreen={toggleFullscreen}
+          onDownload={handleDownloadClick}
+          onShare={onShare}
+          card={card}
+        />
 
         {/* Enhanced Card Container - Add ref */}
         <div ref={cardContainerRef}>
@@ -432,7 +409,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         </div>
 
         {/* Info Panel - Enhanced visibility */}
-        {showStats && !isFlipped && !showCustomizePanel && (
+        {showStats && !isFlipped && (
           <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: hasMultipleCards ? '180px' : '20px' }}>
             <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
               <div className="flex items-center justify-between text-white">
