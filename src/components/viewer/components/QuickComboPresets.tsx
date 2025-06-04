@@ -138,7 +138,9 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
       const current = currentEffects[key];
       if (!current || !preset) return false;
       
-      return Math.abs((current.intensity || 0) - (preset.intensity || 0)) < 5;
+      const presetIntensity = typeof preset.intensity === 'number' ? preset.intensity : 0;
+      const currentIntensity = typeof current.intensity === 'number' ? current.intensity : 0;
+      return Math.abs(currentIntensity - presetIntensity) < 5;
     });
   };
 

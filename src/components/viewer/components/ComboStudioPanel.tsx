@@ -73,6 +73,7 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
   card
 }) => {
   const [activeTab, setActiveTab] = useState('styles');
+  const [selectedPresetId, setSelectedPresetId] = useState<string | undefined>();
 
   const getActiveEffectsCount = () => {
     return Object.values(effectValues).filter(effect => {
@@ -82,6 +83,7 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
   };
 
   const handleResetAll = () => {
+    setSelectedPresetId(undefined);
     onResetAllEffects();
     // Reset other settings to defaults
     onBrightnessChange([100]);
@@ -91,6 +93,11 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
       reflectivity: 0.5,
       clearcoat: 0.3
     });
+  };
+
+  const handleEffectChange = (effectId: string, parameterId: string, value: number | boolean | string) => {
+    setSelectedPresetId(undefined); // Clear selected preset when manually changing effects
+    onEffectChange(effectId, parameterId, value);
   };
 
   return (
@@ -207,6 +214,7 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
                 <CardContent>
                   <QuickComboPresets
                     onApplyCombo={(combo) => {
+                      setSelectedPresetId(combo.id);
                       // Apply effects
                       Object.entries(combo.effects).forEach(([effectId, parameters]) => {
                         Object.entries(parameters).forEach(([parameterId, value]) => {
@@ -217,6 +225,9 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
                       if (combo.scene) onSceneChange(combo.scene);
                       if (combo.lighting) onLightingChange(combo.lighting);
                     }}
+                    currentEffects={effectValues}
+                    selectedPresetId={selectedPresetId}
+                    onPresetSelect={setSelectedPresetId}
                   />
                 </CardContent>
               </Card>
@@ -231,7 +242,7 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
                 <CardContent>
                   <EffectsComboSection
                     effectValues={effectValues}
-                    onEffectChange={onEffectChange}
+                    onEffectChange={handleEffectChange}
                     onResetEffect={onResetEffect}
                   />
                 </CardContent>
@@ -342,6 +353,7 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
                       brightness: overallBrightness[0]
                     }}
                     onLoadCombo={(combo) => {
+                      setSelectedPresetId(undefined);
                       // Apply loaded combo
                       Object.entries(combo.effects).forEach(([effectId, parameters]) => {
                         Object.entries(parameters).forEach(([parameterId, value]) => {
