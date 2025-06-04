@@ -162,7 +162,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
           )}
         </div>
 
-        {/* Back of Card */}
+        {/* Back of Card - UPDATED WITH NEW CRD LOGO DESIGN */}
         <div 
           className={`absolute inset-0 rounded-xl overflow-hidden ${
             isFlipped ? 'opacity-100' : 'opacity-0'
@@ -171,7 +171,8 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(-180deg)',
             transition: 'transform 0.6s ease-in-out, opacity 0.3s ease',
             backfaceVisibility: 'hidden',
-            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+            background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
+            backgroundColor: '#0a0a0a',
             border: '1px solid rgba(255,255,255,0.1)',
             ...frameStyles
           }}
@@ -192,19 +193,41 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             {SurfaceTexture}
           </div>
 
-          {/* Back Content */}
-          <div className="relative h-full p-6 flex flex-col items-center justify-center text-center z-15">
-            <div className="w-32 h-32 bg-gradient-to-br from-crd-green to-crd-orange rounded-full mb-6 flex items-center justify-center">
-              <span className="text-black font-bold text-2xl">CARD</span>
+          {/* NEW Back Content - Centered CRD Logo Only */}
+          <div className="relative h-full flex items-center justify-center z-30">
+            <div className="flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
+                alt="CRD Logo" 
+                className="w-48 h-auto opacity-90"
+                style={{
+                  filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
+                }}
+                onLoad={() => console.log('EnhancedCardContainer CRD logo loaded successfully')}
+                onError={() => console.log('Error loading EnhancedCardContainer CRD logo')}
+              />
             </div>
-            <h3 className="text-white text-lg font-medium mb-2">Card Back</h3>
-            <p className="text-gray-400 text-sm">Click to flip back</p>
-            
-            {/* Interactive lighting status indicator */}
-            {interactiveLighting && (
-              <p className="text-crd-green text-xs mt-2 opacity-75">
-                Interactive Lighting Active
-              </p>
+          </div>
+
+          {/* Apply same effects as front for consistency */}
+          <div className="absolute inset-0 pointer-events-none z-40">
+            {/* Lighting effects overlay */}
+            {interactiveLighting && isHovering && (
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: `
+                    radial-gradient(
+                      ellipse 180% 140% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                      rgba(255, 255, 255, 0.02) 0%,
+                      rgba(255, 255, 255, 0.01) 50%,
+                      transparent 85%
+                    )
+                  `,
+                  mixBlendMode: 'overlay',
+                  transition: 'opacity 0.2s ease'
+                }}
+              />
             )}
           </div>
         </div>
