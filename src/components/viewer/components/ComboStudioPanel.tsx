@@ -9,11 +9,14 @@ import {
   Download,
   Save,
   RotateCcw,
-  Zap
+  Zap,
+  Palette,
+  Globe,
+  Eye
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
@@ -69,22 +72,7 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
   onClose,
   card
 }) => {
-  // Track which sections are expanded
-  const [expandedSections, setExpandedSections] = useState({
-    presets: true,
-    effects: true,
-    environment: false,
-    lighting: false,
-    materials: false,
-    memory: false
-  });
-
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
+  const [activeTab, setActiveTab] = useState('styles');
 
   const getActiveEffectsCount = () => {
     return Object.values(effectValues).filter(effect => {
@@ -106,7 +94,7 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
   };
 
   return (
-    <div className="fixed top-0 right-0 w-96 h-full bg-black bg-opacity-95 backdrop-blur-lg overflow-hidden border-l border-white/10 z-10 flex flex-col">
+    <div className="fixed top-0 right-0 w-[520px] h-full bg-black bg-opacity-95 backdrop-blur-lg overflow-hidden border-l border-white/10 z-10 flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center space-x-2">
@@ -181,200 +169,196 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
         </div>
       </div>
 
-      {/* Collapsible Sections */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {/* Quick Presets */}
-        <Collapsible 
-          open={expandedSections.presets} 
-          onOpenChange={() => toggleSection('presets')}
-        >
-          <CollapsibleTrigger asChild>
-            <Card className="bg-editor-dark border-editor-border cursor-pointer hover:bg-editor-border/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-white text-sm flex items-center justify-between">
-                  Quick Combos
-                  <div className="text-xs text-crd-lightGray">
-                    {expandedSections.presets ? '−' : '+'}
-                  </div>
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="mt-2">
-              <QuickComboPresets
-                onApplyCombo={(combo) => {
-                  // Apply effects
-                  Object.entries(combo.effects).forEach(([effectId, parameters]) => {
-                    Object.entries(parameters).forEach(([parameterId, value]) => {
-                      onEffectChange(effectId, parameterId, value);
-                    });
-                  });
-                  // Apply scene and lighting if provided
-                  if (combo.scene) onSceneChange(combo.scene);
-                  if (combo.lighting) onLightingChange(combo.lighting);
-                }}
-              />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+      {/* Tabbed Interface */}
+      <div className="flex-1 overflow-hidden">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+          <TabsList className="grid w-full grid-cols-3 bg-editor-dark border-b border-white/10 rounded-none">
+            <TabsTrigger 
+              value="styles" 
+              className="data-[state=active]:bg-crd-green data-[state=active]:text-black text-white flex items-center gap-2"
+            >
+              <Palette className="w-4 h-4" />
+              <span className="hidden sm:inline">Styles</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="environment" 
+              className="data-[state=active]:bg-crd-green data-[state=active]:text-black text-white flex items-center gap-2"
+            >
+              <Globe className="w-4 h-4" />
+              <span className="hidden sm:inline">Environment</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="preview" 
+              className="data-[state=active]:bg-crd-green data-[state=active]:text-black text-white flex items-center gap-2"
+            >
+              <Eye className="w-4 h-4" />
+              <span className="hidden sm:inline">Preview</span>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Effects Section */}
-        <Collapsible 
-          open={expandedSections.effects} 
-          onOpenChange={() => toggleSection('effects')}
-        >
-          <CollapsibleTrigger asChild>
-            <Card className="bg-editor-dark border-editor-border cursor-pointer hover:bg-editor-border/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-white text-sm flex items-center justify-between">
-                  Effects ({getActiveEffectsCount()})
-                  <div className="text-xs text-crd-lightGray">
-                    {expandedSections.effects ? '−' : '+'}
-                  </div>
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="mt-2">
-              <EffectsComboSection
-                effectValues={effectValues}
-                onEffectChange={onEffectChange}
-                onResetEffect={onResetEffect}
-              />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+          <div className="flex-1 overflow-y-auto">
+            {/* Styles Tab */}
+            <TabsContent value="styles" className="p-4 space-y-4 mt-0">
+              {/* Quick Presets */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">Quick Combos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <QuickComboPresets
+                    onApplyCombo={(combo) => {
+                      // Apply effects
+                      Object.entries(combo.effects).forEach(([effectId, parameters]) => {
+                        Object.entries(parameters).forEach(([parameterId, value]) => {
+                          onEffectChange(effectId, parameterId, value);
+                        });
+                      });
+                      // Apply scene and lighting if provided
+                      if (combo.scene) onSceneChange(combo.scene);
+                      if (combo.lighting) onLightingChange(combo.lighting);
+                    }}
+                  />
+                </CardContent>
+              </Card>
 
-        {/* Environment Section */}
-        <Collapsible 
-          open={expandedSections.environment} 
-          onOpenChange={() => toggleSection('environment')}
-        >
-          <CollapsibleTrigger asChild>
-            <Card className="bg-editor-dark border-editor-border cursor-pointer hover:bg-editor-border/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-white text-sm flex items-center justify-between">
-                  Environment ({selectedScene.name})
-                  <div className="text-xs text-crd-lightGray">
-                    {expandedSections.environment ? '−' : '+'}
-                  </div>
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="mt-2">
-              <EnvironmentComboSection
-                selectedScene={selectedScene}
-                onSceneChange={onSceneChange}
-              />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+              {/* Effects Section */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">
+                    Effects ({getActiveEffectsCount()})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <EffectsComboSection
+                    effectValues={effectValues}
+                    onEffectChange={onEffectChange}
+                    onResetEffect={onResetEffect}
+                  />
+                </CardContent>
+              </Card>
 
-        {/* Lighting Section */}
-        <Collapsible 
-          open={expandedSections.lighting} 
-          onOpenChange={() => toggleSection('lighting')}
-        >
-          <CollapsibleTrigger asChild>
-            <Card className="bg-editor-dark border-editor-border cursor-pointer hover:bg-editor-border/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-white text-sm flex items-center justify-between">
-                  Lighting ({selectedLighting.name})
-                  <div className="text-xs text-crd-lightGray">
-                    {expandedSections.lighting ? '−' : '+'}
-                  </div>
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="mt-2">
-              <LightingComboSection
-                selectedLighting={selectedLighting}
-                overallBrightness={overallBrightness}
-                interactiveLighting={interactiveLighting}
-                onLightingChange={onLightingChange}
-                onBrightnessChange={onBrightnessChange}
-                onInteractiveLightingToggle={onInteractiveLightingToggle}
-              />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+              {/* Materials Section */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">Materials</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <MaterialComboSection
+                    materialSettings={materialSettings}
+                    onMaterialSettingsChange={onMaterialSettingsChange}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-        {/* Materials Section */}
-        <Collapsible 
-          open={expandedSections.materials} 
-          onOpenChange={() => toggleSection('materials')}
-        >
-          <CollapsibleTrigger asChild>
-            <Card className="bg-editor-dark border-editor-border cursor-pointer hover:bg-editor-border/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-white text-sm flex items-center justify-between">
-                  Materials
-                  <div className="text-xs text-crd-lightGray">
-                    {expandedSections.materials ? '−' : '+'}
-                  </div>
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="mt-2">
-              <MaterialComboSection
-                materialSettings={materialSettings}
-                onMaterialSettingsChange={onMaterialSettingsChange}
-              />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+            {/* Environment Tab */}
+            <TabsContent value="environment" className="p-4 space-y-4 mt-0">
+              {/* Environment Section */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">
+                    Environment ({selectedScene.name})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <EnvironmentComboSection
+                    selectedScene={selectedScene}
+                    onSceneChange={onSceneChange}
+                  />
+                </CardContent>
+              </Card>
 
-        {/* Combo Memory Section */}
-        <Collapsible 
-          open={expandedSections.memory} 
-          onOpenChange={() => toggleSection('memory')}
-        >
-          <CollapsibleTrigger asChild>
-            <Card className="bg-editor-dark border-editor-border cursor-pointer hover:bg-editor-border/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-white text-sm flex items-center justify-between">
-                  Saved Combos
-                  <div className="text-xs text-crd-lightGray">
-                    {expandedSections.memory ? '−' : '+'}
-                  </div>
-                </CardTitle>
-              </CardHeader>
-            </Card>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="mt-2">
-              <ComboMemorySection
-                currentState={{
-                  effects: effectValues,
-                  scene: selectedScene,
-                  lighting: selectedLighting,
-                  materials: materialSettings,
-                  brightness: overallBrightness[0]
-                }}
-                onLoadCombo={(combo) => {
-                  // Apply loaded combo
-                  Object.entries(combo.effects).forEach(([effectId, parameters]) => {
-                    Object.entries(parameters).forEach(([parameterId, value]) => {
-                      onEffectChange(effectId, parameterId, value);
-                    });
-                  });
-                  if (combo.scene) onSceneChange(combo.scene);
-                  if (combo.lighting) onLightingChange(combo.lighting);
-                  if (combo.materials) onMaterialSettingsChange(combo.materials);
-                  if (combo.brightness) onBrightnessChange([combo.brightness]);
-                }}
-              />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+              {/* Lighting Section */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">
+                    Lighting ({selectedLighting.name})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <LightingComboSection
+                    selectedLighting={selectedLighting}
+                    overallBrightness={overallBrightness}
+                    interactiveLighting={interactiveLighting}
+                    onLightingChange={onLightingChange}
+                    onBrightnessChange={onBrightnessChange}
+                    onInteractiveLightingToggle={onInteractiveLightingToggle}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Preview & Export Tab */}
+            <TabsContent value="preview" className="p-4 space-y-4 mt-0">
+              {/* Export Controls */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">Export & Share</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {onDownload && (
+                    <Button
+                      onClick={() => onDownload(card)}
+                      variant="outline"
+                      className="w-full border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Card
+                    </Button>
+                  )}
+                  {onShare && (
+                    <Button
+                      onClick={() => onShare(card)}
+                      variant="outline"
+                      className="w-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
+                    >
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Share Card
+                    </Button>
+                  )}
+                  <Button
+                    onClick={onToggleFullscreen}
+                    variant="outline"
+                    className="w-full border-white/20 text-white hover:bg-white/10"
+                  >
+                    {isFullscreen ? <Minimize2 className="w-4 h-4 mr-2" /> : <Maximize2 className="w-4 h-4 mr-2" />}
+                    {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Preview'}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Saved Combos */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">Saved Combos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ComboMemorySection
+                    currentState={{
+                      effects: effectValues,
+                      scene: selectedScene,
+                      lighting: selectedLighting,
+                      materials: materialSettings,
+                      brightness: overallBrightness[0]
+                    }}
+                    onLoadCombo={(combo) => {
+                      // Apply loaded combo
+                      Object.entries(combo.effects).forEach(([effectId, parameters]) => {
+                        Object.entries(parameters).forEach(([parameterId, value]) => {
+                          onEffectChange(effectId, parameterId, value);
+                        });
+                      });
+                      if (combo.scene) onSceneChange(combo.scene);
+                      if (combo.lighting) onLightingChange(combo.lighting);
+                      if (combo.materials) onMaterialSettingsChange(combo.materials);
+                      if (combo.brightness) onBrightnessChange([combo.brightness]);
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
     </div>
   );
