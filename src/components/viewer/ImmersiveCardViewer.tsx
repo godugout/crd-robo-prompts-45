@@ -1,19 +1,20 @@
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
 import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from './constants';
 import { 
-  useEnhancedCardEffects, 
-  ENHANCED_VISUAL_EFFECTS,
-  type EffectValues 
+  useEnhancedCardEffects
 } from './hooks/useEnhancedCardEffects';
 import { ViewerControls } from './components/ViewerControls';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { useCardExport } from './hooks/useCardExport';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
 import { CompactBottomDrawer } from './components/CompactBottomDrawer';
+import { CardNavigationControls } from './components/CardNavigationControls';
+import { ViewerContainer } from './components/ViewerContainer';
+import { useViewerState } from './hooks/useViewerState';
+import { useViewerInteractions } from './hooks/useViewerInteractions';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -35,48 +36,76 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   showStats = true,
   ambient = true
 }) => {
-  // State
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [rotation, setRotation] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [autoRotate, setAutoRotate] = useState(false);
-  const [showEffects, setShowEffects] = useState(true);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
-  
-  // Enhanced effects state
-  const [effectValues, setEffectValues] = useState<EffectValues>(() => {
-    const initialValues: EffectValues = {};
-    ENHANCED_VISUAL_EFFECTS.forEach(effect => {
-      initialValues[effect.id] = {};
-      effect.parameters.forEach(param => {
-        initialValues[effect.id][param.id] = param.defaultValue;
-      });
-    });
-    return initialValues;
-  });
-  
-  // Advanced settings
-  const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[3]); // Twilight
-  const [selectedLighting, setSelectedLighting] = useState<LightingPreset>(LIGHTING_PRESETS[0]);
-  const [overallBrightness, setOverallBrightness] = useState([120]);
-  const [interactiveLighting, setInteractiveLighting] = useState(true);
+  // Use the new state management hook
+  const {
+    isFullscreen,
+    rotation,
+    isDragging,
+    dragStart,
+    zoom,
+    isFlipped,
+    autoRotate,
+    showEffects,
+    mousePosition,
+    isHovering,
+    showExportDialog,
+    effectValues,
+    containerRef,
+    cardContainerRef,
+    animationRef,
+    setRotation,
+    setIsDragging,
+    setDragStart,
+    setZoom,
+    setIsFlipped,
+    setAutoRotate,
+    setShowEffects,
+    setMousePosition,
+    setIsHovering,
+    setShowExportDialog,
+    setEffectValues,
+    handleEffectChange,
+    handleResetAllEffects,
+    handleReset,
+    handleZoom,
+    toggleFullscreen
+  } = useViewerState();
+
+  // Advanced settings state
+  const [selectedScene, setSelectedScene] = React.useState<EnvironmentScene>(ENVIRONMENT_SCENES[3]); // Twilight
+  const [selectedLighting, setSelectedLighting] = React.useState<LightingPreset>(LIGHTING_PRESETS[0]);
+  const [overallBrightness, setOverallBrightness] = React.useState([120]);
+  const [interactiveLighting, setInteractiveLighting] = React.useState(true);
   
   // Material properties
-  const [materialSettings, setMaterialSettings] = useState<MaterialSettings>({
+  const [materialSettings, setMaterialSettings] = React.useState<MaterialSettings>({
     roughness: 0.30,
     metalness: 0.60,
     clearcoat: 0.75,
     reflectivity: 0.50
   });
-  
-  // Refs
-  const containerRef = useRef<HTMLDivElement>(null);
-  const cardContainerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
+
+  // Use the new interactions hook
+  const {
+    handleMouseMove,
+    handleDragStart,
+    handleDrag,
+    handleDragEnd
+  } = useViewerInteractions({
+    containerRef,
+    rotation,
+    isDragging,
+    dragStart,
+    allowRotation,
+    autoRotate,
+    animationRef,
+    setRotation,
+    setIsDragging,
+    setDragStart,
+    setZoom,
+    setMousePosition,
+    setAutoRotate
+  });
 
   // Determine if we have multiple cards to navigate
   const hasMultipleCards = cards.length > 1;
@@ -89,14 +118,14 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
       onCardChange(currentCardIndex - 1);
       setIsFlipped(false); // Reset flip state when changing cards
     }
-  }, [canGoPrev, currentCardIndex, onCardChange]);
+  }, [canGoPrev, currentCardIndex, onCardChange, setIsFlipped]);
 
   const handleNextCard = useCallback(() => {
     if (canGoNext && onCardChange) {
       onCardChange(currentCardIndex + 1);
       setIsFlipped(false); // Reset flip state when changing cards
     }
-  }, [canGoNext, currentCardIndex, onCardChange]);
+  }, [canGoNext, currentCardIndex, onCardChange, setIsFlipped]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -112,45 +141,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handlePreviousCard, handleNextCard]);
 
-  // Enhanced effects handlers
-  const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
-    setEffectValues(prev => ({
-      ...prev,
-      [effectId]: {
-        ...prev[effectId],
-        [parameterId]: value
-      }
-    }));
-  }, []);
-
-  const handleResetEffect = useCallback((effectId: string) => {
-    const effect = ENHANCED_VISUAL_EFFECTS.find(e => e.id === effectId);
-    if (effect) {
-      const resetValues: Record<string, any> = {};
-      effect.parameters.forEach(param => {
-        resetValues[param.id] = param.defaultValue;
-      });
-      setEffectValues(prev => ({
-        ...prev,
-        [effectId]: resetValues
-      }));
-    }
-  }, []);
-
-  const handleResetAllEffects = useCallback(() => {
-    const resetValues: EffectValues = {};
-    ENHANCED_VISUAL_EFFECTS.forEach(effect => {
-      resetValues[effect.id] = {};
-      effect.parameters.forEach(param => {
-        resetValues[effect.id][param.id] = param.defaultValue;
-      });
-    });
-    setEffectValues(resetValues);
-  }, []);
-
-  // Add new state for export dialog
-  const [showExportDialog, setShowExportDialog] = useState(false);
-
   // Add export functionality
   const { exportCard, isExporting, exportProgress } = useCardExport({
     cardRef: cardContainerRef,
@@ -162,12 +152,12 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
   const handleRotationChange = useCallback((newRotation: { x: number; y: number }) => {
     setRotation(newRotation);
-  }, []);
+  }, [setRotation]);
 
   // Update the existing download handler to open export dialog
   const handleDownloadClick = useCallback(() => {
     setShowExportDialog(true);
-  }, []);
+  }, [setShowExportDialog]);
 
   // Custom hooks
   const { getFrameStyles, getEnhancedEffectStyles, SurfaceTexture } = useEnhancedCardEffects({
@@ -179,137 +169,20 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     interactiveLighting
   });
 
-  // Auto-rotation effect
-  useEffect(() => {
-    if (autoRotate && !isDragging) {
-      const animate = () => {
-        setRotation(prev => ({
-          x: Math.sin(Date.now() * 0.0005) * 10,
-          y: prev.y + 0.5
-        }));
-        animationRef.current = requestAnimationFrame(animate);
-      };
-      animationRef.current = requestAnimationFrame(animate);
-    } else {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    }
-    
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [autoRotate, isDragging]);
-
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const zoomDelta = e.deltaY > 0 ? -0.1 : 0.1;
-      setZoom(prev => Math.max(0.5, Math.min(3, prev + zoomDelta)));
-    };
-
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener('wheel', handleWheel, { passive: false });
-      return () => container.removeEventListener('wheel', handleWheel);
-    }
-  }, []);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging && containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = (e.clientY - rect.top) / rect.height;
-      setMousePosition({ x, y });
-      
-      if (allowRotation && !autoRotate) {
-        setRotation({
-          x: (y - 0.5) * 20,
-          y: (x - 0.5) * -20
-        });
-      }
-    }
-  }, [isDragging, allowRotation, autoRotate]);
-
-  const handleDragStart = useCallback((e: React.MouseEvent) => {
-    if (allowRotation) {
-      setIsDragging(true);
-      setDragStart({ x: e.clientX - rotation.y, y: e.clientY - rotation.x });
-      setAutoRotate(false);
-    }
-  }, [rotation, allowRotation]);
-
-  const handleDrag = useCallback((e: React.MouseEvent) => {
-    if (isDragging && allowRotation) {
-      setRotation({
-        x: e.clientY - dragStart.y,
-        y: e.clientX - dragStart.x
-      });
-    }
-  }, [isDragging, dragStart, allowRotation]);
-
-  const handleDragEnd = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  const handleReset = useCallback(() => {
-    setRotation({ x: 0, y: 0 });
-    setZoom(1);
-    setIsFlipped(false);
-    setAutoRotate(false);
-  }, []);
-
-  const handleZoom = useCallback((delta: number) => {
-    setZoom(prev => Math.max(0.5, Math.min(3, prev + delta)));
-  }, []);
-
-  const toggleFullscreen = useCallback(() => {
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  }, []);
-
   if (!isOpen) return null;
 
   return (
     <>
-      <div 
-        ref={containerRef}
-        className={`fixed inset-0 z-50 flex items-center justify-center ${
-          isFullscreen ? 'p-0' : 'p-8'
-        }`}
-        style={{
-          background: `linear-gradient(135deg, 
-            rgba(0,0,0,0.95) 0%, 
-            rgba(20,20,30,0.95) 25%, 
-            rgba(10,10,20,0.95) 50%, 
-            rgba(30,20,40,0.95) 75%, 
-            rgba(0,0,0,0.95) 100%)`
-        }}
+      <ViewerContainer
+        containerRef={containerRef}
+        isFullscreen={isFullscreen}
+        ambient={ambient}
+        mousePosition={mousePosition}
+        selectedScene={selectedScene}
         onMouseMove={handleMouseMove}
         onMouseUp={handleDragEnd}
         onMouseLeave={handleDragEnd}
       >
-        {/* Enhanced Dark Overlay */}
-        <div className="absolute inset-0 bg-black/80" />
-
-        {/* Subtle Ambient Background Effect */}
-        {ambient && (
-          <div 
-            className="absolute inset-0 opacity-5"
-            style={{
-              background: `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-                ${selectedScene.lighting.color} 0%, transparent 30%)`
-            }}
-          />
-        )}
-
         {/* Top Controls Section */}
         <div className="absolute top-4 left-4 right-4 z-10 flex items-start justify-between">
           {/* Basic Controls - Top Left */}
@@ -324,35 +197,14 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
 
           {/* Card Navigation Controls - Top Right */}
-          {hasMultipleCards && (
-            <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-3 border border-white/10">
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handlePreviousCard}
-                  disabled={!canGoPrev}
-                  className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                
-                <div className="text-white text-sm px-3">
-                  {currentCardIndex + 1} / {cards.length}
-                </div>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleNextCard}
-                  disabled={!canGoNext}
-                  className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          )}
+          <CardNavigationControls
+            currentCardIndex={currentCardIndex}
+            totalCards={cards.length}
+            onPreviousCard={handlePreviousCard}
+            onNextCard={handleNextCard}
+            canGoPrev={canGoPrev}
+            canGoNext={canGoNext}
+          />
         </div>
 
         {/* Compact Bottom Drawer */}
@@ -399,7 +251,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             onClick={() => setIsFlipped(!isFlipped)}
           />
         </div>
-      </div>
+      </ViewerContainer>
 
       {/* Export Options Dialog */}
       <ExportOptionsDialog
