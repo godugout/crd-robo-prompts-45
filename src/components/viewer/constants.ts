@@ -151,7 +151,7 @@ export const LIGHTING_PRESETS: LightingPreset[] = [
   }
 ];
 
-export const VISUAL_EFFECTS = [
+export const VISUAL_EFFECTS: VisualEffect[] = [
   {
     id: 'holographic',
     name: 'Holographic',
