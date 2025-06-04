@@ -10,6 +10,7 @@ interface CardEffectsLayerProps {
   physicalEffectStyles: React.CSSProperties;
   materialSettings?: MaterialSettings;
   interactiveLighting?: boolean;
+  effectValues?: any; // Add effect values to check for specific effects
 }
 
 export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
@@ -19,11 +20,16 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   mousePosition,
   physicalEffectStyles,
   materialSettings,
-  interactiveLighting = false
+  interactiveLighting = false,
+  effectValues
 }) => {
   if (!showEffects) return null;
   
   const intensity = effectIntensity[0] / 100;
+  
+  // Check if gold luxury effect is active
+  const goldIntensity = effectValues?.brushedmetal?.intensity || 0;
+  const isGoldActive = goldIntensity > 0;
   
   // Calculate interactive lighting effects
   const getInteractiveLightingData = () => {
@@ -82,27 +88,93 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   
   return (
     <>
+      {/* Gold Luxury Effect - Enhanced golden yellow shine */}
+      {isGoldActive && (
+        <>
+          {/* Primary gold shine layer */}
+          <div
+            className="absolute inset-0 z-20"
+            style={{
+              background: `
+                radial-gradient(
+                  circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                  rgba(255, 215, 0, ${(goldIntensity / 100) * 0.8}) 0%,
+                  rgba(255, 193, 7, ${(goldIntensity / 100) * 0.6}) 20%,
+                  rgba(255, 235, 59, ${(goldIntensity / 100) * 0.4}) 40%,
+                  transparent 70%
+                )
+              `,
+              mixBlendMode: 'screen',
+              opacity: 0.9
+            }}
+          />
+          
+          {/* Secondary golden metallic layer */}
+          <div
+            className="absolute inset-0 z-19"
+            style={{
+              background: `
+                linear-gradient(
+                  ${45 + mousePosition.x * 90}deg,
+                  rgba(255, 215, 0, ${(goldIntensity / 100) * 0.3}) 0%,
+                  rgba(255, 193, 7, ${(goldIntensity / 100) * 0.5}) 25%,
+                  rgba(255, 235, 59, ${(goldIntensity / 100) * 0.4}) 50%,
+                  rgba(255, 215, 0, ${(goldIntensity / 100) * 0.3}) 75%,
+                  rgba(255, 193, 7, ${(goldIntensity / 100) * 0.2}) 100%
+                )
+              `,
+              mixBlendMode: 'overlay',
+              opacity: 0.8
+            }}
+          />
+          
+          {/* Gold shimmer highlights */}
+          <div
+            className="absolute inset-0 z-21"
+            style={{
+              background: `
+                conic-gradient(
+                  from ${mousePosition.x * 180}deg at 50% 50%,
+                  transparent 0deg,
+                  rgba(255, 215, 0, ${(goldIntensity / 100) * 0.6}) 30deg,
+                  rgba(255, 235, 59, ${(goldIntensity / 100) * 0.8}) 60deg,
+                  transparent 90deg,
+                  rgba(255, 193, 7, ${(goldIntensity / 100) * 0.4}) 180deg,
+                  transparent 210deg,
+                  rgba(255, 215, 0, ${(goldIntensity / 100) * 0.5}) 270deg,
+                  transparent 360deg
+                )
+              `,
+              mixBlendMode: 'screen',
+              opacity: isHovering ? 0.9 : 0.6
+            }}
+          />
+        </>
+      )}
+
       {/* Base holographic effect with interactive enhancement */}
-      <div
-        className="absolute inset-0 z-10"
-        style={{
-          background: `conic-gradient(
-            from ${mousePosition.x * 180 + (interactiveData ? interactiveData.lightX * 90 : 0)}deg at 50% 60%,
-            rgba(240, 60, 80, ${intensity * (interactiveData ? 0.8 + interactiveData.lightIntensity * 0.4 : 0.6)}) 0deg,
-            rgba(80, 60, 240, ${intensity * (interactiveData ? 0.6 + interactiveData.lightIntensity * 0.3 : 0.4)}) 120deg,
-            rgba(60, 240, 180, ${intensity * (interactiveData ? 0.6 + interactiveData.lightIntensity * 0.3 : 0.4)}) 240deg,
-            rgba(240, 60, 80, ${intensity * (interactiveData ? 0.8 + interactiveData.lightIntensity * 0.4 : 0.6)}) 360deg
-          )`,
-          opacity: showEffects ? (interactiveData ? 0.7 + interactiveData.lightIntensity * 0.3 : 0.5) : 0,
-          mixBlendMode: 'soft-light',
-          ...physicalEffectStyles
-        }}
-      />
+      {!isGoldActive && (
+        <div
+          className="absolute inset-0 z-10"
+          style={{
+            background: `conic-gradient(
+              from ${mousePosition.x * 180 + (interactiveData ? interactiveData.lightX * 90 : 0)}deg at 50% 60%,
+              rgba(240, 60, 80, ${intensity * (interactiveData ? 0.8 + interactiveData.lightIntensity * 0.4 : 0.6)}) 0deg,
+              rgba(80, 60, 240, ${intensity * (interactiveData ? 0.6 + interactiveData.lightIntensity * 0.3 : 0.4)}) 120deg,
+              rgba(60, 240, 180, ${intensity * (interactiveData ? 0.6 + interactiveData.lightIntensity * 0.3 : 0.4)}) 240deg,
+              rgba(240, 60, 80, ${intensity * (interactiveData ? 0.8 + interactiveData.lightIntensity * 0.4 : 0.6)}) 360deg
+            )`,
+            opacity: showEffects ? (interactiveData ? 0.7 + interactiveData.lightIntensity * 0.3 : 0.5) : 0,
+            mixBlendMode: 'soft-light',
+            ...physicalEffectStyles
+          }}
+        />
+      )}
 
       {/* Interactive high-frequency reflective/foil pattern */}
       {isHovering && (
         <div
-          className="absolute inset-0 z-20 overflow-hidden"
+          className="absolute inset-0 z-22 overflow-hidden"
           style={{
             opacity: reflectionStrength,
             background: `
@@ -114,7 +186,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
                 transparent 60%
               )
             `,
-            mixBlendMode: 'screen',
+            mixBlendMode: isGoldActive ? 'overlay' : 'screen',
           }}
         />
       )}
@@ -122,7 +194,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       {/* Interactive dynamic light source */}
       {interactiveLighting && interactiveData && isHovering && (
         <div
-          className="absolute inset-0 z-22 overflow-hidden"
+          className="absolute inset-0 z-23 overflow-hidden"
           style={{
             background: `
               radial-gradient(
