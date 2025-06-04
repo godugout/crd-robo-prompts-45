@@ -16,89 +16,86 @@ export const ChromeEffect: React.FC<ChromeEffectProps> = ({
 }) => {
   if (!isActive) return null;
 
-  // Enhanced intensity for better visibility over images
-  const enhancedIntensity = Math.min(intensity * 1.4, 100);
+  // Significantly reduced intensity for balanced chrome look
+  const chromeIntensity = Math.min(intensity * 0.35, 35);
 
   return (
     <>
-      {/* Primary chrome base layer - Enhanced */}
+      {/* Dark metallic base instead of bright overlay */}
       <div
         className="absolute inset-0 z-20"
         style={{
           background: `
             linear-gradient(
-              ${45 + mousePosition.x * 90}deg,
-              rgba(230, 230, 235, ${(enhancedIntensity / 100) * 1.0}) 0%,
-              rgba(255, 255, 255, ${(enhancedIntensity / 100) * 1.0}) 20%,
-              rgba(200, 205, 210, ${(enhancedIntensity / 100) * 0.9}) 40%,
-              rgba(255, 255, 255, ${(enhancedIntensity / 100) * 1.0}) 60%,
-              rgba(180, 185, 190, ${(enhancedIntensity / 100) * 0.8}) 80%,
-              rgba(240, 240, 245, ${(enhancedIntensity / 100) * 0.95}) 100%
+              ${45 + mousePosition.x * 60}deg,
+              rgba(180, 185, 190, ${(chromeIntensity / 100) * 0.15}) 0%,
+              rgba(200, 205, 210, ${(chromeIntensity / 100) * 0.20}) 25%,
+              rgba(160, 165, 170, ${(chromeIntensity / 100) * 0.12}) 50%,
+              rgba(190, 195, 200, ${(chromeIntensity / 100) * 0.18}) 75%,
+              rgba(170, 175, 180, ${(chromeIntensity / 100) * 0.14}) 100%
             )
           `,
-          mixBlendMode: 'color-dodge',
-          opacity: 0.95
+          mixBlendMode: 'overlay',
+          opacity: 0.7
         }}
       />
       
-      {/* Sharp chrome reflection highlights - Boosted */}
+      {/* Directional reflections following mouse - subtle */}
       <div
         className="absolute inset-0 z-21"
         style={{
           background: `
-            radial-gradient(
-              ellipse at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-              rgba(255, 255, 255, ${(enhancedIntensity / 100) * 1.0}) 0%,
-              rgba(235, 240, 245, ${(enhancedIntensity / 100) * 0.9}) 15%,
-              rgba(220, 225, 230, ${(enhancedIntensity / 100) * 0.7}) 30%,
-              transparent 50%
+            linear-gradient(
+              ${mousePosition.x * 120}deg,
+              transparent 0%,
+              rgba(220, 225, 230, ${(chromeIntensity / 100) * 0.25}) 30%,
+              rgba(240, 245, 250, ${(chromeIntensity / 100) * 0.30}) 50%,
+              rgba(220, 225, 230, ${(chromeIntensity / 100) * 0.25}) 70%,
+              transparent 100%
             )
           `,
           mixBlendMode: 'soft-light',
-          opacity: 1.0
+          opacity: 0.6
         }}
       />
       
-      {/* Chrome surface reflections - Enhanced */}
+      {/* Anisotropic reflection patterns - controlled */}
       <div
         className="absolute inset-0 z-22"
         style={{
           background: `
             conic-gradient(
-              from ${mousePosition.x * 120}deg at 50% 50%,
+              from ${mousePosition.x * 90}deg at 50% 50%,
               transparent 0deg,
-              rgba(255, 255, 255, ${(enhancedIntensity / 100) * 0.9}) 20deg,
-              rgba(240, 245, 250, ${(enhancedIntensity / 100) * 1.0}) 40deg,
-              transparent 60deg,
-              rgba(200, 210, 220, ${(enhancedIntensity / 100) * 0.8}) 120deg,
-              transparent 140deg,
-              rgba(255, 255, 255, ${(enhancedIntensity / 100) * 0.95}) 200deg,
-              transparent 220deg,
-              rgba(220, 230, 240, ${(enhancedIntensity / 100) * 0.85}) 300deg,
+              rgba(200, 205, 210, ${(chromeIntensity / 100) * 0.20}) 30deg,
+              rgba(180, 185, 190, ${(chromeIntensity / 100) * 0.15}) 60deg,
+              transparent 90deg,
+              rgba(190, 195, 200, ${(chromeIntensity / 100) * 0.18}) 180deg,
+              transparent 210deg,
+              rgba(170, 175, 180, ${(chromeIntensity / 100) * 0.16}) 300deg,
               transparent 360deg
             )
           `,
-          mixBlendMode: 'overlay',
-          opacity: isHovering ? 1.0 : 0.9
+          mixBlendMode: 'multiply',
+          opacity: isHovering ? 0.5 : 0.4
         }}
       />
       
-      {/* Sharp directional highlights for chrome finish - Enhanced */}
+      {/* Subtle metallic shimmer */}
       <div
         className="absolute inset-0 z-23"
         style={{
           background: `
             repeating-linear-gradient(
-              ${mousePosition.x * 180}deg,
+              ${mousePosition.x * 90}deg,
               transparent 0px,
-              rgba(255, 255, 255, ${(enhancedIntensity / 100) * 0.6}) 1px,
-              rgba(240, 245, 250, ${(enhancedIntensity / 100) * 0.8}) 2px,
-              transparent 4px,
-              transparent 8px
+              rgba(210, 215, 220, ${(chromeIntensity / 100) * 0.12}) 1px,
+              transparent 2px,
+              transparent 6px
             )
           `,
-          mixBlendMode: 'hard-light',
-          opacity: 0.8
+          mixBlendMode: 'overlay',
+          opacity: 0.4
         }}
       />
     </>

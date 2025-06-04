@@ -20,106 +20,60 @@ export const HolographicEffect: React.FC<HolographicEffectProps> = ({
 }) => {
   if (!isActive || !showEffects) return null;
 
-  // Enhanced intensity for crystal prism effect
-  const enhancedIntensity = Math.min(intensity * 1.2, 100);
+  // Balanced intensity for crystal prism translucent effect
+  const balancedIntensity = Math.min(intensity * 0.6, 60);
 
   return (
     <>
-      {/* Stained glass base overlay - creates the translucent effect */}
+      {/* Stained glass translucency base - very subtle */}
       <div
         className="absolute inset-0 z-15"
         style={{
           background: `
             linear-gradient(
-              ${mousePosition.x * 180}deg,
-              rgba(255, 255, 255, ${(enhancedIntensity / 100) * 0.15}) 0%,
-              rgba(0, 0, 0, ${(enhancedIntensity / 100) * 0.25}) 100%
+              ${mousePosition.x * 45}deg,
+              rgba(255, 255, 255, ${(balancedIntensity / 100) * 0.08}) 0%,
+              rgba(200, 220, 255, ${(balancedIntensity / 100) * 0.05}) 50%,
+              rgba(255, 200, 220, ${(balancedIntensity / 100) * 0.03}) 100%
             )
           `,
           mixBlendMode: 'overlay',
-          opacity: 0.8
+          opacity: 0.7
         }}
       />
 
-      {/* Crystal prism light refraction - rainbow spectrum */}
+      {/* Crystal prism light refraction - edge-focused */}
       <div
         className="absolute inset-0 z-20"
         style={{
           background: `
-            conic-gradient(
-              from ${mousePosition.x * 360}deg at 50% 50%,
-              rgba(255, 0, 128, ${(enhancedIntensity / 100) * 0.4}) 0deg,
-              rgba(128, 0, 255, ${(enhancedIntensity / 100) * 0.5}) 60deg,
-              rgba(0, 128, 255, ${(enhancedIntensity / 100) * 0.6}) 120deg,
-              rgba(0, 255, 128, ${(enhancedIntensity / 100) * 0.5}) 180deg,
-              rgba(255, 255, 0, ${(enhancedIntensity / 100) * 0.4}) 240deg,
-              rgba(255, 128, 0, ${(enhancedIntensity / 100) * 0.5}) 300deg,
-              rgba(255, 0, 128, ${(enhancedIntensity / 100) * 0.4}) 360deg
-            )
-          `,
-          mixBlendMode: 'color-dodge',
-          opacity: 0.9
-        }}
-      />
-
-      {/* Stained glass light transmission effect */}
-      <div
-        className="absolute inset-0 z-21"
-        style={{
-          background: `
             radial-gradient(
-              ellipse at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-              rgba(255, 255, 255, ${(enhancedIntensity / 100) * 0.8}) 0%,
-              rgba(200, 220, 255, ${(enhancedIntensity / 100) * 0.6}) 20%,
-              rgba(255, 200, 220, ${(enhancedIntensity / 100) * 0.4}) 40%,
-              rgba(220, 255, 200, ${(enhancedIntensity / 100) * 0.3}) 60%,
-              transparent 80%
+              circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+              transparent 30%,
+              rgba(255, 0, 128, ${(balancedIntensity / 100) * 0.15}) 60%,
+              rgba(128, 0, 255, ${(balancedIntensity / 100) * 0.12}) 70%,
+              rgba(0, 128, 255, ${(balancedIntensity / 100) * 0.18}) 80%,
+              rgba(0, 255, 128, ${(balancedIntensity / 100) * 0.15}) 90%,
+              transparent 100%
             )
           `,
           mixBlendMode: 'soft-light',
-          opacity: 1.0
-        }}
-      />
-
-      {/* Crystal facet reflections */}
-      <div
-        className="absolute inset-0 z-22"
-        style={{
-          background: `
-            linear-gradient(
-              ${45 + mousePosition.x * 90}deg,
-              transparent 0%,
-              rgba(255, 255, 255, ${(enhancedIntensity / 100) * 0.7}) 25%,
-              rgba(200, 255, 255, ${(enhancedIntensity / 100) * 0.5}) 50%,
-              rgba(255, 200, 255, ${(enhancedIntensity / 100) * 0.6}) 75%,
-              transparent 100%
-            ),
-            linear-gradient(
-              ${135 + mousePosition.y * 90}deg,
-              transparent 0%,
-              rgba(255, 255, 200, ${(enhancedIntensity / 100) * 0.4}) 30%,
-              rgba(200, 255, 200, ${(enhancedIntensity / 100) * 0.5}) 70%,
-              transparent 100%
-            )
-          `,
-          mixBlendMode: 'screen',
           opacity: 0.8
         }}
       />
 
-      {/* Dynamic prismatic dispersions */}
+      {/* Iridescent shifting colors - subtle */}
       <div
-        className="absolute inset-0 z-23"
+        className="absolute inset-0 z-21"
         style={{
           background: `
-            repeating-linear-gradient(
-              ${mousePosition.x * 180}deg,
-              transparent 0px,
-              rgba(255, 0, 255, ${(enhancedIntensity / 100) * 0.3}) 2px,
-              rgba(0, 255, 255, ${(enhancedIntensity / 100) * 0.4}) 4px,
-              rgba(255, 255, 0, ${(enhancedIntensity / 100) * 0.3}) 6px,
-              transparent 8px,
-              transparent 16px
+            conic-gradient(
+              from ${mousePosition.x * 180}deg at 70% 30%,
+              transparent 0deg,
+              rgba(255, 200, 255, ${(balancedIntensity / 100) * 0.1}) 60deg,
+              rgba(200, 255, 255, ${(balancedIntensity / 100) * 0.12}) 120deg,
+              rgba(255, 255, 200, ${(balancedIntensity / 100) * 0.08}) 180deg,
+              transparent 240deg
             )
           `,
           mixBlendMode: 'color-dodge',
@@ -127,23 +81,39 @@ export const HolographicEffect: React.FC<HolographicEffectProps> = ({
         }}
       />
 
-      {/* Spectral light bands for stained glass effect */}
+      {/* Light transmission through stained glass */}
       <div
-        className="absolute inset-0 z-24"
+        className="absolute inset-0 z-22"
         style={{
           background: `
             linear-gradient(
               ${mousePosition.y * 90}deg,
-              rgba(255, 100, 100, ${(enhancedIntensity / 100) * 0.3}) 0%,
-              rgba(100, 255, 100, ${(enhancedIntensity / 100) * 0.4}) 20%,
-              rgba(100, 100, 255, ${(enhancedIntensity / 100) * 0.3}) 40%,
-              rgba(255, 255, 100, ${(enhancedIntensity / 100) * 0.35}) 60%,
-              rgba(255, 100, 255, ${(enhancedIntensity / 100) * 0.3}) 80%,
-              rgba(100, 255, 255, ${(enhancedIntensity / 100) * 0.4}) 100%
+              rgba(255, 255, 255, ${(balancedIntensity / 100) * 0.15}) 0%,
+              transparent 30%,
+              rgba(200, 255, 255, ${(balancedIntensity / 100) * 0.08}) 70%,
+              transparent 100%
             )
           `,
-          mixBlendMode: 'overlay',
-          opacity: 0.7
+          mixBlendMode: 'soft-light',
+          opacity: 0.5
+        }}
+      />
+
+      {/* Prismatic edge dispersions - very subtle */}
+      <div
+        className="absolute inset-0 z-23"
+        style={{
+          background: `
+            repeating-linear-gradient(
+              ${mousePosition.x * 90}deg,
+              transparent 0px,
+              rgba(255, 0, 255, ${(balancedIntensity / 100) * 0.05}) 1px,
+              transparent 2px,
+              transparent 8px
+            )
+          `,
+          mixBlendMode: 'screen',
+          opacity: 0.4
         }}
       />
     </>

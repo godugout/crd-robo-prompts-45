@@ -38,8 +38,8 @@ export const CardFront: React.FC<CardFrontProps> = ({
                              !effectValues?.brushedsteel?.intensity && 
                              !effectValues?.vintage?.intensity;
 
-  // Apply stained glass translucency when Crystal Prism is active
-  const cardOpacity = isHolographicActive && showEffects ? 0.85 : 1.0;
+  // Reduced translucency for better image visibility
+  const cardOpacity = isHolographicActive && showEffects ? 0.95 : 1.0;
 
   return (
     <div
@@ -54,12 +54,12 @@ export const CardFront: React.FC<CardFrontProps> = ({
       {/* Base Layer */}
       <div className="absolute inset-0 z-0" style={physicalEffectStyles} />
       
-      {/* Image Layer with stained glass translucency */}
+      {/* Image Layer - higher visibility priority */}
       {card.image_url && (
         <div 
           className="absolute inset-0 z-10"
           style={{
-            opacity: isHolographicActive && showEffects ? 0.9 : 1.0
+            opacity: isHolographicActive && showEffects ? 0.95 : 1.0
           }}
         >
           <img 
@@ -68,15 +68,15 @@ export const CardFront: React.FC<CardFrontProps> = ({
             className="w-full h-full object-cover"
             style={{
               filter: isHolographicActive && showEffects ? 
-                'brightness(1.1) contrast(1.05) saturate(1.1)' : 
+                'brightness(1.05) contrast(1.02) saturate(1.05)' : 
                 'none'
             }}
           />
         </div>
       )}
       
-      {/* Effects Layer - Above image for visibility */}
-      <div className="absolute inset-0 z-30">
+      {/* Effects Layer - Reduced z-index for subtlety */}
+      <div className="absolute inset-0 z-20">
         <CardEffectsLayer
           showEffects={showEffects}
           isHovering={isHovering}
@@ -89,27 +89,27 @@ export const CardFront: React.FC<CardFrontProps> = ({
         />
       </div>
       
-      {/* Surface Texture Layer - Above effects for material interaction */}
-      <div className="absolute inset-0 z-40 pointer-events-none">
+      {/* Surface Texture Layer - Subtle overlay */}
+      <div className="absolute inset-0 z-30 pointer-events-none">
         {SurfaceTexture}
       </div>
 
-      {/* Stained Glass Light Transmission Overlay - Only for Crystal Prism */}
+      {/* Stained Glass Light Transmission - Only for Crystal Prism, very subtle */}
       {isHolographicActive && showEffects && (
         <div 
-          className="absolute inset-0 z-50 pointer-events-none"
+          className="absolute inset-0 z-35 pointer-events-none"
           style={{
             background: `
               radial-gradient(
                 circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                rgba(255, 255, 255, 0.1) 0%,
-                rgba(200, 255, 255, 0.05) 30%,
-                rgba(255, 200, 255, 0.03) 60%,
+                rgba(255, 255, 255, 0.03) 0%,
+                rgba(200, 255, 255, 0.02) 30%,
+                rgba(255, 200, 255, 0.01) 60%,
                 transparent 80%
               )
             `,
             mixBlendMode: 'soft-light',
-            opacity: 0.8
+            opacity: 0.6
           }}
         />
       )}
