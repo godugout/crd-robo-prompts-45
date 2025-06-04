@@ -171,24 +171,86 @@ export const useEnhancedCardEffects = ({
   isHovering = false
 }: UseEnhancedCardEffectsProps) => {
   
+  // Enhanced Interactive Lighting System
+  const getInteractiveLightingEffects = () => {
+    if (!interactiveLighting) return {};
+    
+    // Calculate light position relative to mouse (inverted for realistic lighting)
+    const lightX = (0.5 - mousePosition.x) * 2; // -1 to 1
+    const lightY = (0.5 - mousePosition.y) * 2; // -1 to 1
+    const lightDistance = Math.sqrt(lightX * lightX + lightY * lightY);
+    const lightIntensity = Math.max(0.3, 1 - lightDistance * 0.5);
+    
+    // Dynamic color temperature based on position
+    const colorTemp = 5000 + (mousePosition.x - 0.5) * 2000; // 4000K to 6000K
+    const isWarm = colorTemp < 5000;
+    
+    // Create dynamic shadow opposite to light
+    const shadowX = lightX * -30 * lightIntensity;
+    const shadowY = lightY * -30 * lightIntensity;
+    const shadowBlur = 20 + lightDistance * 20;
+    
+    return {
+      lightPosition: { x: lightX, y: lightY },
+      lightIntensity,
+      colorTemperature: colorTemp,
+      isWarm,
+      shadowOffset: { x: shadowX, y: shadowY },
+      shadowBlur,
+      shadowOpacity: 0.3 * lightIntensity
+    };
+  };
+
   // Apply lighting settings to create CSS filters
   const getLightingFilterStyle = () => {
     if (!selectedLighting) return '';
     
-    // Base filters - apply from lighting preset with overall brightness adjustment
-    const brightnessValue = (selectedLighting.brightness / 100) * (overallBrightness[0] / 100);
-    const contrastValue = (selectedLighting.contrast / 100);
+    const interactive = getInteractiveLightingEffects();
     
-    // Create a dynamic shadow based on rotation
-    const shadowX = Math.sin(rotation.y * 0.017) * 15; // Convert degrees to radians
-    const shadowY = Math.sin(rotation.x * 0.017) * 15;
-    const shadowBlur = selectedLighting.shadowSoftness;
-    const shadowOpacity = selectedLighting.shadows / 300;
+    // Base filters from lighting preset
+    let brightnessValue = (selectedLighting.brightness / 100) * (overallBrightness[0] / 100);
+    let contrastValue = selectedLighting.contrast / 100;
+    let saturationValue = 1;
+    let hueRotation = 0;
+    
+    // Apply interactive lighting modifications
+    if (interactiveLighting && interactive.lightIntensity) {
+      // Dynamic brightness based on light intensity
+      brightnessValue *= (0.8 + interactive.lightIntensity * 0.4);
+      
+      // Dynamic contrast for more dramatic effect
+      contrastValue *= (0.9 + interactive.lightIntensity * 0.3);
+      
+      // Color temperature effects
+      if (interactive.isWarm) {
+        saturationValue = 1.1;
+        hueRotation = -5; // Slightly warmer
+      } else {
+        saturationValue = 0.95;
+        hueRotation = 5; // Slightly cooler
+      }
+    }
+    
+    // Create dynamic shadow based on rotation and interactive lighting
+    let shadowX = Math.sin(rotation.y * 0.017) * 15;
+    let shadowY = Math.sin(rotation.x * 0.017) * 15;
+    let shadowBlur = selectedLighting.shadowSoftness;
+    let shadowOpacity = selectedLighting.shadows / 300;
+    
+    if (interactiveLighting && interactive.shadowOffset) {
+      shadowX += interactive.shadowOffset.x;
+      shadowY += interactive.shadowOffset.y;
+      shadowBlur = Math.max(shadowBlur, interactive.shadowBlur);
+      shadowOpacity = Math.max(shadowOpacity, interactive.shadowOpacity);
+    }
+    
     const shadowColor = `rgba(0, 0, 0, ${shadowOpacity})`;
     
     return `
       brightness(${brightnessValue.toFixed(2)})
       contrast(${contrastValue.toFixed(2)})
+      saturate(${saturationValue.toFixed(2)})
+      hue-rotate(${hueRotation}deg)
       drop-shadow(${shadowX}px ${shadowY}px ${shadowBlur}px ${shadowColor})
     `;
   };
@@ -202,16 +264,20 @@ export const useEnhancedCardEffects = ({
     // Roughness affects blur and texture clarity
     const blurAmount = roughness * 0.5; // px
     
-    // Metalness affects reflective highlights
-    const reflectionOpacity = metalness * reflectivity;
+    // Interactive lighting affects material response
+    const interactive = getInteractiveLightingEffects();
+    let materialMultiplier = 1;
     
-    // Clearcoat adds another reflective layer
-    const clearcoatOpacity = clearcoat * 0.8;
+    if (interactiveLighting && interactive.lightIntensity) {
+      // Metallic surfaces respond more dramatically to lighting changes
+      materialMultiplier = 1 + (metalness * interactive.lightIntensity * 0.5);
+    }
     
     // Create adjusted styles
     const adjustedStyles: React.CSSProperties = {
       ...styles,
       filter: `blur(${blurAmount}px)`,
+      opacity: (styles.opacity as number || 1) * materialMultiplier
     };
     
     return adjustedStyles;
@@ -220,42 +286,65 @@ export const useEnhancedCardEffects = ({
   const getEnvironmentStyle = (): React.CSSProperties => {
     if (!selectedScene) return {};
     
-    return {
+    const baseStyle = {
       backgroundImage: selectedScene.backgroundImage,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
     };
+    
+    // Add interactive lighting to environment
+    if (interactiveLighting) {
+      const interactive = getInteractiveLightingEffects();
+      return {
+        ...baseStyle,
+        filter: `brightness(${0.8 + interactive.lightIntensity * 0.4})`
+      };
+    }
+    
+    return baseStyle;
   };
   
-  // Generate reflective highlights based on material settings and mouse position
+  // Enhanced reflective highlights based on material settings and mouse position
   const getReflectionStyles = (): React.CSSProperties => {
     if (!materialSettings || !isHovering) return {};
     
-    const { reflectivity, clearcoat } = materialSettings;
+    const { reflectivity, clearcoat, metalness } = materialSettings;
+    const interactive = getInteractiveLightingEffects();
     
     // Calculate reflection position based on mouse
     const reflectionX = (mousePosition.x - 0.5) * -100; // Inverted for realistic effect
     const reflectionY = (mousePosition.y - 0.5) * -100;
     
-    // More reflectivity means more intense highlight
-    const highlightOpacity = reflectivity * 0.7;
-    const highlightSize = 40 + reflectivity * 30; // 40-70% based on reflectivity
+    // Interactive lighting dramatically affects reflections
+    let highlightOpacity = reflectivity * 0.7;
+    let highlightSize = 40 + reflectivity * 30;
+    let clearcoatOpacity = clearcoat * 0.4;
+    let clearcoatSize = 15 + clearcoat * 10;
     
-    // Clearcoat adds a second smaller, sharper highlight
-    const clearcoatOpacity = clearcoat * 0.4;
-    const clearcoatSize = 15 + clearcoat * 10; // 15-25% based on clearcoat
+    if (interactiveLighting && interactive.lightIntensity) {
+      // Dramatic increase in reflection intensity with interactive lighting
+      const lightingBoost = interactive.lightIntensity * 2;
+      highlightOpacity *= (1 + lightingBoost);
+      clearcoatOpacity *= (1 + lightingBoost);
+      
+      // Metallic surfaces get extra dramatic highlights
+      if (metalness > 0.5) {
+        highlightOpacity *= (1 + metalness);
+        highlightSize += metalness * 20;
+      }
+    }
     
     return {
       background: `
         radial-gradient(
           circle at ${50 + reflectionX / 3}% ${50 + reflectionY / 3}%,
-          rgba(255, 255, 255, ${highlightOpacity}) 0%,
+          rgba(255, 255, 255, ${Math.min(highlightOpacity, 0.9)}) 0%,
           transparent ${highlightSize}%
         ),
         radial-gradient(
           circle at ${50 + reflectionX / 1.5}% ${50 + reflectionY / 1.5}%,
-          rgba(255, 255, 255, ${clearcoatOpacity}) 0%,
+          rgba(255, 255, 255, ${Math.min(clearcoatOpacity, 0.6)}) 0%,
           transparent ${clearcoatSize}%
         )
       `,
@@ -304,14 +393,23 @@ export const useEnhancedCardEffects = ({
     const backgroundLayers: string[] = [];
     const filters: string[] = [];
     let boxShadow = '';
+    
+    // Get interactive lighting effects
+    const interactive = getInteractiveLightingEffects();
 
     // Get active effects with their intensities increased for more dramatic visual impact
     ENHANCED_VISUAL_EFFECTS.forEach(effect => {
       const values = effectValues[effect.id];
       if (!values || !values.intensity || (values.intensity as number) === 0) return;
 
-      // Increase intensity from max 0.6 to max 1.0 range for more dramatic effect
-      const intensity = ((values.intensity as number) / 100) * 1.5;
+      // Increase intensity for more dramatic effect
+      let intensity = ((values.intensity as number) / 100) * 1.5;
+      
+      // Interactive lighting boosts effect intensity dramatically
+      if (interactiveLighting && interactive.lightIntensity) {
+        intensity *= (1 + interactive.lightIntensity * 0.8);
+      }
+      
       const mouseX = mousePosition.x;
       const mouseY = mousePosition.y;
 
@@ -322,9 +420,15 @@ export const useEnhancedCardEffects = ({
           const prismaticDepth = (values.prismaticDepth as number || 50) / 100;
           const animated = values.animated as boolean;
           
+          let hueShift = 0;
           if (animated) {
-            const hueShift = interactiveLighting ? mouseX * 360 : 0;
-            filters.push(`hue-rotate(${hueShift * shiftSpeed / 100}deg)`);
+            hueShift = interactiveLighting && interactive.lightIntensity ? 
+              mouseX * 360 * (shiftSpeed / 100) * interactive.lightIntensity : 
+              mouseX * 180;
+          }
+          
+          if (hueShift !== 0) {
+            filters.push(`hue-rotate(${hueShift}deg)`);
           }
           
           backgroundLayers.push(`
@@ -338,30 +442,56 @@ export const useEnhancedCardEffects = ({
           break;
 
         case 'foilspray':
-          // Increase intensity and apply material properties for more metal shine
           const density = (values.density as number || 50) / 100;
           const direction = values.direction as number || 45;
           const pattern = values.pattern as string || 'radial';
           
+          // Interactive lighting makes foil more responsive
+          const foilIntensity = interactiveLighting ? intensity * (1 + interactive.lightIntensity) : intensity;
+          
           if (pattern === 'radial') {
             backgroundLayers.push(`
               radial-gradient(circle at ${mouseX * 100}% ${mouseY * 100}%,
-                rgba(255, 255, 255, ${intensity * 0.8 * density}) 0%,
-                rgba(230, 230, 255, ${intensity * 0.65 * density}) 40%,
+                rgba(255, 255, 255, ${foilIntensity * 0.8 * density}) 0%,
+                rgba(230, 230, 255, ${foilIntensity * 0.65 * density}) 40%,
                 transparent 70%)
             `);
           } else if (pattern === 'linear') {
             backgroundLayers.push(`
               linear-gradient(${direction}deg,
-                rgba(255, 255, 255, ${intensity * 0.8 * density}) 0%,
-                rgba(230, 230, 255, ${intensity * 0.65 * density}) 50%,
-                rgba(255, 255, 255, ${intensity * 0.75 * density}) 100%)
+                rgba(255, 255, 255, ${foilIntensity * 0.8 * density}) 0%,
+                rgba(230, 230, 255, ${foilIntensity * 0.65 * density}) 50%,
+                rgba(255, 255, 255, ${foilIntensity * 0.75 * density}) 100%)
+            `);
+          }
+          break;
+
+        case 'chrome':
+          const sharpness = (values.sharpness as number || 70) / 100;
+          const highlightSize = values.highlightSize as number || 40;
+          
+          // Chrome effect enhanced by interactive lighting
+          const chromeIntensity = interactiveLighting ? intensity * (1 + interactive.lightIntensity * 0.5) : intensity;
+          
+          backgroundLayers.push(`
+            linear-gradient(${(mouseX - 0.5) * 120 + 90}deg,
+              rgba(240, 240, 240, ${chromeIntensity * 0.9 * sharpness}) 0%,
+              rgba(255, 255, 255, ${chromeIntensity * 1.0 * sharpness}) ${50 - highlightSize/2}%,
+              rgba(255, 255, 255, ${chromeIntensity * 1.0 * sharpness}) ${50 + highlightSize/2}%,
+              rgba(180, 180, 180, ${chromeIntensity * 0.8 * sharpness}) 100%)
+          `);
+          
+          // Add interactive highlight for metallic surfaces
+          if (materialSettings && materialSettings.metalness > 0.3 && interactiveLighting) {
+            backgroundLayers.push(`
+              radial-gradient(circle at ${mouseX * 100}% ${mouseY * 100}%,
+                rgba(255, 255, 255, ${chromeIntensity * 0.8 * materialSettings.metalness * interactive.lightIntensity}) 0%,
+                transparent 60%)
             `);
           }
           break;
 
         case 'prizm':
-          // Enhance color separation and impact
           const complexity = values.complexity as number || 5;
           const colorSeparation = (values.colorSeparation as number || 60) / 100;
           const rotation = values.rotation as number || 0;
@@ -377,30 +507,6 @@ export const useEnhancedCardEffects = ({
               rgba(138, 43, 226, ${intensity * 0.6 * colorSeparation}),
               rgba(255, 0, 0, ${intensity * 0.6 * colorSeparation}))
           `);
-          break;
-
-        case 'chrome':
-          // Increase chrome effect intensity and add metalness influence
-          const sharpness = (values.sharpness as number || 70) / 100;
-          const distortion = (values.distortion as number || 15) / 100;
-          const highlightSize = values.highlightSize as number || 40;
-          
-          backgroundLayers.push(`
-            linear-gradient(${(mouseX - 0.5) * 120 + 90}deg,
-              rgba(240, 240, 240, ${intensity * 0.9 * sharpness}) 0%,
-              rgba(255, 255, 255, ${intensity * 1.0 * sharpness}) ${50 - highlightSize/2}%,
-              rgba(255, 255, 255, ${intensity * 1.0 * sharpness}) ${50 + highlightSize/2}%,
-              rgba(180, 180, 180, ${intensity * 0.8 * sharpness}) 100%)
-          `);
-          
-          // Add a reflective shine based on material
-          if (materialSettings && materialSettings.metalness > 0.3) {
-            backgroundLayers.push(`
-              radial-gradient(circle at ${mouseX * 100}% ${mouseY * 100}%,
-                rgba(255, 255, 255, ${intensity * 0.8 * materialSettings.metalness}) 0%,
-                transparent 60%)
-            `);
-          }
           break;
 
         case 'interference':
@@ -483,17 +589,28 @@ export const useEnhancedCardEffects = ({
       combinedStyles.boxShadow = boxShadow;
     }
 
-    // Apply proper blend mode based on material settings
+    // Apply proper blend mode based on material settings and interactive lighting
     if (materialSettings) {
-      // Different blend modes based on material properties
-      if (materialSettings.metalness > 0.7) {
-        combinedStyles.mixBlendMode = 'overlay';
-      } else if (materialSettings.clearcoat > 0.7) {
-        combinedStyles.mixBlendMode = 'soft-light';
-      } else if (materialSettings.roughness < 0.3) {
-        combinedStyles.mixBlendMode = 'hard-light';
+      if (interactiveLighting && interactive.lightIntensity > 0.5) {
+        // More dramatic blend mode when interactive lighting is active
+        if (materialSettings.metalness > 0.7) {
+          combinedStyles.mixBlendMode = 'hard-light';
+        } else if (materialSettings.clearcoat > 0.7) {
+          combinedStyles.mixBlendMode = 'overlay';
+        } else {
+          combinedStyles.mixBlendMode = 'soft-light';
+        }
       } else {
-        combinedStyles.mixBlendMode = 'normal';
+        // Standard blend modes
+        if (materialSettings.metalness > 0.7) {
+          combinedStyles.mixBlendMode = 'overlay';
+        } else if (materialSettings.clearcoat > 0.7) {
+          combinedStyles.mixBlendMode = 'soft-light';
+        } else if (materialSettings.roughness < 0.3) {
+          combinedStyles.mixBlendMode = 'hard-light';
+        } else {
+          combinedStyles.mixBlendMode = 'normal';
+        }
       }
       
       // Apply material-specific adjustments
@@ -518,8 +635,14 @@ export const useEnhancedCardEffects = ({
     
     // Apply material-specific textures
     const roughnessValue = materialSettings ? materialSettings.roughness : 0.3;
-    const grainOpacity = 0.03 + roughnessValue * 0.1; // 0.03-0.13
+    let grainOpacity = 0.03 + roughnessValue * 0.1; // 0.03-0.13
     const grainSize = 1 + Math.floor(roughnessValue * 2); // 1-3px
+    
+    // Interactive lighting affects texture visibility
+    const interactive = getInteractiveLightingEffects();
+    if (interactiveLighting && interactive.lightIntensity) {
+      grainOpacity *= (1 + interactive.lightIntensity * 0.5);
+    }
     
     // Generate reflections based on material settings
     const reflectionStyles = getReflectionStyles();
@@ -546,6 +669,23 @@ export const useEnhancedCardEffects = ({
           }}
         />
         
+        {/* Interactive lighting highlight */}
+        {interactiveLighting && interactive.lightIntensity > 0.3 && (
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `
+                radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                  rgba(255, 255, 255, ${interactive.lightIntensity * 0.3}) 0%,
+                  rgba(255, 255, 255, ${interactive.lightIntensity * 0.1}) 40%,
+                  transparent 70%)
+              `,
+              mixBlendMode: 'soft-light',
+              zIndex: 20
+            }}
+          />
+        )}
+        
         {/* Material reflections layer */}
         <div 
           className="absolute inset-0 pointer-events-none"
@@ -556,7 +696,7 @@ export const useEnhancedCardEffects = ({
         />
       </>
     );
-  }, [showEffects, effectValues, materialSettings, isHovering, mousePosition]);
+  }, [showEffects, effectValues, materialSettings, isHovering, mousePosition, interactiveLighting]);
 
   return {
     getFrameStyles,

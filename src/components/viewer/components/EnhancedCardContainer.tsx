@@ -19,6 +19,7 @@ interface EnhancedCardContainerProps {
   frameStyles: React.CSSProperties;
   enhancedEffectStyles: React.CSSProperties;
   SurfaceTexture: React.ReactNode;
+  interactiveLighting?: boolean;
   onMouseDown: (e: React.MouseEvent) => void;
   onMouseMove: (e: React.MouseEvent) => void;
   onMouseEnter: () => void;
@@ -39,19 +40,34 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   frameStyles,
   enhancedEffectStyles,
   SurfaceTexture,
+  interactiveLighting = false,
   onMouseDown,
   onMouseMove,
   onMouseEnter,
   onMouseLeave,
   onClick
 }) => {
+  // Calculate dynamic lighting effect for 3D transform
+  const getDynamicTransform = () => {
+    let baseTransform = `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`;
+    
+    // Add subtle interactive lighting-based depth effect
+    if (interactiveLighting && isHovering) {
+      const lightDepth = (mousePosition.x - 0.5) * 2; // -1 to 1
+      const additionalRotateY = lightDepth * 2; // Max 2 degrees
+      baseTransform = `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y + additionalRotateY}deg)`;
+    }
+    
+    return baseTransform;
+  };
+
   return (
     <div 
       className={`relative z-20 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       style={{
         transform: `scale(${zoom})`,
         transition: isDragging ? 'none' : 'transform 0.3s ease',
-        filter: 'brightness(1.2) contrast(1.1)'
+        filter: `brightness(${interactiveLighting && isHovering ? 1.3 : 1.2}) contrast(1.1)`
       }}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
@@ -64,10 +80,10 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
         style={{
           width: '400px',
           height: '560px',
-          transform: `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
+          transform: getDynamicTransform(),
           transformStyle: 'preserve-3d',
           transition: isDragging ? 'none' : 'transform 0.1s ease',
-          filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.8))'
+          filter: `drop-shadow(0 25px 50px rgba(0,0,0,${interactiveLighting && isHovering ? 0.9 : 0.8}))`
         }}
         onClick={onClick}
       >
@@ -83,10 +99,17 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             ...frameStyles
           }}
         >
-          {/* Enhanced Effects Layer - Moved to higher z-index */}
-          <div 
-            className="absolute inset-0 pointer-events-none z-20" 
-            style={enhancedEffectStyles}
+          {/* Enhanced Effects Layer with Interactive Lighting */}
+          <CardEffectsLayer
+            showEffects={showEffects}
+            isHovering={isHovering}
+            effectIntensity={[Object.values(effectValues).reduce((sum, effect) => {
+              const intensity = effect.intensity as number || 0;
+              return sum + intensity;
+            }, 0) / Math.max(Object.keys(effectValues).length, 1)]}
+            mousePosition={mousePosition}
+            physicalEffectStyles={enhancedEffectStyles}
+            interactiveLighting={interactiveLighting}
           />
 
           {/* Surface Texture - Now layered properly */}
@@ -104,7 +127,9 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
                   alt={card.title}
                   className="w-full h-full object-cover"
                   style={{
-                    filter: isHovering ? 'brightness(1.1)' : 'brightness(1)'
+                    filter: isHovering ? 
+                      `brightness(${interactiveLighting ? 1.2 : 1.1}) contrast(${interactiveLighting ? 1.1 : 1.05})` : 
+                      'brightness(1)'
                   }}
                 />
               </div>
@@ -122,14 +147,14 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             </div>
           </div>
 
-          {/* Interactive Shine Effect - Enhanced with material properties */}
+          {/* Interactive Shine Effect - Enhanced with interactive lighting */}
           {isHovering && (
             <div 
               className="absolute inset-0 pointer-events-none z-30"
               style={{
                 background: `linear-gradient(105deg, 
                   transparent 40%, 
-                  rgba(255, 255, 255, 0.5) 50%, 
+                  rgba(255, 255, 255, ${interactiveLighting ? 0.7 : 0.5}) 50%, 
                   transparent 60%)`,
                 transform: `translateX(${(mousePosition.x - 0.5) * 100}%)`,
                 transition: 'transform 0.1s ease',
@@ -153,10 +178,17 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             ...frameStyles
           }}
         >
-          {/* Back Effects Layer */}
-          <div 
-            className="absolute inset-0 pointer-events-none z-20" 
-            style={enhancedEffectStyles}
+          {/* Back Effects Layer with Interactive Lighting */}
+          <CardEffectsLayer
+            showEffects={showEffects}
+            isHovering={isHovering}
+            effectIntensity={[Object.values(effectValues).reduce((sum, effect) => {
+              const intensity = effect.intensity as number || 0;
+              return sum + intensity;
+            }, 0) / Math.max(Object.keys(effectValues).length, 1)]}
+            mousePosition={mousePosition}
+            physicalEffectStyles={enhancedEffectStyles}
+            interactiveLighting={interactiveLighting}
           />
 
           {/* Surface Texture on Back */}
@@ -171,6 +203,13 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             </div>
             <h3 className="text-white text-lg font-medium mb-2">Card Back</h3>
             <p className="text-gray-400 text-sm">Click to flip back</p>
+            
+            {/* Interactive lighting status indicator */}
+            {interactiveLighting && (
+              <p className="text-crd-green text-xs mt-2 opacity-75">
+                Interactive Lighting Active
+              </p>
+            )}
           </div>
         </div>
       </div>
