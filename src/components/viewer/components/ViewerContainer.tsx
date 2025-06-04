@@ -10,7 +10,6 @@ interface ViewerContainerProps {
   mousePosition: { x: number; y: number };
   selectedScene: { lighting: { color: string } };
   children: React.ReactNode;
-  isDrawerOpen?: boolean;
   onMouseMove: (e: React.MouseEvent) => void;
   onMouseUp: () => void;
   onMouseLeave: () => void;
@@ -23,24 +22,11 @@ export const ViewerContainer: React.FC<ViewerContainerProps> = ({
   mousePosition,
   selectedScene,
   children,
-  isDrawerOpen = false,
   onMouseMove,
   onMouseUp,
   onMouseLeave
 }) => {
   const { isDesktop } = useResponsiveLayout();
-
-  // Calculate card positioning based on drawer state - much less intrusive positioning
-  const getCardPositioning = () => {
-    if (!isDrawerOpen) {
-      return 'items-center justify-center';
-    }
-    
-    // When drawer is open from top, only push card down slightly
-    return 'items-center justify-center pt-[12vh]';
-  };
-
-  const positioning = getCardPositioning();
 
   // Safe gradient with fallback
   const backgroundGradient = `linear-gradient(135deg, 
@@ -53,7 +39,7 @@ export const ViewerContainer: React.FC<ViewerContainerProps> = ({
   return (
     <div 
       ref={containerRef}
-      className={`fixed inset-0 z-50 flex ${positioning} ${
+      className={`fixed inset-0 z-50 flex items-center justify-center ${
         isFullscreen ? 'p-0' : 'p-8'
       }`}
       style={{

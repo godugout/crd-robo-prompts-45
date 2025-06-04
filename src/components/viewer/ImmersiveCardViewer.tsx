@@ -1,10 +1,11 @@
-import React, { useCallback } from 'react';
+
+import React, { useCallback, useState } from 'react';
 import type { ImmersiveCardViewerProps } from './types';
 import { ViewerContainer } from './components/ViewerContainer';
 import { ViewerErrorBoundary } from './components/ViewerErrorBoundary';
 import { ViewerTopControls } from './components/ViewerTopControls';
 import { ViewerCardRenderer } from './components/ViewerCardRenderer';
-import { CompactBottomDrawer } from './components/CompactBottomDrawer';
+import { CustomizePanel } from './components/CustomizePanel';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
 import { useCardExport } from './hooks/useCardExport';
 import { useViewerState } from './hooks/useViewerState';
@@ -12,7 +13,6 @@ import { useViewerInteractions } from './hooks/useViewerInteractions';
 import { useViewerSettings } from './hooks/useViewerSettings';
 import { useCardNavigation } from './hooks/useCardNavigation';
 import { useEnhancedEffectsProvider } from './hooks/useEnhancedEffectsProvider';
-import { useDrawerState } from './hooks/useDrawerState';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -34,16 +34,10 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   showStats = true,
   ambient = true
 }) => {
-  console.log('ImmersiveCardViewer mounted:', { 
-    isOpen, 
-    hasCard: !!card, 
-    cardTitle: card?.title,
-    cardImageUrl: card?.image_url
-  });
+  const [showCustomizePanel, setShowCustomizePanel] = useState(false);
 
   // Check for basic card data
   if (!card) {
-    console.error('ImmersiveCardViewer: No card data provided');
     return (
       <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
         <div className="text-white text-center">
@@ -88,8 +82,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     handleZoom,
     toggleFullscreen
   } = useViewerState();
-
-  console.log('Viewer state:', { isFullscreen, rotation, zoom, showEffects, mousePosition });
 
   // Use the new settings hook
   const {
@@ -150,9 +142,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     effectValues
   });
 
-  // Get drawer state for positioning
-  const { isOpen: isDrawerOpen } = useDrawerState();
-
   // Update the existing download handler to open export dialog
   const handleDownloadClick = useCallback(() => {
     setShowExportDialog(true);
@@ -173,11 +162,8 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   });
 
   if (!isOpen) {
-    console.log('Viewer not open, returning null');
     return null;
   }
-
-  console.log('Rendering viewer components with TOP TRIGGER for testing');
 
   return (
     <ViewerErrorBoundary>
@@ -187,7 +173,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         ambient={ambient}
         mousePosition={mousePosition}
         selectedScene={selectedScene}
-        isDrawerOpen={isDrawerOpen}
         onMouseMove={handleMouseMove}
         onMouseUp={handleDragEnd}
         onMouseLeave={handleDragEnd}
@@ -196,8 +181,10 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         <ViewerTopControls
           showEffects={showEffects}
           autoRotate={autoRotate}
+          showCustomizePanel={showCustomizePanel}
           onToggleEffects={() => setShowEffects(!showEffects)}
           onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
+          onToggleCustomizePanel={() => setShowCustomizePanel(!showCustomizePanel)}
           onReset={handleReset}
           onZoomIn={() => handleZoom(0.1)}
           onZoomOut={() => handleZoom(-0.1)}
@@ -207,29 +194,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           onNextCard={handleNextCard}
           canGoPrev={canGoPrev}
           canGoNext={canGoNext}
-        />
-
-        {/* Compact Drawer with TOP TRIGGER for testing */}
-        <CompactBottomDrawer
-          selectedScene={selectedScene}
-          selectedLighting={selectedLighting}
-          effectValues={effectValues}
-          overallBrightness={overallBrightness}
-          interactiveLighting={interactiveLighting}
-          materialSettings={materialSettings}
-          isFullscreen={isFullscreen}
-          onSceneChange={setSelectedScene}
-          onLightingChange={setSelectedLighting}
-          onEffectChange={handleEffectChange}
-          onResetAllEffects={handleResetAllEffects}
-          onBrightnessChange={setOverallBrightness}
-          onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
-          onMaterialSettingsChange={setMaterialSettings}
-          onToggleFullscreen={toggleFullscreen}
-          onDownload={handleDownloadClick}
-          onShare={onShare}
-          card={card}
-          useTopTrigger={true}
         />
 
         {/* Enhanced Card Container with Error Boundary */}
@@ -253,6 +217,32 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           onMouseLeave={() => setIsHovering(false)}
           onClick={() => setIsFlipped(!isFlipped)}
         />
+
+        {/* Enhanced Customize Panel */}
+        {showCustomizePanel && (
+          <CustomizePanel
+            selectedScene={selectedScene}
+            selectedLighting={selectedLighting}
+            selectedEffect={{ id: 'holographic', name: 'Holographic', description: 'Dynamic rainbow effects' }}
+            effectIntensity={[70]}
+            overallBrightness={overallBrightness}
+            interactiveLighting={interactiveLighting}
+            materialSettings={materialSettings}
+            isFullscreen={isFullscreen}
+            onSceneChange={setSelectedScene}
+            onLightingChange={setSelectedLighting}
+            onEffectChange={() => {}}
+            onEffectIntensityChange={() => {}}
+            onBrightnessChange={setOverallBrightness}
+            onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
+            onMaterialSettingsChange={setMaterialSettings}
+            onToggleFullscreen={toggleFullscreen}
+            onDownload={handleDownloadClick}
+            onShare={onShare}
+            onClose={() => setShowCustomizePanel(false)}
+            card={card}
+          />
+        )}
       </ViewerContainer>
 
       {/* Export Options Dialog */}
