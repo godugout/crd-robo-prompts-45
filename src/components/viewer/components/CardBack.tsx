@@ -36,7 +36,7 @@ export const CardBack: React.FC<CardBackProps> = ({
     <div
       className="absolute inset-0 rounded-xl overflow-hidden backface-hidden"
       style={{
-        transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(-180deg)',
+        transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(180deg)',
         backfaceVisibility: 'hidden',
         ...frameStyles
       }}
