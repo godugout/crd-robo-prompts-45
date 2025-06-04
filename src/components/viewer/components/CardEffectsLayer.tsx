@@ -31,6 +31,10 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   const goldIntensity = effectValues?.brushedmetal?.intensity || 0;
   const isGoldActive = goldIntensity > 0;
   
+  // Check if chrome effect is active
+  const chromeIntensity = effectValues?.chrome?.intensity || 0;
+  const isChromeActive = chromeIntensity > 0;
+  
   // Calculate interactive lighting effects
   const getInteractiveLightingData = () => {
     if (!interactiveLighting) return null;
@@ -88,8 +92,94 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   
   return (
     <>
+      {/* Chrome Mirror Effect - Enhanced silver chrome shine */}
+      {isChromeActive && (
+        <>
+          {/* Primary chrome base layer */}
+          <div
+            className="absolute inset-0 z-20"
+            style={{
+              background: `
+                linear-gradient(
+                  ${45 + mousePosition.x * 90}deg,
+                  rgba(230, 230, 235, ${(chromeIntensity / 100) * 0.9}) 0%,
+                  rgba(255, 255, 255, ${(chromeIntensity / 100) * 1.0}) 20%,
+                  rgba(200, 205, 210, ${(chromeIntensity / 100) * 0.8}) 40%,
+                  rgba(255, 255, 255, ${(chromeIntensity / 100) * 0.95}) 60%,
+                  rgba(180, 185, 190, ${(chromeIntensity / 100) * 0.7}) 80%,
+                  rgba(240, 240, 245, ${(chromeIntensity / 100) * 0.85}) 100%
+                )
+              `,
+              mixBlendMode: 'screen',
+              opacity: 0.9
+            }}
+          />
+          
+          {/* Sharp chrome reflection highlights */}
+          <div
+            className="absolute inset-0 z-21"
+            style={{
+              background: `
+                radial-gradient(
+                  ellipse at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                  rgba(255, 255, 255, ${(chromeIntensity / 100) * 0.95}) 0%,
+                  rgba(235, 240, 245, ${(chromeIntensity / 100) * 0.8}) 15%,
+                  rgba(220, 225, 230, ${(chromeIntensity / 100) * 0.6}) 30%,
+                  transparent 50%
+                )
+              `,
+              mixBlendMode: 'overlay',
+              opacity: 0.95
+            }}
+          />
+          
+          {/* Chrome surface reflections */}
+          <div
+            className="absolute inset-0 z-22"
+            style={{
+              background: `
+                conic-gradient(
+                  from ${mousePosition.x * 120}deg at 50% 50%,
+                  transparent 0deg,
+                  rgba(255, 255, 255, ${(chromeIntensity / 100) * 0.8}) 20deg,
+                  rgba(240, 245, 250, ${(chromeIntensity / 100) * 0.9}) 40deg,
+                  transparent 60deg,
+                  rgba(200, 210, 220, ${(chromeIntensity / 100) * 0.7}) 120deg,
+                  transparent 140deg,
+                  rgba(255, 255, 255, ${(chromeIntensity / 100) * 0.85}) 200deg,
+                  transparent 220deg,
+                  rgba(220, 230, 240, ${(chromeIntensity / 100) * 0.75}) 300deg,
+                  transparent 360deg
+                )
+              `,
+              mixBlendMode: 'hard-light',
+              opacity: isHovering ? 1.0 : 0.8
+            }}
+          />
+          
+          {/* Sharp directional highlights for chrome finish */}
+          <div
+            className="absolute inset-0 z-23"
+            style={{
+              background: `
+                repeating-linear-gradient(
+                  ${mousePosition.x * 180}deg,
+                  transparent 0px,
+                  rgba(255, 255, 255, ${(chromeIntensity / 100) * 0.4}) 1px,
+                  rgba(240, 245, 250, ${(chromeIntensity / 100) * 0.6}) 2px,
+                  transparent 4px,
+                  transparent 8px
+                )
+              `,
+              mixBlendMode: 'overlay',
+              opacity: 0.7
+            }}
+          />
+        </>
+      )}
+
       {/* Gold Luxury Effect - Enhanced golden yellow shine */}
-      {isGoldActive && (
+      {isGoldActive && !isChromeActive && (
         <>
           {/* Primary gold shine layer */}
           <div
@@ -153,7 +243,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       )}
 
       {/* Base holographic effect with interactive enhancement */}
-      {!isGoldActive && (
+      {!isGoldActive && !isChromeActive && (
         <div
           className="absolute inset-0 z-10"
           style={{
@@ -172,7 +262,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       )}
 
       {/* Interactive high-frequency reflective/foil pattern */}
-      {isHovering && (
+      {isHovering && !isChromeActive && (
         <div
           className="absolute inset-0 z-22 overflow-hidden"
           style={{
@@ -194,13 +284,13 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       {/* Interactive dynamic light source */}
       {interactiveLighting && interactiveData && isHovering && (
         <div
-          className="absolute inset-0 z-23 overflow-hidden"
+          className="absolute inset-0 z-25 overflow-hidden"
           style={{
             background: `
               radial-gradient(
                 ellipse 60% 80% at ${(mousePosition.x * 0.8 + 0.1) * 100}% ${(mousePosition.y * 0.8 + 0.1) * 100}%,
-                rgba(255, 255, 255, ${interactiveData.lightIntensity * 0.4}) 0%,
-                rgba(255, 255, 255, ${interactiveData.lightIntensity * 0.2}) 30%,
+                rgba(255, 255, 255, ${interactiveData.lightIntensity * (isChromeActive ? 0.6 : 0.4)}) 0%,
+                rgba(255, 255, 255, ${interactiveData.lightIntensity * (isChromeActive ? 0.4 : 0.2)}) 30%,
                 transparent 60%
               )
             `,
@@ -211,26 +301,28 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       )}
 
       {/* Surface texture with interactive enhancement */}
-      <div
-        className="absolute inset-0 z-15"
-        style={{
-          opacity: textureIntensity,
-          backgroundImage: `
-            repeating-linear-gradient(
-              ${45 + mousePosition.x * 30 + (interactiveData ? interactiveData.lightX * 15 : 0)}deg,
-              transparent,
-              rgba(255, 255, 255, ${interactiveData ? 0.05 + interactiveData.lightIntensity * 0.03 : 0.05}) 1px,
-              transparent 2px
-            )
-          `,
-          backgroundSize: '4px 4px',
-          mixBlendMode: 'overlay',
-        }}
-      />
+      {!isChromeActive && (
+        <div
+          className="absolute inset-0 z-15"
+          style={{
+            opacity: textureIntensity,
+            backgroundImage: `
+              repeating-linear-gradient(
+                ${45 + mousePosition.x * 30 + (interactiveData ? interactiveData.lightX * 15 : 0)}deg,
+                transparent,
+                rgba(255, 255, 255, ${interactiveData ? 0.05 + interactiveData.lightIntensity * 0.03 : 0.05}) 1px,
+                transparent 2px
+              )
+            `,
+            backgroundSize: '4px 4px',
+            mixBlendMode: 'overlay',
+          }}
+        />
+      )}
 
       {/* Edge highlight for depth with interactive response */}
       <div
-        className="absolute inset-0 z-25 rounded-xl"
+        className="absolute inset-0 z-26 rounded-xl"
         style={{
           boxShadow: `
             inset 0 0 20px rgba(255, 255, 255, ${intensity * (interactiveData ? 0.2 + interactiveData.lightIntensity * 0.3 : 0.2)}),
