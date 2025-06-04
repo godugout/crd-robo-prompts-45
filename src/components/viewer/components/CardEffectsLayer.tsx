@@ -41,61 +41,68 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
     return total + (typeof intensity === 'number' ? intensity : 0);
   }, 0);
 
-  // Extract effect parameters with defaults
+  // Extract effect parameters with defaults - now returns the full effect object
   const getEffectParams = (effectId: string) => {
+    return effectValues[effectId] || {};
+  };
+
+  // Helper to get specific parameter with fallback
+  const getParam = (effectId: string, paramId: string, defaultValue: any = 0) => {
     const effect = effectValues[effectId] || {};
-    return {
-      intensity: (effect.intensity as number) || 0,
-      ...effect
-    };
+    return effect[paramId] !== undefined ? effect[paramId] : defaultValue;
   };
 
   return (
     <>
       {/* Holographic Effect */}
       <HolographicEffect
-        intensity={getEffectParams('holographic').intensity}
+        intensity={getParam('holographic', 'intensity', 0)}
         mousePosition={mousePosition}
         enhancedLightingData={enhancedLightingData}
       />
 
       {/* Gold Effect */}
       <GoldEffect
-        intensity={getEffectParams('gold').intensity}
+        intensity={getParam('gold', 'intensity', 0)}
         mousePosition={mousePosition}
         enhancedLightingData={enhancedLightingData}
+        goldTone={getParam('gold', 'goldTone', 'rich')}
+        shimmerSpeed={getParam('gold', 'shimmerSpeed', 80)}
+        platingThickness={getParam('gold', 'platingThickness', 5)}
+        reflectivity={getParam('gold', 'reflectivity', 85)}
+        colorEnhancement={getParam('gold', 'colorEnhancement', true)}
       />
 
       {/* Chrome Effect */}
       <ChromeEffect
-        intensity={getEffectParams('chrome').intensity}
+        intensity={getParam('chrome', 'intensity', 0)}
         mousePosition={mousePosition}
       />
 
       {/* Crystal Effect */}
       <CrystalEffect
-        intensity={getEffectParams('crystal').intensity}
+        intensity={getParam('crystal', 'intensity', 0)}
         mousePosition={mousePosition}
       />
 
       {/* Vintage Effect */}
       <VintageEffect
-        intensity={getEffectParams('vintage').intensity}
+        intensity={getParam('vintage', 'intensity', 0)}
         mousePosition={mousePosition}
       />
 
       {/* Brushed Metal Effect */}
       <BrushedMetalEffect
-        intensity={getEffectParams('brushedmetal').intensity}
-        direction={getEffectParams('brushedmetal').direction || 45}
+        intensity={getParam('brushedmetal', 'intensity', 0)}
+        direction={getParam('brushedmetal', 'direction', 45)}
         mousePosition={mousePosition}
       />
 
       {/* Specialty Effects (Foil Spray, Prizm, Interference) */}
       <SpecialtyEffects
-        interferenceIntensity={getEffectParams('interference').intensity}
-        prizemIntensity={getEffectParams('prizm').intensity}
-        foilsprayIntensity={getEffectParams('foilspray').intensity}
+        interferenceIntensity={getParam('interference', 'intensity', 0)}
+        prizemIntensity={getParam('prizm', 'intensity', 0)}
+        foilsprayIntensity={getParam('foilspray', 'intensity', 0)}
         mousePosition={mousePosition}
       />
 
