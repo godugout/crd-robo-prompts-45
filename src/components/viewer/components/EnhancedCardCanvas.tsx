@@ -44,16 +44,16 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
   const frameStyles: React.CSSProperties = {
     background: selectedScene.gradient || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     filter: `brightness(${overallBrightness}%)`,
-    boxShadow: selectedLighting.shadowIntensity ? 
-      `0 ${selectedLighting.shadowIntensity * 20}px ${selectedLighting.shadowIntensity * 40}px rgba(0,0,0,${selectedLighting.shadowIntensity * 0.3})` : 
+    boxShadow: selectedLighting.shadowSoftness ? 
+      `0 ${selectedLighting.shadowSoftness}px ${selectedLighting.shadowSoftness * 2}px rgba(0,0,0,${selectedLighting.shadowSoftness * 0.01})` : 
       '0 20px 40px rgba(0,0,0,0.3)'
   };
 
   // Calculate enhanced effect styles based on lighting
   const enhancedEffectStyles: React.CSSProperties = {
-    background: selectedLighting.gradient || 'transparent',
-    mixBlendMode: selectedLighting.blendMode || 'overlay',
-    opacity: selectedLighting.intensity || 0.5
+    background: 'transparent',
+    mixBlendMode: 'overlay',
+    opacity: selectedLighting.brightness ? selectedLighting.brightness * 0.01 : 0.5
   };
 
   // Create surface texture based on material settings
@@ -80,7 +80,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
       style={{
         width: `${width}px`,
         height: `${height}px`,
-        background: selectedScene.background || 'radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%)'
+        background: selectedScene.backgroundImage || 'radial-gradient(circle, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%)'
       }}
     >
       <EnhancedCardContainer
