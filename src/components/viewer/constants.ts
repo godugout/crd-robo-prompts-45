@@ -1,16 +1,16 @@
 
-import type { EnvironmentScene, LightingPreset } from './types';
+import type { EnvironmentScene, LightingPreset, VisualEffect } from './types';
 
 export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
   {
     id: 'studio',
     name: 'Studio',
     icon: '🎬',
-    gradient: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', // More neutral gradient
+    gradient: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
     description: 'Clean studio lighting',
     lighting: {
       color: '#ffffff',
-      intensity: 0.9, // Slightly reduced
+      intensity: 0.9,
       elevation: 45,
       azimuth: 0
     },
@@ -69,13 +69,13 @@ export const LIGHTING_PRESETS: LightingPreset[] = [
     id: 'natural',
     name: 'Natural',
     description: 'Balanced natural lighting',
-    brightness: 90, // Reduced from 100
-    contrast: 90, // Reduced from 100
-    shadows: 40, // Reduced from 50
-    highlights: 65, // Reduced from 75
+    brightness: 90,
+    contrast: 90,
+    shadows: 40,
+    highlights: 65,
     temperature: 5500,
     position: { x: 0, y: 1, z: 1 },
-    shadowSoftness: 25 // Increased from 20
+    shadowSoftness: 25
   },
   {
     id: 'dramatic',
@@ -112,5 +112,32 @@ export const LIGHTING_PRESETS: LightingPreset[] = [
     temperature: 5800,
     position: { x: -0.5, y: 1, z: 1 },
     shadowSoftness: 25
+  }
+];
+
+export const VISUAL_EFFECTS: VisualEffect[] = [
+  {
+    id: 'holographic',
+    name: 'Holographic',
+    description: 'Dynamic rainbow holographic effect',
+    category: 'prismatic'
+  },
+  {
+    id: 'foilspray',
+    name: 'Foil Spray',
+    description: 'Metallic spray pattern',
+    category: 'metallic'
+  },
+  {
+    id: 'chrome',
+    name: 'Chrome',
+    description: 'Mirror-like chrome finish',
+    category: 'metallic'
+  },
+  {
+    id: 'vintage',
+    name: 'Vintage',
+    description: 'Aged patina effect',
+    category: 'vintage'
   }
 ];

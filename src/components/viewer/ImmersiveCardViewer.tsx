@@ -8,6 +8,7 @@ import {
   ENHANCED_VISUAL_EFFECTS,
   type EffectValues 
 } from './hooks/useEnhancedCardEffects';
+import { useCardEffects } from './hooks/useCardEffects';
 import { ViewerControls } from './components/ViewerControls';
 import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
@@ -49,16 +50,13 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [isHoveringControls, setIsHoveringControls] = useState(false);
   
   // Enhanced effects state
-  const [effectValues, setEffectValues] = useState<EffectValues>(() => {
-    const initialValues: EffectValues = {};
-    ENHANCED_VISUAL_EFFECTS.forEach(effect => {
-      initialValues[effect.id] = {};
-      effect.parameters.forEach(param => {
-        initialValues[effect.id][param.id] = param.defaultValue;
-      });
-    });
-    return initialValues;
-  });
+  const enhancedEffectsHook = useEnhancedCardEffects();
+  const {
+    effectValues,
+    handleEffectChange,
+    resetEffect: handleResetEffect,
+    resetAllEffects: handleResetAllEffects
+  } = enhancedEffectsHook;
   
   // Advanced settings - Updated for more professional defaults
   const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[0]); // Studio instead of Twilight
@@ -173,16 +171,8 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   // Add state for progressive panel
   const [useProgressivePanel, setUseProgressivePanel] = useState(true);
 
-  // Custom hooks
-  const enhancedEffectsHook = {
-    effectValues,
-    handleEffectChange,
-    resetEffect: handleResetEffect,
-    resetAllEffects: handleResetAllEffects,
-    applyPreset: (preset: EffectValues) => setEffectValues(preset)
-  };
-
-  const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useEnhancedCardEffects({
+  // Style generation hook
+  const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useCardEffects({
     card,
     effectValues,
     mousePosition,
