@@ -23,11 +23,38 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
   // Calculate intensity-based effects for translucency
   const translucencyLevel = Math.max(0, (crystalIntensity / 100) * 0.15);
 
-  // Generate unique animation duration for sparkle effect
-  const sparkleAnimation = `crystal-sparkle-${Math.floor(Math.random() * 1000)} ${3 + Math.random() * 2}s ease-in-out infinite alternate`;
-
   return (
     <>
+      {/* CSS Keyframes for Dynamic Animations */}
+      <style jsx>{`
+        @keyframes crystal-glitter-1 {
+          0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+          50% { opacity: 1; transform: scale(1.2) rotate(45deg); }
+        }
+        @keyframes crystal-glitter-2 {
+          0%, 100% { opacity: 0; transform: scale(0.3) rotate(90deg); }
+          60% { opacity: 0.8; transform: scale(1) rotate(180deg); }
+        }
+        @keyframes crystal-glitter-3 {
+          0%, 100% { opacity: 0; transform: scale(0.8) rotate(180deg); }
+          40% { opacity: 1; transform: scale(1.5) rotate(270deg); }
+        }
+        @keyframes crystal-starburst {
+          0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+          50% { opacity: 0.9; transform: scale(1) rotate(90deg); }
+        }
+        @keyframes crystal-shimmer-wave {
+          0% { transform: translateX(-100%) skewX(-15deg); opacity: 0; }
+          50% { opacity: 0.8; }
+          100% { transform: translateX(200%) skewX(-15deg); opacity: 0; }
+        }
+        @keyframes crystal-prismatic {
+          0%, 100% { filter: hue-rotate(0deg); }
+          33% { filter: hue-rotate(120deg); }
+          66% { filter: hue-rotate(240deg); }
+        }
+      `}</style>
+
       {/* Card Translucency Base - Makes the entire card slightly translucent */}
       <div
         className="absolute inset-0 z-5"
@@ -131,48 +158,112 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
         }}
       />
       
-      {/* Internal Crystal Sparkle Points */}
+      {/* Dynamic Glitter Points - Group 1 */}
       <div
-        className="absolute inset-0 z-18 animate-pulse"
+        className="absolute inset-0 z-18"
         style={{
           background: `
-            radial-gradient(
-              circle at ${25 + mousePosition.x * 50}% ${25 + mousePosition.y * 50}%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.4}) 0%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.2}) 1px,
-              transparent 2px
-            ),
-            radial-gradient(
-              circle at ${75 - mousePosition.x * 30}% ${75 - mousePosition.y * 30}%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.3}) 0%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.15}) 1px,
-              transparent 2px
-            ),
-            radial-gradient(
-              circle at ${50 + mousePosition.x * 25}% ${30 + mousePosition.y * 40}%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.35}) 0%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.18}) 1px,
-              transparent 2px
-            )
+            radial-gradient(circle at ${25 + mousePosition.x * 50}% ${25 + mousePosition.y * 50}%, 
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.9}) 0%, 
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.4}) 0.5px, 
+              transparent 1px),
+            radial-gradient(circle at ${75 - mousePosition.x * 30}% ${35 + mousePosition.y * 30}%, 
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.8}) 0%, 
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.3}) 0.8px, 
+              transparent 1.2px),
+            radial-gradient(circle at ${60 + mousePosition.x * 20}% ${80 - mousePosition.y * 40}%, 
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.7}) 0%, 
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.35}) 0.6px, 
+              transparent 1px)
           `,
-          backgroundSize: '100px 100px, 120px 120px, 80px 80px',
+          backgroundSize: '80px 80px, 100px 100px, 120px 120px',
           mixBlendMode: 'screen',
-          opacity: 0.8
+          opacity: 0.9,
+          animation: 'crystal-glitter-1 2.5s ease-in-out infinite'
         }}
       />
-      
-      {/* Subtle Prismatic Edge Enhancement */}
+
+      {/* Dynamic Glitter Points - Group 2 */}
+      <div
+        className="absolute inset-0 z-18"
+        style={{
+          background: `
+            radial-gradient(circle at ${40 + mousePosition.x * 35}% ${60 + mousePosition.y * 25}%, 
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.8}) 0%, 
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.4}) 0.7px, 
+              transparent 1.1px),
+            radial-gradient(circle at ${20 + mousePosition.x * 60}% ${40 + mousePosition.y * 45}%, 
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.9}) 0%, 
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.3}) 0.4px, 
+              transparent 0.8px),
+            radial-gradient(circle at ${85 - mousePosition.x * 25}% ${70 - mousePosition.y * 35}%, 
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.7}) 0%, 
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.4}) 0.9px, 
+              transparent 1.3px)
+          `,
+          backgroundSize: '90px 90px, 110px 110px, 130px 130px',
+          mixBlendMode: 'screen',
+          opacity: 0.8,
+          animation: 'crystal-glitter-2 3.2s ease-in-out infinite 0.8s'
+        }}
+      />
+
+      {/* Starburst Effects */}
       <div
         className="absolute inset-0 z-19"
         style={{
           background: `
+            linear-gradient(0deg, transparent 47%, rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.6}) 49%, rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.8}) 50%, rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.6}) 51%, transparent 53%),
+            linear-gradient(90deg, transparent 47%, rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.6}) 49%, rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.8}) 50%, rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.6}) 51%, transparent 53%),
+            linear-gradient(45deg, transparent 47%, rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.4}) 49%, rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.6}) 50%, rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.4}) 51%, transparent 53%),
+            linear-gradient(-45deg, transparent 47%, rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.4}) 49%, rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.6}) 50%, rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.4}) 51%, transparent 53%)
+          `,
+          backgroundPosition: `
+            ${25 + mousePosition.x * 50}% ${25 + mousePosition.y * 50}%,
+            ${25 + mousePosition.x * 50}% ${25 + mousePosition.y * 50}%,
+            ${75 - mousePosition.x * 30}% ${75 - mousePosition.y * 30}%,
+            ${75 - mousePosition.x * 30}% ${75 - mousePosition.y * 30}%
+          `,
+          backgroundSize: '60px 60px, 60px 60px, 40px 40px, 40px 40px',
+          mixBlendMode: 'color-dodge',
+          opacity: 0.6,
+          animation: 'crystal-starburst 4s ease-in-out infinite 1.5s'
+        }}
+      />
+
+      {/* Moving Shimmer Wave */}
+      <div
+        className="absolute inset-0 z-20"
+        style={{
+          background: `
+            linear-gradient(
+              ${75 + mousePosition.x * 30}deg,
+              transparent 0%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.15}) 30%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.4}) 50%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.15}) 70%,
+              transparent 100%
+            )
+          `,
+          mixBlendMode: 'overlay',
+          opacity: 0.7,
+          animation: 'crystal-shimmer-wave 3.5s ease-in-out infinite',
+          filter: `blur(${translucencyLevel * 0.5}px)`
+        }}
+      />
+
+      {/* Prismatic Edge Enhancement */}
+      <div
+        className="absolute inset-0 z-21"
+        style={{
+          background: `
             linear-gradient(
               ${mousePosition.x * 60}deg,
-              rgba(255, 240, 245, ${(crystalIntensity / 100) * 0.06}) 0%,
-              rgba(240, 255, 245, ${(crystalIntensity / 100) * 0.05}) 25%,
-              rgba(240, 245, 255, ${(crystalIntensity / 100) * 0.06}) 50%,
-              rgba(255, 255, 240, ${(crystalIntensity / 100) * 0.05}) 75%,
-              rgba(255, 240, 255, ${(crystalIntensity / 100) * 0.06}) 100%
+              rgba(255, 200, 255, ${(crystalIntensity / 100) * 0.06}) 0%,
+              rgba(200, 255, 255, ${(crystalIntensity / 100) * 0.05}) 25%,
+              rgba(255, 255, 200, ${(crystalIntensity / 100) * 0.06}) 50%,
+              rgba(200, 255, 200, ${(crystalIntensity / 100) * 0.05}) 75%,
+              rgba(255, 200, 200, ${(crystalIntensity / 100) * 0.06}) 100%
             )
           `,
           maskImage: `
@@ -195,6 +286,7 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
           `,
           mixBlendMode: 'color-dodge',
           opacity: 0.4,
+          animation: 'crystal-prismatic 6s ease-in-out infinite',
           filter: `blur(${translucencyLevel * 3}px)`
         }}
       />
