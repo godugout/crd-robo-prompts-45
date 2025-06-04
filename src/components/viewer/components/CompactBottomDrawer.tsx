@@ -67,14 +67,14 @@ export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
   return (
     <>
       <Drawer open={isOpen} onOpenChange={setIsOpen}>
-        {/* Enhanced Compact Trigger */}
+        {/* Enhanced Compact Trigger with higher z-index */}
         <DrawerTrigger 
           selectedScene={selectedScene}
           activeEffectsCount={activeEffectsCount}
         />
 
-        {/* Compact Drawer Content */}
-        <DrawerContent className={`${drawerHeight} bg-black/95 backdrop-blur-lg border-t border-white/20`}>
+        {/* Compact Drawer Content with proper z-index */}
+        <DrawerContent className={`${drawerHeight} bg-black/95 backdrop-blur-lg border-t border-white/20 z-[9998]`}>
           <DrawerHeader className="border-b border-white/10 pb-4">
             <div className="flex items-center justify-between">
               <DrawerTitle className="text-white text-xl font-semibold flex items-center">
