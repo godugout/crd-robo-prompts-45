@@ -33,8 +33,8 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   
   const intensity = effectIntensity[0] / 100;
   
-  // Check effect intensities
-  const goldIntensity = effectValues?.brushedmetal?.intensity || 0;
+  // Fix effect mappings - each effect should read from its correct key
+  const goldIntensity = effectValues?.gold?.intensity || 0;
   const isGoldActive = goldIntensity > 0;
   
   const chromeIntensity = effectValues?.chrome?.intensity || 0;
