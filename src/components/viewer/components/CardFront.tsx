@@ -2,6 +2,7 @@
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import { CardEffectsLayer } from './CardEffectsLayer';
+import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 
 interface CardFrontProps {
   card: CardData;
@@ -13,7 +14,7 @@ interface CardFrontProps {
   frameStyles: React.CSSProperties;
   physicalEffectStyles: React.CSSProperties;
   SurfaceTexture: React.ReactNode;
-  effectValues?: any;
+  effectValues?: EffectValues;
   materialSettings?: any;
   interactiveLighting?: boolean;
 }
@@ -90,7 +91,7 @@ export const CardFront: React.FC<CardFrontProps> = ({
         {SurfaceTexture}
       </div>
       
-      {/* Enhanced Effects Layer with all new balanced effects */}
+      {/* Enhanced Effects Layer with individual effect values */}
       <CardEffectsLayer
         showEffects={showEffects}
         isHovering={isHovering}

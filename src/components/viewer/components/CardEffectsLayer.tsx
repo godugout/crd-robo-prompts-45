@@ -1,6 +1,7 @@
 
 import React from 'react';
 import type { MaterialSettings } from '../types';
+import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 
 interface CardEffectsLayerProps {
   showEffects: boolean;
@@ -10,32 +11,29 @@ interface CardEffectsLayerProps {
   physicalEffectStyles: React.CSSProperties;
   materialSettings?: MaterialSettings;
   interactiveLighting?: boolean;
-  effectValues?: any;
+  effectValues?: EffectValues;
 }
 
 export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   showEffects,
   isHovering,
-  effectIntensity,
   mousePosition,
   physicalEffectStyles,
   materialSettings,
   interactiveLighting = false,
   effectValues
 }) => {
-  if (!showEffects) return null;
+  if (!showEffects || !effectValues) return null;
   
-  const intensity = effectIntensity[0] / 100;
-  
-  // Get individual effect intensities
-  const holographicIntensity = effectValues?.holographic?.intensity || 0;
-  const chromeIntensity = effectValues?.chrome?.intensity || 0;
-  const brushedmetalIntensity = effectValues?.brushedmetal?.intensity || 0;
-  const crystalIntensity = effectValues?.crystal?.intensity || 0;
-  const vintageIntensity = effectValues?.vintage?.intensity || 0;
-  const interferenceIntensity = effectValues?.interference?.intensity || 0;
-  const prizemIntensity = effectValues?.prizm?.intensity || 0;
-  const foilsprayIntensity = effectValues?.foilspray?.intensity || 0;
+  // Get individual effect intensities from effectValues
+  const holographicIntensity = (effectValues?.holographic?.intensity as number) || 0;
+  const chromeIntensity = (effectValues?.chrome?.intensity as number) || 0;
+  const brushedmetalIntensity = (effectValues?.brushedmetal?.intensity as number) || 0;
+  const crystalIntensity = (effectValues?.crystal?.intensity as number) || 0;
+  const vintageIntensity = (effectValues?.vintage?.intensity as number) || 0;
+  const interferenceIntensity = (effectValues?.interference?.intensity as number) || 0;
+  const prizemIntensity = (effectValues?.prizm?.intensity as number) || 0;
+  const foilsprayIntensity = (effectValues?.foilspray?.intensity as number) || 0;
   
   // Interactive lighting calculations
   const getInteractiveLightingData = () => {
@@ -196,7 +194,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
             style={{
               background: `
                 linear-gradient(
-                  ${45 + (effectValues?.brushedmetal?.direction || 45)}deg,
+                  ${45 + ((effectValues?.brushedmetal?.direction as number) || 45)}deg,
                   rgba(180, 180, 185, ${(brushedmetalIntensity / 100) * 0.2}) 0%,
                   rgba(200, 200, 205, ${(brushedmetalIntensity / 100) * 0.15}) 50%,
                   rgba(170, 170, 175, ${(brushedmetalIntensity / 100) * 0.2}) 100%
@@ -213,7 +211,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
             style={{
               backgroundImage: `
                 repeating-linear-gradient(
-                  ${effectValues?.brushedmetal?.direction || 45}deg,
+                  ${(effectValues?.brushedmetal?.direction as number) || 45}deg,
                   transparent 0px,
                   rgba(160, 160, 165, ${(brushedmetalIntensity / 100) * 0.15}) 0.5px,
                   transparent 1px,
@@ -349,17 +347,26 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         />
       )}
 
-      {/* Subtle edge enhancement for depth */}
-      <div
-        className="absolute inset-0 z-26 rounded-xl"
-        style={{
-          boxShadow: `
-            inset 0 0 15px rgba(255, 255, 255, ${intensity * (interactiveData ? 0.05 + interactiveData.lightIntensity * 0.1 : 0.05)}),
-            inset 0 0 5px rgba(255, 255, 255, ${intensity * (interactiveData ? 0.1 + interactiveData.lightIntensity * 0.15 : 0.1)})
-          `,
-          opacity: interactiveData ? 0.3 + interactiveData.lightIntensity * 0.2 : 0.3
-        }}
-      />
+      {/* Calculate overall intensity for edge enhancement */}
+      {(() => {
+        const totalIntensity = holographicIntensity + chromeIntensity + brushedmetalIntensity + 
+                              crystalIntensity + vintageIntensity + interferenceIntensity + 
+                              prizemIntensity + foilsprayIntensity;
+        const normalizedIntensity = Math.min(totalIntensity / 100, 1);
+        
+        return (
+          <div
+            className="absolute inset-0 z-26 rounded-xl"
+            style={{
+              boxShadow: `
+                inset 0 0 15px rgba(255, 255, 255, ${normalizedIntensity * (interactiveData ? 0.05 + interactiveData.lightIntensity * 0.1 : 0.05)}),
+                inset 0 0 5px rgba(255, 255, 255, ${normalizedIntensity * (interactiveData ? 0.1 + interactiveData.lightIntensity * 0.15 : 0.1)})
+              `,
+              opacity: interactiveData ? 0.3 + interactiveData.lightIntensity * 0.2 : 0.3
+            }}
+          />
+        );
+      })()}
 
       {/* Interactive lighting indicator */}
       {interactiveLighting && (

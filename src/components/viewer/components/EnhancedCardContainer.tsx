@@ -99,16 +99,14 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             ...frameStyles
           }}
         >
-          {/* Enhanced Effects Layer with Interactive Lighting */}
+          {/* Enhanced Effects Layer with Individual Effect Values */}
           <CardEffectsLayer
             showEffects={showEffects}
             isHovering={isHovering}
-            effectIntensity={[Object.values(effectValues).reduce((sum, effect) => {
-              const intensity = effect.intensity as number || 0;
-              return sum + intensity;
-            }, 0) / Math.max(Object.keys(effectValues).length, 1)]}
+            effectIntensity={[50]} // Keep for backward compatibility
             mousePosition={mousePosition}
             physicalEffectStyles={enhancedEffectStyles}
+            effectValues={effectValues}
             interactiveLighting={interactiveLighting}
           />
 
@@ -178,16 +176,14 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             ...frameStyles
           }}
         >
-          {/* Back Effects Layer with Interactive Lighting */}
+          {/* Back Effects Layer with Individual Effect Values */}
           <CardEffectsLayer
             showEffects={showEffects}
             isHovering={isHovering}
-            effectIntensity={[Object.values(effectValues).reduce((sum, effect) => {
-              const intensity = effect.intensity as number || 0;
-              return sum + intensity;
-            }, 0) / Math.max(Object.keys(effectValues).length, 1)]}
+            effectIntensity={[50]} // Keep for backward compatibility
             mousePosition={mousePosition}
             physicalEffectStyles={enhancedEffectStyles}
+            effectValues={effectValues}
             interactiveLighting={interactiveLighting}
           />
 
