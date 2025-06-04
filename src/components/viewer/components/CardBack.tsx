@@ -37,13 +37,8 @@ export const CardBack: React.FC<CardBackProps> = ({
         className="absolute inset-0"
         style={{
           background: `
-            linear-gradient(45deg, #1a1a1a 25%, transparent 25%), 
-            linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), 
-            linear-gradient(45deg, transparent 75%, #1a1a1a 75%), 
-            linear-gradient(-45deg, transparent 75%, #1a1a1a 75%)
+            linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)
           `,
-          backgroundSize: '20px 20px',
-          backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
           backgroundColor: '#0a0a0a'
         }}
       />
@@ -53,10 +48,21 @@ export const CardBack: React.FC<CardBackProps> = ({
         {SurfaceTexture}
       </div>
       
-      {/* Enhanced Card Back Content with All Information */}
+      {/* Card Back Content with CRD Branding */}
       <div className="relative h-full p-6 flex flex-col z-30">
+        {/* CRD Logo at Top */}
+        <div className="mb-6 flex justify-center">
+          <div className="relative">
+            <img 
+              src="/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png" 
+              alt="CRD Logo" 
+              className="w-24 h-auto opacity-90"
+            />
+          </div>
+        </div>
+        
         {/* Card Title */}
-        <div className="mb-6">
+        <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-white mb-2">
             {card.title}
           </h1>
@@ -116,13 +122,16 @@ export const CardBack: React.FC<CardBackProps> = ({
           </div>
         )}
 
-        {/* Card ID or additional metadata at bottom */}
+        {/* Card ID and CRD branding at bottom */}
         <div className="mt-4 pt-4 border-t border-gray-700 border-opacity-50">
           <div className="flex justify-between items-center text-xs text-gray-400">
             <span>Card ID: {card.id || 'N/A'}</span>
-            {card.template_id && (
-              <span className="capitalize">{card.template_id} Edition</span>
-            )}
+            <div className="flex items-center gap-2">
+              {card.template_id && (
+                <span className="capitalize">{card.template_id} Edition</span>
+              )}
+              <span className="text-crd-green font-semibold">CRD</span>
+            </div>
           </div>
         </div>
       </div>

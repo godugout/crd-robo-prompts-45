@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import { CardEffectsLayer } from './CardEffectsLayer';
@@ -42,14 +43,14 @@ export const CardFront: React.FC<CardFrontProps> = ({
         {SurfaceTexture}
       </div>
       
-      {/* Full Image Display - z-index 3 */}
+      {/* Full Image Display - Centered and Full Coverage - z-index 3 */}
       <div className="relative h-full z-30">
         {card.image_url ? (
           <div className="w-full h-full relative overflow-hidden">
             <img 
               src={card.image_url} 
               alt={card.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-center"
             />
             {/* Image overlay effects */}
             {showEffects && (
