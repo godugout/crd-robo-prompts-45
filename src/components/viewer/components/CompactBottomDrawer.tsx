@@ -20,6 +20,7 @@ import { QuickEffectsPresets } from './QuickEffectsPresets';
 import { EnvironmentScenes } from './EnvironmentScenes';
 import { LightingPresets } from './LightingPresets';
 import { DrawerTrigger } from './DrawerTrigger';
+import { TopTrigger } from './TopTrigger';
 import { useDrawerState } from '../hooks/useDrawerState';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
@@ -42,6 +43,7 @@ interface CompactBottomDrawerProps {
   onDownload?: (card: CardData) => void;
   onShare?: (card: CardData) => void;
   card: CardData;
+  useTopTrigger?: boolean; // New prop for testing
 }
 
 export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
@@ -52,14 +54,15 @@ export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
   onLightingChange,
   onEffectChange,
   onDownload,
-  card
+  card,
+  useTopTrigger = true // Default to true for testing
 }) => {
   const { isOpen, setIsOpen, getActiveEffectsCount } = useDrawerState();
   const { isDesktop } = useResponsiveLayout();
 
   const activeEffectsCount = getActiveEffectsCount(effectValues);
 
-  console.log('CompactBottomDrawer render:', { isOpen, activeEffectsCount });
+  console.log('CompactBottomDrawer render:', { isOpen, activeEffectsCount, useTopTrigger });
 
   // Responsive height - smaller on desktop for better card visibility
   const drawerHeight = isDesktop ? 'h-[45vh]' : 'h-[70vh]';
@@ -67,19 +70,26 @@ export const CompactBottomDrawer: React.FC<CompactBottomDrawerProps> = ({
   return (
     <>
       <Drawer open={isOpen} onOpenChange={setIsOpen}>
-        {/* Enhanced Compact Trigger with higher z-index */}
-        <DrawerTrigger 
-          selectedScene={selectedScene}
-          activeEffectsCount={activeEffectsCount}
-        />
+        {/* Conditional Trigger - Top or Bottom */}
+        {useTopTrigger ? (
+          <TopTrigger 
+            selectedScene={selectedScene}
+            activeEffectsCount={activeEffectsCount}
+          />
+        ) : (
+          <DrawerTrigger 
+            selectedScene={selectedScene}
+            activeEffectsCount={activeEffectsCount}
+          />
+        )}
 
-        {/* Compact Drawer Content with proper z-index */}
-        <DrawerContent className={`${drawerHeight} bg-black/95 backdrop-blur-lg border-t border-white/20 z-[9998]`}>
+        {/* Drawer Content with ultra-high z-index for testing */}
+        <DrawerContent className={`${drawerHeight} bg-black/95 backdrop-blur-lg border-t border-white/20 z-[10001]`}>
           <DrawerHeader className="border-b border-white/10 pb-4">
             <div className="flex items-center justify-between">
               <DrawerTitle className="text-white text-xl font-semibold flex items-center">
                 <Settings className="w-6 h-6 mr-3 text-crd-green" />
-                Enhanced Studio
+                Enhanced Studio {useTopTrigger && <span className="text-xs ml-2 text-crd-green">(Top Trigger - Testing)</span>}
               </DrawerTitle>
               <div className="flex items-center space-x-3">
                 {onDownload && (

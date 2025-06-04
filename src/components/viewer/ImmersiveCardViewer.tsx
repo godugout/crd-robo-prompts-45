@@ -1,4 +1,3 @@
-
 import React, { useCallback } from 'react';
 import type { ImmersiveCardViewerProps } from './types';
 import { ViewerContainer } from './components/ViewerContainer';
@@ -178,7 +177,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     return null;
   }
 
-  console.log('Rendering viewer components');
+  console.log('Rendering viewer components with TOP TRIGGER for testing');
 
   return (
     <ViewerErrorBoundary>
@@ -210,7 +209,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           canGoNext={canGoNext}
         />
 
-        {/* Compact Bottom Drawer */}
+        {/* Compact Drawer with TOP TRIGGER for testing */}
         <CompactBottomDrawer
           selectedScene={selectedScene}
           selectedLighting={selectedLighting}
@@ -230,6 +229,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           onDownload={handleDownloadClick}
           onShare={onShare}
           card={card}
+          useTopTrigger={true}
         />
 
         {/* Enhanced Card Container with Error Boundary */}

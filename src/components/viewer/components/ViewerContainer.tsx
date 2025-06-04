@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
@@ -91,12 +90,13 @@ export const ViewerContainer: React.FC<ViewerContainerProps> = ({
         />
       )}
 
-      {/* Debug overlay - shows drawer trigger status */}
+      {/* Debug overlay - shows trigger status */}
       <div className="absolute top-2 left-2 text-white text-xs bg-black/70 p-2 rounded z-[100] border border-crd-green/30">
         <div>Viewer: {isFullscreen ? 'Fullscreen' : 'Normal'}</div>
         <div>Drawer: {isDrawerOpen ? 'Open' : 'Closed'}</div>
         <div>Device: {isDesktop ? 'Desktop' : 'Mobile'}</div>
-        <div className="text-crd-green">Bottom Trigger: Should be visible at z-[9999]</div>
+        <div className="text-crd-green">🔝 TOP TRIGGER: Should be visible at top-right z-[10000]</div>
+        <div className="text-yellow-400">Testing mode - moved from bottom</div>
       </div>
 
       {children}
