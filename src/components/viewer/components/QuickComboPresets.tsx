@@ -124,8 +124,8 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({ onApplyCom
               <TooltipTrigger asChild>
                 <Button
                   onClick={() => onApplyCombo(preset)}
-                  variant="outline"
-                  className="w-full h-8 px-2 flex items-center justify-start space-x-2 border-editor-border hover:border-crd-green hover:bg-crd-green/10 text-xs"
+                  variant="ghost"
+                  className="w-full h-7 px-2 flex items-center justify-start space-x-2 bg-editor-dark border border-editor-border hover:border-crd-green hover:bg-crd-green/20 text-xs transition-colors"
                 >
                   <IconComponent className="w-3 h-3 text-crd-green flex-shrink-0" />
                   <span className="text-white font-medium truncate">
@@ -133,7 +133,7 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({ onApplyCom
                   </span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="left" className="bg-black border-gray-700 text-white">
+              <TooltipContent side="left" className="bg-black border-gray-700 text-white z-50">
                 <div className="text-center">
                   <div className="font-medium">{preset.name}</div>
                   <div className="text-xs text-gray-300">{preset.description}</div>
