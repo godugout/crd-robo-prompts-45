@@ -7,12 +7,11 @@ import type { CardData } from '@/types/card';
 export const Interactive3DCardDemo = () => {
   const [selectedMode, setSelectedMode] = useState<InteractionMode>('tilt');
 
-  // Sample card data for demonstration with image
+  // Sample card data for demonstration
   const sampleCard: CardData = {
     id: 'demo-card',
     title: 'Sample CRD Card',
     description: 'Experience different 3D interaction modes with this demo card. Try switching between modes to see how each one feels!',
-    image_url: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?auto=format&fit=crop&w=800&h=600',
     rarity: 'epic',
     tags: ['demo', '3d', 'interactive'],
     design_metadata: {},

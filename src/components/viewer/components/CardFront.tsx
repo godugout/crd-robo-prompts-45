@@ -103,23 +103,10 @@ export const CardFront: React.FC<CardFrontProps> = ({
         interactiveLighting={interactiveLighting}
       />
 
-      {/* CRD Logo Overlay to Hide Gradient Pin Point - z-index 45 */}
-      <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
-        <img 
-          src="/lovable-uploads/3b8f55f3-6c22-454d-a4d7-15ed72dd72ea.png" 
-          alt="CRD Logo" 
-          className="w-20 h-auto opacity-80"
-          style={{
-            filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3))',
-            transition: 'opacity 0.3s ease'
-          }}
-        />
-      </div>
-
       {/* Interactive lighting enhancement overlay - SOFTENED */}
       {interactiveLighting && isHovering && (
         <div
-          className="absolute inset-0 z-50 pointer-events-none"
+          className="absolute inset-0 z-40 pointer-events-none"
           style={{
             background: `
               radial-gradient(

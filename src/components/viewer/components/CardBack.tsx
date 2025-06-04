@@ -54,7 +54,7 @@ export const CardBack: React.FC<CardBackProps> = ({
         <div className="mb-6 flex justify-center">
           <div className="relative">
             <img 
-              src="/lovable-uploads/3b8f55f3-6c22-454d-a4d7-15ed72dd72ea.png" 
+              src="/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png" 
               alt="CRD Logo" 
               className="w-24 h-auto opacity-90"
             />
@@ -130,6 +130,7 @@ export const CardBack: React.FC<CardBackProps> = ({
               {card.template_id && (
                 <span className="capitalize">{card.template_id} Edition</span>
               )}
+              <span className="text-crd-green font-semibold">CRD</span>
             </div>
           </div>
         </div>
