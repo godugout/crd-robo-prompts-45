@@ -54,7 +54,7 @@ export const CardBack: React.FC<CardBackProps> = ({
         <div className="mb-6 flex justify-center">
           <div className="relative">
             <img 
-              src="/lovable-uploads/f5efe50d-91ae-4601-b197-628c4664544a.png" 
+              src="/lovable-uploads/a2352583-e5d8-40a2-9378-e29efd277d3c.png" 
               alt="Card Logo" 
               className="w-32 h-auto opacity-90"
             />
