@@ -36,7 +36,7 @@ export const useCardEffects = ({
   
   const {
     isLoading: hdrLoading,
-    getEnvironmentStyle,
+    getEnvironmentStyle: getHDREnvironmentStyle,
     getEnvironmentLighting
   } = useHDREnvironment(selectedScene);
 
@@ -77,7 +77,7 @@ export const useCardEffects = ({
 
   const getEnvironmentStyle = useMemo(() => {
     return () => {
-      const baseStyle = getEnvironmentStyle();
+      const baseStyle = getHDREnvironmentStyle();
       
       if (interactiveLighting && selectedScene.environmentType === 'hdr') {
         return {
@@ -92,7 +92,7 @@ export const useCardEffects = ({
       
       return baseStyle;
     };
-  }, [getEnvironmentStyle, interactiveLighting, selectedScene, mousePosition]);
+  }, [getHDREnvironmentStyle, interactiveLighting, selectedScene, mousePosition]);
 
   const SurfaceTexture = useMemo(() => {
     if (!showEffects) return null;
