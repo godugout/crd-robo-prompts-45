@@ -1,68 +1,75 @@
 
 import React from 'react';
+import { 
+  RotateCw,
+  ZoomIn,
+  ZoomOut,
+  Move,
+  Eye,
+  EyeOff
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut, RotateCw, RotateCcw, RefreshCw } from 'lucide-react';
 
 interface ViewerControlsProps {
+  showEffects: boolean;
+  autoRotate: boolean;
+  onToggleEffects: () => void;
+  onToggleAutoRotate: () => void;
+  onReset: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
-  onRotate: () => void;
-  onFlip: () => void;
-  onReset: () => void;
 }
 
 export const ViewerControls: React.FC<ViewerControlsProps> = ({
+  showEffects,
+  autoRotate,
+  onToggleEffects,
+  onToggleAutoRotate,
+  onReset,
   onZoomIn,
-  onZoomOut,
-  onRotate,
-  onFlip,
-  onReset
+  onZoomOut
 }) => {
   return (
-    <div className="flex items-center justify-center gap-4 p-4 border-t border-white/10">
+    <div className="absolute bottom-4 left-4 flex space-x-2 z-10">
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
-        onClick={onZoomOut}
-        className="border-white/20 text-white hover:bg-white/10"
+        onClick={onToggleEffects}
+        className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
       >
-        <ZoomOut className="w-4 h-4" />
+        {showEffects ? <Eye className="w-4 h-4 text-white" /> : <EyeOff className="w-4 h-4 text-white" />}
       </Button>
-      
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
-        onClick={onZoomIn}
-        className="border-white/20 text-white hover:bg-white/10"
+        onClick={onToggleAutoRotate}
+        className={`bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 ${autoRotate ? 'bg-opacity-40' : ''}`}
       >
-        <ZoomIn className="w-4 h-4" />
+        <RotateCw className="w-4 h-4 text-white" />
       </Button>
-      
       <Button
-        variant="outline"
-        size="sm"
-        onClick={onRotate}
-        className="border-white/20 text-white hover:bg-white/10"
-      >
-        <RotateCw className="w-4 h-4" />
-      </Button>
-      
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onFlip}
-        className="border-white/20 text-white hover:bg-white/10"
-      >
-        <RotateCcw className="w-4 h-4" />
-      </Button>
-      
-      <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
         onClick={onReset}
-        className="border-white/20 text-white hover:bg-white/10"
+        className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
       >
-        <RefreshCw className="w-4 h-4" />
+        <Move className="w-4 h-4 text-white" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onZoomIn}
+        className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
+      >
+        <ZoomIn className="w-4 h-4 text-white" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onZoomOut}
+        className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
+      >
+        <ZoomOut className="w-4 h-4 text-white" />
       </Button>
     </div>
   );

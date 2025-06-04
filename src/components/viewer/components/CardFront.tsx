@@ -17,8 +17,6 @@ interface CardFrontProps {
   effectValues?: EffectValues;
   materialSettings?: any;
   interactiveLighting?: boolean;
-  materialEffects?: React.CSSProperties;
-  MaterialSurfaceTexture?: React.ReactNode;
 }
 
 export const CardFront: React.FC<CardFrontProps> = ({
@@ -33,9 +31,7 @@ export const CardFront: React.FC<CardFrontProps> = ({
   SurfaceTexture,
   effectValues,
   materialSettings,
-  interactiveLighting = false,
-  materialEffects = {},
-  MaterialSurfaceTexture
+  interactiveLighting = false
 }) => {
   return (
     <div
@@ -46,16 +42,10 @@ export const CardFront: React.FC<CardFrontProps> = ({
         backfaceVisibility: 'hidden'
       }}
     >
-      {/* Base Card Layer with Material Effects - z-index 1 */}
-      <div 
-        className="absolute inset-0 z-10" 
-        style={{
-          ...frameStyles,
-          ...materialEffects
-        }} 
-      />
+      {/* Base Card Layer - z-index 1 */}
+      <div className="absolute inset-0 z-10" style={frameStyles} />
       
-      {/* Full Image Display with Material Properties - Centered and Full Coverage - z-index 3 */}
+      {/* Full Image Display - Centered and Full Coverage - z-index 3 */}
       <div className="relative h-full z-30">
         {card.image_url ? (
           <div className="w-full h-full relative overflow-hidden">
@@ -67,8 +57,7 @@ export const CardFront: React.FC<CardFrontProps> = ({
                 filter: showEffects 
                   ? 'brightness(1.1) contrast(1.05) saturate(1.1)' 
                   : 'brightness(1.05) contrast(1.02)',
-                transition: 'filter 0.3s ease',
-                ...materialEffects
+                transition: 'filter 0.3s ease'
               }}
             />
             {/* Enhanced image overlay for better effect blending */}
@@ -97,9 +86,9 @@ export const CardFront: React.FC<CardFrontProps> = ({
         )}
       </div>
       
-      {/* Material Surface Texture Layer - z-index 2 */}
+      {/* Surface Texture Layer - z-index 2 */}
       <div className="absolute inset-0 z-20">
-        {MaterialSurfaceTexture || SurfaceTexture}
+        {SurfaceTexture}
       </div>
       
       {/* Enhanced Effects Layer with individual effect values */}

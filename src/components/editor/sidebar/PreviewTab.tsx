@@ -34,26 +34,21 @@ export const PreviewTab = ({ selectedTemplate, cardData, onContinueToEffects }: 
     toast.success('Generating share link...');
   };
 
-  const handleDownloadCard = () => {
-    if (!cardData) {
-      toast.error('No card data to download');
-      return;
-    }
-    
-    const dataStr = JSON.stringify(cardData, null, 2);
+  const handleDownloadCard = (card: CardData) => {
+    const dataStr = JSON.stringify(card, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${cardData.title.replace(/\s+/g, '_')}_card.json`;
+    link.download = `${card.title.replace(/\s+/g, '_')}_card.json`;
     link.click();
     
     URL.revokeObjectURL(url);
     toast.success('Card exported successfully');
   };
 
-  const handleShareCard = () => {
+  const handleShareCard = (card: CardData) => {
     const shareUrl = window.location.href;
     
     if (navigator.clipboard) {
