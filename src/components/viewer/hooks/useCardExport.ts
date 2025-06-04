@@ -95,17 +95,21 @@ export const useCardExport = ({
   const exportAnimatedGif = useCallback(async (options: ExportOptions) => {
     if (!options.animation) return;
 
+    let gif: any = null;
+    let renderTimeout: NodeJS.Timeout | null = null;
+
     try {
       setIsExporting(true);
       setExportProgress(0);
 
-      const gif = new GIF({
+      // Create GIF with improved settings
+      gif = new GIF({
         workers: 2,
         quality: 10,
-        // Use larger dimensions for full card capture
         width: 600 * options.resolution,
         height: 800 * options.resolution,
-        workerScript: '/gif.worker.js'
+        workerScript: '/gif.worker.js',
+        debug: false // Disable debug to prevent console spam
       });
 
       const totalFrames = Math.floor(options.animation.duration * options.animation.frameRate);
@@ -119,6 +123,8 @@ export const useCardExport = ({
         { interference: { intensity: 75 } },
         { foilspray: { intensity: 70 } }
       ];
+
+      console.log(`Starting GIF capture: ${totalFrames} frames`);
 
       for (let frame = 0; frame < totalFrames; frame++) {
         const progress = frame / totalFrames;
@@ -142,49 +148,152 @@ export const useCardExport = ({
         // Small delay to let effects render
         await new Promise(resolve => setTimeout(resolve, 50));
 
-        // Capture frame with larger area
-        const canvas = await html2canvas(cardRef.current!, {
-          scale: options.resolution,
-          backgroundColor: options.background === 'transparent' ? null : '#000000',
-          useCORS: true,
-          allowTaint: true,
-          width: 600 * options.resolution,
-          height: 800 * options.resolution,
-          foreignObjectRendering: true
-        });
+        try {
+          // Capture frame with error handling
+          const canvas = await html2canvas(cardRef.current!, {
+            scale: options.resolution,
+            backgroundColor: options.background === 'transparent' ? null : '#000000',
+            useCORS: true,
+            allowTaint: true,
+            width: 600 * options.resolution,
+            height: 800 * options.resolution,
+            foreignObjectRendering: true,
+            logging: false,
+            imageTimeout: 0
+          });
 
-        gif.addFrame(canvas, { delay: 1000 / options.animation.frameRate });
+          gif.addFrame(canvas, { delay: 1000 / options.animation.frameRate });
+          console.log(`Frame ${frame + 1}/${totalFrames} captured`);
+        } catch (frameError) {
+          console.error(`Failed to capture frame ${frame}:`, frameError);
+          // Continue with next frame instead of failing completely
+        }
       }
 
       // Reset rotation and effects
       onRotationChange({ x: 0, y: 0 });
       
       setExportProgress(85);
+      console.log('Starting GIF render...');
 
-      gif.on('finished', (blob: Blob) => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.download = `${card.title.replace(/\s+/g, '_')}_animated.gif`;
-        link.href = url;
-        link.click();
-        URL.revokeObjectURL(url);
+      // Create a promise that resolves when GIF is finished or times out
+      const renderPromise = new Promise<Blob>((resolve, reject) => {
+        let hasFinished = false;
 
-        setExportProgress(100);
-        toast.success('Animated GIF exported successfully');
-        setIsExporting(false);
-        setExportProgress(0);
+        // Set up success handler
+        gif.on('finished', (blob: Blob) => {
+          if (hasFinished) return;
+          hasFinished = true;
+          
+          if (renderTimeout) {
+            clearTimeout(renderTimeout);
+            renderTimeout = null;
+          }
+          
+          console.log('GIF render completed successfully');
+          resolve(blob);
+        });
+
+        // Set up progress handler
+        gif.on('progress', (progress: number) => {
+          if (hasFinished) return;
+          const progressPercent = 85 + Math.round(progress * 15);
+          setExportProgress(progressPercent);
+          console.log(`GIF render progress: ${Math.round(progress * 100)}%`);
+        });
+
+        // Set up error handler
+        gif.on('abort', () => {
+          if (hasFinished) return;
+          hasFinished = true;
+          
+          if (renderTimeout) {
+            clearTimeout(renderTimeout);
+            renderTimeout = null;
+          }
+          
+          console.error('GIF render was aborted');
+          reject(new Error('GIF rendering was aborted'));
+        });
+
+        // Set up timeout (30 seconds max)
+        renderTimeout = setTimeout(() => {
+          if (hasFinished) return;
+          hasFinished = true;
+          
+          console.error('GIF render timed out');
+          
+          // Try to abort the gif if possible
+          try {
+            if (gif && typeof gif.abort === 'function') {
+              gif.abort();
+            }
+          } catch (e) {
+            console.warn('Could not abort GIF render:', e);
+          }
+          
+          reject(new Error('GIF rendering timed out after 30 seconds'));
+        }, 30000);
+
+        // Start the render
+        try {
+          gif.render();
+        } catch (renderError) {
+          if (hasFinished) return;
+          hasFinished = true;
+          
+          if (renderTimeout) {
+            clearTimeout(renderTimeout);
+            renderTimeout = null;
+          }
+          
+          console.error('Failed to start GIF render:', renderError);
+          reject(renderError);
+        }
       });
 
-      gif.on('progress', (progress: number) => {
-        setExportProgress(85 + Math.round(progress * 15));
-      });
+      // Wait for the GIF to be completed or timeout
+      const blob = await renderPromise;
 
-      gif.render();
+      // Download the GIF
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = `${card.title.replace(/\s+/g, '_')}_animated.gif`;
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      setExportProgress(100);
+      toast.success('Animated GIF exported successfully');
+
     } catch (error) {
       console.error('Animated export failed:', error);
-      toast.error('Failed to export animated GIF');
+      
+      // Clean up timeout if it exists
+      if (renderTimeout) {
+        clearTimeout(renderTimeout);
+        renderTimeout = null;
+      }
+      
+      // Try to abort the gif if it exists
+      if (gif && typeof gif.abort === 'function') {
+        try {
+          gif.abort();
+        } catch (abortError) {
+          console.warn('Could not abort GIF render:', abortError);
+        }
+      }
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error(`Failed to export animated GIF: ${errorMessage}`);
+    } finally {
       setIsExporting(false);
       setExportProgress(0);
+      
+      // Final cleanup
+      if (renderTimeout) {
+        clearTimeout(renderTimeout);
+      }
     }
   }, [cardRef, card.title, onRotationChange, onEffectChange]);
 
