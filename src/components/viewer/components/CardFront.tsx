@@ -10,9 +10,12 @@ interface CardFrontProps {
   showEffects: boolean;
   effectIntensity: number[];
   mousePosition: { x: number; y: number };
-  frameStyles: React.CSSProperties;
   physicalEffectStyles: React.CSSProperties;
   SurfaceTexture: React.ReactNode;
+  frameStyles?: React.CSSProperties;
+  effectValues?: any;
+  materialSettings?: any;
+  interactiveLighting?: boolean;
 }
 
 export const CardFront: React.FC<CardFrontProps> = ({
@@ -22,65 +25,79 @@ export const CardFront: React.FC<CardFrontProps> = ({
   showEffects,
   effectIntensity,
   mousePosition,
-  frameStyles,
   physicalEffectStyles,
-  SurfaceTexture
+  SurfaceTexture,
+  frameStyles,
+  effectValues,
+  materialSettings,
+  interactiveLighting
 }) => {
   return (
     <div
       className="absolute inset-0 rounded-xl overflow-hidden backface-hidden"
       style={{
-        ...frameStyles,
         transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-        backfaceVisibility: 'hidden'
+        backfaceVisibility: 'hidden',
+        ...frameStyles
       }}
     >
-      {/* Base Card Layer - z-index 1 */}
-      <div className="absolute inset-0 z-10" style={frameStyles} />
+      {/* Base Layer */}
+      <div className="absolute inset-0" style={physicalEffectStyles} />
       
-      {/* Surface Texture Layer - z-index 2 */}
-      <div className="absolute inset-0 z-20">
+      {/* Image Layer */}
+      {card.image_url && (
+        <div className="absolute inset-0 z-10">
+          <img 
+            src={card.image_url} 
+            alt={card.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      
+      {/* Surface Texture Layer */}
+      <div className="absolute inset-0 z-15">
         {SurfaceTexture}
       </div>
       
-      {/* Full Image Display - Centered and Full Coverage - z-index 3 */}
-      <div className="relative h-full z-30">
-        {card.image_url ? (
-          <div className="w-full h-full relative overflow-hidden">
-            <img 
-              src={card.image_url} 
-              alt={card.title}
-              className="w-full h-full object-cover object-center"
-            />
-            {/* Image overlay effects */}
-            {showEffects && (
-              <div className="absolute inset-0 mix-blend-overlay opacity-20">
-                <div className="w-full h-full bg-gradient-to-br from-transparent via-white to-transparent" />
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-            <div className="text-center text-gray-500">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-300 rounded-lg flex items-center justify-center">
-                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <p className="text-sm font-medium">No Image</p>
-            </div>
-          </div>
-        )}
-      </div>
-      
-      {/* Effects Layer */}
+      {/* Unified Effects Layer */}
       <CardEffectsLayer
         showEffects={showEffects}
         isHovering={isHovering}
         effectIntensity={effectIntensity}
         mousePosition={mousePosition}
         physicalEffectStyles={physicalEffectStyles}
+        materialSettings={materialSettings}
+        interactiveLighting={interactiveLighting}
+        effectValues={effectValues}
       />
+      
+      {/* Content Overlay */}
+      <div className="absolute bottom-0 left-0 right-0 z-30">
+        <div className="bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 pt-16">
+          <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">
+            {card.title}
+          </h2>
+          {card.description && (
+            <p className="text-sm text-gray-200 leading-relaxed drop-shadow-md">
+              {card.description}
+            </p>
+          )}
+          {card.rarity && (
+            <div className="mt-3">
+              <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${
+                card.rarity === 'legendary' ? 'bg-yellow-500 text-black' :
+                card.rarity === 'epic' ? 'bg-purple-500 text-white' :
+                card.rarity === 'rare' ? 'bg-blue-500 text-white' :
+                card.rarity === 'uncommon' ? 'bg-green-500 text-white' :
+                'bg-gray-500 text-white'
+              }`}>
+                {card.rarity}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
