@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -130,13 +129,62 @@ export default {
           '100%': {
             transform: 'translateX(0)'
           }
+        },
+        // NEW: Enhanced logo animations
+        'logo-shimmer': {
+          '0%': {
+            backgroundPosition: '-200% 0'
+          },
+          '100%': {
+            backgroundPosition: '200% 0'
+          }
+        },
+        'logo-glow-pulse': {
+          '0%, 100%': {
+            filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 20px rgba(255, 215, 0, 0.0))'
+          },
+          '50%': {
+            filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3)) drop-shadow(0 0 20px rgba(255, 215, 0, 0.4))'
+          }
+        },
+        'gradient-shift': {
+          '0%': {
+            background: 'linear-gradient(45deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(59, 130, 246, 0.1) 100%)'
+          },
+          '33%': {
+            background: 'linear-gradient(45deg, rgba(59, 130, 246, 0.1) 0%, rgba(255, 215, 0, 0.1) 50%, rgba(139, 92, 246, 0.1) 100%)'
+          },
+          '66%': {
+            background: 'linear-gradient(45deg, rgba(139, 92, 246, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 215, 0, 0.1) 100%)'
+          },
+          '100%': {
+            background: 'linear-gradient(45deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(59, 130, 246, 0.1) 100%)'
+          }
+        },
+        'holographic-flow': {
+          '0%': {
+            transform: 'translateX(-100%) rotate(45deg)',
+            opacity: '0'
+          },
+          '50%': {
+            opacity: '1'
+          },
+          '100%': {
+            transform: 'translateX(100%) rotate(45deg)',
+            opacity: '0'
+          }
         }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in': 'fade-in 0.3s ease-out',
-        'slide-in': 'slide-in 0.3s ease-out'
+        'slide-in': 'slide-in 0.3s ease-out',
+        // NEW: Enhanced logo animations
+        'logo-shimmer': 'logo-shimmer 3s ease-in-out infinite',
+        'logo-glow-pulse': 'logo-glow-pulse 4s ease-in-out infinite',
+        'gradient-shift': 'gradient-shift 8s ease-in-out infinite',
+        'holographic-flow': 'holographic-flow 2s ease-in-out infinite'
       },
       fontFamily: {
         'orbitron': ['Orbitron', 'sans-serif'],
