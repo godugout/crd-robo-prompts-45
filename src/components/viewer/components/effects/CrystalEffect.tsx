@@ -20,182 +20,176 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
 
   if (crystalIntensity <= 0) return null;
 
-  // Calculate intensity-based effects for translucency
-  const translucencyLevel = Math.max(0, (crystalIntensity / 100) * 0.15);
-
-  // Generate unique animation duration for sparkle effect
-  const sparkleAnimation = `crystal-sparkle-${Math.floor(Math.random() * 1000)} ${3 + Math.random() * 2}s ease-in-out infinite alternate`;
+  // Much more subtle intensity calculations
+  const softIntensity = Math.max(0, (crystalIntensity / 100) * 0.4); // Reduced from 0.15
+  const gentleGlow = Math.max(0, (crystalIntensity / 100) * 0.3); // Much softer glow
+  const subtleBlur = Math.max(0.5, (crystalIntensity / 100) * 2); // More blur for softer edges
 
   return (
     <>
-      {/* Card Translucency Base - Makes the entire card slightly translucent */}
+      {/* Gentle Card Enhancement - Very Subtle */}
       <div
         className="absolute inset-0 z-5"
         style={{
-          background: `rgba(255, 255, 255, ${translucencyLevel})`,
-          mixBlendMode: 'normal',
-          opacity: 0.6
+          background: `rgba(255, 255, 255, ${softIntensity * 0.2})`, // Much more subtle
+          mixBlendMode: 'soft-light', // Gentler blend mode
+          opacity: 0.4, // Lower opacity
+          filter: `blur(${subtleBlur}px)`
         }}
       />
       
-      {/* Internal Crystal Structure - Appears to be inside the card */}
+      {/* Soft Internal Glow */}
       <div
         className="absolute inset-0 z-15"
         style={{
           background: `
             radial-gradient(
               ellipse at ${40 + mousePosition.x * 20}% ${40 + mousePosition.y * 20}%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.08}) 0%,
-              rgba(248, 252, 255, ${(crystalIntensity / 100) * 0.06}) 30%,
-              rgba(240, 248, 255, ${(crystalIntensity / 100) * 0.04}) 60%,
-              transparent 85%
+              rgba(255, 255, 255, ${gentleGlow * 0.15}) 0%,
+              rgba(248, 252, 255, ${gentleGlow * 0.1}) 40%,
+              rgba(240, 248, 255, ${gentleGlow * 0.05}) 70%,
+              transparent 90%
             )
           `,
-          mixBlendMode: 'overlay',
-          opacity: 0.7,
-          filter: `blur(${translucencyLevel * 2}px)`,
-          transform: 'translateZ(-1px)'
+          mixBlendMode: 'soft-light', // Changed from overlay
+          opacity: 0.5, // Reduced opacity
+          filter: `blur(${subtleBlur * 1.5}px)`
         }}
       />
       
-      {/* Subtle Internal Facets - Geometric crystal structure */}
+      {/* Very Subtle Facets */}
       <div
         className="absolute inset-0 z-16"
         style={{
           background: `
             conic-gradient(
-              from ${mousePosition.x * 20}deg at ${50 + mousePosition.x * 15}% ${50 + mousePosition.y * 15}%,
+              from ${mousePosition.x * 20}deg at ${50 + mousePosition.x * 10}% ${50 + mousePosition.y * 10}%,
               transparent 0deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.12}) 30deg,
-              transparent 60deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.10}) 90deg,
-              transparent 120deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.14}) 150deg,
+              rgba(255, 255, 255, ${gentleGlow * 0.2}) 45deg,
+              transparent 90deg,
+              rgba(255, 255, 255, ${gentleGlow * 0.15}) 135deg,
               transparent 180deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.10}) 210deg,
-              transparent 240deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.12}) 270deg,
-              transparent 300deg,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.10}) 330deg,
+              rgba(255, 255, 255, ${gentleGlow * 0.18}) 225deg,
+              transparent 270deg,
+              rgba(255, 255, 255, ${gentleGlow * 0.15}) 315deg,
               transparent 360deg
             )
           `,
           maskImage: `
-            polygon(50% 0%, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%)
+            radial-gradient(
+              ellipse at ${50 + mousePosition.x * 10}% ${50 + mousePosition.y * 10}%,
+              rgba(255, 255, 255, 0.6) 30%,
+              rgba(255, 255, 255, 0.3) 70%,
+              transparent 90%
+            )
           `,
           WebkitMaskImage: `
-            polygon(50% 0%, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%)
+            radial-gradient(
+              ellipse at ${50 + mousePosition.x * 10}% ${50 + mousePosition.y * 10}%,
+              rgba(255, 255, 255, 0.6) 30%,
+              rgba(255, 255, 255, 0.3) 70%,
+              transparent 90%
+            )
           `,
-          mixBlendMode: 'soft-light',
-          opacity: 0.5,
-          filter: `blur(${translucencyLevel * 1.5}px)`,
-          transform: 'translateZ(-0.5px)'
+          mixBlendMode: 'soft-light', // Much gentler
+          opacity: 0.3, // Very subtle
+          filter: `blur(${subtleBlur * 2}px)`
         }}
       />
       
-      {/* Light Transmission Through Crystal */}
+      {/* Gentle Light Reflection */}
       <div
         className="absolute inset-0 z-17"
         style={{
           background: `
             linear-gradient(
-              ${20 + mousePosition.y * 30}deg,
-              transparent 40%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.25}) 48%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.35}) 50%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.25}) 52%,
-              transparent 60%
+              ${30 + mousePosition.y * 20}deg,
+              transparent 45%,
+              rgba(255, 255, 255, ${gentleGlow * 0.3}) 49%,
+              rgba(255, 255, 255, ${gentleGlow * 0.4}) 50%,
+              rgba(255, 255, 255, ${gentleGlow * 0.3}) 51%,
+              transparent 55%
             )
           `,
           maskImage: `
             radial-gradient(
-              ellipse at ${30 + mousePosition.x * 40}% ${30 + mousePosition.y * 40}%,
-              rgba(255, 255, 255, 0.8) 0%,
-              rgba(255, 255, 255, 0.4) 40%,
-              rgba(255, 255, 255, 0.1) 70%,
-              transparent 100%
+              ellipse at ${40 + mousePosition.x * 20}% ${40 + mousePosition.y * 20}%,
+              rgba(255, 255, 255, 0.5) 20%,
+              rgba(255, 255, 255, 0.2) 60%,
+              transparent 80%
             )
           `,
           WebkitMaskImage: `
             radial-gradient(
-              ellipse at ${30 + mousePosition.x * 40}% ${30 + mousePosition.y * 40}%,
-              rgba(255, 255, 255, 0.8) 0%,
-              rgba(255, 255, 255, 0.4) 40%,
-              rgba(255, 255, 255, 0.1) 70%,
-              transparent 100%
+              ellipse at ${40 + mousePosition.x * 20}% ${40 + mousePosition.y * 20}%,
+              rgba(255, 255, 255, 0.5) 20%,
+              rgba(255, 255, 255, 0.2) 60%,
+              transparent 80%
             )
           `,
           mixBlendMode: 'overlay',
-          opacity: 0.6,
-          filter: `blur(${translucencyLevel}px)`
+          opacity: 0.4, // Much more subtle
+          filter: `blur(${subtleBlur}px)`
         }}
       />
       
-      {/* Internal Crystal Sparkle Points */}
+      {/* Soft Crystal Sparkles */}
       <div
-        className="absolute inset-0 z-18 animate-pulse"
+        className="absolute inset-0 z-18"
         style={{
           background: `
             radial-gradient(
-              circle at ${25 + mousePosition.x * 50}% ${25 + mousePosition.y * 50}%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.4}) 0%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.2}) 1px,
-              transparent 2px
+              circle at ${30 + mousePosition.x * 40}% ${30 + mousePosition.y * 40}%,
+              rgba(255, 255, 255, ${gentleGlow * 0.4}) 0%,
+              rgba(255, 255, 255, ${gentleGlow * 0.2}) 1px,
+              transparent 3px
             ),
             radial-gradient(
-              circle at ${75 - mousePosition.x * 30}% ${75 - mousePosition.y * 30}%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.3}) 0%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.15}) 1px,
-              transparent 2px
-            ),
-            radial-gradient(
-              circle at ${50 + mousePosition.x * 25}% ${30 + mousePosition.y * 40}%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.35}) 0%,
-              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.18}) 1px,
-              transparent 2px
+              circle at ${70 - mousePosition.x * 20}% ${70 - mousePosition.y * 20}%,
+              rgba(255, 255, 255, ${gentleGlow * 0.3}) 0%,
+              rgba(255, 255, 255, ${gentleGlow * 0.15}) 1px,
+              transparent 3px
             )
           `,
-          backgroundSize: '100px 100px, 120px 120px, 80px 80px',
-          mixBlendMode: 'screen',
-          opacity: 0.8
+          backgroundSize: '150px 150px, 120px 120px',
+          mixBlendMode: 'soft-light', // Changed from screen
+          opacity: 0.5, // Reduced opacity
+          filter: `blur(${subtleBlur * 0.5}px)`
         }}
       />
       
-      {/* Subtle Prismatic Edge Enhancement */}
+      {/* Very Subtle Prismatic Hints */}
       <div
         className="absolute inset-0 z-19"
         style={{
           background: `
             linear-gradient(
-              ${mousePosition.x * 60}deg,
-              rgba(255, 240, 245, ${(crystalIntensity / 100) * 0.06}) 0%,
-              rgba(240, 255, 245, ${(crystalIntensity / 100) * 0.05}) 25%,
-              rgba(240, 245, 255, ${(crystalIntensity / 100) * 0.06}) 50%,
-              rgba(255, 255, 240, ${(crystalIntensity / 100) * 0.05}) 75%,
-              rgba(255, 240, 255, ${(crystalIntensity / 100) * 0.06}) 100%
+              ${mousePosition.x * 30}deg,
+              rgba(255, 245, 250, ${gentleGlow * 0.08}) 0%,
+              rgba(245, 255, 250, ${gentleGlow * 0.06}) 33%,
+              rgba(245, 250, 255, ${gentleGlow * 0.08}) 66%,
+              rgba(255, 250, 245, ${gentleGlow * 0.06}) 100%
             )
           `,
           maskImage: `
             radial-gradient(
-              ellipse at ${50 + mousePosition.x * 10}% ${50 + mousePosition.y * 10}%,
-              rgba(255, 255, 255, 0.6) 20%,
-              rgba(255, 255, 255, 0.3) 60%,
-              rgba(255, 255, 255, 0.1) 80%,
-              transparent 100%
+              ellipse at ${50 + mousePosition.x * 5}% ${50 + mousePosition.y * 5}%,
+              rgba(255, 255, 255, 0.3) 40%,
+              rgba(255, 255, 255, 0.1) 75%,
+              transparent 90%
             )
           `,
           WebkitMaskImage: `
             radial-gradient(
-              ellipse at ${50 + mousePosition.x * 10}% ${50 + mousePosition.y * 10}%,
-              rgba(255, 255, 255, 0.6) 20%,
-              rgba(255, 255, 255, 0.3) 60%,
-              rgba(255, 255, 255, 0.1) 80%,
-              transparent 100%
+              ellipse at ${50 + mousePosition.x * 5}% ${50 + mousePosition.y * 5}%,
+              rgba(255, 255, 255, 0.3) 40%,
+              rgba(255, 255, 255, 0.1) 75%,
+              transparent 90%
             )
           `,
           mixBlendMode: 'color-dodge',
-          opacity: 0.4,
-          filter: `blur(${translucencyLevel * 3}px)`
+          opacity: 0.25, // Very subtle
+          filter: `blur(${subtleBlur * 2}px)`
         }}
       />
     </>
