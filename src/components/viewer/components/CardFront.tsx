@@ -103,17 +103,17 @@ export const CardFront: React.FC<CardFrontProps> = ({
         interactiveLighting={interactiveLighting}
       />
 
-      {/* Interactive lighting enhancement overlay */}
+      {/* Interactive lighting enhancement overlay - SOFTENED */}
       {interactiveLighting && isHovering && (
         <div
           className="absolute inset-0 z-40 pointer-events-none"
           style={{
             background: `
               radial-gradient(
-                circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                rgba(255, 255, 255, 0.08) 0%,
-                rgba(255, 255, 255, 0.04) 30%,
-                transparent 70%
+                ellipse 180% 140% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                rgba(255, 255, 255, 0.03) 0%,
+                rgba(255, 255, 255, 0.02) 50%,
+                transparent 85%
               )
             `,
             mixBlendMode: 'overlay',
