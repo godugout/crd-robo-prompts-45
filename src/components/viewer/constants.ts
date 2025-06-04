@@ -1,179 +1,116 @@
 
-// Enhanced Environment Scenes and Lighting Presets
-
-import type { EnvironmentScene, LightingPreset, VisualEffect } from './types';
+import type { EnvironmentScene, LightingPreset } from './types';
 
 export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
   {
     id: 'studio',
     name: 'Studio',
     icon: '🎬',
-    gradient: '#090909 #1a1a1a #090909',
-    description: 'Clean studio environment with neutral lighting',
+    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    description: 'Clean studio lighting',
     lighting: {
       color: '#ffffff',
-      intensity: 1.0,
+      intensity: 1,
       elevation: 45,
-      azimuth: 135,
+      azimuth: 0
     },
-    backgroundImage: 'radial-gradient(circle at 50% 50%, #303030 0%, #121212 100%)',
+    backgroundImage: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
     reflections: 'soft'
   },
   {
-    id: 'display',
-    name: 'Display',
-    icon: '🏆',
-    gradient: '#0a0a14 #141423 #0a0a14',
-    description: 'Museum-style display with dramatic lighting',
+    id: 'neon',
+    name: 'Neon',
+    icon: '🌈',
+    gradient: 'linear-gradient(135deg, #ff0080 0%, #0080ff 100%)',
+    description: 'Vibrant neon atmosphere',
     lighting: {
-      color: '#f0f0e0',
+      color: '#ff0080',
       intensity: 1.2,
-      elevation: 60,
-      azimuth: 160,
+      elevation: 30,
+      azimuth: 45
     },
-    backgroundImage: 'radial-gradient(circle at 30% 30%, #202030 0%, #0a0a15 100%)',
-    reflections: 'sharp'
+    backgroundImage: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+    reflections: 'vivid'
   },
   {
-    id: 'sunset',
-    name: 'Sunset',
+    id: 'golden',
+    name: 'Golden Hour',
     icon: '🌅',
-    gradient: '#1c0c1c #2d142b #1c0c1c',
-    description: 'Warm sunset ambiance with golden highlights',
+    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    description: 'Warm golden lighting',
     lighting: {
-      color: '#ff7700',
+      color: '#ffa500',
       intensity: 0.9,
       elevation: 15,
-      azimuth: 260,
+      azimuth: 60
     },
-    backgroundImage: 'linear-gradient(135deg, #3d1635 0%, #26101f 20%, #1a0a15 60%, #0d0709 100%)',
+    backgroundImage: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
     reflections: 'warm'
   },
   {
     id: 'twilight',
     name: 'Twilight',
-    icon: '🌃',
-    gradient: '#040428 #0a0a32 #040428',
-    description: 'Evening twilight with cool blue tones',
+    icon: '🌙',
+    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    description: 'Mystical twilight ambiance',
     lighting: {
-      color: '#4060ff',
+      color: '#4a5ee8',
       intensity: 0.8,
-      elevation: 30,
-      azimuth: 315,
+      elevation: 60,
+      azimuth: -30
     },
-    backgroundImage: 'linear-gradient(135deg, #0a0a20 0%, #12122c 50%, #08081a 100%)',
+    backgroundImage: 'linear-gradient(135deg, #2c3e50 0%, #3498db 100%)',
     reflections: 'cold'
-  },
-  {
-    id: 'cosmic',
-    name: 'Cosmic',
-    icon: '✨',
-    gradient: '#0a0a0a #151515 #0a0a0a',
-    description: 'Space-inspired environment with star field',
-    lighting: {
-      color: '#c0c0ff',
-      intensity: 0.7,
-      elevation: 80,
-      azimuth: 180,
-    },
-    backgroundImage: `radial-gradient(circle at 30% 50%, rgba(60,20,80,0.3) 0%, transparent 50%),
-                     radial-gradient(circle at 70% 50%, rgba(20,40,100,0.3) 0%, transparent 50%),
-                     url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="rgb(5,5,10)"/><circle cx="50" cy="50" r="1" fill="white" opacity="0.8"/><circle cx="20" cy="30" r="0.5" fill="white" opacity="0.6"/><circle cx="70" cy="40" r="0.7" fill="white" opacity="0.7"/><circle cx="30" cy="70" r="0.4" fill="white" opacity="0.5"/><circle cx="80" cy="20" r="0.6" fill="white" opacity="0.7"/><circle cx="10" cy="90" r="0.5" fill="white" opacity="0.6"/><circle cx="90" cy="10" r="0.3" fill="white" opacity="0.5"/></svg>')`,
-    reflections: 'sparkle'
-  },
-  {
-    id: 'neon',
-    name: 'Neon',
-    icon: '💫',
-    gradient: '#0f0f13 #13131c #0f0f13',
-    description: 'Vibrant neon-lit environment',
-    lighting: {
-      color: '#ff00ff',
-      intensity: 1.1,
-      elevation: 35,
-      azimuth: 225,
-    },
-    backgroundImage: `linear-gradient(135deg, #080810 0%, #0c0c18 100%),
-                     radial-gradient(circle at 20% 30%, rgba(255,0,180,0.15) 0%, transparent 50%),
-                     radial-gradient(circle at 80% 70%, rgba(0,180,255,0.15) 0%, transparent 50%)`,
-    reflections: 'vivid'
   }
 ];
 
 export const LIGHTING_PRESETS: LightingPreset[] = [
   {
-    id: 'studio',
-    name: 'Studio',
-    description: 'Balanced professional lighting',
-    brightness: 100,
-    contrast: 100,
-    shadows: 30,
-    highlights: 70,
-    temperature: 5500,
-    position: { x: 0, y: 0, z: 100 },
-    shadowSoftness: 20
-  },
-  {
     id: 'natural',
     name: 'Natural',
-    description: 'Soft natural daylight',
-    brightness: 110,
-    contrast: 90,
-    shadows: 20,
-    highlights: 60,
-    temperature: 6000,
-    position: { x: 30, y: 30, z: 100 },
-    shadowSoftness: 40
+    description: 'Balanced natural lighting',
+    brightness: 100,
+    contrast: 100,
+    shadows: 50,
+    highlights: 75,
+    temperature: 5500,
+    position: { x: 0, y: 1, z: 1 },
+    shadowSoftness: 20
   },
   {
     id: 'dramatic',
     name: 'Dramatic',
-    description: 'High contrast with deep shadows',
-    brightness: 95,
-    contrast: 140,
-    shadows: 60,
-    highlights: 80,
-    temperature: 5000,
-    position: { x: -40, y: 10, z: 120 },
+    description: 'High contrast dramatic lighting',
+    brightness: 120,
+    contrast: 150,
+    shadows: 80,
+    highlights: 90,
+    temperature: 4000,
+    position: { x: 1, y: 0.5, z: 0.5 },
     shadowSoftness: 10
   },
   {
-    id: 'gallery',
-    name: 'Gallery',
-    description: 'Museum-style accent lighting',
-    brightness: 115,
-    contrast: 110,
+    id: 'soft',
+    name: 'Soft',
+    description: 'Gentle diffused lighting',
+    brightness: 90,
+    contrast: 80,
+    shadows: 30,
+    highlights: 60,
+    temperature: 6000,
+    position: { x: 0, y: 1, z: 0 },
+    shadowSoftness: 40
+  },
+  {
+    id: 'vibrant',
+    name: 'Vibrant',
+    description: 'Enhanced color vibrancy',
+    brightness: 110,
+    contrast: 130,
     shadows: 40,
-    highlights: 75,
-    temperature: 4800,
-    position: { x: 0, y: 50, z: 80 },
-    shadowSoftness: 15
-  }
-];
-
-export const VISUAL_EFFECTS: VisualEffect[] = [
-  {
-    id: 'holographic',
-    name: 'Holographic',
-    description: 'Rainbow shifting holographic effect',
-    category: 'prismatic'
-  },
-  {
-    id: 'metallic',
-    name: 'Metallic',
-    description: 'Shiny metal foil appearance',
-    category: 'metallic'
-  },
-  {
-    id: 'gloss',
-    name: 'High Gloss',
-    description: 'High gloss finish with reflections',
-    category: 'surface'
-  },
-  {
-    id: 'matte',
-    name: 'Matte',
-    description: 'Subtle matte finish texture',
-    category: 'surface'
+    highlights: 85,
+    temperature: 5800,
+    position: { x: -0.5, y: 1, z: 1 },
+    shadowSoftness: 25
   }
 ];

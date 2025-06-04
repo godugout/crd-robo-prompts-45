@@ -66,7 +66,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
         <div className="relative w-full h-full p-4 flex flex-col">
           {/* Card name */}
           <div className="text-white text-xl font-bold mb-2">
-            {card.name || 'Card Name'}
+            {card.title || 'Card Name'}
           </div>
           
           {/* Card image area */}
@@ -74,7 +74,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             {card.image_url ? (
               <img 
                 src={card.image_url} 
-                alt={card.name}
+                alt={card.title}
                 className="max-w-full max-h-full object-contain rounded"
               />
             ) : (
@@ -88,7 +88,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
           {/* Card stats */}
           <div className="mt-2 text-white/90 text-sm">
             <div>Rarity: {card.rarity || 'Common'}</div>
-            <div>Set: {card.set_name || 'Custom Set'}</div>
+            <div>Set: {card.set || 'Custom Set'}</div>
           </div>
         </div>
         

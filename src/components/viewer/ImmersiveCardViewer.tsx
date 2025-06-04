@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -175,6 +174,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [useProgressivePanel, setUseProgressivePanel] = useState(true);
 
   // Custom hooks
+  const enhancedEffectsHook = useEnhancedCardEffects();
   const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useEnhancedCardEffects({
     card,
     effectValues,

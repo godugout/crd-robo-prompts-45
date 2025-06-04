@@ -2,7 +2,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Sun } from 'lucide-react';
 import type { LightingPreset } from '../types';
 import { LIGHTING_PRESETS } from '../constants';
 
@@ -26,34 +25,33 @@ export const LightingComboSection: React.FC<LightingComboSectionProps> = ({
   return (
     <div className="space-y-4">
       {/* Lighting Presets */}
-      <div className="space-y-2">
-        <h4 className="text-white text-sm font-medium flex items-center">
-          <Sun className="w-4 h-4 mr-2" />
-          Presets
-        </h4>
-        <div className="space-y-1">
-          {LIGHTING_PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              onClick={() => onLightingChange(preset)}
-              className={`w-full p-2 rounded text-left transition-colors text-sm ${
-                selectedLighting.id === preset.id 
-                  ? 'bg-crd-green text-black font-medium' 
-                  : 'bg-editor-border text-gray-300 hover:bg-editor-border/80'
-              }`}
-            >
-              <div className="font-medium">{preset.name}</div>
-              <div className="text-xs opacity-75">{preset.description}</div>
-            </button>
-          ))}
-        </div>
+      <div className="grid grid-cols-2 gap-2">
+        {LIGHTING_PRESETS.map((preset) => (
+          <Button
+            key={preset.id}
+            onClick={() => onLightingChange(preset)}
+            variant={selectedLighting.id === preset.id ? "default" : "outline"}
+            className={`h-auto p-2 flex flex-col items-center space-y-1 text-xs ${
+              selectedLighting.id === preset.id
+                ? 'bg-crd-green text-black border-crd-green'
+                : 'border-editor-border hover:border-crd-green hover:bg-crd-green/10 text-white'
+            }`}
+          >
+            <span className="font-medium">{preset.name}</span>
+            <span className="text-center leading-tight opacity-70">
+              {preset.description}
+            </span>
+          </Button>
+        ))}
       </div>
-      
-      {/* Brightness Control */}
+
+      {/* Overall Brightness */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-white text-sm">Brightness</label>
-          <span className="text-crd-lightGray text-xs">{overallBrightness[0]}%</span>
+          <label className="text-white text-sm font-medium">Overall Brightness</label>
+          <span className="text-crd-lightGray text-xs">
+            {overallBrightness[0]}%
+          </span>
         </div>
         <Slider
           value={overallBrightness}
@@ -64,10 +62,10 @@ export const LightingComboSection: React.FC<LightingComboSectionProps> = ({
           className="w-full"
         />
       </div>
-      
+
       {/* Interactive Lighting Toggle */}
       <div className="flex items-center justify-between">
-        <span className="text-white text-sm">Interactive</span>
+        <label className="text-white text-sm font-medium">Interactive Lighting</label>
         <Button
           onClick={onInteractiveLightingToggle}
           variant="outline"
