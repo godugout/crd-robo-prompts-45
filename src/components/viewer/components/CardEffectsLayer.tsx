@@ -39,6 +39,10 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   const brushedSteelIntensity = effectValues?.brushedsteel?.intensity || 0;
   const isBrushedSteelActive = brushedSteelIntensity > 0;
   
+  // Check if vintage effect is active (cardboard paper texture)
+  const vintageIntensity = effectValues?.vintage?.intensity || 0;
+  const isVintageActive = vintageIntensity > 0;
+  
   // Calculate interactive lighting effects
   const getInteractiveLightingData = () => {
     if (!interactiveLighting) return null;
@@ -96,8 +100,121 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   
   return (
     <>
+      {/* Vintage Cardboard Paper Effect */}
+      {isVintageActive && (
+        <>
+          {/* Base cardboard color layer */}
+          <div
+            className="absolute inset-0 z-20"
+            style={{
+              background: `
+                linear-gradient(
+                  ${mousePosition.x * 45}deg,
+                  rgba(210, 180, 140, ${(vintageIntensity / 100) * 0.8}) 0%,
+                  rgba(222, 184, 135, ${(vintageIntensity / 100) * 0.9}) 25%,
+                  rgba(205, 175, 133, ${(vintageIntensity / 100) * 0.7}) 50%,
+                  rgba(218, 182, 138, ${(vintageIntensity / 100) * 0.85}) 75%,
+                  rgba(200, 170, 125, ${(vintageIntensity / 100) * 0.75}) 100%
+                )
+              `,
+              mixBlendMode: 'multiply',
+              opacity: 0.9
+            }}
+          />
+          
+          {/* Wood fiber texture pattern */}
+          <div
+            className="absolute inset-0 z-21"
+            style={{
+              background: `
+                repeating-linear-gradient(
+                  ${mousePosition.x * 90 + 15}deg,
+                  transparent 0px,
+                  rgba(160, 130, 98, ${(vintageIntensity / 100) * 0.4}) 0.5px,
+                  rgba(180, 150, 118, ${(vintageIntensity / 100) * 0.2}) 1px,
+                  transparent 1.5px,
+                  transparent 3px
+                ),
+                repeating-linear-gradient(
+                  ${mousePosition.x * 90 + 75}deg,
+                  transparent 0px,
+                  rgba(195, 165, 135, ${(vintageIntensity / 100) * 0.3}) 1px,
+                  rgba(175, 145, 115, ${(vintageIntensity / 100) * 0.15}) 2px,
+                  transparent 3px,
+                  transparent 6px
+                )
+              `,
+              mixBlendMode: 'overlay',
+              opacity: 0.8
+            }}
+          />
+          
+          {/* Cardboard fiber grain */}
+          <div
+            className="absolute inset-0 z-22"
+            style={{
+              background: `
+                radial-gradient(
+                  ellipse at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                  rgba(230, 200, 170, ${(vintageIntensity / 100) * 0.3}) 0%,
+                  rgba(190, 160, 130, ${(vintageIntensity / 100) * 0.2}) 30%,
+                  rgba(210, 180, 150, ${(vintageIntensity / 100) * 0.1}) 60%,
+                  transparent 80%
+                )
+              `,
+              mixBlendMode: 'soft-light',
+              opacity: 0.7
+            }}
+          />
+          
+          {/* Paper surface irregularities */}
+          <div
+            className="absolute inset-0 z-23"
+            style={{
+              background: `
+                repeating-conic-gradient(
+                  from ${mousePosition.x * 120}deg at 30% 70%,
+                  transparent 0deg,
+                  rgba(185, 155, 125, ${(vintageIntensity / 100) * 0.2}) 15deg,
+                  rgba(205, 175, 145, ${(vintageIntensity / 100) * 0.15}) 30deg,
+                  transparent 45deg,
+                  transparent 90deg
+                ),
+                repeating-conic-gradient(
+                  from ${mousePosition.x * 80}deg at 70% 30%,
+                  transparent 0deg,
+                  rgba(195, 165, 135, ${(vintageIntensity / 100) * 0.25}) 20deg,
+                  rgba(175, 145, 115, ${(vintageIntensity / 100) * 0.1}) 40deg,
+                  transparent 60deg,
+                  transparent 120deg
+                )
+              `,
+              mixBlendMode: 'multiply',
+              opacity: 0.6
+            }}
+          />
+          
+          {/* Subtle cardboard matte finish */}
+          <div
+            className="absolute inset-0 z-24"
+            style={{
+              background: `
+                linear-gradient(
+                  ${mousePosition.x * 180}deg,
+                  rgba(240, 210, 180, ${(vintageIntensity / 100) * 0.15}) 0%,
+                  rgba(220, 190, 160, ${(vintageIntensity / 100) * 0.1}) 50%,
+                  rgba(200, 170, 140, ${(vintageIntensity / 100) * 0.05}) 100%
+                )
+              `,
+              mixBlendMode: 'screen',
+              opacity: isHovering ? 0.4 : 0.2
+            }}
+          />
+        </>
+      )}
+
       {/* Brushed Steel Effect - Industrial gray metal with texture */}
-      {isBrushedSteelActive && (
+      {isBrushedSteelActive && !isVintageActive && (
         <>
           {/* Base steel metallic layer */}
           <div
@@ -181,7 +298,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       )}
 
       {/* Chrome Mirror Effect - Enhanced silver chrome shine */}
-      {isChromeActive && !isBrushedSteelActive && (
+      {isChromeActive && !isBrushedSteelActive && !isVintageActive && (
         <>
           {/* Primary chrome base layer */}
           <div
@@ -267,7 +384,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       )}
 
       {/* Gold Luxury Effect - Enhanced golden yellow shine */}
-      {isGoldActive && !isChromeActive && !isBrushedSteelActive && (
+      {isGoldActive && !isChromeActive && !isBrushedSteelActive && !isVintageActive && (
         <>
           {/* Primary gold shine layer */}
           <div
@@ -331,7 +448,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       )}
 
       {/* Base holographic effect with interactive enhancement */}
-      {!isGoldActive && !isChromeActive && !isBrushedSteelActive && (
+      {!isGoldActive && !isChromeActive && !isBrushedSteelActive && !isVintageActive && (
         <div
           className="absolute inset-0 z-10"
           style={{
@@ -350,7 +467,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       )}
 
       {/* Interactive high-frequency reflective/foil pattern */}
-      {isHovering && !isChromeActive && !isBrushedSteelActive && (
+      {isHovering && !isChromeActive && !isBrushedSteelActive && !isVintageActive && (
         <div
           className="absolute inset-0 z-22 overflow-hidden"
           style={{
@@ -377,8 +494,8 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
             background: `
               radial-gradient(
                 ellipse 60% 80% at ${(mousePosition.x * 0.8 + 0.1) * 100}% ${(mousePosition.y * 0.8 + 0.1) * 100}%,
-                rgba(255, 255, 255, ${interactiveData.lightIntensity * (isChromeActive || isBrushedSteelActive ? 0.6 : 0.4)}) 0%,
-                rgba(255, 255, 255, ${interactiveData.lightIntensity * (isChromeActive || isBrushedSteelActive ? 0.4 : 0.2)}) 30%,
+                rgba(255, 255, 255, ${interactiveData.lightIntensity * (isChromeActive || isBrushedSteelActive ? 0.6 : isVintageActive ? 0.2 : 0.4)}) 0%,
+                rgba(255, 255, 255, ${interactiveData.lightIntensity * (isChromeActive || isBrushedSteelActive ? 0.4 : isVintageActive ? 0.1 : 0.2)}) 30%,
                 transparent 60%
               )
             `,
@@ -389,7 +506,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       )}
 
       {/* Surface texture with interactive enhancement */}
-      {!isChromeActive && !isBrushedSteelActive && (
+      {!isChromeActive && !isBrushedSteelActive && !isVintageActive && (
         <div
           className="absolute inset-0 z-15"
           style={{
