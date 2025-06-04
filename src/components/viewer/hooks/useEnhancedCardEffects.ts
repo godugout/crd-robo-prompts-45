@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 
 export interface EffectParameter {
@@ -26,7 +25,7 @@ export interface EffectValues {
   };
 }
 
-// Define all visual effects with their unique parameters
+// Enhanced visual effects with optimized parameter ranges
 export const ENHANCED_VISUAL_EFFECTS: VisualEffectConfig[] = [
   {
     id: 'holographic',
@@ -115,6 +114,26 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffectConfig[] = [
       { id: 'intensity', name: 'Intensity', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 0 },
       { id: 'aging', name: 'Aging Level', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 40 },
       { id: 'patina', name: 'Patina Color', type: 'color', defaultValue: '#8b7355' }
+    ]
+  },
+  {
+    id: 'gold',
+    name: 'Gold',
+    description: 'Luxurious gold plating with authentic shimmer',
+    category: 'metallic',
+    parameters: [
+      { id: 'intensity', name: 'Intensity', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 0 },
+      { id: 'shimmerSpeed', name: 'Shimmer Speed', type: 'slider', min: 0, max: 200, step: 5, defaultValue: 80 },
+      { id: 'platingThickness', name: 'Plating Thickness', type: 'slider', min: 1, max: 10, step: 0.5, defaultValue: 5 },
+      { id: 'goldTone', name: 'Gold Tone', type: 'select', defaultValue: 'rich', 
+        options: [
+          { value: 'rich', label: 'Rich Gold' },
+          { value: 'rose', label: 'Rose Gold' },
+          { value: 'white', label: 'White Gold' },
+          { value: 'antique', label: 'Antique Gold' }
+        ]
+      },
+      { id: 'reflectivity', name: 'Reflectivity', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 85 }
     ]
   }
 ];

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Play, ArrowRight, RotateCcw } from 'lucide-react';
+import { Play, ArrowRight, RotateCcw, Crown, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
@@ -8,118 +8,103 @@ import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 interface DemoFeatureProps {
   onApplyPreset: (preset: EffectValues) => void;
   onStartTour: () => void;
+  isPremiumUser?: boolean;
 }
 
-// Predefined effect presets with visual examples
-const EFFECT_PRESETS = [
+// Updated presets to match the new premium structure
+const FEATURED_PRESETS = [
   {
-    id: 'holographic-premium',
-    name: 'Holographic Premium',
-    description: 'Classic holographic trading card with rainbow shimmer',
+    id: 'basic-holographic',
+    name: 'Holographic',
+    description: 'Classic rainbow holographic shimmer',
     thumbnail: '🌈',
+    tier: 'free' as const,
     effects: {
-      holographic: { intensity: 85, shiftSpeed: 150, rainbowSpread: 280, prismaticDepth: 70 },
-      foilspray: { intensity: 0 },
-      prizm: { intensity: 0 },
-      chrome: { intensity: 0 },
-      interference: { intensity: 0 },
-      brushedmetal: { intensity: 0 },
-      crystal: { intensity: 0 },
-      vintage: { intensity: 0 }
+      holographic: { intensity: 60, shiftSpeed: 120, rainbowSpread: 200, animated: true }
     }
   },
   {
-    id: 'chrome-mirror',
-    name: 'Chrome Mirror',
-    description: 'Ultra-reflective chrome finish with sharp highlights',
+    id: 'chrome-shine',
+    name: 'Chrome',
+    description: 'Clean metallic chrome finish',
     thumbnail: '🪞',
+    tier: 'free' as const,
     effects: {
-      holographic: { intensity: 0 },
-      foilspray: { intensity: 0 },
-      prizm: { intensity: 0 },
-      chrome: { intensity: 90, reflectionSharpness: 85, distortion: 15, highlightSize: 60 },
-      interference: { intensity: 0 },
-      brushedmetal: { intensity: 0 },
-      crystal: { intensity: 0 },
-      vintage: { intensity: 0 }
+      chrome: { intensity: 70, sharpness: 75, highlightSize: 50 }
     }
   },
   {
-    id: 'crystal-prizm',
-    name: 'Crystal Prizm',
-    description: 'Multi-faceted crystal with geometric light patterns',
+    id: 'rainbow-prizm',
+    name: 'Rainbow Prizm',
+    description: 'Intense prismatic colors with holographic depth',
     thumbnail: '💎',
+    tier: 'premium' as const,
     effects: {
-      holographic: { intensity: 0 },
-      foilspray: { intensity: 0 },
-      prizm: { intensity: 80, patternComplexity: 7, colorSeparation: 90, geometricScale: 150 },
-      chrome: { intensity: 0 },
-      interference: { intensity: 0 },
-      brushedmetal: { intensity: 0 },
-      crystal: { intensity: 70, facetCount: 8, lightDispersion: 85, crystallineClarity: 75 },
-      vintage: { intensity: 0 }
+      prizm: { intensity: 75, complexity: 8, colorSeparation: 85 },
+      holographic: { intensity: 45, shiftSpeed: 140, rainbowSpread: 260, animated: true },
+      crystal: { intensity: 25, facets: 6, dispersion: 60 }
     }
   },
   {
-    id: 'vintage-gold',
-    name: 'Vintage Gold',
-    description: 'Aged gold finish with patina and wear patterns',
+    id: 'gold-dynasty',
+    name: 'Gold Dynasty',
+    description: 'Luxurious gold with vintage character',
     thumbnail: '🏆',
+    tier: 'premium' as const,
     effects: {
-      holographic: { intensity: 0 },
-      foilspray: { intensity: 0 },
-      prizm: { intensity: 0 },
-      chrome: { intensity: 0 },
-      interference: { intensity: 0 },
-      brushedmetal: { intensity: 45, brushDirection: 45, grainDensity: 60, metallicPolish: 80 },
-      crystal: { intensity: 0 },
-      vintage: { intensity: 85, agingLevel: 70, patinaColor: '#DAA520', wearPatterns: 60 }
+      gold: { intensity: 85, shimmerSpeed: 90, platingThickness: 6, goldTone: 'rich', reflectivity: 85 },
+      vintage: { intensity: 30, aging: 40, patina: '#b8860b' },
+      chrome: { intensity: 25, sharpness: 70, highlightSize: 35 }
     }
   },
   {
-    id: 'interference-wave',
-    name: 'Interference Wave',
-    description: 'Soap bubble effect with shifting color waves',
-    thumbnail: '🫧',
+    id: 'diamond-clarity',
+    name: 'Diamond Clarity',
+    description: 'Flawless crystal with chrome precision',
+    thumbnail: '💍',
+    tier: 'premium' as const,
     effects: {
-      holographic: { intensity: 0 },
-      foilspray: { intensity: 0 },
-      prizm: { intensity: 0 },
-      chrome: { intensity: 0 },
-      interference: { intensity: 80, waveFrequency: 120, bubbleThickness: 70, colorShiftingSpeed: 160 },
-      brushedmetal: { intensity: 0 },
-      crystal: { intensity: 0 },
-      vintage: { intensity: 0 }
+      crystal: { intensity: 90, facets: 12, dispersion: 95 },
+      chrome: { intensity: 60, sharpness: 95, highlightSize: 25 },
+      prizm: { intensity: 20, complexity: 4, colorSeparation: 40 }
     }
   },
   {
-    id: 'foil-spray',
-    name: 'Foil Spray',
-    description: 'Metallic spray pattern with directional flow',
-    thumbnail: '✨',
+    id: 'cosmic-storm',
+    name: 'Cosmic Storm',
+    description: 'Complex multi-effect interaction for ultimate visual impact',
+    thumbnail: '⚡',
+    tier: 'premium' as const,
     effects: {
-      holographic: { intensity: 0 },
-      foilspray: { intensity: 75, metallicDensity: 80, sprayPattern: 'radial', directionalFlow: 135 },
-      prizm: { intensity: 0 },
-      chrome: { intensity: 0 },
-      interference: { intensity: 0 },
-      brushedmetal: { intensity: 0 },
-      crystal: { intensity: 0 },
-      vintage: { intensity: 0 }
+      holographic: { intensity: 35, shiftSpeed: 180, rainbowSpread: 300, animated: true },
+      prizm: { intensity: 30, complexity: 5, colorSeparation: 50 },
+      crystal: { intensity: 25, facets: 8, dispersion: 60 },
+      chrome: { intensity: 30, sharpness: 70, highlightSize: 40 },
+      interference: { intensity: 20, frequency: 8, thickness: 2 }
     }
   }
 ];
 
 export const DemoFeature: React.FC<DemoFeatureProps> = ({
   onApplyPreset,
-  onStartTour
+  onStartTour,
+  isPremiumUser = false
 }) => {
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
 
-  const handleApplyPreset = (preset: typeof EFFECT_PRESETS[0]) => {
+  const handleApplyPreset = (preset: typeof FEATURED_PRESETS[0]) => {
+    // Check premium access
+    if (preset.tier === 'premium' && !isPremiumUser) {
+      return; // Could show upgrade modal here
+    }
+    
     setSelectedPreset(preset.id);
     onApplyPreset(preset.effects);
   };
+
+  // Split presets by tier
+  const freePresets = FEATURED_PRESETS.filter(p => p.tier === 'free');
+  const premiumPresets = FEATURED_PRESETS.filter(p => p.tier === 'premium');
 
   return (
     <div className="space-y-6">
@@ -140,11 +125,11 @@ export const DemoFeature: React.FC<DemoFeatureProps> = ({
         </Button>
       </div>
 
-      {/* Preset Gallery */}
+      {/* Free Presets */}
       <div className="space-y-3">
-        <h4 className="text-white font-medium text-sm">Effect Presets</h4>
+        <h4 className="text-white font-medium text-sm">Free Presets</h4>
         <div className="grid grid-cols-2 gap-3">
-          {EFFECT_PRESETS.map((preset) => (
+          {freePresets.map((preset) => (
             <Card 
               key={preset.id}
               className={`cursor-pointer transition-all hover:scale-105 ${
@@ -175,6 +160,87 @@ export const DemoFeature: React.FC<DemoFeatureProps> = ({
         </div>
       </div>
 
+      {/* Premium Presets */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-amber-400 font-medium text-sm flex items-center">
+            <Crown className="w-4 h-4 mr-1" />
+            Premium Collection
+          </h4>
+          {!isPremiumUser && (
+            <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black text-xs h-6 px-2">
+              Upgrade
+            </Button>
+          )}
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          {premiumPresets.map((preset) => (
+            <Card 
+              key={preset.id}
+              className={`cursor-pointer transition-all ${
+                isPremiumUser ? 'hover:scale-105' : 'opacity-60'
+              } ${
+                selectedPreset === preset.id && isPremiumUser
+                  ? 'ring-2 ring-amber-500 bg-editor-dark border-amber-500' 
+                  : isPremiumUser 
+                    ? 'bg-editor-dark border-amber-600/30 hover:border-amber-500'
+                    : 'bg-editor-dark border-gray-600 cursor-not-allowed'
+              } relative`}
+              onClick={() => isPremiumUser && handleApplyPreset(preset)}
+            >
+              {/* Premium Lock Overlay */}
+              {!isPremiumUser && (
+                <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center z-10">
+                  <Lock className="w-6 h-6 text-amber-400" />
+                </div>
+              )}
+              
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-2xl">{preset.thumbnail}</div>
+                  <div className="flex items-center space-x-1">
+                    <Crown className="w-3 h-3 text-amber-400" />
+                    {selectedPreset === preset.id && isPremiumUser && (
+                      <div className="w-2 h-2 bg-amber-400 rounded-full" />
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <CardTitle className="text-white text-sm mb-1 flex items-center">
+                  {preset.name}
+                </CardTitle>
+                <p className="text-crd-lightGray text-xs leading-tight">
+                  {preset.description}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* Premium Upsell */}
+      {!isPremiumUser && (
+        <div className="p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-lg">
+          <div className="text-center space-y-3">
+            <Crown className="w-8 h-8 text-amber-400 mx-auto" />
+            <div>
+              <h4 className="text-white font-semibold mb-1">Unlock Premium Effects</h4>
+              <p className="text-crd-lightGray text-sm">Get access to 15+ exclusive visual effect combinations</p>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-xs text-amber-200">
+              <div>• Crystal Clarity</div>
+              <div>• Metallic Luxury</div>
+              <div>• Hybrid Effects</div>
+            </div>
+            <Button className="w-full bg-amber-500 hover:bg-amber-600 text-black font-medium">
+              Upgrade to Premium
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Quick Actions */}
       <div className="space-y-2">
         <div className="flex space-x-2">
@@ -184,16 +250,7 @@ export const DemoFeature: React.FC<DemoFeatureProps> = ({
             className="flex-1 border-editor-border text-white hover:bg-gray-700"
             onClick={() => {
               setSelectedPreset(null);
-              onApplyPreset({
-                holographic: { intensity: 0 },
-                foilspray: { intensity: 0 },
-                prizm: { intensity: 0 },
-                chrome: { intensity: 0 },
-                interference: { intensity: 0 },
-                brushedmetal: { intensity: 0 },
-                crystal: { intensity: 0 },
-                vintage: { intensity: 0 }
-              });
+              onApplyPreset({});
             }}
           >
             <RotateCcw className="w-3 h-3 mr-1" />
