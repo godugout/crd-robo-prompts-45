@@ -116,7 +116,7 @@ interface QuickComboPresetsProps {
 export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({ onApplyCombo }) => {
   return (
     <TooltipProvider>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="space-y-1">
         {COMBO_PRESETS.map((preset) => {
           const IconComponent = preset.icon;
           return (
@@ -125,15 +125,15 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({ onApplyCom
                 <Button
                   onClick={() => onApplyCombo(preset)}
                   variant="outline"
-                  className="h-16 p-2 flex flex-col items-center justify-center space-y-1 border-editor-border hover:border-crd-green hover:bg-crd-green/10"
+                  className="w-full h-8 px-2 flex items-center justify-start space-x-2 border-editor-border hover:border-crd-green hover:bg-crd-green/10 text-xs"
                 >
-                  <IconComponent className="w-4 h-4 text-crd-green flex-shrink-0" />
-                  <span className="text-white text-xs font-medium text-center leading-tight">
+                  <IconComponent className="w-3 h-3 text-crd-green flex-shrink-0" />
+                  <span className="text-white font-medium truncate">
                     {preset.name}
                   </span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="top" className="bg-black border-gray-700 text-white">
+              <TooltipContent side="left" className="bg-black border-gray-700 text-white">
                 <div className="text-center">
                   <div className="font-medium">{preset.name}</div>
                   <div className="text-xs text-gray-300">{preset.description}</div>
