@@ -13,6 +13,8 @@ import DebugDetection from '@/pages/DebugDetection';
 import { AuthPage } from '@/components/auth/AuthPage';
 
 function App() {
+  console.log('🔧 App component rendering');
+  
   return (
     <AuthProvider>
       <OverlayProvider>

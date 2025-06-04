@@ -27,12 +27,17 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  console.log('🔧 AuthProvider rendering');
+  
   const customAuth = useCustomAuth();
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
+    console.log('🔧 AuthProvider useEffect - customAuth.loading:', customAuth.loading);
+    
     // Wait for custom auth to initialize
     if (!customAuth.loading) {
+      console.log('🔧 AuthProvider initialized');
       setIsInitialized(true);
     }
   }, [customAuth.loading]);
@@ -46,10 +51,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!customAuth.user,
   };
 
+  console.log('🔧 AuthProvider state:', {
+    isInitialized,
+    loading: customAuth.loading,
+    hasUser: !!customAuth.user
+  });
+
   if (!isInitialized) {
+    console.log('🔧 AuthProvider showing loading state');
     return <LoadingState message="Initializing authentication..." fullPage size="lg" />;
   }
 
+  console.log('🔧 AuthProvider rendering children');
   return (
     <AuthContext.Provider value={value}>
       {children}
