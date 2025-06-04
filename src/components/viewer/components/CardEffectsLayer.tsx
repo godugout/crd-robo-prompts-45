@@ -35,6 +35,10 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   const chromeIntensity = effectValues?.chrome?.intensity || 0;
   const isChromeActive = chromeIntensity > 0;
   
+  // Check if brushed steel effect is active (industrial gray metal)
+  const brushedSteelIntensity = effectValues?.brushedsteel?.intensity || 0;
+  const isBrushedSteelActive = brushedSteelIntensity > 0;
+  
   // Calculate interactive lighting effects
   const getInteractiveLightingData = () => {
     if (!interactiveLighting) return null;
@@ -92,8 +96,92 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   
   return (
     <>
+      {/* Brushed Steel Effect - Industrial gray metal with texture */}
+      {isBrushedSteelActive && (
+        <>
+          {/* Base steel metallic layer */}
+          <div
+            className="absolute inset-0 z-20"
+            style={{
+              background: `
+                linear-gradient(
+                  ${45 + mousePosition.x * 90}deg,
+                  rgba(169, 169, 169, ${(brushedSteelIntensity / 100) * 0.8}) 0%,
+                  rgba(192, 192, 192, ${(brushedSteelIntensity / 100) * 0.9}) 20%,
+                  rgba(128, 128, 128, ${(brushedSteelIntensity / 100) * 0.7}) 40%,
+                  rgba(211, 211, 211, ${(brushedSteelIntensity / 100) * 0.85}) 60%,
+                  rgba(105, 105, 105, ${(brushedSteelIntensity / 100) * 0.6}) 80%,
+                  rgba(169, 169, 169, ${(brushedSteelIntensity / 100) * 0.75}) 100%
+                )
+              `,
+              mixBlendMode: 'multiply',
+              opacity: 0.9
+            }}
+          />
+          
+          {/* Brushed texture pattern */}
+          <div
+            className="absolute inset-0 z-21"
+            style={{
+              background: `
+                repeating-linear-gradient(
+                  ${mousePosition.x * 180}deg,
+                  transparent 0px,
+                  rgba(200, 200, 200, ${(brushedSteelIntensity / 100) * 0.3}) 1px,
+                  rgba(160, 160, 160, ${(brushedSteelIntensity / 100) * 0.2}) 2px,
+                  transparent 3px,
+                  transparent 6px
+                )
+              `,
+              mixBlendMode: 'overlay',
+              opacity: 0.8
+            }}
+          />
+          
+          {/* Industrial shine highlights */}
+          <div
+            className="absolute inset-0 z-22"
+            style={{
+              background: `
+                radial-gradient(
+                  ellipse at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                  rgba(240, 240, 240, ${(brushedSteelIntensity / 100) * 0.6}) 0%,
+                  rgba(220, 220, 220, ${(brushedSteelIntensity / 100) * 0.4}) 25%,
+                  rgba(180, 180, 180, ${(brushedSteelIntensity / 100) * 0.3}) 50%,
+                  transparent 70%
+                )
+              `,
+              mixBlendMode: 'screen',
+              opacity: isHovering ? 0.9 : 0.7
+            }}
+          />
+          
+          {/* Surface texture overlay for industrial look */}
+          <div
+            className="absolute inset-0 z-23"
+            style={{
+              background: `
+                conic-gradient(
+                  from ${mousePosition.x * 120}deg at 50% 50%,
+                  transparent 0deg,
+                  rgba(190, 190, 190, ${(brushedSteelIntensity / 100) * 0.4}) 30deg,
+                  rgba(150, 150, 150, ${(brushedSteelIntensity / 100) * 0.5}) 60deg,
+                  transparent 90deg,
+                  rgba(170, 170, 170, ${(brushedSteelIntensity / 100) * 0.3}) 180deg,
+                  transparent 210deg,
+                  rgba(200, 200, 200, ${(brushedSteelIntensity / 100) * 0.4}) 300deg,
+                  transparent 360deg
+                )
+              `,
+              mixBlendMode: 'hard-light',
+              opacity: 0.6
+            }}
+          />
+        </>
+      )}
+
       {/* Chrome Mirror Effect - Enhanced silver chrome shine */}
-      {isChromeActive && (
+      {isChromeActive && !isBrushedSteelActive && (
         <>
           {/* Primary chrome base layer */}
           <div
@@ -179,7 +267,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       )}
 
       {/* Gold Luxury Effect - Enhanced golden yellow shine */}
-      {isGoldActive && !isChromeActive && (
+      {isGoldActive && !isChromeActive && !isBrushedSteelActive && (
         <>
           {/* Primary gold shine layer */}
           <div
@@ -243,7 +331,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       )}
 
       {/* Base holographic effect with interactive enhancement */}
-      {!isGoldActive && !isChromeActive && (
+      {!isGoldActive && !isChromeActive && !isBrushedSteelActive && (
         <div
           className="absolute inset-0 z-10"
           style={{
@@ -262,7 +350,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       )}
 
       {/* Interactive high-frequency reflective/foil pattern */}
-      {isHovering && !isChromeActive && (
+      {isHovering && !isChromeActive && !isBrushedSteelActive && (
         <div
           className="absolute inset-0 z-22 overflow-hidden"
           style={{
@@ -289,8 +377,8 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
             background: `
               radial-gradient(
                 ellipse 60% 80% at ${(mousePosition.x * 0.8 + 0.1) * 100}% ${(mousePosition.y * 0.8 + 0.1) * 100}%,
-                rgba(255, 255, 255, ${interactiveData.lightIntensity * (isChromeActive ? 0.6 : 0.4)}) 0%,
-                rgba(255, 255, 255, ${interactiveData.lightIntensity * (isChromeActive ? 0.4 : 0.2)}) 30%,
+                rgba(255, 255, 255, ${interactiveData.lightIntensity * (isChromeActive || isBrushedSteelActive ? 0.6 : 0.4)}) 0%,
+                rgba(255, 255, 255, ${interactiveData.lightIntensity * (isChromeActive || isBrushedSteelActive ? 0.4 : 0.2)}) 30%,
                 transparent 60%
               )
             `,
@@ -301,7 +389,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       )}
 
       {/* Surface texture with interactive enhancement */}
-      {!isChromeActive && (
+      {!isChromeActive && !isBrushedSteelActive && (
         <div
           className="absolute inset-0 z-15"
           style={{
