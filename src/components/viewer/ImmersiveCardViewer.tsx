@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -300,6 +299,9 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         } ${showCustomizePanel ? 'pr-80' : ''}`}
         style={{
           ...getEnvironmentStyle(),
+          minHeight: '100vh',
+          minWidth: '100vw',
+          overflow: 'hidden'
         }}
         onMouseMove={handleMouseMove}
         onMouseUp={handleDragEnd}
@@ -410,8 +412,19 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         )}
 
-        {/* Enhanced Card Container - Add ref */}
-        <div ref={cardContainerRef}>
+        {/* Enhanced Card Container - Centered with proper viewport */}
+        <div 
+          ref={cardContainerRef}
+          className="flex items-center justify-center"
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative'
+          }}
+        >
           <EnhancedCardContainer
             card={card}
             isFlipped={isFlipped}
@@ -425,6 +438,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             frameStyles={getFrameStyles()}
             enhancedEffectStyles={getEnhancedEffectStyles()}
             SurfaceTexture={SurfaceTexture}
+            interactiveLighting={interactiveLighting}
             onMouseDown={handleDragStart}
             onMouseMove={handleDrag}
             onMouseEnter={() => setIsHovering(true)}
