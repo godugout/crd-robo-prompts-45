@@ -11,6 +11,7 @@ interface UsernameFieldProps {
   placeholder?: string;
   label?: string;
   required?: boolean;
+  disabled?: boolean;
 }
 
 export const UsernameField: React.FC<UsernameFieldProps> = ({
@@ -20,6 +21,7 @@ export const UsernameField: React.FC<UsernameFieldProps> = ({
   placeholder = "Enter your username",
   label = "Username",
   required = true,
+  disabled = false,
 }) => {
   return (
     <div className="space-y-2">
@@ -35,6 +37,7 @@ export const UsernameField: React.FC<UsernameFieldProps> = ({
           onChange={(e) => onUsernameChange(e.target.value)}
           className="pl-10"
           required={required}
+          disabled={disabled}
           autoComplete="username"
         />
       </div>

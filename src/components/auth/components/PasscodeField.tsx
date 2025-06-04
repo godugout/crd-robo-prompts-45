@@ -11,6 +11,7 @@ interface PasscodeFieldProps {
   placeholder?: string;
   label?: string;
   required?: boolean;
+  disabled?: boolean;
 }
 
 export const PasscodeField: React.FC<PasscodeFieldProps> = ({
@@ -20,6 +21,7 @@ export const PasscodeField: React.FC<PasscodeFieldProps> = ({
   placeholder = "Enter your 4-8 digit passcode",
   label = "Passcode",
   required = true,
+  disabled = false,
 }) => {
   const [showPasscode, setShowPasscode] = useState(false);
 
@@ -45,6 +47,7 @@ export const PasscodeField: React.FC<PasscodeFieldProps> = ({
           onChange={handleChange}
           className="pl-10 pr-10"
           required={required}
+          disabled={disabled}
           autoComplete="current-password"
           inputMode="numeric"
           pattern="[0-9]*"
@@ -53,7 +56,8 @@ export const PasscodeField: React.FC<PasscodeFieldProps> = ({
         <button
           type="button"
           onClick={() => setShowPasscode(!showPasscode)}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-crd-lightGray hover:text-crd-white"
+          disabled={disabled}
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-crd-lightGray hover:text-crd-white disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {showPasscode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
