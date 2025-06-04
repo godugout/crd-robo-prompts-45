@@ -78,10 +78,11 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
   // Handle preset selection
   const handlePresetSelect = useCallback((preset: any) => {
     setSelectedPreset(preset);
-    // Apply preset effects
+    // Apply preset effects with proper typing
     Object.entries(preset.effects).forEach(([effectId, parameters]: [string, any]) => {
       Object.entries(parameters).forEach(([parameterId, value]) => {
-        onEffectChange(effectId, parameterId, value);
+        // Type assertion to ensure value matches expected types
+        onEffectChange(effectId, parameterId, value as string | number | boolean);
       });
     });
   }, [onEffectChange]);
@@ -90,10 +91,11 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
   const handlePresetPreview = useCallback((preset: any | null) => {
     if (preset && isPreviewMode) {
       setPreviewEffects(preset.effects);
-      // Apply preview effects temporarily
+      // Apply preview effects temporarily with proper typing
       Object.entries(preset.effects).forEach(([effectId, parameters]: [string, any]) => {
         Object.entries(parameters).forEach(([parameterId, value]) => {
-          onEffectChange(effectId, parameterId, value);
+          // Type assertion to ensure value matches expected types
+          onEffectChange(effectId, parameterId, value as string | number | boolean);
         });
       });
     } else if (!preset && previewEffects) {

@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, Sparkles, Crown, Palette, Zap } from 'lucide-react';
+import { Eye, EyeOff, Sparkles, Crown, Palette, Zap, Check } from 'lucide-react';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 
 interface PresetCategory {
