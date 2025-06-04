@@ -44,11 +44,6 @@ export const CardFront: React.FC<CardFrontProps> = ({
       {/* Base Card Layer - z-index 1 */}
       <div className="absolute inset-0 z-10" style={frameStyles} />
       
-      {/* Surface Texture Layer - z-index 2 */}
-      <div className="absolute inset-0 z-20">
-        {SurfaceTexture}
-      </div>
-      
       {/* Full Image Display - Centered and Full Coverage - z-index 3 */}
       <div className="relative h-full z-30">
         {card.image_url ? (
@@ -58,13 +53,22 @@ export const CardFront: React.FC<CardFrontProps> = ({
               alt={card.title}
               className="w-full h-full object-cover object-center"
               style={{
-                filter: 'brightness(1.05) contrast(1.02)',
+                filter: showEffects 
+                  ? 'brightness(1.1) contrast(1.05) saturate(1.1)' 
+                  : 'brightness(1.05) contrast(1.02)',
                 transition: 'filter 0.3s ease'
               }}
             />
-            {/* Subtle image overlay to help effects blend better */}
+            {/* Enhanced image overlay for better effect blending */}
             {showEffects && (
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/2 to-transparent opacity-30" />
+              <div 
+                className="absolute inset-0 bg-gradient-to-br from-transparent via-white/1 to-transparent" 
+                style={{
+                  opacity: isHovering ? 0.2 : 0.1,
+                  mixBlendMode: 'overlay',
+                  transition: 'opacity 0.3s ease'
+                }}
+              />
             )}
           </div>
         ) : (
@@ -81,7 +85,12 @@ export const CardFront: React.FC<CardFrontProps> = ({
         )}
       </div>
       
-      {/* Enhanced Effects Layer with all new effects */}
+      {/* Surface Texture Layer - z-index 2 */}
+      <div className="absolute inset-0 z-20">
+        {SurfaceTexture}
+      </div>
+      
+      {/* Enhanced Effects Layer with all new balanced effects */}
       <CardEffectsLayer
         showEffects={showEffects}
         isHovering={isHovering}
@@ -92,6 +101,26 @@ export const CardFront: React.FC<CardFrontProps> = ({
         materialSettings={materialSettings}
         interactiveLighting={interactiveLighting}
       />
+
+      {/* Interactive lighting enhancement overlay */}
+      {interactiveLighting && isHovering && (
+        <div
+          className="absolute inset-0 z-40 pointer-events-none"
+          style={{
+            background: `
+              radial-gradient(
+                circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                rgba(255, 255, 255, 0.08) 0%,
+                rgba(255, 255, 255, 0.04) 30%,
+                transparent 70%
+              )
+            `,
+            mixBlendMode: 'overlay',
+            transition: 'opacity 0.2s ease',
+            opacity: showEffects ? 1 : 0.5
+          }}
+        />
+      )}
     </div>
   );
 };
