@@ -6,16 +6,26 @@ import {
   Minimize2, 
   Share2, 
   Download, 
-  Settings 
+  Settings,
+  Palette,
+  Globe,
+  Eye,
+  Zap,
+  RotateCcw,
+  Save
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
-import { ProgressIndicator } from './ProgressIndicator';
-import { PresetSelectionStep } from './PresetSelectionStep';
-import { EnvironmentTuningStep } from './EnvironmentTuningStep';
-import { ExportSaveStep } from './ExportSaveStep';
+import { QuickComboPresets } from './QuickComboPresets';
+import { EffectsComboSection } from './EffectsComboSection';
+import { EnvironmentComboSection } from './EnvironmentComboSection';
+import { LightingComboSection } from './LightingComboSection';
+import { MaterialComboSection } from './MaterialComboSection';
+import { ComboMemorySection } from './ComboMemorySection';
 
 interface ProgressiveCustomizePanelProps {
   selectedScene: EnvironmentScene;
@@ -39,8 +49,6 @@ interface ProgressiveCustomizePanelProps {
   card: CardData;
 }
 
-const STEP_LABELS = ['Choose Style', 'Environment', 'Save & Export'];
-
 export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps> = ({
   selectedScene,
   selectedLighting,
@@ -62,10 +70,7 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
   onClose,
   card
 }) => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [selectedPreset, setSelectedPreset] = useState<any>(null);
-  const [isPreviewMode, setIsPreviewMode] = useState(true);
-  const [previewEffects, setPreviewEffects] = useState<EffectValues | null>(null);
+  const [activeTab, setActiveTab] = useState('styles');
 
   // Calculate active effects count
   const getActiveEffectsCount = useCallback(() => {
@@ -75,119 +80,41 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
     }).length;
   }, [effectValues]);
 
-  // Handle preset selection
+  // Handle preset selection with proper typing
   const handlePresetSelect = useCallback((preset: any) => {
-    setSelectedPreset(preset);
     // Apply preset effects with proper typing
     Object.entries(preset.effects).forEach(([effectId, parameters]: [string, any]) => {
       Object.entries(parameters).forEach(([parameterId, value]) => {
-        // Type assertion to ensure value matches expected types
         onEffectChange(effectId, parameterId, value as string | number | boolean);
       });
     });
-  }, [onEffectChange]);
+    // Apply scene and lighting if provided
+    if (preset.scene) onSceneChange(preset.scene);
+    if (preset.lighting) onLightingChange(preset.lighting);
+  }, [onEffectChange, onSceneChange, onLightingChange]);
 
-  // Handle preset preview
-  const handlePresetPreview = useCallback((preset: any | null) => {
-    if (preset && isPreviewMode) {
-      setPreviewEffects(preset.effects);
-      // Apply preview effects temporarily with proper typing
-      Object.entries(preset.effects).forEach(([effectId, parameters]: [string, any]) => {
-        Object.entries(parameters).forEach(([parameterId, value]) => {
-          // Type assertion to ensure value matches expected types
-          onEffectChange(effectId, parameterId, value as string | number | boolean);
-        });
-      });
-    } else if (!preset && previewEffects) {
-      // Reset to original effects when no longer previewing
-      setPreviewEffects(null);
-    }
-  }, [isPreviewMode, previewEffects, onEffectChange]);
-
-  // Toggle preview mode
-  const handleTogglePreviewMode = useCallback(() => {
-    setIsPreviewMode(!isPreviewMode);
-    if (!isPreviewMode) {
-      setPreviewEffects(null);
-    }
-  }, [isPreviewMode]);
-
-  // Navigation handlers
-  const handleNext = useCallback(() => {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
-    }
-  }, [currentStep]);
-
-  const handleBack = useCallback(() => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  }, [currentStep]);
-
-  const handleStepClick = useCallback((step: number) => {
-    if (step <= currentStep || (step === 2 && selectedPreset)) {
-      setCurrentStep(step);
-    }
-  }, [currentStep, selectedPreset]);
-
-  // Render current step content
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <PresetSelectionStep
-            selectedPreset={selectedPreset}
-            onPresetSelect={handlePresetSelect}
-            onPresetPreview={handlePresetPreview}
-            isPreviewMode={isPreviewMode}
-            onTogglePreviewMode={handleTogglePreviewMode}
-            onNext={handleNext}
-          />
-        );
-      case 2:
-        return (
-          <EnvironmentTuningStep
-            selectedScene={selectedScene}
-            selectedLighting={selectedLighting}
-            overallBrightness={overallBrightness}
-            interactiveLighting={interactiveLighting}
-            materialSettings={materialSettings}
-            onSceneChange={onSceneChange}
-            onLightingChange={onLightingChange}
-            onBrightnessChange={onBrightnessChange}
-            onInteractiveLightingToggle={onInteractiveLightingToggle}
-            onMaterialSettingsChange={onMaterialSettingsChange}
-            onNext={handleNext}
-            onBack={handleBack}
-          />
-        );
-      case 3:
-        return (
-          <ExportSaveStep
-            card={card}
-            selectedScene={selectedScene}
-            selectedLighting={selectedLighting}
-            selectedPresetName={selectedPreset?.name}
-            activeEffectsCount={getActiveEffectsCount()}
-            onDownload={onDownload || (() => {})}
-            onShare={onShare || (() => {})}
-            onResetAll={onResetAllEffects}
-            onBack={handleBack}
-          />
-        );
-      default:
-        return null;
-    }
+  const handleResetAll = () => {
+    onResetAllEffects();
+    // Reset other settings to defaults
+    onBrightnessChange([100]);
+    onMaterialSettingsChange({
+      metalness: 0.5,
+      roughness: 0.5,
+      reflectivity: 0.5,
+      clearcoat: 0.3
+    });
   };
 
   return (
-    <div className="fixed top-0 right-0 w-80 h-full bg-black bg-opacity-95 backdrop-blur-lg overflow-hidden border-l border-white/10 z-10 flex flex-col">
-      {/* Header with toolbar buttons */}
+    <div className="fixed top-0 right-0 w-[520px] h-full bg-black bg-opacity-95 backdrop-blur-lg overflow-hidden border-l border-white/10 z-10 flex flex-col">
+      {/* Header */}
       <div className="p-4 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Settings className="w-5 h-5 text-white" />
+          <Zap className="w-5 h-5 text-crd-green" />
           <h3 className="text-white font-medium">Enhanced Studio</h3>
+          <div className="text-xs text-crd-lightGray bg-crd-green/20 px-2 py-1 rounded">
+            {getActiveEffectsCount()} active
+          </div>
         </div>
         <div className="flex space-x-1">
           <Button
@@ -231,17 +158,219 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
         </div>
       </div>
 
-      {/* Progress Indicator */}
-      <ProgressIndicator
-        currentStep={currentStep}
-        totalSteps={3}
-        stepLabels={STEP_LABELS}
-        onStepClick={handleStepClick}
-      />
+      {/* Master Controls */}
+      <div className="p-4 border-b border-white/10">
+        <div className="flex items-center space-x-2">
+          <Button
+            onClick={handleResetAll}
+            variant="outline"
+            size="sm"
+            className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white flex-1"
+          >
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Reset All
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            Save Combo
+          </Button>
+        </div>
+      </div>
 
-      {/* Main content area */}
-      <div className="flex-1 overflow-y-auto">
-        {renderStepContent()}
+      {/* Tabbed Interface */}
+      <div className="flex-1 overflow-hidden">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+          <TabsList className="grid w-full grid-cols-3 bg-editor-dark border-b border-white/10 rounded-none">
+            <TabsTrigger 
+              value="styles" 
+              className="data-[state=active]:bg-crd-green data-[state=active]:text-black text-white flex items-center gap-2"
+            >
+              <Palette className="w-4 h-4" />
+              <span className="hidden sm:inline">Styles</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="environment" 
+              className="data-[state=active]:bg-crd-green data-[state=active]:text-black text-white flex items-center gap-2"
+            >
+              <Globe className="w-4 h-4" />
+              <span className="hidden sm:inline">Environment</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="preview" 
+              className="data-[state=active]:bg-crd-green data-[state=active]:text-black text-white flex items-center gap-2"
+            >
+              <Eye className="w-4 h-4" />
+              <span className="hidden sm:inline">Preview</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <div className="flex-1 overflow-y-auto">
+            {/* Styles Tab */}
+            <TabsContent value="styles" className="p-4 space-y-4 mt-0">
+              {/* Quick Presets */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">Quick Combos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <QuickComboPresets
+                    onApplyCombo={handlePresetSelect}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Effects Section */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">
+                    Effects ({getActiveEffectsCount()})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <EffectsComboSection
+                    effectValues={effectValues}
+                    onEffectChange={onEffectChange}
+                    onResetEffect={(effectId) => {
+                      // Reset individual effect - preserve existing functionality
+                      const effect = effectValues[effectId];
+                      if (effect) {
+                        Object.keys(effect).forEach(paramId => {
+                          if (paramId === 'intensity') {
+                            onEffectChange(effectId, paramId, 0);
+                          }
+                        });
+                      }
+                    }}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Materials Section */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">Materials</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <MaterialComboSection
+                    materialSettings={materialSettings}
+                    onMaterialSettingsChange={onMaterialSettingsChange}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Environment Tab */}
+            <TabsContent value="environment" className="p-4 space-y-4 mt-0">
+              {/* Environment Section */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">
+                    Environment ({selectedScene.name})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <EnvironmentComboSection
+                    selectedScene={selectedScene}
+                    onSceneChange={onSceneChange}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Lighting Section */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">
+                    Lighting ({selectedLighting.name})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <LightingComboSection
+                    selectedLighting={selectedLighting}
+                    overallBrightness={overallBrightness}
+                    interactiveLighting={interactiveLighting}
+                    onLightingChange={onLightingChange}
+                    onBrightnessChange={onBrightnessChange}
+                    onInteractiveLightingToggle={onInteractiveLightingToggle}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Preview & Export Tab */}
+            <TabsContent value="preview" className="p-4 space-y-4 mt-0">
+              {/* Export Controls */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">Export & Share</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {onDownload && (
+                    <Button
+                      onClick={() => onDownload(card)}
+                      variant="outline"
+                      className="w-full border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Card
+                    </Button>
+                  )}
+                  {onShare && (
+                    <Button
+                      onClick={() => onShare(card)}
+                      variant="outline"
+                      className="w-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
+                    >
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Share Card
+                    </Button>
+                  )}
+                  <Button
+                    onClick={onToggleFullscreen}
+                    variant="outline"
+                    className="w-full border-white/20 text-white hover:bg-white/10"
+                  >
+                    {isFullscreen ? <Minimize2 className="w-4 h-4 mr-2" /> : <Maximize2 className="w-4 h-4 mr-2" />}
+                    {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Preview'}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Saved Combos */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-white text-sm">Saved Combos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ComboMemorySection
+                    currentState={{
+                      effects: effectValues,
+                      scene: selectedScene,
+                      lighting: selectedLighting,
+                      materials: materialSettings,
+                      brightness: overallBrightness[0]
+                    }}
+                    onLoadCombo={(combo) => {
+                      // Apply loaded combo
+                      Object.entries(combo.effects).forEach(([effectId, parameters]) => {
+                        Object.entries(parameters).forEach(([parameterId, value]) => {
+                          onEffectChange(effectId, parameterId, value);
+                        });
+                      });
+                      if (combo.scene) onSceneChange(combo.scene);
+                      if (combo.lighting) onLightingChange(combo.lighting);
+                      if (combo.materials) onMaterialSettingsChange(combo.materials);
+                      if (combo.brightness) onBrightnessChange([combo.brightness]);
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
     </div>
   );
