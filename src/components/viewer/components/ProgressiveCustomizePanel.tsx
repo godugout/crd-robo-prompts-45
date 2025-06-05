@@ -1,12 +1,13 @@
+
 import React, { useState, useCallback } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { QuickComboPresets } from './QuickComboPresets';
+import { CompactEffectControls } from './CompactEffectControls';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
 
@@ -61,7 +62,6 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
   onApplyCombo,
   isApplyingPreset = false
 }) => {
-  const [showEffects, setShowEffects] = useState(true);
   const [showEnvironment, setShowEnvironment] = useState(false);
   const [showMaterial, setShowMaterial] = useState(false);
 
@@ -81,6 +81,12 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
     },
     [materialSettings, onMaterialSettingsChange],
   );
+
+  // Helper to reset individual effects
+  const handleResetEffect = useCallback((effectId: string) => {
+    // Reset effect by setting intensity to 0 and other params to defaults
+    onEffectChange(effectId, 'intensity', 0);
+  }, [onEffectChange]);
 
   return (
     <div className={`fixed top-0 right-0 h-full w-80 bg-black bg-opacity-95 backdrop-blur-lg border-l border-white/10 overflow-hidden ${
@@ -118,62 +124,15 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
           {/* Separator */}
           <div className="border-b border-white/20" />
 
-          {/* Enhanced Effect Controls Section */}
+          {/* Compact Enhanced Effect Controls Section */}
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-white font-medium flex items-center">
-                <Sparkles className="w-4 h-4 text-crd-green mr-2" />
-                Enhanced Effects
-              </h3>
-              <Button variant="ghost" size="sm" onClick={() => setShowEffects(!showEffects)}>
-                {showEffects ? 'Hide' : 'Show'}
-              </Button>
-            </div>
-            {showEffects && (
-              <div className="space-y-4">
-                {Object.entries(effectValues).map(([effectId, params]) => (
-                  <div key={effectId} className="space-y-2">
-                    <h4 className="text-sm font-medium text-gray-400">{effectId}</h4>
-                    {Object.entries(params).map(([paramId, value]) => (
-                      <div key={paramId} className="space-y-1">
-                        <Label htmlFor={`${effectId}-${paramId}`} className="text-white text-sm">
-                          {paramId}
-                        </Label>
-                        {typeof value === 'number' ? (
-                          <Slider
-                            id={`${effectId}-${paramId}`}
-                            defaultValue={[value]}
-                            max={100}
-                            step={1}
-                            onValueChange={(newValue) => {
-                              const numberValue = newValue[0];
-                              onEffectChange(effectId, paramId, numberValue);
-                            }}
-                            className="text-white"
-                          />
-                        ) : typeof value === 'boolean' ? (
-                          <Switch
-                            id={`${effectId}-${paramId}`}
-                            checked={value}
-                            onCheckedChange={(checked) => onEffectChange(effectId, paramId, checked)}
-                          />
-                        ) : (
-                          <Input
-                            type="text"
-                            id={`${effectId}-${paramId}`}
-                            value={value as string}
-                            onChange={(e) => onEffectChange(effectId, paramId, e.target.value)}
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-                <Button variant="secondary" size="sm" onClick={onResetAllEffects}>
-                  Reset All Effects
-                </Button>
-              </div>
-            )}
+            <CompactEffectControls
+              effectValues={effectValues}
+              onEffectChange={onEffectChange}
+              onResetEffect={handleResetEffect}
+              onResetAll={onResetAllEffects}
+              showOnlyActive={true}
+            />
           </div>
 
           {/* Separator */}

@@ -1,5 +1,5 @@
 
-import { useMemo } from 'react';
+import { useMemo, useRef, useCallback } from 'react';
 import type { EffectValues } from './useEnhancedCardEffects';
 
 export interface CardBackMaterial {
@@ -100,6 +100,33 @@ export const CARD_BACK_MATERIALS: Record<string, CardBackMaterial> = {
     }
   },
   
+  ice: {
+    id: 'ice',
+    name: 'Ice Crystal Surface',
+    background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 25%, #90caf9 50%, #64b5f6 75%, #42a5f5 100%)',
+    borderColor: 'rgba(66, 165, 245, 0.7)',
+    opacity: 0.78,
+    blur: 1.5,
+    logoTreatment: {
+      filter: 'drop-shadow(0 6px 20px rgba(66, 165, 245, 0.8)) brightness(1.3) saturate(0.9)',
+      opacity: 0.85,
+      transform: 'scale(1.04)'
+    }
+  },
+  
+  starlight: {
+    id: 'starlight',
+    name: 'Starlight Surface',
+    background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #e94560 75%, #f39c12 100%)',
+    borderColor: 'rgba(243, 156, 18, 0.8)',
+    opacity: 0.87,
+    logoTreatment: {
+      filter: 'drop-shadow(0 8px 24px rgba(243, 156, 18, 0.9)) brightness(1.4) saturate(1.2)',
+      opacity: 0.9,
+      transform: 'scale(1.06)'
+    }
+  },
+  
   default: {
     id: 'default',
     name: 'Default Surface',
@@ -115,19 +142,22 @@ export const CARD_BACK_MATERIALS: Record<string, CardBackMaterial> = {
 };
 
 export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
+  const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  
+  // Debounced material calculation for smoother transitions
   const selectedMaterial = useMemo(() => {
     if (!effectValues) {
       console.log('🎨 Material Selection: No effect values, using default');
       return CARD_BACK_MATERIALS.default;
     }
     
-    // Calculate effect intensities with debugging
+    // Calculate effect intensities with enhanced debugging
     const effectIntensities = Object.entries(effectValues).map(([effectId, params]) => {
       const intensity = typeof params.intensity === 'number' ? params.intensity : 0;
       return { effectId, intensity };
-    }).filter(({ intensity }) => intensity > 0);
+    }).filter(({ intensity }) => intensity > 5); // Increased threshold to prevent flickering
     
-    console.log('🎨 Material Selection: Active effects:', effectIntensities);
+    console.log('🎨 Material Selection: Active effects (>5 intensity):', effectIntensities);
     
     // If no effects are active, return default
     if (effectIntensities.length === 0) {
@@ -142,17 +172,17 @@ export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
     
     console.log('🎨 Material Selection: Dominant effect:', dominantEffect);
     
-    // Map effect to material
+    // Enhanced mapping with specific materials for combo effects
     const materialMapping: Record<string, string> = {
       holographic: 'holographic',
       crystal: 'crystal',
       chrome: 'chrome',
-      brushedmetal: 'chrome', // Use chrome material for brushed metal
+      brushedmetal: 'chrome',
       gold: 'gold',
       vintage: 'vintage',
       prizm: 'prizm',
-      interference: 'crystal', // Use crystal material for interference
-      foilspray: 'chrome' // Use chrome material for foil spray
+      interference: 'ice', // Map interference to ice material
+      foilspray: 'starlight' // Map foil spray to starlight material
     };
     
     const materialId = materialMapping[dominantEffect.effectId] || 'default';
@@ -163,8 +193,27 @@ export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
     return selectedMat;
   }, [effectValues]);
   
+  // Pre-calculate material lookup for performance
+  const getMaterialForEffect = useCallback((effectId: string): CardBackMaterial => {
+    const materialMapping: Record<string, string> = {
+      holographic: 'holographic',
+      crystal: 'crystal',
+      chrome: 'chrome',
+      brushedmetal: 'chrome',
+      gold: 'gold',
+      vintage: 'vintage',
+      prizm: 'prizm',
+      interference: 'ice',
+      foilspray: 'starlight'
+    };
+    
+    const materialId = materialMapping[effectId] || 'default';
+    return CARD_BACK_MATERIALS[materialId];
+  }, []);
+  
   return {
     selectedMaterial,
-    availableMaterials: CARD_BACK_MATERIALS
+    availableMaterials: CARD_BACK_MATERIALS,
+    getMaterialForEffect
   };
 };

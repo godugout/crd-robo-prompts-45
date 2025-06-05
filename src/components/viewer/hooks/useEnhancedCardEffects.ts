@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useMemo, startTransition } from 'react';
+import { useState, useCallback, useMemo, startTransition, useRef } from 'react';
 
 export interface EffectParameter {
   id: string;
@@ -142,11 +142,12 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffectConfig[] = [
   }
 ];
 
-// State interface for tracking preset application
+// Enhanced state interface for tracking preset application with locks
 interface PresetApplicationState {
   isApplying: boolean;
   currentPresetId?: string;
   appliedAt: number;
+  isLocked: boolean; // New: prevent overlapping applications
 }
 
 export const useEnhancedCardEffects = () => {
@@ -161,11 +162,16 @@ export const useEnhancedCardEffects = () => {
     return initialValues;
   });
 
-  // Track preset application state for consistency
+  // Enhanced preset application state with synchronization
   const [presetState, setPresetState] = useState<PresetApplicationState>({
     isApplying: false,
-    appliedAt: 0
+    appliedAt: 0,
+    isLocked: false
   });
+
+  // Refs for debouncing and cleanup
+  const presetTimeoutRef = useRef<NodeJS.Timeout>();
+  const lockTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Memoize default values to prevent unnecessary recalculations
   const defaultEffectValues = useMemo(() => {
@@ -183,7 +189,7 @@ export const useEnhancedCardEffects = () => {
     console.log('🎛️ Effect Change:', { effectId, parameterId, value });
     
     // Clear preset state when manual changes are made (unless currently applying a preset)
-    if (!presetState.isApplying) {
+    if (!presetState.isApplying && !presetState.isLocked) {
       setPresetState(prev => ({ ...prev, currentPresetId: undefined }));
     }
     
@@ -194,7 +200,7 @@ export const useEnhancedCardEffects = () => {
         [parameterId]: value
       }
     }));
-  }, [presetState.isApplying]);
+  }, [presetState.isApplying, presetState.isLocked]);
 
   const resetEffect = useCallback((effectId: string) => {
     console.log('🔄 Resetting effect:', effectId);
@@ -213,42 +219,81 @@ export const useEnhancedCardEffects = () => {
 
   const resetAllEffects = useCallback(() => {
     console.log('🔄 Resetting all effects');
-    setPresetState({ isApplying: false, appliedAt: Date.now() });
+    
+    // Clear any pending timeouts
+    if (presetTimeoutRef.current) {
+      clearTimeout(presetTimeoutRef.current);
+    }
+    if (lockTimeoutRef.current) {
+      clearTimeout(lockTimeoutRef.current);
+    }
+    
+    setPresetState({ isApplying: false, appliedAt: Date.now(), isLocked: false });
     setEffectValues(defaultEffectValues);
   }, [defaultEffectValues]);
 
-  // Enhanced atomic preset application
+  // Enhanced atomic preset application with forced reset and sync locks
   const applyPreset = useCallback((preset: EffectValues, presetId?: string) => {
-    console.log('🎨 Applying preset atomically:', { presetId, preset });
+    console.log('🎨 Applying preset atomically with sync locks:', { presetId, preset });
     
-    // Mark as applying to prevent interference from manual changes
-    setPresetState({ isApplying: true, currentPresetId: presetId, appliedAt: Date.now() });
+    // Prevent overlapping applications
+    if (presetState.isLocked) {
+      console.log('⚠️ Preset application blocked - currently locked');
+      return;
+    }
     
-    // Use startTransition for smooth updates
-    startTransition(() => {
-      // First reset all effects to defaults
-      const newEffectValues = { ...defaultEffectValues };
-      
-      // Apply preset effects with proper validation
-      Object.entries(preset).forEach(([effectId, effectParams]) => {
-        if (newEffectValues[effectId] && effectParams) {
-          Object.entries(effectParams).forEach(([paramId, value]) => {
-            if (newEffectValues[effectId][paramId] !== undefined) {
-              newEffectValues[effectId][paramId] = value;
-            }
-          });
-        }
-      });
-      
-      // Apply all changes atomically
-      setEffectValues(newEffectValues);
-      
-      // Mark application as complete after a brief delay to ensure state propagation
-      setTimeout(() => {
-        setPresetState(prev => ({ ...prev, isApplying: false }));
-      }, 100);
+    // Clear any existing timeouts
+    if (presetTimeoutRef.current) {
+      clearTimeout(presetTimeoutRef.current);
+    }
+    if (lockTimeoutRef.current) {
+      clearTimeout(lockTimeoutRef.current);
+    }
+    
+    // Set synchronization lock
+    setPresetState({ 
+      isApplying: true, 
+      currentPresetId: presetId, 
+      appliedAt: Date.now(),
+      isLocked: true 
     });
-  }, [defaultEffectValues]);
+    
+    // Use startTransition for smooth updates with forced reset
+    startTransition(() => {
+      // Step 1: Force complete reset to defaults (prevents material sticking)
+      const resetValues = { ...defaultEffectValues };
+      setEffectValues(resetValues);
+      
+      // Step 2: Apply preset effects after a brief delay for reset to complete
+      presetTimeoutRef.current = setTimeout(() => {
+        const newEffectValues = { ...defaultEffectValues };
+        
+        // Apply preset effects with proper validation
+        Object.entries(preset).forEach(([effectId, effectParams]) => {
+          if (newEffectValues[effectId] && effectParams) {
+            Object.entries(effectParams).forEach(([paramId, value]) => {
+              if (newEffectValues[effectId][paramId] !== undefined) {
+                newEffectValues[effectId][paramId] = value;
+              }
+            });
+          }
+        });
+        
+        // Apply all changes atomically
+        setEffectValues(newEffectValues);
+        
+        // Mark application as complete and release lock after material calc time
+        lockTimeoutRef.current = setTimeout(() => {
+          setPresetState(prev => ({ 
+            ...prev, 
+            isApplying: false, 
+            isLocked: false 
+          }));
+        }, 400); // Increased delay for material recalculation
+        
+      }, 100); // Brief delay for reset to complete
+    });
+  }, [defaultEffectValues, presetState.isLocked]);
 
   return {
     effectValues,
@@ -257,6 +302,6 @@ export const useEnhancedCardEffects = () => {
     resetAllEffects,
     applyPreset,
     presetState,
-    isApplyingPreset: presetState.isApplying
+    isApplyingPreset: presetState.isApplying || presetState.isLocked
   };
 };
