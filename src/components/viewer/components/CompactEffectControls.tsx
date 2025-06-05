@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, RotateCcw, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import type { EffectValues, ENHANCED_VISUAL_EFFECTS } from '../hooks/useEnhancedCardEffects';
+import { ENHANCED_VISUAL_EFFECTS } from '../hooks/useEnhancedCardEffects';
+import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 
 interface CompactEffectControlsProps {
   effectValues: EffectValues;
