@@ -3,6 +3,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
+import { CRDCard } from '@/components/ui/design-system/Card';
+import { CRDButton } from '@/components/ui/design-system/Button';
+import { Typography } from '@/components/ui/design-system/Typography';
 
 type ComboType = 'holographic' | 'prizm' | 'crystal' | 'vintage' | 'golden' | 'ice' | 'solar' | 'lunar' | 'starlight';
 
