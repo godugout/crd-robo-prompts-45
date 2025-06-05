@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { useEnhancedCardEffects } from './hooks/useEnhancedCardEffects';
 import { useEnhancedCardInteraction } from './hooks/useEnhancedCardInteraction';
@@ -46,7 +47,6 @@ export const EnhancedCardViewer: React.FC<EnhancedCardViewerProps> = ({
   const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[0]);
   const [selectedLighting, setSelectedLighting] = useState<LightingPreset>(LIGHTING_PRESETS[0]);
   const [overallBrightness, setOverallBrightness] = useState<number[]>([100]);
-  const [interactiveLighting, setInteractiveLighting] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Material properties - now including clearcoat
@@ -66,10 +66,6 @@ export const EnhancedCardViewer: React.FC<EnhancedCardViewerProps> = ({
     }
   }, [isFullscreen]);
 
-  const handleInteractiveLightingToggle = useCallback(() => {
-    setInteractiveLighting(!interactiveLighting);
-  }, [interactiveLighting]);
-
   return (
     <div className={`relative ${isFullscreen ? 'fixed inset-0 z-50' : 'w-full h-screen'} bg-black overflow-hidden`}>
       {/* Main Canvas Area */}
@@ -83,7 +79,6 @@ export const EnhancedCardViewer: React.FC<EnhancedCardViewerProps> = ({
           selectedScene={selectedScene}
           selectedLighting={selectedLighting}
           overallBrightness={overallBrightness[0]}
-          interactiveLighting={interactiveLighting}
           materialSettings={materialSettings}
           onMouseMove={handleMouseMove}
           onMouseEnter={handleMouseEnter}
@@ -99,7 +94,6 @@ export const EnhancedCardViewer: React.FC<EnhancedCardViewerProps> = ({
         selectedLighting={selectedLighting}
         effectValues={effectValues}
         overallBrightness={overallBrightness}
-        interactiveLighting={interactiveLighting}
         materialSettings={materialSettings}
         isFullscreen={isFullscreen}
         onSceneChange={setSelectedScene}
@@ -108,7 +102,6 @@ export const EnhancedCardViewer: React.FC<EnhancedCardViewerProps> = ({
         onResetEffect={resetEffect}
         onResetAllEffects={resetAllEffects}
         onBrightnessChange={setOverallBrightness}
-        onInteractiveLightingToggle={handleInteractiveLightingToggle}
         onMaterialSettingsChange={setMaterialSettings}
         onToggleFullscreen={handleToggleFullscreen}
         onDownload={onDownload}

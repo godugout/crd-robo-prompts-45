@@ -6,7 +6,6 @@ interface Card3DTransformProps {
   rotation: { x: number; y: number };
   mousePosition: { x: number; y: number };
   isDragging: boolean;
-  interactiveLighting?: boolean;
   isHovering: boolean;
   onClick: () => void;
 }
@@ -16,22 +15,12 @@ export const Card3DTransform: React.FC<Card3DTransformProps> = ({
   rotation,
   mousePosition,
   isDragging,
-  interactiveLighting = false,
   isHovering,
   onClick
 }) => {
   // Calculate dynamic transform
   const getDynamicTransform = () => {
-    let baseTransform = `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`;
-    
-    // Add subtle interactive lighting-based depth effect
-    if (interactiveLighting && isHovering) {
-      const lightDepth = (mousePosition.x - 0.5) * 2; // -1 to 1
-      const additionalRotateY = lightDepth * 2; // Max 2 degrees
-      baseTransform = `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y + additionalRotateY}deg)`;
-    }
-    
-    return baseTransform;
+    return `perspective(1000px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`;
   };
 
   return (
@@ -43,7 +32,7 @@ export const Card3DTransform: React.FC<Card3DTransformProps> = ({
         transform: getDynamicTransform(),
         transformStyle: 'preserve-3d',
         transition: isDragging ? 'none' : 'transform 0.1s ease',
-        filter: `drop-shadow(0 25px 50px rgba(0,0,0,${interactiveLighting && isHovering ? 0.9 : 0.8}))`
+        filter: `drop-shadow(0 25px 50px rgba(0,0,0,${isHovering ? 0.9 : 0.8}))`
       }}
       onClick={onClick}
     >

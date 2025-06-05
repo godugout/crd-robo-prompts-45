@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sparkles } from 'lucide-react';
 import type { EnvironmentScene, LightingPreset } from '../types';
@@ -13,22 +12,18 @@ interface EnvironmentSectionProps {
   selectedScene: EnvironmentScene;
   selectedLighting: LightingPreset;
   overallBrightness: number[];
-  interactiveLighting: boolean;
   onSceneChange: (scene: EnvironmentScene) => void;
   onLightingChange: (lighting: LightingPreset) => void;
   onBrightnessChange: (value: number[]) => void;
-  onInteractiveLightingToggle: () => void;
 }
 
 export const EnvironmentSection: React.FC<EnvironmentSectionProps> = ({
   selectedScene,
   selectedLighting,
   overallBrightness,
-  interactiveLighting,
   onSceneChange,
   onLightingChange,
-  onBrightnessChange,
-  onInteractiveLightingToggle
+  onBrightnessChange
 }) => {
   const [showEnvironment, setShowEnvironment] = useState(false);
 
@@ -90,16 +85,6 @@ export const EnvironmentSection: React.FC<EnvironmentSectionProps> = ({
               step={1}
               onValueChange={onBrightnessChange}
               className="w-full"
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="interactive-lighting" className="text-white text-sm">
-              Interactive Lighting
-            </Label>
-            <Switch
-              id="interactive-lighting"
-              checked={interactiveLighting}
-              onCheckedChange={onInteractiveLightingToggle}
             />
           </div>
         </div>

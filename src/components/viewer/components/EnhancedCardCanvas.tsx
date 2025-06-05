@@ -14,7 +14,6 @@ interface EnhancedCardCanvasProps {
   selectedScene: EnvironmentScene;
   selectedLighting: LightingPreset;
   overallBrightness: number;
-  interactiveLighting: boolean;
   materialSettings: MaterialSettings;
   onMouseMove: (event: React.MouseEvent<HTMLDivElement>) => void;
   onMouseEnter: () => void;
@@ -32,7 +31,6 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
   selectedScene,
   selectedLighting,
   overallBrightness,
-  interactiveLighting,
   materialSettings,
   onMouseMove,
   onMouseEnter,
@@ -133,7 +131,6 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             frameStyles={frameStyles}
             enhancedEffectStyles={enhancedEffectStyles}
             SurfaceTexture={SurfaceTexture}
-            interactiveLighting={interactiveLighting}
             onMouseDown={() => setIsDragging(true)}
             onMouseMove={onMouseMove}
             onMouseEnter={onMouseEnter}
@@ -178,28 +175,6 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
                 onError={() => console.log('Error loading Enhanced Canvas CRD logo')}
               />
             </div>
-          </div>
-
-          {/* Apply same effects as front for consistency */}
-          <div className="absolute inset-0 pointer-events-none z-40">
-            {/* Lighting effects overlay */}
-            {interactiveLighting && isHovering && (
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: `
-                    radial-gradient(
-                      ellipse 180% 140% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                      rgba(255, 255, 255, 0.02) 0%,
-                      rgba(255, 255, 255, 0.01) 50%,
-                      transparent 85%
-                    )
-                  `,
-                  mixBlendMode: 'overlay',
-                  transition: 'opacity 0.2s ease'
-                }}
-              />
-            )}
           </div>
         </div>
       </div>

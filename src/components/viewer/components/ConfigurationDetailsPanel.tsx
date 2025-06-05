@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Info, X, Eye, EyeOff } from 'lucide-react';
+import { Info, X } from 'lucide-react';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
 import { useDynamicCardBackMaterials } from '../hooks/useDynamicCardBackMaterials';
@@ -12,7 +12,6 @@ interface ConfigurationDetailsPanelProps {
   selectedLighting: LightingPreset;
   materialSettings: MaterialSettings;
   overallBrightness: number[];
-  interactiveLighting: boolean;
 }
 
 export const ConfigurationDetailsPanel: React.FC<ConfigurationDetailsPanelProps> = ({
@@ -20,8 +19,7 @@ export const ConfigurationDetailsPanel: React.FC<ConfigurationDetailsPanelProps>
   selectedScene,
   selectedLighting,
   materialSettings,
-  overallBrightness,
-  interactiveLighting
+  overallBrightness
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const { selectedMaterial } = useDynamicCardBackMaterials(effectValues);
@@ -75,10 +73,7 @@ export const ConfigurationDetailsPanel: React.FC<ConfigurationDetailsPanelProps>
         <div className="p-3 space-y-4">
           {/* Active Effects */}
           <div>
-            <h4 className="font-medium text-blue-400 mb-2 flex items-center">
-              <Eye className="w-3 h-3 mr-1" />
-              Active Effects ({activeEffects.length})
-            </h4>
+            <h4 className="font-medium text-blue-400 mb-2">Active Effects ({activeEffects.length})</h4>
             {activeEffects.length > 0 ? (
               <div className="space-y-1">
                 {activeEffects.map(effect => (
@@ -145,19 +140,6 @@ export const ConfigurationDetailsPanel: React.FC<ConfigurationDetailsPanelProps>
               <div className="flex justify-between">
                 <span className="text-gray-300">Brightness:</span>
                 <span className="text-gray-400">{overallBrightness[0]}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-300">Interactive Lighting:</span>
-                <div className="flex items-center">
-                  {interactiveLighting ? (
-                    <Eye className="w-3 h-3 text-green-400" />
-                  ) : (
-                    <EyeOff className="w-3 h-3 text-gray-500" />
-                  )}
-                  <span className="text-gray-400 ml-1">
-                    {interactiveLighting ? 'On' : 'Off'}
-                  </span>
-                </div>
               </div>
             </div>
           </div>

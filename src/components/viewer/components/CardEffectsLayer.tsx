@@ -2,8 +2,6 @@
 import React from 'react';
 import type { MaterialSettings } from '../types';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
-import { useEnhancedInteractiveLighting } from '../hooks/useEnhancedInteractiveLighting';
-import { EnhancedInteractiveLightingLayer } from './EnhancedInteractiveLightingLayer';
 import { GoldEffect } from './effects/GoldEffect';
 import { CrystalEffect } from './effects/CrystalEffect';
 import { VintageEffect } from './effects/VintageEffect';
@@ -18,7 +16,6 @@ interface CardEffectsLayerProps {
   mousePosition: { x: number; y: number };
   physicalEffectStyles: React.CSSProperties;
   materialSettings?: MaterialSettings;
-  interactiveLighting?: boolean;
   effectValues?: EffectValues;
 }
 
@@ -28,16 +25,8 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   mousePosition,
   physicalEffectStyles,
   materialSettings,
-  interactiveLighting = false,
   effectValues
 }) => {
-  // Enhanced interactive lighting hook
-  const enhancedLightingData = useEnhancedInteractiveLighting(
-    mousePosition, 
-    isHovering, 
-    interactiveLighting
-  );
-
   if (!showEffects || !effectValues) return null;
 
   // Helper function to safely get effect parameter values
@@ -58,15 +47,6 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   
   return (
     <>
-      {/* Enhanced Interactive Lighting Layer */}
-      {interactiveLighting && (
-        <EnhancedInteractiveLightingLayer
-          lightingData={enhancedLightingData}
-          effectValues={effectValues}
-          mousePosition={mousePosition}
-        />
-      )}
-
       {/* Gold Effect */}
       <GoldEffect
         effectValues={effectValues}
@@ -95,7 +75,6 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
       <PrismaticEffects
         effectValues={effectValues}
         mousePosition={mousePosition}
-        enhancedLightingData={enhancedLightingData}
       />
 
       {/* Foil Spray Effect */}
@@ -116,10 +95,10 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
             className="absolute inset-0 z-26 rounded-xl"
             style={{
               boxShadow: `
-                inset 0 0 15px rgba(255, 255, 255, ${normalizedIntensity * (enhancedLightingData ? 0.05 + enhancedLightingData.lightIntensity * 0.1 : 0.05)}),
-                inset 0 0 5px rgba(255, 255, 255, ${normalizedIntensity * (enhancedLightingData ? 0.1 + enhancedLightingData.lightIntensity * 0.15 : 0.1)})
+                inset 0 0 15px rgba(255, 255, 255, ${normalizedIntensity * 0.05}),
+                inset 0 0 5px rgba(255, 255, 255, ${normalizedIntensity * 0.1})
               `,
-              opacity: enhancedLightingData ? 0.3 + enhancedLightingData.lightIntensity * 0.2 : 0.3
+              opacity: 0.3
             }}
           />
         ) : null;
