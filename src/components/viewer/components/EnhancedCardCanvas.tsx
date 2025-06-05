@@ -4,6 +4,7 @@ import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import { EnhancedCardContainer } from './EnhancedCardContainer';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 interface EnhancedCardCanvasProps {
   card: CardData;
@@ -41,6 +42,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const { isMobile, isTablet } = useResponsiveLayout();
 
   console.log('EnhancedCardCanvas rendering, isFlipped:', isFlipped);
 
@@ -72,6 +74,20 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
     />
   );
 
+  // Responsive branding logo sizing
+  const getBrandingLogoSize = () => {
+    if (isMobile) return 'w-12 h-auto'; // 48px
+    if (isTablet) return 'w-16 h-auto'; // 64px
+    return 'w-20 h-auto'; // 80px for desktop
+  };
+
+  // Responsive card back logo sizing
+  const getCardBackLogoSize = () => {
+    if (isMobile) return 'w-32 h-auto'; // 128px
+    if (isTablet) return 'w-48 h-auto'; // 192px
+    return 'w-48 h-auto'; // 192px for desktop in canvas
+  };
+
   return (
     <div
       ref={canvasRef}
@@ -86,14 +102,17 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
       onMouseLeave={onMouseLeave}
       onClick={handleCardClick}
     >
-      {/* CRD Logo Branding - Upper Right */}
+      {/* CRD Logo Branding - Upper Right with Responsive Sizing */}
       <div className="absolute top-4 right-4 z-50">
         <img 
-          src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
+          src="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png"
+          srcSet="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 1x, /lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 2x"
           alt="CRD Logo" 
-          className="w-16 h-auto opacity-60 hover:opacity-80 transition-opacity duration-200"
+          className={`${getBrandingLogoSize()} opacity-60 hover:opacity-80 transition-all duration-200`}
           style={{
             filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))',
+            imageRendering: '-webkit-optimize-contrast',
+            objectFit: 'contain'
           }}
           onLoad={() => console.log('Canvas CRD branding logo loaded successfully')}
           onError={() => console.log('Error loading Canvas CRD branding logo')}
@@ -142,7 +161,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
           />
         </div>
 
-        {/* Card Back - NEW DESIGN */}
+        {/* Card Back - Enhanced with Responsive Logo */}
         <div
           className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden"
           style={{
@@ -161,15 +180,18 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             }}
           />
           
-          {/* Centered CRD Logo Only */}
+          {/* Centered CRD Logo with Responsive Sizing */}
           <div className="relative h-full flex items-center justify-center z-30">
             <div className="flex items-center justify-center">
               <img 
-                src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
+                src="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png"
+                srcSet="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 1x, /lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 2x"
                 alt="CRD Logo" 
-                className="w-48 h-auto opacity-90"
+                className={`${getCardBackLogoSize()} opacity-90 transition-all duration-300 ease-out`}
                 style={{
                   filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
+                  imageRendering: '-webkit-optimize-contrast',
+                  objectFit: 'contain'
                 }}
                 onLoad={() => console.log('Enhanced Canvas CRD logo loaded successfully')}
                 onError={() => console.log('Error loading Enhanced Canvas CRD logo')}

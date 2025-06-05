@@ -3,6 +3,7 @@ import React from 'react';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import { CardEffectsLayer } from './CardEffectsLayer';
 import { useDynamicCardBackMaterials } from '../hooks/useDynamicCardBackMaterials';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 interface CardBackContainerProps {
   isFlipped: boolean;
@@ -25,8 +26,18 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
   enhancedEffectStyles,
   SurfaceTexture
 }) => {
+  const { isMobile, isTablet, currentBreakpoint } = useResponsiveLayout();
+  
   // Get dynamic material based on current effects
   const { selectedMaterial } = useDynamicCardBackMaterials(effectValues);
+  
+  // Enhanced responsive logo sizing
+  const getLogoSize = () => {
+    if (isMobile) return 'w-32 h-auto'; // 128px
+    if (isTablet) return 'w-48 h-auto'; // 192px
+    if (currentBreakpoint === '2xl') return 'w-80 h-auto'; // 320px for extra large
+    return 'w-64 h-auto'; // 256px for desktop
+  };
   
   // Enhanced logo effects based on mouse position and material
   const getLogoEffects = () => {
@@ -35,7 +46,9 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
     return {
       filter: baseTreatment.filter,
       transform: baseTreatment.transform,
-      opacity: baseTreatment.opacity
+      opacity: baseTreatment.opacity,
+      imageRendering: '-webkit-optimize-contrast' as const,
+      objectFit: 'contain' as const
     };
   };
 
@@ -114,19 +127,19 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
         }}
       />
 
-      {/* Enhanced CRD Logo with Dynamic Material Treatment */}
+      {/* Enhanced CRD Logo with Dynamic Material Treatment and Responsive Sizing */}
       <div className="relative h-full flex items-center justify-center z-30">
         <img 
-          src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
+          src="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png"
+          srcSet="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 1x, /lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 2x"
           alt="CRD Logo" 
-          className="w-64 h-auto relative z-10 transition-all duration-700 ease-out"
+          className={`${getLogoSize()} relative z-10 transition-all duration-700 ease-out`}
           style={{
             ...getLogoEffects(),
-            imageRendering: 'crisp-edges',
-            objectFit: 'contain'
+            filter: `${getLogoEffects().filter} drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))`
           }}
-          onLoad={() => console.log('✅ Enhanced CRD logo loaded successfully')}
-          onError={() => console.log('❌ Error loading enhanced CRD logo')}
+          onLoad={() => console.log('✅ Enhanced responsive CRD logo loaded successfully')}
+          onError={() => console.log('❌ Error loading enhanced responsive CRD logo')}
         />
       </div>
 

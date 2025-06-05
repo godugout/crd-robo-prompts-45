@@ -2,6 +2,7 @@
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import { CardEffectsLayer } from './CardEffectsLayer';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 interface CardBackProps {
   card: CardData;
@@ -24,8 +25,17 @@ export const CardBack: React.FC<CardBackProps> = ({
   physicalEffectStyles,
   SurfaceTexture
 }) => {
+  const { isMobile, isTablet } = useResponsiveLayout();
+  
   // Debug logging to see if this component is being used
   console.log('CardBack component rendering with isFlipped:', isFlipped);
+  
+  // Responsive logo sizing for card backs
+  const getLogoSize = () => {
+    if (isMobile) return 'w-32 h-auto'; // 128px
+    if (isTablet) return 'w-48 h-auto'; // 192px
+    return 'w-64 h-auto'; // 256px for desktop
+  };
   
   return (
     <div
@@ -51,18 +61,21 @@ export const CardBack: React.FC<CardBackProps> = ({
         {SurfaceTexture}
       </div>
       
-      {/* Centered CRD Logo Only */}
+      {/* Centered CRD Logo with Responsive Sizing */}
       <div className="relative h-full flex items-center justify-center z-30">
         <div className="flex items-center justify-center">
           <img 
-            src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
+            src="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png"
+            srcSet="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 1x, /lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 2x"
             alt="CRD Logo" 
-            className="w-48 h-auto opacity-90"
+            className={`${getLogoSize()} opacity-90 transition-all duration-300 ease-out`}
             style={{
               filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
+              imageRendering: '-webkit-optimize-contrast',
+              objectFit: 'contain'
             }}
-            onLoad={() => console.log('New CRD logo loaded successfully')}
-            onError={() => console.log('Error loading new CRD logo')}
+            onLoad={() => console.log('Enhanced CRD logo loaded successfully')}
+            onError={() => console.log('Error loading enhanced CRD logo')}
           />
         </div>
       </div>
