@@ -1,8 +1,5 @@
 
 import { useState, useCallback, useMemo, startTransition, useRef } from 'react';
-import { useEffectCache } from './useEffectCache';
-import { usePerformanceMonitor } from './usePerformanceMonitor';
-import { OPTIMIZED_PRESETS, detectDevicePerformance, getPresetsForPerformanceLevel } from '../config/optimizedPresets';
 
 export interface EffectParameter {
   id: string;
@@ -150,17 +147,10 @@ interface PresetApplicationState {
   isApplying: boolean;
   currentPresetId?: string;
   appliedAt: number;
-  isLocked: boolean;
+  isLocked: boolean; // New: prevent overlapping applications
 }
 
 export const useEnhancedCardEffects = () => {
-  // Initialize caching and performance monitoring
-  const effectCache = useEffectCache({ maxSize: 100, ttl: 600000 }); // 10 minutes TTL
-  const performanceMonitor = usePerformanceMonitor();
-  
-  // Detect device performance level
-  const devicePerformance = useMemo(() => detectDevicePerformance(), []);
-  
   const [effectValues, setEffectValues] = useState<EffectValues>(() => {
     const initialValues: EffectValues = {};
     ENHANCED_VISUAL_EFFECTS.forEach(effect => {
@@ -195,42 +185,22 @@ export const useEnhancedCardEffects = () => {
     return defaults;
   }, []);
 
-  // Memoized optimized presets for current device
-  const availablePresets = useMemo(() => {
-    const qualityLevel = performanceMonitor.getAdaptiveQualityLevel();
-    return getPresetsForPerformanceLevel(qualityLevel);
-  }, [performanceMonitor]);
-
-  // Performance-aware effect change handler
   const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
     console.log('🎛️ Effect Change:', { effectId, parameterId, value });
-    
-    performanceMonitor.startMeasurement();
     
     // Clear preset state when manual changes are made (unless currently applying a preset)
     if (!presetState.isApplying && !presetState.isLocked) {
       setPresetState(prev => ({ ...prev, currentPresetId: undefined }));
     }
     
-    setEffectValues(prev => {
-      const newValues = {
-        ...prev,
-        [effectId]: {
-          ...prev[effectId],
-          [parameterId]: value
-        }
-      };
-      
-      // Clear cache if significant change
-      if (parameterId === 'intensity' && typeof value === 'number' && value === 0) {
-        effectCache.clearCache();
+    setEffectValues(prev => ({
+      ...prev,
+      [effectId]: {
+        ...prev[effectId],
+        [parameterId]: value
       }
-      
-      return newValues;
-    });
-    
-    performanceMonitor.endMeasurement();
-  }, [presetState.isApplying, presetState.isLocked, performanceMonitor, effectCache]);
+    }));
+  }, [presetState.isApplying, presetState.isLocked]);
 
   const resetEffect = useCallback((effectId: string) => {
     console.log('🔄 Resetting effect:', effectId);
@@ -258,27 +228,18 @@ export const useEnhancedCardEffects = () => {
       clearTimeout(lockTimeoutRef.current);
     }
     
-    // Clear effect cache
-    effectCache.clearCache();
-    
     setPresetState({ isApplying: false, appliedAt: Date.now(), isLocked: false });
     setEffectValues(defaultEffectValues);
-  }, [defaultEffectValues, effectCache]);
+  }, [defaultEffectValues]);
 
-  // Enhanced atomic preset application with caching
+  // Enhanced atomic preset application with forced reset and sync locks
   const applyPreset = useCallback((preset: EffectValues, presetId?: string) => {
-    console.log('🎨 Applying optimized preset with caching:', { presetId, preset });
+    console.log('🎨 Applying preset atomically with sync locks:', { presetId, preset });
     
     // Prevent overlapping applications
     if (presetState.isLocked) {
       console.log('⚠️ Preset application blocked - currently locked');
       return;
-    }
-    
-    // Check cache first
-    const cachedStyles = effectCache.getCachedStyles(preset);
-    if (cachedStyles) {
-      console.log('🚀 Using cached preset styles for instant application');
     }
     
     // Clear any existing timeouts
@@ -288,8 +249,6 @@ export const useEnhancedCardEffects = () => {
     if (lockTimeoutRef.current) {
       clearTimeout(lockTimeoutRef.current);
     }
-    
-    performanceMonitor.startMeasurement();
     
     // Set synchronization lock
     setPresetState({ 
@@ -301,15 +260,15 @@ export const useEnhancedCardEffects = () => {
     
     // Use startTransition for smooth updates with forced reset
     startTransition(() => {
-      // Step 1: Force complete reset to defaults
+      // Step 1: Force complete reset to defaults (prevents material sticking)
       const resetValues = { ...defaultEffectValues };
       setEffectValues(resetValues);
       
-      // Step 2: Apply preset effects after reset
+      // Step 2: Apply preset effects after a brief delay for reset to complete
       presetTimeoutRef.current = setTimeout(() => {
         const newEffectValues = { ...defaultEffectValues };
         
-        // Apply preset effects with validation
+        // Apply preset effects with proper validation
         Object.entries(preset).forEach(([effectId, effectParams]) => {
           if (newEffectValues[effectId] && effectParams) {
             Object.entries(effectParams).forEach(([paramId, value]) => {
@@ -320,36 +279,21 @@ export const useEnhancedCardEffects = () => {
           }
         });
         
-        // Apply changes atomically
+        // Apply all changes atomically
         setEffectValues(newEffectValues);
         
-        // Cache the applied preset for faster future access
-        if (!cachedStyles) {
-          effectCache.setCachedStyles(preset, newEffectValues);
-        }
-        
-        performanceMonitor.endMeasurement();
-        
-        // Release lock after material calculation time
+        // Mark application as complete and release lock after material calc time
         lockTimeoutRef.current = setTimeout(() => {
           setPresetState(prev => ({ 
             ...prev, 
             isApplying: false, 
             isLocked: false 
           }));
-        }, 200); // Reduced delay with caching
+        }, 400); // Increased delay for material recalculation
         
-      }, 50); // Reduced delay for better responsiveness
+      }, 100); // Brief delay for reset to complete
     });
-  }, [defaultEffectValues, presetState.isLocked, effectCache, performanceMonitor]);
-
-  // Get performance metrics
-  const getPerformanceMetrics = useCallback(() => ({
-    ...performanceMonitor.metrics,
-    cacheStats: effectCache.getCacheStats(),
-    devicePerformance,
-    availablePresetsCount: availablePresets.length
-  }), [performanceMonitor.metrics, effectCache, devicePerformance, availablePresets]);
+  }, [defaultEffectValues, presetState.isLocked]);
 
   return {
     effectValues,
@@ -358,9 +302,6 @@ export const useEnhancedCardEffects = () => {
     resetAllEffects,
     applyPreset,
     presetState,
-    isApplyingPreset: presetState.isApplying || presetState.isLocked,
-    availablePresets,
-    getPerformanceMetrics,
-    devicePerformance
+    isApplyingPreset: presetState.isApplying || presetState.isLocked
   };
 };

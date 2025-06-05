@@ -2,7 +2,7 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
-import { Image, Upload, Sparkles, Crop, Camera } from 'lucide-react';
+import { Image, Upload, Sparkles, Crop, RotateCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { analyzeCardImage } from '@/services/cardAnalyzer';
 
@@ -24,7 +24,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const img = document.createElement('img');
+      const img = new Image();
       
       img.onload = () => {
         // Standard trading card aspect ratio is 2.5:3.5 (roughly 0.714)
@@ -36,43 +36,39 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
         canvas.height = 420;
         
         // Clear canvas with white background
-        if (ctx) {
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          
-          let drawWidth, drawHeight, offsetX, offsetY;
-          
-          if (sourceAspectRatio > targetAspectRatio) {
-            // Image is wider - fit to height and center horizontally
-            drawHeight = canvas.height;
-            drawWidth = drawHeight * sourceAspectRatio;
-            offsetX = (canvas.width - drawWidth) / 2;
-            offsetY = 0;
-          } else {
-            // Image is taller - fit to width and center vertically
-            drawWidth = canvas.width;
-            drawHeight = drawWidth / sourceAspectRatio;
-            offsetX = 0;
-            offsetY = (canvas.height - drawHeight) / 2;
-          }
-          
-          // Draw the image centered and fitted
-          ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-          
-          // Convert to data URL
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-          
-          // Store image details
-          setImageDetails({
-            dimensions: { width: img.width, height: img.height },
-            aspectRatio: sourceAspectRatio,
-            fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB'
-          });
-          
-          resolve(dataUrl);
+        ctx!.fillStyle = '#ffffff';
+        ctx!.fillRect(0, 0, canvas.width, canvas.height);
+        
+        let drawWidth, drawHeight, offsetX, offsetY;
+        
+        if (sourceAspectRatio > targetAspectRatio) {
+          // Image is wider - fit to height and center horizontally
+          drawHeight = canvas.height;
+          drawWidth = drawHeight * sourceAspectRatio;
+          offsetX = (canvas.width - drawWidth) / 2;
+          offsetY = 0;
         } else {
-          reject(new Error('Failed to get canvas context'));
+          // Image is taller - fit to width and center vertically
+          drawWidth = canvas.width;
+          drawHeight = drawWidth / sourceAspectRatio;
+          offsetX = 0;
+          offsetY = (canvas.height - drawHeight) / 2;
         }
+        
+        // Draw the image centered and fitted
+        ctx!.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+        
+        // Convert to data URL
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        
+        // Store image details
+        setImageDetails({
+          dimensions: { width: img.width, height: img.height },
+          aspectRatio: sourceAspectRatio,
+          fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB'
+        });
+        
+        resolve(dataUrl);
       };
       
       img.onerror = () => reject(new Error('Failed to load image'));
@@ -203,6 +199,14 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Choose Different Photo
+              </Button>
+              <Button
+                variant="outline"
+                className="border-editor-border text-white hover:bg-editor-border"
+                disabled={isAnalyzing}
+              >
+                <Crop className="w-4 h-4 mr-2" />
+                Adjust Crop
               </Button>
             </div>
           </div>

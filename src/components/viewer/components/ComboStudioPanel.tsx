@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Settings,
@@ -97,16 +98,6 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
   const handleEffectChange = (effectId: string, parameterId: string, value: number | boolean | string) => {
     setSelectedPresetId(undefined); // Clear selected preset when manually changing effects
     onEffectChange(effectId, parameterId, value);
-  };
-
-  const handlePresetApply = (effects: EffectValues, presetId: string) => {
-    setSelectedPresetId(presetId);
-    // Apply effects
-    Object.entries(effects).forEach(([effectId, parameters]) => {
-      Object.entries(parameters).forEach(([parameterId, value]) => {
-        onEffectChange(effectId, parameterId, value);
-      });
-    });
   };
 
   return (
@@ -222,7 +213,18 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
                 </CardHeader>
                 <CardContent>
                   <QuickComboPresets
-                    onApplyCombo={handlePresetApply}
+                    onApplyCombo={(combo) => {
+                      setSelectedPresetId(combo.id);
+                      // Apply effects
+                      Object.entries(combo.effects).forEach(([effectId, parameters]) => {
+                        Object.entries(parameters).forEach(([parameterId, value]) => {
+                          onEffectChange(effectId, parameterId, value);
+                        });
+                      });
+                      // Apply scene and lighting if provided
+                      if (combo.scene) onSceneChange(combo.scene);
+                      if (combo.lighting) onLightingChange(combo.lighting);
+                    }}
                     currentEffects={effectValues}
                     selectedPresetId={selectedPresetId}
                     onPresetSelect={setSelectedPresetId}

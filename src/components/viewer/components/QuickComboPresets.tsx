@@ -1,41 +1,149 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Sparkles, Zap, Gem, Clock, Flame, Snowflake, Sun, Moon, Star, User } from 'lucide-react';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
-import { OPTIMIZED_PRESETS } from '../config/optimizedPresets';
+import type { EnvironmentScene, LightingPreset } from '../types';
+
+interface ComboPreset {
+  id: string;
+  name: string;
+  icon: React.ComponentType<any>;
+  description: string;
+  effects: EffectValues;
+  scene?: EnvironmentScene;
+  lighting?: LightingPreset;
+  isCustom?: boolean;
+  materialHint?: string;
+}
+
+const COMBO_PRESETS: ComboPreset[] = [
+  {
+    id: 'holographic-burst',
+    name: 'Holographic',
+    icon: Sparkles,
+    description: 'Rainbow holographic with chrome accents',
+    materialHint: 'Deep blue holographic surface',
+    effects: {
+      holographic: { intensity: 85, shiftSpeed: 150, rainbowSpread: 270, animated: true },
+      chrome: { intensity: 45, sharpness: 80, highlightSize: 60 }
+    }
+  },
+  {
+    id: 'metallic-prizm',
+    name: 'Prizm',
+    icon: Gem,
+    description: 'Prismatic colors with brushed metal',
+    materialHint: 'Purple prizm surface with geometric patterns',
+    effects: {
+      prizm: { intensity: 70, complexity: 7, colorSeparation: 80 },
+      brushedmetal: { intensity: 55, direction: 45, grainDensity: 12 }
+    }
+  },
+  {
+    id: 'crystal-interference',
+    name: 'Crystal',
+    icon: Zap,
+    description: 'Crystal facets with soap bubble effects',
+    materialHint: 'Translucent crystal surface with light dispersion',
+    effects: {
+      crystal: { intensity: 80, facets: 12, dispersion: 85, clarity: 60, sparkle: true },
+      interference: { intensity: 60, frequency: 15, thickness: 4 }
+    }
+  },
+  {
+    id: 'vintage-foil',
+    name: 'Vintage',
+    icon: Clock,
+    description: 'Aged patina with metallic foil spray',
+    materialHint: 'Weathered surface with vintage texture',
+    effects: {
+      vintage: { intensity: 65, aging: 70, patina: '#8b6914' },
+      foilspray: { intensity: 50, density: 60, direction: 90 }
+    }
+  },
+  {
+    id: 'golden-fire',
+    name: 'Golden',
+    icon: Flame,
+    description: 'Warm gold tones with chromatic shift',
+    materialHint: 'Rich golden surface with warm reflections',
+    effects: {
+      gold: { intensity: 75, shimmerSpeed: 80, platingThickness: 5, goldTone: 'rich', reflectivity: 85, colorEnhancement: true },
+      chrome: { intensity: 40, sharpness: 60, highlightSize: 50 }
+    }
+  },
+  {
+    id: 'ice-crystal',
+    name: 'Ice',
+    icon: Snowflake,
+    description: 'Cool crystal with silver highlights',
+    materialHint: 'Frosted crystal surface with silver accents',
+    effects: {
+      crystal: { intensity: 70, facets: 8, dispersion: 70, clarity: 60, sparkle: true },
+      chrome: { intensity: 35, sharpness: 90, highlightSize: 40 }
+    }
+  },
+  {
+    id: 'solar-flare',
+    name: 'Solar',
+    icon: Sun,
+    description: 'Bright holographic with gold warmth',
+    materialHint: 'Radiant holographic surface with golden highlights',
+    effects: {
+      holographic: { intensity: 60, shiftSpeed: 180, rainbowSpread: 200, animated: true },
+      gold: { intensity: 45, shimmerSpeed: 100, goldTone: 'rich', reflectivity: 70, platingThickness: 5, colorEnhancement: true }
+    }
+  },
+  {
+    id: 'lunar-shimmer',
+    name: 'Lunar',
+    icon: Moon,
+    description: 'Subtle interference with vintage charm',
+    materialHint: 'Soft silvery surface with gentle interference patterns',
+    effects: {
+      interference: { intensity: 45, frequency: 12, thickness: 3 },
+      vintage: { intensity: 35, aging: 40, patina: '#c0c0c0' }
+    }
+  },
+  {
+    id: 'starlight-spray',
+    name: 'Starlight',
+    icon: Star,
+    description: 'Sparkling foil spray with prismatic edge',
+    materialHint: 'Metallic chrome surface with sparkling highlights',
+    effects: {
+      foilspray: { intensity: 65, density: 80, direction: 135 },
+      prizm: { intensity: 40, complexity: 5, colorSeparation: 60 }
+    }
+  },
+  {
+    id: 'chrome-burst',
+    name: 'Chrome',
+    icon: Zap,
+    description: 'Pure chrome with brushed metal finish',
+    materialHint: 'Polished chrome surface with directional brushing',
+    effects: {
+      chrome: { intensity: 80, sharpness: 95, highlightSize: 70 },
+      brushedmetal: { intensity: 40, direction: 90, grainDensity: 8 }
+    }
+  }
+];
 
 interface QuickComboPresetsProps {
-  onApplyCombo: (effects: EffectValues, presetId: string) => void;
+  onApplyCombo: (combo: ComboPreset) => void;
   currentEffects: EffectValues;
   selectedPresetId?: string;
   onPresetSelect: (presetId: string) => void;
   isApplyingPreset?: boolean;
-  availablePresets?: typeof OPTIMIZED_PRESETS;
 }
-
-// Icon mapping for optimized presets
-const PRESET_ICONS: Record<string, React.ComponentType<any>> = {
-  'holographic-rainbow': Sparkles,
-  'prizm-geometric': Gem,
-  'crystal-faceted': Zap,
-  'vintage-patina': Clock,
-  'gold-luxury': Flame,
-  'ice-crystal': Snowflake,
-  'solar-burst': Sun,
-  'lunar-shimmer': Moon,
-  'starlight-spray': Star,
-  'chrome-mirror': Zap
-};
 
 export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({ 
   onApplyCombo, 
   currentEffects, 
   selectedPresetId, 
   onPresetSelect,
-  isApplyingPreset = false,
-  availablePresets = OPTIMIZED_PRESETS
+  isApplyingPreset = false
 }) => {
   // Check if current effects match any preset with improved precision
   const effectsMatchPreset = (presetEffects: EffectValues, currentEffects: EffectValues): boolean => {
@@ -48,7 +156,7 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
     // If different number of active effects, no match
     if (presetKeys.length !== currentActiveKeys.length) return false;
 
-    // Check each preset effect matches current values with tighter tolerance
+    // Check each preset effect matches current values
     return presetKeys.every(key => {
       const preset = presetEffects[key];
       const current = currentEffects[key];
@@ -58,16 +166,16 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
       const presetIntensity = typeof preset.intensity === 'number' ? preset.intensity : 0;
       const currentIntensity = typeof current.intensity === 'number' ? current.intensity : 0;
       
-      if (Math.abs(currentIntensity - presetIntensity) > 2) return false;
+      if (Math.abs(currentIntensity - presetIntensity) > 3) return false;
       
-      // Check other parameters with tight tolerance
+      // Check other parameters with more tolerance
       return Object.keys(preset).every(paramKey => {
         if (paramKey === 'intensity') return true; // Already checked
         const presetVal = preset[paramKey];
         const currentVal = current[paramKey];
         
         if (typeof presetVal === 'number' && typeof currentVal === 'number') {
-          return Math.abs(currentVal - presetVal) <= 3;
+          return Math.abs(currentVal - presetVal) <= 5;
         }
         return presetVal === currentVal;
       });
@@ -82,51 +190,36 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
     
     if (!hasActiveEffects) return false;
     
-    return !availablePresets.some(preset => effectsMatchPreset(preset.effects, currentEffects));
+    return !COMBO_PRESETS.some(preset => effectsMatchPreset(preset.effects, currentEffects));
   };
 
   // Create custom preset from current effects
-  const createCustomPreset = () => ({
+  const createCustomPreset = (): ComboPreset => ({
     id: 'user-custom',
-    name: "Custom",
+    name: "Your Style",
+    icon: User,
     description: 'Your custom effect combination',
-    materialHint: 'Custom effect blend',
     effects: currentEffects,
-    performanceLevel: 'medium' as const,
-    renderComplexity: 5,
     isCustom: true
   });
 
-  const allPresets = hasCustomEffects() ? [...availablePresets, createCustomPreset()] : availablePresets;
+  const allPresets = hasCustomEffects() ? [...COMBO_PRESETS, createCustomPreset()] : COMBO_PRESETS;
 
-  // Enhanced preset application with performance tracking
-  const handlePresetClick = (preset: typeof availablePresets[0]) => {
-    console.log('🎯 Optimized Preset Selected:', { 
-      presetId: preset.id, 
-      effects: preset.effects,
-      performanceLevel: preset.performanceLevel,
-      complexity: preset.renderComplexity
-    });
+  // Enhanced preset application with atomic updates
+  const handlePresetClick = (preset: ComboPreset) => {
+    console.log('🎯 Quick Combo Preset Selected:', { presetId: preset.id, effects: preset.effects });
     
     // Apply preset selection and combo atomically
     onPresetSelect(preset.id);
-    onApplyCombo(preset.effects, preset.id);
+    onApplyCombo(preset);
   };
 
   return (
     <TooltipProvider>
       {allPresets.map((preset) => {
-        const IconComponent = PRESET_ICONS[preset.id] || 
-          (preset.isCustom ? User : Sparkles);
+        const IconComponent = preset.icon;
         const isSelected = selectedPresetId === preset.id || 
           (!selectedPresetId && effectsMatchPreset(preset.effects, currentEffects));
-        
-        // Performance indicator color
-        const performanceColor = {
-          low: 'text-green-400',
-          medium: 'text-yellow-400', 
-          high: 'text-red-400'
-        }[preset.performanceLevel];
         
         return (
           <Tooltip key={preset.id}>
@@ -149,11 +242,8 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
                 }`}>
                   {preset.name}
                 </span>
-                {/* Performance indicator */}
-                <div className={`w-1 h-1 rounded-full ${performanceColor} ml-auto`} 
-                     title={`${preset.performanceLevel} performance`} />
                 {isApplyingPreset && isSelected && (
-                  <div className="w-2 h-2 bg-crd-green rounded-full animate-pulse" />
+                  <div className="w-2 h-2 bg-crd-green rounded-full animate-pulse ml-auto" />
                 )}
               </Button>
             </TooltipTrigger>
@@ -162,14 +252,10 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
                 <div className="font-medium">{preset.name}</div>
                 <div className="text-xs text-gray-300 mb-1">{preset.description}</div>
                 {preset.materialHint && (
-                  <div className="text-xs text-crd-green italic mb-1">
+                  <div className="text-xs text-crd-green italic">
                     Surface: {preset.materialHint}
                   </div>
                 )}
-                <div className="text-xs text-gray-400 flex justify-between">
-                  <span>{preset.performanceLevel} perf</span>
-                  <span>×{preset.renderComplexity}</span>
-                </div>
               </div>
             </TooltipContent>
           </Tooltip>

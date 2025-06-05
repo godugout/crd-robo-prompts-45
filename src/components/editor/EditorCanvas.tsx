@@ -38,15 +38,6 @@ export const EditorCanvas = ({ zoom, cardEditor, onAddElement }: EditorCanvasPro
   const title = cardEditor?.cardData.title || 'Card Title';
   const description = cardEditor?.cardData.description || 'Card description goes here...';
 
-  const handlePhotoSelect = (file: File, preview: string) => {
-    if (cardEditor) {
-      // Use the preview string (data URL) as the image URL
-      cardEditor.updateCardField('image_url', preview);
-    }
-    // Switch back to preview mode after photo selection
-    setPreviewMode('preview');
-  };
-
   return (
     <div className="flex-1 bg-editor-dark rounded-xl flex flex-col">
       <EditorCanvasHeader 
@@ -57,7 +48,7 @@ export const EditorCanvas = ({ zoom, cardEditor, onAddElement }: EditorCanvasPro
       {/* Main Canvas Area */}
       <div className="flex-1 flex items-center justify-center p-8">
         <EditorCanvasContainer cardEditor={cardEditor}>
-          {({ cardState, currentPhoto, selectedElement, setSelectedElement }) => (
+          {({ cardState, currentPhoto, selectedElement, setSelectedElement, handlePhotoSelect }) => (
             <>
               {previewMode === 'preview' && (
                 <EnhancedInteractivePreview
