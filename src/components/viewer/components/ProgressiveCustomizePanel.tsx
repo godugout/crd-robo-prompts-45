@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Sparkles, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -43,6 +42,7 @@ const ENHANCED_EFFECTS_CONFIG = {
   holographic: {
     name: 'Holographic',
     color: 'text-purple-400',
+    sliderColor: 'purple',
     parameters: {
       intensity: { label: 'Intensity', min: 0, max: 100, step: 1 },
       shiftSpeed: { label: 'Shift Speed', min: 0, max: 300, step: 10 },
@@ -53,6 +53,7 @@ const ENHANCED_EFFECTS_CONFIG = {
   foilspray: {
     name: 'Foil Spray',
     color: 'text-yellow-400',
+    sliderColor: 'yellow',
     parameters: {
       intensity: { label: 'Intensity', min: 0, max: 100, step: 1 },
       density: { label: 'Density', min: 0, max: 100, step: 5 },
@@ -62,6 +63,7 @@ const ENHANCED_EFFECTS_CONFIG = {
   prizm: {
     name: 'Prizm',
     color: 'text-blue-400',
+    sliderColor: 'blue',
     parameters: {
       intensity: { label: 'Intensity', min: 0, max: 100, step: 1 },
       refraction: { label: 'Refraction', min: 0, max: 100, step: 5 },
@@ -71,6 +73,7 @@ const ENHANCED_EFFECTS_CONFIG = {
   chrome: {
     name: 'Chrome',
     color: 'text-gray-300',
+    sliderColor: 'gray',
     parameters: {
       intensity: { label: 'Intensity', min: 0, max: 100, step: 1 },
       sharpness: { label: 'Sharpness', min: 0, max: 100, step: 5 },
@@ -80,6 +83,7 @@ const ENHANCED_EFFECTS_CONFIG = {
   interference: {
     name: 'Interference',
     color: 'text-green-400',
+    sliderColor: 'green',
     parameters: {
       intensity: { label: 'Intensity', min: 0, max: 100, step: 1 },
       frequency: { label: 'Frequency', min: 0, max: 100, step: 5 },
@@ -89,6 +93,7 @@ const ENHANCED_EFFECTS_CONFIG = {
   brushedmetal: {
     name: 'Brushed Metal',
     color: 'text-orange-400',
+    sliderColor: 'orange',
     parameters: {
       intensity: { label: 'Intensity', min: 0, max: 100, step: 1 },
       direction: { label: 'Direction', min: 0, max: 360, step: 15 },
@@ -98,6 +103,7 @@ const ENHANCED_EFFECTS_CONFIG = {
   crystal: {
     name: 'Crystal',
     color: 'text-cyan-400',
+    sliderColor: 'cyan',
     parameters: {
       intensity: { label: 'Intensity', min: 0, max: 100, step: 1 },
       facets: { label: 'Facets', min: 3, max: 20, step: 1 },
@@ -107,12 +113,48 @@ const ENHANCED_EFFECTS_CONFIG = {
   vintage: {
     name: 'Vintage',
     color: 'text-amber-400',
+    sliderColor: 'amber',
     parameters: {
       intensity: { label: 'Intensity', min: 0, max: 100, step: 1 },
       aging: { label: 'Aging', min: 0, max: 100, step: 5 },
       wear: { label: 'Wear', min: 0, max: 100, step: 5 }
     }
   }
+};
+
+// Custom slider component with color variants
+const ColoredSlider = ({ value, onValueChange, min, max, step, color, variant = 'primary', className = '' }: {
+  value: number[];
+  onValueChange: (value: number[]) => void;
+  min: number;
+  max: number;
+  step: number;
+  color: string;
+  variant?: 'primary' | 'secondary';
+  className?: string;
+}) => {
+  const getSliderClasses = () => {
+    const baseClasses = 'w-full';
+    
+    if (variant === 'primary') {
+      // Primary slider: white track with colored thumb
+      return `${baseClasses} [&>span]:bg-white/20 [&>span]:border-white/40 [&>span>span]:bg-white [&>span>span>span]:bg-${color}-400 [&>span>span>span]:border-${color}-400 [&>span>span>span]:shadow-${color}-400/50`;
+    } else {
+      // Secondary slider: colored track (muted) with colored thumb
+      return `${baseClasses} [&>span]:bg-${color}-400/20 [&>span]:border-${color}-400/40 [&>span>span]:bg-${color}-400/40 [&>span>span>span]:bg-${color}-400 [&>span>span>span]:border-${color}-400 [&>span>span>span]:shadow-${color}-400/50`;
+    }
+  };
+
+  return (
+    <Slider
+      value={value}
+      onValueChange={onValueChange}
+      min={min}
+      max={max}
+      step={step}
+      className={`${getSliderClasses()} ${className}`}
+    />
+  );
 };
 
 export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps> = ({
@@ -246,17 +288,18 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                     {/* Title and Intensity Slider on one line */}
                     <div className="flex items-center space-x-3 mb-2">
                       <div className="flex items-center space-x-2 flex-1">
-                        <span className={`text-sm font-medium ${config.color}`}>
+                        <span className={`text-sm font-medium ${config.color} min-w-[90px]`}>
                           {config.name}
                         </span>
                         <div className="flex-1">
-                          <Slider
+                          <ColoredSlider
                             value={[intensity]}
+                            onValueChange={(value) => onEffectChange(effectId, 'intensity', value[0])}
                             min={0}
                             max={100}
                             step={1}
-                            onValueChange={(value) => onEffectChange(effectId, 'intensity', value[0])}
-                            className="w-full"
+                            color={config.sliderColor}
+                            variant="primary"
                           />
                         </div>
                         <span className="text-xs text-gray-400 w-8 text-right">{intensity}</span>
@@ -285,17 +328,18 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                           
                           return (
                             <div key={paramId} className="flex items-center space-x-2">
-                              <Label className="text-xs text-gray-300 w-20 text-right">
+                              <Label className={`text-xs w-20 text-right ${config.color}/70`}>
                                 {paramConfig.label}
                               </Label>
                               <div className="flex-1">
-                                <Slider
+                                <ColoredSlider
                                   value={[value]}
+                                  onValueChange={(newValue) => onEffectChange(effectId, paramId, newValue[0])}
                                   min={paramConfig.min}
                                   max={paramConfig.max}
                                   step={paramConfig.step}
-                                  onValueChange={(newValue) => onEffectChange(effectId, paramId, newValue[0])}
-                                  className="w-full"
+                                  color={config.sliderColor}
+                                  variant="secondary"
                                 />
                               </div>
                               <span className="text-xs text-gray-400 w-8 text-right">{value}</span>
@@ -320,14 +364,14 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                 <Sparkles className="w-4 h-4 text-crd-green mr-2" />
                 Environment
               </h3>
-              <Button variant="ghost" size="sm" onClick={() => setShowEnvironment(!showEnvironment)} className="text-crd-lightGray hover:text-white">
+              <Button variant="ghost" size="sm" onClick={() => setShowEnvironment(!showEnvironment)} className="text-white hover:text-white">
                 {showEnvironment ? 'Hide' : 'Show'}
               </Button>
             </div>
             {showEnvironment && (
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="scene-select" className="text-crd-lightGray text-sm mb-2 block">
+                  <Label htmlFor="scene-select" className="text-white text-sm mb-2 block">
                     Scene
                   </Label>
                   <Select onValueChange={(value) => onSceneChange(JSON.parse(value))}>
@@ -344,7 +388,7 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="lighting-select" className="text-crd-lightGray text-sm mb-2 block">
+                  <Label htmlFor="lighting-select" className="text-white text-sm mb-2 block">
                     Lighting
                   </Label>
                   <Select onValueChange={(value) => onLightingChange(JSON.parse(value))}>
@@ -361,7 +405,7 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="brightness-slider" className="text-crd-lightGray text-sm mb-2 block">
+                  <Label htmlFor="brightness-slider" className="text-white text-sm mb-2 block">
                     Brightness: {overallBrightness[0]}%
                   </Label>
                   <Slider
@@ -374,7 +418,7 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="interactive-lighting" className="text-crd-lightGray text-sm">
+                  <Label htmlFor="interactive-lighting" className="text-white text-sm">
                     Interactive Lighting
                   </Label>
                   <Switch
@@ -397,14 +441,14 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                 <Sparkles className="w-4 h-4 text-crd-green mr-2" />
                 Material Properties
               </h3>
-              <Button variant="ghost" size="sm" onClick={() => setShowMaterial(!showMaterial)} className="text-crd-lightGray hover:text-white">
+              <Button variant="ghost" size="sm" onClick={() => setShowMaterial(!showMaterial)} className="text-white hover:text-white">
                 {showMaterial ? 'Hide' : 'Show'}
               </Button>
             </div>
             {showMaterial && (
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="roughness-slider" className="text-crd-lightGray text-sm mb-2 block">
+                  <Label htmlFor="roughness-slider" className="text-white text-sm mb-2 block">
                     Roughness: {Math.round(materialSettings.roughness * 100)}%
                   </Label>
                   <Slider
@@ -417,7 +461,7 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                   />
                 </div>
                 <div>
-                  <Label htmlFor="metalness-slider" className="text-crd-lightGray text-sm mb-2 block">
+                  <Label htmlFor="metalness-slider" className="text-white text-sm mb-2 block">
                     Metalness: {Math.round(materialSettings.metalness * 100)}%
                   </Label>
                   <Slider
@@ -430,7 +474,7 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                   />
                 </div>
                 <div>
-                  <Label htmlFor="clearcoat-slider" className="text-crd-lightGray text-sm mb-2 block">
+                  <Label htmlFor="clearcoat-slider" className="text-white text-sm mb-2 block">
                     Clearcoat: {Math.round(materialSettings.clearcoat * 100)}%
                   </Label>
                   <Slider
@@ -443,7 +487,7 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                   />
                 </div>
                 <div>
-                  <Label htmlFor="reflectivity-slider" className="text-crd-lightGray text-sm mb-2 block">
+                  <Label htmlFor="reflectivity-slider" className="text-white text-sm mb-2 block">
                     Reflectivity: {Math.round(materialSettings.reflectivity * 100)}%
                   </Label>
                   <Slider
