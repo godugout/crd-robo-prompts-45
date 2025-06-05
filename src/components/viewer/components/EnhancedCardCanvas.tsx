@@ -4,6 +4,8 @@ import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import { EnhancedCardContainer } from './EnhancedCardContainer';
+import { MaterialLoadingProgress } from './MaterialLoadingProgress';
+import { useMaterialLoadingState } from '../hooks/useMaterialLoadingState';
 
 interface EnhancedCardCanvasProps {
   card: CardData;
@@ -43,13 +45,37 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [userRequestedFlip, setUserRequestedFlip] = useState(false);
 
-  console.log('EnhancedCardCanvas rendering, isFlipped:', isFlipped);
+  // Material loading state management
+  const { loadingState, forceComplete } = useMaterialLoadingState(effectValues);
 
-  // Handle card flip on click
+  console.log('EnhancedCardCanvas rendering, isFlipped:', isFlipped, 'loadingState:', loadingState.phase);
+
+  // Auto-flip logic: flip to front when loading starts, back when complete
+  useEffect(() => {
+    if (loadingState.isLoading && isFlipped && !userRequestedFlip) {
+      console.log('🔄 Auto-flipping to front for material loading');
+      setIsFlipped(false);
+    } else if (loadingState.phase === 'complete' && !isFlipped && !userRequestedFlip) {
+      console.log('✅ Auto-flipping back to back after material loading');
+      setTimeout(() => {
+        setIsFlipped(true);
+        setUserRequestedFlip(false);
+      }, 500); // Small delay for smooth transition
+    }
+  }, [loadingState.isLoading, loadingState.phase, isFlipped, userRequestedFlip]);
+
+  // Handle manual card flip
   const handleCardClick = () => {
+    console.log('Card manually flipped to:', !isFlipped);
+    setUserRequestedFlip(true);
     setIsFlipped(!isFlipped);
-    console.log('Card flipped to:', !isFlipped);
+    
+    // Reset user requested flag after a delay
+    setTimeout(() => {
+      setUserRequestedFlip(false);
+    }, 1000);
   };
 
   // Mock frame styles for the container
@@ -129,9 +155,17 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             }}
             onClick={handleCardClick}
           />
+
+          {/* Loading progress overlay on front when loading back */}
+          {loadingState.isLoading && !isFlipped && (
+            <MaterialLoadingProgress 
+              loadingState={loadingState}
+              className="animate-fade-in"
+            />
+          )}
         </div>
 
-        {/* Card Back - NEW DESIGN */}
+        {/* Card Back */}
         <div
           className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden"
           style={{
@@ -192,7 +226,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
 
       {/* Click instruction */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white/60 text-sm">
-        Click to flip card
+        {loadingState.isLoading ? 'Loading material...' : 'Click to flip card'}
       </div>
     </div>
   );

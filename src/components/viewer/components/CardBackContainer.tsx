@@ -77,7 +77,7 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
     ...(selectedMaterial.blur && {
       backdropFilter: `blur(${selectedMaterial.blur}px)`
     }),
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)', // Faster transition
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', // Smoother transition
     boxShadow: `
       0 0 30px ${selectedMaterial.borderColor},
       inset 0 0 20px rgba(255, 255, 255, 0.1)
@@ -86,7 +86,7 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
 
   return (
     <div 
-      key={`card-back-${renderKey}-${selectedMaterial.id}`} // Force re-render with key
+      key={`card-back-${renderKey}-${selectedMaterial.id}`}
       className={`absolute inset-0 rounded-xl overflow-hidden ${
         isFlipped ? 'opacity-100' : 'opacity-0'
       }`}
