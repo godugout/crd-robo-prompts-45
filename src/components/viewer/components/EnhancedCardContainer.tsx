@@ -1,120 +1,101 @@
 
 import React from 'react';
-import type { CardData } from '@/types/card';
+import type { CardData } from '@/hooks/useCardEditor';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
+import { CardFrontContainer } from './CardFrontContainer';
 import { CardBackContainer } from './CardBackContainer';
+import { Card3DTransform } from './Card3DTransform';
 
-export interface EnhancedCardContainerProps {
+interface EnhancedCardContainerProps {
   card: CardData;
-  effectValues: EffectValues;
+  isFlipped: boolean;
+  isHovering: boolean;
   showEffects: boolean;
+  effectValues: EffectValues;
+  mousePosition: { x: number; y: number };
+  rotation: { x: number; y: number };
+  zoom: number;
+  isDragging: boolean;
+  frameStyles: React.CSSProperties;
+  enhancedEffectStyles: React.CSSProperties;
+  SurfaceTexture: React.ReactNode;
   interactiveLighting?: boolean;
-  isFlipped?: boolean;
-  isHovering?: boolean;
-  mousePosition?: { x: number; y: number };
-  rotation?: { x: number; y: number };
-  zoom?: number;
-  isDragging?: boolean;
-  frameStyles?: React.CSSProperties;
-  enhancedEffectStyles?: React.CSSProperties;
-  SurfaceTexture?: React.ReactNode;
-  onMouseDown?: () => void;
-  onMouseMove?: (event: React.MouseEvent<HTMLDivElement>) => void;
-  onMouseEnter?: () => void;
-  onMouseLeave?: () => void;
-  onClick?: () => void;
-  className?: string;
+  onMouseDown: (e: React.MouseEvent) => void;
+  onMouseMove: (e: React.MouseEvent) => void;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+  onClick: () => void;
 }
 
 export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   card,
-  effectValues,
+  isFlipped,
+  isHovering,
   showEffects,
+  effectValues,
+  mousePosition,
+  rotation,
+  zoom,
+  isDragging,
+  frameStyles,
+  enhancedEffectStyles,
+  SurfaceTexture,
   interactiveLighting = false,
-  isFlipped = false,
-  isHovering = false,
-  mousePosition = { x: 0.5, y: 0.5 },
-  rotation = { x: 0, y: 0 },
-  zoom = 1,
-  isDragging = false,
-  frameStyles = {},
-  enhancedEffectStyles = {},
-  SurfaceTexture = <div />,
   onMouseDown,
   onMouseMove,
   onMouseEnter,
   onMouseLeave,
-  onClick,
-  className = ""
+  onClick
 }) => {
-  const [internalIsFlipped, setInternalIsFlipped] = React.useState(isFlipped);
-  const [internalIsHovering, setInternalIsHovering] = React.useState(isHovering);
-  const [internalMousePosition, setInternalMousePosition] = React.useState(mousePosition);
-
-  // Use internal state if external handlers aren't provided
-  const handleMouseEnter = onMouseEnter || (() => setInternalIsHovering(true));
-  const handleMouseLeave = onMouseLeave || (() => setInternalIsHovering(false));
-  const handleClick = onClick || (() => setInternalIsFlipped(!internalIsFlipped));
-  const handleMouseMove = onMouseMove || ((e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setInternalMousePosition({
-      x: (e.clientX - rect.left) / rect.width,
-      y: (e.clientY - rect.top) / rect.height,
-    });
-  });
-
-  const currentIsFlipped = onMouseMove ? isFlipped : internalIsFlipped;
-  const currentIsHovering = onMouseEnter ? isHovering : internalIsHovering;
-  const currentMousePosition = onMouseMove ? mousePosition : internalMousePosition;
-
   return (
     <div 
-      className={`relative w-full aspect-[2.5/3.5] rounded-xl overflow-hidden perspective-1000 ${className}`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onMouseMove={handleMouseMove}
-      onMouseDown={onMouseDown}
-      onClick={handleClick}
+      className={`relative z-20 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       style={{
-        transform: `scale(${zoom}) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
-        ...enhancedEffectStyles
+        transform: `scale(${zoom})`,
+        transition: isDragging ? 'none' : 'transform 0.3s ease',
+        filter: `brightness(${interactiveLighting && isHovering ? 1.3 : 1.2}) contrast(1.1)`
       }}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
-      {/* Card Front */}
-      <div 
-        className={`absolute inset-0 rounded-xl overflow-hidden transition-transform duration-600 ${
-          currentIsFlipped ? 'transform rotate-y-180' : ''
-        }`}
-        style={{ 
-          backfaceVisibility: 'hidden',
-          ...frameStyles
-        }}
-      >
-        <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300 rounded-xl flex flex-col p-4">
-          <div className="text-center mb-4">
-            <h3 className="text-lg font-bold text-gray-800">{card.title}</h3>
-            <p className="text-sm text-gray-600">{card.description}</p>
-          </div>
-          {card.image_url && (
-            <div className="flex-1 flex items-center justify-center">
-              <img src={card.image_url} alt={card.title} className="max-w-full max-h-full object-contain rounded" />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Card Back */}
-      <CardBackContainer
-        isFlipped={currentIsFlipped}
-        isHovering={currentIsHovering}
-        showEffects={showEffects}
-        effectValues={effectValues}
-        mousePosition={currentMousePosition}
-        frameStyles={frameStyles}
-        enhancedEffectStyles={enhancedEffectStyles}
-        SurfaceTexture={SurfaceTexture}
+      <Card3DTransform
+        rotation={rotation}
+        mousePosition={mousePosition}
+        isDragging={isDragging}
         interactiveLighting={interactiveLighting}
-      />
+        isHovering={isHovering}
+        onClick={onClick}
+      >
+        {/* Front of Card */}
+        <CardFrontContainer
+          card={card}
+          isFlipped={isFlipped}
+          isHovering={isHovering}
+          showEffects={showEffects}
+          effectValues={effectValues}
+          mousePosition={mousePosition}
+          frameStyles={frameStyles}
+          enhancedEffectStyles={enhancedEffectStyles}
+          SurfaceTexture={SurfaceTexture}
+          interactiveLighting={interactiveLighting}
+          onClick={onClick}
+        />
+
+        {/* Back of Card */}
+        <CardBackContainer
+          isFlipped={isFlipped}
+          isHovering={isHovering}
+          showEffects={showEffects}
+          effectValues={effectValues}
+          mousePosition={mousePosition}
+          frameStyles={frameStyles}
+          enhancedEffectStyles={enhancedEffectStyles}
+          SurfaceTexture={SurfaceTexture}
+          interactiveLighting={interactiveLighting}
+        />
+      </Card3DTransform>
     </div>
   );
 };

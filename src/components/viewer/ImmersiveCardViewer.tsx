@@ -1,51 +1,30 @@
-
-import React, { useState, useRef, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
+import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from './constants';
 import { 
-  Eye, 
-  Settings, 
-  Download, 
-  Share, 
-  RotateCcw, 
-  Zap, 
-  Palette, 
-  Sparkles,
-  Monitor,
-  Smartphone,
-  Tablet,
-  X,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
-import { EnhancedCardContainer } from './components/EnhancedCardContainer';
-import { QuickComboPresets } from './components/QuickComboPresets';
-import { EnhancedEffectControls } from './components/EnhancedEffectControls';
-import { EnvironmentComboSection } from './components/EnvironmentComboSection';
-import { LightingComboSection } from './components/LightingComboSection';
-import { MaterialComboSection } from './components/MaterialComboSection';
-import { useEnhancedCardEffects, type EffectValues } from './hooks/useEnhancedCardEffects';
+  useEnhancedCardEffects, 
+  ENHANCED_VISUAL_EFFECTS,
+  type EffectValues 
+} from './hooks/useEnhancedCardEffects';
+import { useCardEffects } from './hooks/useCardEffects';
 import { useDynamicCardBackMaterials } from './hooks/useDynamicCardBackMaterials';
-import type { CardData } from '@/types/card';
+import { ViewerControls } from './components/ViewerControls';
+import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
+import { EnhancedCardContainer } from './components/EnhancedCardContainer';
+import { useCardExport } from './hooks/useCardExport';
+import { ExportOptionsDialog } from './components/ExportOptionsDialog';
+import { ConfigurationDetailsPanel } from './components/ConfigurationDetailsPanel';
 
-interface ImmersiveCardViewerProps {
-  card?: CardData;
-  cards?: CardData[];
+// Update the interface to support card navigation
+interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
+  cards?: any[];
   currentCardIndex?: number;
-  onCardChange?: (newIndex: number) => void;
-  isOpen?: boolean;
-  onClose?: () => void;
-  onShare?: () => void;
-  onDownload?: () => void;
-  allowRotation?: boolean;
-  showStats?: boolean;
-  ambient?: boolean;
+  onCardChange?: (index: number) => void;
 }
 
-export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
+export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = ({
   card,
   cards = [],
   currentCardIndex = 0,
@@ -58,369 +37,509 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   showStats = true,
   ambient = true
 }) => {
+  // State
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [rotation, setRotation] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
+  const [autoRotate, setAutoRotate] = useState(false);
   const [showEffects, setShowEffects] = useState(true);
-  const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Sample card data for demonstration if no card provided
-  const defaultCard: CardData = {
-    id: 'demo-card',
-    title: 'Sample CRD Card',
-    description: 'Experience different 3D interaction modes with this demo card. Try switching between modes to see how each one feels!',
-    rarity: 'epic',
-    tags: ['demo', '3d', 'interactive'],
-    design_metadata: {},
-    visibility: 'public',
-    creator_attribution: {
-      creator_name: 'Demo Creator',
-      collaboration_type: 'solo'
-    },
-    publishing_options: {
-      marketplace_listing: false,
-      crd_catalog_inclusion: true,
-      print_available: false,
-      pricing: { currency: 'USD' },
-      distribution: { limited_edition: false }
-    }
-  };
-
-  const currentCard = card || defaultCard;
-  const [selectedPresetId, setSelectedPresetId] = useState<string>('');
-  const [viewportSize, setViewportSize] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
-
-  // Enhanced card effects hook
-  const { 
-    effectValues, 
-    handleEffectChange, 
-    resetAllEffects, 
-    applyPreset 
-  } = useEnhancedCardEffects();
-
-  // Dynamic materials hook
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [showCustomizePanel, setShowCustomizePanel] = useState(true);
+  const [isHovering, setIsHovering] = useState(false);
+  const [isHoveringControls, setIsHoveringControls] = useState(false);
+  
+  // Enhanced effects state with atomic preset application
+  const enhancedEffectsHook = useEnhancedCardEffects();
+  const {
+    effectValues,
+    handleEffectChange,
+    resetEffect,
+    resetAllEffects,
+    applyPreset,
+    isApplyingPreset
+  } = enhancedEffectsHook;
+  
+  // Get dynamic material based on current effects
   const { selectedMaterial } = useDynamicCardBackMaterials(effectValues);
+  
+  // Advanced settings - Updated for more professional defaults
+  const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[0]); // Studio instead of Twilight
+  const [selectedLighting, setSelectedLighting] = useState<LightingPreset>(LIGHTING_PRESETS[0]);
+  const [overallBrightness, setOverallBrightness] = useState([100]); // Reduced from 120
+  const [interactiveLighting, setInteractiveLighting] = useState(true);
+  
+  // Material properties - More balanced defaults
+  const [materialSettings, setMaterialSettings] = useState<MaterialSettings>({
+    roughness: 0.40, // Increased from 0.30
+    metalness: 0.45, // Reduced from 0.60
+    clearcoat: 0.60, // Reduced from 0.75
+    reflectivity: 0.40 // Reduced from 0.50
+  });
 
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    setMousePosition({
-      x: (e.clientX - rect.left) / rect.width,
-      y: (e.clientY - rect.top) / rect.height,
-    });
+  // Refs
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cardContainerRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number>();
+
+  // Determine if we have multiple cards to navigate
+  const hasMultipleCards = cards.length > 1;
+  const canGoNext = hasMultipleCards && currentCardIndex < cards.length - 1;
+  const canGoPrev = hasMultipleCards && currentCardIndex > 0;
+
+  // Navigation handlers
+  const handlePreviousCard = useCallback(() => {
+    if (canGoPrev && onCardChange) {
+      onCardChange(currentCardIndex - 1);
+      setIsFlipped(false); // Reset flip state when changing cards
+    }
+  }, [canGoPrev, currentCardIndex, onCardChange]);
+
+  const handleNextCard = useCallback(() => {
+    if (canGoNext && onCardChange) {
+      onCardChange(currentCardIndex + 1);
+      setIsFlipped(false); // Reset flip state when changing cards
+    }
+  }, [canGoNext, currentCardIndex, onCardChange]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        handlePreviousCard();
+      } else if (e.key === 'ArrowRight') {
+        handleNextCard();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handlePreviousCard, handleNextCard]);
+
+  // Add new state for export dialog
+  const [showExportDialog, setShowExportDialog] = useState(false);
+
+  // Add export functionality
+  const { exportCard, isExporting, exportProgress } = useCardExport({
+    cardRef: cardContainerRef,
+    card,
+    onRotationChange: setRotation,
+    onEffectChange: handleEffectChange,
+    effectValues
+  });
+
+  const handleRotationChange = useCallback((newRotation: { x: number; y: number }) => {
+    setRotation(newRotation);
   }, []);
 
-  const handleFlip = () => {
-    setIsFlipped(!isFlipped);
-  };
+  // Update the existing download handler to open export dialog
+  const handleDownloadClick = useCallback(() => {
+    setShowExportDialog(true);
+  }, []);
 
-  const handleToggleEffects = () => {
-    setShowEffects(!showEffects);
-  };
-
-  const handleReset = () => {
-    resetAllEffects();
-  };
-
-  const handleShare = () => {
+  // Fix the share handler to pass the current card
+  const handleShareClick = useCallback(() => {
     if (onShare) {
-      onShare();
-    } else if (navigator.share) {
-      navigator.share({
-        title: 'Check out this awesome card!',
-        text: 'I designed this card using Cardshow!',
-        url: window.location.href,
-      })
-      .then(() => console.log('Successful share'))
-      .catch((error) => console.error('Error sharing', error));
+      onShare(card);
+    }
+  }, [onShare, card]);
+
+  // Add state for progressive panel
+  const [useProgressivePanel, setUseProgressivePanel] = useState(true);
+
+  // Style generation hook
+  const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useCardEffects({
+    card,
+    effectValues,
+    mousePosition,
+    showEffects,
+    overallBrightness,
+    interactiveLighting,
+    selectedScene,
+    selectedLighting,
+    materialSettings,
+    zoom,
+    rotation,
+    isHovering
+  });
+
+  // Auto-rotation effect
+  useEffect(() => {
+    if (autoRotate && !isDragging) {
+      const animate = () => {
+        setRotation(prev => ({
+          x: Math.sin(Date.now() * 0.0005) * 10,
+          y: prev.y + 0.5
+        }));
+        animationRef.current = requestAnimationFrame(animate);
+      };
+      animationRef.current = requestAnimationFrame(animate);
     } else {
-      alert('Web Share API is not supported in your browser.');
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
     }
-  };
+    
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [autoRotate, isDragging]);
 
-  const handleDownload = () => {
-    if (onDownload) {
-      onDownload();
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const zoomDelta = e.deltaY > 0 ? -0.1 : 0.1;
+      setZoom(prev => Math.max(0.5, Math.min(3, prev + zoomDelta)));
+    };
+
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('wheel', handleWheel, { passive: false });
+      return () => container.removeEventListener('wheel', handleWheel);
     }
-  };
+  }, []);
 
-  const handleComboApply = useCallback((combo: any) => {
-    applyPreset(combo.effects);
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      setMousePosition({ x, y });
+      
+      const isInControlsArea = e.clientX - rect.left < 300 && e.clientY - rect.top > rect.height - 100;
+      setIsHoveringControls(isInControlsArea);
+      
+      if (allowRotation && !autoRotate) {
+        setRotation({
+          x: (y - 0.5) * 20,
+          y: (x - 0.5) * -20
+        });
+      }
+    }
+  }, [isDragging, allowRotation, autoRotate]);
+
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    if (allowRotation) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - rotation.y, y: e.clientY - rotation.x });
+      setAutoRotate(false);
+    }
+  }, [rotation, allowRotation]);
+
+  const handleDrag = useCallback((e: React.MouseEvent) => {
+    if (isDragging && allowRotation) {
+      setRotation({
+        x: e.clientY - dragStart.y,
+        y: e.clientX - dragStart.x
+      });
+    }
+  }, [isDragging, dragStart, allowRotation]);
+
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setRotation({ x: 0, y: 0 });
+    setZoom(1);
+    setIsFlipped(false);
+    setAutoRotate(false);
+  }, []);
+
+  const handleZoom = useCallback((delta: number) => {
+    setZoom(prev => Math.max(0.5, Math.min(3, prev + delta)));
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      containerRef.current?.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  // Add state for preset selection tracking
+  const [selectedPresetId, setSelectedPresetId] = useState<string>();
+
+  // Enhanced combo application with atomic updates
+  const handleComboApplication = useCallback((combo: any) => {
+    console.log('🚀 Applying combo with atomic updates:', combo.id);
+    
+    // Apply preset atomically with all related state
+    applyPreset(combo.effects, combo.id);
+    
+    // Update preset selection
     setSelectedPresetId(combo.id);
+    
+    // Apply any scene/lighting changes if specified
+    if (combo.scene) {
+      setSelectedScene(combo.scene);
+    }
+    if (combo.lighting) {
+      setSelectedLighting(combo.lighting);
+    }
   }, [applyPreset]);
 
-  const handleEffectReset = useCallback(() => {
-    resetAllEffects();
-    setSelectedPresetId('');
-  }, [resetAllEffects]);
-
-  const handleCardNavigation = (direction: 'prev' | 'next') => {
-    if (!onCardChange || !cards.length) return;
-    
-    if (direction === 'prev') {
-      const newIndex = currentCardIndex > 0 ? currentCardIndex - 1 : cards.length - 1;
-      onCardChange(newIndex);
-    } else {
-      const newIndex = currentCardIndex < cards.length - 1 ? currentCardIndex + 1 : 0;
-      onCardChange(newIndex);
+  // Clear preset selection when manual effect changes are made
+  const handleManualEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
+    if (!isApplyingPreset) {
+      setSelectedPresetId(undefined);
     }
-  };
+    handleEffectChange(effectId, parameterId, value);
+  }, [handleEffectChange, isApplyingPreset]);
 
-  const viewportConfig = {
-    desktop: { width: 'max-w-md', icon: Monitor },
-    tablet: { width: 'max-w-sm', icon: Tablet },
-    mobile: { width: 'max-w-xs', icon: Smartphone },
-  };
-
-  const ViewportButton = ({ size }: { size: keyof typeof viewportConfig }) => {
-    const { width, icon: Icon } = viewportConfig[size];
-    const isActive = viewportSize === size;
-
-    return (
-      <Button
-        variant={isActive ? 'default' : 'outline'}
-        onClick={() => setViewportSize(size)}
-        className="w-full text-xs"
-      >
-        <Icon className="w-4 h-4 mr-2" />
-        {size.charAt(0).toUpperCase() + size.slice(1)}
-      </Button>
-    );
-  };
-
-  // Add missing default values for the viewer
-  const defaultScene = { id: 'default', name: 'Default Scene', background: 'gradient' };
-  const defaultLighting = { id: 'default', name: 'Default Lighting', ambient: 0.5, directional: 0.8, color: '#ffffff' };
-  const defaultMaterialSettings = { metalness: 0.5, roughness: 0.5, reflectivity: 0.5, clearcoat: 0.3 };
-  const defaultBrightness = [100];
-
-  if (!isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-crd-darkest">
-      {/* Header Section - Using site design patterns */}
-      <div className="bg-crd-dark border-b border-crd-mediumGray sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-crd-white text-xl font-bold">Immersive Card Viewer</h1>
-            <Badge variant="outline" className="text-crd-orange border-crd-orange">Beta</Badge>
-          </div>
-          <div className="flex items-center gap-3">
-            {/* Card Navigation */}
-            {cards.length > 1 && (
-              <>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => handleCardNavigation('prev')}
-                  className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <span className="text-crd-lightGray text-sm px-2">
-                  {currentCardIndex + 1} / {cards.length}
-                </span>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => handleCardNavigation('next')}
-                  className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </>
-            )}
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleFlip}
-              className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
-            >
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Flip Card
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleToggleEffects}
-              className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
-            >
-              <Zap className="w-4 h-4 mr-2" />
-              {showEffects ? 'Hide Effects' : 'Show Effects'}
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleShare}
-              className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
-            >
-              <Share className="w-4 h-4 mr-2" />
-              Share
-            </Button>
-            <Button 
-              onClick={handleDownload} 
+    <>
+      <div 
+        ref={containerRef}
+        className={`fixed inset-0 z-50 flex items-center justify-center ${
+          isFullscreen ? 'p-0' : 'p-8'
+        } ${showCustomizePanel ? 'pr-80' : ''}`}
+        style={{
+          ...getEnvironmentStyle(),
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleDragEnd}
+        onMouseLeave={handleDragEnd}
+      >
+        {/* Enhanced Dark Overlay */}
+        <div className="absolute inset-0 bg-black/60" />
+
+        {/* Subtle Ambient Background Effect */}
+        {ambient && selectedScene && (
+          <div 
+            className="absolute inset-0 opacity-30"
+            style={{
+              background: `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
+                ${selectedScene.lighting.color} 0%, transparent 40%)`,
+              mixBlendMode: 'screen'
+            }}
+          />
+        )}
+
+        {/* Settings Panel Toggle Button - Updated text */}
+        {!showCustomizePanel && (
+          <div className="absolute top-4 right-4 z-10">
+            <Button
+              variant="ghost"
               size="sm"
-              className="bg-crd-green hover:bg-crd-green/90 text-black"
+              onClick={() => setShowCustomizePanel(true)}
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
             >
-              <Download className="w-4 h-4 mr-2" />
-              Export
+              <Sparkles className="w-4 h-4 text-white mr-2" />
+              <span className="text-white text-sm">Open Studio</span>
             </Button>
-            {onClose && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={onClose}
-                className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
+          </div>
+        )}
+
+        {/* Basic Controls with hover visibility */}
+        <div className={`transition-opacity duration-200 ${isHoveringControls ? 'opacity-100 z-20' : 'opacity-100 z-10'}`}>
+          <ViewerControls
+            showEffects={showEffects}
+            autoRotate={autoRotate}
+            onToggleEffects={() => setShowEffects(!showEffects)}
+            onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
+            onReset={handleReset}
+            onZoomIn={() => handleZoom(0.1)}
+            onZoomOut={() => handleZoom(-0.1)}
+          />
+        </div>
+
+        {/* Card Navigation Controls */}
+        {hasMultipleCards && (
+          <div className="absolute bottom-4 right-4 z-10">
+            <div className="flex items-center space-x-2 bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-3 border border-white/10">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handlePreviousCard}
+                disabled={!canGoPrev}
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <X className="w-4 h-4" />
+                <ChevronLeft className="w-4 h-4" />
               </Button>
-            )}
+              
+              <div className="text-white text-sm px-3">
+                {currentCardIndex + 1} / {cards.length}
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNextCard}
+                disabled={!canGoNext}
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
+        )}
+
+        {/* Progressive Disclosure Customize Panel - Fixed function calls */}
+        {showCustomizePanel && (
+          <ProgressiveCustomizePanel
+            selectedScene={selectedScene}
+            selectedLighting={selectedLighting}
+            effectValues={effectValues}
+            overallBrightness={overallBrightness}
+            interactiveLighting={interactiveLighting}
+            materialSettings={materialSettings}
+            isFullscreen={isFullscreen}
+            onSceneChange={setSelectedScene}
+            onLightingChange={setSelectedLighting}
+            onEffectChange={handleManualEffectChange}
+            onResetAllEffects={resetAllEffects}
+            onBrightnessChange={setOverallBrightness}
+            onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
+            onMaterialSettingsChange={setMaterialSettings}
+            onToggleFullscreen={toggleFullscreen}
+            onDownload={handleDownloadClick}
+            onShare={handleShareClick}
+            onClose={() => {
+              if (onClose) {
+                onClose();
+              } else {
+                setShowCustomizePanel(false);
+              }
+            }}
+            card={card}
+            selectedPresetId={selectedPresetId}
+            onPresetSelect={setSelectedPresetId}
+            onApplyCombo={handleComboApplication}
+            isApplyingPreset={isApplyingPreset}
+          />
+        )}
+
+        {/* Enhanced Card Container - Add ref */}
+        <div ref={cardContainerRef}>
+          <EnhancedCardContainer
+            card={card}
+            isFlipped={isFlipped}
+            isHovering={isHovering}
+            showEffects={showEffects}
+            effectValues={effectValues}
+            mousePosition={mousePosition}
+            rotation={rotation}
+            zoom={zoom}
+            isDragging={isDragging}
+            frameStyles={getFrameStyles()}
+            enhancedEffectStyles={getEnhancedEffectStyles()}
+            SurfaceTexture={SurfaceTexture}
+            onMouseDown={handleDragStart}
+            onMouseMove={handleDrag}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            onClick={() => setIsFlipped(!isFlipped)}
+          />
         </div>
+
+        {/* Configuration Details Panel */}
+        {!showCustomizePanel && (
+          <ConfigurationDetailsPanel
+            effectValues={effectValues}
+            selectedScene={selectedScene}
+            selectedLighting={selectedLighting}
+            materialSettings={materialSettings}
+            overallBrightness={overallBrightness}
+            interactiveLighting={interactiveLighting}
+          />
+        )}
+
+        {/* Info Panel - Enhanced visibility */}
+        {showStats && !isFlipped && !showCustomizePanel && (
+          <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: hasMultipleCards ? '180px' : '100px' }}>
+            <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
+              <div className="flex items-center justify-between text-white">
+                <div className="flex space-x-4 text-sm">
+                  <span>Click card to flip</span>
+                  <span>•</span>
+                  <span>Drag to rotate manually</span>
+                  <span>•</span>
+                  <span>Scroll to zoom</span>
+                  <span>•</span>
+                  <span>Move mouse for effects</span>
+                  {hasMultipleCards && (
+                    <>
+                      <span>•</span>
+                      <span>Use ← → keys to navigate</span>
+                    </>
+                  )}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="w-4 h-4" />
+                  <span className="text-sm">
+                    Enhanced Studio | Material: {selectedMaterial?.name || 'Default'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="container mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          {/* Enhanced Card Display */}
-          <div className="xl:col-span-2">
-            <Card className="bg-crd-darkGray border-crd-mediumGray">
-              <CardHeader className="text-center border-b border-crd-mediumGray">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Eye className="w-5 h-5 text-crd-blue" />
-                    <CardTitle className="text-crd-white text-lg">Card Preview</CardTitle>
-                  </div>
-                  <Badge variant="outline" className="text-xs text-crd-lightGray border-crd-mediumGray">
-                    Material: {selectedMaterial.name}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="p-8">
-                <div 
-                  className={`mx-auto transition-all duration-500 ${
-                    viewportSize === 'desktop' ? 'max-w-md' : 
-                    viewportSize === 'tablet' ? 'max-w-sm' : 'max-w-xs'
-                  }`}
-                  ref={containerRef}
-                  onMouseMove={handleMouseMove}
-                  onMouseLeave={() => setMousePosition({ x: 0.5, y: 0.5 })}
-                >
-                  <EnhancedCardContainer
-                    card={currentCard}
-                    effectValues={effectValues}
-                    showEffects={showEffects}
-                    interactiveLighting={true}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Enhanced Controls Panel - Updated to match site design */}
-          <div className="space-y-6">
-            {/* Viewport Controls */}
-            <Card className="bg-crd-darkGray border-crd-mediumGray">
-              <CardHeader className="pb-3 border-b border-crd-mediumGray">
-                <CardTitle className="text-crd-white text-sm flex items-center">
-                  <Monitor className="w-4 h-4 mr-2 text-crd-blue" />
-                  Viewport Size
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-3 gap-2 pt-4">
-                <ViewportButton size="desktop" />
-                <ViewportButton size="tablet" />
-                <ViewportButton size="mobile" />
-              </CardContent>
-            </Card>
-
-            {/* Quick Combo Presets */}
-            <Card className="bg-crd-darkGray border-crd-mediumGray">
-              <CardHeader className="pb-3 border-b border-crd-mediumGray">
-                <CardTitle className="text-crd-white text-sm flex items-center">
-                  <Zap className="w-4 h-4 mr-2 text-crd-orange" />
-                  Quick Effect Combos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <QuickComboPresets
-                  onApplyCombo={handleComboApply}
-                  currentEffects={effectValues}
-                  selectedPresetId={selectedPresetId}
-                  onPresetSelect={setSelectedPresetId}
-                />
-                <Separator className="my-4 bg-crd-mediumGray" />
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="w-full"
-                  onClick={handleEffectReset}
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Reset All Effects
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Tabs defaultValue="effects" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 bg-crd-darkGray border border-crd-mediumGray">
-                <TabsTrigger value="effects" className="text-xs data-[state=active]:bg-crd-mediumGray data-[state=active]:text-crd-white">
-                  <Zap className="w-4 h-4 mr-1" />
-                  Effects
-                </TabsTrigger>
-                <TabsTrigger value="materials" className="text-xs data-[state=active]:bg-crd-mediumGray data-[state=active]:text-crd-white">
-                  <Palette className="w-4 h-4 mr-1" />
-                  Materials
-                </TabsTrigger>
-                <TabsTrigger value="lighting" className="text-xs data-[state=active]:bg-crd-mediumGray data-[state=active]:text-crd-white">
-                  <Sparkles className="w-4 h-4 mr-1" />
-                  Lighting
-                </TabsTrigger>
-                <TabsTrigger value="environment" className="text-xs data-[state=active]:bg-crd-mediumGray data-[state=active]:text-crd-white">
-                  <Settings className="w-4 h-4 mr-1" />
-                  Scene
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="effects" className="mt-4">
-                <EnhancedEffectControls
-                  effectValues={effectValues}
-                  onEffectChange={handleEffectChange}
-                  onResetEffect={(effectId) => resetAllEffects()}
-                  onResetAll={handleEffectReset}
-                />
-              </TabsContent>
-
-              <TabsContent value="materials" className="mt-4">
-                <MaterialComboSection
-                  materialSettings={defaultMaterialSettings}
-                  onMaterialSettingsChange={() => {}}
-                />
-              </TabsContent>
-
-              <TabsContent value="lighting" className="mt-4">
-                <LightingComboSection
-                  selectedLighting={defaultLighting}
-                  overallBrightness={defaultBrightness}
-                  interactiveLighting={true}
-                  onLightingChange={() => {}}
-                  onBrightnessChange={() => {}}
-                  onInteractiveLightingToggle={() => {}}
-                />
-              </TabsContent>
-
-              <TabsContent value="environment" className="mt-4">
-                <EnvironmentComboSection
-                  selectedScene={defaultScene}
-                  onSceneChange={() => {}}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
-      </div>
-    </div>
+      {/* Export Options Dialog */}
+      <ExportOptionsDialog
+        isOpen={showExportDialog}
+        onClose={() => setShowExportDialog(false)}
+        onExport={exportCard}
+        isExporting={isExporting}
+        exportProgress={exportProgress}
+        cardTitle={card.title}
+      />
+    </>
   );
 };
+
+const presets = [
+  {
+    name: 'Crystal Prism',
+    description: 'Translucent crystalline finish',
+    effects: {
+      crystal: { intensity: 85, facets: 12, dispersion: 75, clarity: 80, sparkle: true }
+    }
+  },
+  {
+    name: 'Chrome Mirror',
+    description: 'Polished metallic chrome',
+    effects: {
+      chrome: { intensity: 75, sharpness: 85, distortion: 5, highlightSize: 45, polish: 90 }
+    }
+  },
+  {
+    name: 'Brushed Steel',
+    description: 'Industrial brushed metal',
+    effects: {
+      brushedmetal: { intensity: 70, direction: 45, grainDensity: 12, metallic: 85, roughness: 25 }
+    }
+  },
+  {
+    name: 'Vintage Classic',
+    description: 'Aged cardboard patina',
+    effects: {
+      vintage: { intensity: 55, aging: 65, patina: '#8b7355', wear: 45, scratches: true }
+    }
+  },
+  {
+    name: 'Holographic Premium',
+    description: 'Rainbow holographic effect',
+    effects: {
+      holographic: { intensity: 70, shiftSpeed: 100, rainbowSpread: 180, prismaticDepth: 50, animated: true }
+    }
+  },
+  {
+    name: 'Gold Luxury',
+    description: 'Luxurious gold plating',
+    effects: {
+      gold: { intensity: 85, shimmerSpeed: 120, platingThickness: 7, goldTone: 'rich', reflectivity: 90, colorEnhancement: true }
+    }
+  }
+];

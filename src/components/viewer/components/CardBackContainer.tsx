@@ -46,25 +46,16 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
       Math.pow(mousePosition.x - 0.5, 2) + Math.pow(mousePosition.y - 0.5, 2)
     );
     
-    // Enhanced effects for specific materials
-    const materialSpecificEffects = selectedMaterial.id === 'starlight' 
-      ? `drop-shadow(0 0 ${30 + intensity * 50}px rgba(255, 107, 53, ${0.4 + intensity * 0.5}))
-         drop-shadow(0 0 ${50 + intensity * 70}px rgba(79, 172, 254, ${0.3 + intensity * 0.4}))`
-      : selectedMaterial.id === 'gold'
-      ? `drop-shadow(0 0 ${25 + intensity * 40}px rgba(255, 215, 0, ${0.5 + intensity * 0.6}))
-         drop-shadow(0 0 ${15 + intensity * 25}px rgba(255, 255, 255, ${0.3 + intensity * 0.4}))`
-      : `drop-shadow(0 0 ${20 + intensity * 30}px rgba(255, 215, 0, ${0.3 + intensity * 0.4}))
-         drop-shadow(0 0 ${40 + intensity * 60}px rgba(59, 130, 246, ${0.2 + intensity * 0.3}))`;
-    
     return {
       filter: `
         ${baseTreatment.filter}
-        ${materialSpecificEffects}
-        brightness(${1 + intensity * 0.4})
-        contrast(${1.1 + intensity * 0.3})
+        drop-shadow(0 0 ${20 + intensity * 30}px rgba(255, 215, 0, ${0.3 + intensity * 0.4}))
+        drop-shadow(0 0 ${40 + intensity * 60}px rgba(59, 130, 246, ${0.2 + intensity * 0.3}))
+        brightness(${1 + intensity * 0.3})
+        contrast(${1.1 + intensity * 0.2})
       `,
-      transform: `${baseTreatment.transform} scale(${1 + intensity * 0.08})`,
-      opacity: baseTreatment.opacity + intensity * 0.15
+      transform: `${baseTreatment.transform} scale(${1 + intensity * 0.05})`,
+      opacity: baseTreatment.opacity + intensity * 0.1
     };
   };
 
@@ -114,7 +105,7 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
         {SurfaceTexture}
       </div>
 
-      {/* Enhanced dynamic texture overlays */}
+      {/* Enhanced dynamic texture overlay */}
       {selectedMaterial.texture === 'noise' && (
         <div 
           className="absolute inset-0 z-25 opacity-30 mix-blend-multiply"
@@ -126,70 +117,19 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
         />
       )}
 
-      {/* Starlight cosmic texture */}
-      {selectedMaterial.texture === 'stars' && (
-        <>
-          <div 
-            className="absolute inset-0 z-25 opacity-40"
-            style={{
-              background: `
-                radial-gradient(1px 1px at 20px 30px, rgba(255, 255, 255, 0.8), transparent),
-                radial-gradient(1px 1px at 40px 70px, rgba(255, 210, 63, 0.6), transparent),
-                radial-gradient(1px 1px at 90px 40px, rgba(79, 172, 254, 0.7), transparent),
-                radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.9), transparent),
-                radial-gradient(1px 1px at 160px 30px, rgba(255, 107, 53, 0.8), transparent)
-              `,
-              backgroundRepeat: 'repeat',
-              backgroundSize: '200px 100px',
-              animation: 'starlight-twinkle 6s ease-in-out infinite alternate'
-            }}
-          />
-          <div 
-            className="absolute inset-0 z-26 opacity-20"
-            style={{
-              background: `
-                radial-gradient(ellipse 300% 100% at 50% 0%, rgba(255, 107, 53, 0.3) 0%, transparent 40%),
-                radial-gradient(ellipse 200% 80% at 80% 100%, rgba(79, 172, 254, 0.4) 0%, transparent 50%)
-              `,
-              animation: 'cosmic-drift 12s ease-in-out infinite alternate'
-            }}
-          />
-        </>
-      )}
-
       {/* Material-specific accent overlay */}
       <div 
-        className="absolute inset-0 z-27"
+        className="absolute inset-0 z-26"
         style={{
-          background: selectedMaterial.id === 'starlight' 
-            ? `radial-gradient(
-                circle at 30% 30%, 
-                rgba(255, 107, 53, 0.2) 0%, 
-                transparent 40%
-              ), radial-gradient(
-                circle at 70% 70%, 
-                rgba(79, 172, 254, 0.15) 0%, 
-                transparent 30%
-              )`
-            : selectedMaterial.id === 'gold'
-            ? `radial-gradient(
-                circle at 40% 20%, 
-                rgba(255, 255, 255, 0.3) 0%, 
-                transparent 35%
-              ), radial-gradient(
-                circle at 60% 80%, 
-                rgba(255, 215, 0, 0.2) 0%, 
-                transparent 40%
-              )`
-            : `radial-gradient(
-                circle at 30% 30%, 
-                ${selectedMaterial.borderColor} 0%, 
-                transparent 40%
-              ), radial-gradient(
-                circle at 70% 70%, 
-                rgba(255, 255, 255, 0.1) 0%, 
-                transparent 30%
-              )`,
+          background: `radial-gradient(
+            circle at 30% 30%, 
+            ${selectedMaterial.borderColor} 0%, 
+            transparent 40%
+          ), radial-gradient(
+            circle at 70% 70%, 
+            rgba(255, 255, 255, 0.1) 0%, 
+            transparent 30%
+          )`,
           mixBlendMode: 'overlay',
           opacity: 0.6
         }}
@@ -233,29 +173,12 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
         </div>
       )}
 
-      {/* Enhanced CSS animations */}
+      {/* CSS animations */}
       <style>
         {`
           @keyframes noise-shift {
             0% { transform: translate(0, 0); }
             100% { transform: translate(-20px, -20px); }
-          }
-          
-          @keyframes starlight-twinkle {
-            0% { opacity: 0.4; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.1); }
-            100% { opacity: 0.4; transform: scale(1); }
-          }
-          
-          @keyframes cosmic-drift {
-            0% { transform: translateX(0) rotate(0deg); }
-            100% { transform: translateX(-10px) rotate(2deg); }
-          }
-          
-          @keyframes logo-glow-pulse {
-            0% { filter: brightness(1) drop-shadow(0 0 20px rgba(255, 255, 255, 0.3)); }
-            50% { filter: brightness(1.2) drop-shadow(0 0 40px rgba(255, 255, 255, 0.6)); }
-            100% { filter: brightness(1) drop-shadow(0 0 20px rgba(255, 255, 255, 0.3)); }
           }
         `}
       </style>

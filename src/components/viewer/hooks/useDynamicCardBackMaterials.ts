@@ -1,5 +1,5 @@
 
-import { useMemo } from 'react';
+import { useMemo, useRef, useCallback } from 'react';
 import type { EffectValues } from './useEnhancedCardEffects';
 
 export interface CardBackMaterial {
@@ -17,7 +17,7 @@ export interface CardBackMaterial {
   };
 }
 
-// Enhanced material presets with original Starlight and improved Golden
+// Enhanced material presets with more distinct visual differences
 export const CARD_BACK_MATERIALS: Record<string, CardBackMaterial> = {
   holographic: {
     id: 'holographic',
@@ -62,47 +62,13 @@ export const CARD_BACK_MATERIALS: Record<string, CardBackMaterial> = {
   
   gold: {
     id: 'gold',
-    name: 'Shiny Gold Surface',
-    background: `
-      radial-gradient(circle at 30% 30%, #ffef94 0%, #ffd700 15%, #b8860b 35%, #daa520 55%, #ffed4e 75%, #ffd700 90%, #b8860b 100%),
-      linear-gradient(135deg, #7d4f00 0%, #b8860b 20%, #daa520 40%, #ffd700 60%, #ffed4e 80%, #ffd700 100%)
-    `,
-    borderColor: 'rgba(255, 215, 0, 0.9)',
-    opacity: 0.88,
+    name: 'Gold Surface',
+    background: 'linear-gradient(135deg, #7d4f00 0%, #b8860b 25%, #daa520 50%, #ffd700 75%, #ffed4e 100%)',
+    borderColor: 'rgba(255, 215, 0, 0.8)',
+    opacity: 0.8,
     logoTreatment: {
-      filter: `
-        drop-shadow(0 8px 25px rgba(255, 215, 0, 0.9)) 
-        drop-shadow(0 4px 15px rgba(255, 255, 255, 0.6))
-        brightness(1.6) 
-        sepia(0.3) 
-        saturate(1.4) 
-        contrast(1.2)
-      `,
-      opacity: 0.95,
-      transform: 'scale(1.12)'
-    }
-  },
-  
-  starlight: {
-    id: 'starlight',
-    name: 'Starlight Cosmic',
-    background: `
-      radial-gradient(ellipse at 20% 80%, #ff6b35 0%, #f7931e 15%, #ffd23f 25%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, #4facfe 0%, #00f2fe 25%, transparent 50%),
-      linear-gradient(135deg, #ff6b35 0%, #f7931e 8%, #ffd23f 15%, #41295a 25%, #2f0743 40%, #1a0033 60%, #0d001a 80%, #000000 100%)
-    `,
-    borderColor: 'rgba(79, 172, 254, 0.8)',
-    opacity: 0.92,
-    texture: 'stars',
-    logoTreatment: {
-      filter: `
-        drop-shadow(0 0 20px rgba(255, 107, 53, 0.8))
-        drop-shadow(0 0 40px rgba(79, 172, 254, 0.6))
-        drop-shadow(0 8px 25px rgba(255, 210, 63, 0.7))
-        brightness(1.4)
-        saturate(1.3)
-      `,
-      opacity: 0.92,
+      filter: 'drop-shadow(0 8px 25px rgba(255, 215, 0, 0.9)) brightness(1.4) sepia(0.4) saturate(1.3)',
+      opacity: 0.85,
       transform: 'scale(1.1)'
     }
   },
@@ -134,6 +100,33 @@ export const CARD_BACK_MATERIALS: Record<string, CardBackMaterial> = {
     }
   },
   
+  ice: {
+    id: 'ice',
+    name: 'Ice Crystal Surface',
+    background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 25%, #90caf9 50%, #64b5f6 75%, #42a5f5 100%)',
+    borderColor: 'rgba(66, 165, 245, 0.7)',
+    opacity: 0.78,
+    blur: 1.5,
+    logoTreatment: {
+      filter: 'drop-shadow(0 6px 20px rgba(66, 165, 245, 0.8)) brightness(1.3) saturate(0.9)',
+      opacity: 0.85,
+      transform: 'scale(1.04)'
+    }
+  },
+  
+  starlight: {
+    id: 'starlight',
+    name: 'Starlight Surface',
+    background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #e94560 75%, #f39c12 100%)',
+    borderColor: 'rgba(243, 156, 18, 0.8)',
+    opacity: 0.87,
+    logoTreatment: {
+      filter: 'drop-shadow(0 8px 24px rgba(243, 156, 18, 0.9)) brightness(1.4) saturate(1.2)',
+      opacity: 0.9,
+      transform: 'scale(1.06)'
+    }
+  },
+  
   default: {
     id: 'default',
     name: 'Default Surface',
@@ -149,19 +142,22 @@ export const CARD_BACK_MATERIALS: Record<string, CardBackMaterial> = {
 };
 
 export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
+  const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  
+  // Debounced material calculation for smoother transitions
   const selectedMaterial = useMemo(() => {
     if (!effectValues) {
       console.log('🎨 Material Selection: No effect values, using default');
       return CARD_BACK_MATERIALS.default;
     }
     
-    // Calculate effect intensities with debugging
+    // Calculate effect intensities with enhanced debugging
     const effectIntensities = Object.entries(effectValues).map(([effectId, params]) => {
       const intensity = typeof params.intensity === 'number' ? params.intensity : 0;
       return { effectId, intensity };
-    }).filter(({ intensity }) => intensity > 0);
+    }).filter(({ intensity }) => intensity > 5); // Increased threshold to prevent flickering
     
-    console.log('🎨 Material Selection: Active effects:', effectIntensities);
+    console.log('🎨 Material Selection: Active effects (>5 intensity):', effectIntensities);
     
     // If no effects are active, return default
     if (effectIntensities.length === 0) {
@@ -176,17 +172,17 @@ export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
     
     console.log('🎨 Material Selection: Dominant effect:', dominantEffect);
     
-    // Enhanced material mapping with new materials
+    // Enhanced mapping with specific materials for combo effects
     const materialMapping: Record<string, string> = {
       holographic: 'holographic',
       crystal: 'crystal',
       chrome: 'chrome',
-      brushedmetal: 'chrome', // Use chrome material for brushed metal
-      gold: 'gold', // Use the enhanced shiny gold
+      brushedmetal: 'chrome',
+      gold: 'gold',
       vintage: 'vintage',
       prizm: 'prizm',
-      interference: 'crystal', // Use crystal material for interference
-      foilspray: 'starlight' // Map foil spray to the new starlight material
+      interference: 'ice', // Map interference to ice material
+      foilspray: 'starlight' // Map foil spray to starlight material
     };
     
     const materialId = materialMapping[dominantEffect.effectId] || 'default';
@@ -197,8 +193,27 @@ export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
     return selectedMat;
   }, [effectValues]);
   
+  // Pre-calculate material lookup for performance
+  const getMaterialForEffect = useCallback((effectId: string): CardBackMaterial => {
+    const materialMapping: Record<string, string> = {
+      holographic: 'holographic',
+      crystal: 'crystal',
+      chrome: 'chrome',
+      brushedmetal: 'chrome',
+      gold: 'gold',
+      vintage: 'vintage',
+      prizm: 'prizm',
+      interference: 'ice',
+      foilspray: 'starlight'
+    };
+    
+    const materialId = materialMapping[effectId] || 'default';
+    return CARD_BACK_MATERIALS[materialId];
+  }, []);
+  
   return {
     selectedMaterial,
-    availableMaterials: CARD_BACK_MATERIALS
+    availableMaterials: CARD_BACK_MATERIALS,
+    getMaterialForEffect
   };
 };
