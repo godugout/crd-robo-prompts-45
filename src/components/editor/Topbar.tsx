@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Save, Share, Download, Settings, Moon, ArrowLeft } from 'lucide-react';
 import { CRDButton } from '@/components/ui/design-system';
@@ -94,7 +95,7 @@ export const Topbar = ({ cardEditor }: TopbarProps) => {
     <div className="flex items-center justify-between h-16 px-4 bg-editor-dark border-b border-editor-border">
       <div className="flex items-center space-x-4">
         <CRDButton variant="ghost" size="sm" asChild>
-          <Link to="/">
+          <Link to="/cards">
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to Cards
           </Link>

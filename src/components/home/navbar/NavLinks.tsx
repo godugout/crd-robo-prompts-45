@@ -35,12 +35,6 @@ export const NavLinks = () => {
         Creators
       </Link>
       <Link 
-        to="/editor" 
-        className={`nav-item ${isActive('/editor') ? 'active' : ''}`}
-      >
-        Editor
-      </Link>
-      <Link 
         to="/profile" 
         className={`nav-item ${isActive('/profile') ? 'active' : ''}`}
       >
