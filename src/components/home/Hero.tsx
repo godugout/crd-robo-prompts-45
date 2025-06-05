@@ -27,7 +27,7 @@ export const Hero: React.FC = () => {
             card art and digital collectibles.
           </Typography>
         </div>
-        <Link to="/editor">
+        <Link to="/cards/create">
           <CRDButton 
             variant="primary"
             size="lg"

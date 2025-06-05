@@ -29,7 +29,7 @@ export const CTASection: React.FC = () => {
         <div className="flex gap-4">
           {user ? (
             <>
-              <Link to="/editor">
+              <Link to="/cards/create">
                 <CRDButton 
                   variant="primary" 
                   size="lg"
