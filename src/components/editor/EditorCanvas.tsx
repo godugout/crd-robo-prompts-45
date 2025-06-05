@@ -64,7 +64,14 @@ export const EditorCanvas = ({ zoom, cardEditor, onAddElement }: EditorCanvasPro
               
               {previewMode === 'photo' && (
                 <PhotoUploadCanvas 
-                  onPhotoSelect={handlePhotoSelect}
+                  onPhotoSelect={(file: File, preview: string) => {
+                    // Handle the file and preview data properly
+                    if (cardEditor) {
+                      cardEditor.updateCardField('image_url', preview);
+                      cardEditor.updateCardField('thumbnail_url', preview);
+                    }
+                    handlePhotoSelect(preview);
+                  }}
                   cardEditor={cardEditor}
                 />
               )}

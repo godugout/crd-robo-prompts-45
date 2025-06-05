@@ -24,7 +24,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const img = new Image();
+      const img = document.createElement('img'); // Fixed: Use document.createElement instead of new Image()
       
       img.onload = () => {
         // Standard trading card aspect ratio is 2.5:3.5 (roughly 0.714)
