@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -161,7 +160,6 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                       <SelectValue placeholder={selectedScene.name} />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* @ts-expect-error */}
                       {ENVIRONMENT_SCENES.map((scene) => (
                         <SelectItem key={scene.name} value={JSON.stringify(scene)}>
                           {scene.name}
@@ -179,7 +177,6 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                       <SelectValue placeholder={selectedLighting.name} />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* @ts-expect-error */}
                       {LIGHTING_PRESETS.map((lighting) => (
                         <SelectItem key={lighting.name} value={JSON.stringify(lighting)}>
                           {lighting.name}
