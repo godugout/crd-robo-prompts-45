@@ -1,3 +1,4 @@
+
 import React, { useMemo, useCallback } from 'react';
 import type { EffectValues } from './useEnhancedCardEffects';
 import { CARD_BACK_MATERIALS, type CardBackMaterial } from './useDynamicCardBackMaterials';
@@ -84,54 +85,93 @@ export const POPULAR_COMBOS: Array<{ id: string; name: string; effects: EffectVa
   }
 ];
 
+// Cache for pre-computed combo states
+const comboCache = new Map<string, boolean>();
+let currentActiveCombo = 'default';
+
 export const usePreRenderedMaterials = (currentEffects: EffectValues) => {
-  // Enhanced matching algorithm with better debugging
+  // Improved matching with tolerance for parameter variations
   const activeComboId = useMemo(() => {
-    // Create signature from current effects
-    const currentSignature = Object.entries(currentEffects)
-      .filter(([_, params]) => (params.intensity as number) > 0)
-      .map(([id, params]) => `${id}:${params.intensity}`)
-      .sort()
-      .join('|');
+    const currentSignature = createEffectSignature(currentEffects);
     
-    console.log('🔍 Effect Matching Debug:', {
+    console.log('🔍 Enhanced Effect Matching:', {
       currentEffects,
       currentSignature,
-      availableCombos: POPULAR_COMBOS.map(c => c.id)
+      previousActive: currentActiveCombo
     });
     
     // If no active effects, return default
     if (!currentSignature) {
-      console.log('✅ Matched: default (no active effects)');
-      return 'default';
+      const result = 'default';
+      if (currentActiveCombo !== result) {
+        console.log('✅ Switching to Default (no effects)');
+        currentActiveCombo = result;
+      }
+      return result;
     }
     
-    // Find exact match
-    const matchingCombo = POPULAR_COMBOS.find(combo => {
-      const comboSignature = Object.entries(combo.effects)
-        .filter(([_, params]) => (params.intensity as number) > 0)
-        .map(([id, params]) => `${id}:${params.intensity}`)
-        .sort()
-        .join('|');
+    // Find best match with tolerance
+    let bestMatch = 'default';
+    let bestScore = 0;
+    
+    for (const combo of POPULAR_COMBOS) {
+      if (combo.id === 'default') continue;
       
-      const isMatch = comboSignature === currentSignature;
+      const score = calculateMatchScore(currentEffects, combo.effects);
+      console.log(`🎯 Combo ${combo.id} match score: ${score}`);
       
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`🎭 Checking ${combo.id}:`, {
-          comboSignature,
-          currentSignature,
-          isMatch
-        });
+      if (score > bestScore && score >= 0.8) { // 80% match threshold
+        bestScore = score;
+        bestMatch = combo.id;
       }
-      
-      return isMatch;
-    });
+    }
     
-    const result = matchingCombo?.id || 'default';
-    console.log(`✅ Final Match: ${result}`);
+    if (currentActiveCombo !== bestMatch) {
+      console.log(`🔄 Active Combo Change: ${currentActiveCombo} → ${bestMatch} (score: ${bestScore})`);
+      currentActiveCombo = bestMatch;
+    }
     
-    return result;
+    return bestMatch;
   }, [currentEffects]);
+
+  // Create normalized effect signature
+  const createEffectSignature = useCallback((effects: EffectValues): string => {
+    return Object.entries(effects)
+      .filter(([_, params]) => (params.intensity as number) > 0)
+      .map(([id, params]) => `${id}:${Math.round(params.intensity as number)}`)
+      .sort()
+      .join('|');
+  }, []);
+
+  // Calculate match score between two effect sets
+  const calculateMatchScore = useCallback((current: EffectValues, target: EffectValues): number => {
+    const currentKeys = Object.keys(current).filter(key => (current[key].intensity as number) > 0);
+    const targetKeys = Object.keys(target);
+    
+    if (currentKeys.length === 0 && targetKeys.length === 0) return 1;
+    if (currentKeys.length === 0 || targetKeys.length === 0) return 0;
+    
+    // Check if effect types match
+    const commonEffects = currentKeys.filter(key => targetKeys.includes(key));
+    if (commonEffects.length === 0) return 0;
+    
+    let totalScore = 0;
+    let scoreCount = 0;
+    
+    for (const effectKey of commonEffects) {
+      const currentIntensity = current[effectKey].intensity as number;
+      const targetIntensity = target[effectKey].intensity as number;
+      
+      // Allow 10% tolerance in intensity matching
+      const intensityDiff = Math.abs(currentIntensity - targetIntensity) / Math.max(currentIntensity, targetIntensity);
+      const intensityScore = Math.max(0, 1 - intensityDiff / 0.1);
+      
+      totalScore += intensityScore;
+      scoreCount++;
+    }
+    
+    return scoreCount > 0 ? totalScore / scoreCount : 0;
+  }, []);
 
   const isPreRendered = useCallback((comboId: string) => {
     return POPULAR_COMBOS.some(combo => combo.id === comboId);
@@ -141,19 +181,22 @@ export const usePreRenderedMaterials = (currentEffects: EffectValues) => {
     return POPULAR_COMBOS.find(combo => combo.id === comboId);
   }, []);
 
-  // Log active combo changes
-  React.useEffect(() => {
-    console.log('🎯 Active Combo Changed:', {
-      activeComboId,
-      comboData: getComboById(activeComboId),
-      timestamp: Date.now()
-    });
-  }, [activeComboId, getComboById]);
+  // Cache management
+  const setComboCached = useCallback((comboId: string) => {
+    comboCache.set(comboId, true);
+  }, []);
+
+  const isComboCached = useCallback((comboId: string) => {
+    return comboCache.has(comboId);
+  }, []);
 
   return {
     POPULAR_COMBOS,
     activeComboId,
     isPreRendered,
-    getComboById
+    getComboById,
+    setComboCached,
+    isComboCached,
+    currentActiveCombo
   };
 };

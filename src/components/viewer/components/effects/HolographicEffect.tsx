@@ -92,11 +92,11 @@ export const HolographicEffect: React.FC<HolographicEffectProps> = ({
         }}
       />
 
-      {/* Concentric Circle Interference Pattern - Restored */}
+      {/* Concentric Circle Interference Pattern */}
       <div
         className="absolute inset-0 z-22"
         style={{
-          background: `
+          backgroundImage: `
             radial-gradient(
               circle at ${30 + mousePosition.x * 40}% ${30 + mousePosition.y * 40}%,
               transparent 0%,
@@ -117,11 +117,11 @@ export const HolographicEffect: React.FC<HolographicEffectProps> = ({
         }}
       />
 
-      {/* Secondary Circle Pattern - Different Size */}
+      {/* Secondary Circle Pattern */}
       <div
         className="absolute inset-0 z-23"
         style={{
-          background: `
+          backgroundImage: `
             radial-gradient(
               circle at ${60 + mousePosition.x * 25}% ${60 + mousePosition.y * 25}%,
               transparent 0%,
@@ -180,46 +180,7 @@ export const HolographicEffect: React.FC<HolographicEffectProps> = ({
         }}
       />
 
-      {/* 3D Depth Layer - Offset Colors */}
-      <div
-        className="absolute inset-0 z-25"
-        style={{
-          background: `
-            linear-gradient(
-              ${45 + mousePosition.y * 90}deg,
-              rgba(255, 100, 200, ${(holographicIntensity / 100) * 0.2}) 0%,
-              rgba(100, 255, 200, ${(holographicIntensity / 100) * 0.25}) 25%,
-              rgba(200, 100, 255, ${(holographicIntensity / 100) * 0.2}) 50%,
-              rgba(255, 200, 100, ${(holographicIntensity / 100) * 0.22}) 75%,
-              rgba(100, 200, 255, ${(holographicIntensity / 100) * 0.2}) 100%
-            )
-          `,
-          maskImage: `
-            radial-gradient(
-              ellipse at ${45 + mousePosition.x * 20}% ${55 + mousePosition.y * 15}%,
-              rgba(255, 255, 255, 0.7) 30%,
-              rgba(255, 255, 255, 0.4) 65%,
-              rgba(255, 255, 255, 0.1) 85%,
-              transparent 100%
-            )
-          `,
-          WebkitMaskImage: `
-            radial-gradient(
-              ellipse at ${45 + mousePosition.x * 20}% ${55 + mousePosition.y * 15}%,
-              rgba(255, 255, 255, 0.7) 30%,
-              rgba(255, 255, 255, 0.4) 65%,
-              rgba(255, 255, 255, 0.1) 85%,
-              transparent 100%
-            )
-          `,
-          mixBlendMode: 'overlay',
-          opacity: 0.5,
-          filter: `blur(${holographicBlur * 0.4}px)`,
-          transform: 'translateX(1px) translateY(1px)' // Subtle offset for depth
-        }}
-      />
-
-      {/* Metallic Shimmer Hotspots - Enhanced */}
+      {/* Metallic Shimmer Hotspots */}
       <div
         className="absolute inset-0 z-26"
         style={{

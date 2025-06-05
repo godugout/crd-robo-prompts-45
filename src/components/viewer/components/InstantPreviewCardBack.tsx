@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import { usePreRenderedMaterials } from '../hooks/usePreRenderedMaterials';
 import { PreRenderedCardBack } from './PreRenderedCardBack';
@@ -27,76 +27,78 @@ export const InstantPreviewCardBack: React.FC<InstantPreviewCardBackProps> = ({
   SurfaceTexture,
   interactiveLighting = false
 }) => {
-  const { POPULAR_COMBOS, activeComboId } = usePreRenderedMaterials(effectValues);
+  const { POPULAR_COMBOS, activeComboId, setComboCached, isComboCached } = usePreRenderedMaterials(effectValues);
+  const switchingRef = useRef(false);
+  const lastActiveRef = useRef(activeComboId);
+
+  // State management for combo switching
+  useEffect(() => {
+    if (lastActiveRef.current !== activeComboId) {
+      console.log(`🎯 InstantPreview: Combo Switch ${lastActiveRef.current} → ${activeComboId}`);
+      
+      // Mark as switching to prevent race conditions
+      switchingRef.current = true;
+      
+      // Force immediate DOM update
+      setTimeout(() => {
+        switchingRef.current = false;
+        setComboCached(activeComboId);
+        lastActiveRef.current = activeComboId;
+      }, 50);
+    }
+  }, [activeComboId, setComboCached]);
 
   // Debug logging for visibility state
-  console.log('🎯 InstantPreview Debug:', {
+  console.log('🎯 InstantPreview State:', {
     activeComboId,
     isFlipped,
-    effectValues,
-    totalCombos: POPULAR_COMBOS.length,
-    visibleComboData: POPULAR_COMBOS.find(c => c.id === activeComboId)
+    switching: switchingRef.current,
+    cached: isComboCached(activeComboId),
+    totalCombos: POPULAR_COMBOS.length
   });
-
-  // Log which elements should be visible/hidden
-  React.useEffect(() => {
-    const visibleCount = POPULAR_COMBOS.filter(combo => activeComboId === combo.id).length;
-    const hiddenCount = POPULAR_COMBOS.filter(combo => activeComboId !== combo.id).length;
-    
-    console.log('👁️ Visibility Check:', {
-      activeComboId,
-      visibleCount,
-      hiddenCount,
-      totalRendered: POPULAR_COMBOS.length
-    });
-
-    // Verify DOM state after render
-    setTimeout(() => {
-      const visibleElements = document.querySelectorAll('[data-combo][style*="opacity: 1"]');
-      const hiddenElements = document.querySelectorAll('[data-combo][style*="opacity: 0"]');
-      
-      console.log('🔍 DOM Visibility State:', {
-        visibleElements: Array.from(visibleElements).map(el => el.getAttribute('data-combo')),
-        hiddenElements: Array.from(hiddenElements).map(el => el.getAttribute('data-combo')),
-        expectedVisible: activeComboId
-      });
-    }, 100);
-  }, [activeComboId, POPULAR_COMBOS]);
 
   return (
     <div
-      className={`absolute inset-0 rounded-xl overflow-hidden ${
+      className={`absolute inset-0 rounded-xl overflow-hidden transition-all duration-300 ${
         isFlipped ? 'opacity-100' : 'opacity-0'
       }`}
       style={{
         transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(-180deg)',
-        transition: 'transform 0.6s ease-in-out, opacity 0.3s ease',
         backfaceVisibility: 'hidden'
       }}
       data-debug-container="instant-preview-back"
       data-active-combo={activeComboId}
+      data-switching={switchingRef.current}
     >
       {/* Debug overlay in development */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="absolute top-2 left-2 z-50 bg-black/80 text-white text-xs p-2 rounded pointer-events-none">
-          <div>Active: {activeComboId}</div>
-          <div>Flipped: {isFlipped ? 'YES' : 'NO'}</div>
-          <div>Combos: {POPULAR_COMBOS.length}</div>
+        <div className="absolute top-2 left-2 z-50 bg-black/90 text-white text-xs p-2 rounded pointer-events-none border border-gray-600">
+          <div className="space-y-1">
+            <div className="text-green-400 font-bold">Active: {activeComboId}</div>
+            <div>Flipped: {isFlipped ? 'YES' : 'NO'}</div>
+            <div>Switching: {switchingRef.current ? 'YES' : 'NO'}</div>
+            <div>Cached: {isComboCached(activeComboId) ? 'YES' : 'NO'}</div>
+            <div>Total: {POPULAR_COMBOS.length}</div>
+          </div>
         </div>
       )}
 
-      {/* Pre-render all popular material combinations */}
+      {/* Pre-render all popular material combinations with enhanced state control */}
       {POPULAR_COMBOS.map((combo) => {
         const isActive = activeComboId === combo.id;
+        const shouldRender = isActive || isComboCached(combo.id);
         
-        // Log each combo's visibility decision
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`🎭 Combo ${combo.id}:`, {
+        // Enhanced logging for each combo
+        if (process.env.NODE_ENV === 'development' && isActive) {
+          console.log(`🎭 Rendering Active Combo ${combo.id}:`, {
             isActive,
-            willBeVisible: isActive,
-            effectsMatch: JSON.stringify(combo.effects) === JSON.stringify(effectValues)
+            shouldRender,
+            effectsCount: Object.keys(combo.effects).length,
+            materialType: combo.material.id
           });
         }
+
+        if (!shouldRender) return null;
 
         return (
           <PreRenderedCardBack
@@ -114,6 +116,13 @@ export const InstantPreviewCardBack: React.FC<InstantPreviewCardBackProps> = ({
           />
         );
       })}
+
+      {/* Switching State Indicator */}
+      {switchingRef.current && process.env.NODE_ENV === 'development' && (
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-yellow-500/80 text-black text-sm px-3 py-1 rounded pointer-events-none">
+          Switching...
+        </div>
+      )}
     </div>
   );
 };

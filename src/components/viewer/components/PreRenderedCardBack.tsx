@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { CardBackMaterial } from '../hooks/useDynamicCardBackMaterials';
 import { CardEffectsLayer } from './CardEffectsLayer';
@@ -29,14 +29,24 @@ export const PreRenderedCardBack: React.FC<PreRenderedCardBackProps> = ({
   SurfaceTexture,
   interactiveLighting = false
 }) => {
-  // Log visibility changes
-  React.useEffect(() => {
-    console.log(`🎪 ${comboId} visibility changed:`, {
-      isActive,
-      materialId: material.id,
-      effectsCount: Object.keys(effects).length
-    });
-  }, [isActive, comboId, material.id, effects]);
+  const elementRef = useRef<HTMLDivElement>(null);
+  const lastActiveRef = useRef(isActive);
+
+  // Enhanced state change logging and DOM management
+  useEffect(() => {
+    if (lastActiveRef.current !== isActive) {
+      console.log(`🎪 ${comboId} visibility: ${lastActiveRef.current ? 'ACTIVE' : 'HIDDEN'} → ${isActive ? 'ACTIVE' : 'HIDDEN'}`);
+      
+      // Force DOM update for visibility change
+      if (elementRef.current) {
+        elementRef.current.style.opacity = isActive ? '1' : '0';
+        elementRef.current.style.visibility = isActive ? 'visible' : 'hidden';
+        elementRef.current.style.zIndex = isActive ? '10' : '0';
+      }
+      
+      lastActiveRef.current = isActive;
+    }
+  }, [isActive, comboId]);
 
   // Enhanced logo effects based on material
   const getLogoEffects = () => {
@@ -80,13 +90,13 @@ export const PreRenderedCardBack: React.FC<PreRenderedCardBackProps> = ({
     `
   };
 
-  // Use explicit visibility control instead of opacity for better debugging
+  // Enhanced visibility control with instant switching
   const visibilityStyle = {
     ...dynamicFrameStyles,
     opacity: isActive ? 1 : 0,
     visibility: isActive ? 'visible' : 'hidden',
     zIndex: isActive ? 10 : 0,
-    transition: 'opacity 0.15s ease-in-out, visibility 0s',
+    transition: 'opacity 0.1s ease-out, visibility 0s linear',
     backfaceVisibility: 'hidden',
     transform: 'rotateY(180deg)',
     pointerEvents: isActive ? 'auto' : 'none'
@@ -94,6 +104,7 @@ export const PreRenderedCardBack: React.FC<PreRenderedCardBackProps> = ({
 
   return (
     <div 
+      ref={elementRef}
       className="absolute inset-0 rounded-xl overflow-hidden"
       style={visibilityStyle}
       data-combo={comboId}
@@ -101,15 +112,16 @@ export const PreRenderedCardBack: React.FC<PreRenderedCardBackProps> = ({
       data-is-active={isActive}
       data-debug-visibility={isActive ? 'visible' : 'hidden'}
     >
-      {/* Debug info overlay for this specific combo */}
+      {/* Active combo indicator */}
       {process.env.NODE_ENV === 'development' && isActive && (
-        <div className="absolute top-8 right-2 z-50 bg-green-500/80 text-white text-xs p-1 rounded pointer-events-none">
+        <div className="absolute top-8 right-2 z-50 bg-green-500/90 text-white text-xs px-2 py-1 rounded pointer-events-none font-bold">
           {comboId}
         </div>
       )}
 
-      {/* Effects Layer with debugging */}
+      {/* Effects Layer with combo-specific key for proper re-rendering */}
       <CardEffectsLayer
+        key={`effects-${comboId}-${isActive}`}
         showEffects={true}
         isHovering={isHovering}
         effectIntensity={[50]}
