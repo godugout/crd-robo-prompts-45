@@ -20,13 +20,15 @@ export const ProfileDropdown = () => {
     return null;
   }
 
-  const displayName = user.full_name || user.username || user.email || 'User';
+  // The auth user object has different properties than our custom User type
+  const displayName = user.user_metadata?.full_name || user.email || 'User';
+  const avatarUrl = user.user_metadata?.avatar_url || '';
   
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="outline-none">
         <Avatar className="h-8 w-8 border-2 border-crd-mediumGray hover:border-crd-blue transition-colors cursor-pointer">
-          <AvatarImage src={user.avatar_url || ''} alt={displayName} />
+          <AvatarImage src={avatarUrl} alt={displayName} />
           <AvatarFallback className="bg-crd-mediumGray text-crd-white text-sm">
             {(displayName?.[0] || '').toUpperCase()}
           </AvatarFallback>
