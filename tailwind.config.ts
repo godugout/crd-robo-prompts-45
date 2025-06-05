@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -9,6 +10,26 @@ export default {
     "./src/**/*.{ts,tsx}",
   ],
   prefix: "",
+  safelist: [
+    // Dynamic color classes for effect sliders
+    'bg-purple-400', 'bg-purple-400/20', 'bg-purple-400/40', 'border-purple-400', 'border-purple-400/40', 'shadow-purple-400/50',
+    'bg-yellow-400', 'bg-yellow-400/20', 'bg-yellow-400/40', 'border-yellow-400', 'border-yellow-400/40', 'shadow-yellow-400/50',
+    'bg-blue-400', 'bg-blue-400/20', 'bg-blue-400/40', 'border-blue-400', 'border-blue-400/40', 'shadow-blue-400/50',
+    'bg-gray-400', 'bg-gray-400/20', 'bg-gray-400/40', 'border-gray-400', 'border-gray-400/40', 'shadow-gray-400/50',
+    'bg-green-400', 'bg-green-400/20', 'bg-green-400/40', 'border-green-400', 'border-green-400/40', 'shadow-green-400/50',
+    'bg-orange-400', 'bg-orange-400/20', 'bg-orange-400/40', 'border-orange-400', 'border-orange-400/40', 'shadow-orange-400/50',
+    'bg-cyan-400', 'bg-cyan-400/20', 'bg-cyan-400/40', 'border-cyan-400', 'border-cyan-400/40', 'shadow-cyan-400/50',
+    'bg-amber-400', 'bg-amber-400/20', 'bg-amber-400/40', 'border-amber-400', 'border-amber-400/40', 'shadow-amber-400/50',
+    // Slider track and thumb classes with dynamic colors
+    '[&>span]:bg-purple-400/20', '[&>span]:border-purple-400/40', '[&>span>span]:bg-purple-400/40', '[&>span>span>span]:bg-purple-400', '[&>span>span>span]:border-purple-400', '[&>span>span>span]:shadow-purple-400/50',
+    '[&>span]:bg-yellow-400/20', '[&>span]:border-yellow-400/40', '[&>span>span]:bg-yellow-400/40', '[&>span>span>span]:bg-yellow-400', '[&>span>span>span]:border-yellow-400', '[&>span>span>span]:shadow-yellow-400/50',
+    '[&>span]:bg-blue-400/20', '[&>span]:border-blue-400/40', '[&>span>span]:bg-blue-400/40', '[&>span>span>span]:bg-blue-400', '[&>span>span>span]:border-blue-400', '[&>span>span>span]:shadow-blue-400/50',
+    '[&>span]:bg-gray-400/20', '[&>span]:border-gray-400/40', '[&>span>span]:bg-gray-400/40', '[&>span>span>span]:bg-gray-400', '[&>span>span>span]:border-gray-400', '[&>span>span>span]:shadow-gray-400/50',
+    '[&>span]:bg-green-400/20', '[&>span]:border-green-400/40', '[&>span>span]:bg-green-400/40', '[&>span>span>span]:bg-green-400', '[&>span>span>span]:border-green-400', '[&>span>span>span]:shadow-green-400/50',
+    '[&>span]:bg-orange-400/20', '[&>span]:border-orange-400/40', '[&>span>span]:bg-orange-400/40', '[&>span>span>span]:bg-orange-400', '[&>span>span>span]:border-orange-400', '[&>span>span>span]:shadow-orange-400/50',
+    '[&>span]:bg-cyan-400/20', '[&>span]:border-cyan-400/40', '[&>span>span]:bg-cyan-400/40', '[&>span>span>span]:bg-cyan-400', '[&>span>span>span]:border-cyan-400', '[&>span>span>span]:shadow-cyan-400/50',
+    '[&>span]:bg-amber-400/20', '[&>span]:border-amber-400/40', '[&>span>span]:bg-amber-400/40', '[&>span>span>span]:bg-amber-400', '[&>span>span>span]:border-amber-400', '[&>span>span>span]:shadow-amber-400/50',
+  ],
   theme: {
     container: {
       center: true,
