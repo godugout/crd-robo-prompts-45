@@ -82,9 +82,9 @@ export const EffectCardViewer = () => {
     updateEffect(effectName, 0);
   };
 
-  const getMaterialStyle = () => {
+  const getMaterialStyle = (): React.CSSProperties => {
     const { activeCombo, effects } = cardState;
-    let baseStyle = {};
+    let baseStyle: React.CSSProperties = {};
 
     switch (activeCombo) {
       case 'solar':
@@ -106,7 +106,6 @@ export const EffectCardViewer = () => {
           boxShadow: '0 0 25px rgba(192, 192, 192, 0.5)',
         };
         break;
-      // Add other combo styles...
       default:
         baseStyle = {
           background: 'linear-gradient(45deg, #667eea, #764ba2)',
@@ -146,6 +145,15 @@ export const EffectCardViewer = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 p-6">
+      <style>
+        {`
+          @keyframes holographicShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+          }
+        `}
+      </style>
+      
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
@@ -259,13 +267,6 @@ export const EffectCardViewer = () => {
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes holographicShift {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-      `}</style>
     </div>
   );
 };
