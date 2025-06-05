@@ -24,7 +24,8 @@ export class DevAuthService {
         app_metadata: {},
         user_metadata: {
           full_name: 'Jay Dev User',
-          username: 'jay_dev'
+          username: 'jay_dev',
+          role: 'admin'
         },
         aud: 'authenticated',
         created_at: new Date().toISOString(),
@@ -93,6 +94,38 @@ export class DevAuthService {
 
   isDevMode(): boolean {
     return typeof window !== 'undefined' && window.location.hostname === 'localhost';
+  }
+
+  // Create a specific test user session
+  createTestUserSession(email: string, role: string = 'free'): { user: User; session: Session } {
+    const mockUser: User = {
+      id: `dev_${role}_${Date.now()}`,
+      email: email,
+      email_confirmed_at: new Date().toISOString(),
+      phone: '',
+      confirmed_at: new Date().toISOString(),
+      last_sign_in_at: new Date().toISOString(),
+      app_metadata: {},
+      user_metadata: {
+        full_name: `${role.charAt(0).toUpperCase() + role.slice(1)} User`,
+        role: role
+      },
+      aud: 'authenticated',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      role: 'authenticated'
+    };
+
+    const mockSession: Session = {
+      access_token: `dev_${role}_token_${Date.now()}`,
+      refresh_token: `dev_${role}_refresh_${Date.now()}`,
+      expires_in: 3600,
+      expires_at: Math.floor(Date.now() / 1000) + 3600,
+      token_type: 'bearer',
+      user: mockUser
+    };
+
+    return { user: mockUser, session: mockSession };
   }
 }
 

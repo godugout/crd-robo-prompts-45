@@ -2,12 +2,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { CRDButton } from '@/components/ui/design-system';
+import { useAuth } from '@/contexts/AuthContext';
 import { useSignUpForm } from './hooks/useSignUpForm';
 import { AuthFormContainer } from './components/AuthFormContainer';
 import { PasswordFields } from './components/PasswordFields';
 import { UserInfoFields } from './components/UserInfoFields';
 
 export const SignUpForm: React.FC = () => {
+  const { signUp } = useAuth();
   const {
     formData,
     handleInputChange,
@@ -17,9 +19,19 @@ export const SignUpForm: React.FC = () => {
     isFormValid,
   } = useSignUpForm();
 
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isFormValid) return;
+    
+    const { error } = await signUp(formData.email, formData.password);
+    if (!error) {
+      // Handle success - could redirect or show success message
+    }
+  };
+
   return (
     <AuthFormContainer>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} className="space-y-4">
         <UserInfoFields
           fullName={formData.fullName}
           username={formData.username}

@@ -1,15 +1,15 @@
 
 import React from 'react';
 import { AuthLayout } from '@/components/auth/AuthLayout';
-import { CustomSignInForm } from '@/components/auth/CustomSignInForm';
+import { SignInForm } from '@/components/auth/SignInForm';
 
 const SignIn = () => {
   return (
     <AuthLayout
       title="Welcome Back"
-      description="Sign in with your username and passcode"
+      description="Sign in to your account"
     >
-      <CustomSignInForm />
+      <SignInForm />
     </AuthLayout>
   );
 };
