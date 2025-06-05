@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useMemo, startTransition, useRef } from 'react';
+import { useState, useCallback } from 'react';
 
 export interface EffectParameter {
   id: string;
@@ -103,9 +103,7 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffectConfig[] = [
     parameters: [
       { id: 'intensity', name: 'Intensity', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 0 },
       { id: 'facets', name: 'Facet Count', type: 'slider', min: 3, max: 20, step: 1, defaultValue: 8 },
-      { id: 'dispersion', name: 'Light Dispersion', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 60 },
-      { id: 'clarity', name: 'Crystal Clarity', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 60 },
-      { id: 'sparkle', name: 'Sparkle Effect', type: 'toggle', defaultValue: true }
+      { id: 'dispersion', name: 'Light Dispersion', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 60 }
     ]
   },
   {
@@ -118,38 +116,8 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffectConfig[] = [
       { id: 'aging', name: 'Aging Level', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 40 },
       { id: 'patina', name: 'Patina Color', type: 'color', defaultValue: '#8b7355' }
     ]
-  },
-  {
-    id: 'gold',
-    name: 'Gold',
-    description: 'Luxurious gold plating with authentic shimmer',
-    category: 'metallic',
-    parameters: [
-      { id: 'intensity', name: 'Intensity', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 0 },
-      { id: 'shimmerSpeed', name: 'Shimmer Speed', type: 'slider', min: 0, max: 200, step: 5, defaultValue: 80 },
-      { id: 'platingThickness', name: 'Plating Thickness', type: 'slider', min: 1, max: 10, step: 0.5, defaultValue: 5 },
-      { id: 'goldTone', name: 'Gold Tone', type: 'select', defaultValue: 'rich', 
-        options: [
-          { value: 'rich', label: 'Rich Gold' },
-          { value: 'rose', label: 'Rose Gold' },
-          { value: 'white', label: 'White Gold' },
-          { value: 'antique', label: 'Antique Gold' }
-        ]
-      },
-      { id: 'reflectivity', name: 'Reflectivity', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 85 },
-      { id: 'colorEnhancement', name: 'Yellow Enhancement', type: 'toggle', defaultValue: true }
-    ]
   }
 ];
-
-// Enhanced state interface for tracking preset application with locks
-interface PresetApplicationState {
-  isApplying: boolean;
-  currentPresetId?: string;
-  appliedAt: number;
-  isLocked: boolean;
-  stuckDetection: number; // New: track potential stuck states
-}
 
 export const useEnhancedCardEffects = () => {
   const [effectValues, setEffectValues] = useState<EffectValues>(() => {
@@ -163,39 +131,7 @@ export const useEnhancedCardEffects = () => {
     return initialValues;
   });
 
-  // Enhanced preset application state with stuck detection
-  const [presetState, setPresetState] = useState<PresetApplicationState>({
-    isApplying: false,
-    appliedAt: 0,
-    isLocked: false,
-    stuckDetection: 0
-  });
-
-  // Refs for debouncing and cleanup
-  const presetTimeoutRef = useRef<NodeJS.Timeout>();
-  const lockTimeoutRef = useRef<NodeJS.Timeout>();
-  const stuckDetectionRef = useRef<NodeJS.Timeout>();
-
-  // Memoize default values to prevent unnecessary recalculations
-  const defaultEffectValues = useMemo(() => {
-    const defaults: EffectValues = {};
-    ENHANCED_VISUAL_EFFECTS.forEach(effect => {
-      defaults[effect.id] = {};
-      effect.parameters.forEach(param => {
-        defaults[effect.id][param.id] = param.defaultValue;
-      });
-    });
-    return defaults;
-  }, []);
-
   const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
-    console.log('🎛️ Effect Change:', { effectId, parameterId, value });
-    
-    // Clear preset state when manual changes are made (unless currently applying a preset)
-    if (!presetState.isApplying && !presetState.isLocked) {
-      setPresetState(prev => ({ ...prev, currentPresetId: undefined, stuckDetection: 0 }));
-    }
-    
     setEffectValues(prev => ({
       ...prev,
       [effectId]: {
@@ -203,10 +139,9 @@ export const useEnhancedCardEffects = () => {
         [parameterId]: value
       }
     }));
-  }, [presetState.isApplying, presetState.isLocked]);
+  }, []);
 
   const resetEffect = useCallback((effectId: string) => {
-    console.log('🔄 Resetting effect:', effectId);
     const effect = ENHANCED_VISUAL_EFFECTS.find(e => e.id === effectId);
     if (effect) {
       const resetValues: Record<string, any> = {};
@@ -221,123 +156,18 @@ export const useEnhancedCardEffects = () => {
   }, []);
 
   const resetAllEffects = useCallback(() => {
-    console.log('🔄 Resetting all effects');
-    
-    // Clear all pending timeouts
-    if (presetTimeoutRef.current) {
-      clearTimeout(presetTimeoutRef.current);
-    }
-    if (lockTimeoutRef.current) {
-      clearTimeout(lockTimeoutRef.current);
-    }
-    if (stuckDetectionRef.current) {
-      clearTimeout(stuckDetectionRef.current);
-    }
-    
-    setPresetState({ isApplying: false, appliedAt: Date.now(), isLocked: false, stuckDetection: 0 });
-    setEffectValues(defaultEffectValues);
-  }, [defaultEffectValues]);
-
-  // Enhanced atomic preset application with force updates and recovery mechanisms
-  const applyPreset = useCallback((preset: EffectValues, presetId?: string) => {
-    console.log('🎨 Applying preset atomically with enhanced recovery:', { presetId, preset });
-    
-    // Prevent overlapping applications
-    if (presetState.isLocked) {
-      console.log('⚠️ Preset application blocked - currently locked');
-      return;
-    }
-    
-    // Clear any existing timeouts
-    if (presetTimeoutRef.current) {
-      clearTimeout(presetTimeoutRef.current);
-    }
-    if (lockTimeoutRef.current) {
-      clearTimeout(lockTimeoutRef.current);
-    }
-    if (stuckDetectionRef.current) {
-      clearTimeout(stuckDetectionRef.current);
-    }
-    
-    // Set synchronization lock with stuck detection
-    setPresetState({ 
-      isApplying: true, 
-      currentPresetId: presetId, 
-      appliedAt: Date.now(),
-      isLocked: true,
-      stuckDetection: 0
+    const resetValues: EffectValues = {};
+    ENHANCED_VISUAL_EFFECTS.forEach(effect => {
+      resetValues[effect.id] = {};
+      effect.parameters.forEach(param => {
+        resetValues[effect.id][param.id] = param.defaultValue;
+      });
     });
-    
-    // Use startTransition for smooth updates with forced reset
-    startTransition(() => {
-      // Step 1: Force complete reset to defaults (prevents material sticking)
-      const resetValues = { ...defaultEffectValues };
-      setEffectValues(resetValues);
-      
-      // Step 2: Apply preset effects after a brief delay for reset to complete
-      presetTimeoutRef.current = setTimeout(() => {
-        const newEffectValues = { ...defaultEffectValues };
-        
-        // Apply preset effects with proper validation
-        Object.entries(preset).forEach(([effectId, effectParams]) => {
-          if (newEffectValues[effectId] && effectParams) {
-            Object.entries(effectParams).forEach(([paramId, value]) => {
-              if (newEffectValues[effectId][paramId] !== undefined) {
-                newEffectValues[effectId][paramId] = value;
-              }
-            });
-          }
-        });
-        
-        // Apply all changes atomically
-        setEffectValues(newEffectValues);
-        
-        // Mark application as complete and release lock after material calc time
-        lockTimeoutRef.current = setTimeout(() => {
-          setPresetState(prev => ({ 
-            ...prev, 
-            isApplying: false, 
-            isLocked: false,
-            stuckDetection: 0
-          }));
-        }, 600); // Increased delay for material recalculation
-        
-        // Set up stuck detection - if still locked after 2 seconds, force unlock
-        stuckDetectionRef.current = setTimeout(() => {
-          console.log('🚨 Stuck state detected, forcing unlock');
-          setPresetState(prev => ({
-            ...prev,
-            isApplying: false,
-            isLocked: false,
-            stuckDetection: prev.stuckDetection + 1
-          }));
-        }, 2000);
-        
-      }, 100); // Brief delay for reset to complete
-    });
-  }, [defaultEffectValues, presetState.isLocked]);
+    setEffectValues(resetValues);
+  }, []);
 
-  // Emergency force unlock function
-  const forceUnlock = useCallback(() => {
-    console.log('🚨 Force unlocking preset state');
-    
-    // Clear all timeouts
-    if (presetTimeoutRef.current) {
-      clearTimeout(presetTimeoutRef.current);
-    }
-    if (lockTimeoutRef.current) {
-      clearTimeout(lockTimeoutRef.current);
-    }
-    if (stuckDetectionRef.current) {
-      clearTimeout(stuckDetectionRef.current);
-    }
-    
-    setPresetState(prev => ({
-      ...prev,
-      isApplying: false,
-      isLocked: false,
-      stuckDetection: prev.stuckDetection + 1
-    }));
+  const applyPreset = useCallback((preset: EffectValues) => {
+    setEffectValues(preset);
   }, []);
 
   return {
@@ -345,9 +175,6 @@ export const useEnhancedCardEffects = () => {
     handleEffectChange,
     resetEffect,
     resetAllEffects,
-    applyPreset,
-    presetState,
-    isApplyingPreset: presetState.isApplying || presetState.isLocked,
-    forceUnlock // New: emergency unlock function
+    applyPreset
   };
 };

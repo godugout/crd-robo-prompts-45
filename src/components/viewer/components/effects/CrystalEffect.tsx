@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { EffectValues } from '../../hooks/useEnhancedCardEffects';
 
@@ -16,128 +17,149 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
   };
 
   const crystalIntensity = getEffectParam('crystal', 'intensity', 0);
-  const facets = getEffectParam('crystal', 'facets', 6);
-  const dispersion = getEffectParam('crystal', 'dispersion', 40);
-  const clarity = getEffectParam('crystal', 'clarity', 60);
-  const sparkle = getEffectParam('crystal', 'sparkle', true);
 
   if (crystalIntensity <= 0) return null;
 
-  console.log('💎 Crystal Effect Rendering:', {
-    crystalIntensity,
-    facets,
-    dispersion,
-    clarity,
-    sparkle
-  });
-
-  // More subtle opacity calculations
-  const baseOpacity = (crystalIntensity / 100) * 0.12; // Further reduced
-  const gentleOpacity = baseOpacity * 0.7;
-  const subtleOpacity = baseOpacity * 0.4;
-
-  // Organic movement based on mouse position
-  const mouseInfluence = {
-    x: (mousePosition.x - 0.5) * 25,
-    y: (mousePosition.y - 0.5) * 25
-  };
+  // Calculate intensity-based blur for crystal clarity
+  const intensityBlur = Math.max(0, (crystalIntensity / 100) * 0.5);
 
   return (
     <>
-      {/* Very subtle crystal base layer */}
+      {/* Crystal Base Clarity Layer */}
       <div
-        className="absolute inset-0 z-14"
+        className="absolute inset-0 z-20"
         style={{
-          background: `radial-gradient(
-            ellipse at ${50 + mouseInfluence.x}% ${50 + mouseInfluence.y}%,
-            rgba(255, 255, 255, ${gentleOpacity * 0.8}) 0%,
-            rgba(240, 248, 255, ${subtleOpacity * 0.6}) 25%,
-            rgba(230, 240, 250, ${subtleOpacity * 0.3}) 50%,
-            transparent 75%
-          )`,
-          mixBlendMode: 'soft-light'
+          background: `
+            radial-gradient(
+              ellipse at ${50 + mousePosition.x * 15}% ${50 + mousePosition.y * 15}%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.3}) 0%,
+              rgba(248, 252, 255, ${(crystalIntensity / 100) * 0.2}) 40%,
+              rgba(240, 248, 255, ${(crystalIntensity / 100) * 0.1}) 70%,
+              transparent 100%
+            )
+          `,
+          mixBlendMode: 'screen',
+          opacity: 0.8,
+          filter: `blur(${intensityBlur * 0.2}px)`
         }}
       />
-
-      {/* Gentle prismatic dispersion */}
-      {dispersion > 0 && (
-        <div
-          className="absolute inset-0 z-15"
-          style={{
-            background: `radial-gradient(
-              circle at ${50 + mousePosition.x * 15}% ${50 + mousePosition.y * 15}%,
-              rgba(255, 200, 220, ${baseOpacity * (dispersion / 100) * 0.3}) 0%,
-              rgba(200, 255, 230, ${baseOpacity * (dispersion / 100) * 0.25}) 30%,
-              rgba(200, 230, 255, ${baseOpacity * (dispersion / 100) * 0.25}) 60%,
-              transparent 85%
-            )`,
-            mixBlendMode: 'overlay'
-          }}
-        />
-      )}
-
-      {/* Subtle light refraction pattern */}
+      
+      {/* Hexagonal Crystal Facets */}
       <div
-        className="absolute inset-0 z-16"
+        className="absolute inset-0 z-21"
         style={{
-          background: `linear-gradient(
-            ${mousePosition.x * 180 + 45}deg,
-            transparent 0%,
-            rgba(255, 255, 255, ${gentleOpacity * 0.6}) 20%,
-            transparent 25%,
-            rgba(230, 245, 255, ${subtleOpacity * 0.8}) 45%,
-            transparent 50%,
-            rgba(245, 255, 230, ${subtleOpacity * 0.8}) 70%,
-            transparent 75%,
-            rgba(255, 245, 230, ${gentleOpacity * 0.4}) 95%,
-            transparent 100%
-          )`,
-          mixBlendMode: 'normal',
-          opacity: clarity / 100
+          background: `
+            conic-gradient(
+              from ${mousePosition.x * 30}deg at ${50 + mousePosition.x * 20}% ${50 + mousePosition.y * 20}%,
+              transparent 0deg,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.6}) 30deg,
+              transparent 60deg,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.5}) 90deg,
+              transparent 120deg,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.7}) 150deg,
+              transparent 180deg,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.5}) 210deg,
+              transparent 240deg,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.6}) 270deg,
+              transparent 300deg,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.5}) 330deg,
+              transparent 360deg
+            )
+          `,
+          maskImage: `
+            polygon(50% 0%, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%)
+          `,
+          WebkitMaskImage: `
+            polygon(50% 0%, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%)
+          `,
+          mixBlendMode: 'hard-light',
+          opacity: 0.7,
+          filter: `blur(${intensityBlur * 0.1}px)`
         }}
       />
-
-      {/* Very subtle sparkle points */}
-      {sparkle && Array.from({ length: Math.min(Math.max(facets, 3), 6) }, (_, i) => {
-        const angle = (360 / Math.max(facets, 3)) * i + mousePosition.x * 40;
-        const radius = 0.12 + (i % 3) * 0.08;
-        const x = 50 + Math.cos((angle * Math.PI) / 180) * radius * 100;
-        const y = 50 + Math.sin((angle * Math.PI) / 180) * radius * 100;
-        
-        return (
-          <div
-            key={i}
-            className="absolute z-19"
-            style={{
-              left: `${x}%`,
-              top: `${y}%`,
-              width: `${3 + (crystalIntensity * 0.04)}px`,
-              height: `${3 + (crystalIntensity * 0.04)}px`,
-              background: `radial-gradient(circle, rgba(255, 255, 255, ${gentleOpacity * 1.5}) 0%, rgba(240, 250, 255, ${subtleOpacity * 1.2}) 40%, transparent 70%)`,
-              borderRadius: '50%',
-              transform: 'translate(-50%, -50%)',
-              filter: `blur(${0.3 + (i * 0.15)}px)`,
-              animation: `crystal-glow-${i} ${2.5 + (i * 0.3)}s ease-in-out infinite alternate`
-            }}
-          />
-        );
-      })}
-
-      {/* CSS Animations with reduced intensity */}
-      <style>
-        {Array.from({ length: Math.min(Math.max(facets, 3), 6) }, (_, i) => `
-          @keyframes crystal-glow-${i} {
-            0% { 
-              opacity: ${gentleOpacity * 0.4}; 
-              transform: translate(-50%, -50%) scale(0.9); 
-            }
-            100% { 
-              opacity: ${gentleOpacity * 1.2}; 
-              transform: translate(-50%, -50%) scale(1.05); 
-            }
-          }
-        `).join('\n')}
-      </style>
+      
+      {/* Sharp Diamond Reflections */}
+      <div
+        className="absolute inset-0 z-22"
+        style={{
+          background: `
+            linear-gradient(
+              ${30 + mousePosition.y * 45}deg,
+              transparent 45%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.9}) 48%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.95}) 50%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.9}) 52%,
+              transparent 55%
+            ),
+            linear-gradient(
+              ${120 + mousePosition.x * 45}deg,
+              transparent 45%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.8}) 48%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.85}) 50%,
+              rgba(255, 255, 255, ${(crystalIntensity / 100) * 0.8}) 52%,
+              transparent 55%
+            )
+          `,
+          maskImage: `
+            radial-gradient(
+              circle at ${40 + mousePosition.x * 20}% ${40 + mousePosition.y * 20}%,
+              rgba(255, 255, 255, 1) 0%,
+              rgba(255, 255, 255, 0.8) 50%,
+              rgba(255, 255, 255, 0.2) 80%,
+              transparent 100%
+            )
+          `,
+          WebkitMaskImage: `
+            radial-gradient(
+              circle at ${40 + mousePosition.x * 20}% ${40 + mousePosition.y * 20}%,
+              rgba(255, 255, 255, 1) 0%,
+              rgba(255, 255, 255, 0.8) 50%,
+              rgba(255, 255, 255, 0.2) 80%,
+              transparent 100%
+            )
+          `,
+          mixBlendMode: 'screen',
+          opacity: 0.8
+        }}
+      />
+      
+      {/* Subtle Prismatic Dispersion */}
+      <div
+        className="absolute inset-0 z-23"
+        style={{
+          background: `
+            linear-gradient(
+              ${mousePosition.x * 90}deg,
+              rgba(255, 230, 230, ${(crystalIntensity / 100) * 0.15}) 0%,
+              rgba(230, 255, 230, ${(crystalIntensity / 100) * 0.12}) 25%,
+              rgba(230, 230, 255, ${(crystalIntensity / 100) * 0.15}) 50%,
+              rgba(255, 255, 230, ${(crystalIntensity / 100) * 0.12}) 75%,
+              rgba(255, 230, 255, ${(crystalIntensity / 100) * 0.15}) 100%
+            )
+          `,
+          maskImage: `
+            radial-gradient(
+              ellipse at ${60 + mousePosition.x * 10}% ${60 + mousePosition.y * 10}%,
+              rgba(255, 255, 255, 0.8) 30%,
+              rgba(255, 255, 255, 0.4) 70%,
+              rgba(255, 255, 255, 0.1) 90%,
+              transparent 100%
+            )
+          `,
+          WebkitMaskImage: `
+            radial-gradient(
+              ellipse at ${60 + mousePosition.x * 10}% ${60 + mousePosition.y * 10}%,
+              rgba(255, 255, 255, 0.8) 30%,
+              rgba(255, 255, 255, 0.4) 70%,
+              rgba(255, 255, 255, 0.1) 90%,
+              transparent 100%
+            )
+          `,
+          mixBlendMode: 'color-dodge',
+          opacity: 0.6,
+          filter: `blur(${intensityBlur}px)`
+        }}
+      />
     </>
   );
 };

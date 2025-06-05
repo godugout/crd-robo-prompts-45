@@ -1,16 +1,34 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { Sparkles, X, RefreshCw } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { 
+  X, 
+  Maximize2, 
+  Minimize2, 
+  Share2, 
+  Download, 
+  Settings,
+  Palette,
+  Globe,
+  Zap,
+  RotateCcw,
+  Save,
+  Menu,
+  ChevronDown,
+  ChevronRight
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { QuickComboPresets } from './QuickComboPresets';
-import { CompactEffectControls } from './CompactEffectControls';
-import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from '../constants';
-import type { EffectValues } from '../hooks/useEnhancedCardEffects';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
+import type { EffectValues } from '../hooks/useEnhancedCardEffects';
+import { QuickComboPresets } from './QuickComboPresets';
+import { EffectsComboSection } from './EffectsComboSection';
+import { EnvironmentComboSection } from './EnvironmentComboSection';
+import { LightingComboSection } from './LightingComboSection';
+import { MaterialComboSection } from './MaterialComboSection';
+import { ComboMemorySection } from './ComboMemorySection';
 
 interface ProgressiveCustomizePanelProps {
   selectedScene: EnvironmentScene;
@@ -28,14 +46,10 @@ interface ProgressiveCustomizePanelProps {
   onInteractiveLightingToggle: () => void;
   onMaterialSettingsChange: (settings: MaterialSettings) => void;
   onToggleFullscreen: () => void;
-  onDownload: () => void;
-  onShare?: () => void;
-  onClose: () => void;
-  card: any;
-  selectedPresetId?: string;
-  onPresetSelect: (presetId: string) => void;
-  onApplyCombo: (combo: any) => void;
-  isApplyingPreset?: boolean;
+  onDownload?: (card: CardData) => void;
+  onShare?: (card: CardData) => void;
+  onClose?: () => void;
+  card: CardData;
 }
 
 export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps> = ({
@@ -57,332 +71,246 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
   onDownload,
   onShare,
   onClose,
-  card,
-  selectedPresetId,
-  onPresetSelect,
-  onApplyCombo,
-  isApplyingPreset = false
+  card
 }) => {
-  const [showEnvironment, setShowEnvironment] = useState(false);
-  const [showMaterial, setShowMaterial] = useState(false);
-  const [lastChangeTime, setLastChangeTime] = useState(Date.now());
-  const [showForceRefresh, setShowForceRefresh] = useState(false);
+  const [activeTab, setActiveTab] = useState('styles');
+  const [savedCombosOpen, setSavedCombosOpen] = useState(false);
+  const [selectedPresetId, setSelectedPresetId] = useState<string | undefined>();
 
-  // Detect stuck states and show force refresh option
-  useEffect(() => {
-    if (isApplyingPreset) {
-      setLastChangeTime(Date.now());
-      setShowForceRefresh(false);
-      
-      // Show force refresh if stuck for more than 3 seconds
-      const stuckTimer = setTimeout(() => {
-        if (isApplyingPreset) {
-          console.log('🚨 Detected stuck preset application');
-          setShowForceRefresh(true);
-        }
-      }, 3000);
-      
-      return () => clearTimeout(stuckTimer);
-    }
-  }, [isApplyingPreset]);
+  // Calculate active effects count
+  const getActiveEffectsCount = useCallback(() => {
+    return Object.values(effectValues).filter(effect => {
+      const intensity = effect.intensity;
+      return typeof intensity === 'number' && intensity > 0;
+    }).length;
+  }, [effectValues]);
 
-  const handleBrightnessChange = useCallback(
-    (value: number[]) => {
-      onBrightnessChange(value);
-      setLastChangeTime(Date.now());
-    },
-    [onBrightnessChange],
-  );
-
-  const handleMaterialSettingChange = useCallback(
-    (key: keyof MaterialSettings, value: number) => {
-      onMaterialSettingsChange({
-        ...materialSettings,
-        [key]: value,
+  // Handle preset selection with proper typing
+  const handlePresetSelect = useCallback((preset: any) => {
+    // Apply preset effects with proper typing
+    Object.entries(preset.effects).forEach(([effectId, parameters]: [string, any]) => {
+      Object.entries(parameters).forEach(([parameterId, value]) => {
+        onEffectChange(effectId, parameterId, value as string | number | boolean);
       });
-      setLastChangeTime(Date.now());
-    },
-    [materialSettings, onMaterialSettingsChange],
-  );
+    });
+    // Apply scene and lighting if provided
+    if (preset.scene) onSceneChange(preset.scene);
+    if (preset.lighting) onLightingChange(preset.lighting);
+  }, [onEffectChange, onSceneChange, onLightingChange]);
 
-  // Helper to reset individual effects
-  const handleResetEffect = useCallback((effectId: string) => {
-    onEffectChange(effectId, 'intensity', 0);
-    setLastChangeTime(Date.now());
+  // Handle effect changes to clear selected preset
+  const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
+    setSelectedPresetId(undefined); // Clear selected preset when manually changing effects
+    onEffectChange(effectId, parameterId, value);
   }, [onEffectChange]);
 
-  // Enhanced reset all with force refresh
-  const handleForceResetAll = useCallback(() => {
-    console.log('🚨 Force resetting all effects and materials');
+  const handleResetAll = () => {
+    setSelectedPresetId(undefined);
     onResetAllEffects();
-    setShowForceRefresh(false);
-    setLastChangeTime(Date.now());
-    
-    // Force a complete refresh by triggering preset selection clearing
-    setTimeout(() => {
-      onPresetSelect('');
-    }, 100);
-  }, [onResetAllEffects, onPresetSelect]);
+    // Reset other settings to defaults
+    onBrightnessChange([100]);
+    onMaterialSettingsChange({
+      metalness: 0.5,
+      roughness: 0.5,
+      reflectivity: 0.5,
+      clearcoat: 0.3
+    });
+  };
 
   return (
-    <div className={`fixed top-0 right-0 h-full w-80 bg-black bg-opacity-95 backdrop-blur-lg border-l border-white/10 overflow-hidden ${
-      isFullscreen ? 'z-60' : 'z-50'
-    }`}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
+    <div className="fixed top-0 right-0 w-[350px] h-full bg-black bg-opacity-95 backdrop-blur-lg overflow-hidden border-l border-white/10 z-10 flex flex-col">
+      {/* Compact Header */}
+      <div className="p-3 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <h2 className="text-lg font-semibold text-white">Enhanced Studio</h2>
-          {isApplyingPreset && (
-            <div className="w-2 h-2 bg-crd-green rounded-full animate-pulse" />
-          )}
+          <Zap className="w-4 h-4 text-crd-green" />
+          <h3 className="text-white font-medium text-sm">Studio</h3>
+          <div className="text-xs text-crd-lightGray bg-crd-green/20 px-1.5 py-0.5 rounded">
+            {getActiveEffectsCount()}
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          {/* Force Refresh Button */}
-          {showForceRefresh && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={handleForceResetAll}
-              className="text-yellow-500 hover:text-yellow-400"
-              title="Force refresh stuck effects"
+        <div className="flex space-x-1">
+          {/* Actions Dropdown Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="bg-white bg-opacity-10 hover:bg-opacity-20 border border-white/10 px-2"
+              >
+                <Menu className="w-4 h-4 text-white" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-black border-gray-700">
+              <DropdownMenuItem onClick={onToggleFullscreen} className="text-white hover:bg-gray-800">
+                {isFullscreen ? <Minimize2 className="w-4 h-4 mr-2" /> : <Maximize2 className="w-4 h-4 mr-2" />}
+                {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-gray-700" />
+              <DropdownMenuItem onClick={() => onDownload && onDownload(card)} className="text-white hover:bg-gray-800">
+                <Download className="w-4 h-4 mr-2" />
+                Download Card
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onShare && onShare(card)} className="text-white hover:bg-gray-800">
+                <Share2 className="w-4 h-4 mr-2" />
+                Share Card
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-gray-700" />
+              <DropdownMenuItem onClick={handleResetAll} className="text-red-400 hover:bg-gray-800">
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset All
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-crd-green hover:bg-gray-800">
+                <Save className="w-4 h-4 mr-2" />
+                Save Combo
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {onClose && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="bg-white bg-opacity-10 hover:bg-opacity-20 border border-white/10 px-2"
             >
-              <RefreshCw className="h-4 w-4" />
+              <X className="w-4 h-4 text-white" />
             </Button>
           )}
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5 text-white" />
-          </Button>
         </div>
       </div>
 
-      {/* Content with enhanced combo section */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-6">
-          {/* Status indicator for stuck detection */}
-          {isApplyingPreset && (
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
-              <div className="flex items-center text-yellow-500 text-sm">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse mr-2" />
-                Applying effects...
-                {showForceRefresh && (
-                  <span className="ml-2 text-xs">(Taking longer than expected)</span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Quick Style Combos Section */}
-          <div>
-            <h3 className="text-white font-medium mb-3 flex items-center">
-              <Sparkles className="w-4 h-4 text-crd-green mr-2" />
-              Quick Style Combos
-              {isApplyingPreset && (
-                <div className="ml-2 w-2 h-2 bg-crd-green rounded-full animate-pulse" />
-              )}
-            </h3>
-            <QuickComboPresets
-              onApplyCombo={onApplyCombo}
-              currentEffects={effectValues}
-              selectedPresetId={selectedPresetId}
-              onPresetSelect={onPresetSelect}
-              isApplyingPreset={isApplyingPreset}
-            />
-          </div>
-
-          {/* Separator */}
-          <div className="border-b border-white/20" />
-
-          {/* Compact Enhanced Effect Controls Section */}
-          <div>
-            <CompactEffectControls
-              effectValues={effectValues}
-              onEffectChange={onEffectChange}
-              onResetEffect={handleResetEffect}
-              onResetAll={onResetAllEffects}
-              showOnlyActive={true}
-            />
-          </div>
-
-          {/* Separator */}
-          <div className="border-b border-white/20" />
-
-          {/* Environment Settings Section */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-white font-medium flex items-center">
-                <Sparkles className="w-4 h-4 text-crd-green mr-2" />
-                Environment
-              </h3>
-              <Button variant="ghost" size="sm" onClick={() => setShowEnvironment(!showEnvironment)}>
-                {showEnvironment ? 'Hide' : 'Show'}
-              </Button>
-            </div>
-            {showEnvironment && (
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="scene-select" className="text-white text-sm">
-                    Scene
-                  </Label>
-                  <Select onValueChange={(value) => onSceneChange(JSON.parse(value))}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={selectedScene.name} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ENVIRONMENT_SCENES.map((scene) => (
-                        <SelectItem key={scene.name} value={JSON.stringify(scene)}>
-                          {scene.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="lighting-select" className="text-white text-sm">
-                    Lighting
-                  </Label>
-                  <Select onValueChange={(value) => onLightingChange(JSON.parse(value))}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={selectedLighting.name} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LIGHTING_PRESETS.map((lighting) => (
-                        <SelectItem key={lighting.name} value={JSON.stringify(lighting)}>
-                          {lighting.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="brightness-slider" className="text-white text-sm">
-                    Brightness
-                  </Label>
-                  <Slider
-                    id="brightness-slider"
-                    defaultValue={overallBrightness}
-                    max={200}
-                    step={1}
-                    onValueChange={handleBrightnessChange}
-                    className="text-white"
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Label htmlFor="interactive-lighting" className="text-white text-sm">
-                    Interactive Lighting
-                  </Label>
-                  <Switch
-                    id="interactive-lighting"
-                    checked={interactiveLighting}
-                    onCheckedChange={onInteractiveLightingToggle}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Separator */}
-          <div className="border-b border-white/20" />
-
-          {/* Material Properties Section */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-white font-medium flex items-center">
-                <Sparkles className="w-4 h-4 text-crd-green mr-2" />
-                Material Properties
-              </h3>
-              <Button variant="ghost" size="sm" onClick={() => setShowMaterial(!showMaterial)}>
-                {showMaterial ? 'Hide' : 'Show'}
-              </Button>
-            </div>
-            {showMaterial && (
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="roughness-slider" className="text-white text-sm">
-                    Roughness
-                  </Label>
-                  <Slider
-                    id="roughness-slider"
-                    defaultValue={[materialSettings.roughness * 100]}
-                    max={100}
-                    step={1}
-                    onValueChange={(value) => handleMaterialSettingChange('roughness', value[0] / 100)}
-                    className="text-white"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="metalness-slider" className="text-white text-sm">
-                    Metalness
-                  </Label>
-                  <Slider
-                    id="metalness-slider"
-                    defaultValue={[materialSettings.metalness * 100]}
-                    max={100}
-                    step={1}
-                    onValueChange={(value) => handleMaterialSettingChange('metalness', value[0] / 100)}
-                    className="text-white"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="clearcoat-slider" className="text-white text-sm">
-                    Clearcoat
-                  </Label>
-                  <Slider
-                    id="clearcoat-slider"
-                    defaultValue={[materialSettings.clearcoat * 100]}
-                    max={100}
-                    step={1}
-                    onValueChange={(value) => handleMaterialSettingChange('clearcoat', value[0] / 100)}
-                    className="text-white"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="reflectivity-slider" className="text-white text-sm">
-                    Reflectivity
-                  </Label>
-                  <Slider
-                    id="reflectivity-slider"
-                    defaultValue={[materialSettings.reflectivity * 100]}
-                    max={100}
-                    step={1}
-                    onValueChange={(value) => handleMaterialSettingChange('reflectivity', value[0] / 100)}
-                    className="text-white"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Separator */}
-          <div className="border-b border-white/20" />
-
-          {/* Export Options Section */}
-          <div className="space-y-4">
-            <h3 className="text-white font-medium flex items-center">
-              <Sparkles className="w-4 h-4 text-crd-green mr-2" />
-              Export Options
-            </h3>
-            <Button variant="secondary" onClick={onToggleFullscreen} className="w-full">
-              {isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-            </Button>
-            <Button variant="secondary" onClick={onDownload} className="w-full">
-              Download
-            </Button>
-            {onShare && (
-              <Button variant="secondary" onClick={onShare} className="w-full">
-                Share
-              </Button>
-            )}
-            {/* Emergency Force Refresh Button */}
-            <Button 
-              variant="outline" 
-              onClick={handleForceResetAll} 
-              className="w-full border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black"
+      {/* Compact Tabbed Interface */}
+      <div className="flex-1 overflow-hidden">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+          <TabsList className="grid w-full grid-cols-2 bg-editor-dark border-b border-white/10 rounded-none mx-2 mt-2">
+            <TabsTrigger 
+              value="styles" 
+              className="data-[state=active]:bg-crd-green data-[state=active]:text-black text-white flex items-center gap-1 text-xs"
             >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Force Refresh All
-            </Button>
+              <Palette className="w-3 h-3" />
+              Styles
+            </TabsTrigger>
+            <TabsTrigger 
+              value="environment" 
+              className="data-[state=active]:bg-crd-green data-[state=active]:text-black text-white flex items-center gap-1 text-xs"
+            >
+              <Globe className="w-3 h-3" />
+              Environment
+            </TabsTrigger>
+          </TabsList>
+
+          <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            {/* Styles Tab */}
+            <TabsContent value="styles" className="mt-0 space-y-3">
+              {/* Quick Combos - Compact */}
+              <div className="bg-editor-dark border border-editor-border rounded-lg p-3">
+                <h4 className="text-white text-xs font-medium mb-2">Quick Combos</h4>
+                <QuickComboPresets 
+                  onApplyCombo={handlePresetSelect} 
+                  currentEffects={effectValues}
+                  selectedPresetId={selectedPresetId}
+                  onPresetSelect={setSelectedPresetId}
+                />
+              </div>
+
+              {/* Effects Section - Compact */}
+              <div className="bg-editor-dark border border-editor-border rounded-lg p-3">
+                <h4 className="text-white text-xs font-medium mb-2">
+                  Effects ({getActiveEffectsCount()})
+                </h4>
+                <EffectsComboSection
+                  effectValues={effectValues}
+                  onEffectChange={handleEffectChange}
+                  onResetEffect={(effectId) => {
+                    setSelectedPresetId(undefined);
+                    // Reset individual effect - preserve existing functionality
+                    const effect = effectValues[effectId];
+                    if (effect) {
+                      Object.keys(effect).forEach(paramId => {
+                        if (paramId === 'intensity') {
+                          onEffectChange(effectId, paramId, 0);
+                        }
+                      });
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Saved Combos - Collapsible */}
+              <Collapsible open={savedCombosOpen} onOpenChange={setSavedCombosOpen}>
+                <div className="bg-editor-dark border border-editor-border rounded-lg">
+                  <CollapsibleTrigger asChild>
+                    <button className="w-full p-3 flex items-center justify-between text-white hover:bg-white/5">
+                      <h4 className="text-xs font-medium">Saved Combos</h4>
+                      {savedCombosOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="px-3 pb-3">
+                    <ComboMemorySection
+                      currentState={{
+                        effects: effectValues,
+                        scene: selectedScene,
+                        lighting: selectedLighting,
+                        materials: materialSettings,
+                        brightness: overallBrightness[0]
+                      }}
+                      onLoadCombo={(combo) => {
+                        setSelectedPresetId(undefined);
+                        // Apply loaded combo
+                        Object.entries(combo.effects).forEach(([effectId, parameters]) => {
+                          Object.entries(parameters).forEach(([parameterId, value]) => {
+                            onEffectChange(effectId, parameterId, value);
+                          });
+                        });
+                        if (combo.scene) onSceneChange(combo.scene);
+                        if (combo.lighting) onLightingChange(combo.lighting);
+                        if (combo.materials) onMaterialSettingsChange(combo.materials);
+                        if (combo.brightness) onBrightnessChange([combo.brightness]);
+                      }}
+                    />
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+            </TabsContent>
+
+            {/* Environment Tab */}
+            <TabsContent value="environment" className="mt-0 space-y-3">
+              {/* Environment Section - Compact */}
+              <div className="bg-editor-dark border border-editor-border rounded-lg p-3">
+                <h4 className="text-white text-xs font-medium mb-2">
+                  Environment ({selectedScene.name})
+                </h4>
+                <EnvironmentComboSection
+                  selectedScene={selectedScene}
+                  onSceneChange={onSceneChange}
+                />
+              </div>
+
+              {/* Lighting Section - Compact */}
+              <div className="bg-editor-dark border border-editor-border rounded-lg p-3">
+                <h4 className="text-white text-xs font-medium mb-2">
+                  Lighting ({selectedLighting.name})
+                </h4>
+                <LightingComboSection
+                  selectedLighting={selectedLighting}
+                  overallBrightness={overallBrightness}
+                  interactiveLighting={interactiveLighting}
+                  onLightingChange={onLightingChange}
+                  onBrightnessChange={onBrightnessChange}
+                  onInteractiveLightingToggle={onInteractiveLightingToggle}
+                />
+              </div>
+
+              {/* Materials Section - Compact */}
+              <div className="bg-editor-dark border border-editor-border rounded-lg p-3">
+                <h4 className="text-white text-xs font-medium mb-2">Materials</h4>
+                <MaterialComboSection
+                  materialSettings={materialSettings}
+                  onMaterialSettingsChange={onMaterialSettingsChange}
+                />
+              </div>
+            </TabsContent>
           </div>
-        </div>
+        </Tabs>
       </div>
     </div>
   );

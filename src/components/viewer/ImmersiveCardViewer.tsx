@@ -9,13 +9,11 @@ import {
   type EffectValues 
 } from './hooks/useEnhancedCardEffects';
 import { useCardEffects } from './hooks/useCardEffects';
-import { useDynamicCardBackMaterials } from './hooks/useDynamicCardBackMaterials';
 import { ViewerControls } from './components/ViewerControls';
 import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { useCardExport } from './hooks/useCardExport';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
-import { ConfigurationDetailsPanel } from './components/ConfigurationDetailsPanel';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -51,19 +49,14 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [isHovering, setIsHovering] = useState(false);
   const [isHoveringControls, setIsHoveringControls] = useState(false);
   
-  // Enhanced effects state with atomic preset application
+  // Enhanced effects state
   const enhancedEffectsHook = useEnhancedCardEffects();
   const {
     effectValues,
     handleEffectChange,
     resetEffect,
-    resetAllEffects,
-    applyPreset,
-    isApplyingPreset
+    resetAllEffects
   } = enhancedEffectsHook;
-  
-  // Get dynamic material based on current effects
-  const { selectedMaterial } = useDynamicCardBackMaterials(effectValues);
   
   // Advanced settings - Updated for more professional defaults
   const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[0]); // Studio instead of Twilight
@@ -138,13 +131,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const handleDownloadClick = useCallback(() => {
     setShowExportDialog(true);
   }, []);
-
-  // Fix the share handler to pass the current card
-  const handleShareClick = useCallback(() => {
-    if (onShare) {
-      onShare(card);
-    }
-  }, [onShare, card]);
 
   // Add state for progressive panel
   const [useProgressivePanel, setUseProgressivePanel] = useState(true);
@@ -264,36 +250,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     }
   }, []);
 
-  // Add state for preset selection tracking
-  const [selectedPresetId, setSelectedPresetId] = useState<string>();
-
-  // Enhanced combo application with atomic updates
-  const handleComboApplication = useCallback((combo: any) => {
-    console.log('🚀 Applying combo with atomic updates:', combo.id);
-    
-    // Apply preset atomically with all related state
-    applyPreset(combo.effects, combo.id);
-    
-    // Update preset selection
-    setSelectedPresetId(combo.id);
-    
-    // Apply any scene/lighting changes if specified
-    if (combo.scene) {
-      setSelectedScene(combo.scene);
-    }
-    if (combo.lighting) {
-      setSelectedLighting(combo.lighting);
-    }
-  }, [applyPreset]);
-
-  // Clear preset selection when manual effect changes are made
-  const handleManualEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
-    if (!isApplyingPreset) {
-      setSelectedPresetId(undefined);
-    }
-    handleEffectChange(effectId, parameterId, value);
-  }, [handleEffectChange, isApplyingPreset]);
-
   if (!isOpen) return null;
 
   return (
@@ -384,7 +340,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
 
-        {/* Progressive Disclosure Customize Panel - Fixed function calls */}
+        {/* Progressive Disclosure Customize Panel */}
         {showCustomizePanel && (
           <ProgressiveCustomizePanel
             selectedScene={selectedScene}
@@ -396,14 +352,14 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             isFullscreen={isFullscreen}
             onSceneChange={setSelectedScene}
             onLightingChange={setSelectedLighting}
-            onEffectChange={handleManualEffectChange}
+            onEffectChange={handleEffectChange}
             onResetAllEffects={resetAllEffects}
             onBrightnessChange={setOverallBrightness}
             onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
             onMaterialSettingsChange={setMaterialSettings}
             onToggleFullscreen={toggleFullscreen}
             onDownload={handleDownloadClick}
-            onShare={handleShareClick}
+            onShare={onShare}
             onClose={() => {
               if (onClose) {
                 onClose();
@@ -412,10 +368,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
               }
             }}
             card={card}
-            selectedPresetId={selectedPresetId}
-            onPresetSelect={setSelectedPresetId}
-            onApplyCombo={handleComboApplication}
-            isApplyingPreset={isApplyingPreset}
           />
         )}
 
@@ -442,21 +394,9 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         </div>
 
-        {/* Configuration Details Panel */}
-        {!showCustomizePanel && (
-          <ConfigurationDetailsPanel
-            effectValues={effectValues}
-            selectedScene={selectedScene}
-            selectedLighting={selectedLighting}
-            materialSettings={materialSettings}
-            overallBrightness={overallBrightness}
-            interactiveLighting={interactiveLighting}
-          />
-        )}
-
         {/* Info Panel - Enhanced visibility */}
         {showStats && !isFlipped && !showCustomizePanel && (
-          <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: hasMultipleCards ? '180px' : '100px' }}>
+          <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: hasMultipleCards ? '180px' : '20px' }}>
             <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
               <div className="flex items-center justify-between text-white">
                 <div className="flex space-x-4 text-sm">
@@ -477,7 +417,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
                 <div className="flex items-center space-x-2">
                   <Sparkles className="w-4 h-4" />
                   <span className="text-sm">
-                    Enhanced Studio | Material: {selectedMaterial?.name || 'Default'}
+                    Enhanced Studio | Scene: {selectedScene.name}
                   </span>
                 </div>
               </div>
