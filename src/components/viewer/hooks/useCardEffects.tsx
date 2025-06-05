@@ -10,6 +10,7 @@ interface UseCardEffectsParams {
   mousePosition: { x: number; y: number };
   showEffects: boolean;
   overallBrightness: number[];
+  interactiveLighting: boolean;
   selectedScene: EnvironmentScene;
   selectedLighting: LightingPreset;
   materialSettings: MaterialSettings;
@@ -26,7 +27,8 @@ export const useCardEffects = (params: UseCardEffectsParams) => {
     mousePosition,
     showEffects,
     effectValues,
-    isHovering
+    isHovering,
+    interactiveLighting
   } = params;
 
   const getFrameStyles = useMemo(() => {
@@ -57,8 +59,8 @@ export const useCardEffects = (params: UseCardEffectsParams) => {
         styles.filter = `contrast(${1 + enhancementFactor * 0.1}) saturate(${1 + enhancementFactor * 0.2})`;
         styles.transition = 'all 0.3s ease';
         
-        // Add subtle hover enhancement
-        if (isHovering) {
+        // Add subtle interactive lighting enhancement
+        if (interactiveLighting && isHovering) {
           const lightBoost = (mousePosition.x * 0.1 + mousePosition.y * 0.1) * enhancementFactor;
           styles.filter += ` brightness(${1 + lightBoost})`;
         }
@@ -66,7 +68,7 @@ export const useCardEffects = (params: UseCardEffectsParams) => {
       
       return styles;
     };
-  }, [showEffects, effectValues, isHovering, mousePosition]);
+  }, [showEffects, effectValues, interactiveLighting, isHovering, mousePosition]);
 
   const getEnvironmentStyle = useMemo(() => {
     return () => ({

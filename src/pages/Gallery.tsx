@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useAllCollections } from '@/hooks/useCollections';
@@ -12,7 +13,6 @@ import { CreatorsGrid } from './Gallery/components/CreatorsGrid';
 import { CardsGrid } from './Gallery/components/CardsGrid';
 import { useCardConversion } from './Gallery/hooks/useCardConversion';
 import { useGalleryActions } from './Gallery/hooks/useGalleryActions';
-import { Badge } from '@/components/ui/badge';
 
 const Gallery = () => {
   const [activeTab, setActiveTab] = useState('featured');
@@ -35,12 +35,6 @@ const Gallery = () => {
   // Convert cards to CardData format for the viewer
   const convertedCards = convertCardsToCardData(featuredCards);
   const currentCard = convertedCards[selectedCardIndex];
-
-  // Mock premium status - in production this would come from user auth
-  const isPremiumUser = false; // Set to true to test premium features
-
-  // Add tier state for testing - in production this would come from user auth
-  const [userTier, setUserTier] = useState<'rookie' | 'pro' | 'baller'>('rookie');
 
   return (
     <div className="container mx-auto p-6 max-w-7xl bg-[#121212]">
@@ -82,7 +76,7 @@ const Gallery = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Enhanced Immersive Card Viewer with Tier Support */}
+      {/* Enhanced Immersive Card Viewer with Navigation */}
       {showImmersiveViewer && currentCard && convertedCards.length > 0 && (
         <ImmersiveCardViewer
           card={currentCard}
@@ -96,7 +90,6 @@ const Gallery = () => {
           allowRotation={true}
           showStats={true}
           ambient={true}
-          isPremiumUser={userTier !== 'rookie'}
         />
       )}
     </div>

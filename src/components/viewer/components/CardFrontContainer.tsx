@@ -14,6 +14,7 @@ interface CardFrontContainerProps {
   frameStyles: React.CSSProperties;
   enhancedEffectStyles: React.CSSProperties;
   SurfaceTexture: React.ReactNode;
+  interactiveLighting?: boolean;
   onClick: () => void;
 }
 
@@ -27,6 +28,7 @@ export const CardFrontContainer: React.FC<CardFrontContainerProps> = ({
   frameStyles,
   enhancedEffectStyles,
   SurfaceTexture,
+  interactiveLighting = false,
   onClick
 }) => {
   return (
@@ -49,6 +51,7 @@ export const CardFrontContainer: React.FC<CardFrontContainerProps> = ({
         mousePosition={mousePosition}
         physicalEffectStyles={enhancedEffectStyles}
         effectValues={effectValues}
+        interactiveLighting={interactiveLighting}
       />
 
       {/* Surface Texture - Now layered properly */}
@@ -66,7 +69,9 @@ export const CardFrontContainer: React.FC<CardFrontContainerProps> = ({
               alt={card.title}
               className="w-full h-full object-cover"
               style={{
-                filter: isHovering ? 'brightness(1.1) contrast(1.05)' : 'brightness(1)'
+                filter: isHovering ? 
+                  `brightness(${interactiveLighting ? 1.2 : 1.1}) contrast(${interactiveLighting ? 1.1 : 1.05})` : 
+                  'brightness(1)'
               }}
             />
           </div>
@@ -83,6 +88,57 @@ export const CardFrontContainer: React.FC<CardFrontContainerProps> = ({
           )}
         </div>
       </div>
+
+      {/* Softer Interactive Lighting Effect - Multi-layered radial system */}
+      {isHovering && interactiveLighting && (
+        <>
+          {/* Primary soft light center */}
+          <div 
+            className="absolute inset-0 pointer-events-none z-30"
+            style={{
+              background: `radial-gradient(
+                ellipse 120% 80% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                rgba(255, 255, 255, 0.15) 0%,
+                rgba(255, 255, 255, 0.08) 40%,
+                transparent 80%
+              )`,
+              mixBlendMode: 'overlay',
+              transition: 'background 0.1s ease'
+            }}
+          />
+          
+          {/* Secondary diffusion layer */}
+          <div 
+            className="absolute inset-0 pointer-events-none z-31"
+            style={{
+              background: `radial-gradient(
+                ellipse 180% 120% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                rgba(255, 255, 255, 0.06) 0%,
+                rgba(255, 255, 255, 0.03) 60%,
+                transparent 90%
+              )`,
+              mixBlendMode: 'soft-light',
+              transition: 'background 0.15s ease'
+            }}
+          />
+          
+          {/* Subtle directional highlight */}
+          <div 
+            className="absolute inset-0 pointer-events-none z-32"
+            style={{
+              background: `linear-gradient(
+                ${Math.atan2(mousePosition.y - 0.5, mousePosition.x - 0.5) * (180 / Math.PI) + 90}deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.04) 50%,
+                transparent 60%
+              )`,
+              mixBlendMode: 'overlay',
+              opacity: Math.max(0.3, 1 - Math.sqrt(Math.pow(mousePosition.x - 0.5, 2) + Math.pow(mousePosition.y - 0.5, 2)) * 2),
+              transition: 'opacity 0.1s ease'
+            }}
+          />
+        </>
+      )}
     </div>
   );
 };

@@ -15,6 +15,7 @@ interface ProgressiveCustomizePanelProps {
   selectedLighting: LightingPreset;
   effectValues: EffectValues;
   overallBrightness: number[];
+  interactiveLighting: boolean;
   materialSettings: MaterialSettings;
   isFullscreen: boolean;
   onSceneChange: (scene: EnvironmentScene) => void;
@@ -22,6 +23,7 @@ interface ProgressiveCustomizePanelProps {
   onEffectChange: (effectId: string, parameterId: string, value: number | boolean | string) => void;
   onResetAllEffects: () => void;
   onBrightnessChange: (value: number[]) => void;
+  onInteractiveLightingToggle: () => void;
   onMaterialSettingsChange: (settings: MaterialSettings) => void;
   onToggleFullscreen: () => void;
   onDownload: () => void;
@@ -39,6 +41,7 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
   selectedLighting,
   effectValues,
   overallBrightness,
+  interactiveLighting,
   materialSettings,
   isFullscreen,
   onSceneChange,
@@ -46,6 +49,7 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
   onEffectChange,
   onResetAllEffects,
   onBrightnessChange,
+  onInteractiveLightingToggle,
   onMaterialSettingsChange,
   onToggleFullscreen,
   onDownload,
@@ -117,9 +121,11 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
             selectedScene={selectedScene}
             selectedLighting={selectedLighting}
             overallBrightness={overallBrightness}
+            interactiveLighting={interactiveLighting}
             onSceneChange={onSceneChange}
             onLightingChange={onLightingChange}
             onBrightnessChange={handleBrightnessChange}
+            onInteractiveLightingToggle={onInteractiveLightingToggle}
           />
 
           {/* Separator */}

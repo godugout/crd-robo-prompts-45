@@ -4,7 +4,6 @@ import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import { EnhancedCardContainer } from './EnhancedCardContainer';
-import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 interface EnhancedCardCanvasProps {
   card: CardData;
@@ -15,6 +14,7 @@ interface EnhancedCardCanvasProps {
   selectedScene: EnvironmentScene;
   selectedLighting: LightingPreset;
   overallBrightness: number;
+  interactiveLighting: boolean;
   materialSettings: MaterialSettings;
   onMouseMove: (event: React.MouseEvent<HTMLDivElement>) => void;
   onMouseEnter: () => void;
@@ -32,6 +32,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
   selectedScene,
   selectedLighting,
   overallBrightness,
+  interactiveLighting,
   materialSettings,
   onMouseMove,
   onMouseEnter,
@@ -42,7 +43,6 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const { isMobile, isTablet } = useResponsiveLayout();
 
   console.log('EnhancedCardCanvas rendering, isFlipped:', isFlipped);
 
@@ -74,20 +74,6 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
     />
   );
 
-  // Responsive branding logo sizing
-  const getBrandingLogoSize = () => {
-    if (isMobile) return 'w-12 h-auto'; // 48px
-    if (isTablet) return 'w-16 h-auto'; // 64px
-    return 'w-20 h-auto'; // 80px for desktop
-  };
-
-  // Responsive card back logo sizing
-  const getCardBackLogoSize = () => {
-    if (isMobile) return 'w-32 h-auto'; // 128px
-    if (isTablet) return 'w-48 h-auto'; // 192px
-    return 'w-48 h-auto'; // 192px for desktop in canvas
-  };
-
   return (
     <div
       ref={canvasRef}
@@ -102,19 +88,17 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
       onMouseLeave={onMouseLeave}
       onClick={handleCardClick}
     >
-      {/* CRD Logo Branding - Upper Right with Responsive Sizing and New Logo */}
+      {/* CRD Logo Branding - Upper Right */}
       <div className="absolute top-4 right-4 z-50">
         <img 
-          src="/lovable-uploads/f8aeaf57-4a95-4ebe-8874-2df97ff6adf6.png"
+          src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
           alt="CRD Logo" 
-          className={`${getBrandingLogoSize()} opacity-60 hover:opacity-80 transition-all duration-200`}
+          className="w-16 h-auto opacity-60 hover:opacity-80 transition-opacity duration-200"
           style={{
             filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))',
-            imageRendering: '-webkit-optimize-contrast',
-            objectFit: 'contain'
           }}
-          onLoad={() => console.log('Canvas gradient CRD branding logo loaded successfully')}
-          onError={() => console.log('Error loading Canvas gradient CRD branding logo')}
+          onLoad={() => console.log('Canvas CRD branding logo loaded successfully')}
+          onError={() => console.log('Error loading Canvas CRD branding logo')}
         />
       </div>
 
@@ -149,6 +133,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             frameStyles={frameStyles}
             enhancedEffectStyles={enhancedEffectStyles}
             SurfaceTexture={SurfaceTexture}
+            interactiveLighting={interactiveLighting}
             onMouseDown={() => setIsDragging(true)}
             onMouseMove={onMouseMove}
             onMouseEnter={onMouseEnter}
@@ -160,7 +145,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
           />
         </div>
 
-        {/* Card Back - Enhanced with Responsive Logo and New Gradient Logo */}
+        {/* Card Back - NEW DESIGN */}
         <div
           className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden"
           style={{
@@ -179,22 +164,42 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             }}
           />
           
-          {/* Centered CRD Logo with Responsive Sizing and New Gradient Logo */}
+          {/* Centered CRD Logo Only */}
           <div className="relative h-full flex items-center justify-center z-30">
             <div className="flex items-center justify-center">
               <img 
-                src="/lovable-uploads/f8aeaf57-4a95-4ebe-8874-2df97ff6adf6.png"
+                src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
                 alt="CRD Logo" 
-                className={`${getCardBackLogoSize()} opacity-90 transition-all duration-300 ease-out`}
+                className="w-48 h-auto opacity-90"
                 style={{
                   filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
-                  imageRendering: '-webkit-optimize-contrast',
-                  objectFit: 'contain'
                 }}
-                onLoad={() => console.log('Enhanced Canvas gradient CRD logo loaded successfully')}
-                onError={() => console.log('Error loading Enhanced Canvas gradient CRD logo')}
+                onLoad={() => console.log('Enhanced Canvas CRD logo loaded successfully')}
+                onError={() => console.log('Error loading Enhanced Canvas CRD logo')}
               />
             </div>
+          </div>
+
+          {/* Apply same effects as front for consistency */}
+          <div className="absolute inset-0 pointer-events-none z-40">
+            {/* Lighting effects overlay */}
+            {interactiveLighting && isHovering && (
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: `
+                    radial-gradient(
+                      ellipse 180% 140% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                      rgba(255, 255, 255, 0.02) 0%,
+                      rgba(255, 255, 255, 0.01) 50%,
+                      transparent 85%
+                    )
+                  `,
+                  mixBlendMode: 'overlay',
+                  transition: 'opacity 0.2s ease'
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

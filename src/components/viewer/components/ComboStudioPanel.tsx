@@ -32,6 +32,7 @@ interface ComboStudioPanelProps {
   selectedLighting: LightingPreset;
   effectValues: EffectValues;
   overallBrightness: number[];
+  interactiveLighting: boolean;
   materialSettings: MaterialSettings;
   isFullscreen: boolean;
   onSceneChange: (scene: EnvironmentScene) => void;
@@ -40,6 +41,7 @@ interface ComboStudioPanelProps {
   onResetEffect: (effectId: string) => void;
   onResetAllEffects: () => void;
   onBrightnessChange: (value: number[]) => void;
+  onInteractiveLightingToggle: () => void;
   onMaterialSettingsChange: (settings: MaterialSettings) => void;
   onToggleFullscreen: () => void;
   onDownload?: (card: CardData) => void;
@@ -53,6 +55,7 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
   selectedLighting,
   effectValues,
   overallBrightness,
+  interactiveLighting,
   materialSettings,
   isFullscreen,
   onSceneChange,
@@ -61,6 +64,7 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
   onResetEffect,
   onResetAllEffects,
   onBrightnessChange,
+  onInteractiveLightingToggle,
   onMaterialSettingsChange,
   onToggleFullscreen,
   onDownload,
@@ -286,8 +290,10 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
                   <LightingComboSection
                     selectedLighting={selectedLighting}
                     overallBrightness={overallBrightness}
+                    interactiveLighting={interactiveLighting}
                     onLightingChange={onLightingChange}
                     onBrightnessChange={onBrightnessChange}
+                    onInteractiveLightingToggle={onInteractiveLightingToggle}
                   />
                 </CardContent>
               </Card>

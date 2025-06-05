@@ -2,7 +2,6 @@
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import { CardEffectsLayer } from './CardEffectsLayer';
-import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 interface CardBackProps {
   card: CardData;
@@ -25,14 +24,8 @@ export const CardBack: React.FC<CardBackProps> = ({
   physicalEffectStyles,
   SurfaceTexture
 }) => {
-  const { isMobile, isTablet } = useResponsiveLayout();
-  
-  // Responsive logo sizing for card backs
-  const getLogoSize = () => {
-    if (isMobile) return 'w-32 h-auto'; // 128px
-    if (isTablet) return 'w-48 h-auto'; // 192px
-    return 'w-64 h-auto'; // 256px for desktop
-  };
+  // Debug logging to see if this component is being used
+  console.log('CardBack component rendering with isFlipped:', isFlipped);
   
   return (
     <div
@@ -58,34 +51,23 @@ export const CardBack: React.FC<CardBackProps> = ({
         {SurfaceTexture}
       </div>
       
-      {/* Centered CRD Logo with Responsive Sizing and Updated Source */}
+      {/* Centered CRD Logo Only */}
       <div className="relative h-full flex items-center justify-center z-30">
         <div className="flex items-center justify-center">
           <img 
-            src="/lovable-uploads/f8aeaf57-4a95-4ebe-8874-2df97ff6adf6.png"
+            src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
             alt="CRD Logo" 
-            className={`${getLogoSize()} opacity-90 transition-all duration-300 ease-out`}
+            className="w-48 h-auto opacity-90"
             style={{
               filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
-              imageRendering: '-webkit-optimize-contrast',
-              objectFit: 'contain'
             }}
-            onLoad={() => console.log('✅ New gradient CRD logo loaded successfully')}
-            onError={(e) => {
-              console.error('❌ Error loading new gradient CRD logo');
-              // Fallback to text if image fails
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const fallback = document.createElement('div');
-              fallback.className = 'text-white/60 text-2xl font-bold';
-              fallback.textContent = 'CRD';
-              target.parentNode?.appendChild(fallback);
-            }}
+            onLoad={() => console.log('New CRD logo loaded successfully')}
+            onError={() => console.log('Error loading new CRD logo')}
           />
         </div>
       </div>
 
-      {/* Unified Effects Layer */}
+      {/* Unified Effects Layer - Same as front */}
       <CardEffectsLayer
         showEffects={showEffects}
         isHovering={isHovering}

@@ -19,6 +19,7 @@ interface EnhancedCardContainerProps {
   frameStyles: React.CSSProperties;
   enhancedEffectStyles: React.CSSProperties;
   SurfaceTexture: React.ReactNode;
+  interactiveLighting?: boolean;
   onMouseDown: (e: React.MouseEvent) => void;
   onMouseMove: (e: React.MouseEvent) => void;
   onMouseEnter: () => void;
@@ -39,6 +40,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   frameStyles,
   enhancedEffectStyles,
   SurfaceTexture,
+  interactiveLighting = false,
   onMouseDown,
   onMouseMove,
   onMouseEnter,
@@ -51,7 +53,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
       style={{
         transform: `scale(${zoom})`,
         transition: isDragging ? 'none' : 'transform 0.3s ease',
-        filter: `brightness(${isHovering ? 1.2 : 1.1}) contrast(1.1)`
+        filter: `brightness(${interactiveLighting && isHovering ? 1.3 : 1.2}) contrast(1.1)`
       }}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
@@ -62,6 +64,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
         rotation={rotation}
         mousePosition={mousePosition}
         isDragging={isDragging}
+        interactiveLighting={interactiveLighting}
         isHovering={isHovering}
         onClick={onClick}
       >
@@ -76,6 +79,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
           frameStyles={frameStyles}
           enhancedEffectStyles={enhancedEffectStyles}
           SurfaceTexture={SurfaceTexture}
+          interactiveLighting={interactiveLighting}
           onClick={onClick}
         />
 
@@ -89,6 +93,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
           frameStyles={frameStyles}
           enhancedEffectStyles={enhancedEffectStyles}
           SurfaceTexture={SurfaceTexture}
+          interactiveLighting={interactiveLighting}
         />
       </Card3DTransform>
     </div>

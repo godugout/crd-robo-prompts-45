@@ -3,7 +3,6 @@ import React from 'react';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import { CardEffectsLayer } from './CardEffectsLayer';
 import { useDynamicCardBackMaterials } from '../hooks/useDynamicCardBackMaterials';
-import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 interface CardBackContainerProps {
   isFlipped: boolean;
@@ -14,6 +13,7 @@ interface CardBackContainerProps {
   frameStyles: React.CSSProperties;
   enhancedEffectStyles: React.CSSProperties;
   SurfaceTexture: React.ReactNode;
+  interactiveLighting?: boolean;
 }
 
 export const CardBackContainer: React.FC<CardBackContainerProps> = ({
@@ -24,31 +24,38 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
   mousePosition,
   frameStyles,
   enhancedEffectStyles,
-  SurfaceTexture
+  SurfaceTexture,
+  interactiveLighting = false
 }) => {
-  const { isMobile, isTablet, currentBreakpoint } = useResponsiveLayout();
-  
   // Get dynamic material based on current effects
   const { selectedMaterial } = useDynamicCardBackMaterials(effectValues);
   
-  // Enhanced responsive logo sizing
-  const getLogoSize = () => {
-    if (isMobile) return 'w-32 h-auto'; // 128px
-    if (isTablet) return 'w-48 h-auto'; // 192px
-    if (currentBreakpoint === '2xl') return 'w-80 h-auto'; // 320px for extra large
-    return 'w-64 h-auto'; // 256px for desktop
-  };
-  
-  // Enhanced logo effects based on material
+  // Enhanced logo effects based on mouse position, lighting, and material
   const getLogoEffects = () => {
     const baseTreatment = selectedMaterial.logoTreatment;
     
+    if (!interactiveLighting || !isHovering) {
+      return {
+        filter: baseTreatment.filter,
+        transform: baseTreatment.transform,
+        opacity: baseTreatment.opacity
+      };
+    }
+
+    const intensity = Math.sqrt(
+      Math.pow(mousePosition.x - 0.5, 2) + Math.pow(mousePosition.y - 0.5, 2)
+    );
+    
     return {
-      filter: baseTreatment.filter,
-      transform: baseTreatment.transform,
-      opacity: baseTreatment.opacity,
-      imageRendering: '-webkit-optimize-contrast' as const,
-      objectFit: 'contain' as const
+      filter: `
+        ${baseTreatment.filter}
+        drop-shadow(0 0 ${20 + intensity * 30}px rgba(255, 215, 0, ${0.3 + intensity * 0.4}))
+        drop-shadow(0 0 ${40 + intensity * 60}px rgba(59, 130, 246, ${0.2 + intensity * 0.3}))
+        brightness(${1 + intensity * 0.3})
+        contrast(${1.1 + intensity * 0.2})
+      `,
+      transform: `${baseTreatment.transform} scale(${1 + intensity * 0.05})`,
+      opacity: baseTreatment.opacity + intensity * 0.1
     };
   };
 
@@ -90,6 +97,7 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
         mousePosition={mousePosition}
         physicalEffectStyles={enhancedEffectStyles}
         effectValues={effectValues}
+        interactiveLighting={interactiveLighting}
       />
 
       {/* Surface Texture on Back */}
@@ -127,30 +135,43 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
         }}
       />
 
-      {/* Enhanced CRD Logo with Dynamic Material Treatment and New Gradient Logo */}
+      {/* Enhanced CRD Logo with Dynamic Material Treatment */}
       <div className="relative h-full flex items-center justify-center z-30">
         <img 
-          src="/lovable-uploads/f8aeaf57-4a95-4ebe-8874-2df97ff6adf6.png"
+          src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
           alt="CRD Logo" 
-          className={`${getLogoSize()} relative z-10 transition-all duration-700 ease-out`}
+          className="w-64 h-auto relative z-10 transition-all duration-700 ease-out"
           style={{
             ...getLogoEffects(),
-            filter: `${getLogoEffects().filter} drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))`
+            imageRendering: 'crisp-edges',
+            objectFit: 'contain',
+            animation: interactiveLighting && isHovering ? 'logo-glow-pulse 4s ease-in-out infinite' : 'none'
           }}
-          onLoad={() => console.log('✅ Enhanced responsive gradient CRD logo loaded successfully')}
-          onError={(e) => {
-            console.error('❌ Error loading enhanced responsive gradient CRD logo');
-            // Enhanced fallback handling
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            const fallback = document.createElement('div');
-            fallback.className = 'text-white/70 text-3xl font-bold tracking-wider';
-            fallback.style.filter = 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5))';
-            fallback.textContent = 'CRD';
-            target.parentNode?.appendChild(fallback);
-          }}
+          onLoad={() => console.log('✅ Enhanced CRD logo loaded successfully')}
+          onError={() => console.log('❌ Error loading enhanced CRD logo')}
         />
       </div>
+
+      {/* Enhanced Interactive Lighting with Material Awareness */}
+      {interactiveLighting && isHovering && (
+        <div className="absolute inset-0 pointer-events-none z-40">
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `
+                radial-gradient(
+                  ellipse 200% 150% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                  ${selectedMaterial.borderColor.replace(')', ', 0.08)')} 0%,
+                  rgba(255, 255, 255, 0.03) 30%,
+                  transparent 70%
+                )
+              `,
+              mixBlendMode: 'overlay',
+              transition: 'opacity 0.2s ease'
+            }}
+          />
+        </div>
+      )}
 
       {/* CSS animations */}
       <style>

@@ -2,6 +2,8 @@
 import React from 'react';
 import type { MaterialSettings } from '../types';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
+import { useEnhancedInteractiveLighting } from '../hooks/useEnhancedInteractiveLighting';
+import { EnhancedInteractiveLightingLayer } from './EnhancedInteractiveLightingLayer';
 import { GoldEffect } from './effects/GoldEffect';
 import { CrystalEffect } from './effects/CrystalEffect';
 import { VintageEffect } from './effects/VintageEffect';
@@ -16,6 +18,7 @@ interface CardEffectsLayerProps {
   mousePosition: { x: number; y: number };
   physicalEffectStyles: React.CSSProperties;
   materialSettings?: MaterialSettings;
+  interactiveLighting?: boolean;
   effectValues?: EffectValues;
 }
 
@@ -25,8 +28,16 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   mousePosition,
   physicalEffectStyles,
   materialSettings,
+  interactiveLighting = false,
   effectValues
 }) => {
+  // Enhanced interactive lighting hook
+  const enhancedLightingData = useEnhancedInteractiveLighting(
+    mousePosition, 
+    isHovering, 
+    interactiveLighting
+  );
+
   if (!showEffects || !effectValues) return null;
 
   // Helper function to safely get effect parameter values
@@ -44,34 +55,17 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   const prizemIntensity = getEffectParam('prizm', 'intensity', 0);
   const foilsprayIntensity = getEffectParam('foilspray', 'intensity', 0);
   const goldIntensity = getEffectParam('gold', 'intensity', 0);
-
-  // Static ambient lighting to compensate for removed interactive lighting
-  const ambientLightingStyle = {
-    background: `
-      radial-gradient(
-        ellipse at 40% 30%, 
-        rgba(255, 255, 255, 0.08) 0%, 
-        rgba(255, 255, 255, 0.04) 40%, 
-        transparent 70%
-      ),
-      linear-gradient(
-        135deg, 
-        rgba(255, 255, 255, 0.05) 0%, 
-        transparent 50%, 
-        rgba(0, 0, 0, 0.02) 100%
-      )
-    `,
-    mixBlendMode: 'overlay' as const,
-    opacity: 0.6
-  };
   
   return (
     <>
-      {/* Static Ambient Lighting Layer - Compensates for removed interactive lighting */}
-      <div
-        className="absolute inset-0 z-15 rounded-xl"
-        style={ambientLightingStyle}
-      />
+      {/* Enhanced Interactive Lighting Layer */}
+      {interactiveLighting && (
+        <EnhancedInteractiveLightingLayer
+          lightingData={enhancedLightingData}
+          effectValues={effectValues}
+          mousePosition={mousePosition}
+        />
+      )}
 
       {/* Gold Effect */}
       <GoldEffect
@@ -79,13 +73,13 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         mousePosition={mousePosition}
       />
 
-      {/* Crystal Effect */}
+      {/* Crystal Effect - Enhanced with Geometric Reflective Patterns */}
       <CrystalEffect
         effectValues={effectValues}
         mousePosition={mousePosition}
       />
 
-      {/* Vintage Effect */}
+      {/* Vintage Effect - Realistic Cardstock Paper */}
       <VintageEffect
         effectValues={effectValues}
         mousePosition={mousePosition}
@@ -97,10 +91,11 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         mousePosition={mousePosition}
       />
 
-      {/* Prismatic Effects (includes restored HolographicEffect) */}
+      {/* Prismatic Effects (Holographic, Interference, Prizm) */}
       <PrismaticEffects
         effectValues={effectValues}
         mousePosition={mousePosition}
+        enhancedLightingData={enhancedLightingData}
       />
 
       {/* Foil Spray Effect */}
@@ -109,7 +104,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         mousePosition={mousePosition}
       />
 
-      {/* Enhanced Edge Enhancement with Better Blending */}
+      {/* Calculate overall intensity for edge enhancement */}
       {(() => {
         const totalIntensity = holographicIntensity + chromeIntensity + brushedmetalIntensity + 
                               crystalIntensity + vintageIntensity + interferenceIntensity + 
@@ -121,33 +116,14 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
             className="absolute inset-0 z-26 rounded-xl"
             style={{
               boxShadow: `
-                inset 0 0 20px rgba(255, 255, 255, ${normalizedIntensity * 0.08}),
-                inset 0 0 8px rgba(255, 255, 255, ${normalizedIntensity * 0.15}),
-                0 0 15px rgba(255, 255, 255, ${normalizedIntensity * 0.05})
+                inset 0 0 15px rgba(255, 255, 255, ${normalizedIntensity * (enhancedLightingData ? 0.05 + enhancedLightingData.lightIntensity * 0.1 : 0.05)}),
+                inset 0 0 5px rgba(255, 255, 255, ${normalizedIntensity * (enhancedLightingData ? 0.1 + enhancedLightingData.lightIntensity * 0.15 : 0.1)})
               `,
-              opacity: 0.4,
-              mixBlendMode: 'overlay'
+              opacity: enhancedLightingData ? 0.3 + enhancedLightingData.lightIntensity * 0.2 : 0.3
             }}
           />
         ) : null;
       })()}
-
-      {/* Overall Enhancement Layer for Professional Look */}
-      <div
-        className="absolute inset-0 z-27 rounded-xl"
-        style={{
-          background: `
-            radial-gradient(
-              circle at ${50 + mousePosition.x * 10}% ${50 + mousePosition.y * 10}%,
-              rgba(255, 255, 255, 0.03) 0%,
-              rgba(255, 255, 255, 0.01) 50%,
-              transparent 100%
-            )
-          `,
-          mixBlendMode: 'screen',
-          opacity: isHovering ? 0.6 : 0.3
-        }}
-      />
     </>
   );
 };
