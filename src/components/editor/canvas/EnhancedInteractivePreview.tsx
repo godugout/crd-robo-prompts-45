@@ -25,7 +25,7 @@ export const EnhancedInteractivePreview = ({
   currentPhoto
 }: EnhancedInteractivePreviewProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const cardFrontRef = useRef<HTMLDivElement>(null); // New ref for just the card front
+  const cardFrontRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
@@ -41,31 +41,6 @@ export const EnhancedInteractivePreview = ({
     }
   }, [cardEditor?.cardData?.template_id]);
 
-  const addWatermarkToCanvas = (canvas: HTMLCanvasElement): HTMLCanvasElement => {
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return canvas;
-
-    // Properly position watermark in upper right corner
-    const margin = 10;
-    
-    // Add CRD text watermark
-    ctx.save();
-    // Make it more visible
-    ctx.globalAlpha = 0.8;
-    ctx.fillStyle = '#10B981'; // CRD green color
-    
-    // Calculate font size based on canvas width
-    const fontSize = Math.max(Math.min(canvas.width * 0.05, 24), 12); // Between 12-24px
-    
-    ctx.font = `bold ${fontSize}px Arial`;
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'top';
-    ctx.fillText('CRD', canvas.width - margin, margin);
-    ctx.restore();
-
-    return canvas;
-  };
-
   const handleExportCard = async () => {
     if (!cardFrontRef.current) {
       toast.error('Card not ready for export');
@@ -74,21 +49,32 @@ export const EnhancedInteractivePreview = ({
     
     setIsExporting(true);
     try {
-      // Capture only the card front content, not the entire container
+      // Capture the card front at high resolution
       const canvas = await html2canvas(cardFrontRef.current, {
         backgroundColor: 'transparent',
-        scale: 2,
+        scale: 3, // High resolution
         useCORS: true,
         allowTaint: true,
         removeContainer: true
       });
       
-      // Add watermark to the exported canvas
-      const watermarkedCanvas = addWatermarkToCanvas(canvas);
+      // Add simple watermark
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.save();
+        ctx.globalAlpha = 0.8;
+        ctx.fillStyle = '#10B981'; // CRD green
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillText('CRD', canvas.width - 15, 15);
+        ctx.restore();
+      }
       
+      // Download the image
       const link = document.createElement('a');
       link.download = `${cardEditor?.cardData.title || 'card'}.png`;
-      link.href = watermarkedCanvas.toDataURL('image/png', 1.0);
+      link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
       
       toast.success('Card exported successfully!');
@@ -116,7 +102,6 @@ export const EnhancedInteractivePreview = ({
         <div 
           ref={cardFrontRef}
           className="w-80 h-112 bg-white rounded-lg shadow-lg border-2 border-gray-200 flex items-center justify-center"
-          data-card-front="true" // Add data attribute for export targeting
         >
           <div className="text-center p-4">
             <div className="text-gray-400 mb-2">No template selected</div>
@@ -138,7 +123,6 @@ export const EnhancedInteractivePreview = ({
           height: 420 * scaleFactor,
           backgroundColor: colors.background 
         }}
-        data-card-front="true" // Add data attribute for export targeting
       >
         {/* Template-specific rendering */}
         {selectedTemplate.id === 'tcg-classic' && (
