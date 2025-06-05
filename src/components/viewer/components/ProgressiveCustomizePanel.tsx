@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { QuickComboPresets } from './QuickComboPresets';
 import { CompactEffectControls } from './CompactEffectControls';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
+import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from '../constants';
 
 interface ProgressiveCustomizePanelProps {
   selectedScene: EnvironmentScene;
@@ -160,7 +160,6 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                       <SelectValue placeholder={selectedScene.name} />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* @ts-expect-error */}
                       {ENVIRONMENT_SCENES.map((scene) => (
                         <SelectItem key={scene.name} value={JSON.stringify(scene)}>
                           {scene.name}
@@ -178,7 +177,6 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                       <SelectValue placeholder={selectedLighting.name} />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* @ts-expect-error */}
                       {LIGHTING_PRESETS.map((lighting) => (
                         <SelectItem key={lighting.name} value={JSON.stringify(lighting)}>
                           {lighting.name}
