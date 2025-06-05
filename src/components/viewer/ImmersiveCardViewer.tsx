@@ -300,7 +300,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         ref={containerRef}
         className={`fixed inset-0 z-50 flex items-center justify-center ${
           isFullscreen ? 'p-0' : 'p-8'
-        } ${(showCustomizePanel || showEnhancedPanel) ? 'pr-80' : ''}`}
+        } ${(showCustomizePanel || showEnhancedPanel) ? 'pr-96' : ''}`}
         style={{
           ...getEnvironmentStyle(),
         }}
@@ -340,82 +340,66 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
 
-        {/* Basic Controls */}
-        <div className={`transition-opacity duration-200 ${isHoveringControls ? 'opacity-100 z-20' : 'opacity-100 z-10'}`}>
-          <ViewerControls
-            showEffects={showEffects}
-            autoRotate={autoRotate}
-            onToggleEffects={() => setShowEffects(!showEffects)}
-            onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
-            onReset={handleReset}
-            onZoomIn={() => handleZoom(0.1)}
-            onZoomOut={() => handleZoom(-0.1)}
-          />
-        </div>
+        {/* Bottom Controls Row - Always Visible */}
+        <div className="fixed bottom-4 left-4 right-4 z-10">
+          <div className="flex items-end justify-between max-w-7xl mx-auto" style={{ marginRight: (showCustomizePanel || showEnhancedPanel) ? '400px' : '20px' }}>
+            {/* Left Side - Basic Controls */}
+            <div className={`transition-opacity duration-200 ${isHoveringControls ? 'opacity-100' : 'opacity-100'}`}>
+              <ViewerControls
+                showEffects={showEffects}
+                autoRotate={autoRotate}
+                onToggleEffects={() => setShowEffects(!showEffects)}
+                onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
+                onReset={handleReset}
+                onZoomIn={() => handleZoom(0.1)}
+                onZoomOut={() => handleZoom(-0.1)}
+              />
+            </div>
 
-        {/* Card Navigation Controls */}
-        {hasMultipleCards && (
-          <div className="absolute bottom-4 right-4 z-10">
-            <div className="flex items-center space-x-2 bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-3 border border-white/10">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handlePreviousCard}
-                disabled={!canGoPrev}
-                className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              
-              <div className="text-white text-sm px-3">
-                {currentCardIndex + 1} / {cards.length}
-              </div>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleNextCard}
-                disabled={!canGoNext}
-                className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
+            {/* Right Side - Navigation and Config */}
+            <div className="flex items-end space-x-4">
+              {/* Card Navigation Controls */}
+              {hasMultipleCards && (
+                <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-3 border border-white/10">
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handlePreviousCard}
+                      disabled={!canGoPrev}
+                      className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    
+                    <div className="text-white text-sm px-2">
+                      {currentCardIndex + 1} / {cards.length}
+                    </div>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleNextCard}
+                      disabled={!canGoNext}
+                      className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Configuration Details Panel - Always Visible */}
+              <ConfigurationDetailsPanel
+                effectValues={currentEffects}
+                selectedScene={selectedScene}
+                selectedLighting={selectedLighting}
+                materialSettings={materialSettings}
+                overallBrightness={overallBrightness}
+              />
             </div>
           </div>
-        )}
-
-        {/* Conditional Panel Rendering */}
-        {showCustomizePanel && userTier === 'rookie' && (
-          <FreemiumCustomizePanel
-            availablePresets={availablePresets}
-            selectedPresetId={selectedPresetId}
-            onPresetSelect={selectPreset}
-            userTier={userTier}
-            canAccessPreset={canAccessPreset}
-            onClose={() => setShowCustomizePanel(false)}
-            onTierChange={handleTierUpgrade}
-          />
-        )}
-
-        {/* Enhanced Studio Panel for Pro/Baller Users */}
-        {showEnhancedPanel && (userTier === 'pro' || userTier === 'baller') && (
-          <EnhancedStudioPanel
-            userTier={userTier}
-            effectValues={currentEffects}
-            selectedScene={selectedScene}
-            selectedLighting={selectedLighting}
-            materialSettings={materialSettings}
-            overallBrightness={overallBrightness}
-            onClose={() => setShowEnhancedPanel(false)}
-            onEffectChange={handleEffectChange}
-            onSceneChange={handleSceneChange}
-            onLightingChange={handleLightingChange}
-            onMaterialSettingsChange={handleMaterialChange}
-            onBrightnessChange={setOverallBrightness}
-            onDownload={handleDownloadClick}
-            onShare={handleShareClick}
-          />
-        )}
+        </div>
 
         {/* Enhanced Card Container */}
         <div ref={cardContainerRef}>
@@ -440,20 +424,9 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         </div>
 
-        {/* Configuration Details Panel */}
-        {!showCustomizePanel && (
-          <ConfigurationDetailsPanel
-            effectValues={currentEffects}
-            selectedScene={selectedScene}
-            selectedLighting={selectedLighting}
-            materialSettings={materialSettings}
-            overallBrightness={overallBrightness}
-          />
-        )}
-
         {/* Info Panel */}
         {showStats && !isFlipped && !showCustomizePanel && !showEnhancedPanel && (
-          <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: hasMultipleCards ? '180px' : '100px' }}>
+          <div className="absolute bottom-20 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: '100px' }}>
             <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
               <div className="flex items-center justify-between text-white">
                 <div className="flex space-x-4 text-sm">
