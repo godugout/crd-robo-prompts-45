@@ -294,15 +294,19 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
   if (!isOpen) return null;
 
+  // Calculate dynamic margin based on panel state
+  const panelWidth = (showCustomizePanel || showEnhancedPanel) ? 420 : 0;
+
   return (
     <>
       <div 
         ref={containerRef}
         className={`fixed inset-0 z-50 flex items-center justify-center ${
           isFullscreen ? 'p-0' : 'p-8'
-        } ${(showCustomizePanel || showEnhancedPanel) ? 'pr-96' : ''}`}
+        }`}
         style={{
           ...getEnvironmentStyle(),
+          paddingRight: isFullscreen ? 0 : `${panelWidth + 32}px`
         }}
         onMouseMove={handleMouseMove}
         onMouseUp={handleDragEnd}
@@ -340,11 +344,11 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
 
-        {/* Bottom Controls Row - Always Visible */}
+        {/* Reorganized Bottom Controls - Always Visible */}
         <div className="fixed bottom-4 left-4 right-4 z-10">
-          <div className="flex items-end justify-between max-w-7xl mx-auto" style={{ marginRight: (showCustomizePanel || showEnhancedPanel) ? '400px' : '20px' }}>
+          <div className="flex items-end justify-between max-w-7xl mx-auto" style={{ marginRight: `${panelWidth + 20}px` }}>
             {/* Left Side - Basic Controls */}
-            <div className={`transition-opacity duration-200 ${isHoveringControls ? 'opacity-100' : 'opacity-100'}`}>
+            <div className="flex items-end space-x-4">
               <ViewerControls
                 showEffects={showEffects}
                 autoRotate={autoRotate}
@@ -426,7 +430,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
         {/* Info Panel */}
         {showStats && !isFlipped && !showCustomizePanel && !showEnhancedPanel && (
-          <div className="absolute bottom-20 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: '100px' }}>
+          <div className="absolute bottom-20 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: `${panelWidth + 100}px` }}>
             <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
               <div className="flex items-center justify-between text-white">
                 <div className="flex space-x-4 text-sm">
@@ -455,6 +459,40 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
       </div>
+
+      {/* Freemium Customize Panel */}
+      {showCustomizePanel && userTier === 'rookie' && (
+        <FreemiumCustomizePanel
+          selectedPresetId={selectedPresetId}
+          availablePresets={availablePresets}
+          onSelectPreset={selectPreset}
+          canAccessPreset={canAccessPreset}
+          onClose={() => setShowCustomizePanel(false)}
+          onUpgrade={handleTierUpgrade}
+          onDownload={handleDownloadClick}
+          onShare={handleShareClick}
+        />
+      )}
+
+      {/* Enhanced Studio Panel */}
+      {showEnhancedPanel && userTier !== 'rookie' && (
+        <EnhancedStudioPanel
+          userTier={userTier}
+          effectValues={currentEffects}
+          selectedScene={selectedScene}
+          selectedLighting={selectedLighting}
+          materialSettings={materialSettings}
+          overallBrightness={overallBrightness}
+          onClose={() => setShowEnhancedPanel(false)}
+          onEffectChange={handleEffectChange}
+          onSceneChange={handleSceneChange}
+          onLightingChange={handleLightingChange}
+          onMaterialSettingsChange={handleMaterialChange}
+          onBrightnessChange={setOverallBrightness}
+          onDownload={handleDownloadClick}
+          onShare={handleShareClick}
+        />
+      )}
 
       {/* Welcome Toast for New Premium Users */}
       <WelcomeToast

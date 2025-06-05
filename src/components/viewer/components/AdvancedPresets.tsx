@@ -36,6 +36,11 @@ export const AdvancedPresets: React.FC<AdvancedPresetsProps> = ({
     }
   ];
 
+  const handlePresetClick = (preset: any) => {
+    console.log('🎯 Preset button clicked:', preset.name);
+    onApplyPreset(preset);
+  };
+
   return (
     <div>
       <h4 className="text-white font-medium mb-3 flex items-center">
@@ -49,8 +54,9 @@ export const AdvancedPresets: React.FC<AdvancedPresetsProps> = ({
         {advancedPresets.map((preset, index) => (
           <Button
             key={index}
-            onClick={() => onApplyPreset(preset)}
-            className="w-full text-left justify-start bg-gradient-to-r from-purple-600/20 to-blue-600/20 hover:from-purple-600/30 hover:to-blue-600/30 border border-purple-500/30"
+            data-preset={preset.name}
+            onClick={() => handlePresetClick(preset)}
+            className="w-full text-left justify-start bg-gradient-to-r from-purple-600/20 to-blue-600/20 hover:from-purple-600/30 hover:to-blue-600/30 border border-purple-500/30 text-white transition-all duration-200"
           >
             <Sparkles className="w-4 h-4 mr-2 text-purple-400" />
             {preset.name}

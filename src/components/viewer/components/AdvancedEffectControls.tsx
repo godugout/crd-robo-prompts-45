@@ -50,7 +50,7 @@ export const AdvancedEffectControls: React.FC<AdvancedEffectControlsProps> = ({
                     min={0}
                     max={100}
                     step={1}
-                    className="w-full [&_[role=slider]]:bg-purple-500 [&_[role=slider]]:border-purple-400 [&>.bg-primary]:bg-purple-600"
+                    className="w-full [&_.bg-primary]:bg-purple-500 [&_[role=slider]]:bg-purple-500 [&_[role=slider]]:border-purple-400"
                   />
                 </div>
                 
@@ -65,7 +65,7 @@ export const AdvancedEffectControls: React.FC<AdvancedEffectControlsProps> = ({
                         min={50}
                         max={200}
                         step={5}
-                        className="w-full [&_[role=slider]]:bg-blue-500 [&_[role=slider]]:border-blue-400 [&>.bg-primary]:bg-blue-600"
+                        className="w-full [&_.bg-primary]:bg-blue-500 [&_[role=slider]]:bg-blue-500 [&_[role=slider]]:border-blue-400"
                       />
                     </div>
                     <div>
@@ -76,7 +76,7 @@ export const AdvancedEffectControls: React.FC<AdvancedEffectControlsProps> = ({
                         min={100}
                         max={360}
                         step={10}
-                        className="w-full [&_[role=slider]]:bg-pink-500 [&_[role=slider]]:border-pink-400 [&>.bg-primary]:bg-pink-600"
+                        className="w-full [&_.bg-primary]:bg-pink-500 [&_[role=slider]]:bg-pink-500 [&_[role=slider]]:border-pink-400"
                       />
                     </div>
                   </>
@@ -92,7 +92,7 @@ export const AdvancedEffectControls: React.FC<AdvancedEffectControlsProps> = ({
                         min={6}
                         max={24}
                         step={1}
-                        className="w-full [&_[role=slider]]:bg-cyan-500 [&_[role=slider]]:border-cyan-400 [&>.bg-primary]:bg-cyan-600"
+                        className="w-full [&_.bg-primary]:bg-cyan-500 [&_[role=slider]]:bg-cyan-500 [&_[role=slider]]:border-cyan-400"
                       />
                     </div>
                     <div>
@@ -103,7 +103,7 @@ export const AdvancedEffectControls: React.FC<AdvancedEffectControlsProps> = ({
                         min={0}
                         max={100}
                         step={5}
-                        className="w-full [&_[role=slider]]:bg-emerald-500 [&_[role=slider]]:border-emerald-400 [&>.bg-primary]:bg-emerald-600"
+                        className="w-full [&_.bg-primary]:bg-emerald-500 [&_[role=slider]]:bg-emerald-500 [&_[role=slider]]:border-emerald-400"
                       />
                     </div>
                   </>
@@ -119,7 +119,7 @@ export const AdvancedEffectControls: React.FC<AdvancedEffectControlsProps> = ({
                         min={0}
                         max={100}
                         step={5}
-                        className="w-full [&_[role=slider]]:bg-gray-500 [&_[role=slider]]:border-gray-400 [&>.bg-primary]:bg-gray-600"
+                        className="w-full [&_.bg-primary]:bg-gray-500 [&_[role=slider]]:bg-gray-500 [&_[role=slider]]:border-gray-400"
                       />
                     </div>
                     <div>
@@ -130,7 +130,7 @@ export const AdvancedEffectControls: React.FC<AdvancedEffectControlsProps> = ({
                         min={0}
                         max={100}
                         step={5}
-                        className="w-full [&_[role=slider]]:bg-slate-500 [&_[role=slider]]:border-slate-400 [&>.bg-primary]:bg-slate-600"
+                        className="w-full [&_.bg-primary]:bg-slate-500 [&_[role=slider]]:bg-slate-500 [&_[role=slider]]:border-slate-400"
                       />
                     </div>
                   </>

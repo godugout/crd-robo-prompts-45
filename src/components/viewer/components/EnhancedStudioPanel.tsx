@@ -57,17 +57,27 @@ export const EnhancedStudioPanel: React.FC<EnhancedStudioPanelProps> = ({
 
   const applyPreset = (preset: any) => {
     console.log('🎨 Applying preset:', preset.name);
+    
+    // Add visual feedback
+    const applyButton = document.querySelector(`[data-preset="${preset.name}"]`);
+    if (applyButton) {
+      applyButton.classList.add('animate-pulse');
+      setTimeout(() => applyButton.classList.remove('animate-pulse'), 500);
+    }
+    
     Object.entries(preset.effects).forEach(([effectId, parameters]: [string, any]) => {
       Object.entries(parameters).forEach(([parameterId, value]) => {
         const validValue = convertToValidEffectValue(value);
-        console.log(`Setting ${effectId}.${parameterId} = ${validValue}`);
+        console.log(`🔧 Setting ${effectId}.${parameterId} = ${validValue}`);
         onEffectChange(effectId, parameterId, validValue);
       });
     });
+    
+    console.log('✅ Preset applied successfully');
   };
 
   return (
-    <div className="fixed top-0 right-0 h-full w-96 bg-black bg-opacity-95 backdrop-blur-lg border-l border-white/10 overflow-hidden z-50">
+    <div className="fixed top-0 right-0 h-full w-[420px] bg-black bg-opacity-95 backdrop-blur-lg border-l border-white/10 overflow-hidden z-50">
       {/* Header */}
       <StudioPanelHeader
         userTier={userTier}
