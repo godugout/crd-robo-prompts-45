@@ -5,6 +5,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import Index from '@/pages/Index';
 import Gallery from '@/pages/Gallery';
 import Profile from '@/pages/Profile';
+import AccountSettings from '@/pages/AccountSettings';
 import Creators from '@/pages/Creators';
 import DebugDetection from '@/pages/DebugDetection';
 import { AuthPage } from '@/components/auth/AuthPage';
@@ -22,6 +23,7 @@ function App() {
             <Route path="gallery" element={<Gallery />} />
             <Route path="auth" element={<AuthPage />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="settings" element={<AccountSettings />} />
             <Route path="creators" element={<Creators />} />
             <Route path="debug-detection" element={<DebugDetection />} />
           </Route>

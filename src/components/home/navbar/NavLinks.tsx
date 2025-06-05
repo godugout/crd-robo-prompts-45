@@ -35,12 +35,6 @@ export const NavLinks = () => {
         Creators
       </Link>
       <Link 
-        to="/profile" 
-        className={`nav-item ${isActive('/profile') ? 'active' : ''}`}
-      >
-        Profile
-      </Link>
-      <Link 
         to="/debug-detection" 
         className={`nav-item ${isActive('/debug-detection') ? 'active' : ''} flex items-center gap-2`}
         title="Debug Card Detection"
