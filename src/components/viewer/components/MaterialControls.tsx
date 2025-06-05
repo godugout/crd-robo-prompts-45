@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import type { MaterialSettings, UserTier } from '../types';
+import type { MaterialSettings } from '../types';
+import type { UserTier } from '../types/tierSystem';
 
 interface MaterialControlsProps {
   materialSettings: MaterialSettings;
