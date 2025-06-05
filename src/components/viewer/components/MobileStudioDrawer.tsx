@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -69,25 +68,15 @@ export const MobileStudioDrawer: React.FC<MobileStudioDrawerProps> = ({
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
       <DrawerTrigger asChild>
-        <Button
-          variant="ghost"
-          size="lg"
-          className="
-            bg-black bg-opacity-70 hover:bg-opacity-80 backdrop-blur 
-            border border-white/20 text-white px-6 py-4
-            min-h-[52px] touch-manipulation active:scale-95 
-            transition-all duration-150 -webkit-tap-highlight-color: transparent
-          "
-          style={{ touchAction: 'manipulation' }}
-        >
-          <Sparkles className="w-5 h-5 mr-2" />
-          <span className="text-base font-medium">Open Studio</span>
-        </Button>
+        <div style={{ display: 'none' }} />
       </DrawerTrigger>
       
       <DrawerContent 
-        className="bg-black bg-opacity-95 backdrop-blur-lg border-white/10 h-[96vh] max-h-[96vh]"
-        style={{ touchAction: 'auto' }}
+        className="bg-black bg-opacity-95 backdrop-blur-lg border-white/10 h-[90vh] max-h-[90vh]"
+        style={{ 
+          touchAction: 'auto',
+          WebkitOverflowScrolling: 'touch'
+        }}
       >
         <DrawerHeader className="border-b border-white/10 flex-shrink-0 pb-4">
           <DrawerTitle className="text-white text-lg font-semibold flex items-center">
