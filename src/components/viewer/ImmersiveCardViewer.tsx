@@ -9,6 +9,7 @@ import {
   type EffectValues 
 } from './hooks/useEnhancedCardEffects';
 import { useCardEffects } from './hooks/useCardEffects';
+import { useDynamicCardBackMaterials } from './hooks/useDynamicCardBackMaterials';
 import { ViewerControls } from './components/ViewerControls';
 import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
@@ -58,6 +59,9 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     resetEffect,
     resetAllEffects
   } = enhancedEffectsHook;
+  
+  // Get dynamic material based on current effects
+  const { selectedMaterial } = useDynamicCardBackMaterials(effectValues);
   
   // Advanced settings - Updated for more professional defaults
   const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[0]); // Studio instead of Twilight
