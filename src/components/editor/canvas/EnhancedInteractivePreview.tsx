@@ -45,21 +45,22 @@ export const EnhancedInteractivePreview = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return canvas;
 
-    // Create watermark
-    const watermarkSize = Math.min(canvas.width * 0.15, 60); // 15% of width, max 60px
+    // Properly position watermark in upper right corner
     const margin = 10;
     
-    // Position in upper right corner
-    const x = canvas.width - watermarkSize - margin;
-    const y = margin;
-
-    // Create CRD text watermark
+    // Add CRD text watermark
     ctx.save();
-    ctx.globalAlpha = 0.7;
+    // Make it more visible
+    ctx.globalAlpha = 0.8;
     ctx.fillStyle = '#10B981'; // CRD green color
-    ctx.font = `bold ${watermarkSize * 0.3}px Arial`;
+    
+    // Calculate font size based on canvas width
+    const fontSize = Math.max(Math.min(canvas.width * 0.05, 24), 12); // Between 12-24px
+    
+    ctx.font = `bold ${fontSize}px Arial`;
     ctx.textAlign = 'right';
-    ctx.fillText('CRD', canvas.width - margin, y + (watermarkSize * 0.3));
+    ctx.textBaseline = 'top';
+    ctx.fillText('CRD', canvas.width - margin, margin);
     ctx.restore();
 
     return canvas;
@@ -115,6 +116,7 @@ export const EnhancedInteractivePreview = ({
         <div 
           ref={cardFrontRef}
           className="w-80 h-112 bg-white rounded-lg shadow-lg border-2 border-gray-200 flex items-center justify-center"
+          data-card-front="true" // Add data attribute for export targeting
         >
           <div className="text-center p-4">
             <div className="text-gray-400 mb-2">No template selected</div>
@@ -136,6 +138,7 @@ export const EnhancedInteractivePreview = ({
           height: 420 * scaleFactor,
           backgroundColor: colors.background 
         }}
+        data-card-front="true" // Add data attribute for export targeting
       >
         {/* Template-specific rendering */}
         {selectedTemplate.id === 'tcg-classic' && (

@@ -42,15 +42,24 @@ export const useCardExport = ({
     if (!ctx) return canvas;
 
     // Create watermark in upper right corner
-    const watermarkSize = Math.min(canvas.width * 0.12, 50); // 12% of width, max 50px
     const margin = 15;
     
+    // Add CRD text watermark in the upper right corner
     ctx.save();
+    
+    // Set watermark properties - more visible now
     ctx.globalAlpha = 0.8;
     ctx.fillStyle = '#10B981'; // CRD green color
-    ctx.font = `bold ${watermarkSize * 0.4}px Arial`;
+    
+    // Calculate font size based on canvas width (more proportional)
+    const fontSize = Math.max(Math.min(canvas.width * 0.05, 24), 12); // Between 12-24px
+    
+    // Position in the upper right with proper margin
+    ctx.font = `bold ${fontSize}px Arial`;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
+    
+    // Draw the text
     ctx.fillText('CRD', canvas.width - margin, margin);
     ctx.restore();
 
