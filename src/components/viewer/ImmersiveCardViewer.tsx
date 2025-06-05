@@ -14,6 +14,7 @@ import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePane
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { useCardExport } from './hooks/useCardExport';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
+import { ConfigurationDetailsPanel } from './components/ConfigurationDetailsPanel';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -394,9 +395,21 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         </div>
 
+        {/* Configuration Details Panel */}
+        {!showCustomizePanel && (
+          <ConfigurationDetailsPanel
+            effectValues={effectValues}
+            selectedScene={selectedScene}
+            selectedLighting={selectedLighting}
+            materialSettings={materialSettings}
+            overallBrightness={overallBrightness}
+            interactiveLighting={interactiveLighting}
+          />
+        )}
+
         {/* Info Panel - Enhanced visibility */}
         {showStats && !isFlipped && !showCustomizePanel && (
-          <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: hasMultipleCards ? '180px' : '20px' }}>
+          <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: hasMultipleCards ? '180px' : '100px' }}>
             <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
               <div className="flex items-center justify-between text-white">
                 <div className="flex space-x-4 text-sm">
@@ -417,7 +430,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
                 <div className="flex items-center space-x-2">
                   <Sparkles className="w-4 h-4" />
                   <span className="text-sm">
-                    Enhanced Studio | Scene: {selectedScene.name}
+                    Enhanced Studio | Material: {selectedMaterial?.name || 'Default'}
                   </span>
                 </div>
               </div>
