@@ -1,5 +1,4 @@
-
-import { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import type { EffectValues } from './useEnhancedCardEffects';
 import { CARD_BACK_MATERIALS, type CardBackMaterial } from './useDynamicCardBackMaterials';
 
