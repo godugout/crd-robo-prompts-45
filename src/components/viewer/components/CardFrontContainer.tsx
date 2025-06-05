@@ -89,20 +89,55 @@ export const CardFrontContainer: React.FC<CardFrontContainerProps> = ({
         </div>
       </div>
 
-      {/* Interactive Shine Effect - Enhanced with interactive lighting */}
-      {isHovering && (
-        <div 
-          className="absolute inset-0 pointer-events-none z-30"
-          style={{
-            background: `linear-gradient(105deg, 
-              transparent 40%, 
-              rgba(255, 255, 255, ${interactiveLighting ? 0.7 : 0.5}) 50%, 
-              transparent 60%)`,
-            transform: `translateX(${(mousePosition.x - 0.5) * 100}%)`,
-            transition: 'transform 0.1s ease',
-            mixBlendMode: 'overlay'
-          }}
-        />
+      {/* Softer Interactive Lighting Effect - Multi-layered radial system */}
+      {isHovering && interactiveLighting && (
+        <>
+          {/* Primary soft light center */}
+          <div 
+            className="absolute inset-0 pointer-events-none z-30"
+            style={{
+              background: `radial-gradient(
+                ellipse 120% 80% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                rgba(255, 255, 255, 0.15) 0%,
+                rgba(255, 255, 255, 0.08) 40%,
+                transparent 80%
+              )`,
+              mixBlendMode: 'overlay',
+              transition: 'background 0.1s ease'
+            }}
+          />
+          
+          {/* Secondary diffusion layer */}
+          <div 
+            className="absolute inset-0 pointer-events-none z-31"
+            style={{
+              background: `radial-gradient(
+                ellipse 180% 120% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                rgba(255, 255, 255, 0.06) 0%,
+                rgba(255, 255, 255, 0.03) 60%,
+                transparent 90%
+              )`,
+              mixBlendMode: 'soft-light',
+              transition: 'background 0.15s ease'
+            }}
+          />
+          
+          {/* Subtle directional highlight */}
+          <div 
+            className="absolute inset-0 pointer-events-none z-32"
+            style={{
+              background: `linear-gradient(
+                ${Math.atan2(mousePosition.y - 0.5, mousePosition.x - 0.5) * (180 / Math.PI) + 90}deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.04) 50%,
+                transparent 60%
+              )`,
+              mixBlendMode: 'overlay',
+              opacity: Math.max(0.3, 1 - Math.sqrt(Math.pow(mousePosition.x - 0.5, 2) + Math.pow(mousePosition.y - 0.5, 2)) * 2),
+              transition: 'opacity 0.1s ease'
+            }}
+          />
+        </>
       )}
     </div>
   );
