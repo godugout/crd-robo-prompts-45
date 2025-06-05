@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
@@ -24,7 +23,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const img = new Image(); // Fixed: Use new Image() constructor properly
+      const img = new Image(); // Fixed: Use new Image() constructor without arguments
       
       img.onload = () => {
         // Standard trading card aspect ratio is 2.5:3.5 (roughly 0.714)
