@@ -19,6 +19,9 @@ import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
 import { ConfigurationDetailsPanel } from './components/ConfigurationDetailsPanel';
 import { GestureHelpOverlay } from './components/GestureHelpOverlay';
+import { MobileCardLayout } from './components/MobileCardLayout';
+import { MobileBottomControlBar } from './components/MobileBottomControlBar';
+import { MobileInfoPanel } from './components/MobileInfoPanel';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -57,6 +60,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [isHoveringControls, setIsHoveringControls] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showGestureHelp, setShowGestureHelp] = useState(false);
+  const [showMobileInfo, setShowMobileInfo] = useState(false);
   
   // Enhanced effects state with atomic preset application
   const enhancedEffectsHook = useEnhancedCardEffects();
@@ -330,6 +334,143 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
   if (!isOpen) return null;
 
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <>
+        <div 
+          ref={containerRef}
+          className="fixed inset-0 z-50"
+          style={{
+            ...getEnvironmentStyle(),
+          }}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleDragEnd}
+          onMouseLeave={handleDragEnd}
+        >
+          {/* Enhanced Dark Overlay */}
+          <div className="absolute inset-0 bg-black/60" />
+
+          {/* Subtle Ambient Background Effect */}
+          {ambient && selectedScene && (
+            <div 
+              className="absolute inset-0 opacity-30"
+              style={{
+                background: `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
+                  ${selectedScene.lighting.color} 0%, transparent 40%)`,
+                mixBlendMode: 'screen'
+              }}
+            />
+          )}
+
+          <MobileCardLayout
+            bottomControls={
+              <MobileBottomControlBar
+                showEffects={showEffects}
+                onToggleEffects={() => setShowEffects(!showEffects)}
+                onReset={handleMobileReset}
+                onZoomIn={() => handleMobileZoom(0.2)}
+                onZoomOut={() => handleMobileZoom(-0.2)}
+                onToggleInfo={() => setShowMobileInfo(!showMobileInfo)}
+                showInfo={showMobileInfo}
+                hasMultipleCards={hasMultipleCards}
+                canGoPrev={canGoPrev}
+                canGoNext={canGoNext}
+                currentCardIndex={currentCardIndex}
+                totalCards={cards.length}
+                onPreviousCard={handlePreviousCard}
+                onNextCard={handleNextCard}
+              />
+            }
+            floatingControls={
+              <MobileStudioDrawer
+                selectedScene={selectedScene}
+                selectedLighting={selectedLighting}
+                effectValues={effectValues}
+                overallBrightness={overallBrightness}
+                interactiveLighting={interactiveLighting}
+                materialSettings={materialSettings}
+                isFullscreen={isFullscreen}
+                onSceneChange={setSelectedScene}
+                onLightingChange={setSelectedLighting}
+                onEffectChange={handleManualEffectChange}
+                onResetAllEffects={resetAllEffects}
+                onBrightnessChange={setOverallBrightness}
+                onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
+                onMaterialSettingsChange={setMaterialSettings}
+                onToggleFullscreen={toggleFullscreen}
+                onDownload={handleDownloadClick}
+                onShare={handleShareClick}
+                card={card}
+                selectedPresetId={selectedPresetId}
+                onPresetSelect={setSelectedPresetId}
+                onApplyCombo={handleComboApplication}
+                isApplyingPreset={isApplyingPreset}
+                isOpen={showCustomizePanel}
+                onOpenChange={setShowCustomizePanel}
+              />
+            }
+            infoPanel={
+              showStats && (
+                <MobileInfoPanel
+                  selectedMaterial={selectedMaterial}
+                  hasMultipleCards={hasMultipleCards}
+                />
+              )
+            }
+            showInfoPanel={showMobileInfo}
+          >
+            {/* Enhanced Card Container */}
+            <div ref={cardContainerRef}>
+              <EnhancedCardContainer
+                card={card}
+                isFlipped={isFlipped}
+                isHovering={isHovering}
+                showEffects={showEffects}
+                effectValues={effectValues}
+                mousePosition={mousePosition}
+                rotation={rotation}
+                zoom={zoom}
+                isDragging={isDragging}
+                frameStyles={getFrameStyles()}
+                enhancedEffectStyles={getEnhancedEffectStyles()}
+                SurfaceTexture={SurfaceTexture}
+                interactiveLighting={interactiveLighting}
+                onMouseDown={handleDragStart}
+                onMouseMove={handleDrag}
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={() => setIsHovering(false)}
+                onClick={() => setIsFlipped(!isFlipped)}
+                onZoom={handleMobileZoom}
+                onRotationChange={handleRotationChange}
+                onDoubleTap={handleMobileDoubleTap}
+                onLongPress={handleMobileLongPress}
+                onSwipeLeft={handleMobileSwipeLeft}
+                onSwipeRight={handleMobileSwipeRight}
+                onReset={handleMobileReset}
+              />
+            </div>
+          </MobileCardLayout>
+        </div>
+
+        {/* Export Options Dialog */}
+        <ExportOptionsDialog
+          isOpen={showExportDialog}
+          onClose={() => setShowExportDialog(false)}
+          cardTitle={card.title}
+          cardElementRef={cardContainerRef}
+        />
+
+        {/* Gesture Help Overlay */}
+        <GestureHelpOverlay
+          isVisible={showGestureHelp}
+          onClose={() => setShowGestureHelp(false)}
+        />
+      </>
+    );
+  }
+
+  // Desktop Layout (unchanged)
   return (
     <>
       <div 
@@ -361,75 +502,31 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
         {/* Settings Panel Toggle Button - Updated for mobile */}
         {!showCustomizePanel && (
-          <div className={`absolute top-4 right-4 z-10 ${isMobile ? 'bottom-20' : ''}`}>
-            {isMobile ? (
-              <MobileStudioDrawer
-                selectedScene={selectedScene}
-                selectedLighting={selectedLighting}
-                effectValues={effectValues}
-                overallBrightness={overallBrightness}
-                interactiveLighting={interactiveLighting}
-                materialSettings={materialSettings}
-                isFullscreen={isFullscreen}
-                onSceneChange={setSelectedScene}
-                onLightingChange={setSelectedLighting}
-                onEffectChange={handleManualEffectChange}
-                onResetAllEffects={resetAllEffects}
-                onBrightnessChange={setOverallBrightness}
-                onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
-                onMaterialSettingsChange={setMaterialSettings}
-                onToggleFullscreen={toggleFullscreen}
-                onDownload={handleDownloadClick}
-                onShare={handleShareClick}
-                card={card}
-                selectedPresetId={selectedPresetId}
-                onPresetSelect={setSelectedPresetId}
-                onApplyCombo={handleComboApplication}
-                isApplyingPreset={isApplyingPreset}
-                isOpen={showCustomizePanel}
-                onOpenChange={setShowCustomizePanel}
-              />
-            ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowCustomizePanel(true)}
-                className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
-              >
-                <Sparkles className="w-4 h-4 text-white mr-2" />
-                <span className="text-white text-sm">Open Studio</span>
-              </Button>
-            )}
+          <div className="absolute top-4 right-4 z-10">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowCustomizePanel(true)}
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
+            >
+              <Sparkles className="w-4 h-4 text-white mr-2" />
+              <span className="text-white text-sm">Open Studio</span>
+            </Button>
           </div>
         )}
 
-        {/* Mobile-optimized Controls */}
-        {isMobile ? (
-          <div className="absolute bottom-4 left-4 z-10">
-            <MobileViewerControls
-              showEffects={showEffects}
-              autoRotate={autoRotate}
-              onToggleEffects={() => setShowEffects(!showEffects)}
-              onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
-              onReset={handleMobileReset}
-              onZoomIn={() => handleMobileZoom(0.2)}
-              onZoomOut={() => handleMobileZoom(-0.2)}
-              onShowGestureHelp={() => setShowGestureHelp(true)}
-            />
-          </div>
-        ) : (
-          <div className={`transition-opacity duration-200 ${isHoveringControls ? 'opacity-100 z-20' : 'opacity-100 z-10'}`}>
-            <ViewerControls
-              showEffects={showEffects}
-              autoRotate={autoRotate}
-              onToggleEffects={() => setShowEffects(!showEffects)}
-              onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
-              onReset={handleReset}
-              onZoomIn={() => handleZoom(0.1)}
-              onZoomOut={() => handleZoom(-0.1)}
-            />
-          </div>
-        )}
+        {/* Desktop Controls */}
+        <div className={`transition-opacity duration-200 ${isHoveringControls ? 'opacity-100 z-20' : 'opacity-100 z-10'}`}>
+          <ViewerControls
+            showEffects={showEffects}
+            autoRotate={autoRotate}
+            onToggleEffects={() => setShowEffects(!showEffects)}
+            onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
+            onReset={handleReset}
+            onZoomIn={() => handleZoom(0.1)}
+            onZoomOut={() => handleZoom(-0.1)}
+          />
+        </div>
 
         {/* Card Navigation Controls */}
         {hasMultipleCards && (
@@ -463,7 +560,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         )}
 
         {/* Desktop Customize Panel */}
-        {showCustomizePanel && !isMobile && (
+        {showCustomizePanel && (
           <ProgressiveCustomizePanel
             selectedScene={selectedScene}
             selectedLighting={selectedLighting}
@@ -529,7 +626,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         </div>
 
         {/* Configuration Details Panel */}
-        {!showCustomizePanel && !isMobile && (
+        {!showCustomizePanel && (
           <ConfigurationDetailsPanel
             effectValues={effectValues}
             selectedScene={selectedScene}
