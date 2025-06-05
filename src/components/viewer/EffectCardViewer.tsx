@@ -45,6 +45,73 @@ const COMBO_DESCRIPTIONS = {
   starlight: 'Celestial sparkle field'
 };
 
+// Enhanced card back configurations for each combo
+const CARD_BACK_CONFIGS = {
+  solar: {
+    background: 'radial-gradient(ellipse at center, #1a1100 0%, #2d1f00 30%, #1a1100 70%, #0d0800 100%)',
+    accent: 'rgba(255, 204, 0, 0.15)',
+    glow: 'rgba(255, 140, 0, 0.2)',
+    pattern: 'solar-rays',
+    opacity: 0.95
+  },
+  holographic: {
+    background: 'linear-gradient(135deg, #0a0a1a 0%, #1a0a2a 25%, #2a0a1a 50%, #1a0a3a 75%, #0a0a1a 100%)',
+    accent: 'rgba(255, 0, 128, 0.1)',
+    glow: 'rgba(0, 255, 255, 0.15)',
+    pattern: 'prismatic-shift',
+    opacity: 0.92
+  },
+  lunar: {
+    background: 'radial-gradient(ellipse at center, #0f0f1a 0%, #1a1a2a 40%, #151520 80%, #0a0a15 100%)',
+    accent: 'rgba(192, 192, 192, 0.12)',
+    glow: 'rgba(176, 196, 222, 0.18)',
+    pattern: 'moonbeam',
+    opacity: 0.94
+  },
+  starlight: {
+    background: 'radial-gradient(ellipse at center, #000011 0%, #001122 30%, #000033 60%, #000008 100%)',
+    accent: 'rgba(255, 255, 255, 0.08)',
+    glow: 'rgba(135, 206, 235, 0.12)',
+    pattern: 'starfield',
+    opacity: 0.96
+  },
+  crystal: {
+    background: 'linear-gradient(135deg, #0a1a1a 0%, #1a2a2a 25%, #0f1f2f 50%, #1a2535 75%, #0a1520 100%)',
+    accent: 'rgba(173, 216, 230, 0.15)',
+    glow: 'rgba(135, 206, 250, 0.2)',
+    pattern: 'crystal-facets',
+    opacity: 0.88
+  },
+  vintage: {
+    background: 'radial-gradient(ellipse at center, #1a1008 0%, #2a1f10 40%, #352818 70%, #1f1510 100%)',
+    accent: 'rgba(205, 133, 63, 0.18)',
+    glow: 'rgba(160, 82, 45, 0.25)',
+    pattern: 'aged-texture',
+    opacity: 0.93
+  },
+  golden: {
+    background: 'radial-gradient(ellipse at center, #1a1500 0%, #2a2200 30%, #352d00 60%, #1f1a00 100%)',
+    accent: 'rgba(255, 215, 0, 0.2)',
+    glow: 'rgba(255, 165, 0, 0.25)',
+    pattern: 'gold-leaf',
+    opacity: 0.9
+  },
+  ice: {
+    background: 'linear-gradient(135deg, #0a1520 0%, #152030 25%, #0f1a28 50%, #1a2535 75%, #0a1218 100%)',
+    accent: 'rgba(176, 224, 230, 0.12)',
+    glow: 'rgba(135, 206, 235, 0.15)',
+    pattern: 'frost-crystals',
+    opacity: 0.85
+  },
+  prizm: {
+    background: 'linear-gradient(45deg, #1a0a1a 0%, #2a1a2a 25%, #1a2a1a 50%, #2a1a3a 75%, #1a0a2a 100%)',
+    accent: 'rgba(255, 20, 147, 0.1)',
+    glow: 'rgba(138, 43, 226, 0.15)',
+    pattern: 'geometric-prism',
+    opacity: 0.91
+  }
+};
+
 export const EffectCardViewer = () => {
   const [cardState, setCardState] = useState<CardState>({
     activeCombo: 'solar',
@@ -84,32 +151,116 @@ export const EffectCardViewer = () => {
 
   const getMaterialStyle = (): React.CSSProperties => {
     const { activeCombo, effects } = cardState;
-    let baseStyle: React.CSSProperties = {};
+    const config = CARD_BACK_CONFIGS[activeCombo];
+    let baseStyle: React.CSSProperties = {
+      background: config.background,
+      opacity: config.opacity
+    };
 
+    // Apply combo-specific enhancements
     switch (activeCombo) {
       case 'solar':
         baseStyle = {
-          background: 'linear-gradient(45deg, #ffcc00, #ff8c00, #ffd700)',
-          boxShadow: '0 0 30px rgba(255, 204, 0, 0.6)',
+          ...baseStyle,
+          boxShadow: `0 0 40px ${config.glow}, inset 0 0 20px ${config.accent}`,
+          background: `
+            ${config.background},
+            radial-gradient(ellipse 200% 100% at 50% 50%, ${config.accent} 0%, transparent 50%)
+          `
         };
         break;
       case 'holographic':
         baseStyle = {
-          background: 'linear-gradient(45deg, #ff0080, #0080ff, #00ff80, #ff8000)',
+          ...baseStyle,
+          background: `
+            ${config.background},
+            linear-gradient(45deg, 
+              rgba(255, 0, 128, 0.05), 
+              rgba(0, 128, 255, 0.05), 
+              rgba(0, 255, 128, 0.05), 
+              rgba(255, 128, 0, 0.05)
+            )
+          `,
           backgroundSize: '400% 400%',
-          animation: 'holographicShift 3s ease-in-out infinite',
+          animation: 'holographicShift 4s ease-in-out infinite'
         };
         break;
       case 'lunar':
         baseStyle = {
-          background: 'linear-gradient(45deg, #c0c0c0, #e6e6fa, #b0c4de)',
-          boxShadow: '0 0 25px rgba(192, 192, 192, 0.5)',
+          ...baseStyle,
+          boxShadow: `0 0 30px ${config.glow}, inset 0 0 15px ${config.accent}`,
+          background: `
+            ${config.background},
+            radial-gradient(circle at 30% 30%, ${config.accent} 0%, transparent 40%)
+          `
         };
         break;
-      default:
+      case 'starlight':
         baseStyle = {
-          background: 'linear-gradient(45deg, #667eea, #764ba2)',
+          ...baseStyle,
+          background: `
+            ${config.background},
+            radial-gradient(circle at 20% 20%, ${config.accent} 1px, transparent 2px),
+            radial-gradient(circle at 80% 40%, ${config.accent} 1px, transparent 2px),
+            radial-gradient(circle at 40% 80%, ${config.accent} 1px, transparent 2px)
+          `,
+          backgroundSize: '100px 100px, 150px 150px, 120px 120px'
         };
+        break;
+      case 'crystal':
+        baseStyle = {
+          ...baseStyle,
+          background: `
+            ${config.background},
+            linear-gradient(120deg, transparent 40%, ${config.accent} 45%, ${config.accent} 55%, transparent 60%),
+            linear-gradient(60deg, transparent 40%, ${config.glow} 45%, ${config.glow} 55%, transparent 60%)
+          `,
+          filter: 'blur(0.5px) brightness(1.1)'
+        };
+        break;
+      case 'vintage':
+        baseStyle = {
+          ...baseStyle,
+          background: `
+            ${config.background},
+            radial-gradient(ellipse 150% 80% at 20% 80%, ${config.accent} 0%, transparent 50%),
+            linear-gradient(45deg, transparent 60%, ${config.glow} 65%, transparent 70%)
+          `,
+          filter: 'sepia(0.1) contrast(1.05)'
+        };
+        break;
+      case 'golden':
+        baseStyle = {
+          ...baseStyle,
+          background: `
+            ${config.background},
+            radial-gradient(ellipse 120% 60% at 50% 40%, ${config.accent} 0%, transparent 60%),
+            linear-gradient(135deg, transparent 40%, ${config.glow} 50%, transparent 60%)
+          `,
+          boxShadow: `0 0 25px ${config.glow}`
+        };
+        break;
+      case 'ice':
+        baseStyle = {
+          ...baseStyle,
+          background: `
+            ${config.background},
+            linear-gradient(45deg, ${config.accent} 0%, transparent 20%, ${config.glow} 40%, transparent 60%, ${config.accent} 80%, transparent 100%)
+          `,
+          filter: 'blur(0.3px) brightness(1.15)',
+          opacity: config.opacity
+        };
+        break;
+      case 'prizm':
+        baseStyle = {
+          ...baseStyle,
+          background: `
+            ${config.background},
+            conic-gradient(from 0deg at 50% 50%, ${config.accent} 0deg, ${config.glow} 60deg, ${config.accent} 120deg, ${config.glow} 180deg, ${config.accent} 240deg, ${config.glow} 300deg, ${config.accent} 360deg)
+          `,
+          backgroundSize: '200% 200%'
+        };
+        break;
     }
 
     // Apply holographic overlay if active
@@ -119,12 +270,12 @@ export const EffectCardViewer = () => {
         ...baseStyle,
         background: `
           linear-gradient(45deg, 
-            rgba(255, 0, 128, ${intensity * 0.3}), 
-            rgba(0, 128, 255, ${intensity * 0.3}), 
-            rgba(0, 255, 128, ${intensity * 0.3}), 
-            rgba(255, 128, 0, ${intensity * 0.3})
+            rgba(255, 0, 128, ${intensity * 0.2}), 
+            rgba(0, 128, 255, ${intensity * 0.2}), 
+            rgba(0, 255, 128, ${intensity * 0.2}), 
+            rgba(255, 128, 0, ${intensity * 0.2})
           ),
-          ${baseStyle.background || 'linear-gradient(45deg, #667eea, #764ba2)'}
+          ${baseStyle.background}
         `,
       };
     }
@@ -164,22 +315,22 @@ export const EffectCardViewer = () => {
                 <div className="relative">
                   {/* Card Container */}
                   <div 
-                    className="w-80 h-[448px] rounded-lg shadow-2xl transition-all duration-300 relative overflow-hidden"
+                    className="w-80 h-[448px] rounded-lg shadow-2xl transition-all duration-500 relative overflow-hidden border border-white/10"
                     style={getMaterialStyle()}
                   >
                     {/* Card Content */}
                     <div className="absolute inset-0 p-6 flex flex-col justify-between text-white">
                       <div className="text-center">
-                        <h2 className="text-2xl font-bold mb-2">EZ-ETH</h2>
-                        <div className="w-32 h-32 mx-auto bg-black/20 rounded-lg flex items-center justify-center mb-4">
-                          <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center">
+                        <h2 className="text-2xl font-bold mb-2 drop-shadow-lg">EZ-ETH</h2>
+                        <div className="w-32 h-32 mx-auto bg-black/20 rounded-lg flex items-center justify-center mb-4 backdrop-blur-sm border border-white/10">
+                          <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center shadow-lg">
                             <div className="w-12 h-12 bg-white rounded" />
                           </div>
                         </div>
-                        <p className="text-sm opacity-90">Character wearing purple hoodie and sunglasses</p>
+                        <p className="text-sm opacity-90 drop-shadow">Character wearing purple hoodie and sunglasses</p>
                       </div>
                       <div className="text-center">
-                        <span className="inline-block px-4 py-2 bg-yellow-500 text-black font-bold rounded">
+                        <span className="inline-block px-4 py-2 bg-yellow-500 text-black font-bold rounded shadow-lg">
                           LEGENDARY
                         </span>
                       </div>
@@ -203,7 +354,7 @@ export const EffectCardViewer = () => {
                       key={combo}
                       onClick={() => applyCombo(combo as ComboType)}
                       variant="ghost"
-                      className={`w-full justify-start text-left h-auto p-3 ${
+                      className={`w-full justify-start text-left h-auto p-3 transition-all duration-200 ${
                         cardState.activeCombo === combo 
                           ? 'bg-green-500/20 border border-green-500 text-green-400' 
                           : 'text-gray-300 hover:bg-gray-700'
