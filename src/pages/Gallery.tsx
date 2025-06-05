@@ -36,6 +36,9 @@ const Gallery = () => {
   const convertedCards = convertCardsToCardData(featuredCards);
   const currentCard = convertedCards[selectedCardIndex];
 
+  // Mock premium status - in production this would come from user auth
+  const isPremiumUser = false; // Set to true to test premium features
+
   return (
     <div className="container mx-auto p-6 max-w-7xl bg-[#121212]">
       <GalleryHeader activeTab={activeTab} onTabChange={setActiveTab} />
@@ -76,7 +79,7 @@ const Gallery = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Enhanced Immersive Card Viewer with Navigation */}
+      {/* Enhanced Immersive Card Viewer with Freemium Support */}
       {showImmersiveViewer && currentCard && convertedCards.length > 0 && (
         <ImmersiveCardViewer
           card={currentCard}
@@ -90,6 +93,7 @@ const Gallery = () => {
           allowRotation={true}
           showStats={true}
           ambient={true}
+          isPremiumUser={isPremiumUser}
         />
       )}
     </div>

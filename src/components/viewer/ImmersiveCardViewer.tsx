@@ -1,18 +1,13 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
 import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from './constants';
-import { 
-  useEnhancedCardEffects, 
-  ENHANCED_VISUAL_EFFECTS,
-  type EffectValues 
-} from './hooks/useEnhancedCardEffects';
+import { useFreemiumEffects } from './hooks/useFreemiumEffects';
 import { useCardEffects } from './hooks/useCardEffects';
 import { useDynamicCardBackMaterials } from './hooks/useDynamicCardBackMaterials';
 import { ViewerControls } from './components/ViewerControls';
-import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
+import { FreemiumCustomizePanel } from './components/FreemiumCustomizePanel';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { useCardExport } from './hooks/useCardExport';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
@@ -23,6 +18,7 @@ interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
   cards?: any[];
   currentCardIndex?: number;
   onCardChange?: (index: number) => void;
+  isPremiumUser?: boolean;
 }
 
 export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = ({
@@ -36,8 +32,19 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   onDownload,
   allowRotation = true,
   showStats = true,
-  ambient = true
+  ambient = true,
+  isPremiumUser = false
 }) => {
+  // Freemium effects hook - replaces enhanced effects for stability
+  const freemiumHook = useFreemiumEffects(isPremiumUser);
+  const {
+    selectedPresetId,
+    currentEffects,
+    availablePresets,
+    canAccessPreset,
+    selectPreset
+  } = freemiumHook;
+
   // State
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
@@ -52,31 +59,19 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [isHovering, setIsHovering] = useState(false);
   const [isHoveringControls, setIsHoveringControls] = useState(false);
   
-  // Enhanced effects state with atomic preset application
-  const enhancedEffectsHook = useEnhancedCardEffects();
-  const {
-    effectValues,
-    handleEffectChange,
-    resetEffect,
-    resetAllEffects,
-    applyPreset,
-    isApplyingPreset
-  } = enhancedEffectsHook;
-  
   // Get dynamic material based on current effects
-  const { selectedMaterial } = useDynamicCardBackMaterials(effectValues);
+  const { selectedMaterial } = useDynamicCardBackMaterials(currentEffects);
   
-  // Advanced settings - Updated for more professional defaults
-  const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[0]); // Studio instead of Twilight
+  // Simplified settings for freemium mode
+  const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[0]);
   const [selectedLighting, setSelectedLighting] = useState<LightingPreset>(LIGHTING_PRESETS[0]);
-  const [overallBrightness, setOverallBrightness] = useState([100]); // Reduced from 120
+  const [overallBrightness, setOverallBrightness] = useState([100]);
   
-  // Material properties - More balanced defaults
   const [materialSettings, setMaterialSettings] = useState<MaterialSettings>({
-    roughness: 0.40, // Increased from 0.30
-    metalness: 0.45, // Reduced from 0.60
-    clearcoat: 0.60, // Reduced from 0.75
-    reflectivity: 0.40 // Reduced from 0.50
+    roughness: 0.40,
+    metalness: 0.45,
+    clearcoat: 0.60,
+    reflectivity: 0.40
   });
 
   // Refs
@@ -93,14 +88,14 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const handlePreviousCard = useCallback(() => {
     if (canGoPrev && onCardChange) {
       onCardChange(currentCardIndex - 1);
-      setIsFlipped(false); // Reset flip state when changing cards
+      setIsFlipped(false);
     }
   }, [canGoPrev, currentCardIndex, onCardChange]);
 
   const handleNextCard = useCallback(() => {
     if (canGoNext && onCardChange) {
       onCardChange(currentCardIndex + 1);
-      setIsFlipped(false); // Reset flip state when changing cards
+      setIsFlipped(false);
     }
   }, [canGoNext, currentCardIndex, onCardChange]);
 
@@ -126,33 +121,29 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     cardRef: cardContainerRef,
     card,
     onRotationChange: setRotation,
-    onEffectChange: handleEffectChange,
-    effectValues
+    onEffectChange: () => {}, // Disabled for freemium mode
+    effectValues: currentEffects
   });
 
-  const handleRotationChange = useCallback((newRotation: { x: number; y: number }) => {
-    setRotation(newRotation);
-  }, []);
-
-  // Update the existing download handler to open export dialog
   const handleDownloadClick = useCallback(() => {
     setShowExportDialog(true);
   }, []);
 
-  // Fix the share handler to pass the current card
   const handleShareClick = useCallback(() => {
     if (onShare) {
       onShare(card);
     }
   }, [onShare, card]);
 
-  // Add state for progressive panel
-  const [useProgressivePanel, setUseProgressivePanel] = useState(true);
+  const handleUpgrade = useCallback(() => {
+    console.log('🚀 Upgrade flow triggered');
+    // TODO: Implement upgrade modal/flow
+  }, []);
 
-  // Style generation hook
+  // Style generation hook with static effects
   const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useCardEffects({
     card,
-    effectValues,
+    effectValues: currentEffects, // Use static freemium effects
     mousePosition,
     showEffects,
     overallBrightness,
@@ -263,36 +254,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     }
   }, []);
 
-  // Add state for preset selection tracking
-  const [selectedPresetId, setSelectedPresetId] = useState<string>();
-
-  // Enhanced combo application with atomic updates
-  const handleComboApplication = useCallback((combo: any) => {
-    console.log('🚀 Applying combo with atomic updates:', combo.id);
-    
-    // Apply preset atomically with all related state
-    applyPreset(combo.effects, combo.id);
-    
-    // Update preset selection
-    setSelectedPresetId(combo.id);
-    
-    // Apply any scene/lighting changes if specified
-    if (combo.scene) {
-      setSelectedScene(combo.scene);
-    }
-    if (combo.lighting) {
-      setSelectedLighting(combo.lighting);
-    }
-  }, [applyPreset]);
-
-  // Clear preset selection when manual effect changes are made
-  const handleManualEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
-    if (!isApplyingPreset) {
-      setSelectedPresetId(undefined);
-    }
-    handleEffectChange(effectId, parameterId, value);
-  }, [handleEffectChange, isApplyingPreset]);
-
   if (!isOpen) return null;
 
   return (
@@ -324,7 +285,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         )}
 
-        {/* Settings Panel Toggle Button - Updated text */}
+        {/* Settings Panel Toggle Button */}
         {!showCustomizePanel && (
           <div className="absolute top-4 right-4 z-10">
             <Button
@@ -334,12 +295,12 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
               className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
             >
               <Sparkles className="w-4 h-4 text-white mr-2" />
-              <span className="text-white text-sm">Open Studio</span>
+              <span className="text-white text-sm">Open Styles</span>
             </Button>
           </div>
         )}
 
-        {/* Basic Controls with hover visibility */}
+        {/* Basic Controls */}
         <div className={`transition-opacity duration-200 ${isHoveringControls ? 'opacity-100 z-20' : 'opacity-100 z-10'}`}>
           <ViewerControls
             showEffects={showEffects}
@@ -383,24 +344,14 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
 
-        {/* Progressive Disclosure Customize Panel - Fixed function calls */}
+        {/* Freemium Customize Panel */}
         {showCustomizePanel && (
-          <ProgressiveCustomizePanel
-            selectedScene={selectedScene}
-            selectedLighting={selectedLighting}
-            effectValues={effectValues}
-            overallBrightness={overallBrightness}
-            materialSettings={materialSettings}
-            isFullscreen={isFullscreen}
-            onSceneChange={setSelectedScene}
-            onLightingChange={setSelectedLighting}
-            onEffectChange={handleManualEffectChange}
-            onResetAllEffects={resetAllEffects}
-            onBrightnessChange={setOverallBrightness}
-            onMaterialSettingsChange={setMaterialSettings}
-            onToggleFullscreen={toggleFullscreen}
-            onDownload={handleDownloadClick}
-            onShare={handleShareClick}
+          <FreemiumCustomizePanel
+            availablePresets={availablePresets}
+            selectedPresetId={selectedPresetId}
+            onPresetSelect={selectPreset}
+            isPremiumUser={isPremiumUser}
+            canAccessPreset={canAccessPreset}
             onClose={() => {
               if (onClose) {
                 onClose();
@@ -408,22 +359,18 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
                 setShowCustomizePanel(false);
               }
             }}
-            card={card}
-            selectedPresetId={selectedPresetId}
-            onPresetSelect={setSelectedPresetId}
-            onApplyCombo={handleComboApplication}
-            isApplyingPreset={isApplyingPreset}
+            onUpgrade={handleUpgrade}
           />
         )}
 
-        {/* Enhanced Card Container - Add ref */}
+        {/* Enhanced Card Container */}
         <div ref={cardContainerRef}>
           <EnhancedCardContainer
             card={card}
             isFlipped={isFlipped}
             isHovering={isHovering}
             showEffects={showEffects}
-            effectValues={effectValues}
+            effectValues={currentEffects}
             mousePosition={mousePosition}
             rotation={rotation}
             zoom={zoom}
@@ -439,10 +386,10 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         </div>
 
-        {/* Configuration Details Panel - Remove interactiveLighting prop */}
+        {/* Configuration Details Panel */}
         {!showCustomizePanel && (
           <ConfigurationDetailsPanel
-            effectValues={effectValues}
+            effectValues={currentEffects}
             selectedScene={selectedScene}
             selectedLighting={selectedLighting}
             materialSettings={materialSettings}
@@ -450,7 +397,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         )}
 
-        {/* Info Panel - Enhanced visibility */}
+        {/* Info Panel */}
         {showStats && !isFlipped && !showCustomizePanel && (
           <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: hasMultipleCards ? '180px' : '100px' }}>
             <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
@@ -473,7 +420,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
                 <div className="flex items-center space-x-2">
                   <Sparkles className="w-4 h-4" />
                   <span className="text-sm">
-                    Enhanced Studio | Material: {selectedMaterial?.name || 'Default'}
+                    {isPremiumUser ? 'Premium' : 'Free'} | {selectedMaterial?.name || 'Default'}
                   </span>
                 </div>
               </div>
