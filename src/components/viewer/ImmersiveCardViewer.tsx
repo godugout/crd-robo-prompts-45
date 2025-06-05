@@ -13,8 +13,6 @@ import { useDynamicCardBackMaterials } from './hooks/useDynamicCardBackMaterials
 import { ViewerControls } from './components/ViewerControls';
 import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
-import { useCardExport } from './hooks/useCardExport';
-import { ExportOptionsDialog } from './components/ExportOptionsDialog';
 import { ConfigurationDetailsPanel } from './components/ConfigurationDetailsPanel';
 
 // Update the interface to support card navigation
@@ -118,26 +116,12 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handlePreviousCard, handleNextCard]);
 
-  // Add new state for export dialog
-  const [showExportDialog, setShowExportDialog] = useState(false);
-
-  // Add export functionality
-  const { exportCard, isExporting, exportProgress } = useCardExport({
-    cardRef: cardContainerRef,
-    card,
-    onRotationChange: setRotation,
-    onEffectChange: handleEffectChange,
-    effectValues
-  });
-
-  const handleRotationChange = useCallback((newRotation: { x: number; y: number }) => {
-    setRotation(newRotation);
-  }, []);
-
-  // Update the existing download handler to open export dialog
+  // Simple download handler that just calls the onDownload prop
   const handleDownloadClick = useCallback(() => {
-    setShowExportDialog(true);
-  }, []);
+    if (onDownload) {
+      onDownload(card);
+    }
+  }, [onDownload, card]);
 
   // Fix the share handler to pass the current card
   const handleShareClick = useCallback(() => {
@@ -485,16 +469,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
       </div>
-
-      {/* Export Options Dialog */}
-      <ExportOptionsDialog
-        isOpen={showExportDialog}
-        onClose={() => setShowExportDialog(false)}
-        onExport={exportCard}
-        isExporting={isExporting}
-        exportProgress={exportProgress}
-        cardTitle={card.title}
-      />
     </>
   );
 };

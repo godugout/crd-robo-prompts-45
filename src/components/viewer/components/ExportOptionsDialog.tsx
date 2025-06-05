@@ -6,7 +6,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
-import type { ExportOptions } from '../hooks/useCardExport';
+
+// Simple export options interface since we removed the complex hook
+interface ExportOptions {
+  format: 'png' | 'jpg' | 'gif';
+  resolution: 1 | 2 | 4;
+  background: 'transparent' | 'scene';
+  quality?: number;
+  animation?: {
+    duration: 2 | 4 | 6;
+    effectCycling: boolean;
+    lightingChanges: boolean;
+    frameRate: 15 | 30 | 60;
+  };
+}
 
 interface ExportOptionsDialogProps {
   isOpen: boolean;
