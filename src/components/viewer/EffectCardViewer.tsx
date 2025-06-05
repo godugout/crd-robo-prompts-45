@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -45,7 +44,7 @@ const COMBO_DESCRIPTIONS = {
   starlight: 'Celestial sparkle field'
 };
 
-// Enhanced card back configurations for each combo
+// Enhanced card back configurations with realistic physics
 const CARD_BACK_CONFIGS = {
   solar: {
     background: 'radial-gradient(ellipse at center, #1a1100 0%, #2d1f00 30%, #1a1100 70%, #0d0800 100%)',
@@ -127,6 +126,9 @@ export const EffectCardViewer = () => {
     }
   });
 
+  const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
+  const [isHovering, setIsHovering] = useState(false);
+
   const applyCombo = (combo: ComboType) => {
     setCardState(prev => ({
       ...prev,
@@ -149,13 +151,81 @@ export const EffectCardViewer = () => {
     updateEffect(effectName, 0);
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    setMousePosition({ x, y });
+  };
+
   const getMaterialStyle = (): React.CSSProperties => {
     const { activeCombo, effects } = cardState;
     const config = CARD_BACK_CONFIGS[activeCombo];
+    const time = Date.now() * 0.001; // For animations
+    
     let baseStyle: React.CSSProperties = {
       background: config.background,
       opacity: config.opacity
     };
+
+    // Enhanced Physics-Based Effects
+    if (effects.holographic > 0) {
+      const intensity = effects.holographic / 100;
+      const angle = mousePosition.x * 360 + time * 20;
+      const viewAngle = Math.abs(Math.cos((mousePosition.x - 0.5) * Math.PI));
+      
+      // Realistic holographic physics - viewing angle dependent color shifting
+      baseStyle.background = `
+        ${baseStyle.background},
+        conic-gradient(
+          from ${angle}deg at ${50 + mousePosition.x * 10}% ${50 + mousePosition.y * 10}%,
+          hsl(${Math.sin(angle * 0.1) * 60 + 200}, 80%, ${60 * viewAngle}%) 0deg,
+          hsl(${Math.cos(angle * 0.15) * 80 + 280}, 70%, ${50 * viewAngle}%) 60deg,
+          hsl(${Math.sin(angle * 0.12) * 100 + 180}, 85%, ${55 * viewAngle}%) 120deg,
+          hsl(${Math.cos(angle * 0.08) * 120 + 300}, 75%, ${65 * viewAngle}%) 180deg,
+          hsl(${Math.sin(angle * 0.14) * 90 + 240}, 80%, ${50 * viewAngle}%) 240deg,
+          hsl(${Math.cos(angle * 0.11) * 110 + 160}, 70%, ${60 * viewAngle}%) 300deg,
+          hsl(${Math.sin(angle * 0.1) * 60 + 200}, 80%, ${60 * viewAngle}%) 360deg
+        )
+      `;
+      
+      // Micro-sparkle animation - thousands of tiny light points
+      baseStyle.boxShadow = `
+        inset 0 0 ${20 * intensity}px rgba(255, 255, 255, ${0.3 * intensity * viewAngle}),
+        0 0 ${40 * intensity}px rgba(255, 255, 255, ${0.1 * intensity})
+      `;
+      
+      baseStyle.filter = `brightness(${1 + 0.3 * intensity * viewAngle}) contrast(${1.1 + 0.2 * intensity})`;
+    }
+
+    if (effects.prizm > 0) {
+      const intensity = effects.prizm / 100;
+      const facetSize = 12; // Realistic facet size
+      const facetAngle = mousePosition.x * 180;
+      
+      // Geometric facet structure - hexagonal pattern like real Prizm
+      baseStyle.background = `
+        ${baseStyle.background},
+        repeating-conic-gradient(
+          from ${facetAngle}deg at 50% 50%,
+          transparent 0deg,
+          rgba(255, 0, 0, ${intensity * 0.4}) ${60 / 6}deg,
+          rgba(255, 165, 0, ${intensity * 0.35}) ${120 / 6}deg,
+          rgba(255, 255, 0, ${intensity * 0.4}) ${180 / 6}deg,
+          rgba(0, 255, 0, ${intensity * 0.35}) ${240 / 6}deg,
+          rgba(0, 0, 255, ${intensity * 0.4}) ${300 / 6}deg,
+          rgba(138, 43, 226, ${intensity * 0.35}) ${360 / 6}deg,
+          transparent 60deg
+        )
+      `;
+      
+      // Sharp geometric boundaries with scanning light effect
+      baseStyle.backgroundSize = `${facetSize}px ${facetSize}px`;
+      baseStyle.backgroundPosition = `${mousePosition.x * 20}px ${mousePosition.y * 20}px`;
+      
+      // Crisp geometric edges
+      baseStyle.filter = `contrast(${1.3 + 0.2 * intensity}) saturate(${1.5 + 0.5 * intensity})`;
+    }
 
     // Apply combo-specific enhancements
     switch (activeCombo) {
@@ -165,25 +235,28 @@ export const EffectCardViewer = () => {
           boxShadow: `0 0 40px ${config.glow}, inset 0 0 20px ${config.accent}`,
           background: `
             ${config.background},
-            radial-gradient(ellipse 200% 100% at 50% 50%, ${config.accent} 0%, transparent 50%)
+            radial-gradient(ellipse 200% 100% at 50% 50%, ${config.accent} 0%, transparent 50%),
+            conic-gradient(from ${time * 10}deg, transparent 0deg, rgba(255, 204, 0, 0.1) 30deg, transparent 60deg)
           `
         };
         break;
       case 'holographic':
-        baseStyle = {
-          ...baseStyle,
-          background: `
-            ${config.background},
-            linear-gradient(45deg, 
-              rgba(255, 0, 128, 0.05), 
-              rgba(0, 128, 255, 0.05), 
-              rgba(0, 255, 128, 0.05), 
-              rgba(255, 128, 0, 0.05)
-            )
-          `,
-          backgroundSize: '400% 400%',
-          animation: 'holographicShift 4s ease-in-out infinite'
-        };
+        if (effects.holographic === 0) {
+          baseStyle = {
+            ...baseStyle,
+            background: `
+              ${config.background},
+              linear-gradient(45deg, 
+                rgba(255, 0, 128, 0.05), 
+                rgba(0, 128, 255, 0.05), 
+                rgba(0, 255, 128, 0.05), 
+                rgba(255, 128, 0, 0.05)
+              )
+            `,
+            backgroundSize: '400% 400%',
+            animation: 'holographicShift 4s ease-in-out infinite'
+          };
+        }
         break;
       case 'lunar':
         baseStyle = {
@@ -263,23 +336,6 @@ export const EffectCardViewer = () => {
         break;
     }
 
-    // Apply holographic overlay if active
-    if (effects.holographic > 0) {
-      const intensity = effects.holographic / 100;
-      baseStyle = {
-        ...baseStyle,
-        background: `
-          linear-gradient(45deg, 
-            rgba(255, 0, 128, ${intensity * 0.2}), 
-            rgba(0, 128, 255, ${intensity * 0.2}), 
-            rgba(0, 255, 128, ${intensity * 0.2}), 
-            rgba(255, 128, 0, ${intensity * 0.2})
-          ),
-          ${baseStyle.background}
-        `,
-      };
-    }
-
     return baseStyle;
   };
 
@@ -302,6 +358,16 @@ export const EffectCardViewer = () => {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
           }
+          
+          @keyframes prizmScan {
+            0% { background-position: -100% 0%; }
+            100% { background-position: 100% 0%; }
+          }
+          
+          @keyframes microSparkle {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+          }
         `}
       </style>
       
@@ -315,8 +381,11 @@ export const EffectCardViewer = () => {
                 <div className="relative">
                   {/* Card Container */}
                   <div 
-                    className="w-80 h-[448px] rounded-lg shadow-2xl transition-all duration-500 relative overflow-hidden border border-white/10"
+                    className="w-80 h-[448px] rounded-lg shadow-2xl transition-all duration-500 relative overflow-hidden border border-white/10 cursor-pointer"
                     style={getMaterialStyle()}
+                    onMouseMove={handleMouseMove}
+                    onMouseEnter={() => setIsHovering(true)}
+                    onMouseLeave={() => setIsHovering(false)}
                   >
                     {/* Card Content */}
                     <div className="absolute inset-0 p-6 flex flex-col justify-between text-white">
