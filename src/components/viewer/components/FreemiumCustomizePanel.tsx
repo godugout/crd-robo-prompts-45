@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FreemiumPresetSelector } from './FreemiumPresetSelector';
 import { UpgradeModal } from './UpgradeModal';
-import { PremiumOnboardingTour } from './PremiumOnboardingTour';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { FreemiumPreset } from '../hooks/useFreemiumEffects';
 import type { UserTier } from '../types/tierSystem';
@@ -18,7 +17,6 @@ interface FreemiumCustomizePanelProps {
   userTier: UserTier;
   canAccessPreset: (presetId: string) => boolean;
   onClose: () => void;
-  onUpgrade?: (newTier: UserTier) => void;
   onTierChange?: (newTier: UserTier) => void;
 }
 
@@ -29,11 +27,9 @@ export const FreemiumCustomizePanel: React.FC<FreemiumCustomizePanelProps> = ({
   userTier,
   canAccessPreset,
   onClose,
-  onUpgrade,
   onTierChange
 }) => {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Ensure we have a valid tier, fallback to 'rookie' if undefined
   const safeTier = userTier && TIER_SYSTEM[userTier] ? userTier : 'rookie';
@@ -47,17 +43,9 @@ export const FreemiumCustomizePanel: React.FC<FreemiumCustomizePanelProps> = ({
 
   const handleUpgradeComplete = (newTier: UserTier) => {
     setShowUpgradeModal(false);
-    setShowOnboarding(true);
+    // Immediately trigger tier change - no blocking onboarding
     if (onTierChange) {
       onTierChange(newTier);
-    }
-  };
-
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-    // Switch to the enhanced panel or trigger any other actions
-    if (onUpgrade) {
-      onUpgrade(safeTier);
     }
   };
 
@@ -205,14 +193,6 @@ export const FreemiumCustomizePanel: React.FC<FreemiumCustomizePanelProps> = ({
         onClose={() => setShowUpgradeModal(false)}
         currentTier={safeTier}
         onUpgrade={handleUpgradeComplete}
-      />
-
-      {/* Premium Onboarding Tour */}
-      <PremiumOnboardingTour
-        isOpen={showOnboarding}
-        onClose={() => setShowOnboarding(false)}
-        userTier={safeTier}
-        onComplete={handleOnboardingComplete}
       />
     </>
   );

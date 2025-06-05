@@ -9,7 +9,9 @@ import { useCardEffects } from './hooks/useCardEffects';
 import { useDynamicCardBackMaterials } from './hooks/useDynamicCardBackMaterials';
 import { ViewerControls } from './components/ViewerControls';
 import { FreemiumCustomizePanel } from './components/FreemiumCustomizePanel';
+import { EnhancedStudioPanel } from './components/EnhancedStudioPanel';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
+import { WelcomeToast } from './components/WelcomeToast';
 import { useCardExport } from './hooks/useCardExport';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
 import { ConfigurationDetailsPanel } from './components/ConfigurationDetailsPanel';
@@ -39,6 +41,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   // Add tier state management
   const [userTier, setUserTier] = useState<'rookie' | 'pro' | 'baller'>('rookie');
   const [showEnhancedPanel, setShowEnhancedPanel] = useState(false);
+  const [showWelcomeToast, setShowWelcomeToast] = useState(false);
 
   // Update freemium hook to use tier system
   const freemiumHook = useFreemiumEffects(userTier !== 'rookie');
@@ -149,11 +152,30 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     setUserTier(newTier);
     console.log(`🚀 User upgraded to ${newTier}!`);
     
-    // If upgraded to Pro or Baller, show enhanced panel
+    // Immediately show enhanced panel and welcome toast
     if (newTier === 'pro' || newTier === 'baller') {
       setShowEnhancedPanel(true);
       setShowCustomizePanel(false);
+      setShowWelcomeToast(true);
     }
+  }, []);
+
+  // Enhanced panel handlers for advanced controls
+  const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
+    console.log(`🎛️ Effect change: ${effectId}.${parameterId} = ${value}`);
+    // TODO: Implement actual effect changes when enhanced effects hook is available
+  }, []);
+
+  const handleSceneChange = useCallback((scene: EnvironmentScene) => {
+    setSelectedScene(scene);
+  }, []);
+
+  const handleLightingChange = useCallback((lighting: LightingPreset) => {
+    setSelectedLighting(lighting);
+  }, []);
+
+  const handleMaterialChange = useCallback((settings: MaterialSettings) => {
+    setMaterialSettings(settings);
   }, []);
 
   // Style generation hook with static effects
@@ -377,38 +399,22 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
         {/* Enhanced Studio Panel for Pro/Baller Users */}
         {showEnhancedPanel && (userTier === 'pro' || userTier === 'baller') && (
-          <div className="fixed top-0 right-0 h-full w-80 bg-black bg-opacity-95 backdrop-blur-lg border-l border-white/10 overflow-hidden z-50">
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <div className="flex items-center space-x-2">
-                <h2 className="text-lg font-semibold text-white">Enhanced Studio</h2>
-                <Badge 
-                  className="text-xs"
-                  style={{ backgroundColor: userTier === 'pro' ? '#3B82F6' : '#F59E0B' }}
-                >
-                  {userTier === 'pro' ? '⚡ Pro' : '👑 Baller'}
-                </Badge>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => setShowEnhancedPanel(false)}>
-                <X className="h-5 w-5 text-white" />
-              </Button>
-            </div>
-            <div className="p-4 text-white">
-              <div className="text-center py-8">
-                <div className="text-4xl mb-4">🎉</div>
-                <h3 className="text-xl font-bold mb-2">Studio Unlocked!</h3>
-                <p className="text-gray-300 text-sm mb-4">
-                  You now have access to advanced controls, unlimited exports, and premium effects.
-                </p>
-                <div className="space-y-2 text-sm text-gray-300">
-                  <div>✨ All premium presets</div>
-                  <div>🎛️ Advanced sliders</div>
-                  <div>🌅 Environment controls</div>
-                  <div>💎 Unlimited exports</div>
-                  {userTier === 'baller' && <div>🏆 4K quality</div>}
-                </div>
-              </div>
-            </div>
-          </div>
+          <EnhancedStudioPanel
+            userTier={userTier}
+            effectValues={currentEffects}
+            selectedScene={selectedScene}
+            selectedLighting={selectedLighting}
+            materialSettings={materialSettings}
+            overallBrightness={overallBrightness}
+            onClose={() => setShowEnhancedPanel(false)}
+            onEffectChange={handleEffectChange}
+            onSceneChange={handleSceneChange}
+            onLightingChange={handleLightingChange}
+            onMaterialSettingsChange={handleMaterialChange}
+            onBrightnessChange={setOverallBrightness}
+            onDownload={handleDownloadClick}
+            onShare={handleShareClick}
+          />
         )}
 
         {/* Enhanced Card Container */}
@@ -476,6 +482,13 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
       </div>
+
+      {/* Welcome Toast for New Premium Users */}
+      <WelcomeToast
+        isVisible={showWelcomeToast}
+        userTier={userTier}
+        onDismiss={() => setShowWelcomeToast(false)}
+      />
 
       {/* Export Options Dialog */}
       <ExportOptionsDialog
