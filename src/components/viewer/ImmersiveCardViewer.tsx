@@ -1,6 +1,5 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Sparkles, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
@@ -8,14 +7,17 @@ import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from './constants';
 import { useFreemiumEffects } from './hooks/useFreemiumEffects';
 import { useCardEffects } from './hooks/useCardEffects';
 import { useDynamicCardBackMaterials } from './hooks/useDynamicCardBackMaterials';
-import { ViewerControls } from './components/ViewerControls';
 import { FreemiumCustomizePanel } from './components/FreemiumCustomizePanel';
 import { EnhancedStudioPanel } from './components/EnhancedStudioPanel';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { WelcomeToast } from './components/WelcomeToast';
 import { useCardExport } from './hooks/useCardExport';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
-import { ConfigurationDetailsPanel } from './components/ConfigurationDetailsPanel';
+import { ViewerLayout } from './components/ViewerLayout';
+import { ViewerBackground } from './components/ViewerBackground';
+import { ViewerHeader } from './components/ViewerHeader';
+import { ViewerBottomControls } from './components/ViewerBottomControls';
+import { ViewerInfoPanel } from './components/ViewerInfoPanel';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -293,182 +295,101 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     }
   }, []);
 
-  if (!isOpen) return null;
-
   // Calculate dynamic margin based on panel state
   const panelWidth = (showCustomizePanel || showEnhancedPanel) ? 420 : 0;
 
+  const handleOpenPanel = () => {
+    if (userTier === 'rookie') {
+      setShowCustomizePanel(true);
+    } else {
+      setShowEnhancedPanel(true);
+    }
+  };
+
   return (
     <>
-      <div 
-        ref={containerRef}
-        className={`fixed inset-0 z-50 flex items-center justify-center ${
-          isFullscreen ? 'p-0' : 'p-8'
-        }`}
-        style={{
-          ...getEnvironmentStyle(),
-          paddingRight: isFullscreen ? 0 : `${panelWidth + 32}px`
-        }}
+      <ViewerLayout
+        isOpen={isOpen}
+        isFullscreen={isFullscreen}
+        panelWidth={panelWidth}
+        getEnvironmentStyle={getEnvironmentStyle}
         onMouseMove={handleMouseMove}
         onMouseUp={handleDragEnd}
         onMouseLeave={handleDragEnd}
       >
-        {/* Enhanced Dark Overlay */}
-        <div className="absolute inset-0 bg-black/60" />
-
-        {/* Subtle Ambient Background Effect */}
-        {ambient && selectedScene && (
-          <div 
-            className="absolute inset-0 opacity-30"
-            style={{
-              background: `radial-gradient(circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%, 
-                ${selectedScene.lighting.color} 0%, transparent 40%)`,
-              mixBlendMode: 'screen'
-            }}
-          />
-        )}
-
-        {/* Settings Panel Toggle Button */}
-        {!showCustomizePanel && !showEnhancedPanel && (
-          <div className="absolute top-4 right-4 z-10">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => userTier === 'rookie' ? setShowCustomizePanel(true) : setShowEnhancedPanel(true)}
-              className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
-            >
-              <Sparkles className="w-4 h-4 text-white mr-2" />
-              <span className="text-white text-sm">
-                {userTier === 'rookie' ? 'Open Styles' : 'Open Studio'}
-              </span>
-            </Button>
-          </div>
-        )}
-
-        {/* Reorganized Bottom Controls - Fixed Layout */}
-        <div className="fixed bottom-4 left-4 right-4 z-10">
-          <div 
-            className="flex items-end justify-between max-w-7xl mx-auto"
-            style={{ marginRight: `${panelWidth}px` }}
-          >
-            {/* Left Side - Basic Controls */}
-            <div className="flex items-end space-x-4">
-              <ViewerControls
-                showEffects={showEffects}
-                autoRotate={autoRotate}
-                onToggleEffects={() => setShowEffects(!showEffects)}
-                onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
-                onReset={handleReset}
-                onZoomIn={() => handleZoom(0.1)}
-                onZoomOut={() => handleZoom(-0.1)}
-              />
-            </div>
-
-            {/* Right Side - Always Visible Navigation and Config */}
-            <div className="flex items-end space-x-3">
-              {/* Card Navigation Controls - Always Visible if Multiple Cards */}
-              {hasMultipleCards && (
-                <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-3 border border-white/10">
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handlePreviousCard}
-                      disabled={!canGoPrev}
-                      className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </Button>
-                    
-                    <div className="text-white text-sm px-2 min-w-[60px] text-center">
-                      {currentCardIndex + 1} / {cards.length}
-                    </div>
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleNextCard}
-                      disabled={!canGoNext}
-                      className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Configuration Details Panel - Always Visible */}
-              <ConfigurationDetailsPanel
-                effectValues={currentEffects}
-                selectedScene={selectedScene}
-                selectedLighting={selectedLighting}
-                materialSettings={materialSettings}
-                overallBrightness={overallBrightness}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced Card Container */}
-        <div ref={cardContainerRef}>
-          <EnhancedCardContainer
-            card={card}
-            isFlipped={isFlipped}
-            isHovering={isHovering}
-            showEffects={showEffects}
-            effectValues={currentEffects}
+        <div ref={containerRef}>
+          <ViewerBackground
+            selectedScene={selectedScene}
             mousePosition={mousePosition}
-            rotation={rotation}
-            zoom={zoom}
-            isDragging={isDragging}
-            frameStyles={getFrameStyles()}
-            enhancedEffectStyles={getEnhancedEffectStyles()}
-            SurfaceTexture={SurfaceTexture}
-            onMouseDown={handleDragStart}
-            onMouseMove={handleDrag}
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
-            onClick={() => setIsFlipped(!isFlipped)}
+            ambient={ambient}
+            getEnvironmentStyle={getEnvironmentStyle}
+          />
+
+          <ViewerHeader
+            showCustomizePanel={showCustomizePanel}
+            showEnhancedPanel={showEnhancedPanel}
+            userTier={userTier}
+            onOpenPanel={handleOpenPanel}
+          />
+
+          <ViewerBottomControls
+            panelWidth={panelWidth}
+            showEffects={showEffects}
+            autoRotate={autoRotate}
+            hasMultipleCards={hasMultipleCards}
+            currentCardIndex={currentCardIndex}
+            totalCards={cards.length}
+            canGoPrev={canGoPrev}
+            canGoNext={canGoNext}
+            effectValues={currentEffects}
+            selectedScene={selectedScene}
+            selectedLighting={selectedLighting}
+            materialSettings={materialSettings}
+            overallBrightness={overallBrightness}
+            onToggleEffects={() => setShowEffects(!showEffects)}
+            onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
+            onReset={handleReset}
+            onZoomIn={() => handleZoom(0.1)}
+            onZoomOut={() => handleZoom(-0.1)}
+            onPreviousCard={handlePreviousCard}
+            onNextCard={handleNextCard}
+          />
+
+          {/* Enhanced Card Container */}
+          <div ref={cardContainerRef}>
+            <EnhancedCardContainer
+              card={card}
+              isFlipped={isFlipped}
+              isHovering={isHovering}
+              showEffects={showEffects}
+              effectValues={currentEffects}
+              mousePosition={mousePosition}
+              rotation={rotation}
+              zoom={zoom}
+              isDragging={isDragging}
+              frameStyles={getFrameStyles()}
+              enhancedEffectStyles={getEnhancedEffectStyles()}
+              SurfaceTexture={SurfaceTexture}
+              onMouseDown={handleDragStart}
+              onMouseMove={handleDrag}
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}
+              onClick={() => setIsFlipped(!isFlipped)}
+            />
+          </div>
+
+          <ViewerInfoPanel
+            showStats={showStats}
+            isFlipped={isFlipped}
+            showCustomizePanel={showCustomizePanel}
+            showEnhancedPanel={showEnhancedPanel}
+            panelWidth={panelWidth}
+            hasMultipleCards={hasMultipleCards}
+            userTier={userTier}
+            selectedMaterialName={selectedMaterial?.name}
           />
         </div>
-
-        {/* Info Panel - Only show when panels are closed */}
-        {showStats && !isFlipped && !showCustomizePanel && !showEnhancedPanel && (
-          <div 
-            className="absolute bottom-20 left-4 z-10 max-w-2xl"
-            style={{ 
-              right: `${panelWidth + 32}px`,
-              marginRight: '100px' 
-            }}
-          >
-            <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
-              <div className="flex items-center justify-between text-white">
-                <div className="flex space-x-4 text-sm">
-                  <span>Click card to flip</span>
-                  <span>•</span>
-                  <span>Drag to rotate manually</span>
-                  <span>•</span>
-                  <span>Scroll to zoom</span>
-                  <span>•</span>
-                  <span>Move mouse for effects</span>
-                  {hasMultipleCards && (
-                    <>
-                      <span>•</span>
-                      <span>Use ← → keys to navigate</span>
-                    </>
-                  )}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4" />
-                  <span className="text-sm">
-                    {userTier === 'rookie' ? '🌟 Rookie' : userTier === 'pro' ? '⚡ Pro' : '👑 Baller'} | {selectedMaterial?.name || 'Default'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      </ViewerLayout>
 
       {/* Freemium Customize Panel */}
       {showCustomizePanel && userTier === 'rookie' && (
@@ -522,48 +443,3 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     </>
   );
 };
-
-const presets = [
-  {
-    name: 'Crystal Prism',
-    description: 'Translucent crystalline finish',
-    effects: {
-      crystal: { intensity: 85, facets: 12, dispersion: 75, clarity: 80, sparkle: true }
-    }
-  },
-  {
-    name: 'Chrome Mirror',
-    description: 'Polished metallic chrome',
-    effects: {
-      chrome: { intensity: 75, sharpness: 85, distortion: 5, highlightSize: 45, polish: 90 }
-    }
-  },
-  {
-    name: 'Brushed Steel',
-    description: 'Industrial brushed metal',
-    effects: {
-      brushedmetal: { intensity: 70, direction: 45, grainDensity: 12, metallic: 85, roughness: 25 }
-    }
-  },
-  {
-    name: 'Vintage Classic',
-    description: 'Aged cardboard patina',
-    effects: {
-      vintage: { intensity: 55, aging: 65, patina: '#8b7355', wear: 45, scratches: true }
-    }
-  },
-  {
-    name: 'Holographic Premium',
-    description: 'Rainbow holographic effect',
-    effects: {
-      holographic: { intensity: 70, shiftSpeed: 100, rainbowSpread: 180, prismaticDepth: 50, animated: true }
-    }
-  },
-  {
-    name: 'Gold Luxury',
-    description: 'Luxurious gold plating',
-    effects: {
-      gold: { intensity: 85, shimmerSpeed: 120, platingThickness: 7, goldTone: 'rich', reflectivity: 90, colorEnhancement: true }
-    }
-  }
-];
