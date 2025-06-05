@@ -7,6 +7,7 @@ import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DevPanel } from "@/components/dev/DevPanel";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { MainLayout } from "@/components/layout/MainLayout";
 import Index from "./pages/Index";
 import Gallery from "./pages/Gallery";
 import Editor from "./pages/Editor";
@@ -27,48 +28,52 @@ function App() {
           <Toaster />
           <Sonner />
           <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/gallery" element={<Gallery />} />
+            {/* Routes with main layout (includes navbar) */}
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<Index />} />
+              <Route path="gallery" element={<Gallery />} />
+              
+              {/* Auth routes with navbar */}
+              <Route 
+                path="auth/signin" 
+                element={
+                  <ProtectedRoute requireAuth={false}>
+                    <SignIn />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="auth/signup" 
+                element={
+                  <ProtectedRoute requireAuth={false}>
+                    <SignUp />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Protected routes */}
+              <Route 
+                path="editor" 
+                element={
+                  <ProtectedRoute>
+                    <Editor />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="profile" 
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="creators" element={<Creators />} />
+              <Route path="debug-detection" element={<DebugDetection />} />
+            </Route>
             
-            {/* Auth routes */}
-            <Route 
-              path="/auth/signin" 
-              element={
-                <ProtectedRoute requireAuth={false}>
-                  <SignIn />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/auth/signup" 
-              element={
-                <ProtectedRoute requireAuth={false}>
-                  <SignUp />
-                </ProtectedRoute>
-              } 
-            />
+            {/* Routes without layout */}
             <Route path="/auth/callback" element={<AuthCallback />} />
-            
-            {/* Protected routes */}
-            <Route 
-              path="/editor" 
-              element={
-                <ProtectedRoute>
-                  <Editor />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="/creators" element={<Creators />} />
-            <Route path="/debug-detection" element={<DebugDetection />} />
           </Routes>
           
           {/* Development Panel */}

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { CRDButton } from '@/components/ui/design-system';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSignUpForm } from './hooks/useSignUpForm';
@@ -9,12 +9,12 @@ import { PasswordFields } from './components/PasswordFields';
 import { UserInfoFields } from './components/UserInfoFields';
 
 export const SignUpForm: React.FC = () => {
-  const { signUp } = useAuth();
+  const { signUp, loading } = useAuth();
+  const navigate = useNavigate();
   const {
     formData,
     handleInputChange,
     handleSubmit,
-    isLoading,
     isPasswordMismatch,
     isFormValid,
   } = useSignUpForm();
@@ -23,9 +23,19 @@ export const SignUpForm: React.FC = () => {
     e.preventDefault();
     if (!isFormValid) return;
     
+    console.log('🔧 Signup form submitting with data:', { 
+      email: formData.email,
+      fullName: formData.fullName,
+      username: formData.username
+    });
+    
     const { error } = await signUp(formData.email, formData.password);
+    
     if (!error) {
-      // Handle success - could redirect or show success message
+      console.log('🔧 Signup successful, navigating to home');
+      navigate('/');
+    } else {
+      console.error('🔧 Signup failed with error:', error);
     }
   };
 
@@ -53,9 +63,9 @@ export const SignUpForm: React.FC = () => {
           variant="primary"
           size="lg"
           className="w-full"
-          disabled={isLoading || !isFormValid}
+          disabled={loading || !isFormValid}
         >
-          {isLoading ? 'Creating account...' : 'Create Account'}
+          {loading ? 'Creating account...' : 'Create Account'}
         </CRDButton>
       </form>
 
