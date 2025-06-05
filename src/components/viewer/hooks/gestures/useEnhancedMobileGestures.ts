@@ -1,33 +1,8 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-
-interface TouchPoint {
-  x: number;
-  y: number;
-  id: number;
-}
-
-interface GestureState {
-  isActive: boolean;
-  startTime: number;
-  initialDistance: number;
-  initialScale: number;
-  initialRotation: number;
-  velocity: { x: number; y: number };
-  momentum: boolean;
-}
-
-interface EnhancedGestureCallbacks {
-  onPinchZoom: (scale: number, center: { x: number; y: number }) => void;
-  onPan: (delta: { x: number; y: number }, velocity: { x: number; y: number }) => void;
-  onRotate: (angle: number) => void;
-  onTap: () => void;
-  onDoubleTap: () => void;
-  onLongPress: () => void;
-  onSwipeLeft: () => void;
-  onSwipeRight: () => void;
-  onThreeFingerTap: () => void;
-}
+import type { TouchPoint, GestureState, EnhancedGestureCallbacks } from './types';
+import { useTouchUtils } from './touchUtils';
+import { useMomentumHandler } from './momentumHandler';
 
 export const useEnhancedMobileGestures = (callbacks: EnhancedGestureCallbacks) => {
   const [gestureState, setGestureState] = useState<GestureState>({
@@ -43,71 +18,16 @@ export const useEnhancedMobileGestures = (callbacks: EnhancedGestureCallbacks) =
   const touchesRef = useRef<TouchPoint[]>([]);
   const lastTapTime = useRef(0);
   const longPressTimer = useRef<NodeJS.Timeout>();
-  const momentumTimer = useRef<number>();
   const lastPanTime = useRef(0);
 
-  // Calculate distance between two points
-  const getDistance = useCallback((p1: TouchPoint, p2: TouchPoint) => {
-    const dx = p1.x - p2.x;
-    const dy = p1.y - p2.y;
-    return Math.sqrt(dx * dx + dy * dy);
-  }, []);
-
-  // Calculate center point of touches
-  const getCenter = useCallback((touches: TouchPoint[]) => {
-    let x = 0, y = 0;
-    touches.forEach(touch => {
-      x += touch.x;
-      y += touch.y;
-    });
-    return { x: x / touches.length, y: y / touches.length };
-  }, []);
-
-  // Convert React TouchList to TouchPoint array - Fixed for React.TouchList compatibility
-  const getTouchPoints = useCallback((touchList: React.TouchList): TouchPoint[] => {
-    const points: TouchPoint[] = [];
-    for (let i = 0; i < touchList.length; i++) {
-      const touch = touchList[i];
-      points.push({
-        x: touch.clientX,
-        y: touch.clientY,
-        id: touch.identifier
-      });
-    }
-    return points;
-  }, []);
-
-  // Momentum calculation for smooth deceleration
-  const startMomentum = useCallback((velocity: { x: number; y: number }) => {
-    if (Math.abs(velocity.x) < 0.5 && Math.abs(velocity.y) < 0.5) return;
-
-    const friction = 0.92;
-    const minVelocity = 0.1;
-
-    const animate = () => {
-      if (Math.abs(velocity.x) < minVelocity && Math.abs(velocity.y) < minVelocity) {
-        setGestureState(prev => ({ ...prev, momentum: false }));
-        return;
-      }
-
-      callbacks.onPan({ x: velocity.x * 0.5, y: velocity.y * 0.5 }, velocity);
-      velocity.x *= friction;
-      velocity.y *= friction;
-      
-      momentumTimer.current = requestAnimationFrame(animate);
-    };
-
-    setGestureState(prev => ({ ...prev, momentum: true }));
-    momentumTimer.current = requestAnimationFrame(animate);
-  }, [callbacks]);
+  const { getDistance, getCenter, getTouchPoints } = useTouchUtils();
+  const { startMomentum, stopMomentum, momentumTimer } = useMomentumHandler(callbacks.onPan);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
     
     // Stop any existing momentum
-    if (momentumTimer.current) {
-      cancelAnimationFrame(momentumTimer.current);
-    }
+    stopMomentum();
     
     const touches = getTouchPoints(e.touches);
     touchesRef.current = touches;
@@ -141,7 +61,7 @@ export const useEnhancedMobileGestures = (callbacks: EnhancedGestureCallbacks) =
       velocity: { x: 0, y: 0 },
       momentum: false
     });
-  }, [callbacks, getTouchPoints, getDistance]);
+  }, [callbacks, getTouchPoints, getDistance, stopMomentum]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
@@ -249,7 +169,7 @@ export const useEnhancedMobileGestures = (callbacks: EnhancedGestureCallbacks) =
 
       // Start momentum if there's sufficient velocity
       if (Math.abs(gestureState.velocity.x) > 1 || Math.abs(gestureState.velocity.y) > 1) {
-        startMomentum(gestureState.velocity);
+        startMomentum(gestureState.velocity, setGestureState);
       }
     }
 
