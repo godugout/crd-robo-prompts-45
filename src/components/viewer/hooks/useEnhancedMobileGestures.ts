@@ -63,13 +63,18 @@ export const useEnhancedMobileGestures = (callbacks: EnhancedGestureCallbacks) =
     return { x: x / touches.length, y: y / touches.length };
   }, []);
 
-  // Convert touch list to TouchPoint array
-  const getTouchPoints = useCallback((touchList: TouchList): TouchPoint[] => {
-    return Array.from(touchList).map(touch => ({
-      x: touch.clientX,
-      y: touch.clientY,
-      id: touch.identifier
-    }));
+  // Convert React TouchList to TouchPoint array - Fixed for React.TouchList compatibility
+  const getTouchPoints = useCallback((touchList: React.TouchList): TouchPoint[] => {
+    const points: TouchPoint[] = [];
+    for (let i = 0; i < touchList.length; i++) {
+      const touch = touchList[i];
+      points.push({
+        x: touch.clientX,
+        y: touch.clientY,
+        id: touch.identifier
+      });
+    }
+    return points;
   }, []);
 
   // Momentum calculation for smooth deceleration
@@ -225,10 +230,11 @@ export const useEnhancedMobileGestures = (callbacks: EnhancedGestureCallbacks) =
       // Swipe detection
       if (touchDuration < 500 && touchesRef.current.length === 1) {
         const startTouch = touchesRef.current[0];
-        const endTouch = Array.from(e.changedTouches).find(t => t.identifier === startTouch.id);
+        const changedTouches = getTouchPoints(e.changedTouches);
+        const endTouch = changedTouches.find(t => t.id === startTouch.id);
         
         if (endTouch) {
-          const deltaX = endTouch.clientX - startTouch.x;
+          const deltaX = endTouch.x - startTouch.x;
           const velocity = Math.abs(deltaX) / touchDuration;
           
           if (velocity > 0.5 && Math.abs(deltaX) > 50) {
