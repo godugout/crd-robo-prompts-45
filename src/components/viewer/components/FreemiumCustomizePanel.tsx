@@ -35,7 +35,9 @@ export const FreemiumCustomizePanel: React.FC<FreemiumCustomizePanelProps> = ({
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  const currentTierInfo = TIER_SYSTEM[userTier];
+  // Ensure we have a valid tier, fallback to 'rookie' if undefined
+  const safeTier = userTier && TIER_SYSTEM[userTier] ? userTier : 'rookie';
+  const currentTierInfo = TIER_SYSTEM[safeTier];
   const freePresets = availablePresets.filter(p => !p.isPremium);
   const premiumPresets = availablePresets.filter(p => p.isPremium);
 
@@ -55,20 +57,21 @@ export const FreemiumCustomizePanel: React.FC<FreemiumCustomizePanelProps> = ({
     setShowOnboarding(false);
     // Switch to the enhanced panel or trigger any other actions
     if (onUpgrade) {
-      onUpgrade(userTier);
+      onUpgrade(safeTier);
     }
   };
 
   const getTierIcon = () => {
-    switch (userTier) {
+    switch (safeTier) {
       case 'rookie': return <Sparkles className="w-4 h-4" />;
       case 'pro': return <Zap className="w-4 h-4" />;
       case 'baller': return <Crown className="w-4 h-4" />;
+      default: return <Sparkles className="w-4 h-4" />;
     }
   };
 
   const getTierColor = () => {
-    return currentTierInfo.color;
+    return currentTierInfo?.color || '#6B7280';
   };
 
   return (
@@ -84,7 +87,7 @@ export const FreemiumCustomizePanel: React.FC<FreemiumCustomizePanelProps> = ({
               style={{ borderColor: getTierColor(), color: getTierColor() }}
             >
               {getTierIcon()}
-              {currentTierInfo.name}
+              {currentTierInfo?.name || 'Rookie'}
             </Badge>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>
@@ -105,7 +108,7 @@ export const FreemiumCustomizePanel: React.FC<FreemiumCustomizePanelProps> = ({
                 presets={freePresets}
                 selectedPresetId={selectedPresetId}
                 onPresetSelect={onPresetSelect}
-                isPremiumUser={userTier !== 'rookie'}
+                isPremiumUser={safeTier !== 'rookie'}
                 canAccessPreset={canAccessPreset}
               />
             </div>
@@ -114,7 +117,7 @@ export const FreemiumCustomizePanel: React.FC<FreemiumCustomizePanelProps> = ({
             <div className="border-b border-white/20" />
 
             {/* Locked Premium Styles Section */}
-            {userTier === 'rookie' && premiumPresets.length > 0 && (
+            {safeTier === 'rookie' && premiumPresets.length > 0 && (
               <div>
                 <h3 className="text-white font-medium mb-3 flex items-center">
                   <Crown className="w-4 h-4 text-amber-400 mr-2" />
@@ -134,7 +137,7 @@ export const FreemiumCustomizePanel: React.FC<FreemiumCustomizePanelProps> = ({
             )}
 
             {/* Upgrade Section */}
-            {userTier === 'rookie' && (
+            {safeTier === 'rookie' && (
               <>
                 <div className="border-b border-white/20" />
                 <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg p-4 border border-blue-500/30">
@@ -181,13 +184,13 @@ export const FreemiumCustomizePanel: React.FC<FreemiumCustomizePanelProps> = ({
             <div className="bg-gray-800/50 rounded-lg p-4">
               <h4 className="text-white font-medium mb-2 flex items-center">
                 {getTierIcon()}
-                <span className="ml-2">{currentTierInfo.displayName} Benefits</span>
+                <span className="ml-2">{currentTierInfo?.displayName || 'Rookie Collector'} Benefits</span>
               </h4>
               <ul className="text-gray-300 text-sm space-y-1">
-                {currentTierInfo.features.slice(0, 4).map((feature, index) => (
+                {(currentTierInfo?.features || []).slice(0, 4).map((feature, index) => (
                   <li key={index}>• {feature}</li>
                 ))}
-                {currentTierInfo.features.length > 4 && (
+                {(currentTierInfo?.features || []).length > 4 && (
                   <li className="text-gray-400">+ more...</li>
                 )}
               </ul>
@@ -200,7 +203,7 @@ export const FreemiumCustomizePanel: React.FC<FreemiumCustomizePanelProps> = ({
       <UpgradeModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
-        currentTier={userTier}
+        currentTier={safeTier}
         onUpgrade={handleUpgradeComplete}
       />
 
@@ -208,7 +211,7 @@ export const FreemiumCustomizePanel: React.FC<FreemiumCustomizePanelProps> = ({
       <PremiumOnboardingTour
         isOpen={showOnboarding}
         onClose={() => setShowOnboarding(false)}
-        userTier={userTier}
+        userTier={safeTier}
         onComplete={handleOnboardingComplete}
       />
     </>
