@@ -185,7 +185,11 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
 
   // Instant preset application with no loading delays
   const handlePresetClick = (preset: ComboPreset) => {
-    console.log('⚡ INSTANT Combo Preset Selected:', { presetId: preset.id, effects: preset.effects });
+    console.log('⚡ INSTANT Combo Preset Selected:', { 
+      presetId: preset.id, 
+      effects: preset.effects,
+      timestamp: Date.now()
+    });
     
     // Apply instantly
     onPresetSelect(preset.id);
@@ -195,6 +199,19 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
   return (
     <TooltipProvider>
       <div className="space-y-1">
+        {/* Debug panel in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4">
+            <DebugComboPanel 
+              currentEffects={currentEffects}
+              onApplyCombo={(effects) => {
+                const combo = { id: 'debug-test', name: 'Debug', icon: User, description: 'Debug test', effects };
+                onApplyCombo(combo);
+              }}
+            />
+          </div>
+        )}
+
         {allPresets.map((preset) => {
           const IconComponent = preset.icon;
           const isSelected = selectedPresetId === preset.id || 

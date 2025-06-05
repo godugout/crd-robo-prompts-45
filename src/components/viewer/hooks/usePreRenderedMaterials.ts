@@ -86,16 +86,28 @@ export const POPULAR_COMBOS: Array<{ id: string; name: string; effects: EffectVa
 ];
 
 export const usePreRenderedMaterials = (currentEffects: EffectValues) => {
-  // Find which combo matches current effects
+  // Enhanced matching algorithm with better debugging
   const activeComboId = useMemo(() => {
-    const effectsSignature = Object.entries(currentEffects)
+    // Create signature from current effects
+    const currentSignature = Object.entries(currentEffects)
       .filter(([_, params]) => (params.intensity as number) > 0)
       .map(([id, params]) => `${id}:${params.intensity}`)
       .sort()
       .join('|');
     
-    if (!effectsSignature) return 'default';
+    console.log('🔍 Effect Matching Debug:', {
+      currentEffects,
+      currentSignature,
+      availableCombos: POPULAR_COMBOS.map(c => c.id)
+    });
     
+    // If no active effects, return default
+    if (!currentSignature) {
+      console.log('✅ Matched: default (no active effects)');
+      return 'default';
+    }
+    
+    // Find exact match
     const matchingCombo = POPULAR_COMBOS.find(combo => {
       const comboSignature = Object.entries(combo.effects)
         .filter(([_, params]) => (params.intensity as number) > 0)
@@ -103,10 +115,23 @@ export const usePreRenderedMaterials = (currentEffects: EffectValues) => {
         .sort()
         .join('|');
       
-      return comboSignature === effectsSignature;
+      const isMatch = comboSignature === currentSignature;
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🎭 Checking ${combo.id}:`, {
+          comboSignature,
+          currentSignature,
+          isMatch
+        });
+      }
+      
+      return isMatch;
     });
     
-    return matchingCombo?.id || 'default';
+    const result = matchingCombo?.id || 'default';
+    console.log(`✅ Final Match: ${result}`);
+    
+    return result;
   }, [currentEffects]);
 
   const isPreRendered = useCallback((comboId: string) => {
@@ -116,6 +141,15 @@ export const usePreRenderedMaterials = (currentEffects: EffectValues) => {
   const getComboById = useCallback((comboId: string) => {
     return POPULAR_COMBOS.find(combo => combo.id === comboId);
   }, []);
+
+  // Log active combo changes
+  React.useEffect(() => {
+    console.log('🎯 Active Combo Changed:', {
+      activeComboId,
+      comboData: getComboById(activeComboId),
+      timestamp: Date.now()
+    });
+  }, [activeComboId, getComboById]);
 
   return {
     POPULAR_COMBOS,

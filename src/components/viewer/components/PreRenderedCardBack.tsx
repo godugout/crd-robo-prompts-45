@@ -29,6 +29,15 @@ export const PreRenderedCardBack: React.FC<PreRenderedCardBackProps> = ({
   SurfaceTexture,
   interactiveLighting = false
 }) => {
+  // Log visibility changes
+  React.useEffect(() => {
+    console.log(`🎪 ${comboId} visibility changed:`, {
+      isActive,
+      materialId: material.id,
+      effectsCount: Object.keys(effects).length
+    });
+  }, [isActive, comboId, material.id, effects]);
+
   // Enhanced logo effects based on material
   const getLogoEffects = () => {
     const baseTreatment = material.logoTreatment;
@@ -71,21 +80,35 @@ export const PreRenderedCardBack: React.FC<PreRenderedCardBackProps> = ({
     `
   };
 
+  // Use explicit visibility control instead of opacity for better debugging
+  const visibilityStyle = {
+    ...dynamicFrameStyles,
+    opacity: isActive ? 1 : 0,
+    visibility: isActive ? 'visible' : 'hidden',
+    zIndex: isActive ? 10 : 0,
+    transition: 'opacity 0.15s ease-in-out, visibility 0s',
+    backfaceVisibility: 'hidden',
+    transform: 'rotateY(180deg)',
+    pointerEvents: isActive ? 'auto' : 'none'
+  } as React.CSSProperties;
+
   return (
     <div 
-      className={`absolute inset-0 rounded-xl overflow-hidden transition-opacity duration-200 ${
-        isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'
-      }`}
-      style={{
-        ...dynamicFrameStyles,
-        backfaceVisibility: 'hidden',
-        transform: 'rotateY(180deg)',
-        pointerEvents: isActive ? 'auto' : 'none'
-      }}
+      className="absolute inset-0 rounded-xl overflow-hidden"
+      style={visibilityStyle}
       data-combo={comboId}
       data-material={material.id}
+      data-is-active={isActive}
+      data-debug-visibility={isActive ? 'visible' : 'hidden'}
     >
-      {/* Effects Layer */}
+      {/* Debug info overlay for this specific combo */}
+      {process.env.NODE_ENV === 'development' && isActive && (
+        <div className="absolute top-8 right-2 z-50 bg-green-500/80 text-white text-xs p-1 rounded pointer-events-none">
+          {comboId}
+        </div>
+      )}
+
+      {/* Effects Layer with debugging */}
       <CardEffectsLayer
         showEffects={true}
         isHovering={isHovering}
