@@ -1,6 +1,6 @@
 
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { OverlayProvider } from '@/components/overlay';
+import { OverlayProvider } from '@/components/overlay/OverlayProvider';
 import { MainLayout } from '@/components/layout/MainLayout';
 import Index from '@/pages/Index';
 import Gallery from '@/pages/Gallery';
