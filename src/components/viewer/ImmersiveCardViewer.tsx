@@ -12,6 +12,7 @@ import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { useCardExport } from './hooks/useCardExport';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
 import { ConfigurationDetailsPanel } from './components/ConfigurationDetailsPanel';
+import { Badge, X } from '@/components/ui/badge';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -35,8 +36,12 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   ambient = true,
   isPremiumUser = false
 }) => {
-  // Freemium effects hook - replaces enhanced effects for stability
-  const freemiumHook = useFreemiumEffects(isPremiumUser);
+  // Add tier state management
+  const [userTier, setUserTier] = useState<'rookie' | 'pro' | 'baller'>('rookie');
+  const [showEnhancedPanel, setShowEnhancedPanel] = useState(false);
+
+  // Update freemium hook to use tier system
+  const freemiumHook = useFreemiumEffects(userTier !== 'rookie');
   const {
     selectedPresetId,
     currentEffects,
@@ -138,6 +143,17 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const handleUpgrade = useCallback(() => {
     console.log('🚀 Upgrade flow triggered');
     // TODO: Implement upgrade modal/flow
+  }, []);
+
+  const handleTierUpgrade = useCallback((newTier: 'rookie' | 'pro' | 'baller') => {
+    setUserTier(newTier);
+    console.log(`🚀 User upgraded to ${newTier}!`);
+    
+    // If upgraded to Pro or Baller, show enhanced panel
+    if (newTier === 'pro' || newTier === 'baller') {
+      setShowEnhancedPanel(true);
+      setShowCustomizePanel(false);
+    }
   }, []);
 
   // Style generation hook with static effects
@@ -262,7 +278,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         ref={containerRef}
         className={`fixed inset-0 z-50 flex items-center justify-center ${
           isFullscreen ? 'p-0' : 'p-8'
-        } ${showCustomizePanel ? 'pr-80' : ''}`}
+        } ${(showCustomizePanel || showEnhancedPanel) ? 'pr-80' : ''}`}
         style={{
           ...getEnvironmentStyle(),
         }}
@@ -286,16 +302,18 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         )}
 
         {/* Settings Panel Toggle Button */}
-        {!showCustomizePanel && (
+        {!showCustomizePanel && !showEnhancedPanel && (
           <div className="absolute top-4 right-4 z-10">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowCustomizePanel(true)}
+              onClick={() => userTier === 'rookie' ? setShowCustomizePanel(true) : setShowEnhancedPanel(true)}
               className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
             >
               <Sparkles className="w-4 h-4 text-white mr-2" />
-              <span className="text-white text-sm">Open Styles</span>
+              <span className="text-white text-sm">
+                {userTier === 'rookie' ? 'Open Styles' : 'Open Studio'}
+              </span>
             </Button>
           </div>
         )}
@@ -344,23 +362,53 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
 
-        {/* Freemium Customize Panel */}
-        {showCustomizePanel && (
+        {/* Conditional Panel Rendering */}
+        {showCustomizePanel && userTier === 'rookie' && (
           <FreemiumCustomizePanel
             availablePresets={availablePresets}
             selectedPresetId={selectedPresetId}
             onPresetSelect={selectPreset}
-            isPremiumUser={isPremiumUser}
+            userTier={userTier}
             canAccessPreset={canAccessPreset}
-            onClose={() => {
-              if (onClose) {
-                onClose();
-              } else {
-                setShowCustomizePanel(false);
-              }
-            }}
-            onUpgrade={handleUpgrade}
+            onClose={() => setShowCustomizePanel(false)}
+            onTierChange={handleTierUpgrade}
           />
+        )}
+
+        {/* Enhanced Studio Panel for Pro/Baller Users */}
+        {showEnhancedPanel && (userTier === 'pro' || userTier === 'baller') && (
+          <div className="fixed top-0 right-0 h-full w-80 bg-black bg-opacity-95 backdrop-blur-lg border-l border-white/10 overflow-hidden z-50">
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-lg font-semibold text-white">Enhanced Studio</h2>
+                <Badge 
+                  className="text-xs"
+                  style={{ backgroundColor: userTier === 'pro' ? '#3B82F6' : '#F59E0B' }}
+                >
+                  {userTier === 'pro' ? '⚡ Pro' : '👑 Baller'}
+                </Badge>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setShowEnhancedPanel(false)}>
+                <X className="h-5 w-5 text-white" />
+              </Button>
+            </div>
+            <div className="p-4 text-white">
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">🎉</div>
+                <h3 className="text-xl font-bold mb-2">Studio Unlocked!</h3>
+                <p className="text-gray-300 text-sm mb-4">
+                  You now have access to advanced controls, unlimited exports, and premium effects.
+                </p>
+                <div className="space-y-2 text-sm text-gray-300">
+                  <div>✨ All premium presets</div>
+                  <div>🎛️ Advanced sliders</div>
+                  <div>🌅 Environment controls</div>
+                  <div>💎 Unlimited exports</div>
+                  {userTier === 'baller' && <div>🏆 4K quality</div>}
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Enhanced Card Container */}
@@ -398,7 +446,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         )}
 
         {/* Info Panel */}
-        {showStats && !isFlipped && !showCustomizePanel && (
+        {showStats && !isFlipped && !showCustomizePanel && !showEnhancedPanel && (
           <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: hasMultipleCards ? '180px' : '100px' }}>
             <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
               <div className="flex items-center justify-between text-white">
@@ -420,7 +468,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
                 <div className="flex items-center space-x-2">
                   <Sparkles className="w-4 h-4" />
                   <span className="text-sm">
-                    {isPremiumUser ? 'Premium' : 'Free'} | {selectedMaterial?.name || 'Default'}
+                    {userTier === 'rookie' ? '🌟 Rookie' : userTier === 'pro' ? '⚡ Pro' : '👑 Baller'} | {selectedMaterial?.name || 'Default'}
                   </span>
                 </div>
               </div>
