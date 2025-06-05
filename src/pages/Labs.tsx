@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { CardDetectionTester } from '@/components/debug/CardDetectionTester';
+import { Interactive3DCardDemo } from '@/components/viewer/Interactive3DCardDemo';
 
 const Labs = () => {
   return (
@@ -13,7 +14,10 @@ const Labs = () => {
       <div className="space-y-8">
         <section>
           <h2 className="text-xl font-semibold text-white mb-4">Interactive Options</h2>
-          <CardDetectionTester />
+          <div className="grid gap-6">
+            <CardDetectionTester />
+            <Interactive3DCardDemo />
+          </div>
         </section>
       </div>
     </div>

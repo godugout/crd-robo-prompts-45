@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,7 +13,6 @@ import Gallery from "./pages/Gallery";
 import Editor from "./pages/Editor";
 import Profile from "./pages/Profile";
 import Creators from "./pages/Creators";
-import Debug from "./pages/Debug";
 import Labs from "./pages/Labs";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
@@ -69,7 +69,6 @@ function App() {
                 } 
               />
               <Route path="creators" element={<Creators />} />
-              <Route path="debug" element={<Debug />} />
               <Route path="labs" element={<Labs />} />
             </Route>
             
