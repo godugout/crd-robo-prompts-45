@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -344,9 +345,12 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
 
-        {/* Reorganized Bottom Controls - Always Visible */}
+        {/* Reorganized Bottom Controls - Fixed Layout */}
         <div className="fixed bottom-4 left-4 right-4 z-10">
-          <div className="flex items-end justify-between max-w-7xl mx-auto" style={{ marginRight: `${panelWidth + 20}px` }}>
+          <div 
+            className="flex items-end justify-between max-w-7xl mx-auto"
+            style={{ marginRight: `${panelWidth}px` }}
+          >
             {/* Left Side - Basic Controls */}
             <div className="flex items-end space-x-4">
               <ViewerControls
@@ -360,9 +364,9 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
               />
             </div>
 
-            {/* Right Side - Navigation and Config */}
-            <div className="flex items-end space-x-4">
-              {/* Card Navigation Controls */}
+            {/* Right Side - Always Visible Navigation and Config */}
+            <div className="flex items-end space-x-3">
+              {/* Card Navigation Controls - Always Visible if Multiple Cards */}
               {hasMultipleCards && (
                 <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-3 border border-white/10">
                   <div className="flex items-center space-x-2">
@@ -376,7 +380,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
                     
-                    <div className="text-white text-sm px-2">
+                    <div className="text-white text-sm px-2 min-w-[60px] text-center">
                       {currentCardIndex + 1} / {cards.length}
                     </div>
                     
@@ -428,9 +432,15 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         </div>
 
-        {/* Info Panel */}
+        {/* Info Panel - Only show when panels are closed */}
         {showStats && !isFlipped && !showCustomizePanel && !showEnhancedPanel && (
-          <div className="absolute bottom-20 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: `${panelWidth + 100}px` }}>
+          <div 
+            className="absolute bottom-20 left-4 z-10 max-w-2xl"
+            style={{ 
+              right: `${panelWidth + 32}px`,
+              marginRight: '100px' 
+            }}
+          >
             <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
               <div className="flex items-center justify-between text-white">
                 <div className="flex space-x-4 text-sm">
@@ -465,12 +475,11 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         <FreemiumCustomizePanel
           selectedPresetId={selectedPresetId}
           availablePresets={availablePresets}
-          onSelectPreset={selectPreset}
+          onPresetSelect={selectPreset}
           canAccessPreset={canAccessPreset}
+          userTier={userTier}
           onClose={() => setShowCustomizePanel(false)}
-          onUpgrade={handleTierUpgrade}
-          onDownload={handleDownloadClick}
-          onShare={handleShareClick}
+          onTierChange={handleTierUpgrade}
         />
       )}
 
