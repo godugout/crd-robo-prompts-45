@@ -8,12 +8,8 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
     icon: '🎬',
     gradient: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
     description: 'Clean studio lighting',
-    lighting: {
-      color: '#ffffff',
-      intensity: 0.9,
-      elevation: 45,
-      azimuth: 0
-    },
+    background: 'studio',
+    lighting: 'natural',
     backgroundImage: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
     reflections: 'soft'
   },
@@ -23,12 +19,8 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
     icon: '🌈',
     gradient: 'linear-gradient(135deg, #ff0080 0%, #0080ff 100%)',
     description: 'Vibrant neon atmosphere',
-    lighting: {
-      color: '#ff0080',
-      intensity: 1.2,
-      elevation: 30,
-      azimuth: 45
-    },
+    background: 'neon',
+    lighting: 'dramatic',
     backgroundImage: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
     reflections: 'vivid'
   },
@@ -38,12 +30,8 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
     icon: '🌅',
     gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
     description: 'Warm golden lighting',
-    lighting: {
-      color: '#ffa500',
-      intensity: 0.9,
-      elevation: 15,
-      azimuth: 60
-    },
+    background: 'golden',
+    lighting: 'soft',
     backgroundImage: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
     reflections: 'warm'
   },
@@ -53,12 +41,8 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
     icon: '🌙',
     gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     description: 'Mystical twilight ambiance',
-    lighting: {
-      color: '#4a5ee8',
-      intensity: 0.8,
-      elevation: 60,
-      azimuth: -30
-    },
+    background: 'twilight',
+    lighting: 'vibrant',
     backgroundImage: 'linear-gradient(135deg, #2c3e50 0%, #3498db 100%)',
     reflections: 'cold'
   }
@@ -69,6 +53,9 @@ export const LIGHTING_PRESETS: LightingPreset[] = [
     id: 'natural',
     name: 'Natural',
     description: 'Balanced natural lighting',
+    ambient: 0.5,
+    directional: 0.8,
+    color: '#ffffff',
     brightness: 90,
     contrast: 90,
     shadows: 40,
@@ -81,6 +68,9 @@ export const LIGHTING_PRESETS: LightingPreset[] = [
     id: 'dramatic',
     name: 'Dramatic',
     description: 'High contrast dramatic lighting',
+    ambient: 0.3,
+    directional: 1.2,
+    color: '#ff6b35',
     brightness: 120,
     contrast: 150,
     shadows: 80,
@@ -93,6 +83,9 @@ export const LIGHTING_PRESETS: LightingPreset[] = [
     id: 'soft',
     name: 'Soft',
     description: 'Gentle diffused lighting',
+    ambient: 0.7,
+    directional: 0.6,
+    color: '#e8f4f8',
     brightness: 90,
     contrast: 80,
     shadows: 30,
@@ -105,6 +98,9 @@ export const LIGHTING_PRESETS: LightingPreset[] = [
     id: 'vibrant',
     name: 'Vibrant',
     description: 'Enhanced color vibrancy',
+    ambient: 0.4,
+    directional: 1.0,
+    color: '#4a5ee8',
     brightness: 110,
     contrast: 130,
     shadows: 40,
