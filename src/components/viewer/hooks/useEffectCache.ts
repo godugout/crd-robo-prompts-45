@@ -20,7 +20,10 @@ export const useEffectCache = (config: EffectCacheConfig = { maxSize: 50, ttl: 3
   // Generate cache key from effect values
   const generateCacheKey = useCallback((effectValues: EffectValues): string => {
     const sortedEntries = Object.entries(effectValues)
-      .filter(([_, effect]) => effect.intensity > 0)
+      .filter(([_, effect]) => {
+        const intensity = effect.intensity;
+        return intensity && typeof intensity === 'number' && intensity > 0;
+      })
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([effectId, params]) => {
         const sortedParams = Object.entries(params)

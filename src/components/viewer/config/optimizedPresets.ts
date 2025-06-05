@@ -9,6 +9,7 @@ interface OptimizedPreset {
   effects: EffectValues;
   performanceLevel: 'low' | 'medium' | 'high';
   renderComplexity: number; // 1-10 scale
+  isCustom?: boolean; // Add optional isCustom property
 }
 
 // Verified optimal effect configurations for authentic trading card experiences
