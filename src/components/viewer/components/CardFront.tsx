@@ -16,7 +16,6 @@ interface CardFrontProps {
   SurfaceTexture: React.ReactNode;
   effectValues?: EffectValues;
   materialSettings?: any;
-  interactiveLighting?: boolean;
 }
 
 export const CardFront: React.FC<CardFrontProps> = ({
@@ -30,8 +29,7 @@ export const CardFront: React.FC<CardFrontProps> = ({
   physicalEffectStyles,
   SurfaceTexture,
   effectValues,
-  materialSettings,
-  interactiveLighting = false
+  materialSettings
 }) => {
   return (
     <div
@@ -100,28 +98,7 @@ export const CardFront: React.FC<CardFrontProps> = ({
         physicalEffectStyles={physicalEffectStyles}
         effectValues={effectValues}
         materialSettings={materialSettings}
-        interactiveLighting={interactiveLighting}
       />
-
-      {/* Interactive lighting enhancement overlay - SOFTENED */}
-      {interactiveLighting && isHovering && (
-        <div
-          className="absolute inset-0 z-40 pointer-events-none"
-          style={{
-            background: `
-              radial-gradient(
-                ellipse 180% 140% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                rgba(255, 255, 255, 0.03) 0%,
-                rgba(255, 255, 255, 0.02) 50%,
-                transparent 85%
-              )
-            `,
-            mixBlendMode: 'overlay',
-            transition: 'opacity 0.2s ease',
-            opacity: showEffects ? 1 : 0.5
-          }}
-        />
-      )}
     </div>
   );
 };

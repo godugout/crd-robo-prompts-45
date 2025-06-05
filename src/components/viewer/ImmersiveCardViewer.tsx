@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -69,7 +70,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[0]); // Studio instead of Twilight
   const [selectedLighting, setSelectedLighting] = useState<LightingPreset>(LIGHTING_PRESETS[0]);
   const [overallBrightness, setOverallBrightness] = useState([100]); // Reduced from 120
-  const [interactiveLighting, setInteractiveLighting] = useState(true);
   
   // Material properties - More balanced defaults
   const [materialSettings, setMaterialSettings] = useState<MaterialSettings>({
@@ -156,7 +156,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     mousePosition,
     showEffects,
     overallBrightness,
-    interactiveLighting,
     selectedScene,
     selectedLighting,
     materialSettings,
@@ -391,7 +390,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             selectedLighting={selectedLighting}
             effectValues={effectValues}
             overallBrightness={overallBrightness}
-            interactiveLighting={interactiveLighting}
             materialSettings={materialSettings}
             isFullscreen={isFullscreen}
             onSceneChange={setSelectedScene}
@@ -399,7 +397,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             onEffectChange={handleManualEffectChange}
             onResetAllEffects={resetAllEffects}
             onBrightnessChange={setOverallBrightness}
-            onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
             onMaterialSettingsChange={setMaterialSettings}
             onToggleFullscreen={toggleFullscreen}
             onDownload={handleDownloadClick}
@@ -442,7 +439,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         </div>
 
-        {/* Configuration Details Panel */}
+        {/* Configuration Details Panel - Remove interactiveLighting prop */}
         {!showCustomizePanel && (
           <ConfigurationDetailsPanel
             effectValues={effectValues}
@@ -450,7 +447,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             selectedLighting={selectedLighting}
             materialSettings={materialSettings}
             overallBrightness={overallBrightness}
-            interactiveLighting={interactiveLighting}
           />
         )}
 
