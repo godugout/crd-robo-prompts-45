@@ -33,8 +33,9 @@ export const useViewerGestures = ({
 
   // Enhanced mobile gesture handlers
   const handleMobileZoom = useCallback((delta: number) => {
-    setZoom(prev => Math.max(0.5, Math.min(3, prev + delta)));
-  }, [setZoom]);
+    const newZoom = Math.max(0.5, Math.min(3, zoom + delta));
+    setZoom(newZoom);
+  }, [setZoom, zoom]);
 
   const handleRotationChange = useCallback((newRotation: { x: number; y: number }) => {
     setRotation(newRotation);
@@ -114,8 +115,9 @@ export const useViewerGestures = ({
   }, [setRotation, setZoom, setIsFlipped, setAutoRotate]);
 
   const handleZoom = useCallback((delta: number) => {
-    setZoom(prev => Math.max(0.5, Math.min(3, prev + delta)));
-  }, [setZoom]);
+    const newZoom = Math.max(0.5, Math.min(3, zoom + delta));
+    setZoom(newZoom);
+  }, [setZoom, zoom]);
 
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -129,10 +131,11 @@ export const useViewerGestures = ({
   useEffect(() => {
     if (autoRotate && !isDragging) {
       const animate = () => {
-        setRotation(prev => ({
+        const newRotation = {
           x: Math.sin(Date.now() * 0.0005) * 10,
-          y: prev.y + 0.5
-        }));
+          y: rotation.y + 0.5
+        };
+        setRotation(newRotation);
         animationRef.current = requestAnimationFrame(animate);
       };
       animationRef.current = requestAnimationFrame(animate);
@@ -147,14 +150,15 @@ export const useViewerGestures = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [autoRotate, isDragging, setRotation]);
+  }, [autoRotate, isDragging, setRotation, rotation.y]);
 
   // Wheel zoom effect
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
       const zoomDelta = e.deltaY > 0 ? -0.1 : 0.1;
-      setZoom(prev => Math.max(0.5, Math.min(3, prev + zoomDelta)));
+      const newZoom = Math.max(0.5, Math.min(3, zoom + zoomDelta));
+      setZoom(newZoom);
     };
 
     const container = containerRef.current;
@@ -162,7 +166,7 @@ export const useViewerGestures = ({
       container.addEventListener('wheel', handleWheel, { passive: false });
       return () => container.removeEventListener('wheel', handleWheel);
     }
-  }, [setZoom, containerRef]);
+  }, [setZoom, containerRef, zoom]);
 
   return {
     handleMobileZoom,
