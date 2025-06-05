@@ -1,7 +1,5 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
 import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from './constants';
 import { useFreemiumEffects } from './hooks/useFreemiumEffects';
