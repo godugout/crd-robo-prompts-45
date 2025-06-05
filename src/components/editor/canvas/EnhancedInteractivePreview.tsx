@@ -25,6 +25,7 @@ export const EnhancedInteractivePreview = ({
   currentPhoto
 }: EnhancedInteractivePreviewProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const cardFrontRef = useRef<HTMLDivElement>(null); // New ref for just the card front
   const [isExporting, setIsExporting] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
@@ -40,20 +41,53 @@ export const EnhancedInteractivePreview = ({
     }
   }, [cardEditor?.cardData?.template_id]);
 
+  const addWatermarkToCanvas = (canvas: HTMLCanvasElement): HTMLCanvasElement => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return canvas;
+
+    // Create watermark
+    const watermarkSize = Math.min(canvas.width * 0.15, 60); // 15% of width, max 60px
+    const margin = 10;
+    
+    // Position in upper right corner
+    const x = canvas.width - watermarkSize - margin;
+    const y = margin;
+
+    // Create CRD text watermark
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = '#10B981'; // CRD green color
+    ctx.font = `bold ${watermarkSize * 0.3}px Arial`;
+    ctx.textAlign = 'right';
+    ctx.fillText('CRD', canvas.width - margin, y + (watermarkSize * 0.3));
+    ctx.restore();
+
+    return canvas;
+  };
+
   const handleExportCard = async () => {
-    if (!cardRef.current) return;
+    if (!cardFrontRef.current) {
+      toast.error('Card not ready for export');
+      return;
+    }
     
     setIsExporting(true);
     try {
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null,
+      // Capture only the card front content, not the entire container
+      const canvas = await html2canvas(cardFrontRef.current, {
+        backgroundColor: 'transparent',
         scale: 2,
-        useCORS: true
+        useCORS: true,
+        allowTaint: true,
+        removeContainer: true
       });
+      
+      // Add watermark to the exported canvas
+      const watermarkedCanvas = addWatermarkToCanvas(canvas);
       
       const link = document.createElement('a');
       link.download = `${cardEditor?.cardData.title || 'card'}.png`;
-      link.href = canvas.toDataURL();
+      link.href = watermarkedCanvas.toDataURL('image/png', 1.0);
       link.click();
       
       toast.success('Card exported successfully!');
@@ -78,7 +112,10 @@ export const EnhancedInteractivePreview = ({
     
     if (!selectedTemplate) {
       return (
-        <div className="w-80 h-112 bg-white rounded-lg shadow-lg border-2 border-gray-200 flex items-center justify-center">
+        <div 
+          ref={cardFrontRef}
+          className="w-80 h-112 bg-white rounded-lg shadow-lg border-2 border-gray-200 flex items-center justify-center"
+        >
           <div className="text-center p-4">
             <div className="text-gray-400 mb-2">No template selected</div>
             <div className="text-sm text-gray-500">Choose a template to see your card preview</div>
@@ -92,6 +129,7 @@ export const EnhancedInteractivePreview = ({
 
     return (
       <div 
+        ref={cardFrontRef}
         className="relative rounded-lg shadow-xl border-2 border-gray-300 overflow-hidden"
         style={{ 
           width: 300 * scaleFactor, 

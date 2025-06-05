@@ -37,13 +37,38 @@ export const useCardExport = ({
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
 
+  const addWatermarkToCanvas = (canvas: HTMLCanvasElement): HTMLCanvasElement => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return canvas;
+
+    // Create watermark in upper right corner
+    const watermarkSize = Math.min(canvas.width * 0.12, 50); // 12% of width, max 50px
+    const margin = 15;
+    
+    ctx.save();
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = '#10B981'; // CRD green color
+    ctx.font = `bold ${watermarkSize * 0.4}px Arial`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'top';
+    ctx.fillText('CRD', canvas.width - margin, margin);
+    ctx.restore();
+
+    return canvas;
+  };
+
   const captureFrame = useCallback(async (options: ExportOptions): Promise<string> => {
     if (!cardRef.current) throw new Error('Card element not found');
+
+    // Look for card front element specifically, fallback to main ref
+    const cardFrontElement = cardRef.current.querySelector('[data-card-front]') as HTMLElement || 
+                             cardRef.current.querySelector('.card-front') as HTMLElement ||
+                             cardRef.current;
 
     // Use dynamic import to match the pattern used in useSimpleCardEditor
     const { default: html2canvas } = await import('html2canvas');
 
-    const canvas = await html2canvas(cardRef.current, {
+    const canvas = await html2canvas(cardFrontElement, {
       scale: options.resolution,
       backgroundColor: options.background === 'transparent' ? null : 
                       options.background === 'solid' ? '#000000' : undefined,
@@ -52,7 +77,10 @@ export const useCardExport = ({
       removeContainer: true
     });
 
-    return canvas.toDataURL(
+    // Add watermark to exported image
+    const watermarkedCanvas = addWatermarkToCanvas(canvas);
+
+    return watermarkedCanvas.toDataURL(
       options.format === 'jpg' ? 'image/jpeg' : 'image/png',
       options.quality || 0.9
     );
@@ -134,15 +162,22 @@ export const useCardExport = ({
         // Small delay to let effects render
         await new Promise(resolve => setTimeout(resolve, 50));
 
+        // Target card front specifically for GIF frames too
+        const cardFrontElement = cardRef.current?.querySelector('[data-card-front]') as HTMLElement || 
+                                 cardRef.current?.querySelector('.card-front') as HTMLElement ||
+                                 cardRef.current!;
+
         // Capture frame
-        const canvas = await html2canvas(cardRef.current!, {
+        const canvas = await html2canvas(cardFrontElement, {
           scale: options.resolution,
           backgroundColor: options.background === 'transparent' ? null : '#000000',
           useCORS: true,
           allowTaint: true
         });
 
-        gif.addFrame(canvas, { delay: 1000 / options.animation.frameRate });
+        // Add watermark to each frame
+        const watermarkedCanvas = addWatermarkToCanvas(canvas);
+        gif.addFrame(watermarkedCanvas, { delay: 1000 / options.animation.frameRate });
       }
 
       // Reset rotation and effects
