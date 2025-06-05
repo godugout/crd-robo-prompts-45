@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { CardDetectionTester } from '@/components/debug/CardDetectionTester';
 import { Interactive3DCardDemo } from '@/components/viewer/Interactive3DCardDemo';
+import { EffectCardViewer } from '@/components/viewer/EffectCardViewer';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
 const Labs = () => {
@@ -17,6 +18,13 @@ const Labs = () => {
       </div>
       
       <div className="space-y-8">
+        <section>
+          <h2 className="text-xl font-semibold text-white mb-4">Card Effect System</h2>
+          <ErrorBoundary componentName="EffectCardViewer">
+            <EffectCardViewer />
+          </ErrorBoundary>
+        </section>
+
         <section>
           <h2 className="text-xl font-semibold text-white mb-4">Interactive Options</h2>
           <div className="grid gap-6">
