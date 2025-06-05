@@ -9,7 +9,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, metadata?: Record<string, any>) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   signInWithOAuth: (provider: string) => Promise<{ error: any }>;
@@ -122,12 +122,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [isDevelopment]);
 
   const signIn = async (email: string, password: string) => {
+    console.log('🔧 AuthContext signIn called for:', email);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
   };
 
-  const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
+  const signUp = async (email: string, password: string, metadata?: Record<string, any>) => {
+    console.log('🔧 AuthContext signUp called for:', email, 'with metadata:', metadata);
+    
+    const { error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        data: metadata || {}
+      }
+    });
+    
+    console.log('🔧 Supabase signUp result:', { hasError: !!error, errorMessage: error?.message });
     return { error };
   };
 
