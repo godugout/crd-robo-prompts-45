@@ -38,9 +38,10 @@ export const EditorCanvas = ({ zoom, cardEditor, onAddElement }: EditorCanvasPro
   const title = cardEditor?.cardData.title || 'Card Title';
   const description = cardEditor?.cardData.description || 'Card description goes here...';
 
-  const handlePhotoSelect = (photoUrl: string) => {
+  const handlePhotoSelect = (file: File, preview: string) => {
     if (cardEditor) {
-      cardEditor.updateCardField('image_url', photoUrl);
+      // Use the preview string (data URL) as the image URL
+      cardEditor.updateCardField('image_url', preview);
     }
     // Switch back to preview mode after photo selection
     setPreviewMode('preview');
