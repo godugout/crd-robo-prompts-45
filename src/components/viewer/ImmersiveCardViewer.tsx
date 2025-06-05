@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -140,12 +139,12 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     setShowExportDialog(true);
   }, []);
 
-  // Fix the share handler to not expect parameters
+  // Fix the share handler to pass the current card
   const handleShareClick = useCallback(() => {
     if (onShare) {
-      onShare();
+      onShare(card);
     }
-  }, [onShare]);
+  }, [onShare, card]);
 
   // Add state for progressive panel
   const [useProgressivePanel, setUseProgressivePanel] = useState(true);
