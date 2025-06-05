@@ -44,22 +44,48 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
   const prizemIntensity = getEffectParam('prizm', 'intensity', 0);
   const foilsprayIntensity = getEffectParam('foilspray', 'intensity', 0);
   const goldIntensity = getEffectParam('gold', 'intensity', 0);
+
+  // Static ambient lighting to compensate for removed interactive lighting
+  const ambientLightingStyle = {
+    background: `
+      radial-gradient(
+        ellipse at 40% 30%, 
+        rgba(255, 255, 255, 0.08) 0%, 
+        rgba(255, 255, 255, 0.04) 40%, 
+        transparent 70%
+      ),
+      linear-gradient(
+        135deg, 
+        rgba(255, 255, 255, 0.05) 0%, 
+        transparent 50%, 
+        rgba(0, 0, 0, 0.02) 100%
+      )
+    `,
+    mixBlendMode: 'overlay' as const,
+    opacity: 0.6
+  };
   
   return (
     <>
+      {/* Static Ambient Lighting Layer - Compensates for removed interactive lighting */}
+      <div
+        className="absolute inset-0 z-15 rounded-xl"
+        style={ambientLightingStyle}
+      />
+
       {/* Gold Effect */}
       <GoldEffect
         effectValues={effectValues}
         mousePosition={mousePosition}
       />
 
-      {/* Crystal Effect - Enhanced with Geometric Reflective Patterns */}
+      {/* Crystal Effect */}
       <CrystalEffect
         effectValues={effectValues}
         mousePosition={mousePosition}
       />
 
-      {/* Vintage Effect - Realistic Cardstock Paper */}
+      {/* Vintage Effect */}
       <VintageEffect
         effectValues={effectValues}
         mousePosition={mousePosition}
@@ -71,7 +97,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         mousePosition={mousePosition}
       />
 
-      {/* Prismatic Effects (Holographic, Interference, Prizm) */}
+      {/* Prismatic Effects (includes restored HolographicEffect) */}
       <PrismaticEffects
         effectValues={effectValues}
         mousePosition={mousePosition}
@@ -83,7 +109,7 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
         mousePosition={mousePosition}
       />
 
-      {/* Calculate overall intensity for edge enhancement */}
+      {/* Enhanced Edge Enhancement with Better Blending */}
       {(() => {
         const totalIntensity = holographicIntensity + chromeIntensity + brushedmetalIntensity + 
                               crystalIntensity + vintageIntensity + interferenceIntensity + 
@@ -95,14 +121,33 @@ export const CardEffectsLayer: React.FC<CardEffectsLayerProps> = ({
             className="absolute inset-0 z-26 rounded-xl"
             style={{
               boxShadow: `
-                inset 0 0 15px rgba(255, 255, 255, ${normalizedIntensity * 0.05}),
-                inset 0 0 5px rgba(255, 255, 255, ${normalizedIntensity * 0.1})
+                inset 0 0 20px rgba(255, 255, 255, ${normalizedIntensity * 0.08}),
+                inset 0 0 8px rgba(255, 255, 255, ${normalizedIntensity * 0.15}),
+                0 0 15px rgba(255, 255, 255, ${normalizedIntensity * 0.05})
               `,
-              opacity: 0.3
+              opacity: 0.4,
+              mixBlendMode: 'overlay'
             }}
           />
         ) : null;
       })()}
+
+      {/* Overall Enhancement Layer for Professional Look */}
+      <div
+        className="absolute inset-0 z-27 rounded-xl"
+        style={{
+          background: `
+            radial-gradient(
+              circle at ${50 + mousePosition.x * 10}% ${50 + mousePosition.y * 10}%,
+              rgba(255, 255, 255, 0.03) 0%,
+              rgba(255, 255, 255, 0.01) 50%,
+              transparent 100%
+            )
+          `,
+          mixBlendMode: 'screen',
+          opacity: isHovering ? 0.6 : 0.3
+        }}
+      />
     </>
   );
 };

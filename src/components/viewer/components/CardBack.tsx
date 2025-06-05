@@ -27,9 +27,6 @@ export const CardBack: React.FC<CardBackProps> = ({
 }) => {
   const { isMobile, isTablet } = useResponsiveLayout();
   
-  // Debug logging to see if this component is being used
-  console.log('CardBack component rendering with isFlipped:', isFlipped);
-  
   // Responsive logo sizing for card backs
   const getLogoSize = () => {
     if (isMobile) return 'w-32 h-auto'; // 128px
@@ -61,12 +58,11 @@ export const CardBack: React.FC<CardBackProps> = ({
         {SurfaceTexture}
       </div>
       
-      {/* Centered CRD Logo with Responsive Sizing */}
+      {/* Centered CRD Logo with Responsive Sizing and Fallback */}
       <div className="relative h-full flex items-center justify-center z-30">
         <div className="flex items-center justify-center">
           <img 
             src="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png"
-            srcSet="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 1x, /lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 2x"
             alt="CRD Logo" 
             className={`${getLogoSize()} opacity-90 transition-all duration-300 ease-out`}
             style={{
@@ -74,13 +70,22 @@ export const CardBack: React.FC<CardBackProps> = ({
               imageRendering: '-webkit-optimize-contrast',
               objectFit: 'contain'
             }}
-            onLoad={() => console.log('Enhanced CRD logo loaded successfully')}
-            onError={() => console.log('Error loading enhanced CRD logo')}
+            onLoad={() => console.log('✅ CRD logo loaded successfully')}
+            onError={(e) => {
+              console.error('❌ Error loading CRD logo');
+              // Fallback to text if image fails
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const fallback = document.createElement('div');
+              fallback.className = 'text-white/60 text-2xl font-bold';
+              fallback.textContent = 'CRD';
+              target.parentNode?.appendChild(fallback);
+            }}
           />
         </div>
       </div>
 
-      {/* Unified Effects Layer - Same as front */}
+      {/* Unified Effects Layer */}
       <CardEffectsLayer
         showEffects={showEffects}
         isHovering={isHovering}

@@ -39,7 +39,7 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
     return 'w-64 h-auto'; // 256px for desktop
   };
   
-  // Enhanced logo effects based on mouse position and material
+  // Enhanced logo effects based on material
   const getLogoEffects = () => {
     const baseTreatment = selectedMaterial.logoTreatment;
     
@@ -131,7 +131,6 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
       <div className="relative h-full flex items-center justify-center z-30">
         <img 
           src="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png"
-          srcSet="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 1x, /lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 2x"
           alt="CRD Logo" 
           className={`${getLogoSize()} relative z-10 transition-all duration-700 ease-out`}
           style={{
@@ -139,7 +138,17 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
             filter: `${getLogoEffects().filter} drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))`
           }}
           onLoad={() => console.log('✅ Enhanced responsive CRD logo loaded successfully')}
-          onError={() => console.log('❌ Error loading enhanced responsive CRD logo')}
+          onError={(e) => {
+            console.error('❌ Error loading enhanced responsive CRD logo');
+            // Enhanced fallback handling
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            const fallback = document.createElement('div');
+            fallback.className = 'text-white/70 text-3xl font-bold tracking-wider';
+            fallback.style.filter = 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5))';
+            fallback.textContent = 'CRD';
+            target.parentNode?.appendChild(fallback);
+          }}
         />
       </div>
 
