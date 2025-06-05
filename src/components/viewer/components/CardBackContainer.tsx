@@ -127,19 +127,19 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
         }}
       />
 
-      {/* Enhanced CRD Logo with Dynamic Material Treatment and Responsive Sizing */}
+      {/* Enhanced CRD Logo with Dynamic Material Treatment and New Gradient Logo */}
       <div className="relative h-full flex items-center justify-center z-30">
         <img 
-          src="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png"
+          src="/lovable-uploads/f8aeaf57-4a95-4ebe-8874-2df97ff6adf6.png"
           alt="CRD Logo" 
           className={`${getLogoSize()} relative z-10 transition-all duration-700 ease-out`}
           style={{
             ...getLogoEffects(),
             filter: `${getLogoEffects().filter} drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))`
           }}
-          onLoad={() => console.log('✅ Enhanced responsive CRD logo loaded successfully')}
+          onLoad={() => console.log('✅ Enhanced responsive gradient CRD logo loaded successfully')}
           onError={(e) => {
-            console.error('❌ Error loading enhanced responsive CRD logo');
+            console.error('❌ Error loading enhanced responsive gradient CRD logo');
             // Enhanced fallback handling
             const target = e.target as HTMLImageElement;
             target.style.display = 'none';

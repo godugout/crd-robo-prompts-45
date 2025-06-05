@@ -102,11 +102,10 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
       onMouseLeave={onMouseLeave}
       onClick={handleCardClick}
     >
-      {/* CRD Logo Branding - Upper Right with Responsive Sizing */}
+      {/* CRD Logo Branding - Upper Right with Responsive Sizing and New Logo */}
       <div className="absolute top-4 right-4 z-50">
         <img 
-          src="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png"
-          srcSet="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 1x, /lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 2x"
+          src="/lovable-uploads/f8aeaf57-4a95-4ebe-8874-2df97ff6adf6.png"
           alt="CRD Logo" 
           className={`${getBrandingLogoSize()} opacity-60 hover:opacity-80 transition-all duration-200`}
           style={{
@@ -114,8 +113,8 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             imageRendering: '-webkit-optimize-contrast',
             objectFit: 'contain'
           }}
-          onLoad={() => console.log('Canvas CRD branding logo loaded successfully')}
-          onError={() => console.log('Error loading Canvas CRD branding logo')}
+          onLoad={() => console.log('Canvas gradient CRD branding logo loaded successfully')}
+          onError={() => console.log('Error loading Canvas gradient CRD branding logo')}
         />
       </div>
 
@@ -161,7 +160,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
           />
         </div>
 
-        {/* Card Back - Enhanced with Responsive Logo */}
+        {/* Card Back - Enhanced with Responsive Logo and New Gradient Logo */}
         <div
           className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden"
           style={{
@@ -180,12 +179,11 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             }}
           />
           
-          {/* Centered CRD Logo with Responsive Sizing */}
+          {/* Centered CRD Logo with Responsive Sizing and New Gradient Logo */}
           <div className="relative h-full flex items-center justify-center z-30">
             <div className="flex items-center justify-center">
               <img 
-                src="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png"
-                srcSet="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 1x, /lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png 2x"
+                src="/lovable-uploads/f8aeaf57-4a95-4ebe-8874-2df97ff6adf6.png"
                 alt="CRD Logo" 
                 className={`${getCardBackLogoSize()} opacity-90 transition-all duration-300 ease-out`}
                 style={{
@@ -193,8 +191,8 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
                   imageRendering: '-webkit-optimize-contrast',
                   objectFit: 'contain'
                 }}
-                onLoad={() => console.log('Enhanced Canvas CRD logo loaded successfully')}
-                onError={() => console.log('Error loading Enhanced Canvas CRD logo')}
+                onLoad={() => console.log('Enhanced Canvas gradient CRD logo loaded successfully')}
+                onError={() => console.log('Error loading Enhanced Canvas gradient CRD logo')}
               />
             </div>
           </div>

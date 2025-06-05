@@ -58,11 +58,11 @@ export const CardBack: React.FC<CardBackProps> = ({
         {SurfaceTexture}
       </div>
       
-      {/* Centered CRD Logo with Responsive Sizing and Fallback */}
+      {/* Centered CRD Logo with Responsive Sizing and Updated Source */}
       <div className="relative h-full flex items-center justify-center z-30">
         <div className="flex items-center justify-center">
           <img 
-            src="/lovable-uploads/4f657da6-41f2-4015-a9a8-022d755fd472.png"
+            src="/lovable-uploads/f8aeaf57-4a95-4ebe-8874-2df97ff6adf6.png"
             alt="CRD Logo" 
             className={`${getLogoSize()} opacity-90 transition-all duration-300 ease-out`}
             style={{
@@ -70,9 +70,9 @@ export const CardBack: React.FC<CardBackProps> = ({
               imageRendering: '-webkit-optimize-contrast',
               objectFit: 'contain'
             }}
-            onLoad={() => console.log('✅ CRD logo loaded successfully')}
+            onLoad={() => console.log('✅ New gradient CRD logo loaded successfully')}
             onError={(e) => {
-              console.error('❌ Error loading CRD logo');
+              console.error('❌ Error loading new gradient CRD logo');
               // Fallback to text if image fails
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
