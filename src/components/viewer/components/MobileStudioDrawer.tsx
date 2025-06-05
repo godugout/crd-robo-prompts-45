@@ -72,22 +72,37 @@ export const MobileStudioDrawer: React.FC<MobileStudioDrawerProps> = ({
         <Button
           variant="ghost"
           size="lg"
-          className="bg-black bg-opacity-70 hover:bg-opacity-80 backdrop-blur border border-white/20 text-white px-6 py-3"
+          className="
+            bg-black bg-opacity-70 hover:bg-opacity-80 backdrop-blur 
+            border border-white/20 text-white px-6 py-4
+            min-h-[52px] touch-manipulation active:scale-95 
+            transition-all duration-150 -webkit-tap-highlight-color: transparent
+          "
+          style={{ touchAction: 'manipulation' }}
         >
           <Sparkles className="w-5 h-5 mr-2" />
           <span className="text-base font-medium">Open Studio</span>
         </Button>
       </DrawerTrigger>
       
-      <DrawerContent className="bg-black bg-opacity-95 backdrop-blur-lg border-white/10 h-[95vh] max-h-[95vh]">
-        <DrawerHeader className="border-b border-white/10 flex-shrink-0">
+      <DrawerContent 
+        className="bg-black bg-opacity-95 backdrop-blur-lg border-white/10 h-[96vh] max-h-[96vh]"
+        style={{ touchAction: 'auto' }}
+      >
+        <DrawerHeader className="border-b border-white/10 flex-shrink-0 pb-4">
           <DrawerTitle className="text-white text-lg font-semibold flex items-center">
             <Sparkles className="w-5 h-5 text-crd-green mr-2" />
             Enhanced Studio
           </DrawerTitle>
         </DrawerHeader>
         
-        <div className="flex-1 overflow-hidden" style={{ touchAction: 'auto' }}>
+        <div 
+          className="flex-1 overflow-hidden" 
+          style={{ 
+            touchAction: 'auto',
+            WebkitOverflowScrolling: 'touch'
+          }}
+        >
           <ProgressiveCustomizePanel
             selectedScene={selectedScene}
             selectedLighting={selectedLighting}

@@ -38,33 +38,45 @@ export const MobileBottomControlBar: React.FC<MobileBottomControlBarProps> = ({
   onNextCard
 }) => {
   return (
-    <div className="h-full flex items-center justify-between px-4">
+    <div className="h-full flex items-center justify-between px-4" style={{ touchAction: 'manipulation' }}>
       {/* Left Section - Navigation */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-3">
         {hasMultipleCards ? (
           <>
             <Button
               variant="ghost"
-              size="sm"
+              size="lg"
               onClick={onPreviousCard}
               disabled={!canGoPrev}
-              className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white disabled:opacity-50 h-10 w-10 p-0"
+              className="
+                bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
+                disabled:opacity-50 min-h-[48px] min-w-[48px] p-0
+                touch-manipulation active:scale-95 transition-transform
+                -webkit-tap-highlight-color: transparent
+              "
+              style={{ touchAction: 'manipulation' }}
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-6 h-6" />
             </Button>
             
-            <div className="text-white text-sm min-w-[60px] text-center">
+            <div className="text-white text-sm min-w-[60px] text-center font-medium">
               {currentCardIndex + 1}/{totalCards}
             </div>
             
             <Button
               variant="ghost"
-              size="sm"
+              size="lg"
               onClick={onNextCard}
               disabled={!canGoNext}
-              className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white disabled:opacity-50 h-10 w-10 p-0"
+              className="
+                bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
+                disabled:opacity-50 min-h-[48px] min-w-[48px] p-0
+                touch-manipulation active:scale-95 transition-transform
+                -webkit-tap-highlight-color: transparent
+              "
+              style={{ touchAction: 'manipulation' }}
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-6 h-6" />
             </Button>
           </>
         ) : (
@@ -73,44 +85,66 @@ export const MobileBottomControlBar: React.FC<MobileBottomControlBarProps> = ({
       </div>
 
       {/* Center Section - Main Controls */}
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-4">
         <Button
           variant="ghost"
-          size="sm"
+          size="lg"
           onClick={onToggleEffects}
           className={`
-            bg-white bg-opacity-20 hover:bg-opacity-30 text-white h-12 w-12 p-0
-            ${showEffects ? 'ring-2 ring-crd-green' : ''}
+            bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
+            min-h-[52px] min-w-[52px] p-0 touch-manipulation 
+            active:scale-95 transition-all duration-150
+            -webkit-tap-highlight-color: transparent
+            ${showEffects ? 'ring-2 ring-crd-green ring-offset-2 ring-offset-black' : ''}
           `}
+          style={{ touchAction: 'manipulation' }}
         >
-          <Sparkles className="w-5 h-5" />
+          <Sparkles className="w-6 h-6" />
         </Button>
 
         <Button
           variant="ghost"
-          size="sm"
+          size="lg"
           onClick={onReset}
-          className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white h-12 w-12 p-0"
+          className="
+            bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
+            min-h-[52px] min-w-[52px] p-0 touch-manipulation
+            active:scale-95 transition-transform duration-150
+            -webkit-tap-highlight-color: transparent
+          "
+          style={{ touchAction: 'manipulation' }}
         >
-          <RotateCcw className="w-5 h-5" />
+          <RotateCcw className="w-6 h-6" />
         </Button>
 
         <Button
           variant="ghost"
-          size="sm"
+          size="lg"
           onClick={onZoomIn}
-          className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white h-12 w-12 p-0"
+          className="
+            bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
+            min-h-[52px] min-w-[52px] p-0 touch-manipulation
+            active:scale-95 transition-transform duration-150
+            -webkit-tap-highlight-color: transparent
+          "
+          style={{ touchAction: 'manipulation' }}
         >
-          <ZoomIn className="w-5 h-5" />
+          <ZoomIn className="w-6 h-6" />
         </Button>
 
         <Button
           variant="ghost"
-          size="sm"
+          size="lg"
           onClick={onZoomOut}
-          className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white h-12 w-12 p-0"
+          className="
+            bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
+            min-h-[52px] min-w-[52px] p-0 touch-manipulation
+            active:scale-95 transition-transform duration-150
+            -webkit-tap-highlight-color: transparent
+          "
+          style={{ touchAction: 'manipulation' }}
         >
-          <ZoomOut className="w-5 h-5" />
+          <ZoomOut className="w-6 h-6" />
         </Button>
       </div>
 
@@ -118,14 +152,18 @@ export const MobileBottomControlBar: React.FC<MobileBottomControlBarProps> = ({
       <div className="flex items-center">
         <Button
           variant="ghost"
-          size="sm"
+          size="lg"
           onClick={onToggleInfo}
           className={`
-            bg-white bg-opacity-20 hover:bg-opacity-30 text-white h-10 w-10 p-0
-            ${showInfo ? 'ring-2 ring-crd-green' : ''}
+            bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
+            min-h-[48px] min-w-[48px] p-0 touch-manipulation
+            active:scale-95 transition-all duration-150
+            -webkit-tap-highlight-color: transparent
+            ${showInfo ? 'ring-2 ring-crd-green ring-offset-2 ring-offset-black' : ''}
           `}
+          style={{ touchAction: 'manipulation' }}
         >
-          <Info className="w-4 h-4" />
+          <Info className="w-5 h-5" />
         </Button>
       </div>
     </div>

@@ -76,31 +76,49 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
       className={`${isMobile ? 'w-full h-full' : 'fixed top-0 right-0 h-full w-80'} bg-black bg-opacity-95 backdrop-blur-lg ${!isMobile ? 'border-l border-white/10' : ''} overflow-hidden ${
         isFullscreen ? 'z-60' : 'z-50'
       }`}
-      style={{ touchAction: 'auto' }}
+      style={{ 
+        touchAction: 'auto',
+        WebkitOverflowScrolling: 'touch'
+      }}
     >
       {/* Header - Only show on desktop */}
       {!isMobile && (
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <div 
+          className="flex items-center justify-between p-4 border-b border-white/10"
+          style={{ touchAction: 'auto' }}
+        >
           <h2 className="text-lg font-semibold text-white">Enhanced Studio</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onClose}
+            className="touch-manipulation active:scale-95 transition-transform"
+            style={{ touchAction: 'manipulation' }}
+          >
             <X className="h-5 w-5 text-white" />
           </Button>
         </div>
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto" style={{ touchAction: 'auto' }}>
-        <div className={`${isMobile ? 'p-3' : 'p-4'} space-y-${isMobile ? '4' : '6'}`}>
+      <div 
+        className="flex-1 overflow-y-auto" 
+        style={{ 
+          touchAction: 'auto',
+          WebkitOverflowScrolling: 'touch'
+        }}
+      >
+        <div className={`${isMobile ? 'p-4' : 'p-4'} space-y-${isMobile ? '6' : '6'}`}>
           {/* Quick Styles Section */}
           <div>
-            <h3 className="text-white font-medium mb-3 flex items-center">
+            <h3 className="text-white font-medium mb-4 flex items-center">
               <Sparkles className="w-4 h-4 text-crd-green mr-2" />
               Quick Styles
               {isApplyingPreset && (
                 <div className="ml-2 w-2 h-2 bg-crd-green rounded-full animate-pulse" />
               )}
             </h3>
-            <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-2 gap-2'}`}>
+            <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-2 gap-3'}`}>
               <QuickComboPresets
                 onApplyCombo={onApplyCombo}
                 currentEffects={effectValues}
@@ -155,6 +173,9 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
             onDownload={onDownload}
             onShare={onShare}
           />
+          
+          {/* Bottom padding for mobile scrolling */}
+          {isMobile && <div className="h-20" />}
         </div>
       </div>
     </div>
