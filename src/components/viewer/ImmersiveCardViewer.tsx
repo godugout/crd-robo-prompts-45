@@ -1,10 +1,10 @@
+
 import React, { useState, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Eye, 
   Settings, 
@@ -16,7 +16,10 @@ import {
   Sparkles,
   Monitor,
   Smartphone,
-  Tablet
+  Tablet,
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { QuickComboPresets } from './components/QuickComboPresets';
@@ -24,20 +27,45 @@ import { EnhancedEffectControls } from './components/EnhancedEffectControls';
 import { EnvironmentComboSection } from './components/EnvironmentComboSection';
 import { LightingComboSection } from './components/LightingComboSection';
 import { MaterialComboSection } from './components/MaterialComboSection';
-import { ExportOptionsDialog } from './components/ExportOptionsDialog';
 import { useEnhancedCardEffects, type EffectValues } from './hooks/useEnhancedCardEffects';
 import { useDynamicCardBackMaterials } from './hooks/useDynamicCardBackMaterials';
 import type { CardData } from '@/types/card';
 
-export const ImmersiveCardViewer = () => {
+interface ImmersiveCardViewerProps {
+  card?: CardData;
+  cards?: CardData[];
+  currentCardIndex?: number;
+  onCardChange?: (newIndex: number) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
+  onShare?: () => void;
+  onDownload?: () => void;
+  allowRotation?: boolean;
+  showStats?: boolean;
+  ambient?: boolean;
+}
+
+export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
+  card,
+  cards = [],
+  currentCardIndex = 0,
+  onCardChange,
+  isOpen = true,
+  onClose,
+  onShare,
+  onDownload,
+  allowRotation = true,
+  showStats = true,
+  ambient = true
+}) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [showEffects, setShowEffects] = useState(true);
   const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Sample card data for demonstration
-  const sampleCard: CardData = {
+  // Sample card data for demonstration if no card provided
+  const defaultCard: CardData = {
     id: 'demo-card',
     title: 'Sample CRD Card',
     description: 'Experience different 3D interaction modes with this demo card. Try switching between modes to see how each one feels!',
@@ -58,9 +86,9 @@ export const ImmersiveCardViewer = () => {
     }
   };
 
+  const currentCard = card || defaultCard;
   const [selectedPresetId, setSelectedPresetId] = useState<string>('');
   const [viewportSize, setViewportSize] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
-  const [showExportDialog, setShowExportDialog] = useState(false);
 
   // Enhanced card effects hook
   const { 
@@ -95,7 +123,9 @@ export const ImmersiveCardViewer = () => {
   };
 
   const handleShare = () => {
-    if (navigator.share) {
+    if (onShare) {
+      onShare();
+    } else if (navigator.share) {
       navigator.share({
         title: 'Check out this awesome card!',
         text: 'I designed this card using Cardshow!',
@@ -109,7 +139,9 @@ export const ImmersiveCardViewer = () => {
   };
 
   const handleDownload = () => {
-    setShowExportDialog(true);
+    if (onDownload) {
+      onDownload();
+    }
   };
 
   const handleComboApply = useCallback((combo: any) => {
@@ -121,6 +153,18 @@ export const ImmersiveCardViewer = () => {
     resetAllEffects();
     setSelectedPresetId('');
   }, [resetAllEffects]);
+
+  const handleCardNavigation = (direction: 'prev' | 'next') => {
+    if (!onCardChange || !cards.length) return;
+    
+    if (direction === 'prev') {
+      const newIndex = currentCardIndex > 0 ? currentCardIndex - 1 : cards.length - 1;
+      onCardChange(newIndex);
+    } else {
+      const newIndex = currentCardIndex < cards.length - 1 ? currentCardIndex + 1 : 0;
+      onCardChange(newIndex);
+    }
+  };
 
   const viewportConfig = {
     desktop: { width: 'max-w-md', icon: Monitor },
@@ -144,8 +188,12 @@ export const ImmersiveCardViewer = () => {
     );
   };
 
+  if (!isOpen) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
+    <div className="fixed inset-0 z-50 bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
       {/* Header Section */}
       <div className="bg-black/30 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -154,6 +202,31 @@ export const ImmersiveCardViewer = () => {
             <Badge variant="secondary">Beta</Badge>
           </div>
           <div className="flex items-center gap-2">
+            {/* Card Navigation */}
+            {cards.length > 1 && (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleCardNavigation('prev')}
+                  className="text-white"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <span className="text-white text-sm px-2">
+                  {currentCardIndex + 1} / {cards.length}
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleCardNavigation('next')}
+                  className="text-white"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+            
             <Button variant="outline" size="sm" onClick={handleFlip}>
               <RotateCcw className="w-4 h-4 mr-2" />
               Flip Card
@@ -170,6 +243,11 @@ export const ImmersiveCardViewer = () => {
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
+            {onClose && (
+              <Button variant="outline" size="sm" onClick={onClose}>
+                <X className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -201,11 +279,10 @@ export const ImmersiveCardViewer = () => {
                   onMouseLeave={() => setMousePosition({ x: 0.5, y: 0.5 })}
                 >
                   <EnhancedCardContainer
-                    card={sampleCard}
+                    card={currentCard}
                     effectValues={effectValues}
                     showEffects={showEffects}
                     interactiveLighting={true}
-                    className="w-full aspect-[2.5/3.5] rounded-xl"
                   />
                 </div>
               </CardContent>
@@ -281,7 +358,8 @@ export const ImmersiveCardViewer = () => {
                 <EnhancedEffectControls
                   effectValues={effectValues}
                   onEffectChange={handleEffectChange}
-                  onReset={handleEffectReset}
+                  onResetEffect={(effectId) => resetAllEffects()}
+                  onResetAll={handleEffectReset}
                 />
               </TabsContent>
 
@@ -300,11 +378,6 @@ export const ImmersiveCardViewer = () => {
           </div>
         </div>
       </div>
-
-      <ExportOptionsDialog 
-        open={showExportDialog} 
-        onOpenChange={setShowExportDialog}
-      />
     </div>
   );
 };
