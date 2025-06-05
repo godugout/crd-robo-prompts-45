@@ -147,7 +147,8 @@ interface PresetApplicationState {
   isApplying: boolean;
   currentPresetId?: string;
   appliedAt: number;
-  isLocked: boolean; // New: prevent overlapping applications
+  isLocked: boolean;
+  stuckDetection: number; // New: track potential stuck states
 }
 
 export const useEnhancedCardEffects = () => {
@@ -162,16 +163,18 @@ export const useEnhancedCardEffects = () => {
     return initialValues;
   });
 
-  // Enhanced preset application state with synchronization
+  // Enhanced preset application state with stuck detection
   const [presetState, setPresetState] = useState<PresetApplicationState>({
     isApplying: false,
     appliedAt: 0,
-    isLocked: false
+    isLocked: false,
+    stuckDetection: 0
   });
 
   // Refs for debouncing and cleanup
   const presetTimeoutRef = useRef<NodeJS.Timeout>();
   const lockTimeoutRef = useRef<NodeJS.Timeout>();
+  const stuckDetectionRef = useRef<NodeJS.Timeout>();
 
   // Memoize default values to prevent unnecessary recalculations
   const defaultEffectValues = useMemo(() => {
@@ -190,7 +193,7 @@ export const useEnhancedCardEffects = () => {
     
     // Clear preset state when manual changes are made (unless currently applying a preset)
     if (!presetState.isApplying && !presetState.isLocked) {
-      setPresetState(prev => ({ ...prev, currentPresetId: undefined }));
+      setPresetState(prev => ({ ...prev, currentPresetId: undefined, stuckDetection: 0 }));
     }
     
     setEffectValues(prev => ({
@@ -220,21 +223,24 @@ export const useEnhancedCardEffects = () => {
   const resetAllEffects = useCallback(() => {
     console.log('🔄 Resetting all effects');
     
-    // Clear any pending timeouts
+    // Clear all pending timeouts
     if (presetTimeoutRef.current) {
       clearTimeout(presetTimeoutRef.current);
     }
     if (lockTimeoutRef.current) {
       clearTimeout(lockTimeoutRef.current);
     }
+    if (stuckDetectionRef.current) {
+      clearTimeout(stuckDetectionRef.current);
+    }
     
-    setPresetState({ isApplying: false, appliedAt: Date.now(), isLocked: false });
+    setPresetState({ isApplying: false, appliedAt: Date.now(), isLocked: false, stuckDetection: 0 });
     setEffectValues(defaultEffectValues);
   }, [defaultEffectValues]);
 
-  // Enhanced atomic preset application with forced reset and sync locks
+  // Enhanced atomic preset application with force updates and recovery mechanisms
   const applyPreset = useCallback((preset: EffectValues, presetId?: string) => {
-    console.log('🎨 Applying preset atomically with sync locks:', { presetId, preset });
+    console.log('🎨 Applying preset atomically with enhanced recovery:', { presetId, preset });
     
     // Prevent overlapping applications
     if (presetState.isLocked) {
@@ -249,13 +255,17 @@ export const useEnhancedCardEffects = () => {
     if (lockTimeoutRef.current) {
       clearTimeout(lockTimeoutRef.current);
     }
+    if (stuckDetectionRef.current) {
+      clearTimeout(stuckDetectionRef.current);
+    }
     
-    // Set synchronization lock
+    // Set synchronization lock with stuck detection
     setPresetState({ 
       isApplying: true, 
       currentPresetId: presetId, 
       appliedAt: Date.now(),
-      isLocked: true 
+      isLocked: true,
+      stuckDetection: 0
     });
     
     // Use startTransition for smooth updates with forced reset
@@ -287,13 +297,48 @@ export const useEnhancedCardEffects = () => {
           setPresetState(prev => ({ 
             ...prev, 
             isApplying: false, 
-            isLocked: false 
+            isLocked: false,
+            stuckDetection: 0
           }));
-        }, 400); // Increased delay for material recalculation
+        }, 600); // Increased delay for material recalculation
+        
+        // Set up stuck detection - if still locked after 2 seconds, force unlock
+        stuckDetectionRef.current = setTimeout(() => {
+          console.log('🚨 Stuck state detected, forcing unlock');
+          setPresetState(prev => ({
+            ...prev,
+            isApplying: false,
+            isLocked: false,
+            stuckDetection: prev.stuckDetection + 1
+          }));
+        }, 2000);
         
       }, 100); // Brief delay for reset to complete
     });
   }, [defaultEffectValues, presetState.isLocked]);
+
+  // Emergency force unlock function
+  const forceUnlock = useCallback(() => {
+    console.log('🚨 Force unlocking preset state');
+    
+    // Clear all timeouts
+    if (presetTimeoutRef.current) {
+      clearTimeout(presetTimeoutRef.current);
+    }
+    if (lockTimeoutRef.current) {
+      clearTimeout(lockTimeoutRef.current);
+    }
+    if (stuckDetectionRef.current) {
+      clearTimeout(stuckDetectionRef.current);
+    }
+    
+    setPresetState(prev => ({
+      ...prev,
+      isApplying: false,
+      isLocked: false,
+      stuckDetection: prev.stuckDetection + 1
+    }));
+  }, []);
 
   return {
     effectValues,
@@ -302,6 +347,7 @@ export const useEnhancedCardEffects = () => {
     resetAllEffects,
     applyPreset,
     presetState,
-    isApplyingPreset: presetState.isApplying || presetState.isLocked
+    isApplyingPreset: presetState.isApplying || presetState.isLocked,
+    forceUnlock // New: emergency unlock function
   };
 };

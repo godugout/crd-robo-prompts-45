@@ -1,5 +1,5 @@
 
-import { useMemo, useRef, useCallback } from 'react';
+import { useMemo, useRef, useCallback, useEffect, useState } from 'react';
 import type { EffectValues } from './useEnhancedCardEffects';
 
 export interface CardBackMaterial {
@@ -142,22 +142,23 @@ export const CARD_BACK_MATERIALS: Record<string, CardBackMaterial> = {
 };
 
 export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
-  const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  const [forceUpdateTrigger, setForceUpdateTrigger] = useState(0);
+  const lastMaterialRef = useRef<string>('default');
   
-  // Debounced material calculation for smoother transitions
+  // Force immediate material calculation without debouncing
   const selectedMaterial = useMemo(() => {
     if (!effectValues) {
       console.log('🎨 Material Selection: No effect values, using default');
       return CARD_BACK_MATERIALS.default;
     }
     
-    // Calculate effect intensities with enhanced debugging
+    // Calculate effect intensities with immediate response
     const effectIntensities = Object.entries(effectValues).map(([effectId, params]) => {
       const intensity = typeof params.intensity === 'number' ? params.intensity : 0;
       return { effectId, intensity };
-    }).filter(({ intensity }) => intensity > 5); // Increased threshold to prevent flickering
+    }).filter(({ intensity }) => intensity > 0); // Lowered threshold for immediate response
     
-    console.log('🎨 Material Selection: Active effects (>5 intensity):', effectIntensities);
+    console.log('🎨 Material Selection: Active effects (>0 intensity):', effectIntensities);
     
     // If no effects are active, return default
     if (effectIntensities.length === 0) {
@@ -181,8 +182,8 @@ export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
       gold: 'gold',
       vintage: 'vintage',
       prizm: 'prizm',
-      interference: 'ice', // Map interference to ice material
-      foilspray: 'starlight' // Map foil spray to starlight material
+      interference: 'ice',
+      foilspray: 'starlight'
     };
     
     const materialId = materialMapping[dominantEffect.effectId] || 'default';
@@ -191,7 +192,26 @@ export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
     console.log('🎨 Material Selection: Selected material:', materialId, selectedMat.name);
     
     return selectedMat;
-  }, [effectValues]);
+  }, [effectValues, forceUpdateTrigger]); // Added force update trigger
+  
+  // Detect material changes and force updates
+  useEffect(() => {
+    if (selectedMaterial.id !== lastMaterialRef.current) {
+      console.log('🔄 Material changed from', lastMaterialRef.current, 'to', selectedMaterial.id);
+      lastMaterialRef.current = selectedMaterial.id;
+      
+      // Force update after brief delay to ensure change is applied
+      setTimeout(() => {
+        setForceUpdateTrigger(prev => prev + 1);
+      }, 50);
+    }
+  }, [selectedMaterial.id]);
+  
+  // Emergency force refresh function
+  const forceRefresh = useCallback(() => {
+    console.log('🚨 Force refreshing material selection');
+    setForceUpdateTrigger(prev => prev + 1);
+  }, []);
   
   // Pre-calculate material lookup for performance
   const getMaterialForEffect = useCallback((effectId: string): CardBackMaterial => {
@@ -214,6 +234,7 @@ export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
   return {
     selectedMaterial,
     availableMaterials: CARD_BACK_MATERIALS,
-    getMaterialForEffect
+    getMaterialForEffect,
+    forceRefresh
   };
 };

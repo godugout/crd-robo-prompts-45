@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
-import { Sparkles, X } from 'lucide-react';
+
+import React, { useState, useCallback, useEffect } from 'react';
+import { Sparkles, X, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
@@ -64,10 +65,31 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
 }) => {
   const [showEnvironment, setShowEnvironment] = useState(false);
   const [showMaterial, setShowMaterial] = useState(false);
+  const [lastChangeTime, setLastChangeTime] = useState(Date.now());
+  const [showForceRefresh, setShowForceRefresh] = useState(false);
+
+  // Detect stuck states and show force refresh option
+  useEffect(() => {
+    if (isApplyingPreset) {
+      setLastChangeTime(Date.now());
+      setShowForceRefresh(false);
+      
+      // Show force refresh if stuck for more than 3 seconds
+      const stuckTimer = setTimeout(() => {
+        if (isApplyingPreset) {
+          console.log('🚨 Detected stuck preset application');
+          setShowForceRefresh(true);
+        }
+      }, 3000);
+      
+      return () => clearTimeout(stuckTimer);
+    }
+  }, [isApplyingPreset]);
 
   const handleBrightnessChange = useCallback(
     (value: number[]) => {
       onBrightnessChange(value);
+      setLastChangeTime(Date.now());
     },
     [onBrightnessChange],
   );
@@ -78,15 +100,29 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
         ...materialSettings,
         [key]: value,
       });
+      setLastChangeTime(Date.now());
     },
     [materialSettings, onMaterialSettingsChange],
   );
 
   // Helper to reset individual effects
   const handleResetEffect = useCallback((effectId: string) => {
-    // Reset effect by setting intensity to 0 and other params to defaults
     onEffectChange(effectId, 'intensity', 0);
+    setLastChangeTime(Date.now());
   }, [onEffectChange]);
+
+  // Enhanced reset all with force refresh
+  const handleForceResetAll = useCallback(() => {
+    console.log('🚨 Force resetting all effects and materials');
+    onResetAllEffects();
+    setShowForceRefresh(false);
+    setLastChangeTime(Date.now());
+    
+    // Force a complete refresh by triggering preset selection clearing
+    setTimeout(() => {
+      onPresetSelect('');
+    }, 100);
+  }, [onResetAllEffects, onPresetSelect]);
 
   return (
     <div className={`fixed top-0 right-0 h-full w-80 bg-black bg-opacity-95 backdrop-blur-lg border-l border-white/10 overflow-hidden ${
@@ -94,15 +130,47 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
     }`}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10">
-        <h2 className="text-lg font-semibold text-white">Enhanced Studio</h2>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-5 w-5 text-white" />
-        </Button>
+        <div className="flex items-center space-x-2">
+          <h2 className="text-lg font-semibold text-white">Enhanced Studio</h2>
+          {isApplyingPreset && (
+            <div className="w-2 h-2 bg-crd-green rounded-full animate-pulse" />
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          {/* Force Refresh Button */}
+          {showForceRefresh && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleForceResetAll}
+              className="text-yellow-500 hover:text-yellow-400"
+              title="Force refresh stuck effects"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5 text-white" />
+          </Button>
+        </div>
       </div>
 
       {/* Content with enhanced combo section */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-6">
+          {/* Status indicator for stuck detection */}
+          {isApplyingPreset && (
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+              <div className="flex items-center text-yellow-500 text-sm">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse mr-2" />
+                Applying effects...
+                {showForceRefresh && (
+                  <span className="ml-2 text-xs">(Taking longer than expected)</span>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Quick Style Combos Section */}
           <div>
             <h3 className="text-white font-medium mb-3 flex items-center">
@@ -304,6 +372,15 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                 Share
               </Button>
             )}
+            {/* Emergency Force Refresh Button */}
+            <Button 
+              variant="outline" 
+              onClick={handleForceResetAll} 
+              className="w-full border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Force Refresh All
+            </Button>
           </div>
         </div>
       </div>
