@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -138,6 +139,13 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const handleDownloadClick = useCallback(() => {
     setShowExportDialog(true);
   }, []);
+
+  // Fix the share handler to not expect parameters
+  const handleShareClick = useCallback(() => {
+    if (onShare) {
+      onShare();
+    }
+  }, [onShare]);
 
   // Add state for progressive panel
   const [useProgressivePanel, setUseProgressivePanel] = useState(true);
@@ -377,7 +385,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
 
-        {/* Progressive Disclosure Customize Panel */}
+        {/* Progressive Disclosure Customize Panel - Fixed function calls */}
         {showCustomizePanel && (
           <ProgressiveCustomizePanel
             selectedScene={selectedScene}
@@ -396,7 +404,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             onMaterialSettingsChange={setMaterialSettings}
             onToggleFullscreen={toggleFullscreen}
             onDownload={handleDownloadClick}
-            onShare={onShare}
+            onShare={handleShareClick}
             onClose={() => {
               if (onClose) {
                 onClose();
