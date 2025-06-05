@@ -2,6 +2,7 @@
 import React, { useCallback } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { QuickComboPresets } from './QuickComboPresets';
 import { EffectsSection } from './EffectsSection';
 import { EnvironmentSection } from './EnvironmentSection';
@@ -61,6 +62,8 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
   onApplyCombo,
   isApplyingPreset = false
 }) => {
+  const isMobile = useIsMobile();
+
   const handleBrightnessChange = useCallback(
     (value: number[]) => {
       onBrightnessChange(value);
@@ -69,21 +72,23 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
   );
 
   return (
-    <div className={`fixed top-0 right-0 h-full w-80 bg-black bg-opacity-95 backdrop-blur-lg border-l border-white/10 overflow-hidden ${
+    <div className={`${isMobile ? 'w-full h-full' : 'fixed top-0 right-0 h-full w-80'} bg-black bg-opacity-95 backdrop-blur-lg ${!isMobile ? 'border-l border-white/10' : ''} overflow-hidden ${
       isFullscreen ? 'z-60' : 'z-50'
     }`}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10">
-        <h2 className="text-lg font-semibold text-white">Enhanced Studio</h2>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-5 w-5 text-white" />
-        </Button>
-      </div>
+      {/* Header - Only show on desktop */}
+      {!isMobile && (
+        <div className="flex items-center justify-between p-4 border-b border-white/10">
+          <h2 className="text-lg font-semibold text-white">Enhanced Studio</h2>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-5 w-5 text-white" />
+          </Button>
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-6">
-          {/* Quick Styles Section - 2 columns */}
+        <div className={`${isMobile ? 'p-3' : 'p-4'} space-y-${isMobile ? '4' : '6'}`}>
+          {/* Quick Styles Section */}
           <div>
             <h3 className="text-white font-medium mb-3 flex items-center">
               <Sparkles className="w-4 h-4 text-crd-green mr-2" />
@@ -92,7 +97,7 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                 <div className="ml-2 w-2 h-2 bg-crd-green rounded-full animate-pulse" />
               )}
             </h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div className={`grid ${isMobile ? 'grid-cols-1 gap-2' : 'grid-cols-2 gap-2'}`}>
               <QuickComboPresets
                 onApplyCombo={onApplyCombo}
                 currentEffects={effectValues}

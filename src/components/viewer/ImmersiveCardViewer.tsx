@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
 import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from './constants';
 import { 
@@ -12,6 +13,7 @@ import { useCardEffects } from './hooks/useCardEffects';
 import { useDynamicCardBackMaterials } from './hooks/useDynamicCardBackMaterials';
 import { ViewerControls } from './components/ViewerControls';
 import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
+import { MobileStudioDrawer } from './components/MobileStudioDrawer';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
 import { ConfigurationDetailsPanel } from './components/ConfigurationDetailsPanel';
@@ -36,6 +38,8 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   showStats = true,
   ambient = true
 }) => {
+  const isMobile = useIsMobile();
+  
   // State
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
@@ -46,7 +50,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [autoRotate, setAutoRotate] = useState(false);
   const [showEffects, setShowEffects] = useState(true);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [showCustomizePanel, setShowCustomizePanel] = useState(true);
+  const [showCustomizePanel, setShowCustomizePanel] = useState(!isMobile); // Default closed on mobile
   const [isHovering, setIsHovering] = useState(false);
   const [isHoveringControls, setIsHoveringControls] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
@@ -129,9 +133,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
       onShare(card);
     }
   }, [onShare, card]);
-
-  // Add state for progressive panel
-  const [useProgressivePanel, setUseProgressivePanel] = useState(true);
 
   // Style generation hook
   const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useCardEffects({
@@ -286,7 +287,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         ref={containerRef}
         className={`fixed inset-0 z-50 flex items-center justify-center ${
           isFullscreen ? 'p-0' : 'p-8'
-        } ${showCustomizePanel ? 'pr-80' : ''}`}
+        } ${showCustomizePanel && !isMobile ? 'pr-80' : ''}`}
         style={{
           ...getEnvironmentStyle(),
         }}
@@ -309,18 +310,47 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         )}
 
-        {/* Settings Panel Toggle Button - Updated text */}
+        {/* Settings Panel Toggle Button - Updated for mobile */}
         {!showCustomizePanel && (
-          <div className="absolute top-4 right-4 z-10">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowCustomizePanel(true)}
-              className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
-            >
-              <Sparkles className="w-4 h-4 text-white mr-2" />
-              <span className="text-white text-sm">Open Studio</span>
-            </Button>
+          <div className={`absolute top-4 right-4 z-10 ${isMobile ? 'bottom-20' : ''}`}>
+            {isMobile ? (
+              <MobileStudioDrawer
+                selectedScene={selectedScene}
+                selectedLighting={selectedLighting}
+                effectValues={effectValues}
+                overallBrightness={overallBrightness}
+                interactiveLighting={interactiveLighting}
+                materialSettings={materialSettings}
+                isFullscreen={isFullscreen}
+                onSceneChange={setSelectedScene}
+                onLightingChange={setSelectedLighting}
+                onEffectChange={handleManualEffectChange}
+                onResetAllEffects={resetAllEffects}
+                onBrightnessChange={setOverallBrightness}
+                onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
+                onMaterialSettingsChange={setMaterialSettings}
+                onToggleFullscreen={toggleFullscreen}
+                onDownload={handleDownloadClick}
+                onShare={handleShareClick}
+                card={card}
+                selectedPresetId={selectedPresetId}
+                onPresetSelect={setSelectedPresetId}
+                onApplyCombo={handleComboApplication}
+                isApplyingPreset={isApplyingPreset}
+                isOpen={showCustomizePanel}
+                onOpenChange={setShowCustomizePanel}
+              />
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCustomizePanel(true)}
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur border border-white/20"
+              >
+                <Sparkles className="w-4 h-4 text-white mr-2" />
+                <span className="text-white text-sm">Open Studio</span>
+              </Button>
+            )}
           </div>
         )}
 
@@ -368,8 +398,8 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
 
-        {/* Progressive Disclosure Customize Panel - Fixed function calls */}
-        {showCustomizePanel && (
+        {/* Desktop Customize Panel */}
+        {showCustomizePanel && !isMobile && (
           <ProgressiveCustomizePanel
             selectedScene={selectedScene}
             selectedLighting={selectedLighting}
@@ -427,7 +457,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         </div>
 
         {/* Configuration Details Panel */}
-        {!showCustomizePanel && (
+        {!showCustomizePanel && !isMobile && (
           <ConfigurationDetailsPanel
             effectValues={effectValues}
             selectedScene={selectedScene}
@@ -481,6 +511,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   );
 };
 
+// ... keep existing code (presets array at the bottom)
 const presets = [
   {
     name: 'Crystal Prism',
