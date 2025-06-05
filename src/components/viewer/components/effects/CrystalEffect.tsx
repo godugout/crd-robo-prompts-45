@@ -24,120 +24,150 @@ export const CrystalEffect: React.FC<CrystalEffectProps> = ({
 
   if (crystalIntensity <= 0) return null;
 
-  // Calculate positions for faceted sparkles based on facets count
-  const sparklePositions = Array.from({ length: Math.min(facets, 8) }, (_, i) => {
-    const angle = (360 / facets) * i;
-    const radius = 0.3;
-    const x = 50 + Math.cos((angle * Math.PI) / 180) * radius * 100;
-    const y = 50 + Math.sin((angle * Math.PI) / 180) * radius * 100;
-    return { x, y, delay: i * 0.2 };
-  });
-
-  // Base opacity calculations
-  const baseOpacity = crystalIntensity / 100;
-  const clarityMultiplier = clarity / 100;
+  // Calculate rotation based on mouse position and facets
+  const mouseRotation = (mousePosition.x + mousePosition.y) * 180;
+  const facetRotation = 360 / Math.max(facets, 3);
+  
+  // Base opacity from intensity and clarity
+  const baseOpacity = (crystalIntensity / 100) * (clarity / 100);
+  const strongOpacity = Math.min(baseOpacity * 1.5, 1);
 
   return (
     <>
-      {/* Main Crystal Shine Layer */}
+      {/* Main Radial Burst Pattern */}
       <div
         className="absolute inset-0 z-15"
         style={{
-          background: `radial-gradient(
-            circle at ${50 + mousePosition.x * 5}% ${50 + mousePosition.y * 5}%,
-            rgba(255, 255, 255, ${baseOpacity * clarityMultiplier * 0.2}) 0%,
-            rgba(255, 255, 255, ${baseOpacity * clarityMultiplier * 0.1}) 30%,
-            transparent 70%
+          background: `conic-gradient(
+            from ${mouseRotation}deg at 50% 50%,
+            rgba(255, 255, 255, ${strongOpacity * 0.8}) 0deg,
+            rgba(200, 220, 255, ${baseOpacity * 0.6}) ${facetRotation * 0.5}deg,
+            rgba(255, 255, 255, ${strongOpacity * 0.9}) ${facetRotation}deg,
+            rgba(180, 200, 255, ${baseOpacity * 0.4}) ${facetRotation * 1.5}deg,
+            rgba(255, 255, 255, ${strongOpacity * 0.8}) ${facetRotation * 2}deg,
+            rgba(200, 220, 255, ${baseOpacity * 0.6}) ${facetRotation * 2.5}deg,
+            rgba(255, 255, 255, ${strongOpacity * 0.9}) ${facetRotation * 3}deg,
+            rgba(180, 200, 255, ${baseOpacity * 0.4}) ${facetRotation * 3.5}deg,
+            rgba(255, 255, 255, ${strongOpacity * 0.8}) 360deg
           )`,
-          opacity: 0.8
+          mixBlendMode: 'overlay',
+          mask: `radial-gradient(circle at 50% 50%, rgba(255,255,255,1) 0%, rgba(255,255,255,0.8) 60%, rgba(255,255,255,0) 100%)`,
+          WebkitMask: `radial-gradient(circle at 50% 50%, rgba(255,255,255,1) 0%, rgba(255,255,255,0.8) 60%, rgba(255,255,255,0) 100%)`
         }}
       />
 
-      {/* Faceted Sparkle Points */}
-      {sparkle && sparklePositions.map((pos, index) => (
-        <div
-          key={index}
-          className="absolute z-16"
-          style={{
-            left: `${pos.x}%`,
-            top: `${pos.y}%`,
-            width: '4px',
-            height: '4px',
-            transform: 'translate(-50%, -50%)',
-            background: `radial-gradient(circle, rgba(255, 255, 255, ${baseOpacity * 0.9}) 0%, transparent 100%)`,
-            borderRadius: '50%',
-            opacity: clarityMultiplier,
-            animation: `crystal-sparkle 2s ease-in-out infinite ${pos.delay}s`
-          }}
-        />
-      ))}
-
-      {/* Central Diamond Flare */}
+      {/* Secondary Burst Layer */}
       <div
-        className="absolute z-17"
+        className="absolute inset-0 z-16"
         style={{
-          left: '50%',
-          top: '50%',
-          width: '2px',
-          height: `${20 + (crystalIntensity * 0.3)}px`,
-          background: `linear-gradient(0deg, transparent, rgba(255, 255, 255, ${baseOpacity * 0.8}), transparent)`,
-          transform: 'translate(-50%, -50%)',
-          opacity: clarityMultiplier
-        }}
-      />
-      <div
-        className="absolute z-17"
-        style={{
-          left: '50%',
-          top: '50%',
-          width: `${20 + (crystalIntensity * 0.3)}px`,
-          height: '2px',
-          background: `linear-gradient(90deg, transparent, rgba(255, 255, 255, ${baseOpacity * 0.8}), transparent)`,
-          transform: 'translate(-50%, -50%)',
-          opacity: clarityMultiplier
+          background: `conic-gradient(
+            from ${mouseRotation + 30}deg at 50% 50%,
+            transparent 0deg,
+            rgba(255, 255, 255, ${baseOpacity * 0.3}) ${facetRotation * 0.25}deg,
+            transparent ${facetRotation * 0.5}deg,
+            rgba(220, 240, 255, ${baseOpacity * 0.4}) ${facetRotation * 0.75}deg,
+            transparent ${facetRotation}deg,
+            rgba(255, 255, 255, ${baseOpacity * 0.3}) ${facetRotation * 1.25}deg,
+            transparent ${facetRotation * 1.5}deg,
+            rgba(220, 240, 255, ${baseOpacity * 0.4}) ${facetRotation * 1.75}deg,
+            transparent ${facetRotation * 2}deg
+          )`,
+          mixBlendMode: 'screen'
         }}
       />
 
-      {/* Light Dispersion (only if dispersion > 0) */}
+      {/* Metallic Base Layer */}
+      <div
+        className="absolute inset-0 z-14"
+        style={{
+          background: `radial-gradient(
+            circle at ${50 + mousePosition.x * 20}% ${50 + mousePosition.y * 20}%,
+            rgba(240, 245, 255, ${baseOpacity * 0.4}) 0%,
+            rgba(200, 215, 240, ${baseOpacity * 0.3}) 30%,
+            rgba(180, 190, 220, ${baseOpacity * 0.2}) 60%,
+            transparent 80%
+          )`,
+          mixBlendMode: 'multiply'
+        }}
+      />
+
+      {/* Light Dispersion Rays (only if dispersion > 0) */}
       {dispersion > 0 && (
         <div
-          className="absolute inset-0 z-18"
+          className="absolute inset-0 z-17"
           style={{
             background: `linear-gradient(
-              ${mousePosition.x * 30}deg,
-              rgba(255, 100, 100, ${baseOpacity * (dispersion / 100) * 0.08}) 0%,
-              rgba(100, 255, 100, ${baseOpacity * (dispersion / 100) * 0.08}) 50%,
-              rgba(100, 100, 255, ${baseOpacity * (dispersion / 100) * 0.08}) 100%
+              ${mouseRotation}deg,
+              transparent 0%,
+              rgba(255, 100, 150, ${baseOpacity * (dispersion / 100) * 0.15}) 20%,
+              transparent 25%,
+              rgba(100, 255, 150, ${baseOpacity * (dispersion / 100) * 0.15}) 45%,
+              transparent 50%,
+              rgba(100, 150, 255, ${baseOpacity * (dispersion / 100) * 0.15}) 70%,
+              transparent 75%,
+              rgba(255, 255, 100, ${baseOpacity * (dispersion / 100) * 0.15}) 95%,
+              transparent 100%
             )`,
-            mask: `radial-gradient(
-              circle at 50% 50%,
-              rgba(255, 255, 255, 0.6) 40%,
-              transparent 80%
-            )`,
-            WebkitMask: `radial-gradient(
-              circle at 50% 50%,
-              rgba(255, 255, 255, 0.6) 40%,
-              transparent 80%
-            )`,
-            opacity: 0.4
+            mixBlendMode: 'color-dodge'
           }}
         />
       )}
 
-      {/* CSS Animation Keyframes */}
+      {/* Central Brilliant Point */}
+      <div
+        className="absolute z-18"
+        style={{
+          left: '50%',
+          top: '50%',
+          width: `${8 + (crystalIntensity * 0.2)}px`,
+          height: `${8 + (crystalIntensity * 0.2)}px`,
+          background: `radial-gradient(circle, rgba(255, 255, 255, ${strongOpacity}) 0%, transparent 70%)`,
+          transform: 'translate(-50%, -50%)',
+          borderRadius: '50%',
+          boxShadow: `0 0 ${10 + (crystalIntensity * 0.3)}px rgba(255, 255, 255, ${baseOpacity * 0.8})`
+        }}
+      />
+
+      {/* Faceted Sparkle Points */}
+      {sparkle && Array.from({ length: Math.min(facets, 12) }, (_, i) => {
+        const angle = (360 / facets) * i;
+        const radius = 0.25 + (i % 2) * 0.15;
+        const x = 50 + Math.cos((angle * Math.PI) / 180) * radius * 100;
+        const y = 50 + Math.sin((angle * Math.PI) / 180) * radius * 100;
+        
+        return (
+          <div
+            key={i}
+            className="absolute z-19"
+            style={{
+              left: `${x}%`,
+              top: `${y}%`,
+              width: '3px',
+              height: '3px',
+              background: `rgba(255, 255, 255, ${baseOpacity * 0.9})`,
+              borderRadius: '50%',
+              transform: 'translate(-50%, -50%)',
+              boxShadow: `0 0 ${4 + (crystalIntensity * 0.1)}px rgba(255, 255, 255, ${baseOpacity * 0.6})`,
+              animation: `crystal-sparkle-${i} ${2 + (i * 0.3)}s ease-in-out infinite`
+            }}
+          />
+        );
+      })}
+
+      {/* Dynamic CSS Animations */}
       <style>
-        {`
-          @keyframes crystal-sparkle {
+        {Array.from({ length: Math.min(facets, 12) }, (_, i) => `
+          @keyframes crystal-sparkle-${i} {
             0%, 100% { 
-              opacity: ${clarityMultiplier * 0.3}; 
+              opacity: ${baseOpacity * 0.4}; 
               transform: translate(-50%, -50%) scale(0.8); 
             }
             50% { 
-              opacity: ${clarityMultiplier}; 
+              opacity: ${baseOpacity}; 
               transform: translate(-50%, -50%) scale(1.2); 
             }
           }
-        `}
+        `).join('\n')}
       </style>
     </>
   );
