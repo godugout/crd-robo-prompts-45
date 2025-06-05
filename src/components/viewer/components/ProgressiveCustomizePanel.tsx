@@ -72,9 +72,12 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
   );
 
   return (
-    <div className={`${isMobile ? 'w-full h-full' : 'fixed top-0 right-0 h-full w-80'} bg-black bg-opacity-95 backdrop-blur-lg ${!isMobile ? 'border-l border-white/10' : ''} overflow-hidden ${
-      isFullscreen ? 'z-60' : 'z-50'
-    }`}>
+    <div 
+      className={`${isMobile ? 'w-full h-full' : 'fixed top-0 right-0 h-full w-80'} bg-black bg-opacity-95 backdrop-blur-lg ${!isMobile ? 'border-l border-white/10' : ''} overflow-hidden ${
+        isFullscreen ? 'z-60' : 'z-50'
+      }`}
+      style={{ touchAction: 'auto' }}
+    >
       {/* Header - Only show on desktop */}
       {!isMobile && (
         <div className="flex items-center justify-between p-4 border-b border-white/10">
@@ -86,7 +89,7 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" style={{ touchAction: 'auto' }}>
         <div className={`${isMobile ? 'p-3' : 'p-4'} space-y-${isMobile ? '4' : '6'}`}>
           {/* Quick Styles Section */}
           <div>
@@ -97,7 +100,7 @@ export const ProgressiveCustomizePanel: React.FC<ProgressiveCustomizePanelProps>
                 <div className="ml-2 w-2 h-2 bg-crd-green rounded-full animate-pulse" />
               )}
             </h3>
-            <div className={`grid ${isMobile ? 'grid-cols-1 gap-2' : 'grid-cols-2 gap-2'}`}>
+            <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-2 gap-2'}`}>
               <QuickComboPresets
                 onApplyCombo={onApplyCombo}
                 currentEffects={effectValues}
