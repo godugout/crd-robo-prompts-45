@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { QuickComboPresets } from './QuickComboPresets';
 import { CompactEffectControls } from './CompactEffectControls';
+import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from '../constants';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
 
