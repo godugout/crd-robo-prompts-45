@@ -62,9 +62,10 @@ export const LightingComboSection: React.FC<LightingComboSectionProps> = ({
 
       {/* Lighting Info */}
       <div className="text-xs text-gray-400 space-y-1">
-        <div>Color: {selectedLighting.color}</div>
-        <div>Intensity: {selectedLighting.intensity}</div>
-        <div>Angle: {selectedLighting.angle}°</div>
+        <div>Brightness: {selectedLighting.brightness}%</div>
+        <div>Contrast: {selectedLighting.contrast}%</div>
+        <div>Temperature: {selectedLighting.temperature}K</div>
+        <div>Shadows: {selectedLighting.shadows}%</div>
       </div>
     </div>
   );
