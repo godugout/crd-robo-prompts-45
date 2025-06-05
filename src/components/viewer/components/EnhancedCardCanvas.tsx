@@ -1,11 +1,10 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import { EnhancedCardContainer } from './EnhancedCardContainer';
 import { MaterialLoadingProgress } from './MaterialLoadingProgress';
-import { useMaterialLoadingState } from '../hooks/useMaterialLoadingState';
+import { useSmartMaterialLoading } from '../hooks/useSmartMaterialLoading';
 
 interface EnhancedCardCanvasProps {
   card: CardData;
@@ -44,27 +43,26 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
   const [userRequestedFlip, setUserRequestedFlip] = useState(false);
 
-  // Material loading state management
-  const { loadingState, forceComplete } = useMaterialLoadingState(effectValues);
+  // Smart loading state - only shows for complex uncached materials
+  const { loadingState, isReallyLoading } = useSmartMaterialLoading(effectValues);
 
-  console.log('EnhancedCardCanvas rendering, isFlipped:', isFlipped, 'loadingState:', loadingState.phase);
-
-  // Auto-flip logic: flip to front when loading starts, back when complete
+  // Only auto-flip for actual loading (not fake loading)
   useEffect(() => {
-    if (loadingState.isLoading && isFlipped && !userRequestedFlip) {
-      console.log('🔄 Auto-flipping to front for material loading');
+    if (isReallyLoading && isFlipped && !userRequestedFlip) {
+      console.log('🔄 Auto-flipping to front for real material loading');
       setIsFlipped(false);
-    } else if (loadingState.phase === 'complete' && !isFlipped && !userRequestedFlip) {
-      console.log('✅ Auto-flipping back to back after material loading');
-      setTimeout(() => {
+    } else if (!isReallyLoading && !isFlipped && !userRequestedFlip) {
+      // Small delay for smooth transition back
+      const flipTimeout = setTimeout(() => {
         setIsFlipped(true);
         setUserRequestedFlip(false);
-      }, 500); // Small delay for smooth transition
+      }, 200);
+      
+      return () => clearTimeout(flipTimeout);
     }
-  }, [loadingState.isLoading, loadingState.phase, isFlipped, userRequestedFlip]);
+  }, [isReallyLoading, isFlipped, userRequestedFlip]);
 
   // Handle manual card flip
   const handleCardClick = () => {
@@ -72,7 +70,6 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
     setUserRequestedFlip(true);
     setIsFlipped(!isFlipped);
     
-    // Reset user requested flag after a delay
     setTimeout(() => {
       setUserRequestedFlip(false);
     }, 1000);
@@ -141,31 +138,33 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             mousePosition={mousePosition}
             rotation={rotation}
             zoom={1}
-            isDragging={isDragging}
+            isDragging={false}
             frameStyles={frameStyles}
             enhancedEffectStyles={enhancedEffectStyles}
             SurfaceTexture={SurfaceTexture}
             interactiveLighting={interactiveLighting}
-            onMouseDown={() => setIsDragging(true)}
+            onMouseDown={() => {}}
             onMouseMove={onMouseMove}
             onMouseEnter={onMouseEnter}
-            onMouseLeave={() => {
-              setIsDragging(false);
-              onMouseLeave();
-            }}
+            onMouseLeave={onMouseLeave}
             onClick={handleCardClick}
           />
 
-          {/* Loading progress overlay on front when loading back */}
-          {loadingState.isLoading && !isFlipped && (
+          {/* Loading progress only for real loading */}
+          {isReallyLoading && !isFlipped && (
             <MaterialLoadingProgress 
-              loadingState={loadingState}
+              loadingState={{
+                phase: 'applying',
+                progress: loadingState.progress,
+                message: loadingState.message,
+                isLoading: true
+              }}
               className="animate-fade-in"
             />
           )}
         </div>
 
-        {/* Card Back */}
+        {/* Card Back - Simplified without complex dynamic materials */}
         <div
           className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden"
           style={{
@@ -173,60 +172,49 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             transform: 'rotateY(180deg)'
           }}
         >
-          {/* Dark Pattern Background Base */}
           <div 
             className="absolute inset-0"
             style={{
-              background: `
-                linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)
-              `,
+              background: `linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)`,
               backgroundColor: '#0a0a0a'
             }}
           />
           
-          {/* Centered CRD Logo Only */}
           <div className="relative h-full flex items-center justify-center z-30">
-            <div className="flex items-center justify-center">
-              <img 
-                src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
-                alt="CRD Logo" 
-                className="w-48 h-auto opacity-90"
-                style={{
-                  filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
-                }}
-                onLoad={() => console.log('Enhanced Canvas CRD logo loaded successfully')}
-                onError={() => console.log('Error loading Enhanced Canvas CRD logo')}
-              />
-            </div>
+            <img 
+              src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
+              alt="CRD Logo" 
+              className="w-48 h-auto opacity-90"
+              style={{
+                filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
+              }}
+            />
           </div>
 
-          {/* Apply same effects as front for consistency */}
-          <div className="absolute inset-0 pointer-events-none z-40">
-            {/* Lighting effects overlay */}
-            {interactiveLighting && isHovering && (
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: `
-                    radial-gradient(
-                      ellipse 180% 140% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                      rgba(255, 255, 255, 0.02) 0%,
-                      rgba(255, 255, 255, 0.01) 50%,
-                      transparent 85%
-                    )
-                  `,
-                  mixBlendMode: 'overlay',
-                  transition: 'opacity 0.2s ease'
-                }}
-              />
-            )}
-          </div>
+          {/* Lighting effects overlay */}
+          {interactiveLighting && isHovering && (
+            <div
+              className="absolute inset-0 z-40"
+              style={{
+                background: `
+                  radial-gradient(
+                    ellipse 180% 140% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                    rgba(255, 255, 255, 0.02) 0%,
+                    rgba(255, 255, 255, 0.01) 50%,
+                    transparent 85%
+                  )
+                `,
+                mixBlendMode: 'overlay',
+                transition: 'opacity 0.2s ease'
+              }}
+            />
+          )}
         </div>
       </div>
 
       {/* Click instruction */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white/60 text-sm">
-        {loadingState.isLoading ? 'Loading material...' : 'Click to flip card'}
+        {isReallyLoading ? 'Computing material...' : 'Click to flip card'}
       </div>
     </div>
   );
