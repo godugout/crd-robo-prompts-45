@@ -1,7 +1,8 @@
 
 import React, { useState, useCallback } from 'react';
 import { CRDButton } from '@/components/ui/design-system/Button';
-import { Card } from '@/components/ui/card';
+import { CRDCard } from '@/components/ui/design-system/Card';
+import { Typography } from '@/components/ui/design-system/Typography';
 import { Upload, Play, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { enhancedRectangleDetector } from '@/services/cardDetection/enhancedRectangleDetection';
@@ -105,12 +106,12 @@ export const CardDetectionTester: React.FC = () => {
   }, []);
 
   return (
-    <div className="space-y-6 p-6 bg-gray-950 min-h-screen">
-      <Card className="p-6 bg-gray-900 border-gray-700">
-        <h2 className="text-white text-xl font-bold mb-4">Card Detection Tester</h2>
-        <p className="text-gray-400 mb-6">
+    <div className="space-y-6 p-6">
+      <div>
+        <Typography variant="h3" className="mb-4">Card Detection Tester</Typography>
+        <Typography variant="caption" className="mb-6 block">
           Test the enhanced rectangle detection algorithm with your own images.
-        </p>
+        </Typography>
         
         <div className="flex flex-wrap gap-4">
           <div>
@@ -152,7 +153,6 @@ export const CardDetectionTester: React.FC = () => {
             variant="outline"
             onClick={reset}
             disabled={isProcessing}
-            className="border-crd-mediumGray text-crd-lightGray hover:text-crd-white"
           >
             <RotateCcw className="w-4 h-4 mr-2" />
             Reset
@@ -160,7 +160,7 @@ export const CardDetectionTester: React.FC = () => {
         </div>
 
         {imageFile && (
-          <div className="mt-4 text-sm text-gray-400">
+          <div className="mt-4 text-sm text-crd-lightGray">
             Loaded: {imageFile.name} ({(imageFile.size / 1024 / 1024).toFixed(2)} MB)
             {image && ` • ${image.width}×${image.height}px`}
           </div>
@@ -168,14 +168,14 @@ export const CardDetectionTester: React.FC = () => {
 
         {isProcessing && (
           <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-600 rounded">
-            <p className="text-yellow-400 text-sm">
+            <Typography variant="caption" className="text-yellow-400">
               🔄 Detection is running... This may take up to 30 seconds for complex images.
               <br />
               If it takes longer, the process will timeout automatically.
-            </p>
+            </Typography>
           </div>
         )}
-      </Card>
+      </div>
 
       {image && (
         <DetectionDebugViewer
@@ -187,37 +187,37 @@ export const CardDetectionTester: React.FC = () => {
       )}
 
       {selectedRectangle && (
-        <Card className="p-4 bg-gray-900 border-gray-700">
-          <h3 className="text-white font-semibold mb-3">Selected Rectangle Details</h3>
+        <CRDCard className="p-4">
+          <Typography variant="h4" className="mb-3">Selected Rectangle Details</Typography>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <div className="text-gray-400">Position</div>
-              <div className="text-white">({selectedRectangle.x}, {selectedRectangle.y})</div>
+              <Typography variant="caption" className="block">Position</Typography>
+              <Typography variant="body" className="text-crd-white">({selectedRectangle.x}, {selectedRectangle.y})</Typography>
             </div>
             <div>
-              <div className="text-gray-400">Size</div>
-              <div className="text-white">{selectedRectangle.width}×{selectedRectangle.height}</div>
+              <Typography variant="caption" className="block">Size</Typography>
+              <Typography variant="body" className="text-crd-white">{selectedRectangle.width}×{selectedRectangle.height}</Typography>
             </div>
             <div>
-              <div className="text-gray-400">Confidence</div>
-              <div className="text-white">{(selectedRectangle.confidence * 100).toFixed(1)}%</div>
+              <Typography variant="caption" className="block">Confidence</Typography>
+              <Typography variant="body" className="text-crd-white">{(selectedRectangle.confidence * 100).toFixed(1)}%</Typography>
             </div>
             <div>
-              <div className="text-gray-400">Aspect Ratio</div>
-              <div className="text-white">{selectedRectangle.aspectRatio.toFixed(3)}</div>
+              <Typography variant="caption" className="block">Aspect Ratio</Typography>
+              <Typography variant="body" className="text-crd-white">{selectedRectangle.aspectRatio.toFixed(3)}</Typography>
             </div>
           </div>
           
           <div className="mt-3">
-            <div className="text-gray-400 text-sm mb-1">Standard Card Comparison</div>
-            <div className="text-gray-300 text-sm">
+            <Typography variant="caption" className="block mb-1">Standard Card Comparison</Typography>
+            <Typography variant="caption" className="text-crd-lightGray">
               Target: 0.714 • Difference: {Math.abs(selectedRectangle.aspectRatio - (2.5/3.5)).toFixed(3)}
               {Math.abs(selectedRectangle.aspectRatio - (2.5/3.5)) < 0.1 && 
-                <span className="text-green-400 ml-2">✓ Good match!</span>
+                <span className="text-crd-green ml-2">✓ Good match!</span>
               }
-            </div>
+            </Typography>
           </div>
-        </Card>
+        </CRDCard>
       )}
     </div>
   );

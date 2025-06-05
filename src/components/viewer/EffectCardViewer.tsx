@@ -28,7 +28,7 @@ const COMBO_PRESETS = {
   golden: { holographic: 0, foilSpray: 0, prizm: 0, chrome: 35, interference: 0, brushedMetal: 0, crystal: 0, vintage: 0 },
   ice: { holographic: 0, foilSpray: 0, prizm: 0, chrome: 35, interference: 45, brushedMetal: 0, crystal: 70, vintage: 0 },
   solar: { holographic: 60, foilSpray: 0, prizm: 0, chrome: 0, interference: 0, brushedMetal: 0, crystal: 0, vintage: 0 },
-  lunar: { holographic: 0, foilSpray: 0, prizm: 0, chrome: 0, interference: 45, brushedMetal: 0, crystal: 0, vintage: 35 },
+  lunar: { holographic: 0, foilSpray: 0, prizm: 0, chrome: 0, interference: 0, brushedMetal: 0, crystal: 0, vintage: 35 },
   starlight: { holographic: 0, foilSpray: 65, prizm: 40, chrome: 0, interference: 0, brushedMetal: 0, crystal: 0, vintage: 0 }
 };
 
@@ -351,7 +351,7 @@ export const EffectCardViewer = () => {
   ] as const;
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div>
       <style>
         {`
           @keyframes holographicShift {
@@ -371,13 +371,13 @@ export const EffectCardViewer = () => {
         `}
       </style>
       
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Card Display Area */}
           <div className="lg:col-span-2">
-            <Card className="bg-gray-800 border-gray-700 h-full">
-              <CardContent className="p-8 flex items-center justify-center">
+            <CRDCard className="h-full" padding="lg">
+              <div className="flex items-center justify-center">
                 <div className="relative">
                   {/* Card Container */}
                   <div 
@@ -406,84 +406,80 @@ export const EffectCardViewer = () => {
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CRDCard>
           </div>
 
           {/* Controls Panel */}
           <div className="space-y-6">
             
             {/* Quick Combos Panel */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-4">
-                <h3 className="text-white font-semibold mb-4">Quick Combos</h3>
-                <div className="space-y-2">
-                  {Object.entries(COMBO_DESCRIPTIONS).map(([combo, description]) => (
-                    <Button
-                      key={combo}
-                      onClick={() => applyCombo(combo as ComboType)}
-                      variant="ghost"
-                      className={`w-full justify-start text-left h-auto p-3 transition-all duration-200 ${
-                        cardState.activeCombo === combo 
-                          ? 'bg-green-500/20 border border-green-500 text-green-400' 
-                          : 'text-gray-300 hover:bg-gray-700'
-                      }`}
-                    >
-                      <div>
-                        <div className="font-medium capitalize">{combo}</div>
-                        <div className="text-xs opacity-70">{description}</div>
-                      </div>
-                      {cardState.activeCombo === combo && (
-                        <span className="ml-auto text-green-400">✓</span>
-                      )}
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <CRDCard padding="default">
+              <Typography variant="h4" className="mb-4">Quick Combos</Typography>
+              <div className="space-y-2">
+                {Object.entries(COMBO_DESCRIPTIONS).map(([combo, description]) => (
+                  <CRDButton
+                    key={combo}
+                    onClick={() => applyCombo(combo as ComboType)}
+                    variant="ghost"
+                    className={`w-full justify-start text-left h-auto p-3 transition-all duration-200 ${
+                      cardState.activeCombo === combo 
+                        ? 'bg-crd-green/20 border border-crd-green text-crd-green' 
+                        : 'text-crd-lightGray hover:bg-crd-mediumGray/20 hover:text-crd-white'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-medium capitalize">{combo}</div>
+                      <div className="text-xs opacity-70">{description}</div>
+                    </div>
+                    {cardState.activeCombo === combo && (
+                      <span className="ml-auto text-crd-green">✓</span>
+                    )}
+                  </CRDButton>
+                ))}
+              </div>
+            </CRDCard>
 
             {/* Effects Panel */}
-            <Card className="bg-gray-800 border-gray-700">
-              <CardContent className="p-4">
-                <h3 className="text-white font-semibold mb-4">Effects</h3>
-                <div className="space-y-4">
-                  {effectsConfig.map(({ name, label, color }) => {
-                    const value = cardState.effects[name as keyof CardState['effects']];
-                    return (
-                      <div key={name} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div className={`w-3 h-3 rounded-full ${color}`} />
-                            <span className="text-white text-sm font-medium">{label}</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-gray-400 text-xs w-8 text-right">
-                              {value}%
-                            </span>
-                            <Button
-                              onClick={() => resetEffect(name as keyof CardState['effects'])}
-                              variant="ghost"
-                              size="sm"
-                              className="w-6 h-6 p-0 text-gray-400 hover:text-white"
-                            >
-                              <RotateCcw className="w-3 h-3" />
-                            </Button>
-                          </div>
+            <CRDCard padding="default">
+              <Typography variant="h4" className="mb-4">Effects</Typography>
+              <div className="space-y-4">
+                {effectsConfig.map(({ name, label, color }) => {
+                  const value = cardState.effects[name as keyof CardState['effects']];
+                  return (
+                    <div key={name} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className={`w-3 h-3 rounded-full ${color}`} />
+                          <Typography variant="body" className="text-sm font-medium">{label}</Typography>
                         </div>
-                        <Slider
-                          value={[value]}
-                          onValueChange={([newValue]) => updateEffect(name as keyof CardState['effects'], newValue)}
-                          min={0}
-                          max={100}
-                          step={5}
-                          className="w-full"
-                        />
+                        <div className="flex items-center space-x-2">
+                          <Typography variant="caption" className="w-8 text-right">
+                            {value}%
+                          </Typography>
+                          <CRDButton
+                            onClick={() => resetEffect(name as keyof CardState['effects'])}
+                            variant="ghost"
+                            size="icon"
+                            className="w-6 h-6 p-0 text-crd-lightGray hover:text-crd-white"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                          </CRDButton>
+                        </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+                      <Slider
+                        value={[value]}
+                        onValueChange={([newValue]) => updateEffect(name as keyof CardState['effects'], newValue)}
+                        min={0}
+                        max={100}
+                        step={5}
+                        className="w-full"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </CRDCard>
           </div>
         </div>
       </div>
