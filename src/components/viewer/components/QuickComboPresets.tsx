@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Sparkles, Zap, Gem, Clock, Flame, Snowflake, Sun, Moon, Star, User } from 'lucide-react';
+import { Sparkles, Zap, Gem, Clock, Flame, Snowflake, Sun, Moon, Star, User, Crown } from 'lucide-react';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { EnvironmentScene, LightingPreset } from '../types';
 
@@ -14,7 +14,7 @@ interface ComboPreset {
   scene?: EnvironmentScene;
   lighting?: LightingPreset;
   isCustom?: boolean;
-  materialHint?: string; // Add material hint for better UX
+  materialHint?: string;
 }
 
 const COMBO_PRESETS: ComboPreset[] = [
@@ -65,12 +65,12 @@ const COMBO_PRESETS: ComboPreset[] = [
   {
     id: 'golden-fire',
     name: 'Golden',
-    icon: Flame,
-    description: 'Warm gold tones with chromatic shift',
-    materialHint: 'Rich golden surface with warm reflections',
+    icon: Crown,
+    description: 'Shiny gold with enhanced metallic reflections',
+    materialHint: 'Brilliant shiny gold surface with mirror-like highlights',
     effects: {
-      gold: { intensity: 75, shimmerSpeed: 80, platingThickness: 5, goldTone: 'rich', reflectivity: 85, colorEnhancement: true },
-      chrome: { intensity: 40, sharpness: 60, highlightSize: 50 }
+      gold: { intensity: 85, shimmerSpeed: 90, platingThickness: 6, goldTone: 'rich', reflectivity: 95, colorEnhancement: true },
+      chrome: { intensity: 35, sharpness: 90, highlightSize: 45 }
     }
   },
   {
@@ -107,14 +107,15 @@ const COMBO_PRESETS: ComboPreset[] = [
     }
   },
   {
-    id: 'starlight-spray',
+    id: 'starlight-cosmic',
     name: 'Starlight',
     icon: Star,
-    description: 'Sparkling foil spray with prismatic edge',
-    materialHint: 'Metallic chrome surface with sparkling highlights',
+    description: 'Cosmic sunset to space gradient with stellar sparkles',
+    materialHint: 'Sunset to deep space gradient with twinkling stars',
     effects: {
-      foilspray: { intensity: 65, density: 80, direction: 135 },
-      prizm: { intensity: 40, complexity: 5, colorSeparation: 60 }
+      foilspray: { intensity: 75, density: 85, direction: 125 },
+      holographic: { intensity: 55, shiftSpeed: 120, rainbowSpread: 240, animated: true },
+      interference: { intensity: 40, frequency: 18, thickness: 4.5 }
     }
   }
 ];

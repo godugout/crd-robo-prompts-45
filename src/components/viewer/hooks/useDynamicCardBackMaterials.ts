@@ -17,7 +17,7 @@ export interface CardBackMaterial {
   };
 }
 
-// Enhanced material presets with more distinct visual differences
+// Enhanced material presets with original Starlight and improved Golden
 export const CARD_BACK_MATERIALS: Record<string, CardBackMaterial> = {
   holographic: {
     id: 'holographic',
@@ -62,13 +62,47 @@ export const CARD_BACK_MATERIALS: Record<string, CardBackMaterial> = {
   
   gold: {
     id: 'gold',
-    name: 'Gold Surface',
-    background: 'linear-gradient(135deg, #7d4f00 0%, #b8860b 25%, #daa520 50%, #ffd700 75%, #ffed4e 100%)',
-    borderColor: 'rgba(255, 215, 0, 0.8)',
-    opacity: 0.8,
+    name: 'Shiny Gold Surface',
+    background: `
+      radial-gradient(circle at 30% 30%, #ffef94 0%, #ffd700 15%, #b8860b 35%, #daa520 55%, #ffed4e 75%, #ffd700 90%, #b8860b 100%),
+      linear-gradient(135deg, #7d4f00 0%, #b8860b 20%, #daa520 40%, #ffd700 60%, #ffed4e 80%, #ffd700 100%)
+    `,
+    borderColor: 'rgba(255, 215, 0, 0.9)',
+    opacity: 0.88,
     logoTreatment: {
-      filter: 'drop-shadow(0 8px 25px rgba(255, 215, 0, 0.9)) brightness(1.4) sepia(0.4) saturate(1.3)',
-      opacity: 0.85,
+      filter: `
+        drop-shadow(0 8px 25px rgba(255, 215, 0, 0.9)) 
+        drop-shadow(0 4px 15px rgba(255, 255, 255, 0.6))
+        brightness(1.6) 
+        sepia(0.3) 
+        saturate(1.4) 
+        contrast(1.2)
+      `,
+      opacity: 0.95,
+      transform: 'scale(1.12)'
+    }
+  },
+  
+  starlight: {
+    id: 'starlight',
+    name: 'Starlight Cosmic',
+    background: `
+      radial-gradient(ellipse at 20% 80%, #ff6b35 0%, #f7931e 15%, #ffd23f 25%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #4facfe 0%, #00f2fe 25%, transparent 50%),
+      linear-gradient(135deg, #ff6b35 0%, #f7931e 8%, #ffd23f 15%, #41295a 25%, #2f0743 40%, #1a0033 60%, #0d001a 80%, #000000 100%)
+    `,
+    borderColor: 'rgba(79, 172, 254, 0.8)',
+    opacity: 0.92,
+    texture: 'stars',
+    logoTreatment: {
+      filter: `
+        drop-shadow(0 0 20px rgba(255, 107, 53, 0.8))
+        drop-shadow(0 0 40px rgba(79, 172, 254, 0.6))
+        drop-shadow(0 8px 25px rgba(255, 210, 63, 0.7))
+        brightness(1.4)
+        saturate(1.3)
+      `,
+      opacity: 0.92,
       transform: 'scale(1.1)'
     }
   },
@@ -142,17 +176,17 @@ export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
     
     console.log('🎨 Material Selection: Dominant effect:', dominantEffect);
     
-    // Map effect to material
+    // Enhanced material mapping with new materials
     const materialMapping: Record<string, string> = {
       holographic: 'holographic',
       crystal: 'crystal',
       chrome: 'chrome',
       brushedmetal: 'chrome', // Use chrome material for brushed metal
-      gold: 'gold',
+      gold: 'gold', // Use the enhanced shiny gold
       vintage: 'vintage',
       prizm: 'prizm',
       interference: 'crystal', // Use crystal material for interference
-      foilspray: 'chrome' // Use chrome material for foil spray
+      foilspray: 'starlight' // Map foil spray to the new starlight material
     };
     
     const materialId = materialMapping[dominantEffect.effectId] || 'default';
