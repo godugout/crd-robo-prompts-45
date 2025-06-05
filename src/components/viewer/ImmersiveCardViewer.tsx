@@ -13,6 +13,7 @@ import { useDynamicCardBackMaterials } from './hooks/useDynamicCardBackMaterials
 import { ViewerControls } from './components/ViewerControls';
 import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
+import { ExportOptionsDialog } from './components/ExportOptionsDialog';
 import { ConfigurationDetailsPanel } from './components/ConfigurationDetailsPanel';
 
 // Update the interface to support card navigation
@@ -48,6 +49,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [showCustomizePanel, setShowCustomizePanel] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
   const [isHoveringControls, setIsHoveringControls] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
   
   // Enhanced effects state with atomic preset application
   const enhancedEffectsHook = useEnhancedCardEffects();
@@ -116,12 +118,10 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handlePreviousCard, handleNextCard]);
 
-  // Simple download handler that just calls the onDownload prop
+  // Update the download handler to open export dialog
   const handleDownloadClick = useCallback(() => {
-    if (onDownload) {
-      onDownload(card);
-    }
-  }, [onDownload, card]);
+    setShowExportDialog(true);
+  }, []);
 
   // Fix the share handler to pass the current card
   const handleShareClick = useCallback(() => {
@@ -469,6 +469,14 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
       </div>
+
+      {/* Export Options Dialog */}
+      <ExportOptionsDialog
+        isOpen={showExportDialog}
+        onClose={() => setShowExportDialog(false)}
+        cardTitle={card.title}
+        cardElementRef={cardContainerRef}
+      />
     </>
   );
 };
