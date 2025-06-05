@@ -1,9 +1,14 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { CardDetectionTester } from '@/components/debug/CardDetectionTester';
 import { Interactive3DCardDemo } from '@/components/viewer/Interactive3DCardDemo';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
 const Labs = () => {
+  useEffect(() => {
+    console.log('🔧 Labs page mounted');
+  }, []);
+
   return (
     <div className="space-y-6 p-6 bg-gray-950 min-h-screen">
       <div className="mb-8">
@@ -15,8 +20,13 @@ const Labs = () => {
         <section>
           <h2 className="text-xl font-semibold text-white mb-4">Interactive Options</h2>
           <div className="grid gap-6">
-            <CardDetectionTester />
-            <Interactive3DCardDemo />
+            <ErrorBoundary componentName="CardDetectionTester">
+              <CardDetectionTester />
+            </ErrorBoundary>
+            
+            <ErrorBoundary componentName="Interactive3DCardDemo">
+              <Interactive3DCardDemo />
+            </ErrorBoundary>
           </div>
         </section>
       </div>

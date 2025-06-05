@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +30,17 @@ export const Interactive3DCard = ({
   const velocityRef = useRef({ x: 0, y: 0 });
   const lastMouseRef = useRef({ x: 0, y: 0 });
 
+  useEffect(() => {
+    console.log('🔧 Interactive3DCard mounted with mode:', mode, 'card:', card.title);
+    return () => {
+      console.log('🔧 Interactive3DCard unmounted');
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log('🔧 Interactive3DCard mode changed to:', mode);
+  }, [mode]);
+
   const interactionModes = [
     { id: 'tilt' as const, name: 'Tilt', icon: MousePointer, description: 'Simple tilt on hover' },
     { id: 'orbital' as const, name: 'Orbital', icon: RotateCcw, description: 'Free 3D rotation' },
@@ -60,73 +70,77 @@ export const Interactive3DCard = ({
 
   // Mouse move handler
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!cardRef.current) return;
+    try {
+      if (!cardRef.current) return;
 
-    const rect = cardRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const x = (e.clientX - centerX) / (rect.width / 2);
-    const y = (e.clientY - centerY) / (rect.height / 2);
+      const rect = cardRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const x = (e.clientX - centerX) / (rect.width / 2);
+      const y = (e.clientY - centerY) / (rect.height / 2);
 
-    setMousePos({ x, y });
+      setMousePos({ x, y });
 
-    switch (mode) {
-      case 'tilt':
-        setRotation({
-          x: -y * 15,
-          y: x * 15,
-          z: 0
-        });
-        break;
+      switch (mode) {
+        case 'tilt':
+          setRotation({
+            x: -y * 15,
+            y: x * 15,
+            z: 0
+          });
+          break;
 
-      case 'orbital':
-        if (isInteracting) {
-          const deltaX = e.clientX - lastMouseRef.current.x;
-          const deltaY = e.clientY - lastMouseRef.current.y;
+        case 'orbital':
+          if (isInteracting) {
+            const deltaX = e.clientX - lastMouseRef.current.x;
+            const deltaY = e.clientY - lastMouseRef.current.y;
+            
+            setRotation(prev => ({
+              x: Math.max(-180, Math.min(180, prev.x + deltaY * 0.5)),
+              y: prev.y + deltaX * 0.5,
+              z: prev.z
+            }));
+          }
+          lastMouseRef.current = { x: e.clientX, y: e.clientY };
+          break;
+
+        case 'gyroscope':
+          const smoothX = rotation.x + (-y * 20 - rotation.x) * 0.1;
+          const smoothY = rotation.y + (x * 20 - rotation.y) * 0.1;
+          setRotation({ x: smoothX, y: smoothY, z: 0 });
+          break;
+
+        case 'physics':
+          if (isInteracting) {
+            const deltaX = e.clientX - lastMouseRef.current.x;
+            const deltaY = e.clientY - lastMouseRef.current.y;
+            
+            velocityRef.current.x = deltaX * 0.3;
+            velocityRef.current.y = deltaY * 0.3;
+            
+            setRotation(prev => ({
+              x: prev.x + velocityRef.current.y,
+              y: prev.y + velocityRef.current.x,
+              z: prev.z
+            }));
+          }
+          lastMouseRef.current = { x: e.clientX, y: e.clientY };
+          break;
+
+        case 'magnetic':
+          const magneticStrength = 0.8;
+          const targetX = -y * 25 * magneticStrength;
+          const targetY = x * 25 * magneticStrength;
           
           setRotation(prev => ({
-            x: Math.max(-180, Math.min(180, prev.x + deltaY * 0.5)),
-            y: prev.y + deltaX * 0.5,
-            z: prev.z
+            x: prev.x + (targetX - prev.x) * 0.15,
+            y: prev.y + (targetY - prev.y) * 0.15,
+            z: Math.sin(Date.now() * 0.002) * 2
           }));
-        }
-        lastMouseRef.current = { x: e.clientX, y: e.clientY };
-        break;
-
-      case 'gyroscope':
-        const smoothX = rotation.x + (-y * 20 - rotation.x) * 0.1;
-        const smoothY = rotation.y + (x * 20 - rotation.y) * 0.1;
-        setRotation({ x: smoothX, y: smoothY, z: 0 });
-        break;
-
-      case 'physics':
-        if (isInteracting) {
-          const deltaX = e.clientX - lastMouseRef.current.x;
-          const deltaY = e.clientY - lastMouseRef.current.y;
-          
-          velocityRef.current.x = deltaX * 0.3;
-          velocityRef.current.y = deltaY * 0.3;
-          
-          setRotation(prev => ({
-            x: prev.x + velocityRef.current.y,
-            y: prev.y + velocityRef.current.x,
-            z: prev.z
-          }));
-        }
-        lastMouseRef.current = { x: e.clientX, y: e.clientY };
-        break;
-
-      case 'magnetic':
-        const magneticStrength = 0.8;
-        const targetX = -y * 25 * magneticStrength;
-        const targetY = x * 25 * magneticStrength;
-        
-        setRotation(prev => ({
-          x: prev.x + (targetX - prev.x) * 0.15,
-          y: prev.y + (targetY - prev.y) * 0.15,
-          z: Math.sin(Date.now() * 0.002) * 2
-        }));
-        break;
+          break;
+      }
+    } catch (error) {
+      console.error('🔧 Error in handleMouseMove:', error);
     }
   };
 
@@ -193,6 +207,8 @@ export const Interactive3DCard = ({
     return `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) rotateZ(${rotation.z}deg) scale(${scale})`;
   };
 
+  console.log('🔧 Interactive3DCard rendering with rotation:', rotation, 'mode:', mode);
+
   return (
     <div className={cn("space-y-4", className)}>
       {/* Mode Selector */}
@@ -204,7 +220,10 @@ export const Interactive3DCard = ({
               key={modeOption.id}
               variant={mode === modeOption.id ? "default" : "outline"}
               size="sm"
-              onClick={() => onModeChange?.(modeOption.id)}
+              onClick={() => {
+                console.log('🔧 Mode button clicked:', modeOption.id);
+                onModeChange?.(modeOption.id);
+              }}
               className="flex items-center gap-1"
             >
               <Icon className="w-3 h-3" />
