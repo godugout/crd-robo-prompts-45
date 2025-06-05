@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Bug, Flask } from "lucide-react";
+import { Bug, Beaker } from "lucide-react";
 
 export const NavLinks = () => {
   const location = useLocation();
@@ -59,7 +59,7 @@ export const NavLinks = () => {
         className={`nav-item ${isActive('/labs') ? 'active' : ''} flex items-center gap-2`}
         title="Labs - Interactive Options"
       >
-        <Flask className="w-4 h-4" />
+        <Beaker className="w-4 h-4" />
         Labs
       </Link>
     </div>
