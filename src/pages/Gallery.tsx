@@ -3,12 +3,10 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useAllCollections } from '@/hooks/useCollections';
 import { useCards } from '@/hooks/useCards';
-import { useCreators } from '@/hooks/useCreators';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
 import { GallerySection } from './Gallery/components/GallerySection';
 import { GalleryHeader } from './Gallery/components/GalleryHeader';
 import { CollectionsGrid } from './Gallery/components/CollectionsGrid';
-import { CreatorsGrid } from './Gallery/components/CreatorsGrid';
 import { CardsGrid } from './Gallery/components/CardsGrid';
 import { useCardConversion } from './Gallery/hooks/useCardConversion';
 import { useGalleryActions } from './Gallery/hooks/useGalleryActions';
@@ -20,7 +18,6 @@ const Gallery = () => {
   
   const { collections, loading: collectionsLoading } = useAllCollections(1, 6);
   const { featuredCards, loading: cardsLoading } = useCards();
-  const { popularCreators, loading: creatorsLoading } = useCreators();
   
   const { convertCardsToCardData } = useCardConversion();
   const {
@@ -77,10 +74,6 @@ const Gallery = () => {
                 }}
               />
             )}
-          </GallerySection>
-
-          <GallerySection title="Featured Artists">
-            <CreatorsGrid creators={popularCreators || []} loading={creatorsLoading} />
           </GallerySection>
 
           {/* Main Focus: Featured Cards */}
