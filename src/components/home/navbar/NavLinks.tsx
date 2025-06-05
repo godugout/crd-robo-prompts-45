@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Beaker } from "lucide-react";
+import { Bug } from "lucide-react";
 
 export const NavLinks = () => {
   const location = useLocation();
@@ -47,12 +47,12 @@ export const NavLinks = () => {
         Profile
       </Link>
       <Link 
-        to="/labs" 
-        className={`nav-item ${isActive('/labs') ? 'active' : ''} flex items-center gap-2`}
-        title="Labs - Interactive Options"
+        to="/debug-detection" 
+        className={`nav-item ${isActive('/debug-detection') ? 'active' : ''} flex items-center gap-2`}
+        title="Debug Card Detection"
       >
-        <Beaker className="w-4 h-4" />
-        Labs
+        <Bug className="w-4 h-4" />
+        Debug
       </Link>
     </div>
   );

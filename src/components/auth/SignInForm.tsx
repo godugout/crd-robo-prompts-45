@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CRDButton } from '@/components/ui/design-system';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/features/auth';
 import { Sparkles } from 'lucide-react';
 import { AuthFormContainer } from './components/AuthFormContainer';
 import { EmailField } from './components/EmailField';
@@ -15,7 +15,7 @@ interface SignInFormData {
 }
 
 export const SignInForm: React.FC = () => {
-  const { signIn, loading } = useAuth();
+  const { signIn, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const { formData, handleInputChange, handleSubmit } = useAuthForm<SignInFormData>({
@@ -25,19 +25,30 @@ export const SignInForm: React.FC = () => {
         email: data.email, 
         passwordLength: data.password.length 
       });
+      console.log('🔧 Current environment:', {
+        isDev: window.location.hostname === 'localhost',
+        hostname: window.location.hostname,
+        origin: window.location.origin,
+        href: window.location.href
+      });
       
       const { error } = await signIn(data.email, data.password);
       
       console.log('🔧 Sign in result:', { 
         hasError: !!error,
-        errorMessage: error?.message
+        errorMessage: error?.message,
+        errorStatus: error?.status
       });
       
       if (!error) {
         console.log('🔧 Sign in successful, navigating to home');
         navigate('/');
       } else {
-        console.error('🔧 Sign in failed with error:', error);
+        console.error('🔧 Sign in failed with error:', {
+          message: error.message,
+          status: error.status,
+          name: error.name
+        });
       }
     },
   });
@@ -76,9 +87,9 @@ export const SignInForm: React.FC = () => {
           variant="outline"
           size="lg"
           className="w-full"
-          disabled={loading || !formData.email || !formData.password}
+          disabled={isLoading || !formData.email || !formData.password}
         >
-          {loading ? 'Signing in...' : 'Sign In'}
+          {isLoading ? 'Signing in...' : 'Sign In'}
         </CRDButton>
       </form>
 

@@ -15,7 +15,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   description,
 }) => {
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-crd-darkest flex items-center justify-center p-4">
+    <div className="min-h-screen bg-crd-darkest flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Typography variant="h1" className="text-crd-white mb-2">
