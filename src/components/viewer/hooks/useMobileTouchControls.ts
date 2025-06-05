@@ -40,7 +40,7 @@ export const useMobileTouchControls = (callbacks: GestureCallbacks) => {
   const momentumAnimation = useRef<number>();
 
   // Calculate distance between two touch points
-  const getDistance = useCallback((touches: TouchList) => {
+  const getDistance = useCallback((touches: React.TouchList) => {
     if (touches.length < 2) return 0;
     const dx = touches[0].clientX - touches[1].clientX;
     const dy = touches[0].clientY - touches[1].clientY;
@@ -48,7 +48,7 @@ export const useMobileTouchControls = (callbacks: GestureCallbacks) => {
   }, []);
 
   // Calculate angle between two touch points
-  const getAngle = useCallback((touches: TouchList) => {
+  const getAngle = useCallback((touches: React.TouchList) => {
     if (touches.length < 2) return 0;
     const dx = touches[1].clientX - touches[0].clientX;
     const dy = touches[1].clientY - touches[0].clientY;
@@ -56,7 +56,7 @@ export const useMobileTouchControls = (callbacks: GestureCallbacks) => {
   }, []);
 
   // Get center point of touches
-  const getCenter = useCallback((touches: TouchList) => {
+  const getCenter = useCallback((touches: React.TouchList) => {
     let x = 0, y = 0;
     for (let i = 0; i < touches.length; i++) {
       x += touches[i].clientX;
@@ -85,7 +85,7 @@ export const useMobileTouchControls = (callbacks: GestureCallbacks) => {
     momentumAnimation.current = requestAnimationFrame(animate);
   }, [callbacks]);
 
-  const handleTouchStart = useCallback((e: TouchEvent) => {
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
     
     if (momentumAnimation.current) {
@@ -128,7 +128,7 @@ export const useMobileTouchControls = (callbacks: GestureCallbacks) => {
     });
   }, [callbacks, getCenter, getDistance, getAngle]);
 
-  const handleTouchMove = useCallback((e: TouchEvent) => {
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
     
     if (longPressTimer.current) {
@@ -173,7 +173,7 @@ export const useMobileTouchControls = (callbacks: GestureCallbacks) => {
     }));
   }, [touchState, callbacks, getCenter, getDistance, getAngle]);
 
-  const handleTouchEnd = useCallback((e: TouchEvent) => {
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
     }
