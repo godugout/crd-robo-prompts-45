@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo, startTransition } from 'react';
 
 export interface EffectParameter {
   id: string;
@@ -103,7 +103,9 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffectConfig[] = [
     parameters: [
       { id: 'intensity', name: 'Intensity', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 0 },
       { id: 'facets', name: 'Facet Count', type: 'slider', min: 3, max: 20, step: 1, defaultValue: 8 },
-      { id: 'dispersion', name: 'Light Dispersion', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 60 }
+      { id: 'dispersion', name: 'Light Dispersion', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 60 },
+      { id: 'clarity', name: 'Crystal Clarity', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 60 },
+      { id: 'sparkle', name: 'Sparkle Effect', type: 'toggle', defaultValue: true }
     ]
   },
   {
@@ -116,8 +118,36 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffectConfig[] = [
       { id: 'aging', name: 'Aging Level', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 40 },
       { id: 'patina', name: 'Patina Color', type: 'color', defaultValue: '#8b7355' }
     ]
+  },
+  {
+    id: 'gold',
+    name: 'Gold',
+    description: 'Luxurious gold plating with authentic shimmer',
+    category: 'metallic',
+    parameters: [
+      { id: 'intensity', name: 'Intensity', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 0 },
+      { id: 'shimmerSpeed', name: 'Shimmer Speed', type: 'slider', min: 0, max: 200, step: 5, defaultValue: 80 },
+      { id: 'platingThickness', name: 'Plating Thickness', type: 'slider', min: 1, max: 10, step: 0.5, defaultValue: 5 },
+      { id: 'goldTone', name: 'Gold Tone', type: 'select', defaultValue: 'rich', 
+        options: [
+          { value: 'rich', label: 'Rich Gold' },
+          { value: 'rose', label: 'Rose Gold' },
+          { value: 'white', label: 'White Gold' },
+          { value: 'antique', label: 'Antique Gold' }
+        ]
+      },
+      { id: 'reflectivity', name: 'Reflectivity', type: 'slider', min: 0, max: 100, step: 1, defaultValue: 85 },
+      { id: 'colorEnhancement', name: 'Yellow Enhancement', type: 'toggle', defaultValue: true }
+    ]
   }
 ];
+
+// State interface for tracking preset application
+interface PresetApplicationState {
+  isApplying: boolean;
+  currentPresetId?: string;
+  appliedAt: number;
+}
 
 export const useEnhancedCardEffects = () => {
   const [effectValues, setEffectValues] = useState<EffectValues>(() => {
@@ -131,7 +161,32 @@ export const useEnhancedCardEffects = () => {
     return initialValues;
   });
 
+  // Track preset application state for consistency
+  const [presetState, setPresetState] = useState<PresetApplicationState>({
+    isApplying: false,
+    appliedAt: 0
+  });
+
+  // Memoize default values to prevent unnecessary recalculations
+  const defaultEffectValues = useMemo(() => {
+    const defaults: EffectValues = {};
+    ENHANCED_VISUAL_EFFECTS.forEach(effect => {
+      defaults[effect.id] = {};
+      effect.parameters.forEach(param => {
+        defaults[effect.id][param.id] = param.defaultValue;
+      });
+    });
+    return defaults;
+  }, []);
+
   const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
+    console.log('🎛️ Effect Change:', { effectId, parameterId, value });
+    
+    // Clear preset state when manual changes are made (unless currently applying a preset)
+    if (!presetState.isApplying) {
+      setPresetState(prev => ({ ...prev, currentPresetId: undefined }));
+    }
+    
     setEffectValues(prev => ({
       ...prev,
       [effectId]: {
@@ -139,9 +194,10 @@ export const useEnhancedCardEffects = () => {
         [parameterId]: value
       }
     }));
-  }, []);
+  }, [presetState.isApplying]);
 
   const resetEffect = useCallback((effectId: string) => {
+    console.log('🔄 Resetting effect:', effectId);
     const effect = ENHANCED_VISUAL_EFFECTS.find(e => e.id === effectId);
     if (effect) {
       const resetValues: Record<string, any> = {};
@@ -156,25 +212,51 @@ export const useEnhancedCardEffects = () => {
   }, []);
 
   const resetAllEffects = useCallback(() => {
-    const resetValues: EffectValues = {};
-    ENHANCED_VISUAL_EFFECTS.forEach(effect => {
-      resetValues[effect.id] = {};
-      effect.parameters.forEach(param => {
-        resetValues[effect.id][param.id] = param.defaultValue;
-      });
-    });
-    setEffectValues(resetValues);
-  }, []);
+    console.log('🔄 Resetting all effects');
+    setPresetState({ isApplying: false, appliedAt: Date.now() });
+    setEffectValues(defaultEffectValues);
+  }, [defaultEffectValues]);
 
-  const applyPreset = useCallback((preset: EffectValues) => {
-    setEffectValues(preset);
-  }, []);
+  // Enhanced atomic preset application
+  const applyPreset = useCallback((preset: EffectValues, presetId?: string) => {
+    console.log('🎨 Applying preset atomically:', { presetId, preset });
+    
+    // Mark as applying to prevent interference from manual changes
+    setPresetState({ isApplying: true, currentPresetId: presetId, appliedAt: Date.now() });
+    
+    // Use startTransition for smooth updates
+    startTransition(() => {
+      // First reset all effects to defaults
+      const newEffectValues = { ...defaultEffectValues };
+      
+      // Apply preset effects with proper validation
+      Object.entries(preset).forEach(([effectId, effectParams]) => {
+        if (newEffectValues[effectId] && effectParams) {
+          Object.entries(effectParams).forEach(([paramId, value]) => {
+            if (newEffectValues[effectId][paramId] !== undefined) {
+              newEffectValues[effectId][paramId] = value;
+            }
+          });
+        }
+      });
+      
+      // Apply all changes atomically
+      setEffectValues(newEffectValues);
+      
+      // Mark application as complete after a brief delay to ensure state propagation
+      setTimeout(() => {
+        setPresetState(prev => ({ ...prev, isApplying: false }));
+      }, 100);
+    });
+  }, [defaultEffectValues]);
 
   return {
     effectValues,
     handleEffectChange,
     resetEffect,
     resetAllEffects,
-    applyPreset
+    applyPreset,
+    presetState,
+    isApplyingPreset: presetState.isApplying
   };
 };

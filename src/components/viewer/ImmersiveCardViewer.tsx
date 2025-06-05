@@ -51,13 +51,15 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [isHovering, setIsHovering] = useState(false);
   const [isHoveringControls, setIsHoveringControls] = useState(false);
   
-  // Enhanced effects state
+  // Enhanced effects state with atomic preset application
   const enhancedEffectsHook = useEnhancedCardEffects();
   const {
     effectValues,
     handleEffectChange,
     resetEffect,
-    resetAllEffects
+    resetAllEffects,
+    applyPreset,
+    isApplyingPreset
   } = enhancedEffectsHook;
   
   // Get dynamic material based on current effects
@@ -255,6 +257,36 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     }
   }, []);
 
+  // Add state for preset selection tracking
+  const [selectedPresetId, setSelectedPresetId] = useState<string>();
+
+  // Enhanced combo application with atomic updates
+  const handleComboApplication = useCallback((combo: any) => {
+    console.log('🚀 Applying combo with atomic updates:', combo.id);
+    
+    // Apply preset atomically with all related state
+    applyPreset(combo.effects, combo.id);
+    
+    // Update preset selection
+    setSelectedPresetId(combo.id);
+    
+    // Apply any scene/lighting changes if specified
+    if (combo.scene) {
+      setSelectedScene(combo.scene);
+    }
+    if (combo.lighting) {
+      setSelectedLighting(combo.lighting);
+    }
+  }, [applyPreset]);
+
+  // Clear preset selection when manual effect changes are made
+  const handleManualEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
+    if (!isApplyingPreset) {
+      setSelectedPresetId(undefined);
+    }
+    handleEffectChange(effectId, parameterId, value);
+  }, [handleEffectChange, isApplyingPreset]);
+
   if (!isOpen) return null;
 
   return (
@@ -357,7 +389,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             isFullscreen={isFullscreen}
             onSceneChange={setSelectedScene}
             onLightingChange={setSelectedLighting}
-            onEffectChange={handleEffectChange}
+            onEffectChange={handleManualEffectChange}
             onResetAllEffects={resetAllEffects}
             onBrightnessChange={setOverallBrightness}
             onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
@@ -373,6 +405,10 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
               }
             }}
             card={card}
+            selectedPresetId={selectedPresetId}
+            onPresetSelect={setSelectedPresetId}
+            onApplyCombo={handleComboApplication}
+            isApplyingPreset={isApplyingPreset}
           />
         )}
 
