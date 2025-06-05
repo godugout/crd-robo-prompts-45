@@ -90,6 +90,45 @@ const comboCache = new Map<string, boolean>();
 let currentActiveCombo = 'default';
 
 export const usePreRenderedMaterials = (currentEffects: EffectValues) => {
+  // Create normalized effect signature - moved before useMemo
+  const createEffectSignature = useCallback((effects: EffectValues): string => {
+    return Object.entries(effects)
+      .filter(([_, params]) => (params.intensity as number) > 0)
+      .map(([id, params]) => `${id}:${Math.round(params.intensity as number)}`)
+      .sort()
+      .join('|');
+  }, []);
+
+  // Calculate match score between two effect sets - moved before useMemo
+  const calculateMatchScore = useCallback((current: EffectValues, target: EffectValues): number => {
+    const currentKeys = Object.keys(current).filter(key => (current[key].intensity as number) > 0);
+    const targetKeys = Object.keys(target);
+    
+    if (currentKeys.length === 0 && targetKeys.length === 0) return 1;
+    if (currentKeys.length === 0 || targetKeys.length === 0) return 0;
+    
+    // Check if effect types match
+    const commonEffects = currentKeys.filter(key => targetKeys.includes(key));
+    if (commonEffects.length === 0) return 0;
+    
+    let totalScore = 0;
+    let scoreCount = 0;
+    
+    for (const effectKey of commonEffects) {
+      const currentIntensity = current[effectKey].intensity as number;
+      const targetIntensity = target[effectKey].intensity as number;
+      
+      // Allow 15% tolerance in intensity matching for better fuzzy matching
+      const intensityDiff = Math.abs(currentIntensity - targetIntensity) / Math.max(currentIntensity, targetIntensity);
+      const intensityScore = Math.max(0, 1 - intensityDiff / 0.15);
+      
+      totalScore += intensityScore;
+      scoreCount++;
+    }
+    
+    return scoreCount > 0 ? totalScore / scoreCount : 0;
+  }, []);
+
   // Improved matching with tolerance for parameter variations
   const activeComboId = useMemo(() => {
     const currentSignature = createEffectSignature(currentEffects);
@@ -120,7 +159,7 @@ export const usePreRenderedMaterials = (currentEffects: EffectValues) => {
       const score = calculateMatchScore(currentEffects, combo.effects);
       console.log(`🎯 Combo ${combo.id} match score: ${score}`);
       
-      if (score > bestScore && score >= 0.8) { // 80% match threshold
+      if (score > bestScore && score >= 0.75) { // 75% match threshold for better fuzzy matching
         bestScore = score;
         bestMatch = combo.id;
       }
@@ -132,46 +171,7 @@ export const usePreRenderedMaterials = (currentEffects: EffectValues) => {
     }
     
     return bestMatch;
-  }, [currentEffects]);
-
-  // Create normalized effect signature
-  const createEffectSignature = useCallback((effects: EffectValues): string => {
-    return Object.entries(effects)
-      .filter(([_, params]) => (params.intensity as number) > 0)
-      .map(([id, params]) => `${id}:${Math.round(params.intensity as number)}`)
-      .sort()
-      .join('|');
-  }, []);
-
-  // Calculate match score between two effect sets
-  const calculateMatchScore = useCallback((current: EffectValues, target: EffectValues): number => {
-    const currentKeys = Object.keys(current).filter(key => (current[key].intensity as number) > 0);
-    const targetKeys = Object.keys(target);
-    
-    if (currentKeys.length === 0 && targetKeys.length === 0) return 1;
-    if (currentKeys.length === 0 || targetKeys.length === 0) return 0;
-    
-    // Check if effect types match
-    const commonEffects = currentKeys.filter(key => targetKeys.includes(key));
-    if (commonEffects.length === 0) return 0;
-    
-    let totalScore = 0;
-    let scoreCount = 0;
-    
-    for (const effectKey of commonEffects) {
-      const currentIntensity = current[effectKey].intensity as number;
-      const targetIntensity = target[effectKey].intensity as number;
-      
-      // Allow 10% tolerance in intensity matching
-      const intensityDiff = Math.abs(currentIntensity - targetIntensity) / Math.max(currentIntensity, targetIntensity);
-      const intensityScore = Math.max(0, 1 - intensityDiff / 0.1);
-      
-      totalScore += intensityScore;
-      scoreCount++;
-    }
-    
-    return scoreCount > 0 ? totalScore / scoreCount : 0;
-  }, []);
+  }, [currentEffects, createEffectSignature, calculateMatchScore]);
 
   const isPreRendered = useCallback((comboId: string) => {
     return POPULAR_COMBOS.some(combo => combo.id === comboId);
