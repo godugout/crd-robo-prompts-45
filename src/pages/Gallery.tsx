@@ -5,7 +5,6 @@ import { useAllCollections } from '@/hooks/useCollections';
 import { useCards } from '@/hooks/useCards';
 import { useCreators } from '@/hooks/useCreators';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
-import { Interactive3DCardDemo } from '@/components/viewer/Interactive3DCardDemo';
 import { GallerySection } from './Gallery/components/GallerySection';
 import { GalleryHeader } from './Gallery/components/GalleryHeader';
 import { CollectionsGrid } from './Gallery/components/CollectionsGrid';
@@ -13,11 +12,13 @@ import { CreatorsGrid } from './Gallery/components/CreatorsGrid';
 import { CardsGrid } from './Gallery/components/CardsGrid';
 import { useCardConversion } from './Gallery/hooks/useCardConversion';
 import { useGalleryActions } from './Gallery/hooks/useGalleryActions';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { Plus } from 'lucide-react';
 
 const Gallery = () => {
   const [activeTab, setActiveTab] = useState('featured');
   
-  const { collections, loading: collectionsLoading } = useAllCollections(1, 3);
+  const { collections, loading: collectionsLoading } = useAllCollections(1, 6);
   const { featuredCards, loading: cardsLoading } = useCards();
   const { popularCreators, loading: creatorsLoading } = useCreators();
   
@@ -36,24 +37,53 @@ const Gallery = () => {
   const convertedCards = convertCardsToCardData(featuredCards);
   const currentCard = convertedCards[selectedCardIndex];
 
+  const handleCreateCollection = () => {
+    // TODO: Implement collection creation
+    console.log('Create collection clicked');
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-7xl bg-[#121212]">
       <GalleryHeader activeTab={activeTab} onTabChange={setActiveTab} />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsContent value="featured" className="mt-8">
-          <GallerySection title="Interactive 3D Experience">
-            <Interactive3DCardDemo />
-          </GallerySection>
-
-          <GallerySection title="Featured Collections">
-            <CollectionsGrid collections={collections || []} loading={collectionsLoading} />
+          {/* Simplified Collections Section */}
+          <GallerySection title="Collections">
+            {collections && collections.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
+                <CollectionsGrid collections={collections.slice(0, 5) || []} loading={collectionsLoading} />
+                <div className="flex items-center justify-center">
+                  <EmptyState
+                    title="Create Collection"
+                    description="Start your own collection of cards"
+                    icon={<Plus className="h-12 w-12 text-crd-mediumGray mb-4" />}
+                    action={{
+                      label: "Create Collection",
+                      onClick: handleCreateCollection,
+                      icon: <Plus className="mr-2 h-4 w-4" />
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <EmptyState
+                title="No Collections Yet"
+                description="Be the first to create a collection and showcase your cards"
+                action={{
+                  label: "Create Collection",
+                  onClick: handleCreateCollection,
+                  icon: <Plus className="mr-2 h-4 w-4" />
+                }}
+              />
+            )}
           </GallerySection>
 
           <GallerySection title="Featured Artists">
             <CreatorsGrid creators={popularCreators || []} loading={creatorsLoading} />
           </GallerySection>
 
+          {/* Main Focus: Featured Cards */}
           <GallerySection title="Featured Cards">
             <CardsGrid 
               cards={featuredCards || []} 
