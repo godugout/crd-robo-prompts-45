@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -97,17 +96,6 @@ const COMBO_PRESETS: ComboPreset[] = [
     }
   },
   {
-    id: 'lunar-shimmer',
-    name: 'Lunar',
-    icon: Moon,
-    description: 'Subtle interference with vintage charm',
-    materialHint: 'Soft silvery surface with gentle interference patterns',
-    effects: {
-      interference: { intensity: 45, frequency: 12, thickness: 3 },
-      vintage: { intensity: 35, aging: 40, patina: '#c0c0c0' }
-    }
-  },
-  {
     id: 'starlight-spray',
     name: 'Starlight',
     icon: Star,
@@ -195,11 +183,11 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
 
   const allPresets = hasCustomEffects() ? [...COMBO_PRESETS, createCustomPreset()] : COMBO_PRESETS;
 
-  // Enhanced preset application with atomic updates
+  // Instant preset application with no loading delays
   const handlePresetClick = (preset: ComboPreset) => {
-    console.log('🎯 Quick Combo Preset Selected:', { presetId: preset.id, effects: preset.effects });
+    console.log('⚡ INSTANT Combo Preset Selected:', { presetId: preset.id, effects: preset.effects });
     
-    // Apply preset selection and combo atomically
+    // Apply instantly
     onPresetSelect(preset.id);
     onApplyCombo(preset);
   };
@@ -217,13 +205,12 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
               <TooltipTrigger asChild>
                 <Button
                   onClick={() => handlePresetClick(preset)}
-                  disabled={isApplyingPreset}
                   variant="ghost"
                   className={`w-full h-7 px-2 flex items-center justify-start space-x-2 border transition-colors ${
                     isSelected 
                       ? 'bg-crd-green/30 border-crd-green text-white' 
                       : 'bg-editor-dark border-editor-border hover:border-crd-green hover:bg-crd-green/20'
-                  } text-xs ${isApplyingPreset ? 'opacity-50' : ''}`}
+                  } text-xs`}
                 >
                   <IconComponent className={`w-3 h-3 flex-shrink-0 ${
                     isSelected ? 'text-crd-green' : 'text-crd-green'
@@ -233,9 +220,6 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
                   }`}>
                     {preset.name}
                   </span>
-                  {isApplyingPreset && isSelected && (
-                    <div className="w-2 h-2 bg-crd-green rounded-full animate-pulse ml-auto" />
-                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="left" className="bg-black border-gray-700 text-white z-50">
