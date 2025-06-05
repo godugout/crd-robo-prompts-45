@@ -55,6 +55,21 @@ export const EnhancedStudioPanel: React.FC<EnhancedStudioPanelProps> = ({
     return tierInfo?.color || '#3B82F6';
   };
 
+  // Helper function to safely get numeric values from effect properties
+  const getNumericValue = (value: any, defaultValue: number = 0): number => {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? defaultValue : parsed;
+    }
+    return defaultValue;
+  };
+
+  // Helper function to safely call onEffectChange with proper types
+  const handleEffectChange = (effectId: string, parameterId: string, value: number | boolean | string) => {
+    onEffectChange(effectId, parameterId, value);
+  };
+
   // Advanced effect presets for pro/baller users
   const advancedPresets = [
     {
@@ -83,7 +98,7 @@ export const EnhancedStudioPanel: React.FC<EnhancedStudioPanelProps> = ({
   const applyPreset = (preset: any) => {
     Object.entries(preset.effects).forEach(([effectId, parameters]: [string, any]) => {
       Object.entries(parameters).forEach(([parameterId, value]) => {
-        onEffectChange(effectId, parameterId, value);
+        handleEffectChange(effectId, parameterId, value);
       });
     });
   };
@@ -178,14 +193,15 @@ export const EnhancedStudioPanel: React.FC<EnhancedStudioPanelProps> = ({
               <h4 className="text-white font-medium mb-3">Advanced Controls</h4>
               <div className="space-y-4">
                 {Object.entries(effectValues).map(([effectId, effect]) => {
-                  if (!effect.intensity || effect.intensity === 0) return null;
+                  const intensityValue = getNumericValue(effect.intensity);
+                  if (!intensityValue || intensityValue === 0) return null;
                   
                   return (
                     <div key={effectId} className="bg-gray-800/50 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-white text-sm font-medium capitalize">{effectId}</span>
                         <Badge variant="outline" className="text-xs">
-                          {Math.round(effect.intensity || 0)}%
+                          {Math.round(intensityValue)}%
                         </Badge>
                       </div>
                       
@@ -194,8 +210,8 @@ export const EnhancedStudioPanel: React.FC<EnhancedStudioPanelProps> = ({
                         <div>
                           <label className="text-gray-300 text-xs mb-1 block">Intensity</label>
                           <Slider
-                            value={[effect.intensity || 0]}
-                            onValueChange={([value]) => onEffectChange(effectId, 'intensity', value)}
+                            value={[intensityValue]}
+                            onValueChange={([value]) => handleEffectChange(effectId, 'intensity', value)}
                             min={0}
                             max={100}
                             step={1}
@@ -209,8 +225,8 @@ export const EnhancedStudioPanel: React.FC<EnhancedStudioPanelProps> = ({
                             <div>
                               <label className="text-gray-300 text-xs mb-1 block">Shift Speed</label>
                               <Slider
-                                value={[effect.shiftSpeed || 100]}
-                                onValueChange={([value]) => onEffectChange(effectId, 'shiftSpeed', value)}
+                                value={[getNumericValue(effect.shiftSpeed, 100)]}
+                                onValueChange={([value]) => handleEffectChange(effectId, 'shiftSpeed', value)}
                                 min={50}
                                 max={200}
                                 step={5}
@@ -220,8 +236,8 @@ export const EnhancedStudioPanel: React.FC<EnhancedStudioPanelProps> = ({
                             <div>
                               <label className="text-gray-300 text-xs mb-1 block">Rainbow Spread</label>
                               <Slider
-                                value={[effect.rainbowSpread || 180]}
-                                onValueChange={([value]) => onEffectChange(effectId, 'rainbowSpread', value)}
+                                value={[getNumericValue(effect.rainbowSpread, 180)]}
+                                onValueChange={([value]) => handleEffectChange(effectId, 'rainbowSpread', value)}
                                 min={100}
                                 max={360}
                                 step={10}
@@ -236,8 +252,8 @@ export const EnhancedStudioPanel: React.FC<EnhancedStudioPanelProps> = ({
                             <div>
                               <label className="text-gray-300 text-xs mb-1 block">Facets</label>
                               <Slider
-                                value={[effect.facets || 12]}
-                                onValueChange={([value]) => onEffectChange(effectId, 'facets', value)}
+                                value={[getNumericValue(effect.facets, 12)]}
+                                onValueChange={([value]) => handleEffectChange(effectId, 'facets', value)}
                                 min={6}
                                 max={24}
                                 step={1}
@@ -247,8 +263,8 @@ export const EnhancedStudioPanel: React.FC<EnhancedStudioPanelProps> = ({
                             <div>
                               <label className="text-gray-300 text-xs mb-1 block">Clarity</label>
                               <Slider
-                                value={[effect.clarity || 80]}
-                                onValueChange={([value]) => onEffectChange(effectId, 'clarity', value)}
+                                value={[getNumericValue(effect.clarity, 80)]}
+                                onValueChange={([value]) => handleEffectChange(effectId, 'clarity', value)}
                                 min={0}
                                 max={100}
                                 step={5}
