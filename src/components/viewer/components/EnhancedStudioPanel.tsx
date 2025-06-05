@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, Settings, Sparkles, Sun, Download, Share2, Crown, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -70,6 +69,15 @@ export const EnhancedStudioPanel: React.FC<EnhancedStudioPanelProps> = ({
     onEffectChange(effectId, parameterId, value);
   };
 
+  // Helper function to safely convert unknown values to valid effect parameter types
+  const convertToValidEffectValue = (value: unknown): number | boolean | string => {
+    if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') {
+      return value;
+    }
+    // Fallback to 0 for unknown types
+    return 0;
+  };
+
   // Advanced effect presets for pro/baller users
   const advancedPresets = [
     {
@@ -98,7 +106,8 @@ export const EnhancedStudioPanel: React.FC<EnhancedStudioPanelProps> = ({
   const applyPreset = (preset: any) => {
     Object.entries(preset.effects).forEach(([effectId, parameters]: [string, any]) => {
       Object.entries(parameters).forEach(([parameterId, value]) => {
-        handleEffectChange(effectId, parameterId, value);
+        const validValue = convertToValidEffectValue(value);
+        handleEffectChange(effectId, parameterId, validValue);
       });
     });
   };
