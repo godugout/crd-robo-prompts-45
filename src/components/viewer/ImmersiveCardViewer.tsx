@@ -199,15 +199,15 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
-      {/* Header Section */}
-      <div className="bg-black/30 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 bg-crd-darkest">
+      {/* Header Section - Using site design patterns */}
+      <div className="bg-crd-dark border-b border-crd-mediumGray sticky top-0 z-50">
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-white text-xl font-bold">Immersive Card Viewer</h1>
-            <Badge variant="secondary">Beta</Badge>
+            <h1 className="text-crd-white text-xl font-bold">Immersive Card Viewer</h1>
+            <Badge variant="outline" className="text-crd-orange border-crd-orange">Beta</Badge>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* Card Navigation */}
             {cards.length > 1 && (
               <>
@@ -215,42 +215,66 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
                   variant="outline" 
                   size="sm" 
                   onClick={() => handleCardNavigation('prev')}
-                  className="text-white"
+                  className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <span className="text-white text-sm px-2">
+                <span className="text-crd-lightGray text-sm px-2">
                   {currentCardIndex + 1} / {cards.length}
                 </span>
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={() => handleCardNavigation('next')}
-                  className="text-white"
+                  className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </>
             )}
             
-            <Button variant="outline" size="sm" onClick={handleFlip}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleFlip}
+              className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
+            >
               <RotateCcw className="w-4 h-4 mr-2" />
               Flip Card
             </Button>
-            <Button variant="outline" size="sm" onClick={handleToggleEffects}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleToggleEffects}
+              className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
+            >
               <Zap className="w-4 h-4 mr-2" />
               {showEffects ? 'Hide Effects' : 'Show Effects'}
             </Button>
-            <Button variant="outline" size="sm" onClick={handleShare}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleShare}
+              className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
+            >
               <Share className="w-4 h-4 mr-2" />
               Share
             </Button>
-            <Button onClick={handleDownload} size="sm">
+            <Button 
+              onClick={handleDownload} 
+              size="sm"
+              className="bg-crd-green hover:bg-crd-green/90 text-black"
+            >
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
             {onClose && (
-              <Button variant="outline" size="sm" onClick={onClose}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={onClose}
+                className="border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
+              >
                 <X className="w-4 h-4" />
               </Button>
             )}
@@ -258,18 +282,18 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 py-8">
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* Enhanced Card Display */}
           <div className="xl:col-span-2">
-            <Card className="bg-black/40 border-white/10 backdrop-blur-md">
-              <CardHeader className="text-center">
+            <Card className="bg-crd-darkGray border-crd-mediumGray">
+              <CardHeader className="text-center border-b border-crd-mediumGray">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Eye className="w-5 h-5 text-blue-400" />
-                    <CardTitle className="text-white text-lg">Card Preview</CardTitle>
+                    <Eye className="w-5 h-5 text-crd-blue" />
+                    <CardTitle className="text-crd-white text-lg">Card Preview</CardTitle>
                   </div>
-                  <Badge variant="outline" className="text-xs text-white/80 border-white/20">
+                  <Badge variant="outline" className="text-xs text-crd-lightGray border-crd-mediumGray">
                     Material: {selectedMaterial.name}
                   </Badge>
                 </div>
@@ -295,17 +319,17 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
             </Card>
           </div>
 
-          {/* Enhanced Controls Panel */}
+          {/* Enhanced Controls Panel - Updated to match site design */}
           <div className="space-y-6">
             {/* Viewport Controls */}
-            <Card className="bg-black/40 border-white/10 backdrop-blur-md">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-white text-sm flex items-center">
-                  <Monitor className="w-4 h-4 mr-2 text-blue-400" />
+            <Card className="bg-crd-darkGray border-crd-mediumGray">
+              <CardHeader className="pb-3 border-b border-crd-mediumGray">
+                <CardTitle className="text-crd-white text-sm flex items-center">
+                  <Monitor className="w-4 h-4 mr-2 text-crd-blue" />
                   Viewport Size
                 </CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-3 gap-2">
+              <CardContent className="grid grid-cols-3 gap-2 pt-4">
                 <ViewportButton size="desktop" />
                 <ViewportButton size="tablet" />
                 <ViewportButton size="mobile" />
@@ -313,21 +337,21 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
             </Card>
 
             {/* Quick Combo Presets */}
-            <Card className="bg-black/40 border-white/10 backdrop-blur-md">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-white text-sm flex items-center">
-                  <Zap className="w-4 h-4 mr-2 text-yellow-400" />
+            <Card className="bg-crd-darkGray border-crd-mediumGray">
+              <CardHeader className="pb-3 border-b border-crd-mediumGray">
+                <CardTitle className="text-crd-white text-sm flex items-center">
+                  <Zap className="w-4 h-4 mr-2 text-crd-orange" />
                   Quick Effect Combos
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <QuickComboPresets
                   onApplyCombo={handleComboApply}
                   currentEffects={effectValues}
                   selectedPresetId={selectedPresetId}
                   onPresetSelect={setSelectedPresetId}
                 />
-                <Separator className="my-4 bg-white/20" />
+                <Separator className="my-4 bg-crd-mediumGray" />
                 <Button
                   variant="destructive"
                   size="sm"
@@ -341,20 +365,20 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
             </Card>
 
             <Tabs defaultValue="effects" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 bg-black/40 border-white/10">
-                <TabsTrigger value="effects" className="text-xs">
+              <TabsList className="grid w-full grid-cols-4 bg-crd-darkGray border border-crd-mediumGray">
+                <TabsTrigger value="effects" className="text-xs data-[state=active]:bg-crd-mediumGray data-[state=active]:text-crd-white">
                   <Zap className="w-4 h-4 mr-1" />
                   Effects
                 </TabsTrigger>
-                <TabsTrigger value="materials" className="text-xs">
+                <TabsTrigger value="materials" className="text-xs data-[state=active]:bg-crd-mediumGray data-[state=active]:text-crd-white">
                   <Palette className="w-4 h-4 mr-1" />
                   Materials
                 </TabsTrigger>
-                <TabsTrigger value="lighting" className="text-xs">
+                <TabsTrigger value="lighting" className="text-xs data-[state=active]:bg-crd-mediumGray data-[state=active]:text-crd-white">
                   <Sparkles className="w-4 h-4 mr-1" />
                   Lighting
                 </TabsTrigger>
-                <TabsTrigger value="environment" className="text-xs">
+                <TabsTrigger value="environment" className="text-xs data-[state=active]:bg-crd-mediumGray data-[state=active]:text-crd-white">
                   <Settings className="w-4 h-4 mr-1" />
                   Scene
                 </TabsTrigger>
