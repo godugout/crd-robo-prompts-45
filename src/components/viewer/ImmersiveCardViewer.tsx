@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -188,6 +187,12 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     );
   };
 
+  // Add missing default values for the viewer
+  const defaultScene = { id: 'default', name: 'Default Scene', background: 'gradient' };
+  const defaultLighting = { id: 'default', name: 'Default Lighting', ambient: 0.5, directional: 0.8, color: '#ffffff' };
+  const defaultMaterialSettings = { metalness: 0.5, roughness: 0.5, reflectivity: 0.5, clearcoat: 0.3 };
+  const defaultBrightness = [100];
+
   if (!isOpen) {
     return null;
   }
@@ -364,15 +369,28 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
               </TabsContent>
 
               <TabsContent value="materials" className="mt-4">
-                <MaterialComboSection />
+                <MaterialComboSection
+                  materialSettings={defaultMaterialSettings}
+                  onMaterialSettingsChange={() => {}}
+                />
               </TabsContent>
 
               <TabsContent value="lighting" className="mt-4">
-                <LightingComboSection />
+                <LightingComboSection
+                  selectedLighting={defaultLighting}
+                  overallBrightness={defaultBrightness}
+                  interactiveLighting={true}
+                  onLightingChange={() => {}}
+                  onBrightnessChange={() => {}}
+                  onInteractiveLightingToggle={() => {}}
+                />
               </TabsContent>
 
               <TabsContent value="environment" className="mt-4">
-                <EnvironmentComboSection />
+                <EnvironmentComboSection
+                  selectedScene={defaultScene}
+                  onSceneChange={() => {}}
+                />
               </TabsContent>
             </Tabs>
           </div>

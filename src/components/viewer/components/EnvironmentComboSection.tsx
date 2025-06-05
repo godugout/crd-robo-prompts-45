@@ -2,10 +2,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings } from 'lucide-react';
+import type { EnvironmentScene } from '../types';
 
 export interface EnvironmentComboSectionProps {
-  selectedScene?: string;
-  onSceneChange?: (scene: string) => void;
+  selectedScene?: EnvironmentScene;
+  onSceneChange?: (scene: EnvironmentScene) => void;
 }
 
 export const EnvironmentComboSection: React.FC<EnvironmentComboSectionProps> = ({

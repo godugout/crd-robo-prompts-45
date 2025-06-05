@@ -1,39 +1,17 @@
-import type { CardData } from '@/hooks/useCardEditor';
 
 export interface EnvironmentScene {
   id: string;
   name: string;
-  icon: string;
-  gradient: string;
-  description: string;
-  lighting: {
-    color: string;
-    intensity: number;
-    elevation: number;
-    azimuth: number;
-  };
-  backgroundImage: string;
-  reflections: 'soft' | 'sharp' | 'warm' | 'cold' | 'sparkle' | 'vivid';
+  background: string;
+  lighting?: string;
 }
 
 export interface LightingPreset {
   id: string;
   name: string;
-  description: string;
-  brightness: number;
-  contrast: number;
-  shadows: number;
-  highlights: number;
-  temperature: number;
-  position: { x: number; y: number; z: number };
-  shadowSoftness: number;
-}
-
-export interface VisualEffect {
-  id: string;
-  name: string;
-  description: string;
-  category: 'prismatic' | 'metallic' | 'surface' | 'vintage';
+  ambient: number;
+  directional: number;
+  color: string;
 }
 
 export interface MaterialSettings {
@@ -41,15 +19,4 @@ export interface MaterialSettings {
   roughness: number;
   reflectivity: number;
   clearcoat: number;
-}
-
-export interface ImmersiveCardViewerProps {
-  card: CardData;
-  isOpen?: boolean;
-  onClose?: () => void;
-  onShare?: (card: CardData) => void;
-  onDownload?: (card: CardData) => void;
-  allowRotation?: boolean;
-  showStats?: boolean;
-  ambient?: boolean;
 }

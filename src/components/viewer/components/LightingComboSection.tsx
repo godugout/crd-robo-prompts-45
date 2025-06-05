@@ -2,13 +2,14 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles } from 'lucide-react';
+import type { LightingPreset } from '../types';
 
 export interface LightingComboSectionProps {
-  selectedLighting?: string;
-  overallBrightness?: number;
+  selectedLighting?: LightingPreset;
+  overallBrightness?: number[];
   interactiveLighting?: boolean;
-  onLightingChange?: (lighting: string) => void;
-  onBrightnessChange?: (brightness: number) => void;
+  onLightingChange?: (lighting: LightingPreset) => void;
+  onBrightnessChange?: (brightness: number[]) => void;
   onInteractiveLightingToggle?: (enabled: boolean) => void;
 }
 

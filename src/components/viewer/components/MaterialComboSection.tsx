@@ -2,10 +2,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Palette } from 'lucide-react';
+import type { MaterialSettings } from '../types';
 
 export interface MaterialComboSectionProps {
-  materialSettings?: any;
-  onMaterialSettingsChange?: (settings: any) => void;
+  materialSettings?: MaterialSettings;
+  onMaterialSettingsChange?: (settings: MaterialSettings) => void;
 }
 
 export const MaterialComboSection: React.FC<MaterialComboSectionProps> = ({
