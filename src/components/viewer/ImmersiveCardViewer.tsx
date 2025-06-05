@@ -12,11 +12,13 @@ import {
 import { useCardEffects } from './hooks/useCardEffects';
 import { useDynamicCardBackMaterials } from './hooks/useDynamicCardBackMaterials';
 import { ViewerControls } from './components/ViewerControls';
+import { MobileViewerControls } from './components/MobileViewerControls';
 import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
 import { MobileStudioDrawer } from './components/MobileStudioDrawer';
 import { EnhancedCardContainer } from './components/EnhancedCardContainer';
 import { ExportOptionsDialog } from './components/ExportOptionsDialog';
 import { ConfigurationDetailsPanel } from './components/ConfigurationDetailsPanel';
+import { GestureHelpOverlay } from './components/GestureHelpOverlay';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -54,6 +56,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [isHovering, setIsHovering] = useState(false);
   const [isHoveringControls, setIsHoveringControls] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [showGestureHelp, setShowGestureHelp] = useState(false);
   
   // Enhanced effects state with atomic preset application
   const enhancedEffectsHook = useEnhancedCardEffects();
@@ -107,6 +110,52 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
       setIsFlipped(false); // Reset flip state when changing cards
     }
   }, [canGoNext, currentCardIndex, onCardChange]);
+
+  // Enhanced mobile gesture handlers
+  const handleMobileZoom = useCallback((delta: number) => {
+    setZoom(prev => Math.max(0.5, Math.min(3, prev + delta)));
+  }, []);
+
+  const handleRotationChange = useCallback((newRotation: { x: number; y: number }) => {
+    setRotation(newRotation);
+  }, []);
+
+  const handleMobileDoubleTap = useCallback(() => {
+    // Toggle between fit and fill zoom
+    if (zoom <= 1) {
+      setZoom(1.5);
+    } else {
+      setZoom(1);
+    }
+    setRotation({ x: 0, y: 0 });
+  }, [zoom]);
+
+  const handleMobileLongPress = useCallback(() => {
+    setIsFlipped(!isFlipped);
+    // Haptic feedback
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50);
+    }
+  }, [isFlipped]);
+
+  const handleMobileSwipeLeft = useCallback(() => {
+    handleNextCard();
+  }, [handleNextCard]);
+
+  const handleMobileSwipeRight = useCallback(() => {
+    handlePreviousCard();
+  }, [handlePreviousCard]);
+
+  const handleMobileReset = useCallback(() => {
+    setRotation({ x: 0, y: 0 });
+    setZoom(1);
+    setIsFlipped(false);
+    setAutoRotate(false);
+    // Haptic feedback for reset
+    if ('vibrate' in navigator) {
+      navigator.vibrate([100, 50, 100]);
+    }
+  }, []);
 
   // Keyboard navigation
   useEffect(() => {
@@ -189,7 +238,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging && containerRef.current) {
+    if (!isMobile && !isDragging && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width;
       const y = (e.clientY - rect.top) / rect.height;
@@ -205,7 +254,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         });
       }
     }
-  }, [isDragging, allowRotation, autoRotate]);
+  }, [isDragging, allowRotation, autoRotate, isMobile]);
 
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     if (allowRotation) {
@@ -354,18 +403,33 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
 
-        {/* Basic Controls with hover visibility */}
-        <div className={`transition-opacity duration-200 ${isHoveringControls ? 'opacity-100 z-20' : 'opacity-100 z-10'}`}>
-          <ViewerControls
-            showEffects={showEffects}
-            autoRotate={autoRotate}
-            onToggleEffects={() => setShowEffects(!showEffects)}
-            onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
-            onReset={handleReset}
-            onZoomIn={() => handleZoom(0.1)}
-            onZoomOut={() => handleZoom(-0.1)}
-          />
-        </div>
+        {/* Mobile-optimized Controls */}
+        {isMobile ? (
+          <div className="absolute bottom-4 left-4 z-10">
+            <MobileViewerControls
+              showEffects={showEffects}
+              autoRotate={autoRotate}
+              onToggleEffects={() => setShowEffects(!showEffects)}
+              onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
+              onReset={handleMobileReset}
+              onZoomIn={() => handleMobileZoom(0.2)}
+              onZoomOut={() => handleMobileZoom(-0.2)}
+              onShowGestureHelp={() => setShowGestureHelp(true)}
+            />
+          </div>
+        ) : (
+          <div className={`transition-opacity duration-200 ${isHoveringControls ? 'opacity-100 z-20' : 'opacity-100 z-10'}`}>
+            <ViewerControls
+              showEffects={showEffects}
+              autoRotate={autoRotate}
+              onToggleEffects={() => setShowEffects(!showEffects)}
+              onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
+              onReset={handleReset}
+              onZoomIn={() => handleZoom(0.1)}
+              onZoomOut={() => handleZoom(-0.1)}
+            />
+          </div>
+        )}
 
         {/* Card Navigation Controls */}
         {hasMultipleCards && (
@@ -433,7 +497,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         )}
 
-        {/* Enhanced Card Container - Add ref */}
+        {/* Enhanced Card Container - Add mobile gesture support */}
         <div ref={cardContainerRef}>
           <EnhancedCardContainer
             card={card}
@@ -448,11 +512,19 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             frameStyles={getFrameStyles()}
             enhancedEffectStyles={getEnhancedEffectStyles()}
             SurfaceTexture={SurfaceTexture}
+            interactiveLighting={interactiveLighting}
             onMouseDown={handleDragStart}
             onMouseMove={handleDrag}
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
             onClick={() => setIsFlipped(!isFlipped)}
+            onZoom={handleMobileZoom}
+            onRotationChange={handleRotationChange}
+            onDoubleTap={handleMobileDoubleTap}
+            onLongPress={handleMobileLongPress}
+            onSwipeLeft={handleMobileSwipeLeft}
+            onSwipeRight={handleMobileSwipeRight}
+            onReset={handleMobileReset}
           />
         </div>
 
@@ -507,11 +579,18 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         cardTitle={card.title}
         cardElementRef={cardContainerRef}
       />
+
+      {/* Gesture Help Overlay */}
+      <GestureHelpOverlay
+        isVisible={showGestureHelp}
+        onClose={() => setShowGestureHelp(false)}
+      />
     </>
   );
 };
 
 // ... keep existing code (presets array at the bottom)
+
 const presets = [
   {
     name: 'Crystal Prism',
