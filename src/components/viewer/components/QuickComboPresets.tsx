@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -117,6 +116,17 @@ const COMBO_PRESETS: ComboPreset[] = [
       foilspray: { intensity: 65, density: 80, direction: 135 },
       prizm: { intensity: 40, complexity: 5, colorSeparation: 60 }
     }
+  },
+  {
+    id: 'chrome-burst',
+    name: 'Chrome',
+    icon: Zap,
+    description: 'Pure chrome with brushed metal finish',
+    materialHint: 'Polished chrome surface with directional brushing',
+    effects: {
+      chrome: { intensity: 80, sharpness: 95, highlightSize: 70 },
+      brushedmetal: { intensity: 40, direction: 90, grainDensity: 8 }
+    }
   }
 ];
 
@@ -206,53 +216,51 @@ export const QuickComboPresets: React.FC<QuickComboPresetsProps> = ({
 
   return (
     <TooltipProvider>
-      <div className="space-y-1">
-        {allPresets.map((preset) => {
-          const IconComponent = preset.icon;
-          const isSelected = selectedPresetId === preset.id || 
-            (!selectedPresetId && effectsMatchPreset(preset.effects, currentEffects));
-          
-          return (
-            <Tooltip key={preset.id}>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={() => handlePresetClick(preset)}
-                  disabled={isApplyingPreset}
-                  variant="ghost"
-                  className={`w-full h-7 px-2 flex items-center justify-start space-x-2 border transition-colors ${
-                    isSelected 
-                      ? 'bg-crd-green/30 border-crd-green text-white' 
-                      : 'bg-editor-dark border-editor-border hover:border-crd-green hover:bg-crd-green/20'
-                  } text-xs ${isApplyingPreset ? 'opacity-50' : ''}`}
-                >
-                  <IconComponent className={`w-3 h-3 flex-shrink-0 ${
-                    isSelected ? 'text-crd-green' : 'text-crd-green'
-                  }`} />
-                  <span className={`font-medium truncate ${
-                    preset.isCustom ? 'text-crd-green' : 'text-white'
-                  }`}>
-                    {preset.name}
-                  </span>
-                  {isApplyingPreset && isSelected && (
-                    <div className="w-2 h-2 bg-crd-green rounded-full animate-pulse ml-auto" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left" className="bg-black border-gray-700 text-white z-50">
-                <div className="text-center max-w-48">
-                  <div className="font-medium">{preset.name}</div>
-                  <div className="text-xs text-gray-300 mb-1">{preset.description}</div>
-                  {preset.materialHint && (
-                    <div className="text-xs text-crd-green italic">
-                      Surface: {preset.materialHint}
-                    </div>
-                  )}
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          );
-        })}
-      </div>
+      {allPresets.map((preset) => {
+        const IconComponent = preset.icon;
+        const isSelected = selectedPresetId === preset.id || 
+          (!selectedPresetId && effectsMatchPreset(preset.effects, currentEffects));
+        
+        return (
+          <Tooltip key={preset.id}>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => handlePresetClick(preset)}
+                disabled={isApplyingPreset}
+                variant="ghost"
+                className={`w-full h-7 px-2 flex items-center justify-start space-x-2 border transition-colors ${
+                  isSelected 
+                    ? 'bg-crd-green/30 border-crd-green text-white' 
+                    : 'bg-editor-dark border-editor-border hover:border-crd-green hover:bg-crd-green/20'
+                } text-xs ${isApplyingPreset ? 'opacity-50' : ''}`}
+              >
+                <IconComponent className={`w-3 h-3 flex-shrink-0 ${
+                  isSelected ? 'text-crd-green' : 'text-crd-green'
+                }`} />
+                <span className={`font-medium truncate ${
+                  preset.isCustom ? 'text-crd-green' : 'text-white'
+                }`}>
+                  {preset.name}
+                </span>
+                {isApplyingPreset && isSelected && (
+                  <div className="w-2 h-2 bg-crd-green rounded-full animate-pulse ml-auto" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="bg-black border-gray-700 text-white z-50">
+              <div className="text-center max-w-48">
+                <div className="font-medium">{preset.name}</div>
+                <div className="text-xs text-gray-300 mb-1">{preset.description}</div>
+                {preset.materialHint && (
+                  <div className="text-xs text-crd-green italic">
+                    Surface: {preset.materialHint}
+                  </div>
+                )}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        );
+      })}
     </TooltipProvider>
   );
 };
