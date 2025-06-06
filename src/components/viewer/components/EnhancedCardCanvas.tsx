@@ -64,7 +64,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
   };
 
   // Simple surface texture component
-  const SurfaceTexture = (
+  const SurfaceTextureComponent = React.memo(() => (
     <div 
       className="absolute inset-0 opacity-20"
       style={{
@@ -72,7 +72,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
         backgroundSize: '20px 20px'
       }}
     />
-  );
+  ));
 
   return (
     <div
@@ -132,7 +132,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             isDragging={isDragging}
             frameStyles={frameStyles}
             enhancedEffectStyles={enhancedEffectStyles}
-            SurfaceTexture={SurfaceTexture}
+            SurfaceTexture={SurfaceTextureComponent}
             interactiveLighting={interactiveLighting}
             onMouseDown={() => setIsDragging(true)}
             onMouseMove={onMouseMove}

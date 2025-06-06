@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronUp, ChevronDown, Settings, Palette, Zap, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -239,18 +238,21 @@ export const EnhancedMobileStudioPanel: React.FC<EnhancedMobileStudioPanelProps>
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes slideUp {
-          from {
-            transform: translateY(100%);
-            opacity: 0;
+      {/* CSS Animation */}
+      <style>
+        {`
+          @keyframes slideUp {
+            from {
+              transform: translateY(100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateY(0);
+              opacity: 1;
+            }
           }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-      `}</style>
+        `}
+      </style>
     </>
   );
 };

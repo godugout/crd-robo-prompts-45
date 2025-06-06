@@ -22,6 +22,10 @@ import { GestureHelpOverlay } from './components/GestureHelpOverlay';
 import { MobileCardLayout } from './components/MobileCardLayout';
 import { EnhancedMobileMainControlBar } from './components/EnhancedMobileMainControlBar';
 import { EnhancedMobileStudioPanel } from './components/EnhancedMobileStudioPanel';
+import { MobileInfoPanel } from './components/MobileInfoPanel';
+import { MobileCreateCardPanel } from './components/MobileCreateCardPanel';
+import { MobileFramesPanel } from './components/MobileFramesPanel';
+import { MobileShowcasePanel } from './components/MobileShowcasePanel';
 import { useMobileControl } from './context/MobileControlContext';
 
 // Update the interface to support card navigation
@@ -197,7 +201,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     }
   }, [onShare, card]);
 
-  // Style generation hook
+  // Style generation hook - Fix SurfaceTexture type
   const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useCardEffects({
     card,
     effectValues,
@@ -553,7 +557,14 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
                 isDragging={isDragging}
                 frameStyles={getFrameStyles()}
                 enhancedEffectStyles={getEnhancedEffectStyles()}
-                SurfaceTexture={SurfaceTexture}
+                SurfaceTexture={React.memo(() => (
+                  <SurfaceTexture
+                    effectValues={effectValues}
+                    mousePosition={mousePosition}
+                    isHovering={isHovering}
+                    interactiveLighting={interactiveLighting}
+                  />
+                ))}
                 interactiveLighting={interactiveLighting}
                 onMouseDown={handleDragStart}
                 onMouseMove={handleDrag}
@@ -727,7 +738,14 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             isDragging={isDragging}
             frameStyles={getFrameStyles()}
             enhancedEffectStyles={getEnhancedEffectStyles()}
-            SurfaceTexture={SurfaceTexture}
+            SurfaceTexture={React.memo(() => (
+              <SurfaceTexture
+                effectValues={effectValues}
+                mousePosition={mousePosition}
+                isHovering={isHovering}
+                interactiveLighting={interactiveLighting}
+              />
+            ))}
             interactiveLighting={interactiveLighting}
             onMouseDown={handleDragStart}
             onMouseMove={handleDrag}
