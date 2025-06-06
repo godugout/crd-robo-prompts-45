@@ -32,6 +32,36 @@ interface EnhancedCardContainerProps {
   onReset?: () => void;
 }
 
+// Helper hook to safely use MobileControlContext
+const useSafeMobileControl = () => {
+  try {
+    return useMobileControl();
+  } catch (error) {
+    // Return fallback values when provider is not available (desktop mode)
+    return {
+      cardState: {
+        zoom: 1,
+        rotation: { x: 0, y: 0 },
+        isFlipped: false,
+        position: { x: 0, y: 0 }
+      },
+      flipCard: () => {},
+      zoomCard: () => {},
+      rotateCard: () => {},
+      panCard: () => {},
+      resetCardState: () => {},
+      panelState: {
+        studio: false,
+        createCard: false,
+        frames: false,
+        showcase: false,
+        rotateMode: false
+      },
+      applyRotationStep: () => {}
+    };
+  }
+};
+
 export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   card,
   isFlipped,
@@ -68,7 +98,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
     resetCardState,
     panelState,
     applyRotationStep
-  } = useMobileControl();
+  } = useSafeMobileControl();
   
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -129,11 +159,11 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
 
   const { gestureState, touchHandlers, triggerHaptic } = useEnhancedGestureRecognition(gestureCallbacks);
 
-  // Use mobile control state for card transformations
-  const currentRotation = cardState.rotation;
-  const currentZoom = cardState.zoom;
+  // Use mobile control state for card transformations when available, otherwise use props
+  const currentRotation = cardState.rotation.x !== 0 || cardState.rotation.y !== 0 ? cardState.rotation : rotation;
+  const currentZoom = cardState.zoom !== 1 ? cardState.zoom : zoom;
   const currentPosition = cardState.position;
-  const currentIsFlipped = cardState.isFlipped;
+  const currentIsFlipped = cardState.isFlipped !== isFlipped ? cardState.isFlipped : isFlipped;
 
   // Double tap detection for zoom
   const lastTapTime = useRef(0);
