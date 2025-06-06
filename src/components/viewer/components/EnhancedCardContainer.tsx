@@ -75,33 +75,49 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [preventTap, setPreventTap] = useState(false);
 
-  // Use mobile control state for card transformations when available, otherwise use props
+  console.log('EnhancedCardContainer: Current flip states - isFlipped:', isFlipped, 'cardState.isFlipped:', cardState.isFlipped);
+
+  // Use mobile control state when available, otherwise use props
   const currentRotation = cardState.rotation.x !== 0 || cardState.rotation.y !== 0 ? cardState.rotation : rotation;
   const currentZoom = cardState.zoom !== 1 ? cardState.zoom : zoom;
   const currentPosition = cardState.position;
-  const currentIsFlipped = cardState.isFlipped !== isFlipped ? cardState.isFlipped : isFlipped;
+  
+  // Determine final flip state - prioritize mobile control state if it's been changed
+  const currentIsFlipped = cardState.isFlipped !== false ? cardState.isFlipped : isFlipped;
 
-  // Calculate physical effect styles from effect values for holographic/metallic effects
+  // Calculate physical effect styles from effect values
   const physicalEffectStyles = {
     ...enhancedEffectStyles,
     transition: 'all 0.3s ease'
   };
 
   // Get effectIntensity array for consistent intensity values across components
-  // Fix: TypeScript type safety for effectValues
   const effectIntensity = Object.entries(effectValues).map(([id, params]) => {
-    // Use type guard to safely access intensity
     return typeof params.intensity === 'number' ? params.intensity : 0;
   });
 
+  // Unified flip handler that works for both mobile and desktop
+  const handleCardFlip = () => {
+    if (preventTap || panelState.rotateMode) return;
+    
+    console.log('handleCardFlip called - before flip:', currentIsFlipped);
+    
+    // Always use mobile control's flipCard function for consistency
+    flipCard();
+    
+    // Also call the original onClick handler if provided
+    if (onClick) {
+      onClick();
+    }
+  };
+
   // Double tap detection for zoom
   const lastTapTime = useRef(0);
-  const handleTap = () => {
+  const handleDoubleTap = () => {
     const now = Date.now();
     const timeSinceLastTap = now - lastTapTime.current;
     
     if (timeSinceLastTap < 300) {
-      // Double tap - toggle zoom
       if (currentZoom <= 1) {
         zoomCard(0.5); // Zoom to 1.5x
       } else {
@@ -112,23 +128,6 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
     }
     
     lastTapTime.current = now;
-  };
-
-  // Combined flip handler that works for both mobile and desktop
-  const handleCardFlip = () => {
-    if (preventTap) return;
-    
-    if (onClick) {
-      onClick(); // Call the original onClick handler if provided
-    }
-    
-    // Always flip card using the mobile control's flipCard function
-    flipCard();
-  };
-
-  const handleGestureTap = (position: { x: number; y: number }) => {
-    if (preventTap || panelState.rotateMode) return;
-    handleCardFlip();
   };
 
   return (

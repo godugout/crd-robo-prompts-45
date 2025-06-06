@@ -34,18 +34,16 @@ export const CardFront: React.FC<CardFrontProps> = ({
   interactiveLighting = false
 }) => {
   return (
-    <div
-      className="absolute inset-0 rounded-xl overflow-hidden backface-hidden"
-      style={{
-        ...frameStyles,
-        transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-        backfaceVisibility: 'hidden'
-      }}
-    >
-      {/* Base Card Layer - z-index 1 */}
+    <div className="absolute inset-0 rounded-xl overflow-hidden">
+      {/* Base Card Layer - z-index 10 */}
       <div className="absolute inset-0 z-10" style={frameStyles} />
       
-      {/* Full Image Display - Centered and Full Coverage - z-index 3 */}
+      {/* Surface Texture Layer - z-index 20 */}
+      <div className="absolute inset-0 z-20">
+        {SurfaceTexture}
+      </div>
+      
+      {/* Card Image - z-index 30 */}
       <div className="relative h-full z-30">
         {card.image_url ? (
           <div className="w-full h-full relative overflow-hidden">
@@ -59,6 +57,8 @@ export const CardFront: React.FC<CardFrontProps> = ({
                   : 'brightness(1.05) contrast(1.02)',
                 transition: 'filter 0.3s ease'
               }}
+              onLoad={() => console.log('CardFront: Image loaded successfully')}
+              onError={() => console.error('CardFront: Error loading image')}
             />
             {/* Enhanced image overlay for better effect blending */}
             {showEffects && (
@@ -86,12 +86,7 @@ export const CardFront: React.FC<CardFrontProps> = ({
         )}
       </div>
       
-      {/* Surface Texture Layer - z-index 2 */}
-      <div className="absolute inset-0 z-20">
-        {SurfaceTexture}
-      </div>
-      
-      {/* Enhanced Effects Layer with individual effect values */}
+      {/* Effects Layer - z-index 40 - Above everything else */}
       <CardEffectsLayer
         showEffects={showEffects}
         isHovering={isHovering}
@@ -103,10 +98,10 @@ export const CardFront: React.FC<CardFrontProps> = ({
         interactiveLighting={interactiveLighting}
       />
 
-      {/* Interactive lighting enhancement overlay - SOFTENED */}
+      {/* Interactive lighting enhancement overlay - z-index 50 */}
       {interactiveLighting && isHovering && (
         <div
-          className="absolute inset-0 z-40 pointer-events-none"
+          className="absolute inset-0 z-50 pointer-events-none"
           style={{
             background: `
               radial-gradient(

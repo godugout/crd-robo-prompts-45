@@ -27,14 +27,8 @@ export const CardBack: React.FC<CardBackProps> = ({
   effectValues
 }) => {
   return (
-    <div
-      className="absolute inset-0 rounded-xl overflow-hidden backface-hidden"
-      style={{
-        transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(-180deg)',
-        backfaceVisibility: 'hidden'
-      }}
-    >
-      {/* Dark Pattern Background Base */}
+    <div className="absolute inset-0 rounded-xl overflow-hidden">
+      {/* Dark Pattern Background Base - z-index 10 */}
       <div 
         className="absolute inset-0 z-10"
         style={{
@@ -45,12 +39,12 @@ export const CardBack: React.FC<CardBackProps> = ({
         }}
       />
       
-      {/* Surface Texture Layer on Back */}
+      {/* Surface Texture Layer - z-index 20 */}
       <div className="absolute inset-0 z-20">
         {SurfaceTexture}
       </div>
       
-      {/* Centered CRD Logo Only */}
+      {/* Centered CRD Logo - z-index 30 */}
       <div className="absolute inset-0 flex items-center justify-center z-30">
         <div className="flex items-center justify-center">
           <img 
@@ -60,13 +54,13 @@ export const CardBack: React.FC<CardBackProps> = ({
             style={{
               filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
             }}
-            onLoad={() => console.log('CRD logo loaded successfully')}
-            onError={() => console.error('Error loading CRD logo')}
+            onLoad={() => console.log('CardBack: CRD logo loaded successfully')}
+            onError={() => console.error('CardBack: Error loading CRD logo')}
           />
         </div>
       </div>
 
-      {/* Unified Effects Layer - Same as front */}
+      {/* Effects Layer - z-index 40 - Above everything else */}
       <CardEffectsLayer
         showEffects={showEffects}
         isHovering={isHovering}

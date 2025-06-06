@@ -41,14 +41,13 @@ export const CardGestureHandler: React.FC<CardGestureHandlerProps> = ({
   // Enhanced gesture callbacks
   const gestureCallbacks = {
     onTap: (position: { x: number; y: number }) => {
-      // In rotate mode, don't flip the card
-      if (!panelState.rotateMode) {
-        // The flip functionality is now managed in EnhancedCardContainer
-        // No need to call flipCard() here as it will cause double flips
-      }
+      // Don't handle tap here - let the parent component handle it
+      // This prevents double flips
+      console.log('CardGestureHandler: Tap detected but not handling flip');
     },
     
     onLongPress: (position: { x: number; y: number }) => {
+      console.log('CardGestureHandler: Long press detected');
       if (onLongPress) {
         onLongPress();
       }

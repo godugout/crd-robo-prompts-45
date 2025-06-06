@@ -43,7 +43,7 @@ export const CardTransform: React.FC<CardTransformProps> = ({
 }) => {
   return (
     <div
-      className="relative w-full h-full flex items-center justify-center transition-transform duration-300 ease-out"
+      className="relative w-full h-full flex items-center justify-center"
       style={{
         transform: `
           scale(${currentZoom})
@@ -53,16 +53,16 @@ export const CardTransform: React.FC<CardTransformProps> = ({
         `,
         transformStyle: 'preserve-3d',
         perspective: '1000px',
-        minHeight: '400px'
+        minHeight: '400px',
+        transition: 'transform 0.3s ease-out'
       }}
       onClick={handleCardFlip}
     >
-      {/* Card Content - Fixed dimensions */}
+      {/* Main Card Container - Handles the flip animation */}
       <div
         className={cn(
-          "relative w-80 h-[28rem] transition-transform duration-500",
-          "shadow-2xl rounded-xl overflow-hidden",
-          "bg-gradient-to-br from-blue-500 to-purple-600"
+          "relative w-80 h-[28rem] cursor-pointer",
+          "shadow-2xl rounded-xl overflow-hidden"
         )}
         style={{
           transformStyle: 'preserve-3d',
@@ -70,44 +70,60 @@ export const CardTransform: React.FC<CardTransformProps> = ({
           transition: 'transform 0.6s ease-out'
         }}
       >
-        {/* Card Front */}
-        <CardFront 
-          card={card}
-          isFlipped={currentIsFlipped}
-          isHovering={isHovering}
-          showEffects={showEffects}
-          effectIntensity={effectIntensity}
-          mousePosition={mousePosition}
-          frameStyles={frameStyles}
-          physicalEffectStyles={physicalEffectStyles}
-          SurfaceTexture={<SurfaceTexture 
-            effectValues={effectValues}
-            mousePosition={mousePosition}
+        {/* Card Front - No additional transforms */}
+        <div
+          className="absolute inset-0 backface-hidden"
+          style={{
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(0deg)'
+          }}
+        >
+          <CardFront 
+            card={card}
+            isFlipped={currentIsFlipped}
             isHovering={isHovering}
+            showEffects={showEffects}
+            effectIntensity={effectIntensity}
+            mousePosition={mousePosition}
+            frameStyles={frameStyles}
+            physicalEffectStyles={physicalEffectStyles}
+            SurfaceTexture={<SurfaceTexture 
+              effectValues={effectValues}
+              mousePosition={mousePosition}
+              isHovering={isHovering}
+              interactiveLighting={interactiveLighting}
+            />}
+            effectValues={effectValues}
+            materialSettings={{}}
             interactiveLighting={interactiveLighting}
-          />}
-          effectValues={effectValues}
-          materialSettings={{}}
-          interactiveLighting={interactiveLighting}
-        />
+          />
+        </div>
 
-        {/* Card Back */}
-        <CardBack
-          card={card}
-          isFlipped={currentIsFlipped}
-          isHovering={isHovering}
-          showEffects={showEffects}
-          effectIntensity={effectIntensity}
-          mousePosition={mousePosition}
-          physicalEffectStyles={physicalEffectStyles}
-          SurfaceTexture={<SurfaceTexture 
-            effectValues={effectValues}
-            mousePosition={mousePosition}
+        {/* Card Back - No additional transforms */}
+        <div
+          className="absolute inset-0 backface-hidden"
+          style={{
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)'
+          }}
+        >
+          <CardBack
+            card={card}
+            isFlipped={currentIsFlipped}
             isHovering={isHovering}
-            interactiveLighting={false}
-          />}
-          effectValues={effectValues}
-        />
+            showEffects={showEffects}
+            effectIntensity={effectIntensity}
+            mousePosition={mousePosition}
+            physicalEffectStyles={physicalEffectStyles}
+            SurfaceTexture={<SurfaceTexture 
+              effectValues={effectValues}
+              mousePosition={mousePosition}
+              isHovering={isHovering}
+              interactiveLighting={false}
+            />}
+            effectValues={effectValues}
+          />
+        </div>
       </div>
     </div>
   );
