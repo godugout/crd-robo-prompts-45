@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo, startTransition, useRef } from 'react';
 
 export interface EffectParameter {
@@ -23,6 +22,7 @@ export interface VisualEffectConfig {
 export interface EffectValues {
   [effectId: string]: {
     [parameterId: string]: number | boolean | string;
+    intensity?: number;
   };
 }
 

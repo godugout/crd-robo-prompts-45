@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from 'react';
 import { useEnhancedGestureRecognition } from '../hooks/useEnhancedGestureRecognition';
 import { useMobileControl } from '../context/MobileControlContext';
@@ -11,7 +10,7 @@ interface EnhancedCardContainerProps {
   isFlipped: boolean;
   isHovering: boolean;
   showEffects: boolean;
-  effectValues: any;
+  effectValues: Record<string, Record<string, number | boolean | string>>;
   mousePosition: { x: number; y: number };
   rotation: { x: number; y: number };
   zoom: number;
@@ -200,8 +199,10 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   };
 
   // Get effectIntensity array for consistent intensity values across components
+  // Fix: TypeScript type safety for effectValues
   const effectIntensity = Object.entries(effectValues).map(([id, params]) => {
-    return params.intensity || 0;
+    // Use type guard to safely access intensity
+    return typeof params.intensity === 'number' ? params.intensity : 0;
   });
 
   return (
