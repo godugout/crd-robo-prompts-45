@@ -1,53 +1,68 @@
 
-import { supabase } from '@/lib/supabase-client';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-interface UploadCardImageParams {
+export interface UploadCardImageOptions {
   file: File;
   cardId: string;
   userId: string;
-  onProgress?: (progress: number) => void;
 }
 
-interface UploadResult {
+export interface UploadResult {
   url: string;
   thumbnailUrl?: string;
+  publicUrl: string;
 }
 
-export const uploadCardImage = async ({ 
-  file, 
-  cardId, 
-  userId, 
-  onProgress 
-}: UploadCardImageParams): Promise<UploadResult | null> => {
+export const uploadCardImage = async ({
+  file,
+  cardId,
+  userId
+}: UploadCardImageOptions): Promise<UploadResult | null> => {
   try {
-    // Create a unique filename
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${userId}/${cardId}-${Date.now()}.${fileExt}`;
+    // Validate file
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return null;
+    }
 
-    // Upload to a public bucket (you may need to create this bucket)
+    // Check file size (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be smaller than 10MB');
+      return null;
+    }
+
+    // Create unique filename
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${cardId}-${userId}-${Date.now()}.${fileExt}`;
+    const filePath = `cards/${fileName}`;
+
+    // Upload to Supabase Storage
     const { data, error } = await supabase.storage
       .from('card-images')
-      .upload(fileName, file, {
+      .upload(filePath, file, {
         cacheControl: '3600',
         upsert: false
       });
 
     if (error) {
       console.error('Upload error:', error);
+      toast.error('Failed to upload image');
       return null;
     }
 
-    // Get the public URL
+    // Get public URL
     const { data: urlData } = supabase.storage
       .from('card-images')
-      .getPublicUrl(fileName);
+      .getPublicUrl(data.path);
 
     return {
       url: urlData.publicUrl,
-      thumbnailUrl: urlData.publicUrl // For now, use the same URL for thumbnail
+      publicUrl: urlData.publicUrl
     };
   } catch (error) {
     console.error('Upload error:', error);
+    toast.error('Failed to upload image');
     return null;
   }
 };
