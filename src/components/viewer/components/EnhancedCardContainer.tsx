@@ -128,11 +128,8 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   const containerProps = isMobile ? {
     ...touchHandlers,
     style: {
-      touchAction: 'none',
+      touchAction: 'none', // Prevent default touch behaviors
       userSelect: 'none' as const,
-      WebkitUserSelect: 'none' as const,
-      WebkitTouchCallout: 'none' as const,
-      WebkitTapHighlightColor: 'transparent'
     }
   } : {
     onMouseDown,

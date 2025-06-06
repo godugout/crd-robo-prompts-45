@@ -65,27 +65,6 @@ export const useMobileTouchControls = (callbacks: GestureCallbacks) => {
     return { x: x / touches.length, y: y / touches.length };
   }, []);
 
-  // Check if touch target is an interactive element
-  const isInteractiveElement = useCallback((target: EventTarget | null) => {
-    if (!target || !(target instanceof Element)) return false;
-    
-    const interactiveSelectors = [
-      'button',
-      'input',
-      'select',
-      'textarea',
-      'a',
-      '[role="button"]',
-      '[tabindex]',
-      '.drawer-content',
-      '.drawer-overlay'
-    ];
-    
-    return interactiveSelectors.some(selector => 
-      target.matches(selector) || target.closest(selector)
-    );
-  }, []);
-
   // Momentum scrolling
   const startMomentum = useCallback((velocity: { x: number; y: number }) => {
     const friction = 0.95;
@@ -107,11 +86,6 @@ export const useMobileTouchControls = (callbacks: GestureCallbacks) => {
   }, [callbacks]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    // Don't prevent default on interactive elements
-    if (isInteractiveElement(e.target)) {
-      return;
-    }
-    
     e.preventDefault();
     
     if (momentumAnimation.current) {
@@ -152,14 +126,9 @@ export const useMobileTouchControls = (callbacks: GestureCallbacks) => {
       velocity: { x: 0, y: 0 },
       lastPosition: center
     });
-  }, [callbacks, getCenter, getDistance, getAngle, isInteractiveElement]);
+  }, [callbacks, getCenter, getDistance, getAngle]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    // Don't prevent default on interactive elements
-    if (isInteractiveElement(e.target)) {
-      return;
-    }
-    
     e.preventDefault();
     
     if (longPressTimer.current) {
@@ -202,7 +171,7 @@ export const useMobileTouchControls = (callbacks: GestureCallbacks) => {
       velocity: { x: deltaX, y: deltaY },
       lastPosition: center
     }));
-  }, [touchState, callbacks, getCenter, getDistance, getAngle, isInteractiveElement]);
+  }, [touchState, callbacks, getCenter, getDistance, getAngle]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (longPressTimer.current) {
@@ -251,17 +220,25 @@ export const useMobileTouchControls = (callbacks: GestureCallbacks) => {
     }));
   }, [touchState, callbacks, startMomentum]);
 
-  // Only prevent browser zoom on card container, not globally
+  // Prevent browser zoom and scroll
   useEffect(() => {
+    const preventDefaults = (e: TouchEvent) => {
+      e.preventDefault();
+    };
+
     const preventZoom = (e: WheelEvent) => {
       if (e.ctrlKey) {
         e.preventDefault();
       }
     };
 
+    document.addEventListener('touchstart', preventDefaults, { passive: false });
+    document.addEventListener('touchmove', preventDefaults, { passive: false });
     document.addEventListener('wheel', preventZoom, { passive: false });
 
     return () => {
+      document.removeEventListener('touchstart', preventDefaults);
+      document.removeEventListener('touchmove', preventDefaults);
       document.removeEventListener('wheel', preventZoom);
     };
   }, []);

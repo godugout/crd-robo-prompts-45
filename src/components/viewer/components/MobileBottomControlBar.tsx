@@ -2,7 +2,6 @@
 import React from 'react';
 import { Sparkles, RotateCcw, ZoomIn, ZoomOut, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface MobileBottomControlBarProps {
   showEffects: boolean;
@@ -39,28 +38,22 @@ export const MobileBottomControlBar: React.FC<MobileBottomControlBarProps> = ({
   onNextCard
 }) => {
   return (
-    <div className="h-full flex flex-col">
-      {/* Navigation Section - Only show if multiple cards */}
-      {hasMultipleCards && (
-        <div className="flex items-center justify-center px-4 py-2 border-b border-white/10">
-          <div className="flex items-center space-x-3">
+    <div className="h-full flex items-center justify-between px-4">
+      {/* Left Section - Navigation */}
+      <div className="flex items-center space-x-2">
+        {hasMultipleCards ? (
+          <>
             <Button
               variant="ghost"
               size="sm"
               onClick={onPreviousCard}
               disabled={!canGoPrev}
-              className="
-                bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
-                disabled:opacity-50 min-h-[40px] min-w-[40px] p-2
-                touch-manipulation active:scale-95 transition-transform
-                -webkit-tap-highlight-color: transparent
-              "
-              style={{ touchAction: 'manipulation' }}
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white disabled:opacity-50 h-10 w-10 p-0"
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
             
-            <div className="text-white text-sm min-w-[60px] text-center font-medium px-3">
+            <div className="text-white text-sm min-w-[60px] text-center">
               {currentCardIndex + 1}/{totalCards}
             </div>
             
@@ -69,107 +62,71 @@ export const MobileBottomControlBar: React.FC<MobileBottomControlBarProps> = ({
               size="sm"
               onClick={onNextCard}
               disabled={!canGoNext}
-              className="
-                bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
-                disabled:opacity-50 min-h-[40px] min-w-[40px] p-2
-                touch-manipulation active:scale-95 transition-transform
-                -webkit-tap-highlight-color: transparent
-              "
-              style={{ touchAction: 'manipulation' }}
+              className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white disabled:opacity-50 h-10 w-10 p-0"
             >
               <ChevronRight className="w-5 h-5" />
             </Button>
-          </div>
-        </div>
-      )}
+          </>
+        ) : (
+          <div className="w-20" /> // Spacer
+        )}
+      </div>
 
-      {/* Main Controls - Horizontal scroll for overflow */}
-      <div className="flex-1 flex items-center px-2">
-        <ScrollArea className="w-full">
-          <div className="flex items-center justify-center space-x-2 px-2 min-w-max">
-            {/* Effects Toggle */}
-            <Button
-              variant="ghost"
-              size="lg"
-              onClick={onToggleEffects}
-              className={`
-                bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
-                min-h-[48px] min-w-[48px] p-2 touch-manipulation 
-                active:scale-95 transition-all duration-150 flex-shrink-0
-                -webkit-tap-highlight-color: transparent
-                ${showEffects ? 'ring-2 ring-crd-green ring-offset-2 ring-offset-black' : ''}
-              `}
-              style={{ touchAction: 'manipulation' }}
-            >
-              <Sparkles className="w-5 h-5" />
-            </Button>
+      {/* Center Section - Main Controls */}
+      <div className="flex items-center space-x-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggleEffects}
+          className={`
+            bg-white bg-opacity-20 hover:bg-opacity-30 text-white h-12 w-12 p-0
+            ${showEffects ? 'ring-2 ring-crd-green' : ''}
+          `}
+        >
+          <Sparkles className="w-5 h-5" />
+        </Button>
 
-            {/* Reset */}
-            <Button
-              variant="ghost"
-              size="lg"
-              onClick={onReset}
-              className="
-                bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
-                min-h-[48px] min-w-[48px] p-2 touch-manipulation flex-shrink-0
-                active:scale-95 transition-transform duration-150
-                -webkit-tap-highlight-color: transparent
-              "
-              style={{ touchAction: 'manipulation' }}
-            >
-              <RotateCcw className="w-5 h-5" />
-            </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onReset}
+          className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white h-12 w-12 p-0"
+        >
+          <RotateCcw className="w-5 h-5" />
+        </Button>
 
-            {/* Zoom In */}
-            <Button
-              variant="ghost"
-              size="lg"
-              onClick={onZoomIn}
-              className="
-                bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
-                min-h-[48px] min-w-[48px] p-2 touch-manipulation flex-shrink-0
-                active:scale-95 transition-transform duration-150
-                -webkit-tap-highlight-color: transparent
-              "
-              style={{ touchAction: 'manipulation' }}
-            >
-              <ZoomIn className="w-5 h-5" />
-            </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onZoomIn}
+          className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white h-12 w-12 p-0"
+        >
+          <ZoomIn className="w-5 h-5" />
+        </Button>
 
-            {/* Zoom Out */}
-            <Button
-              variant="ghost"
-              size="lg"
-              onClick={onZoomOut}
-              className="
-                bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
-                min-h-[48px] min-w-[48px] p-2 touch-manipulation flex-shrink-0
-                active:scale-95 transition-transform duration-150
-                -webkit-tap-highlight-color: transparent
-              "
-              style={{ touchAction: 'manipulation' }}
-            >
-              <ZoomOut className="w-5 h-5" />
-            </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onZoomOut}
+          className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white h-12 w-12 p-0"
+        >
+          <ZoomOut className="w-5 h-5" />
+        </Button>
+      </div>
 
-            {/* Info Toggle */}
-            <Button
-              variant="ghost"
-              size="lg"
-              onClick={onToggleInfo}
-              className={`
-                bg-white bg-opacity-20 hover:bg-opacity-30 text-white 
-                min-h-[48px] min-w-[48px] p-2 touch-manipulation flex-shrink-0
-                active:scale-95 transition-all duration-150
-                -webkit-tap-highlight-color: transparent
-                ${showInfo ? 'ring-2 ring-crd-green ring-offset-2 ring-offset-black' : ''}
-              `}
-              style={{ touchAction: 'manipulation' }}
-            >
-              <Info className="w-5 h-5" />
-            </Button>
-          </div>
-        </ScrollArea>
+      {/* Right Section - Info Toggle */}
+      <div className="flex items-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggleInfo}
+          className={`
+            bg-white bg-opacity-20 hover:bg-opacity-30 text-white h-10 w-10 p-0
+            ${showInfo ? 'ring-2 ring-crd-green' : ''}
+          `}
+        >
+          <Info className="w-4 h-4" />
+        </Button>
       </div>
     </div>
   );

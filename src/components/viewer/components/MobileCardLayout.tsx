@@ -30,36 +30,31 @@ export const MobileCardLayout: React.FC<MobileCardLayoutProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full w-full relative overflow-hidden">
-      {/* Card Safe Area - Flexible height based on info panel */}
-      <div 
-        className={`flex-1 relative overflow-hidden transition-all duration-300 ${
-          showInfoPanel ? 'h-[55vh]' : 'h-[75vh]'
-        }`}
-        style={{ minHeight: '50vh' }}
-      >
+    <div className="flex flex-col h-full w-full relative">
+      {/* Card Safe Area - Top 70% */}
+      <div className="flex-1 relative overflow-hidden" style={{ height: '70vh' }}>
         {/* Card Container */}
-        <div className="absolute inset-0 flex items-center justify-center p-2">
+        <div className="absolute inset-0 flex items-center justify-center p-4">
           {children}
         </div>
         
         {/* Floating Controls (Studio button, etc.) */}
         {floatingControls && (
-          <div className="absolute top-3 right-3 z-20">
+          <div className="absolute top-4 right-4 z-20">
             {floatingControls}
           </div>
         )}
       </div>
 
-      {/* Info Panel - Collapsible with smooth transition */}
+      {/* Info Panel - Collapsible */}
       {showInfoPanel && infoPanel && (
-        <div className="bg-black bg-opacity-95 backdrop-blur border-t border-white/10 px-4 py-3 max-h-[25vh] overflow-y-auto">
+        <div className="bg-black bg-opacity-90 backdrop-blur border-t border-white/10 px-4 py-2">
           {infoPanel}
         </div>
       )}
 
-      {/* Bottom Control Bar - Fixed Height with adaptive content */}
-      <div className="h-20 bg-black bg-opacity-95 backdrop-blur border-t border-white/10 flex-shrink-0">
+      {/* Bottom Control Bar - Fixed Height */}
+      <div className="h-24 bg-black bg-opacity-95 backdrop-blur border-t border-white/10 flex-shrink-0">
         {bottomControls}
       </div>
     </div>

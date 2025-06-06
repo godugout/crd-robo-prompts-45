@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -68,55 +69,52 @@ export const MobileStudioDrawer: React.FC<MobileStudioDrawerProps> = ({
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
       <DrawerTrigger asChild>
-        <div style={{ display: 'none' }} />
+        <Button
+          variant="ghost"
+          size="lg"
+          className="bg-black bg-opacity-70 hover:bg-opacity-80 backdrop-blur border border-white/20 text-white px-6 py-3"
+        >
+          <Sparkles className="w-5 h-5 mr-2" />
+          <span className="text-base font-medium">Open Studio</span>
+        </Button>
       </DrawerTrigger>
       
-      <DrawerContent 
-        className="bg-black bg-opacity-95 backdrop-blur-lg border-white/10 h-[90vh] max-h-[90vh]"
-        style={{ 
-          touchAction: 'auto',
-          WebkitOverflowScrolling: 'touch'
-        }}
-      >
-        <DrawerHeader className="border-b border-white/10 flex-shrink-0 pb-4">
+      <DrawerContent className="bg-black bg-opacity-95 backdrop-blur-lg border-white/10 max-h-[85vh]">
+        <DrawerHeader className="border-b border-white/10">
           <DrawerTitle className="text-white text-lg font-semibold flex items-center">
             <Sparkles className="w-5 h-5 text-crd-green mr-2" />
             Enhanced Studio
           </DrawerTitle>
         </DrawerHeader>
         
-        <div 
-          className="flex-1 overflow-hidden" 
-          style={{ 
-            touchAction: 'auto',
-            WebkitOverflowScrolling: 'touch'
-          }}
-        >
-          <ProgressiveCustomizePanel
-            selectedScene={selectedScene}
-            selectedLighting={selectedLighting}
-            effectValues={effectValues}
-            overallBrightness={overallBrightness}
-            interactiveLighting={interactiveLighting}
-            materialSettings={materialSettings}
-            isFullscreen={isFullscreen}
-            onSceneChange={onSceneChange}
-            onLightingChange={onLightingChange}
-            onEffectChange={onEffectChange}
-            onResetAllEffects={onResetAllEffects}
-            onBrightnessChange={onBrightnessChange}
-            onInteractiveLightingToggle={onInteractiveLightingToggle}
-            onMaterialSettingsChange={onMaterialSettingsChange}
-            onToggleFullscreen={onToggleFullscreen}
-            onDownload={onDownload}
-            onShare={onShare}
-            onClose={() => onOpenChange(false)}
-            card={card}
-            selectedPresetId={selectedPresetId}
-            onPresetSelect={onPresetSelect}
-            onApplyCombo={onApplyCombo}
-            isApplyingPreset={isApplyingPreset}
-          />
+        <div className="flex-1 overflow-hidden">
+          <div className="h-full w-full max-w-none">
+            <ProgressiveCustomizePanel
+              selectedScene={selectedScene}
+              selectedLighting={selectedLighting}
+              effectValues={effectValues}
+              overallBrightness={overallBrightness}
+              interactiveLighting={interactiveLighting}
+              materialSettings={materialSettings}
+              isFullscreen={isFullscreen}
+              onSceneChange={onSceneChange}
+              onLightingChange={onLightingChange}
+              onEffectChange={onEffectChange}
+              onResetAllEffects={onResetAllEffects}
+              onBrightnessChange={onBrightnessChange}
+              onInteractiveLightingToggle={onInteractiveLightingToggle}
+              onMaterialSettingsChange={onMaterialSettingsChange}
+              onToggleFullscreen={onToggleFullscreen}
+              onDownload={onDownload}
+              onShare={onShare}
+              onClose={() => onOpenChange(false)}
+              card={card}
+              selectedPresetId={selectedPresetId}
+              onPresetSelect={onPresetSelect}
+              onApplyCombo={onApplyCombo}
+              isApplyingPreset={isApplyingPreset}
+            />
+          </div>
         </div>
       </DrawerContent>
     </Drawer>
