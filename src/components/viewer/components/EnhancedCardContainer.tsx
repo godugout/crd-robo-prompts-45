@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from 'react';
 import { useEnhancedGestureRecognition } from '../hooks/useEnhancedGestureRecognition';
 import { useMobileControl } from '../context/MobileControlContext';
@@ -101,17 +100,6 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   } = useSafeMobileControl();
   
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Debug logging
-  useEffect(() => {
-    console.log('🎴 EnhancedCardContainer rendering:', {
-      card: card?.title || 'No title',
-      isFlipped,
-      zoom,
-      rotation,
-      cardState
-    });
-  }, [card, isFlipped, zoom, rotation, cardState]);
 
   // Enhanced gesture callbacks
   const gestureCallbacks = {
@@ -220,7 +208,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
         `,
         transformStyle: 'preserve-3d',
         perspective: '1000px',
-        minHeight: '400px' // Ensure minimum height
+        minHeight: '400px'
       }}
       {...touchHandlers}
       onMouseDown={onMouseDown}
@@ -231,14 +219,12 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
       {/* Card Content - Fixed dimensions */}
       <div
         className={cn(
-          "relative transition-transform duration-500",
+          "relative w-80 h-[28rem] transition-transform duration-500",
           "shadow-2xl rounded-xl overflow-hidden",
-          "bg-gradient-to-br from-blue-500 to-purple-600", // Fallback background
+          "bg-gradient-to-br from-blue-500 to-purple-600",
           currentIsFlipped && "rotateY-180"
         )}
         style={{
-          width: '320px',
-          height: '448px', // Standard trading card ratio (roughly 2.5:3.5)
           transformStyle: 'preserve-3d',
           ...frameStyles,
           ...enhancedEffectStyles
@@ -249,8 +235,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
           className={cn(
             "absolute inset-0 backface-hidden",
             "bg-gradient-to-br from-blue-500 to-purple-600",
-            "flex flex-col items-center justify-center text-white",
-            "border-2 border-white/20" // Debug border
+            "flex flex-col items-center justify-center text-white"
           )}
           style={{
             backfaceVisibility: 'hidden'
@@ -285,8 +270,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
           className={cn(
             "absolute inset-0 backface-hidden rotateY-180",
             "bg-gradient-to-br from-gray-800 to-gray-900",
-            "flex items-center justify-center text-white",
-            "border-2 border-white/20" // Debug border
+            "flex items-center justify-center text-white"
           )}
           style={{
             backfaceVisibility: 'hidden'
@@ -324,11 +308,6 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
           {gestureState.gestureType}
         </div>
       )}
-
-      {/* Debug Info - Remove after testing */}
-      <div className="absolute bottom-2 left-2 text-xs text-white/50 bg-black/30 px-2 py-1 rounded">
-        {currentZoom.toFixed(1)}x • {currentRotation.x.toFixed(0)}°,{currentRotation.y.toFixed(0)}° • {currentIsFlipped ? 'Back' : 'Front'}
-      </div>
     </div>
   );
 };
