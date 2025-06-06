@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from 'react';
 import { useEnhancedGestureRecognition } from '../hooks/useEnhancedGestureRecognition';
 import { useMobileControl } from '../context/MobileControlContext';
