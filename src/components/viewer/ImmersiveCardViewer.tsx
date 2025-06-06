@@ -139,13 +139,15 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     handleEffectChange(effectId, parameterId, value);
   };
 
-  // Enhanced mobile gesture handlers using the new hook
-  const { touchHandlers, isActive } = isMobile ? useEnhancedMobileGestures({
+  // Enhanced mobile gesture handlers - Always call the hook, but only use results on mobile
+  const { touchHandlers, isActive } = useEnhancedMobileGestures({
     onPinchZoom: (scale: number, center: { x: number; y: number }) => {
-      setZoom(prev => Math.max(0.5, Math.min(3, prev * scale)));
+      if (isMobile) {
+        setZoom(prev => Math.max(0.5, Math.min(3, prev * scale)));
+      }
     },
     onPan: (delta: { x: number; y: number }, velocity: { x: number; y: number }) => {
-      if (allowRotation) {
+      if (isMobile && allowRotation) {
         const sensitivity = 0.5;
         setRotation(prev => ({
           x: Math.max(-45, Math.min(45, prev.x + delta.y * sensitivity)),
@@ -154,37 +156,43 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
       }
     },
     onRotate: (angle: number) => {
-      if (allowRotation) {
+      if (isMobile && allowRotation) {
         setRotation(prev => ({
           x: prev.x,
           y: prev.y + angle * 0.5
         }));
       }
     },
-    onTap: () => setIsFlipped(!isFlipped),
+    onTap: () => isMobile && setIsFlipped(!isFlipped),
     onDoubleTap: () => {
-      if (zoom <= 1) {
-        setZoom(1.8);
-      } else {
-        setZoom(1);
-        setRotation({ x: 0, y: 0 });
+      if (isMobile) {
+        if (zoom <= 1) {
+          setZoom(1.8);
+        } else {
+          setZoom(1);
+          setRotation({ x: 0, y: 0 });
+        }
       }
     },
     onLongPress: () => {
-      setAutoRotate(!autoRotate);
-      if ('vibrate' in navigator) {
-        navigator.vibrate(100);
+      if (isMobile) {
+        setAutoRotate(!autoRotate);
+        if ('vibrate' in navigator) {
+          navigator.vibrate(100);
+        }
       }
     },
-    onSwipeLeft: handleNextCard,
-    onSwipeRight: handlePreviousCard,
+    onSwipeLeft: () => isMobile && handleNextCard(),
+    onSwipeRight: () => isMobile && handlePreviousCard(),
     onThreeFingerTap: () => {
-      gestureHandlers.handleMobileReset();
-      if ('vibrate' in navigator) {
-        navigator.vibrate([100, 50, 100]);
+      if (isMobile) {
+        gestureHandlers.handleMobileReset();
+        if ('vibrate' in navigator) {
+          navigator.vibrate([100, 50, 100]);
+        }
       }
     },
-  }) : { touchHandlers: {}, isActive: false };
+  });
 
   if (!isOpen) return null;
 

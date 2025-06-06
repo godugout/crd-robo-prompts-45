@@ -1,10 +1,13 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { TouchPoint, GestureState, EnhancedGestureCallbacks } from './types';
 import { useTouchUtils } from './touchUtils';
 import { useMomentumHandler } from './momentumHandler';
 
 export const useEnhancedMobileGestures = (callbacks: EnhancedGestureCallbacks) => {
+  const isMobile = useIsMobile();
+  
   const [gestureState, setGestureState] = useState<GestureState>({
     isActive: false,
     startTime: 0,
@@ -24,6 +27,8 @@ export const useEnhancedMobileGestures = (callbacks: EnhancedGestureCallbacks) =
   const { startMomentum, stopMomentum, momentumTimer } = useMomentumHandler(callbacks.onPan);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!isMobile) return;
+    
     e.preventDefault();
     
     // Stop any existing momentum
@@ -61,9 +66,11 @@ export const useEnhancedMobileGestures = (callbacks: EnhancedGestureCallbacks) =
       velocity: { x: 0, y: 0 },
       momentum: false
     });
-  }, [callbacks, getTouchPoints, getDistance, stopMomentum]);
+  }, [callbacks, getTouchPoints, getDistance, stopMomentum, isMobile]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isMobile) return;
+    
     e.preventDefault();
     
     // Clear long press timer
@@ -116,9 +123,11 @@ export const useEnhancedMobileGestures = (callbacks: EnhancedGestureCallbacks) =
     }
 
     touchesRef.current = touches;
-  }, [callbacks, gestureState, getTouchPoints, getDistance, getCenter]);
+  }, [callbacks, gestureState, getTouchPoints, getDistance, getCenter, isMobile]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!isMobile) return;
+    
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
     }
@@ -179,10 +188,12 @@ export const useEnhancedMobileGestures = (callbacks: EnhancedGestureCallbacks) =
     }));
 
     touchesRef.current = remainingTouches;
-  }, [callbacks, gestureState, getTouchPoints, startMomentum]);
+  }, [callbacks, gestureState, getTouchPoints, startMomentum, isMobile]);
 
   // Prevent default browser behaviors for PWA
   useEffect(() => {
+    if (!isMobile) return;
+    
     const preventDefaultTouch = (e: TouchEvent) => {
       if (e.touches.length > 1) {
         e.preventDefault();
@@ -211,7 +222,16 @@ export const useEnhancedMobileGestures = (callbacks: EnhancedGestureCallbacks) =
         cancelAnimationFrame(momentumTimer.current);
       }
     };
-  }, []);
+  }, [isMobile]);
+
+  // Return empty handlers when not on mobile
+  if (!isMobile) {
+    return {
+      touchHandlers: {},
+      isActive: false,
+      hasMomentum: false
+    };
+  }
 
   return {
     touchHandlers: {
