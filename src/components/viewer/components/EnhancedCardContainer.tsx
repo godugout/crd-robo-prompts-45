@@ -234,7 +234,6 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
         <div 
           className={cn(
             "absolute inset-0 backface-hidden",
-            "bg-gradient-to-br from-blue-500 to-purple-600",
             "flex flex-col items-center justify-center text-white"
           )}
           style={{
@@ -251,18 +250,34 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             />
           )}
           
-          {/* Card Content */}
-          <div className="relative z-10 text-center p-6">
-            <h2 className="text-2xl font-bold mb-2 drop-shadow-lg">
-              {card?.title || 'Sample Card'}
-            </h2>
-            <p className="text-sm opacity-90 drop-shadow">
-              {card?.description || 'Enhanced card viewer with gesture support'}
-            </p>
-            <div className="mt-4 text-xs opacity-75">
-              Tap to flip • Pinch to zoom • Swipe to navigate
+          {/* Card Image - Full Coverage */}
+          {card?.image_url ? (
+            <div className="absolute inset-0 z-10 w-full h-full">
+              <img 
+                src={card.image_url}
+                alt={card.title || 'Card image'}
+                className="w-full h-full object-cover"
+                style={{
+                  filter: showEffects ? 'contrast(1.05) saturate(1.1)' : 'none'
+                }}
+                onLoad={() => console.log('Card image loaded successfully')}
+                onError={() => console.log('Error loading card image')}
+              />
             </div>
-          </div>
+          ) : (
+            /* If no image, display a title and description */
+            <div className="relative z-10 text-center p-6">
+              <h2 className="text-2xl font-bold mb-2 drop-shadow-lg">
+                {card?.title || 'Sample Card'}
+              </h2>
+              <p className="text-sm opacity-90 drop-shadow">
+                {card?.description || 'Enhanced card viewer with gesture support'}
+              </p>
+              <div className="mt-4 text-xs opacity-75">
+                Tap to flip • Pinch to zoom • Swipe to navigate
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Card Back */}
@@ -276,15 +291,39 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             backfaceVisibility: 'hidden'
           }}
         >
-          <div className="text-center p-6">
-            <h3 className="text-xl font-semibold mb-2 drop-shadow-lg">Card Back</h3>
-            <p className="text-sm opacity-75 drop-shadow">
-              {card?.backText || 'Additional card information'}
-            </p>
-            <div className="mt-4 text-xs opacity-60">
-              Tap again to flip back
-            </div>
+          {/* Dark Pattern Background Base */}
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: `
+                linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)
+              `,
+              backgroundColor: '#0a0a0a'
+            }}
+          />
+          
+          {/* Centered CRD Logo */}
+          <div className="relative z-30 flex items-center justify-center">
+            <img 
+              src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
+              alt="CRD Logo" 
+              className="w-48 h-auto opacity-90"
+              style={{
+                filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
+              }}
+              onLoad={() => console.log('CRD logo loaded successfully')}
+              onError={() => console.log('Error loading CRD logo')}
+            />
           </div>
+          
+          {/* Additional back text if provided */}
+          {card?.backText && (
+            <div className="absolute bottom-8 left-0 right-0 text-center">
+              <p className="text-sm opacity-75 drop-shadow px-6">
+                {card.backText}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
