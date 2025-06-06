@@ -102,6 +102,17 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('🎴 EnhancedCardContainer rendering:', {
+      card: card?.title || 'No title',
+      isFlipped,
+      zoom,
+      rotation,
+      cardState
+    });
+  }, [card, isFlipped, zoom, rotation, cardState]);
+
   // Enhanced gesture callbacks
   const gestureCallbacks = {
     onTap: (position: { x: number; y: number }) => {
@@ -208,7 +219,8 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
           translate3d(${currentPosition.x}px, ${currentPosition.y}px, 0)
         `,
         transformStyle: 'preserve-3d',
-        perspective: '1000px'
+        perspective: '1000px',
+        minHeight: '400px' // Ensure minimum height
       }}
       {...touchHandlers}
       onMouseDown={onMouseDown}
@@ -216,14 +228,17 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* Card Content */}
+      {/* Card Content - Fixed dimensions */}
       <div
         className={cn(
-          "relative w-80 h-112 transition-transform duration-500",
+          "relative transition-transform duration-500",
           "shadow-2xl rounded-xl overflow-hidden",
+          "bg-gradient-to-br from-blue-500 to-purple-600", // Fallback background
           currentIsFlipped && "rotateY-180"
         )}
         style={{
+          width: '320px',
+          height: '448px', // Standard trading card ratio (roughly 2.5:3.5)
           transformStyle: 'preserve-3d',
           ...frameStyles,
           ...enhancedEffectStyles
@@ -234,8 +249,12 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
           className={cn(
             "absolute inset-0 backface-hidden",
             "bg-gradient-to-br from-blue-500 to-purple-600",
-            "flex flex-col items-center justify-center text-white"
+            "flex flex-col items-center justify-center text-white",
+            "border-2 border-white/20" // Debug border
           )}
+          style={{
+            backfaceVisibility: 'hidden'
+          }}
         >
           {/* Surface Texture Effect */}
           {showEffects && SurfaceTexture && (
@@ -249,8 +268,15 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
           
           {/* Card Content */}
           <div className="relative z-10 text-center p-6">
-            <h2 className="text-2xl font-bold mb-2">{card.title || 'Sample Card'}</h2>
-            <p className="text-sm opacity-90">{card.description || 'Enhanced card viewer'}</p>
+            <h2 className="text-2xl font-bold mb-2 drop-shadow-lg">
+              {card?.title || 'Sample Card'}
+            </h2>
+            <p className="text-sm opacity-90 drop-shadow">
+              {card?.description || 'Enhanced card viewer with gesture support'}
+            </p>
+            <div className="mt-4 text-xs opacity-75">
+              Tap to flip • Pinch to zoom • Swipe to navigate
+            </div>
           </div>
         </div>
 
@@ -259,36 +285,50 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
           className={cn(
             "absolute inset-0 backface-hidden rotateY-180",
             "bg-gradient-to-br from-gray-800 to-gray-900",
-            "flex items-center justify-center text-white"
+            "flex items-center justify-center text-white",
+            "border-2 border-white/20" // Debug border
           )}
+          style={{
+            backfaceVisibility: 'hidden'
+          }}
         >
-          <div className="text-center">
-            <h3 className="text-xl font-semibold mb-2">Card Back</h3>
-            <p className="text-sm opacity-75">Additional information</p>
+          <div className="text-center p-6">
+            <h3 className="text-xl font-semibold mb-2 drop-shadow-lg">Card Back</h3>
+            <p className="text-sm opacity-75 drop-shadow">
+              {card?.backText || 'Additional card information'}
+            </p>
+            <div className="mt-4 text-xs opacity-60">
+              Tap again to flip back
+            </div>
           </div>
         </div>
       </div>
 
       {/* Rotation Mode Indicator */}
       {panelState.rotateMode && (
-        <div className="absolute top-4 left-4 bg-orange-500/90 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur">
+        <div className="absolute top-4 left-4 bg-orange-500/90 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur z-50">
           Rotation Mode • {Math.round(currentRotation.y)}°
         </div>
       )}
 
       {/* Zoom Indicator */}
       {currentZoom !== 1 && (
-        <div className="absolute top-4 right-4 bg-blue-500/90 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur">
+        <div className="absolute top-4 right-4 bg-blue-500/90 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur z-50">
           {Math.round(currentZoom * 100)}%
         </div>
       )}
 
       {/* Gesture Feedback */}
       {gestureState.isActive && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded-full text-sm backdrop-blur">
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded-full text-sm backdrop-blur z-50">
           {gestureState.gestureType}
         </div>
       )}
+
+      {/* Debug Info - Remove after testing */}
+      <div className="absolute bottom-2 left-2 text-xs text-white/50 bg-black/30 px-2 py-1 rounded">
+        {currentZoom.toFixed(1)}x • {currentRotation.x.toFixed(0)}°,{currentRotation.y.toFixed(0)}° • {currentIsFlipped ? 'Back' : 'Front'}
+      </div>
     </div>
   );
 };
