@@ -8,6 +8,10 @@ interface MobileCardLayoutProps {
   floatingControls?: React.ReactNode;
   infoPanel?: React.ReactNode;
   showInfoPanel?: boolean;
+  studioPanel?: React.ReactNode;
+  createCardPanel?: React.ReactNode;
+  framesPanel?: React.ReactNode;
+  showcasePanel?: React.ReactNode;
 }
 
 export const MobileCardLayout: React.FC<MobileCardLayoutProps> = ({
@@ -15,7 +19,11 @@ export const MobileCardLayout: React.FC<MobileCardLayoutProps> = ({
   bottomControls,
   floatingControls,
   infoPanel,
-  showInfoPanel = false
+  showInfoPanel = false,
+  studioPanel,
+  createCardPanel,
+  framesPanel,
+  showcasePanel
 }) => {
   const isMobile = useIsMobile();
 
@@ -31,14 +39,14 @@ export const MobileCardLayout: React.FC<MobileCardLayoutProps> = ({
 
   return (
     <div className="flex flex-col h-full w-full relative">
-      {/* Card Safe Area - Top 70% */}
-      <div className="flex-1 relative overflow-hidden" style={{ height: '70vh' }}>
+      {/* Card Safe Area - Adjusted for two-level controls */}
+      <div className="flex-1 relative overflow-hidden" style={{ height: '65vh' }}>
         {/* Card Container */}
         <div className="absolute inset-0 flex items-center justify-center p-4">
           {children}
         </div>
         
-        {/* Floating Controls (Studio button, etc.) */}
+        {/* Floating Controls (Traditional studio button, etc.) */}
         {floatingControls && (
           <div className="absolute top-4 right-4 z-20">
             {floatingControls}
@@ -53,8 +61,14 @@ export const MobileCardLayout: React.FC<MobileCardLayoutProps> = ({
         </div>
       )}
 
-      {/* Bottom Control Bar - Fixed Height */}
-      <div className="h-24 bg-black bg-opacity-95 backdrop-blur border-t border-white/10 flex-shrink-0">
+      {/* Level 2 Panels */}
+      {studioPanel}
+      {createCardPanel}
+      {framesPanel}
+      {showcasePanel}
+
+      {/* Main Control Bar - Fixed Height (Level 1) */}
+      <div className="flex-shrink-0">
         {bottomControls}
       </div>
     </div>

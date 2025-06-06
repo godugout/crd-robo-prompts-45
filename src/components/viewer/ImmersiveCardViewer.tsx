@@ -20,7 +20,11 @@ import { ExportOptionsDialog } from './components/ExportOptionsDialog';
 import { ConfigurationDetailsPanel } from './components/ConfigurationDetailsPanel';
 import { GestureHelpOverlay } from './components/GestureHelpOverlay';
 import { MobileCardLayout } from './components/MobileCardLayout';
-import { MobileBottomControlBar } from './components/MobileBottomControlBar';
+import { MobileMainControlBar } from './components/MobileMainControlBar';
+import { MobileStudioPanel } from './components/MobileStudioPanel';
+import { MobileCreateCardPanel } from './components/MobileCreateCardPanel';
+import { MobileFramesPanel } from './components/MobileFramesPanel';
+import { MobileShowcasePanel } from './components/MobileShowcasePanel';
 import { MobileInfoPanel } from './components/MobileInfoPanel';
 
 // Update the interface to support card navigation
@@ -62,6 +66,15 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [showGestureHelp, setShowGestureHelp] = useState(false);
   const [showMobileInfo, setShowMobileInfo] = useState(false);
   
+  // New mobile-specific state
+  const [showStudioPanel, setShowStudioPanel] = useState(false);
+  const [showCreateCardPanel, setShowCreateCardPanel] = useState(false);
+  const [showFramesPanel, setShowFramesPanel] = useState(false);
+  const [showShowcasePanel, setShowShowcasePanel] = useState(false);
+  const [rotateMode, setRotateMode] = useState(false);
+  const [selectedFrameId, setSelectedFrameId] = useState<string>();
+  const [selectedShowcaseLayoutId, setSelectedShowcaseLayoutId] = useState<string>();
+
   // Enhanced effects state with atomic preset application
   const enhancedEffectsHook = useEnhancedCardEffects();
   const {
@@ -332,6 +345,75 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     handleEffectChange(effectId, parameterId, value);
   }, [handleEffectChange, isApplyingPreset]);
 
+  const handleMobileStudioOpen = useCallback(() => {
+    setShowStudioPanel(true);
+    setShowCreateCardPanel(false);
+    setShowFramesPanel(false);
+    setShowShowcasePanel(false);
+  }, []);
+
+  const handleMobileFlipRotate = useCallback(() => {
+    if (rotateMode) {
+      // In rotate mode, apply rotation step
+      setRotation(prev => ({
+        x: prev.x,
+        y: prev.y + 45
+      }));
+    } else {
+      // Normal flip
+      setIsFlipped(!isFlipped);
+    }
+  }, [rotateMode, isFlipped]);
+
+  const handleMobileLongPressRotate = useCallback(() => {
+    setRotateMode(!rotateMode);
+    if ('vibrate' in navigator) {
+      navigator.vibrate(100);
+    }
+  }, [rotateMode]);
+
+  const handleMobileCreateCard = useCallback(() => {
+    setShowCreateCardPanel(true);
+    setShowStudioPanel(false);
+    setShowFramesPanel(false);
+    setShowShowcasePanel(false);
+  }, []);
+
+  const handleMobileFrames = useCallback(() => {
+    setShowFramesPanel(true);
+    setShowStudioPanel(false);
+    setShowCreateCardPanel(false);
+    setShowShowcasePanel(false);
+  }, []);
+
+  const handleMobileShowcase = useCallback(() => {
+    setShowShowcasePanel(true);
+    setShowStudioPanel(false);
+    setShowCreateCardPanel(false);
+    setShowFramesPanel(false);
+  }, []);
+
+  const handleCreateCardVariation = useCallback(async (variationType: string) => {
+    // Implementation for creating card variations
+    console.log('Creating card variation:', variationType, 'for card:', card);
+    // TODO: Implement actual card variation creation logic
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate async operation
+  }, [card]);
+
+  const handleApplyFrame = useCallback((frameId: string) => {
+    setSelectedFrameId(frameId);
+    setShowFramesPanel(false);
+    console.log('Applying frame:', frameId);
+    // TODO: Implement actual frame application logic
+  }, []);
+
+  const handleSelectShowcaseLayout = useCallback((layoutId: string) => {
+    setSelectedShowcaseLayoutId(layoutId);
+    setShowShowcasePanel(false);
+    console.log('Selecting showcase layout:', layoutId);
+    // TODO: Implement actual showcase layout logic
+  }, []);
+
   if (!isOpen) return null;
 
   // Mobile Layout
@@ -365,25 +447,59 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
           <MobileCardLayout
             bottomControls={
-              <MobileBottomControlBar
-                showEffects={showEffects}
-                onToggleEffects={() => setShowEffects(!showEffects)}
-                onReset={handleMobileReset}
-                onZoomIn={() => handleMobileZoom(0.2)}
-                onZoomOut={() => handleMobileZoom(-0.2)}
-                onToggleInfo={() => setShowMobileInfo(!showMobileInfo)}
-                showInfo={showMobileInfo}
-                hasMultipleCards={hasMultipleCards}
-                canGoPrev={canGoPrev}
-                canGoNext={canGoNext}
-                currentCardIndex={currentCardIndex}
-                totalCards={cards.length}
-                onPreviousCard={handlePreviousCard}
-                onNextCard={handleNextCard}
+              <MobileMainControlBar
+                onStudioOpen={handleMobileStudioOpen}
+                onFlipRotate={handleMobileFlipRotate}
+                onLongPressRotate={handleMobileLongPressRotate}
+                onCreateCard={handleMobileCreateCard}
+                onFrames={handleMobileFrames}
+                onShowcase={handleMobileShowcase}
+                isRotateMode={rotateMode}
+                isStudioOpen={showStudioPanel}
               />
             }
             floatingControls={
-              <MobileStudioDrawer
+              hasMultipleCards && (
+                <div className="flex items-center space-x-2 bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-2 border border-white/10">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handlePreviousCard}
+                    disabled={!canGoPrev}
+                    className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white disabled:opacity-50 h-8 w-8 p-0"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  
+                  <div className="text-white text-xs px-2">
+                    {currentCardIndex + 1}/{cards.length}
+                  </div>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleNextCard}
+                    disabled={!canGoNext}
+                    className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white disabled:opacity-50 h-8 w-8 p-0"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              )
+            }
+            infoPanel={
+              showStats && (
+                <MobileInfoPanel
+                  selectedMaterial={selectedMaterial}
+                  hasMultipleCards={hasMultipleCards}
+                />
+              )
+            }
+            showInfoPanel={showMobileInfo}
+            studioPanel={
+              <MobileStudioPanel
+                isVisible={showStudioPanel}
+                onClose={() => setShowStudioPanel(false)}
                 selectedScene={selectedScene}
                 selectedLighting={selectedLighting}
                 effectValues={effectValues}
@@ -406,19 +522,32 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
                 onPresetSelect={setSelectedPresetId}
                 onApplyCombo={handleComboApplication}
                 isApplyingPreset={isApplyingPreset}
-                isOpen={showCustomizePanel}
-                onOpenChange={setShowCustomizePanel}
               />
             }
-            infoPanel={
-              showStats && (
-                <MobileInfoPanel
-                  selectedMaterial={selectedMaterial}
-                  hasMultipleCards={hasMultipleCards}
-                />
-              )
+            createCardPanel={
+              <MobileCreateCardPanel
+                isVisible={showCreateCardPanel}
+                onClose={() => setShowCreateCardPanel(false)}
+                card={card}
+                onCreateVariation={handleCreateCardVariation}
+              />
             }
-            showInfoPanel={showMobileInfo}
+            framesPanel={
+              <MobileFramesPanel
+                isVisible={showFramesPanel}
+                onClose={() => setShowFramesPanel(false)}
+                onApplyFrame={handleApplyFrame}
+                selectedFrameId={selectedFrameId}
+              />
+            }
+            showcasePanel={
+              <MobileShowcasePanel
+                isVisible={showShowcasePanel}
+                onClose={() => setShowShowcasePanel(false)}
+                onSelectLayout={handleSelectShowcaseLayout}
+                selectedLayoutId={selectedShowcaseLayoutId}
+              />
+            }
           >
             {/* Enhanced Card Container */}
             <div ref={cardContainerRef}>
