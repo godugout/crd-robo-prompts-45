@@ -3,6 +3,8 @@ import React, { useRef, useEffect } from 'react';
 import { useEnhancedGestureRecognition } from '../hooks/useEnhancedGestureRecognition';
 import { useMobileControl } from '../context/MobileControlContext';
 import { cn } from '@/lib/utils';
+import { CardFront } from './CardFront';
+import { CardBack } from './CardBack';
 
 interface EnhancedCardContainerProps {
   card: any;
@@ -191,6 +193,17 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
     }
   }, [gestureState.gestureType, panelState.rotateMode, applyRotationStep]);
 
+  // Calculate physical effect styles from effect values for holographic/metallic effects
+  const physicalEffectStyles = {
+    ...enhancedEffectStyles,
+    transition: 'all 0.3s ease'
+  };
+
+  // Get effectIntensity array for consistent intensity values across components
+  const effectIntensity = Object.entries(effectValues).map(([id, params]) => {
+    return params.intensity || 0;
+  });
+
   return (
     <div
       ref={containerRef}
@@ -222,110 +235,51 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
         className={cn(
           "relative w-80 h-[28rem] transition-transform duration-500",
           "shadow-2xl rounded-xl overflow-hidden",
-          "bg-gradient-to-br from-blue-500 to-purple-600",
-          currentIsFlipped && "rotateY-180"
+          "bg-gradient-to-br from-blue-500 to-purple-600"
         )}
         style={{
           transformStyle: 'preserve-3d',
-          ...frameStyles,
-          ...enhancedEffectStyles
+          transform: currentIsFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          transition: 'transform 0.6s ease-out'
         }}
       >
         {/* Card Front */}
-        <div 
-          className={cn(
-            "absolute inset-0 backface-hidden",
-            "flex flex-col items-center justify-center text-white"
-          )}
-          style={{
-            backfaceVisibility: 'hidden'
-          }}
-        >
-          {/* Surface Texture Effect */}
-          {showEffects && SurfaceTexture && (
-            <SurfaceTexture
-              effectValues={effectValues}
-              mousePosition={mousePosition}
-              isHovering={isHovering}
-              interactiveLighting={interactiveLighting}
-            />
-          )}
-          
-          {/* Card Image - Full Coverage */}
-          {card?.image_url ? (
-            <div className="absolute inset-0 z-10 w-full h-full">
-              <img 
-                src={card.image_url}
-                alt={card.title || 'Card image'}
-                className="w-full h-full object-cover"
-                style={{
-                  filter: showEffects ? 'contrast(1.05) saturate(1.1)' : 'none'
-                }}
-                onLoad={() => console.log('Card image loaded successfully')}
-                onError={() => console.log('Error loading card image')}
-              />
-            </div>
-          ) : (
-            /* If no image, display a title and description */
-            <div className="relative z-10 text-center p-6">
-              <h2 className="text-2xl font-bold mb-2 drop-shadow-lg">
-                {card?.title || 'Sample Card'}
-              </h2>
-              <p className="text-sm opacity-90 drop-shadow">
-                {card?.description || 'Enhanced card viewer with gesture support'}
-              </p>
-              <div className="mt-4 text-xs opacity-75">
-                Tap to flip • Pinch to zoom • Swipe to navigate
-              </div>
-            </div>
-          )}
-        </div>
+        <CardFront 
+          card={card}
+          isFlipped={currentIsFlipped}
+          isHovering={isHovering}
+          showEffects={showEffects}
+          effectIntensity={effectIntensity}
+          mousePosition={mousePosition}
+          frameStyles={frameStyles}
+          physicalEffectStyles={physicalEffectStyles}
+          SurfaceTexture={<SurfaceTexture 
+            effectValues={effectValues}
+            mousePosition={mousePosition}
+            isHovering={isHovering}
+            interactiveLighting={interactiveLighting}
+          />}
+          effectValues={effectValues}
+          materialSettings={{}} // Pass material settings if needed
+          interactiveLighting={interactiveLighting}
+        />
 
         {/* Card Back */}
-        <div 
-          className={cn(
-            "absolute inset-0 backface-hidden rotateY-180",
-            "bg-gradient-to-br from-gray-800 to-gray-900",
-            "flex items-center justify-center text-white"
-          )}
-          style={{
-            backfaceVisibility: 'hidden'
-          }}
-        >
-          {/* Dark Pattern Background Base */}
-          <div 
-            className="absolute inset-0"
-            style={{
-              background: `
-                linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)
-              `,
-              backgroundColor: '#0a0a0a'
-            }}
-          />
-          
-          {/* Centered CRD Logo */}
-          <div className="relative z-30 flex items-center justify-center">
-            <img 
-              src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
-              alt="CRD Logo" 
-              className="w-48 h-auto opacity-90"
-              style={{
-                filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
-              }}
-              onLoad={() => console.log('CRD logo loaded successfully')}
-              onError={() => console.log('Error loading CRD logo')}
-            />
-          </div>
-          
-          {/* Additional back text if provided */}
-          {card?.backText && (
-            <div className="absolute bottom-8 left-0 right-0 text-center">
-              <p className="text-sm opacity-75 drop-shadow px-6">
-                {card.backText}
-              </p>
-            </div>
-          )}
-        </div>
+        <CardBack
+          card={card}
+          isFlipped={currentIsFlipped}
+          isHovering={isHovering}
+          showEffects={showEffects}
+          effectIntensity={effectIntensity}
+          mousePosition={mousePosition}
+          physicalEffectStyles={physicalEffectStyles}
+          SurfaceTexture={<SurfaceTexture 
+            effectValues={effectValues}
+            mousePosition={mousePosition}
+            isHovering={isHovering}
+            interactiveLighting={false}
+          />}
+        />
       </div>
 
       {/* Rotation Mode Indicator */}
