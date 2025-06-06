@@ -201,7 +201,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     }
   }, [onShare, card]);
 
-  // Style generation hook - Fix SurfaceTexture type
+  // Style generation hook - Create a component from SurfaceTexture element
   const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useCardEffects({
     card,
     effectValues,
@@ -216,6 +216,13 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     rotation,
     isHovering
   });
+
+  // Create a proper component from the SurfaceTexture element
+  const SurfaceTextureComponent = React.useMemo(() => {
+    return React.memo(() => {
+      return SurfaceTexture;
+    });
+  }, [SurfaceTexture]);
 
   // Auto-rotation effect
   useEffect(() => {
@@ -557,14 +564,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
                 isDragging={isDragging}
                 frameStyles={getFrameStyles()}
                 enhancedEffectStyles={getEnhancedEffectStyles()}
-                SurfaceTexture={React.memo(() => (
-                  <SurfaceTexture
-                    effectValues={effectValues}
-                    mousePosition={mousePosition}
-                    isHovering={isHovering}
-                    interactiveLighting={interactiveLighting}
-                  />
-                ))}
+                SurfaceTexture={SurfaceTextureComponent}
                 interactiveLighting={interactiveLighting}
                 onMouseDown={handleDragStart}
                 onMouseMove={handleDrag}
@@ -738,14 +738,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             isDragging={isDragging}
             frameStyles={getFrameStyles()}
             enhancedEffectStyles={getEnhancedEffectStyles()}
-            SurfaceTexture={React.memo(() => (
-              <SurfaceTexture
-                effectValues={effectValues}
-                mousePosition={mousePosition}
-                isHovering={isHovering}
-                interactiveLighting={interactiveLighting}
-              />
-            ))}
+            SurfaceTexture={SurfaceTextureComponent}
             interactiveLighting={interactiveLighting}
             onMouseDown={handleDragStart}
             onMouseMove={handleDrag}
