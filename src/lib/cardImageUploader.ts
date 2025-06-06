@@ -6,6 +6,7 @@ export interface UploadCardImageOptions {
   file: File;
   cardId: string;
   userId: string;
+  onProgress?: (progress: number) => void;
 }
 
 export interface UploadResult {
@@ -17,7 +18,8 @@ export interface UploadResult {
 export const uploadCardImage = async ({
   file,
   cardId,
-  userId
+  userId,
+  onProgress
 }: UploadCardImageOptions): Promise<UploadResult | null> => {
   try {
     // Validate file
@@ -37,6 +39,11 @@ export const uploadCardImage = async ({
     const fileName = `${cardId}-${userId}-${Date.now()}.${fileExt}`;
     const filePath = `cards/${fileName}`;
 
+    // Simulate progress if callback provided
+    if (onProgress) {
+      onProgress(10);
+    }
+
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
       .from('card-images')
@@ -44,6 +51,10 @@ export const uploadCardImage = async ({
         cacheControl: '3600',
         upsert: false
       });
+
+    if (onProgress) {
+      onProgress(80);
+    }
 
     if (error) {
       console.error('Upload error:', error);
@@ -55,6 +66,10 @@ export const uploadCardImage = async ({
     const { data: urlData } = supabase.storage
       .from('card-images')
       .getPublicUrl(data.path);
+
+    if (onProgress) {
+      onProgress(100);
+    }
 
     return {
       url: urlData.publicUrl,
