@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useSafeMobileControl } from '../hooks/useSafeMobileControl';
 import { CardTransform } from './CardTransform';
@@ -73,6 +73,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   } = useSafeMobileControl();
   
   const containerRef = useRef<HTMLDivElement>(null);
+  const [preventTap, setPreventTap] = useState(false);
 
   // Use mobile control state for card transformations when available, otherwise use props
   const currentRotation = cardState.rotation.x !== 0 || cardState.rotation.y !== 0 ? cardState.rotation : rotation;
@@ -106,16 +107,35 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
       } else {
         resetCardState(); // Reset to normal
       }
+      setPreventTap(true);
+      setTimeout(() => setPreventTap(false), 300);
     }
     
     lastTapTime.current = now;
+  };
+
+  // Combined flip handler that works for both mobile and desktop
+  const handleCardFlip = () => {
+    if (preventTap) return;
+    
+    if (onClick) {
+      onClick(); // Call the original onClick handler if provided
+    }
+    
+    // Always flip card using the mobile control's flipCard function
+    flipCard();
+  };
+
+  const handleGestureTap = (position: { x: number; y: number }) => {
+    if (preventTap || panelState.rotateMode) return;
+    handleCardFlip();
   };
 
   return (
     <CardGestureHandler
       panelState={panelState}
       cardState={cardState}
-      flipCard={flipCard}
+      flipCard={handleCardFlip}
       zoomCard={zoomCard}
       rotateCard={rotateCard}
       resetCardState={resetCardState}
@@ -155,6 +175,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
             currentZoom={currentZoom}
             currentRotation={currentRotation}
             currentPosition={currentPosition}
+            handleCardFlip={handleCardFlip}
           />
 
           <CardIndicators

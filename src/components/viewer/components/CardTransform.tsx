@@ -20,6 +20,7 @@ interface CardTransformProps {
   currentZoom: number;
   currentRotation: { x: number; y: number };
   currentPosition: { x: number; y: number };
+  handleCardFlip?: () => void;
 }
 
 export const CardTransform: React.FC<CardTransformProps> = ({
@@ -37,7 +38,8 @@ export const CardTransform: React.FC<CardTransformProps> = ({
   currentIsFlipped,
   currentZoom,
   currentRotation,
-  currentPosition
+  currentPosition,
+  handleCardFlip
 }) => {
   return (
     <div
@@ -53,6 +55,7 @@ export const CardTransform: React.FC<CardTransformProps> = ({
         perspective: '1000px',
         minHeight: '400px'
       }}
+      onClick={handleCardFlip}
     >
       {/* Card Content - Fixed dimensions */}
       <div
@@ -103,6 +106,7 @@ export const CardTransform: React.FC<CardTransformProps> = ({
             isHovering={isHovering}
             interactiveLighting={false}
           />}
+          effectValues={effectValues}
         />
       </div>
     </div>

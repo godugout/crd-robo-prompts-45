@@ -12,6 +12,7 @@ interface CardBackProps {
   mousePosition: { x: number; y: number };
   physicalEffectStyles: React.CSSProperties;
   SurfaceTexture: React.ReactNode;
+  effectValues?: Record<string, Record<string, number | boolean | string>>;
 }
 
 export const CardBack: React.FC<CardBackProps> = ({
@@ -22,11 +23,9 @@ export const CardBack: React.FC<CardBackProps> = ({
   effectIntensity,
   mousePosition,
   physicalEffectStyles,
-  SurfaceTexture
+  SurfaceTexture,
+  effectValues
 }) => {
-  // Debug logging to see if this component is being used
-  console.log('CardBack component rendering with isFlipped:', isFlipped);
-  
   return (
     <div
       className="absolute inset-0 rounded-xl overflow-hidden backface-hidden"
@@ -37,7 +36,7 @@ export const CardBack: React.FC<CardBackProps> = ({
     >
       {/* Dark Pattern Background Base */}
       <div 
-        className="absolute inset-0"
+        className="absolute inset-0 z-10"
         style={{
           background: `
             linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)
@@ -52,7 +51,7 @@ export const CardBack: React.FC<CardBackProps> = ({
       </div>
       
       {/* Centered CRD Logo Only */}
-      <div className="relative h-full flex items-center justify-center z-30">
+      <div className="absolute inset-0 flex items-center justify-center z-30">
         <div className="flex items-center justify-center">
           <img 
             src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
@@ -61,8 +60,8 @@ export const CardBack: React.FC<CardBackProps> = ({
             style={{
               filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
             }}
-            onLoad={() => console.log('New CRD logo loaded successfully')}
-            onError={() => console.log('Error loading new CRD logo')}
+            onLoad={() => console.log('CRD logo loaded successfully')}
+            onError={() => console.error('Error loading CRD logo')}
           />
         </div>
       </div>
@@ -74,6 +73,7 @@ export const CardBack: React.FC<CardBackProps> = ({
         effectIntensity={effectIntensity}
         mousePosition={mousePosition}
         physicalEffectStyles={physicalEffectStyles}
+        effectValues={effectValues}
       />
     </div>
   );

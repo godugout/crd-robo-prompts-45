@@ -41,8 +41,10 @@ export const CardGestureHandler: React.FC<CardGestureHandlerProps> = ({
   // Enhanced gesture callbacks
   const gestureCallbacks = {
     onTap: (position: { x: number; y: number }) => {
+      // In rotate mode, don't flip the card
       if (!panelState.rotateMode) {
-        flipCard();
+        // The flip functionality is now managed in EnhancedCardContainer
+        // No need to call flipCard() here as it will cause double flips
       }
     },
     
