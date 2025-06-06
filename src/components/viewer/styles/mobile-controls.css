@@ -1,0 +1,177 @@
+
+/* Enhanced Mobile Control System Styles */
+
+.pb-safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 3D Card Flip Animation */
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotateY-180 {
+  transform: rotateY(180deg);
+}
+
+/* Enhanced Button Animations */
+.mobile-control-button {
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform, background-color, box-shadow;
+}
+
+.mobile-control-button:active {
+  transform: scale(0.95);
+}
+
+.mobile-control-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Panel Slide Animations */
+@keyframes slideUpPanel {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDownPanel {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.panel-slide-up {
+  animation: slideUpPanel 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.panel-slide-down {
+  animation: slideDownPanel 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Backdrop Blur Enhancements */
+.enhanced-backdrop {
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+
+/* Rotation Mode Indicators */
+.rotation-indicator {
+  background: linear-gradient(45deg, #f97316, #ef4444);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Enhanced Touch Targets */
+.touch-target {
+  min-width: 48px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Gesture Feedback */
+.gesture-feedback {
+  pointer-events: none;
+  z-index: 9999;
+  animation: fadeInOut 1s ease-out;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
+
+/* Card Transform Optimizations */
+.card-transform {
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Enhanced Scroll Indicators */
+.scroll-indicator {
+  position: relative;
+}
+
+.scroll-indicator::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.1), transparent);
+  pointer-events: none;
+}
+
+/* Performance Optimizations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Dark Mode Optimizations */
+@media (prefers-color-scheme: dark) {
+  .enhanced-backdrop {
+    backdrop-filter: blur(20px) saturate(120%) brightness(0.8);
+    -webkit-backdrop-filter: blur(20px) saturate(120%) brightness(0.8);
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-control-button,
+  .card-transform,
+  .panel-slide-up,
+  .panel-slide-down {
+    animation: none;
+    transition: none;
+  }
+  
+  .rotation-indicator {
+    animation: none;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .mobile-control-button {
+    border: 2px solid currentColor;
+  }
+  
+  .enhanced-backdrop {
+    backdrop-filter: none;
+    background: rgba(0, 0, 0, 0.9);
+  }
+}

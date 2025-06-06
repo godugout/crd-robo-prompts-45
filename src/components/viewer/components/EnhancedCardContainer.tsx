@@ -1,32 +1,28 @@
 
-import React, { useCallback } from 'react';
-import type { CardData } from '@/hooks/useCardEditor';
-import type { EffectValues } from '../hooks/useEnhancedCardEffects';
-import { CardFrontContainer } from './CardFrontContainer';
-import { CardBackContainer } from './CardBackContainer';
-import { Card3DTransform } from './Card3DTransform';
-import { useMobileTouchControls } from '../hooks/useMobileTouchControls';
-import { useIsMobile } from '@/hooks/use-mobile';
+import React, { useRef, useEffect } from 'react';
+import { useEnhancedGestureRecognition } from '../hooks/useEnhancedGestureRecognition';
+import { useMobileControl } from '../context/MobileControlContext';
+import { cn } from '@/lib/utils';
 
 interface EnhancedCardContainerProps {
-  card: CardData;
+  card: any;
   isFlipped: boolean;
   isHovering: boolean;
   showEffects: boolean;
-  effectValues: EffectValues;
+  effectValues: any;
   mousePosition: { x: number; y: number };
   rotation: { x: number; y: number };
   zoom: number;
   isDragging: boolean;
-  frameStyles: React.CSSProperties;
-  enhancedEffectStyles: React.CSSProperties;
-  SurfaceTexture: React.ReactNode;
-  interactiveLighting?: boolean;
-  onMouseDown: (e: React.MouseEvent) => void;
-  onMouseMove: (e: React.MouseEvent) => void;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
-  onClick: () => void;
+  frameStyles: any;
+  enhancedEffectStyles: any;
+  SurfaceTexture: React.ComponentType<any>;
+  interactiveLighting: boolean;
+  onMouseDown?: (e: React.MouseEvent) => void;
+  onMouseMove?: (e: React.MouseEvent) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+  onClick?: () => void;
   onZoom?: (delta: number) => void;
   onRotationChange?: (rotation: { x: number; y: number }) => void;
   onDoubleTap?: () => void;
@@ -49,7 +45,7 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   frameStyles,
   enhancedEffectStyles,
   SurfaceTexture,
-  interactiveLighting = false,
+  interactiveLighting,
   onMouseDown,
   onMouseMove,
   onMouseEnter,
@@ -63,133 +59,206 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   onSwipeRight,
   onReset
 }) => {
-  const isMobile = useIsMobile();
+  const { 
+    cardState, 
+    flipCard, 
+    zoomCard, 
+    rotateCard, 
+    panCard, 
+    resetCardState,
+    panelState,
+    applyRotationStep
+  } = useMobileControl();
+  
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Mobile touch gesture callbacks
-  const handleZoom = useCallback((scale: number, center: { x: number; y: number }) => {
-    if (onZoom) {
-      const delta = (scale - 1) * 0.5; // Smooth scaling
-      onZoom(delta);
-    }
-  }, [onZoom]);
-
-  const handlePan = useCallback((delta: { x: number; y: number }) => {
-    // Convert pan to rotation for card effect
-    if (onRotationChange) {
-      const sensitivity = 0.3;
-      onRotationChange({
-        x: rotation.x + delta.y * sensitivity,
-        y: rotation.y - delta.x * sensitivity
-      });
-    }
-  }, [rotation, onRotationChange]);
-
-  const handleRotate = useCallback((angle: number) => {
-    if (onRotationChange) {
-      onRotationChange({
-        x: rotation.x,
-        y: rotation.y + angle * 0.5 // Smooth rotation
-      });
-    }
-  }, [rotation, onRotationChange]);
-
-  const handleDoubleTap = useCallback(() => {
-    if (onDoubleTap) {
-      onDoubleTap();
-    } else {
-      // Default: toggle zoom fit/fill
-      if (onZoom) {
-        onZoom(zoom > 1 ? -zoom + 1 : 0.5);
+  // Enhanced gesture callbacks
+  const gestureCallbacks = {
+    onTap: (position: { x: number; y: number }) => {
+      if (!panelState.rotateMode) {
+        flipCard();
       }
-    }
-  }, [onDoubleTap, onZoom, zoom]);
-
-  const handleThreeFingerTap = useCallback(() => {
-    if (onReset) {
-      onReset();
-      // Add haptic feedback
-      if ('vibrate' in navigator) {
-        navigator.vibrate([50, 50, 50]);
+    },
+    
+    onLongPress: (position: { x: number; y: number }) => {
+      if (onLongPress) {
+        onLongPress();
       }
+    },
+    
+    onPinchZoom: (scale: number, center: { x: number; y: number }) => {
+      const delta = (scale - 1) * 0.1;
+      zoomCard(delta);
+    },
+    
+    onSwipe: (direction: 'left' | 'right' | 'up' | 'down', velocity: number) => {
+      switch (direction) {
+        case 'left':
+          if (onSwipeLeft) onSwipeLeft();
+          break;
+        case 'right':
+          if (onSwipeRight) onSwipeRight();
+          break;
+        case 'up':
+          // Could be used for card details
+          break;
+        case 'down':
+          // Could be used for closing panels
+          break;
+      }
+    },
+    
+    onRotate: (angle: number, center: { x: number; y: number }) => {
+      if (panelState.rotateMode) {
+        const newRotation = {
+          x: cardState.rotation.x,
+          y: cardState.rotation.y + angle
+        };
+        rotateCard(newRotation);
+      }
+    },
+    
+    onGestureStart: (type: any) => {
+      // Handle gesture start if needed
+    },
+    
+    onGestureEnd: (type: any) => {
+      // Handle gesture end if needed
     }
-  }, [onReset]);
-
-  const { touchHandlers, isActive } = useMobileTouchControls({
-    onZoom: handleZoom,
-    onPan: handlePan,
-    onRotate: handleRotate,
-    onDoubleTap: handleDoubleTap,
-    onLongPress: onLongPress || (() => {}),
-    onSwipeLeft: onSwipeLeft || (() => {}),
-    onSwipeRight: onSwipeRight || (() => {}),
-    onThreeFingerTap: handleThreeFingerTap,
-  });
-
-  const containerProps = isMobile ? {
-    ...touchHandlers,
-    style: {
-      touchAction: 'none', // Prevent default touch behaviors
-      userSelect: 'none' as const,
-    }
-  } : {
-    onMouseDown,
-    onMouseMove,
-    onMouseEnter,
-    onMouseLeave,
   };
 
-  return (
-    <div 
-      className={`relative z-20 ${
-        isDragging || isActive ? 'cursor-grabbing' : 'cursor-grab'
-      } ${isMobile ? 'touch-manipulation' : ''}`}
-      style={{
-        transform: `scale(${zoom})`,
-        transition: isDragging || isActive ? 'none' : 'transform 0.3s ease',
-        filter: `brightness(${interactiveLighting && isHovering ? 1.3 : 1.2}) contrast(1.1)`,
-        // Add subtle glow on mobile when active
-        ...(isMobile && isActive ? {
-          filter: `brightness(1.3) contrast(1.1) drop-shadow(0 0 20px rgba(16, 185, 129, 0.3))`
-        } : {})
-      }}
-      {...containerProps}
-    >
-      <Card3DTransform
-        rotation={rotation}
-        mousePosition={mousePosition}
-        isDragging={isDragging || isActive}
-        interactiveLighting={interactiveLighting}
-        isHovering={isHovering}
-        onClick={onClick}
-      >
-        {/* Front of Card */}
-        <CardFrontContainer
-          card={card}
-          isFlipped={isFlipped}
-          isHovering={isHovering}
-          showEffects={showEffects}
-          effectValues={effectValues}
-          mousePosition={mousePosition}
-          frameStyles={frameStyles}
-          enhancedEffectStyles={enhancedEffectStyles}
-          SurfaceTexture={SurfaceTexture}
-          interactiveLighting={interactiveLighting}
-          onClick={onClick}
-        />
+  const { gestureState, touchHandlers, triggerHaptic } = useEnhancedGestureRecognition(gestureCallbacks);
 
-        {/* Back of Card */}
-        <CardBackContainer
-          isFlipped={isFlipped}
-          isHovering={isHovering}
-          showEffects={showEffects}
-          effectValues={effectValues}
-          mousePosition={mousePosition}
-          frameStyles={frameStyles}
-          enhancedEffectStyles={enhancedEffectStyles}
-          SurfaceTexture={SurfaceTexture}
-          interactiveLighting={interactiveLighting}
-        />
-      </Card3DTransform>
+  // Use mobile control state for card transformations
+  const currentRotation = cardState.rotation;
+  const currentZoom = cardState.zoom;
+  const currentPosition = cardState.position;
+  const currentIsFlipped = cardState.isFlipped;
+
+  // Double tap detection for zoom
+  const lastTapTime = useRef(0);
+  const handleTap = () => {
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapTime.current;
+    
+    if (timeSinceLastTap < 300) {
+      // Double tap - toggle zoom
+      if (currentZoom <= 1) {
+        zoomCard(0.5); // Zoom to 1.5x
+      } else {
+        resetCardState(); // Reset to normal
+      }
+      triggerHaptic([50, 50, 50]);
+    }
+    
+    lastTapTime.current = now;
+  };
+
+  // Apply rotation step in rotate mode
+  useEffect(() => {
+    if (panelState.rotateMode && gestureState.gestureType === 'tap') {
+      applyRotationStep(15); // 15-degree steps
+    }
+  }, [gestureState.gestureType, panelState.rotateMode, applyRotationStep]);
+
+  return (
+    <div
+      ref={containerRef}
+      className={cn(
+        "relative w-full h-full flex items-center justify-center",
+        "transition-transform duration-300 ease-out",
+        panelState.rotateMode && "cursor-crosshair",
+        gestureState.isActive && "select-none"
+      )}
+      style={{
+        transform: `
+          scale(${currentZoom})
+          rotateX(${currentRotation.x}deg)
+          rotateY(${currentRotation.y}deg)
+          translate3d(${currentPosition.x}px, ${currentPosition.y}px, 0)
+        `,
+        transformStyle: 'preserve-3d',
+        perspective: '1000px'
+      }}
+      {...touchHandlers}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      {/* Card Content */}
+      <div
+        className={cn(
+          "relative w-80 h-112 transition-transform duration-500",
+          "shadow-2xl rounded-xl overflow-hidden",
+          currentIsFlipped && "rotateY-180"
+        )}
+        style={{
+          transformStyle: 'preserve-3d',
+          ...frameStyles,
+          ...enhancedEffectStyles
+        }}
+      >
+        {/* Card Front */}
+        <div 
+          className={cn(
+            "absolute inset-0 backface-hidden",
+            "bg-gradient-to-br from-blue-500 to-purple-600",
+            "flex flex-col items-center justify-center text-white"
+          )}
+        >
+          {/* Surface Texture Effect */}
+          {showEffects && SurfaceTexture && (
+            <SurfaceTexture
+              effectValues={effectValues}
+              mousePosition={mousePosition}
+              isHovering={isHovering}
+              interactiveLighting={interactiveLighting}
+            />
+          )}
+          
+          {/* Card Content */}
+          <div className="relative z-10 text-center p-6">
+            <h2 className="text-2xl font-bold mb-2">{card.title || 'Sample Card'}</h2>
+            <p className="text-sm opacity-90">{card.description || 'Enhanced card viewer'}</p>
+          </div>
+        </div>
+
+        {/* Card Back */}
+        <div 
+          className={cn(
+            "absolute inset-0 backface-hidden rotateY-180",
+            "bg-gradient-to-br from-gray-800 to-gray-900",
+            "flex items-center justify-center text-white"
+          )}
+        >
+          <div className="text-center">
+            <h3 className="text-xl font-semibold mb-2">Card Back</h3>
+            <p className="text-sm opacity-75">Additional information</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Rotation Mode Indicator */}
+      {panelState.rotateMode && (
+        <div className="absolute top-4 left-4 bg-orange-500/90 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur">
+          Rotation Mode • {Math.round(currentRotation.y)}°
+        </div>
+      )}
+
+      {/* Zoom Indicator */}
+      {currentZoom !== 1 && (
+        <div className="absolute top-4 right-4 bg-blue-500/90 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur">
+          {Math.round(currentZoom * 100)}%
+        </div>
+      )}
+
+      {/* Gesture Feedback */}
+      {gestureState.isActive && (
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded-full text-sm backdrop-blur">
+          {gestureState.gestureType}
+        </div>
+      )}
     </div>
   );
 };

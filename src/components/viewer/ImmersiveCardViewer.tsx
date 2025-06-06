@@ -20,12 +20,9 @@ import { ExportOptionsDialog } from './components/ExportOptionsDialog';
 import { ConfigurationDetailsPanel } from './components/ConfigurationDetailsPanel';
 import { GestureHelpOverlay } from './components/GestureHelpOverlay';
 import { MobileCardLayout } from './components/MobileCardLayout';
-import { MobileMainControlBar } from './components/MobileMainControlBar';
-import { MobileStudioPanel } from './components/MobileStudioPanel';
-import { MobileCreateCardPanel } from './components/MobileCreateCardPanel';
-import { MobileFramesPanel } from './components/MobileFramesPanel';
-import { MobileShowcasePanel } from './components/MobileShowcasePanel';
-import { MobileInfoPanel } from './components/MobileInfoPanel';
+import { EnhancedMobileMainControlBar } from './components/EnhancedMobileMainControlBar';
+import { EnhancedMobileStudioPanel } from './components/EnhancedMobileStudioPanel';
+import { useMobileControl } from './context/MobileControlContext';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -416,7 +413,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
   if (!isOpen) return null;
 
-  // Mobile Layout
+  // Mobile Layout with Enhanced Two-Level System
   if (isMobile) {
     return (
       <>
@@ -447,15 +444,10 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
           <MobileCardLayout
             bottomControls={
-              <MobileMainControlBar
-                onStudioOpen={handleMobileStudioOpen}
-                onFlipRotate={handleMobileFlipRotate}
-                onLongPressRotate={handleMobileLongPressRotate}
-                onCreateCard={handleMobileCreateCard}
-                onFrames={handleMobileFrames}
-                onShowcase={handleMobileShowcase}
-                isRotateMode={rotateMode}
-                isStudioOpen={showStudioPanel}
+              <EnhancedMobileMainControlBar
+                onCreateCardVariation={handleCreateCardVariation}
+                onApplyFrame={handleApplyFrame}
+                onSelectShowcaseLayout={handleSelectShowcaseLayout}
               />
             }
             floatingControls={
@@ -497,9 +489,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             }
             showInfoPanel={showMobileInfo}
             studioPanel={
-              <MobileStudioPanel
-                isVisible={showStudioPanel}
-                onClose={() => setShowStudioPanel(false)}
+              <EnhancedMobileStudioPanel
                 selectedScene={selectedScene}
                 selectedLighting={selectedLighting}
                 effectValues={effectValues}
@@ -549,7 +539,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
               />
             }
           >
-            {/* Enhanced Card Container */}
+            {/* Enhanced Card Container with Full Gesture Support */}
             <div ref={cardContainerRef}>
               <EnhancedCardContainer
                 card={card}
