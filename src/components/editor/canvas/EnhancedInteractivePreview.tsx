@@ -185,7 +185,7 @@ export const EnhancedInteractivePreview = ({
               <div className="text-xs opacity-90">{cardDescription}</div>
               <div className="mt-2 text-xs">
                 <div>Rarity: {cardEditor?.cardData.rarity || 'Common'}</div>
-                <div>Type: {cardEditor?.cardData.type || 'Character'}</div>
+                <div>Edition: {cardEditor?.cardData.edition_size || 1}/1</div>
               </div>
             </div>
           </>
@@ -247,8 +247,8 @@ export const EnhancedInteractivePreview = ({
                 color: 'white'
               }}
             >
-              <span>{cardEditor?.cardData.series || 'TEAM NAME'}</span>
-              <span>{cardEditor?.cardData.type || 'POSITION'}</span>
+              <span>TEAM NAME</span>
+              <span>POSITION</span>
             </div>
             
             {/* Stats footer */}

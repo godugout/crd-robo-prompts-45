@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,6 +30,18 @@ export interface PublishingOptions {
     limited_edition: boolean;
     edition_size?: number;
   };
+}
+
+export interface DesignTemplate {
+  id: string;
+  name: string;
+  category: string;
+  description?: string;
+  preview_url?: string;
+  template_data: Record<string, any>;
+  is_premium: boolean;
+  usage_count: number;
+  tags: string[];
 }
 
 export interface CardData {
