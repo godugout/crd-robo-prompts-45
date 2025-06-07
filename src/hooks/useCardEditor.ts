@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '@/contexts/AuthContext';
@@ -76,6 +77,12 @@ export interface UseCardEditorOptions {
   autoSave?: boolean;
   autoSaveInterval?: number;
 }
+
+// Helper function to check if a string is a valid UUID
+const isValidUUID = (str: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
 
 export const useCardEditor = (options: UseCardEditorOptions = {}) => {
   const { user } = useAuth();
@@ -187,7 +194,8 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
         design_metadata: finalCardData.design_metadata as any,
         is_public: finalCardData.visibility === 'public',
         shop_id: finalCardData.shop_id || null,
-        template_id: finalCardData.template_id || null,
+        // Only set template_id if it's a valid UUID, otherwise store in design_metadata
+        template_id: (finalCardData.template_id && isValidUUID(finalCardData.template_id)) ? finalCardData.template_id : null,
         collection_id: finalCardData.collection_id || null,
         team_id: finalCardData.team_id || null,
         creator_attribution: finalCardData.creator_attribution as any,
@@ -201,6 +209,14 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
         crd_catalog_inclusion: finalCardData.crd_catalog_inclusion !== false,
         print_available: finalCardData.print_available || false
       };
+
+      // If template_id is not a valid UUID, store it in design_metadata instead
+      if (finalCardData.template_id && !isValidUUID(finalCardData.template_id)) {
+        cardToSave.design_metadata = {
+          ...cardToSave.design_metadata,
+          template_reference: finalCardData.template_id
+        };
+      }
 
       console.log('Attempting to save card:', cardToSave);
 
