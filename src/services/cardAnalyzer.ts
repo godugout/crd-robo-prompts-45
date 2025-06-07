@@ -7,12 +7,18 @@ export interface CardAnalysisResult {
   category: string;
 }
 
-export const analyzeCardImage = async (file: File): Promise<CardAnalysisResult> => {
+export const analyzeCardImage = async (input: File | string): Promise<CardAnalysisResult> => {
   // Simulate AI analysis delay
   await new Promise(resolve => setTimeout(resolve, 2000));
   
-  // Simple analysis based on file name and random generation
-  const fileName = file.name.toLowerCase();
+  // Handle both File objects and data URL strings
+  let fileName = '';
+  if (input instanceof File) {
+    fileName = input.name.toLowerCase();
+  } else if (typeof input === 'string') {
+    // For data URLs, we can't get a meaningful filename, so use empty string
+    fileName = '';
+  }
   
   const categories = ['sports', 'pokemon', 'gaming', 'art', 'anime', 'nature'];
   const adjectives = ['Amazing', 'Epic', 'Legendary', 'Rare', 'Powerful', 'Mystical', 'Unique'];

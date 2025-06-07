@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
@@ -75,13 +76,13 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
     });
   };
 
-  const handlePhotoAnalysis = async (imageDataUrl: string) => {
+  const handlePhotoAnalysis = async (originalFile: File) => {
     if (!onAnalysisComplete) return;
     
     setIsAnalyzing(true);
     try {
       toast.info('Analyzing image with AI...', { icon: <Sparkles className="w-4 h-4" /> });
-      const analysis = await analyzeCardImage(imageDataUrl);
+      const analysis = await analyzeCardImage(originalFile);
       onAnalysisComplete(analysis);
       toast.success('Image analyzed! Fields have been pre-filled.');
     } catch (error) {
@@ -101,8 +102,8 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
         onPhotoSelect(processedImageUrl);
         toast.success('Photo processed and ready for card!');
         
-        // Trigger AI analysis
-        await handlePhotoAnalysis(processedImageUrl);
+        // Trigger AI analysis with the original file
+        await handlePhotoAnalysis(file);
       } catch (error) {
         console.error('Error processing image:', error);
         toast.error('Failed to process image. Please try again.');
@@ -129,8 +130,8 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
         onPhotoSelect(processedImageUrl);
         toast.success('Photo processed and ready for card!');
         
-        // Trigger AI analysis
-        await handlePhotoAnalysis(processedImageUrl);
+        // Trigger AI analysis with the original file
+        await handlePhotoAnalysis(file);
       } catch (error) {
         console.error('Error processing image:', error);
         toast.error('Failed to process image. Please try again.');
