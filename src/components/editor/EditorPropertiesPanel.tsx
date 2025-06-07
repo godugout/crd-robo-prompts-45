@@ -106,19 +106,6 @@ export const EditorPropertiesPanel = ({ cardEditor }: EditorPropertiesPanelProps
                   <option value="legendary">Legendary</option>
                 </select>
               </div>
-              <div>
-                <Label className="text-gray-300">Series</Label>
-                <select 
-                  className="w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
-                  value={cardEditor?.cardData.series || ''}
-                  onChange={(e) => cardEditor?.updateCardField('series', e.target.value)}
-                >
-                  <option value="">Select Series</option>
-                  <option value="80s-vcr">80s VCR</option>
-                  <option value="neon-dreams">Neon Dreams</option>
-                  <option value="retro-wave">Retro Wave</option>
-                </select>
-              </div>
             </div>
           </div>
 

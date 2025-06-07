@@ -1406,13 +1406,17 @@ export type Database = {
           id: string
           metadata: Json | null
           mime_type: string
+          optimization_metadata: Json | null
+          original_dimensions: Json | null
           original_filename: string
+          processing_status: string | null
           storage_path: string
           tags: string[] | null
           thumbnail_path: string | null
           title: string | null
           updated_at: string
           user_id: string
+          variants: Json | null
           width: number | null
         }
         Insert: {
@@ -1423,13 +1427,17 @@ export type Database = {
           id?: string
           metadata?: Json | null
           mime_type: string
+          optimization_metadata?: Json | null
+          original_dimensions?: Json | null
           original_filename: string
+          processing_status?: string | null
           storage_path: string
           tags?: string[] | null
           thumbnail_path?: string | null
           title?: string | null
           updated_at?: string
           user_id: string
+          variants?: Json | null
           width?: number | null
         }
         Update: {
@@ -1440,13 +1448,17 @@ export type Database = {
           id?: string
           metadata?: Json | null
           mime_type?: string
+          optimization_metadata?: Json | null
+          original_dimensions?: Json | null
           original_filename?: string
+          processing_status?: string | null
           storage_path?: string
           tags?: string[] | null
           thumbnail_path?: string | null
           title?: string | null
           updated_at?: string
           user_id?: string
+          variants?: Json | null
           width?: number | null
         }
         Relationships: []
@@ -1603,6 +1615,53 @@ export type Database = {
             columns: ["frame_id"]
             isOneToOne: false
             referencedRelation: "design_frames"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      image_variants: {
+        Row: {
+          asset_id: string | null
+          created_at: string | null
+          file_size: number | null
+          format: string | null
+          height: number | null
+          id: string
+          quality: number | null
+          storage_path: string
+          variant_type: string
+          width: number | null
+        }
+        Insert: {
+          asset_id?: string | null
+          created_at?: string | null
+          file_size?: number | null
+          format?: string | null
+          height?: number | null
+          id?: string
+          quality?: number | null
+          storage_path: string
+          variant_type: string
+          width?: number | null
+        }
+        Update: {
+          asset_id?: string | null
+          created_at?: string | null
+          file_size?: number | null
+          format?: string | null
+          height?: number | null
+          id?: string
+          quality?: number | null
+          storage_path?: string
+          variant_type?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "image_variants_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "digital_assets"
             referencedColumns: ["id"]
           },
         ]
