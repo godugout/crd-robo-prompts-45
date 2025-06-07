@@ -11,6 +11,7 @@ import { useCardEditor, CardRarity } from '@/hooks/useCardEditor';
 import { analyzeCardImage } from '@/services/cardAnalyzer';
 import { DEFAULT_TEMPLATES } from './wizard/wizardConfig';
 import { DynamicTemplateRenderer } from './canvas/DynamicTemplateRenderer';
+import { ExportCardRenderer } from './canvas/ExportCardRenderer';
 
 export const UnifiedCardCreator = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export const UnifiedCardCreator = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(DEFAULT_TEMPLATES[0]);
   const [isExporting, setIsExporting] = useState(false);
   const cardPreviewRef = useRef<HTMLDivElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
 
   const cardEditor = useCardEditor({
     initialData: {
@@ -104,24 +106,34 @@ export const UnifiedCardCreator = () => {
   };
 
   const handleExport = async () => {
-    if (!cardPreviewRef.current) return;
+    if (!exportRef.current) {
+      toast.error('Export renderer not ready');
+      return;
+    }
     
     setIsExporting(true);
     try {
       const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(cardPreviewRef.current, {
+      
+      // Export at high resolution for proper trading card dimensions
+      const canvas = await html2canvas(exportRef.current, {
         backgroundColor: 'transparent',
-        scale: 3,
-        useCORS: true
+        scale: 1, // Use actual size since our export renderer is already high-res
+        useCORS: true,
+        width: 750,
+        height: 1050,
+        windowWidth: 750,
+        windowHeight: 1050
       });
       
       const link = document.createElement('a');
-      link.download = `${cardEditor.cardData.title.replace(/\s+/g, '_')}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.download = `${cardEditor.cardData.title.replace(/\s+/g, '_')}_trading_card.png`;
+      link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
       
-      toast.success('🎉 Card exported successfully!');
+      toast.success('🎉 High-resolution card exported successfully!');
     } catch (error) {
+      console.error('Export failed:', error);
       toast.error('Export failed');
     } finally {
       setIsExporting(false);
@@ -175,6 +187,25 @@ export const UnifiedCardCreator = () => {
     );
   };
 
+  const renderExportCard = () => {
+    const templateForRenderer = {
+      id: selectedTemplate.id,
+      name: selectedTemplate.name,
+      template_data: selectedTemplate.template_data
+    };
+
+    return (
+      <div ref={exportRef}>
+        <ExportCardRenderer
+          template={templateForRenderer}
+          cardData={cardEditor.cardData}
+          currentPhoto={currentPhoto}
+          dimensions={{ width: 750, height: 1050 }}
+        />
+      </div>
+    );
+  };
+
   const getRarityColor = (rarity: string) => {
     const colors = {
       common: '#6b7280',
@@ -221,7 +252,7 @@ export const UnifiedCardCreator = () => {
               className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
             >
               <Download className="w-4 h-4 mr-2" />
-              Export
+              {isExporting ? 'Exporting...' : 'Export HD'}
             </Button>
             <Button
               onClick={handleSaveAndShare}
@@ -373,6 +404,9 @@ export const UnifiedCardCreator = () => {
           )}
         </div>
       </div>
+
+      {/* Hidden High-Resolution Export Renderer */}
+      {renderExportCard()}
     </div>
   );
 };

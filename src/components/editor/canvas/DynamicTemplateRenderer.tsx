@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Camera } from 'lucide-react';
 import type { CardData } from '@/hooks/useCardEditor';
@@ -32,6 +31,10 @@ interface DynamicTemplateRendererProps {
   scaleFactor?: number;
   onPhotoUpload?: () => void;
   onElementSelect?: (elementId: string) => void;
+  dimensions?: {
+    width: number;
+    height: number;
+  };
 }
 
 export const DynamicTemplateRenderer = ({
@@ -40,7 +43,8 @@ export const DynamicTemplateRenderer = ({
   currentPhoto,
   scaleFactor = 1,
   onPhotoUpload,
-  onElementSelect
+  onElementSelect,
+  dimensions
 }: DynamicTemplateRendererProps) => {
   // Safely extract colors and regions with fallbacks
   const templateData = template.template_data as TemplateData;
@@ -52,6 +56,10 @@ export const DynamicTemplateRenderer = ({
     text: '#ffffff'
   };
   const regions = templateData.regions || {};
+
+  // Calculate actual dimensions
+  const actualWidth = dimensions?.width || (300 * scaleFactor);
+  const actualHeight = dimensions?.height || (420 * scaleFactor);
 
   // Field mapping - maps standard card fields to template-specific region names
   const getFieldMapping = (templateId: string) => {
@@ -238,8 +246,8 @@ export const DynamicTemplateRenderer = ({
     <div 
       className="relative rounded-xl shadow-2xl border-4 border-crd-green/30 overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer group"
       style={{ 
-        width: 300 * scaleFactor, 
-        height: 420 * scaleFactor,
+        width: actualWidth, 
+        height: actualHeight,
         backgroundColor: colors.background 
       }}
     >
