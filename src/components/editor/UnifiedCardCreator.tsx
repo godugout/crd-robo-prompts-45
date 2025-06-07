@@ -140,10 +140,17 @@ export const UnifiedCardCreator = () => {
   };
 
   const renderCardPreview = () => {
+    // Convert DesignTemplate to the expected format for DynamicTemplateRenderer
+    const templateForRenderer = {
+      id: selectedTemplate.id,
+      name: selectedTemplate.name,
+      template_data: selectedTemplate.template_data
+    };
+
     return (
       <div ref={cardPreviewRef}>
         <DynamicTemplateRenderer
-          template={selectedTemplate}
+          template={templateForRenderer}
           cardData={cardEditor.cardData}
           currentPhoto={currentPhoto}
           scaleFactor={0.8}

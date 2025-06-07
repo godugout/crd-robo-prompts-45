@@ -25,7 +25,7 @@ interface DynamicTemplateRendererProps {
   template: {
     id: string;
     name: string;
-    template_data: TemplateData;
+    template_data: Record<string, any>; // Accept the broader type from DesignTemplate
   };
   cardData: CardData;
   currentPhoto?: string;
@@ -42,7 +42,16 @@ export const DynamicTemplateRenderer = ({
   onPhotoUpload,
   onElementSelect
 }: DynamicTemplateRendererProps) => {
-  const { colors, regions } = template.template_data;
+  // Safely extract colors and regions with fallbacks
+  const templateData = template.template_data as TemplateData;
+  const colors = templateData.colors || {
+    background: '#1e293b',
+    primary: '#2563eb',
+    secondary: '#fbbf24',
+    accent: '#f59e0b',
+    text: '#ffffff'
+  };
+  const regions = templateData.regions || {};
 
   // Field mapping - maps standard card fields to template-specific region names
   const getFieldMapping = (templateId: string) => {
@@ -50,8 +59,7 @@ export const DynamicTemplateRenderer = ({
       'tcg-classic': {
         title: 'title',
         image: 'image',
-        description: 'stats',
-        stats: 'stats'
+        description: 'stats'
       },
       'sports-modern': {
         title: 'playerName',
@@ -148,8 +156,8 @@ export const DynamicTemplateRenderer = ({
       );
     }
 
-    // Handle description/stats regions
-    if (regionKey === fieldMapping.description || regionKey === fieldMapping.stats) {
+    // Handle description/stats regions - use safe access
+    if (regionKey === fieldMapping.description || (fieldMapping as any).stats === regionKey) {
       return (
         <div 
           key={regionKey}
