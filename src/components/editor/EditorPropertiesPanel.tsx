@@ -81,19 +81,7 @@ export const EditorPropertiesPanel = ({ cardEditor }: EditorPropertiesPanelProps
           {/* Properties Section */}
           <div>
             <h3 className="text-white font-medium mb-4 text-lg">Properties</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-gray-300">Type</Label>
-                <select 
-                  className="w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white"
-                  value={cardEditor?.cardData.type || 'Handcrafted'}
-                  onChange={(e) => cardEditor?.updateCardField('type', e.target.value)}
-                >
-                  <option>Digital</option>
-                  <option>Handcrafted</option>
-                  <option>AI Generated</option>
-                </select>
-              </div>
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <Label className="text-gray-300">Rarity</Label>
                 <select 
@@ -102,7 +90,9 @@ export const EditorPropertiesPanel = ({ cardEditor }: EditorPropertiesPanelProps
                   onChange={(e) => cardEditor?.updateCardField('rarity', e.target.value as CardRarity)}
                 >
                   <option value="common">Common</option>
+                  <option value="uncommon">Uncommon</option>
                   <option value="rare">Rare</option>
+                  <option value="epic">Epic</option>
                   <option value="legendary">Legendary</option>
                 </select>
               </div>

@@ -44,8 +44,6 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
       updateCardField('description', analysis.description);
       updateCardField('rarity', analysis.rarity);
       updateCardField('tags', analysis.tags);
-      updateCardField('type', analysis.type);
-      updateCardField('series', analysis.series);
       
       setWizardState(prev => ({ ...prev, aiAnalysisComplete: true }));
       

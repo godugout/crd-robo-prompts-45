@@ -55,8 +55,6 @@ export interface CardData {
   id?: string;
   title: string;
   description?: string;
-  type?: string;
-  series?: string;
   rarity: CardRarity;
   tags: string[];
   image_url?: string;

@@ -31,17 +31,6 @@ export const PropertiesSection = ({ cardEditor }: PropertiesSectionProps) => {
       
       <div className="space-y-4">
         <div>
-          <Label htmlFor="card-type" className="text-cardshow-lightGray text-sm">Type</Label>
-          <Input
-            id="card-type"
-            value={cardData.type || ''}
-            onChange={(e) => updateCardField('type', e.target.value)}
-            placeholder="e.g., Character, Spell, Item"
-            className="bg-editor-darker border-editor-border text-cardshow-white mt-1"
-          />
-        </div>
-
-        <div>
           <Label htmlFor="tags-input" className="text-cardshow-lightGray text-sm">
             Tags ({tags.length}/10)
           </Label>

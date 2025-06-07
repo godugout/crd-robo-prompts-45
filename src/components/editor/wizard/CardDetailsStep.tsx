@@ -160,14 +160,6 @@ export const CardDetailsStep = ({
           </h4>
           <div className="grid grid-cols-2 gap-4 text-xs">
             <div>
-              <span className="text-crd-lightGray">Type:</span>
-              <span className="text-white ml-2">{cardData.type}</span>
-            </div>
-            <div>
-              <span className="text-crd-lightGray">Series:</span>
-              <span className="text-white ml-2">{cardData.series}</span>
-            </div>
-            <div>
               <span className="text-crd-lightGray">Tags:</span>
               <span className="text-white ml-2">{cardData.tags.length} generated</span>
             </div>

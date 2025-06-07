@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,24 +33,10 @@ export interface PublishingOptions {
   };
 }
 
-export interface DesignTemplate {
-  id: string;
-  name: string;
-  category: string;
-  description?: string;
-  preview_url?: string;
-  template_data: Record<string, any>;
-  is_premium: boolean;
-  usage_count: number;
-  tags: string[];
-}
-
 export interface CardData {
   id?: string;
   title: string;
   description?: string;
-  type?: string;
-  series?: string;
   rarity: CardRarity;
   tags: string[];
   image_url?: string;
@@ -66,6 +53,11 @@ export interface CardData {
   verification_status?: 'pending' | 'verified' | 'rejected';
   print_metadata?: Record<string, any>;
   creator_id?: string;
+  price?: number;
+  edition_size?: number;
+  marketplace_listing?: boolean;
+  crd_catalog_inclusion?: boolean;
+  print_available?: boolean;
 }
 
 export interface UseCardEditorOptions {
@@ -82,8 +74,6 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     id: initialData.id || uuidv4(),
     title: initialData.title || 'My New Card',
     description: initialData.description || '',
-    type: initialData.type || '',
-    series: initialData.series || '',
     image_url: initialData.image_url,
     thumbnail_url: initialData.thumbnail_url,
     rarity: initialData.rarity || 'common',
@@ -106,7 +96,12 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
         limited_edition: false
       }
     },
-    creator_id: user?.id
+    creator_id: user?.id,
+    price: initialData.price,
+    edition_size: initialData.edition_size || 1,
+    marketplace_listing: initialData.marketplace_listing || false,
+    crd_catalog_inclusion: initialData.crd_catalog_inclusion !== false,
+    print_available: initialData.print_available || false
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -169,19 +164,16 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
 
     setIsSaving(true);
     try {
-      // Convert to database format with proper JSON fields - removing category field
+      // Convert to database format with proper JSON fields
       const cardToSave = {
         id: finalCardData.id,
         title: finalCardData.title,
         description: finalCardData.description || null,
-        type: finalCardData.type || null,
-        series: finalCardData.series || null,
         rarity: finalCardData.rarity,
         tags: finalCardData.tags,
         image_url: finalCardData.image_url || null,
         thumbnail_url: finalCardData.thumbnail_url || null,
         design_metadata: finalCardData.design_metadata as any,
-        visibility: finalCardData.visibility,
         is_public: finalCardData.visibility === 'public',
         shop_id: finalCardData.shop_id || null,
         template_id: finalCardData.template_id || null,
@@ -191,7 +183,12 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
         publishing_options: finalCardData.publishing_options as any,
         verification_status: finalCardData.verification_status || 'pending',
         print_metadata: finalCardData.print_metadata as any,
-        creator_id: user.id
+        creator_id: user.id,
+        price: finalCardData.price || null,
+        edition_size: finalCardData.edition_size || 1,
+        marketplace_listing: finalCardData.marketplace_listing || false,
+        crd_catalog_inclusion: finalCardData.crd_catalog_inclusion !== false,
+        print_available: finalCardData.print_available || false
       };
 
       console.log('Attempting to save card:', cardToSave);
@@ -229,7 +226,7 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     try {
       const { error } = await supabase
         .from('cards')
-        .update({ is_public: true, visibility: 'public' })
+        .update({ is_public: true })
         .eq('id', cardData.id);
 
       if (error) {
