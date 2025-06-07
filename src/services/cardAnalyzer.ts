@@ -1,53 +1,36 @@
 
-import { supabase } from '@/integrations/supabase/client';
-
 export interface CardAnalysisResult {
   title: string;
   description: string;
   rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
   tags: string[];
   category: string;
-  type: string;
-  series: string;
 }
 
-export const analyzeCardImage = async (imageDataUrl: string): Promise<CardAnalysisResult> => {
-  try {
-    console.log('Analyzing card image with AI...');
-    
-    // Call Supabase Edge Function for AI analysis
-    const { data, error } = await supabase.functions.invoke('analyze-card-image', {
-      body: { imageData: imageDataUrl }
-    });
-
-    if (error) {
-      console.error('AI analysis error:', error);
-      return getDefaultCardData();
-    }
-
-    return {
-      title: data.title || 'Untitled Card',
-      description: data.description || 'A unique trading card with distinctive features.',
-      rarity: data.rarity || 'common',
-      tags: data.tags || ['trading-card', 'collectible'],
-      category: data.category || 'Trading Card',
-      type: data.type || 'Character',
-      series: data.series || 'Custom Series'
-    };
-  } catch (error) {
-    console.error('Card analysis failed:', error);
-    return getDefaultCardData();
-  }
-};
-
-const getDefaultCardData = (): CardAnalysisResult => {
+export const analyzeCardImage = async (file: File): Promise<CardAnalysisResult> => {
+  // Simulate AI analysis delay
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // Simple analysis based on file name and random generation
+  const fileName = file.name.toLowerCase();
+  
+  const categories = ['sports', 'pokemon', 'gaming', 'art', 'anime', 'nature'];
+  const adjectives = ['Amazing', 'Epic', 'Legendary', 'Rare', 'Powerful', 'Mystical', 'Unique'];
+  const nouns = ['Card', 'Hero', 'Champion', 'Legend', 'Master', 'Guardian'];
+  
+  // Generate suggestions based on filename or random
+  const category = categories.find(cat => fileName.includes(cat)) || categories[Math.floor(Math.random() * categories.length)];
+  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  
+  const rarities: CardAnalysisResult['rarity'][] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+  const rarity = rarities[Math.floor(Math.random() * rarities.length)];
+  
   return {
-    title: 'Custom Trading Card',
-    description: 'A unique collectible card featuring custom artwork and design.',
-    rarity: 'common',
-    tags: ['custom', 'trading-card', 'collectible'],
-    category: 'Trading Card',
-    type: 'Character',
-    series: 'Custom Collection'
+    title: `${adjective} ${noun}`,
+    description: `A ${rarity} ${category} card with incredible power and unique abilities. Perfect for collectors and enthusiasts.`,
+    rarity,
+    tags: [category, adjective.toLowerCase(), noun.toLowerCase(), 'auto-generated'],
+    category
   };
 };
