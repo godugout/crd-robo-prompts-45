@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { toast } from 'sonner';
 import { useCardEditor, CardRarity } from '@/hooks/useCardEditor';
 import { analyzeCardImage } from '@/services/cardAnalyzer';
 import { DEFAULT_TEMPLATES } from './wizard/wizardConfig';
+import { DynamicTemplateRenderer } from './canvas/DynamicTemplateRenderer';
 
 export const UnifiedCardCreator = () => {
   const navigate = useNavigate();
@@ -135,92 +135,29 @@ export const UnifiedCardCreator = () => {
     }
   };
 
-  const renderCardPreview = () => {
-    const { colors, regions } = selectedTemplate.template_data;
-    const scaleFactor = 1;
+  const handlePhotoUpload = () => {
+    document.getElementById('photo-input')?.click();
+  };
 
+  const renderCardPreview = () => {
     return (
-      <div 
-        ref={cardPreviewRef}
-        className="relative rounded-xl shadow-2xl border-4 border-crd-green/30 overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer group"
-        style={{ 
-          width: 300 * scaleFactor, 
-          height: 420 * scaleFactor,
-          backgroundColor: colors.background 
-        }}
-      >
-        {/* Hover glow effect */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-crd-green/10 to-crd-purple/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        
-        {/* Template-specific rendering */}
-        {selectedTemplate.id === 'tcg-classic' && (
-          <>
-            <div 
-              className="absolute flex items-center justify-center text-white font-bold text-sm rounded shadow-lg"
-              style={{
-                left: regions.title.x * scaleFactor,
-                top: regions.title.y * scaleFactor,
-                width: regions.title.width * scaleFactor,
-                height: regions.title.height * scaleFactor,
-                backgroundColor: colors.primary
-              }}
-            >
-              {cardEditor.cardData.title}
-            </div>
-            
-            <div 
-              className="absolute overflow-hidden rounded border-2 border-white/50"
-              style={{
-                left: regions.image.x * scaleFactor,
-                top: regions.image.y * scaleFactor,
-                width: regions.image.width * scaleFactor,
-                height: regions.image.height * scaleFactor
-              }}
-            >
-              {currentPhoto ? (
-                <img 
-                  src={currentPhoto} 
-                  alt="Card" 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center">
-                  <Camera className="w-8 h-8 text-gray-400 mb-2" />
-                  <span className="text-xs text-gray-500 text-center px-2">Your photo here</span>
-                </div>
-              )}
-            </div>
-            
-            <div 
-              className="absolute p-2 text-xs rounded shadow-inner"
-              style={{
-                left: regions.stats.x * scaleFactor,
-                top: regions.stats.y * scaleFactor,
-                width: regions.stats.width * scaleFactor,
-                height: regions.stats.height * scaleFactor,
-                backgroundColor: colors.secondary,
-                color: colors.text
-              }}
-            >
-              <div className="font-semibold mb-1">Description:</div>
-              <div className="text-xs opacity-90">{cardEditor.cardData.description}</div>
-              <div className="mt-2 text-xs flex justify-between">
-                <div>Rarity: {cardEditor.cardData.rarity}</div>
-                <div>Edition: 1/1</div>
-              </div>
-            </div>
-          </>
-        )}
-        
-        {/* Rarity badge */}
-        <div className="absolute top-2 right-2 px-2 py-1 text-xs font-bold text-white rounded-full shadow-lg"
-          style={{ backgroundColor: getRarityColor(cardEditor.cardData.rarity) }}>
-          {cardEditor.cardData.rarity.toUpperCase()}
-        </div>
+      <div ref={cardPreviewRef}>
+        <DynamicTemplateRenderer
+          template={selectedTemplate}
+          cardData={cardEditor.cardData}
+          currentPhoto={currentPhoto}
+          scaleFactor={0.8}
+          onPhotoUpload={handlePhotoUpload}
+          onElementSelect={(elementId) => {
+            if (elementId === 'image') {
+              handlePhotoUpload();
+            }
+          }}
+        />
         
         {/* Loading overlay during AI analysis */}
         {isAnalyzing && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm rounded-xl">
             <div className="text-center text-white">
               <Sparkles className="w-8 h-8 mx-auto mb-2 animate-spin" />
               <p className="text-sm">AI is working its magic...</p>
@@ -315,6 +252,19 @@ export const UnifiedCardCreator = () => {
               </p>
               <p className="text-crd-lightGray text-sm">or click to browse</p>
             </div>
+            
+            {/* Hidden file input for manual photo upload */}
+            <input
+              id="photo-input"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onDrop([file]);
+                e.target.value = '';
+              }}
+              className="hidden"
+            />
           </div>
 
           {/* Template Selection */}
@@ -341,7 +291,7 @@ export const UnifiedCardCreator = () => {
 
         {/* Center: Live Preview */}
         <div className="lg:w-1/3 flex flex-col items-center justify-center">
-          <div className="mb-6">
+          <div className="mb-6 relative">
             {renderCardPreview()}
           </div>
           <p className="text-crd-lightGray text-sm text-center max-w-sm">

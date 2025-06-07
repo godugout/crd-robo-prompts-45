@@ -5,6 +5,7 @@ import { Download, Share2, Edit3, Maximize, RotateCcw, Eye, Camera } from 'lucid
 import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
 import type { useCardEditor } from '@/hooks/useCardEditor';
+import { DynamicTemplateRenderer } from './DynamicTemplateRenderer';
 
 interface EnhancedInteractivePreviewProps {
   title: string;
@@ -93,11 +94,7 @@ export const EnhancedInteractivePreview = ({
   };
 
   const renderCard = () => {
-    const photoUrl = currentPhoto || cardEditor?.cardData.image_url;
-    const cardTitle = cardEditor?.cardData.title || title || 'Card Title';
-    const cardDescription = cardEditor?.cardData.description || description || 'Card description';
-    
-    if (!selectedTemplate) {
+    if (!selectedTemplate || !cardEditor) {
       return (
         <div 
           ref={cardFrontRef}
@@ -111,220 +108,18 @@ export const EnhancedInteractivePreview = ({
       );
     }
 
-    const { colors, regions } = selectedTemplate.template_data;
-    const scaleFactor = 0.8; // Scale down for preview
-
     return (
-      <div 
-        ref={cardFrontRef}
-        className="relative rounded-lg shadow-xl border-2 border-gray-300 overflow-hidden"
-        style={{ 
-          width: 300 * scaleFactor, 
-          height: 420 * scaleFactor,
-          backgroundColor: colors.background 
-        }}
-      >
-        {/* Template-specific rendering */}
-        {selectedTemplate.id === 'tcg-classic' && (
-          <>
-            {/* Title */}
-            <div 
-              className="absolute flex items-center justify-center text-white font-bold text-sm rounded"
-              style={{
-                left: regions.title.x * scaleFactor,
-                top: regions.title.y * scaleFactor,
-                width: regions.title.width * scaleFactor,
-                height: regions.title.height * scaleFactor,
-                backgroundColor: colors.primary
-              }}
-            >
-              {cardTitle}
-            </div>
-            
-            {/* Image */}
-            <div 
-              className="absolute overflow-hidden rounded border-2 border-gray-300"
-              style={{
-                left: regions.image.x * scaleFactor,
-                top: regions.image.y * scaleFactor,
-                width: regions.image.width * scaleFactor,
-                height: regions.image.height * scaleFactor
-              }}
-            >
-              {photoUrl ? (
-                <img 
-                  src={photoUrl} 
-                  alt="Card" 
-                  className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => onElementSelect?.('image')}
-                />
-              ) : (
-                <div 
-                  className="w-full h-full bg-gray-100 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
-                  onClick={handlePhotoUpload}
-                >
-                  <Camera className="w-8 h-8 text-gray-400 mb-2" />
-                  <span className="text-xs text-gray-500 text-center px-2">Click to add photo</span>
-                </div>
-              )}
-            </div>
-            
-            {/* Stats area */}
-            <div 
-              className="absolute p-2 text-xs rounded"
-              style={{
-                left: regions.stats.x * scaleFactor,
-                top: regions.stats.y * scaleFactor,
-                width: regions.stats.width * scaleFactor,
-                height: regions.stats.height * scaleFactor,
-                backgroundColor: colors.secondary,
-                color: colors.text === '#ffffff' ? '#000000' : colors.text
-              }}
-            >
-              <div className="font-semibold mb-1">Description:</div>
-              <div className="text-xs opacity-90">{cardDescription}</div>
-              <div className="mt-2 text-xs">
-                <div>Rarity: {cardEditor?.cardData.rarity || 'Common'}</div>
-                <div>Edition: {cardEditor?.cardData.edition_size || 1}/1</div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {selectedTemplate.id === 'sports-modern' && (
-          <>
-            {/* Player name header */}
-            <div 
-              className="absolute flex items-center text-white font-bold text-sm"
-              style={{
-                left: regions.playerName.x * scaleFactor,
-                top: regions.playerName.y * scaleFactor,
-                width: regions.playerName.width * scaleFactor,
-                height: regions.playerName.height * scaleFactor,
-                backgroundColor: colors.primary
-              }}
-            >
-              <span className="ml-2">{cardTitle}</span>
-            </div>
-            
-            {/* Action shot */}
-            <div 
-              className="absolute overflow-hidden rounded"
-              style={{
-                left: regions.image.x * scaleFactor,
-                top: regions.image.y * scaleFactor,
-                width: regions.image.width * scaleFactor,
-                height: regions.image.height * scaleFactor
-              }}
-            >
-              {photoUrl ? (
-                <img 
-                  src={photoUrl} 
-                  alt="Player" 
-                  className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => onElementSelect?.('image')}
-                />
-              ) : (
-                <div 
-                  className="w-full h-full bg-gray-100 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50"
-                  onClick={handlePhotoUpload}
-                >
-                  <Camera className="w-6 h-6 text-gray-400 mb-1" />
-                  <span className="text-xs text-gray-500">Action Shot</span>
-                </div>
-              )}
-            </div>
-            
-            {/* Team and position */}
-            <div 
-              className="absolute flex justify-between items-center px-2 text-xs font-medium"
-              style={{
-                left: 0,
-                bottom: 40 * scaleFactor,
-                width: '100%',
-                height: 30 * scaleFactor,
-                backgroundColor: colors.accent,
-                color: 'white'
-              }}
-            >
-              <span>TEAM NAME</span>
-              <span>POSITION</span>
-            </div>
-            
-            {/* Stats footer */}
-            <div 
-              className="absolute p-2 text-xs"
-              style={{
-                left: 0,
-                bottom: 0,
-                width: '100%',
-                height: 40 * scaleFactor,
-                backgroundColor: colors.secondary,
-                color: colors.text
-              }}
-            >
-              {cardDescription}
-            </div>
-          </>
-        )}
-
-        {/* Add similar renders for other templates... */}
-        {selectedTemplate.id === 'school-academic' && (
-          <>
-            <div 
-              className="absolute flex items-center justify-center text-white font-bold text-sm"
-              style={{
-                left: regions.name.x * scaleFactor,
-                top: regions.name.y * scaleFactor,
-                width: regions.name.width * scaleFactor,
-                height: regions.name.height * scaleFactor,
-                backgroundColor: colors.primary
-              }}
-            >
-              {cardTitle}
-            </div>
-            
-            <div 
-              className="absolute overflow-hidden rounded-full border-4"
-              style={{
-                left: regions.image.x * scaleFactor,
-                top: regions.image.y * scaleFactor,
-                width: regions.image.width * scaleFactor,
-                height: regions.image.height * scaleFactor,
-                borderColor: colors.primary
-              }}
-            >
-              {photoUrl ? (
-                <img src={photoUrl} alt="Portrait" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gray-100 flex items-center justify-center cursor-pointer" onClick={handlePhotoUpload}>
-                  <Camera className="w-6 h-6 text-gray-400" />
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* Rarity indicator */}
-        {cardEditor?.cardData.rarity && (
-          <div className="absolute top-2 right-2 px-2 py-1 text-xs font-bold text-white rounded-full"
-            style={{ backgroundColor: getRarityColor(cardEditor.cardData.rarity) }}>
-            {cardEditor.cardData.rarity.toUpperCase()}
-          </div>
-        )}
+      <div ref={cardFrontRef}>
+        <DynamicTemplateRenderer
+          template={selectedTemplate}
+          cardData={cardEditor.cardData}
+          currentPhoto={currentPhoto}
+          scaleFactor={1}
+          onPhotoUpload={handlePhotoUpload}
+          onElementSelect={onElementSelect}
+        />
       </div>
     );
-  };
-
-  const getRarityColor = (rarity: string) => {
-    const colors = {
-      common: '#6b7280',
-      uncommon: '#10b981',
-      rare: '#3b82f6',
-      epic: '#8b5cf6',
-      legendary: '#f59e0b'
-    };
-    return colors[rarity as keyof typeof colors] || colors.common;
   };
 
   return (
