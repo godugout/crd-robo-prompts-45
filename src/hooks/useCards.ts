@@ -1,110 +1,92 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase-client';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
 
-interface Card {
+export interface Card {
   id: string;
   title: string;
   description?: string;
   image_url?: string;
   thumbnail_url?: string;
-  creator_id: string;
-  is_public: boolean;
   rarity: string;
-  tags: string[];
-  design_metadata: Record<string, any>;
-  created_at: string;
-  updated_at: string;
+  price?: number;
+  creator_name?: string;
+  creator_verified?: boolean;
+  tags?: string[];
+  created_at?: string;
 }
 
 export const useCards = () => {
-  const { user } = useAuth();
-  const [cards, setCards] = useState<Card[]>([]);
   const [featuredCards, setFeaturedCards] = useState<Card[]>([]);
-  const [userCards, setUserCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const fetchPublicCards = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('cards')
-        .select('*')
-        .eq('is_public', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      setCards(data || []);
-      setFeaturedCards(data?.slice(0, 8) || []);
-    } catch (error) {
-      console.error('Error fetching public cards:', error);
-      toast.error('Failed to load cards');
-    }
-  };
-
-  const fetchUserCards = async (userId?: string) => {
-    const targetUserId = userId || user?.id;
-    if (!targetUserId) return [];
-    
-    try {
-      const { data, error } = await supabase
-        .from('cards')
-        .select('*')
-        .eq('creator_id', targetUserId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      const userCardsData = data || [];
-      if (!userId || userId === user?.id) {
-        setUserCards(userCardsData);
-      }
-      return userCardsData;
-    } catch (error) {
-      console.error('Error fetching user cards:', error);
-      return [];
-    }
-  };
-
-  const fetchCards = async () => {
-    setLoading(true);
-    await Promise.all([fetchPublicCards(), fetchUserCards()]);
-    setLoading(false);
-  };
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchCards();
-
-    // Set up real-time subscription for new cards
-    const subscription = supabase
-      .channel('cards-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'cards'
-        },
-        () => {
-          fetchCards(); // Refresh cards when changes occur
+    const fetchCards = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const { data, error } = await supabase
+          .from('cards')
+          .select(`
+            id,
+            title,
+            description,
+            image_url,
+            thumbnail_url,
+            rarity,
+            price,
+            tags,
+            created_at,
+            creator_id
+          `)
+          .eq('is_public', true)
+          .order('created_at', { ascending: false })
+          .limit(20);
+        
+        if (error) {
+          throw error;
         }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(subscription);
+        
+        // Get creator information for each card
+        const cardsWithCreators = await Promise.all(
+          (data || []).map(async (card) => {
+            let creator_name = 'Unknown Creator';
+            let creator_verified = false;
+            
+            if (card.creator_id) {
+              const { data: profileData } = await supabase
+                .from('crd_profiles')
+                .select('display_name, creator_verified')
+                .eq('id', card.creator_id)
+                .single();
+              
+              if (profileData) {
+                creator_name = profileData.display_name || 'Unknown Creator';
+                creator_verified = profileData.creator_verified || false;
+              }
+            }
+            
+            return {
+              ...card,
+              creator_name,
+              creator_verified
+            };
+          })
+        );
+        
+        setFeaturedCards(cardsWithCreators);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch cards');
+        setFeaturedCards([]);
+      } finally {
+        setLoading(false);
+      }
     };
-  }, [user]);
 
-  return {
-    cards,
-    featuredCards,
-    userCards,
-    loading,
-    fetchCards,
-    fetchPublicCards,
-    fetchUserCards
-  };
+    fetchCards();
+  }, []);
+
+  return { featuredCards, loading, error };
 };

@@ -1,21 +1,33 @@
 
 import React from 'react';
-import { UnifiedCardCreator } from './UnifiedCardCreator';
-import { CardCreationHub } from '@/components/cards/CardCreationHub';
+import { SimplifiedCardCreationHub } from '@/components/cards/SimplifiedCardCreationHub';
+import { UploadStyleFlow } from './flows/UploadStyleFlow';
+import { DesignScratchFlow } from './flows/DesignScratchFlow';
+import { RemixFlow } from './flows/RemixFlow';
 
 export const CardCreationFlow = () => {
-  // Check the exact path to determine which component to show
   const currentPath = window.location.pathname;
+  const urlParams = new URLSearchParams(window.location.search);
+  const mode = urlParams.get('mode');
   
-  // Show hub for /cards, direct creator for /cards/create
+  // Show hub for /cards, specific flows for /cards/create with mode
   if (currentPath === '/cards') {
-    return <CardCreationHub />;
+    return <SimplifiedCardCreationHub />;
   }
   
   if (currentPath === '/cards/create') {
-    return <UnifiedCardCreator />;
+    switch (mode) {
+      case 'upload-style':
+        return <UploadStyleFlow />;
+      case 'design-scratch':
+        return <DesignScratchFlow />;
+      case 'remix':
+        return <RemixFlow />;
+      default:
+        return <SimplifiedCardCreationHub />;
+    }
   }
 
   // Default fallback to hub
-  return <CardCreationHub />;
+  return <SimplifiedCardCreationHub />;
 };
