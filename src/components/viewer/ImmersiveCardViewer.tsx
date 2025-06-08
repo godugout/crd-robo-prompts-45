@@ -3,6 +3,7 @@ import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
+import { convertToViewerCardData } from './types';
 import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from './constants';
 import { 
   useEnhancedCardEffects, 
@@ -49,6 +50,24 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   ambient = true
 }) => {
   const isMobile = useIsMobile();
+  
+  // Convert UniversalCardData to CardData for internal use
+  const viewerCard = convertToViewerCardData(card);
+  
+  console.log('ImmersiveCardViewer: Converting card data:', {
+    originalCard: {
+      id: card.id,
+      title: card.title,
+      image_url: card.image_url,
+      hasImage: !!card.image_url
+    },
+    convertedCard: {
+      id: viewerCard.id,
+      title: viewerCard.title,
+      image_url: viewerCard.image_url,
+      hasImage: !!viewerCard.image_url
+    }
+  });
   
   // State
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -203,7 +222,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
   // Style generation hook - Create a component from SurfaceTexture element
   const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useCardEffects({
-    card,
+    card: viewerCard,
     effectValues,
     mousePosition,
     showEffects,
@@ -553,7 +572,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             {/* Enhanced Card Container with Full Gesture Support */}
             <div ref={cardContainerRef}>
               <EnhancedCardContainer
-                card={card}
+                card={viewerCard}
                 isFlipped={isFlipped}
                 isHovering={isHovering}
                 showEffects={showEffects}
@@ -727,7 +746,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         {/* Enhanced Card Container - Add mobile gesture support */}
         <div ref={cardContainerRef}>
           <EnhancedCardContainer
-            card={card}
+            card={viewerCard}
             isFlipped={isFlipped}
             isHovering={isHovering}
             showEffects={showEffects}
