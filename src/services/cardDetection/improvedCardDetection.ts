@@ -25,7 +25,10 @@ export class ImprovedCardDetector {
 
   async detectCards(image: HTMLImageElement): Promise<DetectionResult> {
     const startTime = Date.now();
-    const debugInfo = { processingSteps: [], processingTime: 0 };
+    const debugInfo: DetectionResult['debugInfo'] = { 
+      processingSteps: [], 
+      processingTime: 0 
+    };
     
     this.log('Starting improved card detection', debugInfo);
 
