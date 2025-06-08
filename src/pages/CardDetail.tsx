@@ -1,21 +1,82 @@
 
 import React from "react";
-import { CardHeader } from "@/components/card/CardHeader";
-import { CardInfo } from "@/components/card/CardInfo";
-import { CardPreview } from "@/components/card/CardPreview";
-import { CardBidInfo } from "@/components/card/CardBidInfo";
+import { useParams, useNavigate } from "react-router-dom";
+import { ImmersiveCardViewer } from "@/components/viewer/ImmersiveCardViewer";
+import { useCardActions } from "@/hooks/useCardActions";
+import { useCardData } from "@/hooks/useCardData";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Loader } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CardDetail() {
-  return (
-    <div className="bg-[#141416] min-h-screen text-[#FCFCFD] font-poppins">
-      <CardHeader />
-      <div className="flex flex-col md:flex-row gap-16 px-4 py-16 md:px-32">
-        <CardPreview />
-        <div className="flex-1 space-y-16">
-          <CardInfo />
-          <CardBidInfo />
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { handleShare, handleRemix, handleStage } = useCardActions();
+  const { card, loading, error } = useCardData(id);
+
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
+  const handleDownload = async () => {
+    if (card) {
+      toast.success(`Downloading "${card.title}"`);
+      // Download logic would go here
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-crd-darkest flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader className="w-8 h-8 animate-spin text-crd-blue" />
+          <p className="text-crd-lightGray">Loading card...</p>
         </div>
       </div>
-    </div>
+    );
+  }
+
+  if (error || !card) {
+    return (
+      <div className="min-h-screen bg-crd-darkest flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white mb-4">Card Not Found</h1>
+          <p className="text-crd-lightGray mb-6">{error || "The card you're looking for doesn't exist."}</p>
+          <Button onClick={handleGoBack} variant="outline">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Go Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Back Button */}
+      <div className="fixed top-4 left-4 z-50">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleGoBack}
+          className="bg-black bg-opacity-80 hover:bg-opacity-90 backdrop-blur text-white border border-white/20"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+      </div>
+
+      {/* Immersive 3D Card Viewer */}
+      <ImmersiveCardViewer
+        card={card}
+        isOpen={true}
+        onClose={handleGoBack}
+        onShare={() => handleShare(card)}
+        onDownload={handleDownload}
+        allowRotation={true}
+        showStats={true}
+        ambient={true}
+      />
+    </>
   );
 }
