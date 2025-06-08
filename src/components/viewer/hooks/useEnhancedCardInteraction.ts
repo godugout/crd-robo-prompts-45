@@ -34,12 +34,17 @@ export const useEnhancedCardInteraction = () => {
     setRotation({ x: 0, y: 0 });
   }, []);
 
+  const resetRotation = useCallback(() => {
+    setRotation({ x: 0, y: 0 });
+  }, []);
+
   return {
     mousePosition,
     isHovering,
     rotation,
     handleMouseMove,
     handleMouseEnter,
-    handleMouseLeave
+    handleMouseLeave,
+    resetRotation
   };
 };

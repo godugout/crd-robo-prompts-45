@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Maximize2, Share, Download, Star, Calendar, Tag } from 'lucide-react';
 import { CompactCardViewer } from '@/components/viewer/CompactCardViewer';
+import { convertToViewerCardData } from '@/components/viewer/types';
 import type { CardData } from '@/hooks/useCardData';
 
 interface CardDetailViewProps {
@@ -45,6 +46,34 @@ export const CardDetailView: React.FC<CardDetailViewProps> = ({
     });
   };
 
+  // Convert the CardData to the format expected by CompactCardViewer
+  const viewerCard = convertToViewerCardData({
+    id: card.id,
+    title: card.title,
+    description: card.description,
+    image_url: card.image_url,
+    thumbnail_url: card.thumbnail_url,
+    rarity: card.rarity,
+    tags: card.tags || [],
+    design_metadata: {},
+    visibility: 'public',
+    creator_attribution: {
+      creator_name: card.creator_name,
+      creator_id: undefined,
+      collaboration_type: 'solo'
+    },
+    publishing_options: {
+      marketplace_listing: true,
+      crd_catalog_inclusion: true,
+      print_available: false,
+      pricing: {
+        base_price: card.price,
+        currency: 'ETH'
+      }
+    },
+    price: card.price
+  });
+
   return (
     <div className="min-h-screen bg-crd-darkest">
       <div className="max-w-6xl mx-auto px-6 py-8">
@@ -53,7 +82,7 @@ export const CardDetailView: React.FC<CardDetailViewProps> = ({
           <div className="space-y-4">
             <div className="aspect-[3/4] relative">
               <CompactCardViewer
-                card={card}
+                card={viewerCard}
                 onFullscreen={onOpenViewer}
                 width={400}
                 height={560}
