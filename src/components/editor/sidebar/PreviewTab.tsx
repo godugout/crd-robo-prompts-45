@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Eye, Maximize, Download, Share2, ArrowRight, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
+import { convertToUniversalCardData } from '@/components/viewer/types';
 import AdvancedCardRenderer from '@/components/renderer/AdvancedCardRenderer';
 import type { CardData } from '@/hooks/useCardEditor';
 
@@ -34,21 +35,23 @@ export const PreviewTab = ({ selectedTemplate, cardData, onContinueToEffects }: 
     toast.success('Generating share link...');
   };
 
-  const handleDownloadCard = (card: CardData) => {
-    const dataStr = JSON.stringify(card, null, 2);
+  const handleDownloadCard = () => {
+    if (!cardData) return;
+    
+    const dataStr = JSON.stringify(cardData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${card.title.replace(/\s+/g, '_')}_card.json`;
+    link.download = `${cardData.title.replace(/\s+/g, '_')}_card.json`;
     link.click();
     
     URL.revokeObjectURL(url);
     toast.success('Card exported successfully');
   };
 
-  const handleShareCard = (card: CardData) => {
+  const handleShareCard = () => {
     const shareUrl = window.location.href;
     
     if (navigator.clipboard) {
@@ -157,7 +160,7 @@ export const PreviewTab = ({ selectedTemplate, cardData, onContinueToEffects }: 
       {/* Immersive Card Viewer */}
       {showImmersiveViewer && cardData && (
         <ImmersiveCardViewer
-          card={cardData}
+          card={convertToUniversalCardData(cardData)}
           isOpen={showImmersiveViewer}
           onClose={() => setShowImmersiveViewer(false)}
           onShare={handleShareCard}

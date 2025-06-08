@@ -10,6 +10,7 @@ import { PublishingSection } from './right-sidebar/PublishingSection';
 import { CustomizeDesignSection } from './right-sidebar/CustomizeDesignSection';
 import { AdvancedEffectsSection } from './right-sidebar/AdvancedEffectsSection';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
+import { convertToUniversalCardData } from '@/components/viewer/types';
 import { Sparkles } from 'lucide-react';
 
 interface RightSidebarProps {
@@ -174,7 +175,7 @@ export const RightSidebar = ({ cardEditor: providedCardEditor }: RightSidebarPro
       {/* Immersive Card Viewer */}
       {showImmersiveViewer && (
         <ImmersiveCardViewer
-          card={cardEditor.cardData}
+          card={convertToUniversalCardData(cardEditor.cardData)}
           isOpen={showImmersiveViewer}
           onClose={() => setShowImmersiveViewer(false)}
           onShare={handleShareCard}

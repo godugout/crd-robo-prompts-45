@@ -84,8 +84,23 @@ export const convertToViewerCardData = (card: UniversalCardData): CardData => {
       }
     },
     price: card.price,
-    creator_id: undefined,
-    creator_name: card.creator_name,
-    creator_verified: card.creator_verified
+    creator_id: undefined
+  };
+};
+
+// Helper function to convert CardData to UniversalCardData for display components
+export const convertToUniversalCardData = (card: CardData): UniversalCardData => {
+  return {
+    id: card.id || 'temp-' + Date.now(), // Generate temp ID if missing
+    title: card.title,
+    description: card.description,
+    image_url: card.image_url,
+    thumbnail_url: card.thumbnail_url,
+    rarity: card.rarity,
+    price: card.price,
+    creator_name: card.creator_attribution?.creator_name,
+    creator_verified: false, // Default value
+    stock: 3, // Default value
+    tags: card.tags
   };
 };
