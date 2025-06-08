@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase-client';
 import type { CardRarity } from '@/components/cards/UniversalCardDisplay';
 
 export interface CardData {
@@ -16,46 +17,6 @@ export interface CardData {
   created_at?: string;
   updated_at?: string;
 }
-
-// Mock card database - In a real app, this would come from Supabase or your API
-const MOCK_CARDS: Record<string, CardData> = {
-  'c23d8872-d345-4068-b13c-afd0209a10f3': {
-    id: 'c23d8872-d345-4068-b13c-afd0209a10f3',
-    title: "Holographic Dragon Card",
-    description: "A rare holographic trading card featuring a magnificent dragon with prismatic effects and premium foil treatment.",
-    image_url: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&q=80",
-    thumbnail_url: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200&q=80",
-    rarity: "legendary",
-    creator_name: "DragonMaster",
-    creator_verified: true,
-    price: 2.5,
-    tags: ["dragon", "fantasy", "holographic", "premium"]
-  },
-  'sample-card-1': {
-    id: 'sample-card-1',
-    title: "Crystal Warrior",
-    description: "A mystical warrior encased in crystal armor with ethereal glow effects.",
-    image_url: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=400&q=80",
-    thumbnail_url: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=200&q=80",
-    rarity: "epic",
-    creator_name: "CrystalForge",
-    creator_verified: true,
-    price: 1.8,
-    tags: ["warrior", "crystal", "mystical"]
-  },
-  'sample-card-2': {
-    id: 'sample-card-2',
-    title: "Cyber Phoenix",
-    description: "A futuristic phoenix rising from digital flames with neon highlights.",
-    image_url: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80",
-    thumbnail_url: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=200&q=80",
-    rarity: "rare",
-    creator_name: "NeonArts",
-    creator_verified: false,
-    price: 1.2,
-    tags: ["cyber", "phoenix", "futuristic", "neon"]
-  }
-};
 
 export const useCardData = (cardId?: string) => {
   const [card, setCard] = useState<CardData | null>(null);
@@ -74,16 +35,56 @@ export const useCardData = (cardId?: string) => {
         setLoading(true);
         setError(null);
         
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 300));
+        const { data, error } = await supabase
+          .from('cards')
+          .select(`
+            id,
+            title,
+            description,
+            image_url,
+            thumbnail_url,
+            rarity,
+            price,
+            tags,
+            created_at,
+            updated_at,
+            creator_id
+          `)
+          .eq('id', cardId)
+          .single();
         
-        const mockCard = MOCK_CARDS[cardId];
+        if (error) {
+          throw error;
+        }
         
-        if (!mockCard) {
+        if (!data) {
           throw new Error('Card not found');
         }
         
-        setCard(mockCard);
+        // Get creator information if creator_id exists
+        let creator_name = 'Unknown Creator';
+        let creator_verified = false;
+        
+        if (data.creator_id) {
+          const { data: profileData } = await supabase
+            .from('crd_profiles')
+            .select('display_name, creator_verified')
+            .eq('id', data.creator_id)
+            .single();
+          
+          if (profileData) {
+            creator_name = profileData.display_name || 'Unknown Creator';
+            creator_verified = profileData.creator_verified || false;
+          }
+        }
+        
+        const cardData: CardData = {
+          ...data,
+          creator_name,
+          creator_verified
+        };
+        
+        setCard(cardData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch card');
         setCard(null);
@@ -115,14 +116,54 @@ export const useMultipleCards = (cardIds?: string[]) => {
         setLoading(true);
         setError(null);
         
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 300));
+        const { data, error } = await supabase
+          .from('cards')
+          .select(`
+            id,
+            title,
+            description,
+            image_url,
+            thumbnail_url,
+            rarity,
+            price,
+            tags,
+            created_at,
+            updated_at,
+            creator_id
+          `)
+          .in('id', cardIds);
         
-        const foundCards = cardIds
-          .map(id => MOCK_CARDS[id])
-          .filter(Boolean);
+        if (error) {
+          throw error;
+        }
         
-        setCards(foundCards);
+        const cardsWithCreators = await Promise.all(
+          (data || []).map(async (card) => {
+            let creator_name = 'Unknown Creator';
+            let creator_verified = false;
+            
+            if (card.creator_id) {
+              const { data: profileData } = await supabase
+                .from('crd_profiles')
+                .select('display_name, creator_verified')
+                .eq('id', card.creator_id)
+                .single();
+              
+              if (profileData) {
+                creator_name = profileData.display_name || 'Unknown Creator';
+                creator_verified = profileData.creator_verified || false;
+              }
+            }
+            
+            return {
+              ...card,
+              creator_name,
+              creator_verified
+            };
+          })
+        );
+        
+        setCards(cardsWithCreators);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch cards');
         setCards([]);

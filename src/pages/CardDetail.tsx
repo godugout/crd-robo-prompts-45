@@ -1,7 +1,8 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ImmersiveCardViewer } from "@/components/viewer/ImmersiveCardViewer";
+import { CardDetailView } from "@/components/cards/CardDetailView";
 import { useCardActions } from "@/hooks/useCardActions";
 import { useCardData } from "@/hooks/useCardData";
 import { convertToViewerCardData } from "@/components/viewer/types";
@@ -14,15 +15,43 @@ export default function CardDetail() {
   const navigate = useNavigate();
   const { handleShare, handleRemix, handleStage } = useCardActions();
   const { card, loading, error } = useCardData(id);
+  const [showViewer, setShowViewer] = useState(false);
 
   const handleGoBack = () => {
     navigate(-1);
+  };
+
+  const handleOpenViewer = () => {
+    setShowViewer(true);
+  };
+
+  const handleCloseViewer = () => {
+    setShowViewer(false);
   };
 
   const handleDownload = async () => {
     if (card) {
       toast.success(`Downloading "${card.title}"`);
       // Download logic would go here
+    }
+  };
+
+  const handleShareCard = async () => {
+    if (card) {
+      const universalCard = {
+        id: card.id,
+        title: card.title,
+        description: card.description,
+        image_url: card.image_url,
+        thumbnail_url: card.thumbnail_url,
+        rarity: card.rarity,
+        price: card.price,
+        creator_name: card.creator_name,
+        creator_verified: card.creator_verified,
+        stock: 3, // Default value
+        tags: card.tags
+      };
+      await handleShare(universalCard);
     }
   };
 
@@ -59,7 +88,7 @@ export default function CardDetail() {
     hasImage: !!card.image_url
   });
 
-  // Convert CardData to UniversalCardData format for actions
+  // Convert CardData to UniversalCardData format
   const universalCard = {
     id: card.id,
     title: card.title,
@@ -74,20 +103,43 @@ export default function CardDetail() {
     tags: card.tags
   };
 
-  // Convert to viewer CardData format
-  const viewerCard = convertToViewerCardData(universalCard);
+  // Show immersive viewer if requested
+  if (showViewer) {
+    return (
+      <>
+        {/* Back Button */}
+        <div className="fixed top-4 left-4 z-50">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCloseViewer}
+            className="bg-black bg-opacity-80 hover:bg-opacity-90 backdrop-blur text-white border border-white/20"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Details
+          </Button>
+        </div>
 
-  console.log('CardDetail: Converted viewer card data:', {
-    id: viewerCard.id,
-    title: viewerCard.title,
-    image_url: viewerCard.image_url,
-    hasImage: !!viewerCard.image_url
-  });
+        {/* Immersive 3D Card Viewer */}
+        <ImmersiveCardViewer
+          card={universalCard}
+          isOpen={true}
+          onClose={handleCloseViewer}
+          onShare={handleShareCard}
+          onDownload={handleDownload}
+          allowRotation={true}
+          showStats={true}
+          ambient={true}
+        />
+      </>
+    );
+  }
 
+  // Show card detail view
   return (
     <>
       {/* Back Button */}
-      <div className="fixed top-4 left-4 z-50">
+      <div className="fixed top-4 left-4 z-40">
         <Button
           variant="ghost"
           size="sm"
@@ -99,16 +151,12 @@ export default function CardDetail() {
         </Button>
       </div>
 
-      {/* Immersive 3D Card Viewer */}
-      <ImmersiveCardViewer
-        card={universalCard}
-        isOpen={true}
-        onClose={handleGoBack}
-        onShare={() => handleShare(universalCard)}
+      {/* Card Detail View */}
+      <CardDetailView
+        card={card}
+        onOpenViewer={handleOpenViewer}
+        onShare={handleShareCard}
         onDownload={handleDownload}
-        allowRotation={true}
-        showStats={true}
-        ambient={true}
       />
     </>
   );
