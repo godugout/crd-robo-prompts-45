@@ -43,8 +43,20 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [backgroundLoaded, setBackgroundLoaded] = useState(false);
 
   console.log('EnhancedCardCanvas rendering, isFlipped:', isFlipped);
+
+  // Preload background image
+  useEffect(() => {
+    if (selectedScene.backgroundImage && selectedScene.backgroundImage.startsWith('url(')) {
+      const imageUrl = selectedScene.backgroundImage.slice(4, -1); // Remove 'url(' and ')'
+      const img = new Image();
+      img.onload = () => setBackgroundLoaded(true);
+      img.onerror = () => setBackgroundLoaded(false);
+      img.src = imageUrl;
+    }
+  }, [selectedScene.backgroundImage]);
 
   // Handle card flip on click
   const handleCardClick = () => {
@@ -58,7 +70,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
     border: '1px solid rgba(255,255,255,0.1)'
   };
 
-  // Mock enhanced effect styles
+  // Enhanced effect styles with brightness
   const enhancedEffectStyles: React.CSSProperties = {
     filter: `brightness(${overallBrightness / 100}) contrast(1.1)`
   };
@@ -77,7 +89,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
   return (
     <div
       ref={canvasRef}
-      className="relative flex items-center justify-center"
+      className="relative flex items-center justify-center overflow-hidden"
       style={{
         width: `${width}px`,
         height: `${height}px`,
@@ -88,6 +100,30 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
       onMouseLeave={onMouseLeave}
       onClick={handleCardClick}
     >
+      {/* High-Resolution Background */}
+      <div 
+        className="absolute inset-0 z-0"
+        style={{
+          background: backgroundLoaded && selectedScene.backgroundImage 
+            ? selectedScene.backgroundImage 
+            : selectedScene.gradient,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          filter: `brightness(${overallBrightness / 100}) contrast(1.05)`,
+          transition: 'all 0.3s ease'
+        }}
+      />
+
+      {/* Overlay for better card contrast */}
+      <div 
+        className="absolute inset-0 z-10"
+        style={{
+          background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.2) 70%)',
+          pointerEvents: 'none'
+        }}
+      />
+
       {/* CRD Logo Branding - Upper Right */}
       <div className="absolute top-4 right-4 z-50">
         <img 
@@ -104,7 +140,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
 
       {/* 3D Card Container */}
       <div
-        className="relative cursor-pointer transition-transform duration-700 preserve-3d"
+        className="relative cursor-pointer transition-transform duration-700 preserve-3d z-20"
         style={{
           width: '300px',
           height: '420px',
@@ -145,7 +181,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
           />
         </div>
 
-        {/* Card Back - NEW DESIGN */}
+        {/* Card Back - with environment-aware styling */}
         <div
           className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden"
           style={{
@@ -153,18 +189,18 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             transform: 'rotateY(180deg)'
           }}
         >
-          {/* Dark Pattern Background Base */}
+          {/* Environment-aware background */}
           <div 
             className="absolute inset-0"
             style={{
               background: `
-                linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)
+                linear-gradient(135deg, rgba(26,26,26,0.9) 0%, rgba(45,45,45,0.8) 50%, rgba(26,26,26,0.9) 100%)
               `,
               backgroundColor: '#0a0a0a'
             }}
           />
           
-          {/* Centered CRD Logo Only */}
+          {/* Centered CRD Logo */}
           <div className="relative h-full flex items-center justify-center z-30">
             <div className="flex items-center justify-center">
               <img 
@@ -180,9 +216,8 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             </div>
           </div>
 
-          {/* Apply same effects as front for consistency */}
+          {/* Interactive lighting effects for consistency */}
           <div className="absolute inset-0 pointer-events-none z-40">
-            {/* Lighting effects overlay */}
             {interactiveLighting && isHovering && (
               <div
                 className="absolute inset-0"
@@ -205,7 +240,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
       </div>
 
       {/* Click instruction */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white/60 text-sm">
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white/60 text-sm z-30">
         Click to flip card
       </div>
     </div>

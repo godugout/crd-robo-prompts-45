@@ -14,7 +14,7 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
       elevation: 45,
       azimuth: 0
     },
-    backgroundImage: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+    backgroundImage: 'url(https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=2048&h=1365&fit=crop&crop=center)',
     reflections: 'soft'
   },
   {
@@ -29,7 +29,7 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
       elevation: 30,
       azimuth: 45
     },
-    backgroundImage: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+    backgroundImage: 'url(https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=2048&h=1365&fit=crop&crop=center)',
     reflections: 'vivid'
   },
   {
@@ -44,7 +44,7 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
       elevation: 15,
       azimuth: 60
     },
-    backgroundImage: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+    backgroundImage: 'url(https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=2048&h=1365&fit=crop&crop=center)',
     reflections: 'warm'
   },
   {
@@ -59,7 +59,7 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
       elevation: 60,
       azimuth: -30
     },
-    backgroundImage: 'linear-gradient(135deg, #2c3e50 0%, #3498db 100%)',
+    backgroundImage: 'url(https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?w=2048&h=1365&fit=crop&crop=center)',
     reflections: 'cold'
   }
 ];
