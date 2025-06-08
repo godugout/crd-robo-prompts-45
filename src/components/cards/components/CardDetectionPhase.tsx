@@ -1,10 +1,11 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { CRDButton } from '@/components/ui/design-system';
 import { toast } from 'sonner';
 import { ManualAdjustmentInterface } from '../detection/ManualAdjustmentInterface';
 import { UploadedImage } from '../hooks/useCardUploadSession';
 import { enhancedCardDetection } from '@/services/cardExtractor/enhancedDetection';
+import { useEnhancedGestureRecognition } from '@/components/viewer/hooks/useEnhancedGestureRecognition';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DetectedCard {
   id: string;
@@ -52,6 +53,62 @@ export const CardDetectionPhase: React.FC<CardDetectionPhaseProps> = ({
   const isDetectionRunning = useRef(false);
 
   const currentUploadedImage = uploadedImages[currentImageIndex];
+
+  const isMobile = useIsMobile();
+
+  // Enhanced gesture support for mobile
+  const gestureCallbacks = {
+    onTap: (position: { x: number; y: number }) => {
+      if (isMobile && currentDetectedCards.length > 0) {
+        // Find nearest card to tap position
+        const nearestCard = currentDetectedCards.find(card => {
+          const cardCenterX = card.x + card.width / 2;
+          const cardCenterY = card.y + card.height / 2;
+          const distance = Math.sqrt(
+            Math.pow(position.x - cardCenterX, 2) + Math.pow(position.y - cardCenterY, 2)
+          );
+          return distance < 100; // 100px tolerance
+        });
+        
+        if (nearestCard) {
+          setSelectedCardId(nearestCard.id);
+          if ('vibrate' in navigator) {
+            navigator.vibrate(25); // Haptic feedback
+          }
+        }
+      }
+    },
+    onPinchZoom: (scale: number) => {
+      // Handle zoom on mobile
+      toast.info(`Zoom: ${(scale * 100).toFixed(0)}%`);
+    },
+    onSwipeLeft: () => {
+      if (isMobile) {
+        // Swipe to next card
+        const currentIndex = currentDetectedCards.findIndex(c => c.id === selectedCardId);
+        if (currentIndex < currentDetectedCards.length - 1) {
+          setSelectedCardId(currentDetectedCards[currentIndex + 1].id);
+        }
+      }
+    },
+    onSwipeRight: () => {
+      if (isMobile) {
+        // Swipe to previous card
+        const currentIndex = currentDetectedCards.findIndex(c => c.id === selectedCardId);
+        if (currentIndex > 0) {
+          setSelectedCardId(currentDetectedCards[currentIndex - 1].id);
+        }
+      }
+    },
+    onLongPress: () => {
+      if (isMobile) {
+        // Show card options on long press
+        toast.info('Long press detected - Card options coming soon!');
+      }
+    }
+  };
+
+  const { touchHandlers, triggerHaptic } = useEnhancedGestureRecognition(gestureCallbacks);
 
   console.log('🔍 CardDetectionPhase render:', {
     currentImageIndex,
@@ -206,7 +263,7 @@ export const CardDetectionPhase: React.FC<CardDetectionPhaseProps> = ({
   const processedCount = processedImages.filter(img => img.processed).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" {...(isMobile ? touchHandlers : {})}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -218,6 +275,11 @@ export const CardDetectionPhase: React.FC<CardDetectionPhaseProps> = ({
           </p>
           <p className="text-sm text-crd-lightGray mt-1">
             Total cards detected so far: {allDetectedCards.length} from {processedCount} images
+            {isMobile && (
+              <span className="block text-xs text-crd-green mt-1">
+                💡 Tap cards to select • Swipe to navigate • Long press for options
+              </span>
+            )}
           </p>
         </div>
         <CRDButton
@@ -241,19 +303,22 @@ export const CardDetectionPhase: React.FC<CardDetectionPhaseProps> = ({
           </div>
         </div>
       ) : currentImage ? (
-        <ManualAdjustmentInterface
-          image={currentImage}
-          regions={currentDetectedCards}
-          selectedRegionId={selectedCardId}
-          onRegionUpdate={handleCardUpdate}
-          onRegionSelect={setSelectedCardId}
-          onConfirmAdjustment={() => {
-            toast.success('Adjustments saved');
-          }}
-          onCancelAdjustment={() => {
-            toast.info('Adjustments reset');
-          }}
-        />
+        <div className={`${isMobile ? 'touch-manipulation' : ''}`}>
+          <ManualAdjustmentInterface
+            image={currentImage}
+            regions={currentDetectedCards}
+            selectedRegionId={selectedCardId}
+            onRegionUpdate={handleCardUpdate}
+            onRegionSelect={setSelectedCardId}
+            onConfirmAdjustment={() => {
+              toast.success('Adjustments saved');
+              if (isMobile) triggerHaptic(50);
+            }}
+            onCancelAdjustment={() => {
+              toast.info('Adjustments reset');
+            }}
+          />
+        </div>
       ) : (
         <div className="text-center py-8">
           <p className="text-crd-lightGray">Loading image...</p>
@@ -267,7 +332,7 @@ export const CardDetectionPhase: React.FC<CardDetectionPhaseProps> = ({
             Cards Found: {currentDetectedCards.length}
           </p>
           <p className="text-sm text-crd-lightGray">
-            Adjust crop areas and approve to continue
+            {isMobile ? 'Use touch gestures to adjust crop areas' : 'Adjust crop areas and approve to continue'}
           </p>
         </div>
         <div className="flex gap-2">
