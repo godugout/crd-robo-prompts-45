@@ -1,11 +1,12 @@
 
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { WizardHeader } from './wizard/WizardHeader';
 import { WizardStepContent } from './wizard/WizardStepContent';
 import { useWizardState } from './wizard/useWizardState';
-import type { CardData, DesignTemplate } from '@/hooks/useCardEditor';
+import type { CardData } from '@/hooks/useCardEditor';
 
 interface SimpleCardWizardProps {
   onComplete: (cardData: CardData) => void;
@@ -97,3 +98,4 @@ export const SimpleCardWizard = ({ onComplete }: SimpleCardWizardProps) => {
     </div>
   );
 };
+

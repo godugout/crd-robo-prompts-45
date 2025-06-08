@@ -1,17 +1,19 @@
 
+
 import React from 'react';
 import { PhotoUploadStep } from './PhotoUploadStep';
 import { TemplateSelectionStep } from './TemplateSelectionStep';
 import { CardDetailsStep } from './CardDetailsStep';
 import { PublishingOptionsStep } from './PublishingOptionsStep';
 import type { WizardState, WizardHandlers } from './types';
-import type { CardData, DesignTemplate } from '@/hooks/useCardEditor';
+import type { CardData } from '@/hooks/useCardEditor';
+import type { TemplateConfig } from './wizardConfig';
 
 interface WizardStepContentProps {
   currentStep: number;
   wizardState: WizardState;
   cardData: CardData;
-  templates: DesignTemplate[];
+  templates: TemplateConfig[];
   handlers: WizardHandlers;
 }
 
@@ -60,3 +62,4 @@ export const WizardStepContent = ({
       return null;
   }
 };
+

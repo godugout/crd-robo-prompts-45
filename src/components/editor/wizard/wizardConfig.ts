@@ -1,4 +1,5 @@
 
+
 export interface TemplateConfig {
   id: string;
   name: string;
@@ -6,8 +7,8 @@ export interface TemplateConfig {
   category: 'classic' | 'modern' | 'full-bleed' | 'social';
   preview: string;
   tags: string[];
-  is_premium?: boolean;
-  usage_count?: number;
+  is_premium: boolean; // Made required to match DesignTemplate
+  usage_count: number; // Made required to match DesignTemplate
   template_data: {
     colors: {
       background: string;
@@ -169,3 +170,4 @@ export const TEMPLATE_CATEGORIES = [
   { id: 'full-bleed', name: 'Full-Bleed Photo', description: 'Photo-focused templates' },
   { id: 'social', name: 'Social Media', description: 'Social sharing optimized' }
 ];
+

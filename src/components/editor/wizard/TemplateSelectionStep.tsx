@@ -1,13 +1,12 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Star } from 'lucide-react';
-import type { DesignTemplate } from '@/hooks/useCardEditor';
+import type { TemplateConfig } from './wizardConfig';
 
 interface TemplateSelectionStepProps {
-  templates: DesignTemplate[];
-  selectedTemplate: DesignTemplate | null;
-  onTemplateSelect: (template: DesignTemplate) => void;
+  templates: TemplateConfig[];
+  selectedTemplate: TemplateConfig | null;
+  onTemplateSelect: (template: TemplateConfig) => void;
 }
 
 export const TemplateSelectionStep = ({ templates, selectedTemplate, onTemplateSelect }: TemplateSelectionStepProps) => {
@@ -23,7 +22,7 @@ export const TemplateSelectionStep = ({ templates, selectedTemplate, onTemplateS
     return gradients[templateId] || 'from-gray-500 to-gray-600';
   };
 
-  const renderTemplatePreview = (template: DesignTemplate) => {
+  const renderTemplatePreview = (template: TemplateConfig) => {
     const colors = template.template_data.colors;
     const regions = template.template_data.regions;
     
@@ -113,7 +112,54 @@ export const TemplateSelectionStep = ({ templates, selectedTemplate, onTemplateS
             </div>
           </>
         )}
-        
+
+        {/* Full-bleed templates */}
+        {template.id === 'clean-photo-card' && (
+          <>
+            {/* Full background image placeholder */}
+            <div className="absolute inset-0 border-2 border-dashed border-gray-400 rounded flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-400">
+              <span className="text-xs text-gray-600 font-medium">Full Photo Background</span>
+            </div>
+            {/* CRD Logo */}
+            <div 
+              className="absolute text-xs font-bold bg-black bg-opacity-50 text-white rounded px-1"
+              style={{ 
+                left: `${(regions.logo.x / 300) * 100}%`,
+                top: `${(regions.logo.y / 350) * 100}%`,
+                width: `${(regions.logo.width / 300) * 100}%`,
+                height: `${(regions.logo.height / 350) * 100}%`,
+              }}
+            >
+              CRD
+            </div>
+            {/* Name overlay */}
+            <div 
+              className="absolute text-white text-xs font-bold bg-black bg-opacity-50 rounded px-2 flex items-center"
+              style={{ 
+                left: `${(regions.name.x / 300) * 100}%`,
+                top: `${(regions.name.y / 350) * 100}%`,
+                width: `${(regions.name.width / 300) * 100}%`,
+                height: `${(regions.name.height / 350) * 100}%`,
+              }}
+            >
+              Card Name
+            </div>
+          </>
+        )}
+
+        {template.id === 'social-sticker-card' && (
+          <>
+            {/* Full background image placeholder */}
+            <div className="absolute inset-0 border-2 border-dashed border-purple-400 rounded flex items-center justify-center bg-gradient-to-br from-purple-200 to-pink-200">
+              <span className="text-xs text-purple-600 font-medium">Photo + Stickers</span>
+            </div>
+            {/* Sample stickers */}
+            <div className="absolute top-4 right-4 text-2xl">🔥</div>
+            <div className="absolute bottom-4 left-4 text-xl">⭐</div>
+            <div className="absolute top-1/2 right-6 text-lg transform -rotate-12">💪</div>
+          </>
+        )}
+
         {template.id === 'school-academic' && (
           <>
             {/* Name header */}

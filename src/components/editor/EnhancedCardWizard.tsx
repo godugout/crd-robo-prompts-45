@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { WizardStepIndicator } from './wizard/WizardStepIndicator';
@@ -88,3 +89,4 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
     </div>
   );
 };
+

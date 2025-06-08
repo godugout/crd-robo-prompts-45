@@ -1,8 +1,9 @@
 
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useCardEditor, CardData } from '@/hooks/useCardEditor';
-import { DEFAULT_TEMPLATES } from './wizardConfig';
+import { DEFAULT_TEMPLATES, TemplateConfig } from './wizardConfig';
 import type { WizardState, WizardHandlers } from './types';
 import type { CardAnalysisResult } from '@/services/cardAnalyzer';
 
@@ -59,7 +60,7 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
       toast.success('All fields pre-filled with AI suggestions!');
     },
 
-    handleTemplateSelect: (template) => {
+    handleTemplateSelect: (template: TemplateConfig) => {
       setWizardState(prev => ({ ...prev, selectedTemplate: template }));
       updateCardField('template_id', template.id);
       updateCardField('design_metadata', template.template_data);
@@ -128,3 +129,4 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
     updateCardField
   };
 };
+
