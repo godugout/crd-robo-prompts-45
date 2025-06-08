@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState, useMemo } from 'react';
 import { CRDButton } from '@/components/ui/design-system';
 import { toast } from 'sonner';
@@ -18,6 +19,13 @@ interface ImageValidation {
     size: string;
     format: string;
   };
+}
+
+interface QueueItem extends UploadedImage {
+  priority: number;
+  estimatedTime?: number;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  progress?: number;
 }
 
 interface CardsUploadPhaseProps {
@@ -221,18 +229,29 @@ export const CardsUploadPhase: React.FC<CardsUploadPhaseProps> = ({
     toast.info('Processing resumed');
   }, []);
 
-  // Queue management (simplified - convert images to queue items)
-  const queueItems = useMemo(() => {
+  // Queue management - convert images to queue items with proper typing
+  const queueItems = useMemo((): QueueItem[] => {
     return uploadedImages.map((img, index) => {
       const validation = validationResults.get(img.id);
       const isLoading = loadingImages.has(img.id);
       
+      let status: 'pending' | 'processing' | 'completed' | 'failed';
+      if (isLoading) {
+        status = 'processing';
+      } else if (validation?.isValid === true) {
+        status = 'completed';
+      } else if (validation?.isValid === false) {
+        status = 'failed';
+      } else {
+        status = 'pending';
+      }
+      
       return {
         ...img,
         priority: index,
-        estimatedTime: isLoading ? 30 : undefined, // Mock estimation
-        status: isLoading ? 'processing' : validation?.isValid ? 'completed' : validation ? 'failed' : 'pending',
-        progress: isLoading ? 50 : validation ? 100 : 0 // Mock progress
+        estimatedTime: isLoading ? 30 : undefined,
+        status,
+        progress: isLoading ? 50 : validation ? 100 : 0
       };
     });
   }, [uploadedImages, validationResults, loadingImages]);
