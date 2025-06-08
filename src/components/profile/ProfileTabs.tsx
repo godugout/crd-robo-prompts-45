@@ -8,6 +8,22 @@ import { CardGrid } from '@/components/cards/CardGrid';
 import { Loader, Image } from 'lucide-react';
 import type { Memory } from '@/types/memory';
 
+interface CardData {
+  id: string;
+  title: string;
+  description?: string;
+  image_url?: string;
+  thumbnail_url?: string;
+  price?: string;
+  rarity?: string;
+  creator_name?: string;
+  creator_verified?: boolean;
+  stock?: number;
+  highest_bid?: number;
+  edition_size?: number;
+  tags?: string[];
+}
+
 interface ProfileTabsProps {
   activeTab: string;
   setActiveTab: (value: string) => void;
@@ -25,10 +41,29 @@ export const ProfileTabs = ({
   hasMore, 
   onLoadMore 
 }: ProfileTabsProps) => {
-  // Separate cards from memories based on the presence of card-specific fields
-  const cards = memories.filter(item => 
-    'rarity' in item || 'design_metadata' in item || 'creator_id' in item
-  );
+  // Convert memories that have card properties to CardData format
+  const convertMemoryToCard = (memory: Memory): CardData => ({
+    id: memory.id,
+    title: memory.title,
+    description: memory.description,
+    image_url: (memory as any).image_url,
+    thumbnail_url: (memory as any).thumbnail_url,
+    rarity: (memory as any).rarity || 'common',
+    creator_name: (memory as any).creator_name,
+    creator_verified: (memory as any).creator_verified,
+    stock: (memory as any).stock,
+    highest_bid: (memory as any).highest_bid,
+    edition_size: (memory as any).edition_size,
+    tags: memory.tags
+  });
+
+  // Filter memories that have card-specific properties and convert them
+  const cards = memories
+    .filter(item => 
+      'rarity' in item || 'design_metadata' in item || 'creator_id' in item
+    )
+    .map(convertMemoryToCard);
+
   const actualMemories = memories.filter(item => 
     !('rarity' in item) && !('design_metadata' in item) && !('creator_id' in item)
   );
