@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import type { CardRarity } from '@/components/cards/UniversalCardDisplay';
 
 export interface CardData {
   id: string;
@@ -7,7 +8,7 @@ export interface CardData {
   description?: string;
   image_url?: string;
   thumbnail_url?: string;
-  rarity?: string;
+  rarity: CardRarity;
   creator_name?: string;
   creator_verified?: boolean;
   price?: number;
@@ -75,13 +76,6 @@ export const useCardData = (cardId?: string) => {
         
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // In a real app, this would be:
-        // const { data, error } = await supabase
-        //   .from('cards')
-        //   .select('*')
-        //   .eq('id', cardId)
-        //   .single();
         
         const mockCard = MOCK_CARDS[cardId];
         

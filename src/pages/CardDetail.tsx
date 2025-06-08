@@ -7,6 +7,7 @@ import { useCardData } from "@/hooks/useCardData";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader } from "lucide-react";
 import { toast } from "sonner";
+import type { UniversalCardData } from "@/components/cards/UniversalCardDisplay";
 
 export default function CardDetail() {
   const { id } = useParams<{ id: string }>();
@@ -51,6 +52,21 @@ export default function CardDetail() {
     );
   }
 
+  // Convert CardData to UniversalCardData format
+  const universalCard: UniversalCardData = {
+    id: card.id,
+    title: card.title,
+    description: card.description,
+    image_url: card.image_url,
+    thumbnail_url: card.thumbnail_url,
+    rarity: card.rarity,
+    price: card.price,
+    creator_name: card.creator_name,
+    creator_verified: card.creator_verified,
+    stock: 3, // Default value
+    tags: card.tags
+  };
+
   return (
     <>
       {/* Back Button */}
@@ -68,10 +84,10 @@ export default function CardDetail() {
 
       {/* Immersive 3D Card Viewer */}
       <ImmersiveCardViewer
-        card={card}
+        card={universalCard}
         isOpen={true}
         onClose={handleGoBack}
-        onShare={() => handleShare(card)}
+        onShare={() => handleShare(universalCard)}
         onDownload={handleDownload}
         allowRotation={true}
         showStats={true}
