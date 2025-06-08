@@ -346,7 +346,7 @@ export const CardsPage: React.FC = () => {
             <CardsSuccessPhase
               extractedCards={extractedCards}
               collectionId={selectedCollectionId}
-              onStartNew={clearAll}
+              onStartNew={enhancedClearAll}
               onViewCollection={() => {
                 // Navigate to collection view
                 window.location.href = `/collections/${selectedCollectionId}`;
