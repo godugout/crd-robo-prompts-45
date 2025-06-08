@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { enhancedCardDetection } from '@/services/cardExtractor/enhancedDetection';
@@ -43,11 +44,11 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
 
       setOriginalImage(img);
       
-      // Run enhanced detection with better error handling
-      console.log('🔍 Starting enhanced detection process...');
+      // Run enhanced detection
+      console.log('🔍 Starting detection process...');
       
-      const detectionToast = toast.loading('🧠 Running improved card detection...', {
-        description: 'Using advanced contour detection for better accuracy'
+      const detectionToast = toast.loading('🧠 Analyzing image for cards...', {
+        description: 'Using improved detection algorithm'
       });
       
       try {
@@ -62,8 +63,8 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
           adjustment: {
             x: 0,
             y: 0,
-            width: 100, // Base width percentage
-            height: 140, // Base height percentage  
+            width: 100,
+            height: 140,
             rotation: 0,
             scale: 1
           },
@@ -76,20 +77,20 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
         if (cards.length > 0) {
           setSelectedCardId(cards[0].id);
           setCurrentStep('refine');
-          toast.success(`🎯 Detected ${cards.length} card regions with improved accuracy!`, {
-            description: 'Cards are sized properly with margins. Use manual adjustment to fine-tune.'
+          toast.success(`🎯 Detected ${cards.length} card regions!`, {
+            description: 'Review and adjust the crop areas before saving'
           });
         } else {
           setCurrentStep('refine');
           toast.info('🤔 No cards detected automatically', {
-            description: 'You can manually draw card regions using the tools'
+            description: 'You can manually draw card regions'
           });
         }
       } catch (detectionError) {
         toast.dismiss(detectionToast);
         console.error('Detection error:', detectionError);
         
-        toast.warning('⚠️ Advanced detection failed', {
+        toast.warning('⚠️ Detection failed', {
           description: 'You can still manually select card regions'
         });
         
@@ -119,6 +120,7 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
     handleCardUpdate(selectedCardId, { adjustment });
   }, [selectedCardId, handleCardUpdate]);
 
+  // NEW: This function now only extracts cards when user explicitly approves
   const handleExtractCards = useCallback(async () => {
     if (!originalImage || detectedCards.length === 0) {
       toast.error('No cards to extract');
@@ -129,8 +131,8 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
     setCurrentStep('extract');
     
     try {
-      const extractionToast = toast.loading('✂️ Extracting and cropping cards...', {
-        description: 'Applying proper margins and high-quality cropping'
+      const extractionToast = toast.loading('✂️ Creating final card images...', {
+        description: 'Processing approved crop areas'
       });
       
       const canvas = document.createElement('canvas');
@@ -145,7 +147,7 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
 
       for (const card of detectedCards) {
         try {
-          // Apply adjustments to get final crop area with proper boundaries
+          // Apply adjustments to get final crop area
           const adjustmentX = (card.adjustment.width - 100) * (card.width / 100);
           const adjustmentY = (card.adjustment.height - 140) * (card.height / 140);
           
@@ -153,32 +155,29 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
           const finalY = Math.max(0, card.y + card.adjustment.y);
           const finalWidth = Math.min(
             originalImage.width - finalX,
-            Math.max(card.width + adjustmentX, 100) // Ensure minimum width
+            Math.max(card.width + adjustmentX, 100)
           );
           const finalHeight = Math.min(
             originalImage.height - finalY,
-            Math.max(card.height + adjustmentY, 140) // Ensure minimum height
+            Math.max(card.height + adjustmentY, 140)
           );
 
-          // Ensure reasonable dimensions
           if (finalWidth < 100 || finalHeight < 140) {
-            console.warn(`Skipping card ${card.id} - dimensions too small after adjustments`);
+            console.warn(`Skipping card ${card.id} - dimensions too small`);
             continue;
           }
 
-          // Create crop canvas with high quality settings
+          // Create crop canvas
           const cropCanvas = document.createElement('canvas');
           const cropCtx = cropCanvas.getContext('2d');
           if (!cropCtx) continue;
 
-          // Standard card dimensions with higher resolution
           const targetWidth = 420;
           const targetHeight = 588;
           
           cropCanvas.width = targetWidth;
           cropCanvas.height = targetHeight;
 
-          // Apply transformations with high quality
           cropCtx.save();
           cropCtx.imageSmoothingEnabled = true;
           cropCtx.imageSmoothingQuality = 'high';
@@ -188,7 +187,6 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
           cropCtx.scale(card.adjustment.scale, card.adjustment.scale);
           cropCtx.translate(-targetWidth / 2, -targetHeight / 2);
 
-          // Draw the cropped and transformed image
           cropCtx.drawImage(
             canvas,
             finalX, finalY, finalWidth, finalHeight,
@@ -197,12 +195,12 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
 
           cropCtx.restore();
 
-          // Convert to blob with optimal quality
+          // Convert to blob
           const blob = await new Promise<Blob>((resolve, reject) => {
             cropCanvas.toBlob(
               (blob) => blob ? resolve(blob) : reject(new Error('Failed to create blob')),
               'image/jpeg',
-              0.95 // High quality
+              0.95
             );
           });
 
@@ -227,17 +225,17 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
       if (extracted.length > 0) {
         setExtractedCards(extracted);
         setCurrentStep('extract');
-        toast.success(`🎉 Successfully extracted ${extracted.length} cards with proper boundaries!`, {
-          description: 'Cards are ready for saving with full content preserved'
+        toast.success(`🎉 Created ${extracted.length} final card images!`, {
+          description: 'Ready to save to your collection'
         });
       } else {
-        toast.error('Failed to extract any cards. Please check the region boundaries.');
+        toast.error('Failed to create final images. Please check the regions.');
         setCurrentStep('refine');
       }
       
     } catch (error) {
       console.error('Extraction failed:', error);
-      toast.error('Failed to extract cards. Please try adjusting the regions.');
+      toast.error('Failed to create final images. Please try adjusting the regions.');
       setCurrentStep('refine');
     } finally {
       setIsProcessing(false);
@@ -246,15 +244,15 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
 
   const handleUseCards = useCallback(() => {
     if (extractedCards.length === 0) {
-      toast.error('No extracted cards to use');
+      toast.error('No final card images to save');
       return;
     }
     
-    console.log('🎴 Passing extracted cards to parent component:', extractedCards.length);
+    console.log('🎴 Saving cards to collection:', extractedCards.length);
     onCardsExtracted(extractedCards);
     
     toast.success(`🚀 Added ${extractedCards.length} cards to your collection!`, {
-      description: 'You can now edit them in the Studio or Card Shop'
+      description: 'Cards have been saved successfully'
     });
   }, [extractedCards, onCardsExtracted]);
 

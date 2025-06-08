@@ -279,6 +279,12 @@ export const CardsUploadPhase: React.FC<CardsUploadPhaseProps> = ({
       toast.error('Please upload valid images before proceeding');
       return;
     }
+    
+    console.log('🔍 Starting detection phase with', validImages.length, 'images');
+    toast.info('Moving to detection phase...', {
+      description: 'You can now adjust crop areas for each detected card'
+    });
+    
     onStartDetection(validImages);
   };
 
@@ -291,10 +297,10 @@ export const CardsUploadPhase: React.FC<CardsUploadPhaseProps> = ({
     <div className="space-y-6">
       <div className="text-center">
         <h3 className="text-2xl font-semibold text-crd-white mb-2">
-          Enhanced Card Image Upload
+          Upload Card Images
         </h3>
         <p className="text-crd-lightGray text-lg">
-          Upload multiple images with advanced batch processing and error recovery
+          Upload images to detect and extract individual cards
         </p>
       </div>
 
@@ -401,7 +407,7 @@ export const CardsUploadPhase: React.FC<CardsUploadPhaseProps> = ({
               Ready for Detection ({uploadedImages.length} images)
             </h4>
             <p className="text-sm text-crd-lightGray">
-              {validImageCount} valid • {hasLoadingImages ? 'Processing...' : 'Ready to proceed'}
+              {validImageCount} valid • {hasLoadingImages ? 'Processing...' : 'Ready to detect cards'}
               {processingPaused && ' • Paused'}
             </p>
           </div>
@@ -419,9 +425,9 @@ export const CardsUploadPhase: React.FC<CardsUploadPhaseProps> = ({
               onClick={handleContinueToDetection}
               disabled={!canProceed}
               className="bg-crd-green hover:bg-crd-green/90 text-black"
-              aria-label={`Continue to detection with ${validImageCount} valid images`}
+              aria-label={`Start detecting cards in ${validImageCount} images`}
             >
-              Continue to Detection ({validImageCount})
+              Start Detection ({validImageCount})
             </CRDButton>
           </div>
         </div>
