@@ -66,7 +66,7 @@ const Profile = () => {
   // Convert cards to unified format
   const unifiedCards: UnifiedCard[] = userCards.map(card => ({
     id: card.id,
-    userId: card.creator_id,
+    userId: card.creator_id || user.id || '',
     title: card.title,
     description: card.description,
     teamId: '', // Set empty string since team_id doesn't exist on Card type

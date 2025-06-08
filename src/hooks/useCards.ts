@@ -14,8 +14,9 @@ export interface Card {
   creator_verified?: boolean;
   tags?: string[];
   created_at?: string;
-  creator_id?: string;
+  creator_id: string; // Make this required to match other Card types
   design_metadata?: Record<string, any>;
+  is_public?: boolean; // Add this property that Profile.tsx expects
 }
 
 export const useCards = () => {
@@ -42,7 +43,8 @@ export const useCards = () => {
             tags,
             created_at,
             creator_id,
-            design_metadata
+            design_metadata,
+            is_public
           `)
           .eq('is_public', true)
           .order('created_at', { ascending: false })
@@ -73,6 +75,7 @@ export const useCards = () => {
             
             return {
               ...card,
+              creator_id: card.creator_id || '', // Ensure creator_id is always a string
               creator_name,
               creator_verified,
               design_metadata: card.design_metadata || {}
