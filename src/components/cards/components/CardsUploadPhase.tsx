@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState, useMemo } from 'react';
 import { CRDButton } from '@/components/ui/design-system';
 import { toast } from 'sonner';
@@ -7,7 +6,7 @@ import { EnhancedDropZone } from './upload/EnhancedDropZone';
 import { BatchOperationsBar } from './upload/BatchOperationsBar';
 import { UploadQueueManager } from './upload/UploadQueueManager';
 import { ErrorRecoveryHelper } from './upload/ErrorRecoveryHelper';
-import { VirtualizedImageGrid } from './upload/VirtualizedImageGrid';
+import { SimpleImageGrid } from './upload/SimpleImageGrid';
 
 interface ImageValidation {
   isValid: boolean;
@@ -384,9 +383,9 @@ export const CardsUploadPhase: React.FC<CardsUploadPhaseProps> = ({
         </div>
       )}
 
-      {/* Virtualized Image Grid */}
+      {/* Simple Image Grid */}
       {uploadedImages.length > 0 && (
-        <VirtualizedImageGrid
+        <SimpleImageGrid
           images={uploadedImages}
           selectedImages={selectedImages}
           onToggleSelection={handleToggleSelection}
@@ -394,8 +393,6 @@ export const CardsUploadPhase: React.FC<CardsUploadPhaseProps> = ({
           onRetryImage={handleRetryImage}
           validationResults={validationResults}
           isProcessing={hasLoadingImages}
-          containerWidth={800} // Mock container width
-          containerHeight={400} // Mock container height
         />
       )}
 
