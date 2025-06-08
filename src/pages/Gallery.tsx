@@ -11,6 +11,7 @@ import { CollectionsGrid } from './Gallery/components/CollectionsGrid';
 import { CardsGrid } from './Gallery/components/CardsGrid';
 import { useCardConversion } from './Gallery/hooks/useCardConversion';
 import { useGalleryActions } from './Gallery/hooks/useGalleryActions';
+import { convertToUniversalCardData } from '@/components/viewer/types';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Plus } from 'lucide-react';
 
@@ -104,8 +105,8 @@ const Gallery = () => {
         {/* Enhanced Immersive Card Viewer with Navigation */}
         {showImmersiveViewer && currentCard && convertedCards.length > 0 && (
           <ImmersiveCardViewer
-            card={currentCard}
-            cards={convertedCards}
+            card={convertToUniversalCardData(currentCard)}
+            cards={convertedCards.map(convertToUniversalCardData)}
             currentCardIndex={selectedCardIndex}
             onCardChange={handleCardChange}
             isOpen={showImmersiveViewer}
