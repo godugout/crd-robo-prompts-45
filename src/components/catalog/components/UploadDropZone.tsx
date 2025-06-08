@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Button } from '@/components/ui/button';
+import { CRDButton } from '@/components/ui/design-system';
 import { Card, CardContent } from '@/components/ui/card';
 import { Upload, Camera, FolderOpen, Clipboard } from 'lucide-react';
 import { toast } from 'sonner';
@@ -76,24 +76,27 @@ export const UploadDropZone = ({ onFilesAdded }: UploadDropZoneProps) => {
   }, [onFilesAdded]);
 
   return (
-    <Card className="bg-editor-dark border-editor-border">
+    <Card className="bg-crd-darkGray border-crd-mediumGray">
       <CardContent className="p-0">
         <div
           {...getRootProps()}
           className={`p-12 border-2 border-dashed rounded-lg transition-all cursor-pointer ${
             dragActive
               ? 'border-crd-green bg-crd-green/10'
-              : 'border-editor-border hover:border-crd-green/50 hover:bg-gray-800/30'
+              : 'border-crd-mediumGray hover:border-crd-green/50 hover:bg-crd-darkGray/50'
           }`}
+          role="button"
+          tabIndex={0}
+          aria-label="Bulk card upload drop zone"
         >
-          <input {...getInputProps()} />
+          <input {...getInputProps()} aria-label="File input for bulk upload" />
           <div className="text-center space-y-6">
-            <div className="w-20 h-20 rounded-full bg-editor-tool flex items-center justify-center mx-auto">
-              <Upload className="w-10 h-10 text-crd-green" />
+            <div className="w-20 h-20 rounded-full bg-crd-mediumGray flex items-center justify-center mx-auto">
+              <Upload className="w-10 h-10 text-crd-green" aria-hidden="true" />
             </div>
             
             <div>
-              <h3 className="text-white font-medium text-xl mb-2">
+              <h3 className="text-crd-white font-medium text-xl mb-2">
                 {dragActive ? 'Drop your images here!' : 'Bulk Card Upload'}
               </h3>
               <p className="text-crd-lightGray text-sm max-w-md mx-auto">
@@ -106,52 +109,58 @@ export const UploadDropZone = ({ onFilesAdded }: UploadDropZoneProps) => {
 
             {!dragActive && (
               <div className="flex flex-wrap justify-center gap-4">
-                <Button
+                <CRDButton
                   onClick={(e) => {
                     e.stopPropagation();
                     open();
                   }}
+                  variant="primary"
                   className="bg-crd-green hover:bg-crd-green/80 text-black font-medium"
+                  aria-label="Select multiple images"
                 >
                   <Upload className="w-4 h-4 mr-2" />
                   Select Images
-                </Button>
+                </CRDButton>
                 
-                <Button
+                <CRDButton
                   onClick={(e) => {
                     e.stopPropagation();
                     handleFolderUpload();
                   }}
                   variant="secondary"
-                  className="bg-white hover:bg-gray-100 text-black font-medium border-0"
+                  className="bg-crd-lightGray hover:bg-crd-lightGray/90 text-black font-medium"
+                  aria-label="Upload entire folder"
                 >
                   <FolderOpen className="w-4 h-4 mr-2" />
                   Upload Folder
-                </Button>
+                </CRDButton>
                 
-                <Button
+                <CRDButton
                   onClick={(e) => {
                     e.stopPropagation();
                     handleCameraCapture();
                   }}
                   variant="secondary"
-                  className="bg-white hover:bg-gray-100 text-black font-medium border-0"
+                  className="bg-crd-lightGray hover:bg-crd-lightGray/90 text-black font-medium"
+                  aria-label="Take photo with camera"
                 >
                   <Camera className="w-4 h-4 mr-2" />
                   Take Photo
-                </Button>
+                </CRDButton>
 
-                <Button
+                <CRDButton
                   onClick={(e) => {
                     e.stopPropagation();
-                    toast.info('Copy an image and paste it here with Ctrl+V (or Cmd+V on Mac)');
+                    toast.info('Copy an image and paste it here with Ctrl+V (or Cmd+V on Mac)', {
+                      duration: 4000
+                    });
                   }}
-                  variant="secondary"
-                  className="bg-white hover:bg-gray-100 text-black font-medium border-0"
+                  variant="outline"
+                  aria-label="Paste images from clipboard"
                 >
                   <Clipboard className="w-4 h-4 mr-2" />
                   Paste Images
-                </Button>
+                </CRDButton>
               </div>
             )}
           </div>

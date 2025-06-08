@@ -3,6 +3,7 @@ import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { CRDButton } from '@/components/ui/design-system';
 
 interface DropZoneProps {
   onFileSelect: (file: File) => void;
@@ -36,14 +37,17 @@ export const DropZone = ({ onFileSelect }: DropZoneProps) => {
     <div 
       {...getRootProps()}
       className={`p-4 border-2 border-dashed ${
-        isDragActive ? 'border-cardshow-green bg-editor-tool/30' : 'border-editor-border'
+        isDragActive ? 'border-crd-green bg-crd-green/10' : 'border-crd-mediumGray'
       } rounded-lg text-center transition-colors cursor-pointer`}
+      role="button"
+      tabIndex={0}
+      aria-label="Drop zone for uploading card art"
     >
-      <input {...getInputProps()} />
+      <input {...getInputProps()} aria-label="Card art file input" />
       <div className="flex flex-col items-center justify-center py-8">
-        <Upload className="w-10 h-10 text-cardshow-lightGray mb-3" />
-        <p className="text-cardshow-white font-medium">Upload Card Art</p>
-        <p className="text-xs text-cardshow-lightGray mt-1">
+        <Upload className="w-10 h-10 text-crd-lightGray mb-3" aria-hidden="true" />
+        <p className="text-crd-white font-medium">Upload Card Art</p>
+        <p className="text-xs text-crd-lightGray mt-1">
           {isDragActive ? 'Drop the file here' : 'Drag and drop your file here, or click to browse'}
         </p>
         <Input 
@@ -53,16 +57,17 @@ export const DropZone = ({ onFileSelect }: DropZoneProps) => {
           onChange={handleFileChange} 
           accept="image/*"
         />
-        <label 
-          htmlFor="file-upload" 
-          className="mt-4 px-4 py-2 bg-editor-dark border border-editor-border rounded-lg text-cardshow-white text-sm hover:bg-editor-tool cursor-pointer"
+        <CRDButton 
+          variant="outline"
+          className="mt-4 border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray"
           onClick={(e) => {
             e.stopPropagation();
             open();
           }}
+          aria-label="Browse for card art file"
         >
           Browse Files
-        </label>
+        </CRDButton>
       </div>
     </div>
   );

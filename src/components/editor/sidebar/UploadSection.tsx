@@ -84,7 +84,7 @@ export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" role="section" aria-label="File upload section">
       {!fileToUpload ? (
         <DropZone onFileSelect={handleFileSelection} />
       ) : (

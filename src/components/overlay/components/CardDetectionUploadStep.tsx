@@ -31,30 +31,33 @@ export const CardDetectionUploadStep = ({
           {...getRootProps()}
           className={`border-2 border-dashed rounded-xl p-16 text-center transition-all cursor-pointer
             ${isDragActive 
-              ? 'border-green-500 bg-green-500/10' 
-              : 'border-gray-600 hover:border-green-500/50 hover:bg-gray-800/50'
+              ? 'border-crd-green bg-crd-green/10' 
+              : 'border-crd-mediumGray hover:border-crd-green/50 hover:bg-crd-darkGray/50'
             }`}
+          role="button"
+          tabIndex={0}
+          aria-label="Upload area for card detection"
         >
-          <input {...getInputProps()} />
+          <input {...getInputProps()} aria-label="Image file input for card detection" />
           <div className="flex flex-col items-center gap-6">
             {isProcessing ? (
               <>
-                <Scissors className="w-20 h-20 text-green-500 animate-pulse" />
-                <div className="text-white text-2xl font-medium">Extracting Cards...</div>
-                <div className="text-gray-400 text-lg">
+                <Scissors className="w-20 h-20 text-crd-green animate-pulse" aria-hidden="true" />
+                <div className="text-crd-white text-2xl font-medium">Extracting Cards...</div>
+                <div className="text-crd-lightGray text-lg">
                   Analyzing image for trading cards with enhanced detection
                 </div>
               </>
             ) : (
               <>
-                <Upload className="w-20 h-20 text-gray-400" />
-                <div className="text-white text-2xl font-medium">
+                <Upload className="w-20 h-20 text-crd-lightGray" aria-hidden="true" />
+                <div className="text-crd-white text-2xl font-medium">
                   {isDragActive ? 'Drop image here' : 'Upload Image for Card Detection'}
                 </div>
-                <div className="text-gray-400 text-lg max-w-md">
+                <div className="text-crd-lightGray text-lg max-w-md">
                   Upload any image with trading cards. Our AI will detect and extract them with precise cropping.
                 </div>
-                <div className="text-sm text-gray-500 mt-4">
+                <div className="text-sm text-crd-lightGray mt-4">
                   Works with screenshots, collection photos, or any card images
                 </div>
               </>
