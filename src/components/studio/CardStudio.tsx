@@ -14,7 +14,11 @@ import {
   Eye,
   Settings,
   Maximize,
-  ArrowLeft
+  ArrowLeft,
+  Save,
+  Upload,
+  Zap,
+  Sparkles
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -24,31 +28,42 @@ import { EffectLayer, EffectLayerData } from './effects/EffectLayer';
 import { DynamicTemplateRenderer } from '@/components/editor/canvas/DynamicTemplateRenderer';
 import { ExportCardRenderer } from '@/components/editor/canvas/ExportCardRenderer';
 import { DEFAULT_TEMPLATES } from '@/components/editor/wizard/wizardConfig';
+import { ProfessionalToolbar } from './interface/ProfessionalToolbar';
+import { AdvancedEffectSystem } from './effects/AdvancedEffectSystem';
+import { CRDCardBack } from './branding/CRDCardBack';
+import { EnhancedExportDialog } from './export/EnhancedExportDialog';
+import { StudioLayout } from './interface/StudioLayout';
 
 interface StudioTab {
   id: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  category: 'creation' | 'effects' | 'presentation';
 }
 
 const STUDIO_TABS: StudioTab[] = [
-  { id: 'photo', label: 'Photo', icon: Camera },
-  { id: 'effects', label: 'Effects', icon: Layers },
-  { id: 'lighting', label: 'Lighting', icon: Lightbulb },
-  { id: 'design', label: 'Design', icon: Palette },
-  { id: 'preview', label: 'Preview', icon: Eye }
+  { id: 'photo', label: 'Photo', icon: Camera, category: 'creation' },
+  { id: 'effects', label: 'Effects', icon: Sparkles, category: 'effects' },
+  { id: 'layers', label: 'Layers', icon: Layers, category: 'effects' },
+  { id: 'lighting', label: 'Lighting', icon: Lightbulb, category: 'effects' },
+  { id: 'design', label: 'Design', icon: Palette, category: 'creation' },
+  { id: 'branding', label: 'CRD Back', icon: Zap, category: 'creation' },
+  { id: 'preview', label: 'Preview', icon: Eye, category: 'presentation' }
 ];
 
 export const CardStudio: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>('photo');
   const [showImageProcessor, setShowImageProcessor] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
   const [currentPhoto, setCurrentPhoto] = useState<string>('');
   const [selectedTemplate, setSelectedTemplate] = useState(DEFAULT_TEMPLATES[0]);
   const [effectLayers, setEffectLayers] = useState<EffectLayerData[]>([]);
   const [selectedLayerId, setSelectedLayerId] = useState<string>('');
   const [isExporting, setIsExporting] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showCRDBack, setShowCRDBack] = useState(false);
+  const [projectName, setProjectName] = useState('Untitled Studio Project');
   const exportRef = useRef<HTMLDivElement>(null);
 
   const cardEditor = useCardEditor({
@@ -126,6 +141,20 @@ export const CardStudio: React.FC = () => {
     ));
   };
 
+  const handleSaveProject = () => {
+    // Save current state to localStorage or database
+    const projectData = {
+      name: projectName,
+      cardData: cardEditor.cardData,
+      currentPhoto,
+      effectLayers,
+      template: selectedTemplate,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem(`studio-project-${Date.now()}`, JSON.stringify(projectData));
+    toast.success('Project saved successfully!');
+  };
+
   const handleExport = async () => {
     if (!exportRef.current) {
       toast.error('Export renderer not ready');
@@ -138,7 +167,7 @@ export const CardStudio: React.FC = () => {
       
       const canvas = await html2canvas(exportRef.current, {
         backgroundColor: 'transparent',
-        scale: 1,
+        scale: 2,
         useCORS: true,
         width: 750,
         height: 1050,
@@ -147,7 +176,7 @@ export const CardStudio: React.FC = () => {
       });
       
       const link = document.createElement('a');
-      link.download = `${cardEditor.cardData.title.replace(/\s+/g, '_')}_studio_card.png`;
+      link.download = `${cardEditor.cardData.title.replace(/\s+/g, '_')}_studio_card_hd.png`;
       link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
       
@@ -214,7 +243,7 @@ export const CardStudio: React.FC = () => {
                     variant="outline"
                     className="border-editor-border text-white hover:bg-editor-border"
                   >
-                    <Camera className="w-4 h-4" />
+                    <Upload className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
@@ -224,49 +253,46 @@ export const CardStudio: React.FC = () => {
 
       case 'effects':
         return (
+          <AdvancedEffectSystem
+            effectLayers={effectLayers}
+            selectedLayerId={selectedLayerId}
+            onAddLayer={addEffectLayer}
+            onUpdateLayer={updateEffectLayer}
+            onRemoveLayer={removeEffectLayer}
+            onSelectLayer={setSelectedLayerId}
+            onToggleVisibility={toggleLayerVisibility}
+          />
+        );
+
+      case 'branding':
+        return (
           <div className="space-y-6">
             <div className="text-center">
-              <h3 className="text-white font-semibold text-lg mb-2">Effect Layers</h3>
+              <h3 className="text-white font-semibold text-lg mb-2">CRD Card Back</h3>
               <p className="text-crd-lightGray text-sm mb-6">
-                Build stunning visual effects with multiple layers
+                Professional CRD branding for your card back
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              {['holographic', 'metallic', 'prismatic', 'vintage', 'crystal', 'foil'].map((type) => (
-                <Button
-                  key={type}
-                  onClick={() => addEffectLayer(type as EffectLayerData['type'])}
-                  variant="outline"
-                  className="border-editor-border text-white hover:bg-editor-border capitalize"
-                >
-                  {type}
-                </Button>
-              ))}
-            </div>
+            <div className="space-y-4">
+              <Button
+                onClick={() => setShowCRDBack(!showCRDBack)}
+                className={`w-full ${showCRDBack ? 'bg-crd-green text-black' : 'bg-editor-border text-white hover:bg-crd-green hover:text-black'}`}
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                {showCRDBack ? 'Hide CRD Back' : 'Show CRD Back'}
+              </Button>
 
-            <Separator className="bg-editor-border" />
-
-            <div className="space-y-3">
-              {effectLayers.length === 0 ? (
-                <div className="text-center text-crd-lightGray py-8">
-                  <Layers className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No effect layers yet</p>
-                  <p className="text-xs">Add effects above to get started</p>
+              {showCRDBack && (
+                <div className="aspect-[3/4] bg-editor-darker rounded-lg overflow-hidden">
+                  <CRDCardBack />
                 </div>
-              ) : (
-                effectLayers.map((layer) => (
-                  <EffectLayer
-                    key={layer.id}
-                    layer={layer}
-                    isSelected={selectedLayerId === layer.id}
-                    onUpdate={updateEffectLayer}
-                    onRemove={removeEffectLayer}
-                    onSelect={setSelectedLayerId}
-                    onToggleVisibility={toggleLayerVisibility}
-                  />
-                ))
               )}
+
+              <div className="text-xs text-crd-lightGray p-3 bg-editor-tool rounded">
+                The CRD card back features the official logo and branding elements. 
+                This will be automatically included when exporting double-sided cards.
+              </div>
             </div>
           </div>
         );
@@ -277,7 +303,7 @@ export const CardStudio: React.FC = () => {
             <div className="text-center">
               <h3 className="text-white font-semibold text-lg mb-2">Studio Preview</h3>
               <p className="text-crd-lightGray text-sm mb-6">
-                See your card with all effects applied
+                Professional preview and export tools
               </p>
             </div>
 
@@ -291,23 +317,33 @@ export const CardStudio: React.FC = () => {
                 {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Preview'}
               </Button>
 
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <Button
                   onClick={handleExport}
                   disabled={isExporting}
-                  className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black"
+                  className="bg-crd-green hover:bg-crd-green/90 text-black"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   {isExporting ? 'Exporting...' : 'Export HD'}
                 </Button>
                 <Button
-                  onClick={() => toast.success('Share feature coming soon!')}
+                  onClick={() => setShowExportDialog(true)}
                   variant="outline"
                   className="border-crd-purple text-crd-purple hover:bg-crd-purple hover:text-white"
                 >
-                  <Share2 className="w-4 h-4" />
+                  <Settings className="w-4 h-4 mr-2" />
+                  Advanced
                 </Button>
               </div>
+
+              <Button
+                onClick={() => toast.success('Share feature coming soon!')}
+                variant="outline"
+                className="w-full border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share Project
+              </Button>
             </div>
           </div>
         );
@@ -328,30 +364,19 @@ export const CardStudio: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-crd-darkest via-editor-dark to-crd-darkest">
-      {/* Header */}
-      <div className="border-b border-editor-border bg-editor-dark/80 backdrop-blur-sm">
-        <div className="flex items-center justify-between max-w-7xl mx-auto px-4 h-16">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/cards')}
-              className="text-white hover:bg-editor-border"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <h1 className="text-xl font-bold text-white">Card Studio</h1>
-          </div>
-          <div className="text-crd-lightGray text-sm">
-            Professional Card Creation Suite
-          </div>
-        </div>
-      </div>
+    <StudioLayout>
+      {/* Professional Header with Toolbar */}
+      <ProfessionalToolbar
+        projectName={projectName}
+        onProjectNameChange={setProjectName}
+        onSave={handleSaveProject}
+        onExport={() => setShowExportDialog(true)}
+        onShare={() => toast.success('Share feature coming soon!')}
+        onBack={() => navigate('/cards')}
+      />
 
       <div className="flex h-[calc(100vh-4rem)]">
-        {/* Sidebar */}
+        {/* Enhanced Sidebar */}
         <div className="w-80 bg-editor-dark border-r border-editor-border overflow-y-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="h-full">
             <TabsList className="grid grid-cols-1 h-auto bg-transparent p-2 gap-1">
@@ -359,15 +384,20 @@ export const CardStudio: React.FC = () => {
                 <TabsTrigger
                   key={tab.id}
                   value={tab.id}
-                  className="w-full justify-start data-[state=active]:bg-crd-green data-[state=active]:text-black text-white"
+                  className="w-full justify-start data-[state=active]:bg-crd-green data-[state=active]:text-black text-white hover:bg-editor-border transition-colors"
                 >
                   <tab.icon className="w-4 h-4 mr-2" />
                   {tab.label}
+                  {tab.category === 'effects' && effectLayers.length > 0 && (
+                    <span className="ml-auto text-xs bg-crd-purple text-white px-1.5 py-0.5 rounded-full">
+                      {effectLayers.filter(l => l.visible).length}
+                    </span>
+                  )}
                 </TabsTrigger>
               ))}
             </TabsList>
 
-            <div className="p-4">
+            <div className="p-4 border-t border-editor-border">
               {STUDIO_TABS.map((tab) => (
                 <TabsContent key={tab.id} value={tab.id} className="mt-0">
                   {renderTabContent()}
@@ -377,27 +407,58 @@ export const CardStudio: React.FC = () => {
           </Tabs>
         </div>
 
-        {/* Main Canvas */}
-        <div className="flex-1 flex items-center justify-center p-8 bg-editor-darker">
+        {/* Enhanced Main Canvas */}
+        <div className="flex-1 flex items-center justify-center p-8 bg-gradient-to-br from-editor-darker via-black to-editor-darker relative">
+          {/* Card Preview Container */}
           <div className="relative">
-            <DynamicTemplateRenderer
-              template={templateForRenderer}
-              cardData={cardEditor.cardData}
-              currentPhoto={currentPhoto}
-              scaleFactor={1.2}
-              onPhotoUpload={() => document.getElementById('photo-upload')?.click()}
-              onElementSelect={() => {}}
-            />
+            <div className="absolute inset-0 bg-gradient-to-r from-crd-green/20 via-transparent to-crd-purple/20 blur-3xl"></div>
+            <div className="relative z-10">
+              <DynamicTemplateRenderer
+                template={templateForRenderer}
+                cardData={cardEditor.cardData}
+                currentPhoto={currentPhoto}
+                scaleFactor={1.3}
+                onPhotoUpload={() => document.getElementById('photo-upload')?.click()}
+                onElementSelect={() => {}}
+              />
+            </div>
+          </div>
+
+          {/* Floating Action Buttons */}
+          <div className="absolute bottom-6 right-6 flex flex-col gap-2">
+            <Button
+              onClick={() => setShowCRDBack(!showCRDBack)}
+              className={`w-12 h-12 rounded-full ${showCRDBack ? 'bg-crd-green text-black' : 'bg-editor-dark text-white border border-editor-border'}`}
+            >
+              <Zap className="w-5 h-5" />
+            </Button>
+            <Button
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="w-12 h-12 rounded-full bg-editor-dark text-white border border-editor-border hover:bg-editor-border"
+            >
+              <Maximize className="w-5 h-5" />
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Image Processor Modal */}
+      {/* Modals */}
       {showImageProcessor && currentPhoto && (
         <AdvancedImageProcessor
           imageUrl={currentPhoto}
           onImageProcessed={handleImageProcessed}
           onClose={() => setShowImageProcessor(false)}
+        />
+      )}
+
+      {showExportDialog && (
+        <EnhancedExportDialog
+          cardData={cardEditor.cardData}
+          currentPhoto={currentPhoto}
+          effectLayers={effectLayers}
+          showCRDBack={showCRDBack}
+          onClose={() => setShowExportDialog(false)}
+          onExport={handleExport}
         />
       )}
 
@@ -410,6 +471,6 @@ export const CardStudio: React.FC = () => {
           dimensions={{ width: 750, height: 1050 }}
         />
       </div>
-    </div>
+    </StudioLayout>
   );
 };

@@ -2005,6 +2005,224 @@ export type Database = {
         }
         Relationships: []
       }
+      oakland_events: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          era: string | null
+          event_date: string | null
+          event_type: string
+          featured_memory_id: string | null
+          id: string
+          is_historical: boolean | null
+          location: string | null
+          memories_count: number | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          era?: string | null
+          event_date?: string | null
+          event_type: string
+          featured_memory_id?: string | null
+          id?: string
+          is_historical?: boolean | null
+          location?: string | null
+          memories_count?: number | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          era?: string | null
+          event_date?: string | null
+          event_type?: string
+          featured_memory_id?: string | null
+          id?: string
+          is_historical?: boolean | null
+          location?: string | null
+          memories_count?: number | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oakland_events_featured_memory_id_fkey"
+            columns: ["featured_memory_id"]
+            isOneToOne: false
+            referencedRelation: "oakland_memories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      oakland_expressions: {
+        Row: {
+          audio_url: string | null
+          category: string
+          created_at: string | null
+          decade: string | null
+          emotion_tags: string[] | null
+          era: string | null
+          id: string
+          source: string | null
+          text_content: string
+          usage_count: number | null
+        }
+        Insert: {
+          audio_url?: string | null
+          category: string
+          created_at?: string | null
+          decade?: string | null
+          emotion_tags?: string[] | null
+          era?: string | null
+          id?: string
+          source?: string | null
+          text_content: string
+          usage_count?: number | null
+        }
+        Update: {
+          audio_url?: string | null
+          category?: string
+          created_at?: string | null
+          decade?: string | null
+          emotion_tags?: string[] | null
+          era?: string | null
+          id?: string
+          source?: string | null
+          text_content?: string
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
+      oakland_memories: {
+        Row: {
+          attendees: string[] | null
+          audio_url: string | null
+          community_reactions: Json | null
+          created_at: string | null
+          description: string | null
+          effect_settings: Json | null
+          emotions: string[] | null
+          era: string | null
+          fan_expressions: string[] | null
+          game_date: string | null
+          historical_context: string | null
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          location: string | null
+          memory_type: string
+          opponent: string | null
+          personal_significance: string | null
+          score: string | null
+          section: string | null
+          tags: string[] | null
+          template_id: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          video_url: string | null
+          visibility: string | null
+        }
+        Insert: {
+          attendees?: string[] | null
+          audio_url?: string | null
+          community_reactions?: Json | null
+          created_at?: string | null
+          description?: string | null
+          effect_settings?: Json | null
+          emotions?: string[] | null
+          era?: string | null
+          fan_expressions?: string[] | null
+          game_date?: string | null
+          historical_context?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          location?: string | null
+          memory_type: string
+          opponent?: string | null
+          personal_significance?: string | null
+          score?: string | null
+          section?: string | null
+          tags?: string[] | null
+          template_id?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          video_url?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          attendees?: string[] | null
+          audio_url?: string | null
+          community_reactions?: Json | null
+          created_at?: string | null
+          description?: string | null
+          effect_settings?: Json | null
+          emotions?: string[] | null
+          era?: string | null
+          fan_expressions?: string[] | null
+          game_date?: string | null
+          historical_context?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          location?: string | null
+          memory_type?: string
+          opponent?: string | null
+          personal_significance?: string | null
+          score?: string | null
+          section?: string | null
+          tags?: string[] | null
+          template_id?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          video_url?: string | null
+          visibility?: string | null
+        }
+        Relationships: []
+      }
+      oakland_templates: {
+        Row: {
+          category: string
+          config: Json
+          created_at: string | null
+          description: string | null
+          era: string | null
+          id: string
+          name: string
+          preview_url: string | null
+          tags: string[] | null
+          usage_count: number | null
+        }
+        Insert: {
+          category: string
+          config?: Json
+          created_at?: string | null
+          description?: string | null
+          era?: string | null
+          id?: string
+          name: string
+          preview_url?: string | null
+          tags?: string[] | null
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string
+          config?: Json
+          created_at?: string | null
+          description?: string | null
+          era?: string | null
+          id?: string
+          name?: string
+          preview_url?: string | null
+          tags?: string[] | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       owned_cards: {
         Row: {
           card_id: string
