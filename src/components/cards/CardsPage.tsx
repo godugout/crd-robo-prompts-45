@@ -2,15 +2,11 @@
 import React, { useState } from 'react';
 import { CardsUploadPhase } from './components/CardsUploadPhase';
 import { CardDetectionPhase } from './components/CardDetectionPhase';
-import { DetectedCardsGrid } from './components/DetectedCardsGrid';
-import type { CardDetectionResult } from '@/services/cardDetection';
-
-interface UploadedImage {
-  id: string;
-  file: File;
-  preview: string;
-  processed?: boolean;
-}
+import { CardExtractionPhase } from './components/CardExtractionPhase';
+import { CardCustomizationPhase } from './components/CardCustomizationPhase';
+import { CollectionSelectionPhase } from './components/CollectionSelectionPhase';
+import { CardsSuccessPhase } from './components/CardsSuccessPhase';
+import type { UploadedImage } from './hooks/useCardUploadSession';
 
 interface DetectedCard {
   id: string;
@@ -20,52 +16,140 @@ interface DetectedCard {
   height: number;
   confidence: number;
   sourceImageId: string;
+  sourceImageName: string;
 }
 
-type WorkflowPhase = 'upload' | 'detection' | 'review';
+interface ExtractedCard {
+  id: string;
+  imageBlob: Blob;
+  imageUrl: string;
+  confidence: number;
+  sourceImageName: string;
+  name: string;
+  description: string;
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+  tags: string[];
+}
+
+interface ProcessedImage {
+  id: string;
+  name: string;
+  processed: boolean;
+  detectedCount: number;
+}
+
+type WorkflowPhase = 'upload' | 'detection' | 'extraction' | 'customization' | 'collection' | 'success';
 
 export const CardsPage: React.FC = () => {
   const [currentPhase, setCurrentPhase] = useState<WorkflowPhase>('upload');
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
-  const [detectedCards, setDetectedCards] = useState<DetectedCard[]>([]);
-  const [detectionResults, setDetectionResults] = useState<CardDetectionResult[]>([]);
+  const [allDetectedCards, setAllDetectedCards] = useState<DetectedCard[]>([]);
+  const [extractedCards, setExtractedCards] = useState<ExtractedCard[]>([]);
+  const [processedImages, setProcessedImages] = useState<ProcessedImage[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
 
   const handleImagesUploaded = (images: UploadedImage[]): void => {
     setUploadedImages(images);
+    setProcessedImages(images.map(img => ({
+      id: img.id,
+      name: img.file.name,
+      processed: false,
+      detectedCount: 0
+    })));
   };
 
   const handleStartDetection = (images: UploadedImage[]): void => {
     setUploadedImages(images);
     setCurrentPhase('detection');
+    setCurrentImageIndex(0);
+    setAllDetectedCards([]);
   };
 
   const handleDetectionComplete = (cards: DetectedCard[]): void => {
-    setDetectedCards(cards);
-    setCurrentPhase('review');
+    // Accumulate cards from this image with all previous cards
+    const newAllCards = [...allDetectedCards, ...cards];
+    setAllDetectedCards(newAllCards);
+    
+    // Update processed status for current image
+    setProcessedImages(prev => prev.map(img => 
+      img.id === uploadedImages[currentImageIndex]?.id 
+        ? { ...img, processed: true, detectedCount: cards.length }
+        : img
+    ));
+
+    // Check if we've processed all images
+    const nextImageIndex = currentImageIndex + 1;
+    if (nextImageIndex < uploadedImages.length) {
+      setCurrentImageIndex(nextImageIndex);
+    } else {
+      // All images processed, move to extraction
+      console.log('All images processed, total cards detected:', newAllCards.length);
+      setCurrentPhase('extraction');
+    }
+  };
+
+  const handleExtractionComplete = (cards: ExtractedCard[]): void => {
+    setExtractedCards(cards);
+    setCurrentPhase('customization');
+  };
+
+  const handleCustomizationComplete = (cards: ExtractedCard[]): void => {
+    setExtractedCards(cards);
+    setCurrentPhase('collection');
+  };
+
+  const handleCollectionSelected = (collectionId: string): void => {
+    setSelectedCollectionId(collectionId);
+    setCurrentPhase('success');
   };
 
   const handleGoBackToUpload = (): void => {
     setCurrentPhase('upload');
-    setDetectedCards([]);
+    setAllDetectedCards([]);
+    setExtractedCards([]);
+    setCurrentImageIndex(0);
   };
 
   const handleGoBackToDetection = (): void => {
     setCurrentPhase('detection');
   };
 
+  const handleGoBackToExtraction = (): void => {
+    setCurrentPhase('extraction');
+  };
+
+  const handleGoBackToCustomization = (): void => {
+    setCurrentPhase('customization');
+  };
+
   const clearAll = (): void => {
     setUploadedImages([]);
-    setDetectedCards([]);
-    setDetectionResults([]);
+    setAllDetectedCards([]);
+    setExtractedCards([]);
+    setProcessedImages([]);
+    setCurrentImageIndex(0);
+    setSelectedCollectionId(null);
     setCurrentPhase('upload');
   };
+
+  const currentImage = uploadedImages[currentImageIndex];
+  const totalCardsDetected = allDetectedCards.length;
+  const imagesProcessed = processedImages.filter(img => img.processed).length;
 
   return (
     <div className="min-h-screen bg-crd-darkest">
       {/* Header */}
       <div className="bg-editor-dark border-b border-crd-mediumGray/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">Card Detection Studio</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Card Detection Studio</h1>
+            {currentPhase !== 'upload' && (
+              <div className="text-sm text-crd-lightGray mt-1">
+                Phase: {currentPhase} • {totalCardsDetected} cards detected • {imagesProcessed}/{uploadedImages.length} images processed
+              </div>
+            )}
+          </div>
           {currentPhase !== 'upload' && (
             <button
               onClick={clearAll}
@@ -89,67 +173,66 @@ export const CardsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Phase 2: Detect and Adjust Cards */}
-        {currentPhase === 'detection' && (
+        {/* Phase 2: Detect Cards */}
+        {currentPhase === 'detection' && currentImage && (
           <div className="bg-editor-dark rounded-xl border border-crd-mediumGray/20 p-8">
             <CardDetectionPhase
               uploadedImages={uploadedImages}
+              currentImageIndex={currentImageIndex}
+              allDetectedCards={allDetectedCards}
+              processedImages={processedImages}
               onDetectionComplete={handleDetectionComplete}
               onGoBack={handleGoBackToUpload}
             />
           </div>
         )}
 
-        {/* Phase 3: Review Final Results */}
-        {currentPhase === 'review' && (
+        {/* Phase 3: Extract Individual Cards */}
+        {currentPhase === 'extraction' && (
           <div className="bg-editor-dark rounded-xl border border-crd-mediumGray/20 p-8">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-2xl font-semibold text-crd-white mb-2">
-                    Final Review
-                  </h3>
-                  <p className="text-crd-lightGray">
-                    {detectedCards.length} cards ready to be added to your collection
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleGoBackToDetection}
-                    className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors font-medium"
-                  >
-                    Back to Adjust
-                  </button>
-                  <button
-                    onClick={() => {
-                      // TODO: Implement save to collection
-                      console.log('Saving cards to collection:', detectedCards);
-                    }}
-                    className="px-4 py-2 bg-crd-green hover:bg-crd-green/90 text-black rounded-lg transition-colors font-medium"
-                  >
-                    Save to Collection
-                  </button>
-                </div>
-              </div>
+            <CardExtractionPhase
+              uploadedImages={uploadedImages}
+              detectedCards={allDetectedCards}
+              onExtractionComplete={handleExtractionComplete}
+              onGoBack={handleGoBackToDetection}
+            />
+          </div>
+        )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {detectedCards.map((card, index) => (
-                  <div
-                    key={card.id}
-                    className="bg-editor-tool rounded-lg p-4 border border-crd-mediumGray/20"
-                  >
-                    <div className="text-white font-medium mb-2">
-                      Card {index + 1}
-                    </div>
-                    <div className="text-sm text-crd-lightGray space-y-1">
-                      <div>Confidence: {Math.round(card.confidence * 100)}%</div>
-                      <div>Size: {Math.round(card.width)}×{Math.round(card.height)}</div>
-                      <div>Position: {Math.round(card.x)}, {Math.round(card.y)}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+        {/* Phase 4: Customize Cards */}
+        {currentPhase === 'customization' && (
+          <div className="bg-editor-dark rounded-xl border border-crd-mediumGray/20 p-8">
+            <CardCustomizationPhase
+              extractedCards={extractedCards}
+              onCustomizationComplete={handleCustomizationComplete}
+              onGoBack={handleGoBackToExtraction}
+            />
+          </div>
+        )}
+
+        {/* Phase 5: Select Collection */}
+        {currentPhase === 'collection' && (
+          <div className="bg-editor-dark rounded-xl border border-crd-mediumGray/20 p-8">
+            <CollectionSelectionPhase
+              extractedCards={extractedCards}
+              onCollectionSelected={handleCollectionSelected}
+              onGoBack={handleGoBackToCustomization}
+            />
+          </div>
+        )}
+
+        {/* Phase 6: Success */}
+        {currentPhase === 'success' && (
+          <div className="bg-editor-dark rounded-xl border border-crd-mediumGray/20 p-8">
+            <CardsSuccessPhase
+              extractedCards={extractedCards}
+              collectionId={selectedCollectionId}
+              onStartNew={clearAll}
+              onViewCollection={() => {
+                // Navigate to collection view
+                window.location.href = `/collections/${selectedCollectionId}`;
+              }}
+            />
           </div>
         )}
       </div>
