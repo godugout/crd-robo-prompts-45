@@ -67,6 +67,19 @@ export const EnhancedExportDialog: React.FC<EnhancedExportDialogProps> = ({
     onClose();
   };
 
+  // Handler functions to convert CheckedState to boolean
+  const handleIncludeBackChange = (checked: boolean | "indeterminate") => {
+    setIncludeBack(checked === true);
+  };
+
+  const handleIncludeEffectsChange = (checked: boolean | "indeterminate") => {
+    setIncludeEffects(checked === true);
+  };
+
+  const handleExportBatchChange = (checked: boolean | "indeterminate") => {
+    setExportBatch(checked === true);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <Card className="max-w-4xl w-full max-h-[90vh] overflow-hidden bg-editor-dark border-editor-border">
@@ -174,7 +187,7 @@ export const EnhancedExportDialog: React.FC<EnhancedExportDialogProps> = ({
                     <Checkbox
                       id="include-back"
                       checked={includeBack}
-                      onCheckedChange={setIncludeBack}
+                      onCheckedChange={handleIncludeBackChange}
                     />
                     <label htmlFor="include-back" className="text-white text-sm">
                       Include CRD card back
@@ -185,7 +198,7 @@ export const EnhancedExportDialog: React.FC<EnhancedExportDialogProps> = ({
                     <Checkbox
                       id="include-effects"
                       checked={includeEffects}
-                      onCheckedChange={setIncludeEffects}
+                      onCheckedChange={handleIncludeEffectsChange}
                     />
                     <label htmlFor="include-effects" className="text-white text-sm">
                       Include effect layers
@@ -196,7 +209,7 @@ export const EnhancedExportDialog: React.FC<EnhancedExportDialogProps> = ({
                     <Checkbox
                       id="export-batch"
                       checked={exportBatch}
-                      onCheckedChange={setExportBatch}
+                      onCheckedChange={handleExportBatchChange}
                     />
                     <label htmlFor="export-batch" className="text-white text-sm">
                       Export multiple variations
