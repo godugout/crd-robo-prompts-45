@@ -1,10 +1,11 @@
+
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Camera, Sparkles, Download, Share2, Wand2, ArrowLeft } from 'lucide-react';
+import { Camera, Sparkles, Download, Share2, Wand2, ArrowLeft, Palette } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
 import { useCardEditor, CardRarity } from '@/hooks/useCardEditor';
@@ -235,6 +236,15 @@ export const UnifiedCardCreator = () => {
             <h1 className="text-xl font-bold text-white">Create Your Card</h1>
           </div>
           <div className="flex gap-2">
+            <Button
+              onClick={() => navigate('/studio')}
+              variant="outline"
+              size="sm"
+              className="border-crd-purple text-crd-purple hover:bg-crd-purple hover:text-white"
+            >
+              <Palette className="w-4 h-4 mr-2" />
+              Open Studio
+            </Button>
             <Button
               onClick={handleMagicEnhance}
               variant="outline"
