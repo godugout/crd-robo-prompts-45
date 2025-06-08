@@ -12,11 +12,11 @@ export interface Card {
   price?: number;
   creator_name?: string;
   creator_verified?: boolean;
-  tags?: string[];
+  tags: string[]; // Make this required to match other Card types
   created_at?: string;
-  creator_id: string; // Make this required to match other Card types
-  design_metadata?: Record<string, any>;
-  is_public?: boolean; // Add this property that Profile.tsx expects
+  creator_id: string; // Required to match other Card types
+  design_metadata: Record<string, any>; // Make required for consistency
+  is_public?: boolean;
 }
 
 export const useCards = () => {
@@ -78,6 +78,7 @@ export const useCards = () => {
               creator_id: card.creator_id || '', // Ensure creator_id is always a string
               creator_name,
               creator_verified,
+              tags: card.tags || [], // Ensure tags is always an array
               design_metadata: card.design_metadata || {}
             };
           })
