@@ -5,11 +5,24 @@ import { analyzeCardImage } from '@/services/cardAnalyzer';
 import { DEFAULT_TEMPLATES } from '@/components/editor/wizard/wizardConfig';
 import { toast } from 'sonner';
 
+interface StickerData {
+  id: string;
+  type: 'emoji' | 'icon' | 'shape';
+  content: string;
+  x: number;
+  y: number;
+  rotation: number;
+  scale: number;
+  color?: string;
+}
+
 export const useUnifiedCardCreator = () => {
   const [currentPhoto, setCurrentPhoto] = useState<string>('');
   const [selectedTemplate, setSelectedTemplate] = useState(DEFAULT_TEMPLATES[0]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [step, setStep] = useState<'upload' | 'create' | 'enhance'>('upload');
+  const [stickers, setStickers] = useState<StickerData[]>([]);
+  const [selectedStickerId, setSelectedStickerId] = useState<string>('');
 
   const cardEditor = useCardEditor({
     initialData: {
@@ -48,10 +61,10 @@ export const useUnifiedCardCreator = () => {
       cardEditor.updateCardField('rarity', analysis.rarity);
       cardEditor.updateCardField('tags', analysis.tags);
       
-      // Auto-select best template
+      // Auto-select best template - prefer full-bleed for photos
       const suggestedTemplate = DEFAULT_TEMPLATES.find(t => 
-        analysis.tags.some(tag => t.tags.includes(tag))
-      ) || DEFAULT_TEMPLATES[0];
+        t.category === 'full-bleed' || analysis.tags.some(tag => t.tags.includes(tag))
+      ) || DEFAULT_TEMPLATES.find(t => t.category === 'full-bleed') || DEFAULT_TEMPLATES[0];
       
       setSelectedTemplate(suggestedTemplate);
       cardEditor.updateCardField('template_id', suggestedTemplate.id);
@@ -70,6 +83,13 @@ export const useUnifiedCardCreator = () => {
     setSelectedTemplate(template);
     cardEditor.updateCardField('template_id', template.id);
     cardEditor.updateCardField('design_metadata', template.template_data);
+    
+    // Clear stickers when switching away from social templates
+    if (template.template_data.layout_type !== 'full-bleed-social') {
+      setStickers([]);
+      setSelectedStickerId('');
+    }
+    
     toast.success(`${template.name} template applied!`);
   }, [cardEditor]);
 
@@ -86,6 +106,30 @@ export const useUnifiedCardCreator = () => {
     setStep('enhance');
   }, [cardEditor]);
 
+  const handleAddSticker = useCallback((sticker: any) => {
+    const newSticker: StickerData = {
+      id: `sticker-${Date.now()}`,
+      type: sticker.emoji ? 'emoji' : 'icon',
+      content: sticker.emoji || sticker.name,
+      x: Math.random() * 200 + 50, // Random position
+      y: Math.random() * 300 + 50,
+      rotation: 0,
+      scale: 1,
+      color: sticker.color
+    };
+    
+    setStickers(prev => [...prev, newSticker]);
+    setSelectedStickerId(newSticker.id);
+    
+    // Store stickers in card metadata
+    cardEditor.updateDesignMetadata('stickers', [...stickers, newSticker]);
+  }, [stickers, cardEditor]);
+
+  const handleStickersChange = useCallback((newStickers: StickerData[]) => {
+    setStickers(newStickers);
+    cardEditor.updateDesignMetadata('stickers', newStickers);
+  }, [cardEditor]);
+
   return {
     // State
     currentPhoto,
@@ -93,11 +137,16 @@ export const useUnifiedCardCreator = () => {
     isAnalyzing,
     step,
     cardEditor,
+    stickers,
+    selectedStickerId,
     
     // Actions
     handlePhotoUpload,
     handleTemplateChange,
     handleMagicEnhance,
-    setStep
+    handleAddSticker,
+    handleStickersChange,
+    setStep,
+    setSelectedStickerId
   };
 };

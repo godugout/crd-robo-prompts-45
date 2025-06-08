@@ -1,5 +1,6 @@
 import React from 'react';
 import { Camera } from 'lucide-react';
+import { FullBleedTemplateRenderer } from './FullBleedTemplateRenderer';
 import type { CardData } from '@/hooks/useCardEditor';
 
 interface TemplateRegion {
@@ -46,8 +47,27 @@ export const DynamicTemplateRenderer = ({
   onElementSelect,
   dimensions
 }: DynamicTemplateRendererProps) => {
-  // Safely extract colors and regions with fallbacks
+  // Check if this is a full-bleed template
   const templateData = template.template_data as TemplateData;
+  const isFullBleed = templateData.layout_type === 'full-bleed-minimal' || 
+                     templateData.layout_type === 'full-bleed-social';
+
+  // Use FullBleedTemplateRenderer for full-bleed templates
+  if (isFullBleed) {
+    return (
+      <FullBleedTemplateRenderer
+        template={template}
+        cardData={cardData}
+        currentPhoto={currentPhoto}
+        scaleFactor={scaleFactor}
+        onPhotoUpload={onPhotoUpload}
+        onElementSelect={onElementSelect}
+        dimensions={dimensions}
+      />
+    );
+  }
+
+  // Safely extract colors and regions with fallbacks
   const colors = templateData.colors || {
     background: '#1e293b',
     primary: '#2563eb',
