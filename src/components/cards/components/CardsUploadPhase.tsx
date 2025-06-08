@@ -1,10 +1,12 @@
-
-import React, { useCallback, useState } from 'react';
-import { useDropzone } from 'react-dropzone';
+import React, { useCallback, useState, useMemo } from 'react';
 import { CRDButton } from '@/components/ui/design-system';
-import { Upload, X, CheckCircle, AlertCircle, FileImage } from 'lucide-react';
 import { toast } from 'sonner';
 import { UploadedImage } from '../hooks/useCardUploadSession';
+import { EnhancedDropZone } from './upload/EnhancedDropZone';
+import { BatchOperationsBar } from './upload/BatchOperationsBar';
+import { UploadQueueManager } from './upload/UploadQueueManager';
+import { ErrorRecoveryHelper } from './upload/ErrorRecoveryHelper';
+import { VirtualizedImageGrid } from './upload/VirtualizedImageGrid';
 
 interface ImageValidation {
   isValid: boolean;
@@ -31,6 +33,9 @@ export const CardsUploadPhase: React.FC<CardsUploadPhaseProps> = ({
 }) => {
   const [loadingImages, setLoadingImages] = useState<Set<string>>(new Set());
   const [validationResults, setValidationResults] = useState<Map<string, ImageValidation>>(new Map());
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
+  const [processingPaused, setProcessingPaused] = useState(false);
+  const [retryCount, setRetryCount] = useState<Map<string, number>>(new Map());
 
   const validateImage = async (file: File): Promise<ImageValidation> => {
     return new Promise((resolve) => {
@@ -140,36 +145,105 @@ export const CardsUploadPhase: React.FC<CardsUploadPhaseProps> = ({
     
     // Process each image for validation
     for (const image of newImages) {
-      await processUploadedImage(image.file, image.id);
+      if (!processingPaused) {
+        await processUploadedImage(image.file, image.id);
+      }
     }
     
     toast.success(`Added ${acceptedFiles.length} image${acceptedFiles.length > 1 ? 's' : ''} for validation`);
-  }, [uploadedImages, onImagesUploaded]);
+  }, [uploadedImages, onImagesUploaded, processingPaused]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] },
-    maxFiles: 10
-  });
+  // Batch operations
+  const handleSelectAll = useCallback(() => {
+    setSelectedImages(new Set(uploadedImages.map(img => img.id)));
+  }, [uploadedImages]);
 
-  const removeImage = (imageId: string) => {
-    const updatedImages = uploadedImages.filter(img => img.id !== imageId);
+  const handleDeselectAll = useCallback(() => {
+    setSelectedImages(new Set());
+  }, []);
+
+  const handleBatchRemove = useCallback((imageIds: string[]) => {
+    const updatedImages = uploadedImages.filter(img => !imageIds.includes(img.id));
     onImagesUploaded(updatedImages);
     
-    setValidationResults(prev => {
-      const newMap = new Map(prev);
-      newMap.delete(imageId);
-      return newMap;
+    // Clean up validation results
+    imageIds.forEach(id => {
+      validationResults.delete(id);
+      const img = uploadedImages.find(i => i.id === id);
+      if (img) URL.revokeObjectURL(img.preview);
     });
     
-    toast.success('Image removed');
-  };
+    setSelectedImages(new Set());
+    toast.success(`Removed ${imageIds.length} image${imageIds.length !== 1 ? 's' : ''}`);
+  }, [uploadedImages, onImagesUploaded, validationResults]);
+
+  const handleBatchRetry = useCallback(async (imageIds: string[]) => {
+    for (const imageId of imageIds) {
+      const image = uploadedImages.find(img => img.id === imageId);
+      if (image) {
+        const currentRetries = retryCount.get(imageId) || 0;
+        setRetryCount(prev => new Map(prev).set(imageId, currentRetries + 1));
+        await processUploadedImage(image.file, image.id);
+      }
+    }
+    toast.success(`Retrying validation for ${imageIds.length} image${imageIds.length !== 1 ? 's' : ''}`);
+  }, [uploadedImages, retryCount]);
+
+  // Individual operations
+  const handleToggleSelection = useCallback((imageId: string) => {
+    setSelectedImages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(imageId)) {
+        newSet.delete(imageId);
+      } else {
+        newSet.add(imageId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleRemoveImage = useCallback((imageId: string) => {
+    handleBatchRemove([imageId]);
+  }, [handleBatchRemove]);
+
+  const handleRetryImage = useCallback(async (imageId: string) => {
+    await handleBatchRetry([imageId]);
+  }, [handleBatchRetry]);
+
+  // Processing controls
+  const handlePauseProcessing = useCallback(() => {
+    setProcessingPaused(true);
+    toast.info('Processing paused');
+  }, []);
+
+  const handleResumeProcessing = useCallback(() => {
+    setProcessingPaused(false);
+    toast.info('Processing resumed');
+  }, []);
+
+  // Queue management (simplified - convert images to queue items)
+  const queueItems = useMemo(() => {
+    return uploadedImages.map((img, index) => {
+      const validation = validationResults.get(img.id);
+      const isLoading = loadingImages.has(img.id);
+      
+      return {
+        ...img,
+        priority: index,
+        estimatedTime: isLoading ? 30 : undefined, // Mock estimation
+        status: isLoading ? 'processing' : validation?.isValid ? 'completed' : validation ? 'failed' : 'pending',
+        progress: isLoading ? 50 : validation ? 100 : 0 // Mock progress
+      };
+    });
+  }, [uploadedImages, validationResults, loadingImages]);
 
   const clearAllImages = () => {
     uploadedImages.forEach(img => URL.revokeObjectURL(img.preview));
     onImagesUploaded([]);
     setValidationResults(new Map());
     setLoadingImages(new Set());
+    setSelectedImages(new Set());
+    setRetryCount(new Map());
     toast.success('All images cleared');
   };
 
@@ -192,152 +266,144 @@ export const CardsUploadPhase: React.FC<CardsUploadPhaseProps> = ({
   const validImageCount = getValidImages().length;
   const hasLoadingImages = loadingImages.size > 0;
   const canProceed = validImageCount > 0 && !hasLoadingImages;
+  const hasErrors = Array.from(validationResults.values()).some(v => !v.isValid);
 
   return (
     <div className="space-y-6">
       <div className="text-center">
         <h3 className="text-2xl font-semibold text-crd-white mb-2">
-          {isDragActive ? 'Drop images here' : 'Upload Card Images'}
+          Enhanced Card Image Upload
         </h3>
         <p className="text-crd-lightGray text-lg">
-          Drag and drop your trading card images, or click to browse
-        </p>
-        <p className="text-crd-lightGray text-sm mt-2">
-          Supports JPG, PNG, WebP • Max 10 images • Minimum 200x280px recommended
+          Upload multiple images with advanced batch processing and error recovery
         </p>
       </div>
 
-      {/* Upload Drop Zone */}
-      <div
-        {...getRootProps()}
-        className={`border-2 border-dashed rounded-xl p-12 text-center transition-all cursor-pointer ${
-          isDragActive 
-            ? 'border-crd-green bg-crd-green/10' 
-            : 'border-crd-mediumGray hover:border-crd-green/50'
-        }`}
-        role="button"
-        tabIndex={0}
-        aria-label="Upload images for card detection"
-      >
-        <input {...getInputProps()} aria-label="Image file input" />
-        <Upload className="w-16 h-16 text-crd-lightGray mx-auto mb-4" aria-hidden="true" />
-        <div className="space-y-2">
-          <p className="text-crd-white font-medium">
-            {isDragActive ? 'Release to add images' : 'Choose images or drag them here'}
-          </p>
-          <p className="text-crd-lightGray text-sm">
-            Images will be validated for card detection compatibility
-          </p>
-        </div>
-      </div>
-      
-      {/* Upload Progress & Status */}
+      {/* Enhanced Upload Drop Zone */}
+      <EnhancedDropZone
+        onFilesAdded={onDrop}
+        isProcessing={hasLoadingImages}
+        maxFiles={20}
+      />
+
+      {/* Batch Operations Bar */}
       {uploadedImages.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-crd-white font-medium">
-                Uploaded Images ({uploadedImages.length})
-              </h4>
-              <p className="text-sm text-crd-lightGray">
-                {validImageCount} valid • {hasLoadingImages ? 'Validating...' : 'Ready for detection'}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <CRDButton
-                variant="outline"
-                onClick={clearAllImages}
-                disabled={hasLoadingImages}
-                aria-label="Clear all uploaded images"
-              >
-                Clear All
-              </CRDButton>
-              <CRDButton
-                variant="primary"
-                onClick={handleContinueToDetection}
-                disabled={!canProceed}
-                className="bg-crd-green hover:bg-crd-green/90 text-black"
-                aria-label={`Continue to detection with ${validImageCount} valid images`}
-              >
-                Continue to Detection ({validImageCount})
-              </CRDButton>
-            </div>
+        <BatchOperationsBar
+          images={uploadedImages}
+          selectedImages={selectedImages}
+          onSelectAll={handleSelectAll}
+          onDeselectAll={handleDeselectAll}
+          onBatchRemove={handleBatchRemove}
+          onBatchRetry={handleBatchRetry}
+          isProcessing={hasLoadingImages}
+          onPauseProcessing={processingPaused ? undefined : handlePauseProcessing}
+          onResumeProcessing={processingPaused ? handleResumeProcessing : undefined}
+        />
+      )}
+
+      {/* Upload Queue Manager */}
+      {queueItems.length > 0 && (
+        <UploadQueueManager
+          queueItems={queueItems}
+          onMovePriority={(id, direction) => {
+            // Simple priority management
+            const currentIndex = uploadedImages.findIndex(img => img.id === id);
+            if (currentIndex === -1) return;
+            
+            const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+            if (newIndex < 0 || newIndex >= uploadedImages.length) return;
+            
+            const newImages = [...uploadedImages];
+            [newImages[currentIndex], newImages[newIndex]] = [newImages[newIndex], newImages[currentIndex]];
+            onImagesUploaded(newImages);
+          }}
+          onRemoveFromQueue={handleRemoveImage}
+          onCancelOperation={handleRemoveImage}
+          isProcessing={hasLoadingImages}
+        />
+      )}
+
+      {/* Error Recovery Helpers */}
+      {hasErrors && (
+        <div className="space-y-3">
+          {uploadedImages.map(image => {
+            const validation = validationResults.get(image.id);
+            if (!validation || validation.isValid) return null;
+            
+            const errors = validation.errors.map(error => ({
+              type: 'unknown' as const,
+              message: error,
+              suggestion: validation.warnings?.[0],
+              autoRetryable: error.includes('network') || error.includes('timeout')
+            }));
+
+            return (
+              <ErrorRecoveryHelper
+                key={image.id}
+                errors={errors}
+                fileName={image.file.name}
+                onRetry={() => handleRetryImage(image.id)}
+                onOptimize={() => {
+                  toast.info('Image optimization coming soon!');
+                }}
+                onShowHelp={() => {
+                  toast.info('Opening help documentation...', {
+                    description: 'Common upload issues and solutions'
+                  });
+                }}
+                isRetrying={loadingImages.has(image.id)}
+                retryCount={retryCount.get(image.id) || 0}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* Virtualized Image Grid */}
+      {uploadedImages.length > 0 && (
+        <VirtualizedImageGrid
+          images={uploadedImages}
+          selectedImages={selectedImages}
+          onToggleSelection={handleToggleSelection}
+          onRemoveImage={handleRemoveImage}
+          onRetryImage={handleRetryImage}
+          validationResults={validationResults}
+          isProcessing={hasLoadingImages}
+          containerWidth={800} // Mock container width
+          containerHeight={400} // Mock container height
+        />
+      )}
+
+      {/* Action Controls */}
+      {uploadedImages.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-crd-white font-medium">
+              Ready for Detection ({uploadedImages.length} images)
+            </h4>
+            <p className="text-sm text-crd-lightGray">
+              {validImageCount} valid • {hasLoadingImages ? 'Processing...' : 'Ready to proceed'}
+              {processingPaused && ' • Paused'}
+            </p>
           </div>
-
-          {/* Images Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {uploadedImages.map((image) => {
-              const isLoading = loadingImages.has(image.id);
-              const validation = validationResults.get(image.id);
-              const isValid = validation?.isValid;
-              
-              return (
-                <div key={image.id} className="relative group">
-                  <div className="aspect-[3/4] bg-crd-darkGray rounded-lg overflow-hidden border-2 border-crd-mediumGray relative">
-                    {/* Image */}
-                    <img
-                      src={image.preview}
-                      alt={`Upload ${image.file.name}`}
-                      className="w-full h-full object-cover"
-                    />
-                    
-                    {/* Loading Overlay */}
-                    {isLoading && (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <div className="w-8 h-8 border-2 border-crd-green border-t-transparent rounded-full animate-spin" />
-                      </div>
-                    )}
-                    
-                    {/* Validation Status */}
-                    {!isLoading && validation && (
-                      <div className={`absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center ${
-                        isValid ? 'bg-green-600' : 'bg-red-600'
-                      }`}>
-                        {isValid ? (
-                          <CheckCircle className="w-4 h-4 text-white" aria-label="Valid image" />
-                        ) : (
-                          <AlertCircle className="w-4 h-4 text-white" aria-label="Invalid image" />
-                        )}
-                      </div>
-                    )}
-                    
-                    {/* Remove Button */}
-                    <button
-                      onClick={() => removeImage(image.id)}
-                      disabled={isLoading}
-                      className="absolute top-2 right-2 w-6 h-6 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
-                      aria-label={`Remove ${image.file.name}`}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-
-                    {/* Image Info */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-2">
-                      <p className="text-white text-xs truncate font-medium">
-                        {image.file.name}
-                      </p>
-                      {validation && (
-                        <div className="text-xs">
-                          <p className="text-crd-lightGray">
-                            {validation.metadata.width}×{validation.metadata.height} • {validation.metadata.size}
-                          </p>
-                          {validation.errors.length > 0 && (
-                            <p className="text-red-400 truncate" title={validation.errors.join(', ')}>
-                              {validation.errors[0]}
-                            </p>
-                          )}
-                          {validation.warnings.length > 0 && validation.errors.length === 0 && (
-                            <p className="text-yellow-400 truncate" title={validation.warnings.join(', ')}>
-                              {validation.warnings[0]}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex gap-2">
+            <CRDButton
+              variant="outline"
+              onClick={clearAllImages}
+              disabled={hasLoadingImages}
+              aria-label="Clear all uploaded images"
+            >
+              Clear All
+            </CRDButton>
+            <CRDButton
+              variant="primary"
+              onClick={handleContinueToDetection}
+              disabled={!canProceed}
+              className="bg-crd-green hover:bg-crd-green/90 text-black"
+              aria-label={`Continue to detection with ${validImageCount} valid images`}
+            >
+              Continue to Detection ({validImageCount})
+            </CRDButton>
           </div>
         </div>
       )}
