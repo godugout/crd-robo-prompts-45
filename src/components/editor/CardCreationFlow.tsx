@@ -1,31 +1,21 @@
 
-import React, { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React from 'react';
 import { UnifiedCardCreator } from './UnifiedCardCreator';
 import { CardCreationHub } from '@/components/cards/CardCreationHub';
-import { CardsPage } from '@/components/cards/CardsPage';
 
 export const CardCreationFlow = () => {
-  const [searchParams] = useSearchParams();
-  const tab = searchParams.get('tab');
-  const mode = searchParams.get('mode');
-
-  // Show bulk upload if tab=upload
-  if (tab === 'upload') {
-    return <CardsPage />;
+  // Check the exact path to determine which component to show
+  const currentPath = window.location.pathname;
+  
+  // Show hub for /cards, direct creator for /cards/create
+  if (currentPath === '/cards') {
+    return <CardCreationHub />;
   }
-
-  // Show collaborative mode (future feature)
-  if (mode === 'collaborative') {
+  
+  if (currentPath === '/cards/create') {
     return <UnifiedCardCreator />;
   }
 
-  // Default to hub for /cards, direct creator for /cards/create
-  const showHub = window.location.pathname === '/cards';
-  
-  if (showHub) {
-    return <CardCreationHub />;
-  }
-
-  return <UnifiedCardCreator />;
+  // Default fallback to hub
+  return <CardCreationHub />;
 };

@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Bug, Palette } from "lucide-react";
+import { Bug, Palette, Upload } from "lucide-react";
 
 export const NavLinks = () => {
   const location = useLocation();
@@ -21,6 +21,13 @@ export const NavLinks = () => {
         className={`nav-item ${isActive('/cards') ? 'active' : ''}`}
       >
         Create
+      </Link>
+      <Link 
+        to="/cards/bulk-upload" 
+        className={`nav-item ${isActive('/cards/bulk-upload') ? 'active' : ''} flex items-center gap-2`}
+      >
+        <Upload className="w-4 h-4" />
+        Bulk Upload
       </Link>
       <Link 
         to="/studio" 

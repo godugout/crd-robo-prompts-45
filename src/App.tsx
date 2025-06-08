@@ -13,6 +13,7 @@ import Studio from '@/pages/Studio';
 import CardDetail from '@/pages/CardDetail';
 import { AuthPage } from '@/components/auth/AuthPage';
 import { CardCreationFlow } from '@/components/editor/CardCreationFlow';
+import { MobileCardsWrapper } from '@/components/cards/MobileCardsWrapper';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route index element={<Index />} />
             <Route path="cards" element={<CardCreationFlow />} />
             <Route path="cards/create" element={<CardCreationFlow />} />
+            <Route path="cards/bulk-upload" element={<MobileCardsWrapper />} />
             <Route path="card/:id" element={<CardDetail />} />
             <Route path="studio" element={<Studio />} />
             <Route path="gallery" element={<Gallery />} />
