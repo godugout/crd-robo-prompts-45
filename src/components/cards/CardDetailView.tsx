@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Eye, Share, Download, Star, Calendar, Tag } from 'lucide-react';
+import { Maximize2, Share, Download, Star, Calendar, Tag } from 'lucide-react';
+import { CompactCardViewer } from '@/components/viewer/CompactCardViewer';
 import type { CardData } from '@/hooks/useCardData';
 
 interface CardDetailViewProps {
@@ -48,34 +49,25 @@ export const CardDetailView: React.FC<CardDetailViewProps> = ({
     <div className="min-h-screen bg-crd-darkest">
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Card Image */}
+          {/* Compact 3D Card Viewer */}
           <div className="space-y-4">
-            <Card className="bg-editor-dark border-editor-border overflow-hidden">
-              <CardContent className="p-0">
-                <div className="aspect-[3/4] relative">
-                  {card.image_url ? (
-                    <img
-                      src={card.image_url}
-                      alt={card.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-editor-border flex items-center justify-center">
-                      <span className="text-crd-lightGray">No Image</span>
-                    </div>
-                  )}
-                  
-                  {/* Rarity Badge Overlay */}
-                  <div className="absolute top-4 right-4">
-                    <Badge 
-                      className={`${getRarityColor(card.rarity)} text-white font-bold px-3 py-1 text-sm`}
-                    >
-                      {card.rarity.toUpperCase()}
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="aspect-[3/4] relative">
+              <CompactCardViewer
+                card={card}
+                onFullscreen={onOpenViewer}
+                width={400}
+                height={560}
+              />
+              
+              {/* Rarity Badge Overlay */}
+              <div className="absolute top-4 left-4 z-50">
+                <Badge 
+                  className={`${getRarityColor(card.rarity)} text-white font-bold px-3 py-1 text-sm`}
+                >
+                  {card.rarity.toUpperCase()}
+                </Badge>
+              </div>
+            </div>
 
             {/* Action Buttons */}
             <div className="space-y-3">
@@ -84,8 +76,8 @@ export const CardDetailView: React.FC<CardDetailViewProps> = ({
                 className="w-full bg-crd-blue hover:bg-crd-blue/90 text-white font-medium h-12"
                 size="lg"
               >
-                <Eye className="w-5 h-5 mr-2" />
-                View in 3D
+                <Maximize2 className="w-5 h-5 mr-2" />
+                Fullscreen 3D View
               </Button>
               
               <div className="grid grid-cols-2 gap-3">
