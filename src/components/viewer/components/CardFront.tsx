@@ -33,6 +33,13 @@ export const CardFront: React.FC<CardFrontProps> = ({
   materialSettings,
   interactiveLighting = false
 }) => {
+  console.log('CardFront: Rendering with card data:', {
+    id: card.id,
+    title: card.title,
+    image_url: card.image_url,
+    hasImage: !!card.image_url
+  });
+
   return (
     <div className="absolute inset-0 rounded-xl overflow-hidden">
       {/* Base Card Layer - z-index 10 */}
@@ -49,7 +56,7 @@ export const CardFront: React.FC<CardFrontProps> = ({
           <div className="w-full h-full relative overflow-hidden">
             <img 
               src={card.image_url} 
-              alt={card.title}
+              alt={card.title || 'Card'}
               className="w-full h-full object-cover object-center"
               style={{
                 filter: showEffects 
@@ -57,8 +64,11 @@ export const CardFront: React.FC<CardFrontProps> = ({
                   : 'brightness(1.05) contrast(1.02)',
                 transition: 'filter 0.3s ease'
               }}
-              onLoad={() => console.log('CardFront: Image loaded successfully')}
-              onError={() => console.error('CardFront: Error loading image')}
+              onLoad={() => console.log('CardFront: Image loaded successfully for:', card.title)}
+              onError={(e) => {
+                console.error('CardFront: Error loading image for:', card.title, 'URL:', card.image_url);
+                console.error('CardFront: Error details:', e);
+              }}
             />
             {/* Enhanced image overlay for better effect blending */}
             {showEffects && (
@@ -73,14 +83,15 @@ export const CardFront: React.FC<CardFrontProps> = ({
             )}
           </div>
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-            <div className="text-center text-gray-500">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-300 rounded-lg flex items-center justify-center">
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-800">
+            <div className="text-center text-gray-300">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-600 rounded-lg flex items-center justify-center">
                 <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                 </svg>
               </div>
-              <p className="text-sm font-medium">No Image</p>
+              <p className="text-sm font-medium">{card.title || 'No Image'}</p>
+              <p className="text-xs text-gray-400 mt-1">Card ID: {card.id}</p>
             </div>
           </div>
         )}

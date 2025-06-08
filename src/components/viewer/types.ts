@@ -1,4 +1,6 @@
+
 import type { CardData } from '@/hooks/useCardEditor';
+import type { UniversalCardData } from '@/components/cards/UniversalCardDisplay';
 
 export interface EnvironmentScene {
   id: string;
@@ -43,13 +45,47 @@ export interface MaterialSettings {
   clearcoat: number;
 }
 
+// Updated interface to accept either card type
 export interface ImmersiveCardViewerProps {
-  card: CardData;
+  card: UniversalCardData;
   isOpen?: boolean;
   onClose?: () => void;
-  onShare?: (card: CardData) => void;
-  onDownload?: (card: CardData) => void;
+  onShare?: (card: UniversalCardData) => void;
+  onDownload?: (card: UniversalCardData) => void;
   allowRotation?: boolean;
   showStats?: boolean;
   ambient?: boolean;
 }
+
+// Helper function to convert UniversalCardData to CardData for viewer components
+export const convertToViewerCardData = (card: UniversalCardData): CardData => {
+  return {
+    id: card.id,
+    title: card.title,
+    description: card.description,
+    image_url: card.image_url,
+    thumbnail_url: card.thumbnail_url,
+    rarity: card.rarity,
+    tags: card.tags || [],
+    design_metadata: {},
+    visibility: 'public',
+    creator_attribution: {
+      creator_name: card.creator_name,
+      creator_id: undefined,
+      collaboration_type: 'solo'
+    },
+    publishing_options: {
+      marketplace_listing: true,
+      crd_catalog_inclusion: true,
+      print_available: false,
+      pricing: {
+        base_price: card.price,
+        currency: 'ETH'
+      }
+    },
+    price: card.price,
+    creator_id: undefined,
+    creator_name: card.creator_name,
+    creator_verified: card.creator_verified
+  };
+};

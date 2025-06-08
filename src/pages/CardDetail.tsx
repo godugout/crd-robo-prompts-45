@@ -4,10 +4,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ImmersiveCardViewer } from "@/components/viewer/ImmersiveCardViewer";
 import { useCardActions } from "@/hooks/useCardActions";
 import { useCardData } from "@/hooks/useCardData";
+import { convertToViewerCardData } from "@/components/viewer/types";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader } from "lucide-react";
 import { toast } from "sonner";
-import type { UniversalCardData } from "@/components/cards/UniversalCardDisplay";
 
 export default function CardDetail() {
   const { id } = useParams<{ id: string }>();
@@ -52,8 +52,15 @@ export default function CardDetail() {
     );
   }
 
-  // Convert CardData to UniversalCardData format
-  const universalCard: UniversalCardData = {
+  console.log('CardDetail: Card data received:', {
+    id: card.id,
+    title: card.title,
+    image_url: card.image_url,
+    hasImage: !!card.image_url
+  });
+
+  // Convert CardData to UniversalCardData format for actions
+  const universalCard = {
     id: card.id,
     title: card.title,
     description: card.description,
@@ -66,6 +73,16 @@ export default function CardDetail() {
     stock: 3, // Default value
     tags: card.tags
   };
+
+  // Convert to viewer CardData format
+  const viewerCard = convertToViewerCardData(universalCard);
+
+  console.log('CardDetail: Converted viewer card data:', {
+    id: viewerCard.id,
+    title: viewerCard.title,
+    image_url: viewerCard.image_url,
+    hasImage: !!viewerCard.image_url
+  });
 
   return (
     <>
