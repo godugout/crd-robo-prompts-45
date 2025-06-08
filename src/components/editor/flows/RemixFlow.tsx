@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCards } from '@/hooks/useCards';
 import { UniversalCardDisplay } from '@/components/cards/UniversalCardDisplay';
 import { toast } from 'sonner';
+import type { CardRarity } from '@/components/cards/UniversalCardDisplay';
 
 export const RemixFlow = () => {
   const navigate = useNavigate();
@@ -115,21 +116,21 @@ export const RemixFlow = () => {
                           description: randomCard.description,
                           image_url: randomCard.image_url,
                           thumbnail_url: randomCard.thumbnail_url,
-                          rarity: randomCard.rarity,
+                          rarity: (randomCard.rarity || 'common') as CardRarity,
                           price: randomCard.price,
                           creator_name: randomCard.creator_name,
                           creator_verified: randomCard.creator_verified,
                           tags: randomCard.tags,
                           stock: 1
                         }}
-                        size="large"
+                        mode="grid"
                         showActions={false}
                       />
                       
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <Badge className="bg-crd-green text-black">
-                            {randomCard.rarity}
+                            {randomCard.rarity || 'common'}
                           </Badge>
                           {randomCard.creator_verified && (
                             <Badge variant="outline" className="border-crd-green text-crd-green">
@@ -227,14 +228,14 @@ export const RemixFlow = () => {
                           description: card.description,
                           image_url: card.image_url,
                           thumbnail_url: card.thumbnail_url,
-                          rarity: card.rarity,
+                          rarity: (card.rarity || 'common') as CardRarity,
                           price: card.price,
                           creator_name: card.creator_name,
                           creator_verified: card.creator_verified,
                           tags: card.tags,
                           stock: 1
                         }}
-                        size="medium"
+                        mode="grid"
                         showActions={false}
                       />
                       

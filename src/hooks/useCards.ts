@@ -14,6 +14,8 @@ export interface Card {
   creator_verified?: boolean;
   tags?: string[];
   created_at?: string;
+  creator_id?: string;
+  design_metadata?: Record<string, any>;
 }
 
 export const useCards = () => {
@@ -39,7 +41,8 @@ export const useCards = () => {
             price,
             tags,
             created_at,
-            creator_id
+            creator_id,
+            design_metadata
           `)
           .eq('is_public', true)
           .order('created_at', { ascending: false })
@@ -71,7 +74,8 @@ export const useCards = () => {
             return {
               ...card,
               creator_name,
-              creator_verified
+              creator_verified,
+              design_metadata: card.design_metadata || {}
             };
           })
         );
@@ -88,5 +92,12 @@ export const useCards = () => {
     fetchCards();
   }, []);
 
-  return { featuredCards, loading, error };
+  // Provide backward compatibility aliases
+  return { 
+    featuredCards, 
+    loading, 
+    error,
+    cards: featuredCards, // alias for compatibility
+    userCards: featuredCards // alias for Profile page
+  };
 };
