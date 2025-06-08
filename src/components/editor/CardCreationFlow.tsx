@@ -1,59 +1,31 @@
 
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { UnifiedCardCreator } from './UnifiedCardCreator';
-import { Button } from '@/components/ui/button';
-import { Upload, ArrowLeft } from 'lucide-react';
+import { CardCreationHub } from '@/components/cards/CardCreationHub';
 import { CardsPage } from '@/components/cards/CardsPage';
-import type { CardData } from '@/hooks/useCardEditor';
 
-type FlowType = 'single' | 'bulk';
+export const CardCreationFlow = () => {
+  const [searchParams] = useSearchParams();
+  const tab = searchParams.get('tab');
+  const mode = searchParams.get('mode');
 
-interface CardCreationFlowProps {
-  initialCardId?: string;
-}
-
-export const CardCreationFlow = ({ initialCardId }: CardCreationFlowProps) => {
-  const [flowType, setFlowType] = useState<FlowType>('single');
-
-  // Bulk upload flow
-  if (flowType === 'bulk') {
-    return (
-      <div className="min-h-screen bg-crd-darkest">
-        <div className="border-b border-editor-border bg-editor-dark">
-          <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setFlowType('single')}
-                className="text-white hover:bg-editor-border hover:text-white"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Single Card Creation
-              </Button>
-              <h1 className="text-xl font-semibold text-white">Bulk Card Upload</h1>
-            </div>
-          </div>
-        </div>
-        <CardsPage />
-      </div>
-    );
+  // Show bulk upload if tab=upload
+  if (tab === 'upload') {
+    return <CardsPage />;
   }
 
-  // Single card creation flow (new unified experience)
-  return (
-    <div className="relative">
-      {/* Floating bulk upload button */}
-      <Button
-        onClick={() => setFlowType('bulk')}
-        className="fixed top-20 right-6 z-50 bg-editor-dark border border-editor-border text-crd-lightGray hover:bg-editor-border hover:text-white shadow-lg"
-        size="sm"
-      >
-        <Upload className="w-4 h-4 mr-2" />
-        Bulk Upload
-      </Button>
-      
-      <UnifiedCardCreator />
-    </div>
-  );
+  // Show collaborative mode (future feature)
+  if (mode === 'collaborative') {
+    return <UnifiedCardCreator />;
+  }
+
+  // Default to hub for /cards, direct creator for /cards/create
+  const showHub = window.location.pathname === '/cards';
+  
+  if (showHub) {
+    return <CardCreationHub />;
+  }
+
+  return <UnifiedCardCreator />;
 };

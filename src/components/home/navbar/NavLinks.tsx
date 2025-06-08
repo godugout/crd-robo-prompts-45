@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Bug } from "lucide-react";
+import { Bug, Palette } from "lucide-react";
 
 export const NavLinks = () => {
   const location = useLocation();
@@ -20,7 +20,14 @@ export const NavLinks = () => {
         to="/cards" 
         className={`nav-item ${isActive('/cards') ? 'active' : ''}`}
       >
-        Cards
+        Create
+      </Link>
+      <Link 
+        to="/studio" 
+        className={`nav-item ${isActive('/studio') ? 'active' : ''} flex items-center gap-2`}
+      >
+        <Palette className="w-4 h-4" />
+        Studio
       </Link>
       <Link 
         to="/gallery" 
