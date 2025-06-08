@@ -10,7 +10,7 @@ export const MobileCardsWrapper: React.FC = () => {
     return (
       <div className="min-h-screen bg-crd-darkest">
         <div className="mobile-card-workflow">
-          <style jsx>{`
+          <style>{`
             .mobile-card-workflow .max-w-7xl {
               max-width: 100%;
               padding-left: 1rem;
