@@ -1,6 +1,6 @@
 
-import { advancedRectangleDetector } from '@/services/cardDetection/advancedRectangleDetection';
-import type { DetectedRectangle } from '@/services/cardDetection/advancedRectangleDetection';
+import { improvedCardDetector } from '@/services/cardDetection/improvedCardDetection';
+import type { DetectedCard } from '@/services/cardDetection/improvedCardDetection';
 
 export interface EnhancedDetectionRegion {
   x: number;
@@ -18,29 +18,29 @@ export const enhancedCardDetection = async (
   image: HTMLImageElement,
   file: File
 ): Promise<EnhancedDetectionRegion[]> => {
-  console.log('🔍 Starting enhanced card detection with advanced rectangle detector');
+  console.log('🔍 Starting enhanced card detection with improved algorithm');
   
   try {
-    // Use the new advanced rectangle detector
-    const result = await advancedRectangleDetector.detectCardRectangles(image);
+    // Use the new improved card detector
+    const result = await improvedCardDetector.detectCards(image);
     
-    console.log('📊 Advanced detection result:', {
-      rectanglesFound: result.rectangles.length,
+    console.log('📊 Improved detection result:', {
+      cardsFound: result.cards.length,
       processingTime: result.debugInfo.processingTime,
       processingSteps: result.debugInfo.processingSteps.length
     });
     
     // Convert to the expected format
-    const regions: EnhancedDetectionRegion[] = result.rectangles.map(rect => ({
-      x: rect.x,
-      y: rect.y,
-      width: rect.width,
-      height: rect.height,
-      confidence: rect.confidence,
-      corners: rect.corners,
-      aspectRatio: rect.aspectRatio,
-      edgeStrength: rect.edgeStrength,
-      geometryScore: rect.geometryScore
+    const regions: EnhancedDetectionRegion[] = result.cards.map(card => ({
+      x: card.x,
+      y: card.y,
+      width: card.width,
+      height: card.height,
+      confidence: card.confidence,
+      corners: card.corners,
+      aspectRatio: card.aspectRatio,
+      edgeStrength: card.edgeStrength,
+      geometryScore: card.geometryScore
     }));
     
     console.log('✅ Enhanced detection complete:', regions.length, 'high-quality regions found');
@@ -53,7 +53,7 @@ export const enhancedCardDetection = async (
     
     return regions;
   } catch (error) {
-    console.error('❌ Advanced detection failed:', error);
+    console.error('❌ Improved detection failed:', error);
     
     // Fallback to simple detection
     console.log('🔄 Falling back to simple detection');
@@ -67,20 +67,20 @@ function fallbackDetection(image: HTMLImageElement): EnhancedDetectionRegion[] {
   const regions: EnhancedDetectionRegion[] = [];
   const cardAspectRatio = 2.5 / 3.5;
   
-  // Try a few different sizes and positions with better logic
-  const scales = [0.15, 0.2, 0.25]; // Reduced to avoid too many false positives
+  // Improved fallback with larger, more realistic card sizes
+  const scales = [0.25, 0.35, 0.45]; // Much larger scales
   
   scales.forEach((scale, index) => {
     const width = image.width * scale;
     const height = width / cardAspectRatio;
     
     if (height < image.height * 0.8) {
-      // Better positioning logic
+      // Better positioning logic for larger cards
       const positions = [
-        { x: image.width * 0.1, y: image.height * 0.1 },
-        { x: image.width * 0.5, y: image.height * 0.1 },
-        { x: image.width * 0.1, y: image.height * 0.4 },
-        { x: image.width * 0.5, y: image.height * 0.4 }
+        { x: image.width * 0.05, y: image.height * 0.05 },
+        { x: image.width * 0.55, y: image.height * 0.05 },
+        { x: image.width * 0.05, y: image.height * 0.55 },
+        { x: image.width * 0.55, y: image.height * 0.55 }
       ];
       
       positions.forEach((pos, posIndex) => {
@@ -92,14 +92,20 @@ function fallbackDetection(image: HTMLImageElement): EnhancedDetectionRegion[] {
           y,
           width,
           height,
-          confidence: 0.7 - (index * 0.1) - (posIndex * 0.05),
+          confidence: 0.8 - (index * 0.1) - (posIndex * 0.05),
           aspectRatio: width / height,
-          edgeStrength: 0.5,
-          geometryScore: 0.6
+          edgeStrength: 0.6,
+          geometryScore: 0.7,
+          corners: [
+            { x, y },
+            { x: x + width, y },
+            { x: x + width, y: y + height },
+            { x, y: y + height }
+          ]
         });
       });
     }
   });
   
-  return regions.slice(0, 4); // Limit fallback results
+  return regions.slice(0, 3); // Limit fallback results
 }

@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { enhancedCardDetection } from '@/services/cardExtractor/enhancedDetection';
@@ -47,15 +46,15 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
       // Run enhanced detection with better error handling
       console.log('🔍 Starting enhanced detection process...');
       
-      const detectionToast = toast.loading('🧠 Running advanced card detection...', {
-        description: 'This may take a few moments for optimal results'
+      const detectionToast = toast.loading('🧠 Running improved card detection...', {
+        description: 'Using advanced contour detection for better accuracy'
       });
       
       try {
         const regions = await enhancedCardDetection(img, file);
         toast.dismiss(detectionToast);
         
-        // Convert regions to detected cards with adjustment data
+        // Convert regions to detected cards with proper scaling and positioning
         const cards: DetectedCard[] = regions.map((region, index) => ({
           ...region,
           id: `card-${index}`,
@@ -63,8 +62,8 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
           adjustment: {
             x: 0,
             y: 0,
-            width: 100, // Base width (will be added to actual width)
-            height: 140, // Base height (will be added to actual height)
+            width: 100, // Base width percentage
+            height: 140, // Base height percentage  
             rotation: 0,
             scale: 1
           },
@@ -77,8 +76,8 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
         if (cards.length > 0) {
           setSelectedCardId(cards[0].id);
           setCurrentStep('refine');
-          toast.success(`🎯 Detected ${cards.length} high-quality card regions!`, {
-            description: 'Use the manual adjustment tools to refine the boundaries'
+          toast.success(`🎯 Detected ${cards.length} card regions with improved accuracy!`, {
+            description: 'Cards are sized properly with margins. Use manual adjustment to fine-tune.'
           });
         } else {
           setCurrentStep('refine');
@@ -131,7 +130,7 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
     
     try {
       const extractionToast = toast.loading('✂️ Extracting and cropping cards...', {
-        description: 'Applying perspective correction and optimization'
+        description: 'Applying proper margins and high-quality cropping'
       });
       
       const canvas = document.createElement('canvas');
@@ -146,37 +145,40 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
 
       for (const card of detectedCards) {
         try {
-          // Apply adjustments to get final crop area
+          // Apply adjustments to get final crop area with proper boundaries
+          const adjustmentX = (card.adjustment.width - 100) * (card.width / 100);
+          const adjustmentY = (card.adjustment.height - 140) * (card.height / 140);
+          
           const finalX = Math.max(0, card.x + card.adjustment.x);
           const finalY = Math.max(0, card.y + card.adjustment.y);
           const finalWidth = Math.min(
             originalImage.width - finalX,
-            card.width + (card.adjustment.width - 100)
+            Math.max(card.width + adjustmentX, 100) // Ensure minimum width
           );
           const finalHeight = Math.min(
             originalImage.height - finalY,
-            card.height + (card.adjustment.height - 140)
+            Math.max(card.height + adjustmentY, 140) // Ensure minimum height
           );
 
-          // Ensure minimum dimensions
-          if (finalWidth < 50 || finalHeight < 70) {
-            console.warn(`Skipping card ${card.id} - too small after adjustments`);
+          // Ensure reasonable dimensions
+          if (finalWidth < 100 || finalHeight < 140) {
+            console.warn(`Skipping card ${card.id} - dimensions too small after adjustments`);
             continue;
           }
 
-          // Create crop canvas with better quality
+          // Create crop canvas with high quality settings
           const cropCanvas = document.createElement('canvas');
           const cropCtx = cropCanvas.getContext('2d');
           if (!cropCtx) continue;
 
-          // Standard card dimensions (2.5" x 3.5" at 150 DPI for better quality)
-          const targetWidth = 375;
-          const targetHeight = 525;
+          // Standard card dimensions with higher resolution
+          const targetWidth = 420;
+          const targetHeight = 588;
           
           cropCanvas.width = targetWidth;
           cropCanvas.height = targetHeight;
 
-          // Apply transformations with better quality
+          // Apply transformations with high quality
           cropCtx.save();
           cropCtx.imageSmoothingEnabled = true;
           cropCtx.imageSmoothingQuality = 'high';
@@ -195,12 +197,12 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
 
           cropCtx.restore();
 
-          // Convert to blob with higher quality
+          // Convert to blob with optimal quality
           const blob = await new Promise<Blob>((resolve, reject) => {
             cropCanvas.toBlob(
               (blob) => blob ? resolve(blob) : reject(new Error('Failed to create blob')),
               'image/jpeg',
-              0.92 // Higher quality
+              0.95 // High quality
             );
           });
 
@@ -225,8 +227,8 @@ export const useEnhancedCardDetection = (onCardsExtracted: (cards: ExtractedCard
       if (extracted.length > 0) {
         setExtractedCards(extracted);
         setCurrentStep('extract');
-        toast.success(`🎉 Successfully extracted ${extracted.length} cards!`, {
-          description: 'Cards are ready for saving to your collection'
+        toast.success(`🎉 Successfully extracted ${extracted.length} cards with proper boundaries!`, {
+          description: 'Cards are ready for saving with full content preserved'
         });
       } else {
         toast.error('Failed to extract any cards. Please check the region boundaries.');
