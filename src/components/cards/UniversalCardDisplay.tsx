@@ -77,6 +77,12 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
   const [imageLoading, setImageLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
 
+  // Add safety checks for card and card.id
+  if (!card || !card.id) {
+    console.warn('UniversalCardDisplay received invalid card data:', card);
+    return <CardSkeleton mode={mode} />;
+  }
+
   const displayImage = imageError || (!card.image_url && !card.thumbnail_url)
     ? FALLBACK_IMAGES[parseInt(card.id.slice(-1), 16) % FALLBACK_IMAGES.length]
     : (card.thumbnail_url || card.image_url);
@@ -97,7 +103,7 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
         <div className="w-16 h-20 rounded overflow-hidden bg-crd-mediumGray flex-shrink-0">
           <img
             src={displayImage}
-            alt={card.title}
+            alt={card.title || 'Card'}
             className="w-full h-full object-cover"
             onLoad={handleImageLoad}
             onError={handleImageError}
@@ -106,12 +112,12 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
         
         <div className="flex-1 ml-4">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-white font-medium">{card.title}</h3>
-            <Badge className={cn('text-xs', RARITY_COLORS[card.rarity])}>
-              {card.rarity}
+            <h3 className="text-white font-medium">{card.title || 'Untitled Card'}</h3>
+            <Badge className={cn('text-xs', RARITY_COLORS[card.rarity || 'common'])}>
+              {card.rarity || 'common'}
             </Badge>
           </div>
-          <p className="text-crd-lightGray text-sm line-clamp-1">{card.description}</p>
+          <p className="text-crd-lightGray text-sm line-clamp-1">{card.description || 'No description available'}</p>
         </div>
 
         <div className="flex items-center gap-4 text-sm text-crd-lightGray">
@@ -149,7 +155,7 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
             <div className="w-24 h-32 rounded overflow-hidden bg-crd-mediumGray flex-shrink-0">
               <img
                 src={displayImage}
-                alt={card.title}
+                alt={card.title || 'Card'}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                 onLoad={handleImageLoad}
                 onError={handleImageError}
@@ -158,13 +164,13 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
             
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-white font-semibold">{card.title}</h3>
-                <Badge className={cn('text-xs', RARITY_COLORS[card.rarity])}>
-                  {card.rarity}
+                <h3 className="text-white font-semibold">{card.title || 'Untitled Card'}</h3>
+                <Badge className={cn('text-xs', RARITY_COLORS[card.rarity || 'common'])}>
+                  {card.rarity || 'common'}
                 </Badge>
               </div>
               
-              <p className="text-crd-lightGray text-sm mb-3 line-clamp-2">{card.description}</p>
+              <p className="text-crd-lightGray text-sm mb-3 line-clamp-2">{card.description || 'No description available'}</p>
               
               <div className="flex items-center gap-4 text-sm text-crd-lightGray mb-3">
                 <span className="flex items-center gap-1">
@@ -215,7 +221,7 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
         )}
         <img
           src={displayImage}
-          alt={card.title}
+          alt={card.title || 'Card'}
           className={cn(
             "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
             imageLoading ? 'opacity-0' : 'opacity-100'
@@ -227,8 +233,8 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
         
         {/* Rarity Badge */}
         <div className="absolute top-2 left-2">
-          <Badge className={cn('text-xs', RARITY_COLORS[card.rarity])}>
-            {card.rarity}
+          <Badge className={cn('text-xs', RARITY_COLORS[card.rarity || 'common'])}>
+            {card.rarity || 'common'}
           </Badge>
         </div>
 
@@ -291,7 +297,7 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
 
       <CardContent className="p-4">
         <div className="flex items-center gap-2 mb-2">
-          <h3 className="text-crd-white font-semibold mb-1 line-clamp-1 flex-1">{card.title}</h3>
+          <h3 className="text-crd-white font-semibold mb-1 line-clamp-1 flex-1">{card.title || 'Untitled Card'}</h3>
           <Button
             size="sm"
             variant="ghost"
