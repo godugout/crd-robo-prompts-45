@@ -19,6 +19,8 @@ interface TemplateData {
     text: string;
   };
   regions: Record<string, TemplateRegion>;
+  layout_type?: 'standard' | 'full-bleed-minimal' | 'full-bleed-social';
+  supports_stickers?: boolean;
 }
 
 interface DynamicTemplateRendererProps {

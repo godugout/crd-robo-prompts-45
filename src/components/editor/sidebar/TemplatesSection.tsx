@@ -25,6 +25,13 @@ export const TemplatesSection = ({
     return filteredTemplates.filter(t => t.category === category);
   };
 
+  // Convert template to expected format for TemplateCard
+  const convertTemplateForCard = (template: any) => ({
+    id: template.id,
+    name: template.name,
+    color: template.template_data.colors.primary || 'bg-gray-500'
+  });
+
   return (
     <div className="space-y-4">
       <Tabs defaultValue="classic">
@@ -41,7 +48,7 @@ export const TemplatesSection = ({
               {getTemplatesByCategory('classic').map((template) => (
                 <TemplateCard
                   key={template.id}
-                  template={template}
+                  template={convertTemplateForCard(template)}
                   isSelected={selectedTemplate === template.id}
                   onSelect={onSelectTemplate}
                 />
@@ -56,7 +63,7 @@ export const TemplatesSection = ({
               {getTemplatesByCategory('modern').map((template) => (
                 <TemplateCard
                   key={template.id}
-                  template={template}
+                  template={convertTemplateForCard(template)}
                   isSelected={selectedTemplate === template.id}
                   onSelect={onSelectTemplate}
                 />
@@ -71,7 +78,7 @@ export const TemplatesSection = ({
               {getTemplatesByCategory('full-bleed').map((template) => (
                 <TemplateCard
                   key={template.id}
-                  template={template}
+                  template={convertTemplateForCard(template)}
                   isSelected={selectedTemplate === template.id}
                   onSelect={onSelectTemplate}
                 />
@@ -91,7 +98,7 @@ export const TemplatesSection = ({
               {getTemplatesByCategory('full-bleed').filter(t => t.template_data.supports_stickers).map((template) => (
                 <TemplateCard
                   key={template.id}
-                  template={template}
+                  template={convertTemplateForCard(template)}
                   isSelected={selectedTemplate === template.id}
                   onSelect={onSelectTemplate}
                 />

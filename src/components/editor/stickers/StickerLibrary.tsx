@@ -12,7 +12,7 @@ interface Sticker {
   name: string;
   category: string;
   emoji?: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   color?: string;
   size?: 'small' | 'medium' | 'large';
 }

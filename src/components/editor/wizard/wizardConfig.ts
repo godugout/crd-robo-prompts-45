@@ -1,3 +1,4 @@
+
 export interface TemplateConfig {
   id: string;
   name: string;
@@ -5,6 +6,8 @@ export interface TemplateConfig {
   category: 'classic' | 'modern' | 'full-bleed' | 'social';
   preview: string;
   tags: string[];
+  is_premium?: boolean;
+  usage_count?: number;
   template_data: {
     colors: {
       background: string;
@@ -24,6 +27,35 @@ export interface TemplateConfig {
   };
 }
 
+export interface WizardStep {
+  number: number;
+  title: string;
+  description: string;
+}
+
+export const WIZARD_STEPS: WizardStep[] = [
+  {
+    number: 1,
+    title: 'Upload Photo',
+    description: 'Add your main image or photo'
+  },
+  {
+    number: 2,
+    title: 'Select Template',
+    description: 'Choose a design style'
+  },
+  {
+    number: 3,
+    title: 'Card Details',
+    description: 'Add title and description'
+  },
+  {
+    number: 4,
+    title: 'Publishing',
+    description: 'Set visibility and options'
+  }
+];
+
 export const DEFAULT_TEMPLATES: TemplateConfig[] = [
   {
     id: 'tcg-classic',
@@ -32,6 +64,8 @@ export const DEFAULT_TEMPLATES: TemplateConfig[] = [
     category: 'classic',
     preview: '/placeholder.svg',
     tags: ['gaming', 'tcg', 'classic'],
+    is_premium: false,
+    usage_count: 1250,
     template_data: {
       colors: {
         background: '#1e293b',
@@ -55,6 +89,8 @@ export const DEFAULT_TEMPLATES: TemplateConfig[] = [
     category: 'modern',
     preview: '/placeholder.svg',
     tags: ['sports', 'modern'],
+    is_premium: false,
+    usage_count: 890,
     template_data: {
       colors: {
         background: '#0f172a',
@@ -81,6 +117,8 @@ export const DEFAULT_TEMPLATES: TemplateConfig[] = [
     category: 'full-bleed',
     preview: '/placeholder.svg',
     tags: ['photo', 'minimal', 'clean', 'full-bleed'],
+    is_premium: false,
+    usage_count: 432,
     template_data: {
       colors: {
         background: '#000000',
@@ -105,6 +143,8 @@ export const DEFAULT_TEMPLATES: TemplateConfig[] = [
     category: 'full-bleed',
     preview: '/placeholder.svg',
     tags: ['social', 'stickers', 'custom', 'layers', 'full-bleed'],
+    is_premium: true,
+    usage_count: 267,
     template_data: {
       colors: {
         background: '#000000',
