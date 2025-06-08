@@ -14,7 +14,7 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
       elevation: 45,
       azimuth: 0
     },
-    backgroundImage: 'url(https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=2048&h=1365&fit=crop&crop=center)',
+    backgroundImage: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=2048&h=1365&fit=crop&crop=center&q=90',
     reflections: 'soft'
   },
   {
@@ -29,7 +29,7 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
       elevation: 30,
       azimuth: 45
     },
-    backgroundImage: 'url(https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=2048&h=1365&fit=crop&crop=center)',
+    backgroundImage: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=2048&h=1365&fit=crop&crop=center&q=90',
     reflections: 'vivid'
   },
   {
@@ -44,7 +44,7 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
       elevation: 15,
       azimuth: 60
     },
-    backgroundImage: 'url(https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=2048&h=1365&fit=crop&crop=center)',
+    backgroundImage: 'https://images.unsplash.com/photo-1500673922987-e212871fec22?w=2048&h=1365&fit=crop&crop=center&q=90',
     reflections: 'warm'
   },
   {
@@ -59,7 +59,7 @@ export const ENVIRONMENT_SCENES: EnvironmentScene[] = [
       elevation: 60,
       azimuth: -30
     },
-    backgroundImage: 'url(https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?w=2048&h=1365&fit=crop&crop=center)',
+    backgroundImage: 'https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?w=2048&h=1365&fit=crop&crop=center&q=90',
     reflections: 'cold'
   }
 ];

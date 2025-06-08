@@ -47,14 +47,20 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
 
   console.log('EnhancedCardCanvas rendering, isFlipped:', isFlipped);
 
-  // Preload background image
+  // Preload background image with better error handling
   useEffect(() => {
-    if (selectedScene.backgroundImage && selectedScene.backgroundImage.startsWith('url(')) {
-      const imageUrl = selectedScene.backgroundImage.slice(4, -1); // Remove 'url(' and ')'
+    if (selectedScene.backgroundImage) {
+      setBackgroundLoaded(false);
       const img = new Image();
-      img.onload = () => setBackgroundLoaded(true);
-      img.onerror = () => setBackgroundLoaded(false);
-      img.src = imageUrl;
+      img.onload = () => {
+        console.log('Background image loaded successfully:', selectedScene.backgroundImage);
+        setBackgroundLoaded(true);
+      };
+      img.onerror = () => {
+        console.log('Background image failed to load, falling back to gradient:', selectedScene.backgroundImage);
+        setBackgroundLoaded(false);
+      };
+      img.src = selectedScene.backgroundImage;
     }
   }, [selectedScene.backgroundImage]);
 
@@ -105,21 +111,26 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
         className="absolute inset-0 z-0"
         style={{
           background: backgroundLoaded && selectedScene.backgroundImage 
-            ? selectedScene.backgroundImage 
+            ? `url(${selectedScene.backgroundImage})` 
             : selectedScene.gradient,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          filter: `brightness(${overallBrightness / 100}) contrast(1.05)`,
-          transition: 'all 0.3s ease'
+          backgroundAttachment: 'fixed',
+          filter: `brightness(${overallBrightness / 100}) contrast(1.05) saturate(1.1)`,
+          transition: 'all 0.3s ease',
+          transform: 'scale(1.05)' // Slight scale to ensure full coverage
         }}
       />
 
-      {/* Overlay for better card contrast */}
+      {/* Enhanced overlay for better card contrast */}
       <div 
         className="absolute inset-0 z-10"
         style={{
-          background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.2) 70%)',
+          background: `
+            radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.3) 80%),
+            linear-gradient(45deg, rgba(0,0,0,0.1) 0%, transparent 50%, rgba(0,0,0,0.1) 100%)
+          `,
           pointerEvents: 'none'
         }}
       />
@@ -193,9 +204,16 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
           <div 
             className="absolute inset-0"
             style={{
-              background: `
-                linear-gradient(135deg, rgba(26,26,26,0.9) 0%, rgba(45,45,45,0.8) 50%, rgba(26,26,26,0.9) 100%)
-              `,
+              background: backgroundLoaded && selectedScene.backgroundImage 
+                ? `
+                  linear-gradient(135deg, rgba(26,26,26,0.8) 0%, rgba(45,45,45,0.6) 50%, rgba(26,26,26,0.8) 100%),
+                  url(${selectedScene.backgroundImage})
+                `
+                : `
+                  linear-gradient(135deg, rgba(26,26,26,0.9) 0%, rgba(45,45,45,0.8) 50%, rgba(26,26,26,0.9) 100%)
+                `,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
               backgroundColor: '#0a0a0a'
             }}
           />
