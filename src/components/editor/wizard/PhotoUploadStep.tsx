@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ interface PhotoUploadStepProps {
 
 export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComplete }: PhotoUploadStepProps) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [imageDetails, setImageDetails] = useState<{
     dimensions: { width: number; height: number };
     aspectRatio: number;
@@ -21,57 +23,76 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
 
   const processImageForCard = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new HTMLImageElement();
-      
-      img.onload = () => {
-        // Standard trading card aspect ratio is 2.5:3.5 (roughly 0.714)
-        const targetAspectRatio = 2.5 / 3.5;
-        const sourceAspectRatio = img.width / img.height;
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new HTMLImageElement();
         
-        // Set canvas to optimal card dimensions (300x420 pixels for good quality)
-        canvas.width = 300;
-        canvas.height = 420;
-        
-        // Clear canvas with white background
-        ctx!.fillStyle = '#ffffff';
-        ctx!.fillRect(0, 0, canvas.width, canvas.height);
-        
-        let drawWidth, drawHeight, offsetX, offsetY;
-        
-        if (sourceAspectRatio > targetAspectRatio) {
-          // Image is wider - fit to height and center horizontally
-          drawHeight = canvas.height;
-          drawWidth = drawHeight * sourceAspectRatio;
-          offsetX = (canvas.width - drawWidth) / 2;
-          offsetY = 0;
-        } else {
-          // Image is taller - fit to width and center vertically
-          drawWidth = canvas.width;
-          drawHeight = drawWidth / sourceAspectRatio;
-          offsetX = 0;
-          offsetY = (canvas.height - drawHeight) / 2;
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
         }
         
-        // Draw the image centered and fitted
-        ctx!.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+        img.onload = () => {
+          try {
+            // Standard trading card aspect ratio is 2.5:3.5 (roughly 0.714)
+            const targetAspectRatio = 2.5 / 3.5;
+            const sourceAspectRatio = img.width / img.height;
+            
+            // Set canvas to optimal card dimensions (300x420 pixels for good quality)
+            canvas.width = 300;
+            canvas.height = 420;
+            
+            // Clear canvas with white background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            let drawWidth, drawHeight, offsetX, offsetY;
+            
+            if (sourceAspectRatio > targetAspectRatio) {
+              // Image is wider - fit to height and center horizontally
+              drawHeight = canvas.height;
+              drawWidth = drawHeight * sourceAspectRatio;
+              offsetX = (canvas.width - drawWidth) / 2;
+              offsetY = 0;
+            } else {
+              // Image is taller - fit to width and center vertically
+              drawWidth = canvas.width;
+              drawHeight = drawWidth / sourceAspectRatio;
+              offsetX = 0;
+              offsetY = (canvas.height - drawHeight) / 2;
+            }
+            
+            // Draw the image centered and fitted
+            ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+            
+            // Convert to data URL
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            
+            // Store image details
+            setImageDetails({
+              dimensions: { width: img.width, height: img.height },
+              aspectRatio: sourceAspectRatio,
+              fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB'
+            });
+            
+            resolve(dataUrl);
+          } catch (error) {
+            console.error('Error processing image:', error);
+            reject(new Error('Failed to process image'));
+          }
+        };
         
-        // Convert to data URL
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        img.onerror = () => {
+          console.error('Error loading image');
+          reject(new Error('Failed to load image'));
+        };
         
-        // Store image details
-        setImageDetails({
-          dimensions: { width: img.width, height: img.height },
-          aspectRatio: sourceAspectRatio,
-          fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB'
-        });
-        
-        resolve(dataUrl);
-      };
-      
-      img.onerror = () => reject(new Error('Failed to load image'));
-      img.src = URL.createObjectURL(file);
+        img.src = URL.createObjectURL(file);
+      } catch (error) {
+        console.error('Error in processImageForCard:', error);
+        reject(new Error('Failed to initialize image processing'));
+      }
     });
   };
 
@@ -94,30 +115,46 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
-    if (file) {
-      try {
-        toast.info('Processing image for card format...');
-        const processedImageUrl = await processImageForCard(file);
-        onPhotoSelect(processedImageUrl);
-        toast.success('Photo processed and ready for card!');
-        
-        // Trigger AI analysis with the original file
-        await handlePhotoAnalysis(file);
-      } catch (error) {
-        console.error('Error processing image:', error);
-        toast.error('Failed to process image. Please try again.');
-      }
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image file is too large. Please use an image smaller than 10MB.');
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      toast.info('Processing image for card format...');
+      const processedImageUrl = await processImageForCard(file);
+      onPhotoSelect(processedImageUrl);
+      toast.success('Photo processed and ready for card!');
+      
+      // Trigger AI analysis with the original file
+      await handlePhotoAnalysis(file);
+    } catch (error) {
+      console.error('Error processing image:', error);
+      toast.error('Failed to process image. Please try again.');
+    } finally {
+      setIsProcessing(false);
     }
   }, [onPhotoSelect]);
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: {
-      'image/*': []
+      'image/*': ['.jpeg', '.jpg', '.png', '.webp', '.gif']
     },
     maxFiles: 1,
     noClick: true,
-    noKeyboard: true
+    noKeyboard: true,
+    disabled: isProcessing || isAnalyzing
   });
 
   return (
@@ -125,10 +162,12 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
       <div className="text-center">
         <h2 className="text-xl font-semibold text-crd-white mb-2">Upload Your Photo</h2>
         <p className="text-crd-lightGray">Choose the image that will be featured on your card</p>
-        {isAnalyzing && (
+        {(isAnalyzing || isProcessing) && (
           <div className="mt-2 flex items-center justify-center gap-2 text-crd-green">
             <Sparkles className="w-4 h-4 animate-pulse" />
-            <span className="text-sm">AI is analyzing your image...</span>
+            <span className="text-sm">
+              {isProcessing ? 'Processing your image...' : 'AI is analyzing your image...'}
+            </span>
           </div>
         )}
       </div>
@@ -139,7 +178,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
           isDragActive 
             ? 'border-crd-green bg-crd-green/10' 
             : 'border-editor-border hover:border-crd-green/50'
-        }`}
+        } ${(isProcessing || isAnalyzing) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       >
         <input {...getInputProps()} />
         {selectedPhoto ? (
@@ -175,7 +214,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
                 onClick={open}
                 variant="outline"
                 className="border-editor-border text-crd-white hover:bg-editor-border"
-                disabled={isAnalyzing}
+                disabled={isAnalyzing || isProcessing}
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Choose Different Photo
@@ -183,7 +222,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
               <Button
                 variant="outline"
                 className="border-editor-border text-crd-white hover:bg-editor-border"
-                disabled={isAnalyzing}
+                disabled={isAnalyzing || isProcessing}
               >
                 <Crop className="w-4 h-4 mr-2" />
                 Adjust Crop
@@ -203,17 +242,17 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
               <Button
                 onClick={open}
                 className="bg-crd-green hover:bg-crd-green/90 text-crd-dark"
-                disabled={isAnalyzing}
+                disabled={isAnalyzing || isProcessing}
               >
                 <Upload className="w-4 h-4 mr-2" />
-                Select Photo
+                {isProcessing ? 'Processing...' : 'Select Photo'}
               </Button>
             </div>
           </div>
         )}
       </div>
 
-      {selectedPhoto && !isAnalyzing && (
+      {selectedPhoto && !isAnalyzing && !isProcessing && (
         <div className="bg-editor-tool p-4 rounded-lg">
           <div className="flex items-center gap-2 text-crd-green mb-2">
             <Sparkles className="w-4 h-4" />
