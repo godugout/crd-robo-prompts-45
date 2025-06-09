@@ -4,7 +4,7 @@ import { useState } from 'react';
 export interface EffectLayerData {
   id: string;
   name: string;
-  type: 'holographic' | 'metallic' | 'prismatic' | 'glow' | 'shadow';
+  type: 'holographic' | 'metallic' | 'prismatic' | 'vintage' | 'crystal' | 'foil';
   opacity: number;
   blendMode: string;
   visible: boolean;

@@ -120,6 +120,23 @@ export const CardStudio: React.FC = () => {
     }
   };
 
+  // Wrapper functions to match expected signatures
+  const handleUpdateLayer = (updates: any) => {
+    if (studioState.selectedLayerId) {
+      updateLayer(studioState.selectedLayerId, updates);
+    }
+  };
+
+  const handleReorderLayers = (layers: any[]) => {
+    // Convert array-based reorder to index-based for the hook
+    layers.forEach((layer, index) => {
+      const currentIndex = studioState.layers.findIndex(l => l.id === layer.id);
+      if (currentIndex !== index && currentIndex !== -1) {
+        reorderLayers(currentIndex, index);
+      }
+    });
+  };
+
   const templateForRenderer = {
     id: selectedTemplate.id,
     name: selectedTemplate.name,
@@ -201,10 +218,10 @@ export const CardStudio: React.FC = () => {
                     setSelectedLayerId={setSelectedLayerId}
                     updateLighting={updateLighting}
                     updateDesign={updateDesign}
-                    updateLayer={updateLayer}
+                    updateLayer={handleUpdateLayer}
                     addLayer={addLayer}
                     removeLayer={removeLayer}
-                    reorderLayers={reorderLayers}
+                    reorderLayers={handleReorderLayers}
                     selectLayer={selectLayer}
                     applyLightingPreset={applyLightingPreset}
                     handleAddElement={handleAddElement}
