@@ -1,3 +1,4 @@
+
 import type { CardData } from '@/hooks/useCardEditor';
 import type { TemplateConfig } from './wizardConfig';
 import type { CardAnalysisResult } from '@/services/cardAnalyzer';
@@ -17,6 +18,9 @@ export interface WizardHandlers {
   updateCardField: (field: string, value: any) => void;
   updateCreatorAttribution: (attribution: any) => void;
   updatePublishingOptions: (options: any) => void;
+  handleNext?: () => void;
+  handleBack?: () => void;
+  handleComplete?: () => void;
 }
 
 export interface EnhancedCardWizardProps {

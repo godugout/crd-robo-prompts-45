@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DEFAULT_TEMPLATES, WIZARD_STEPS, TemplateConfig } from './wizard/wizardConfig';
@@ -15,6 +16,7 @@ interface EnhancedCardWizardProps {
 export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [wizardState, setWizardState] = useState<WizardState>({
+    currentStep: 1,
     selectedPhoto: '',
     selectedTemplate: DEFAULT_TEMPLATES[0],
     aiAnalysisComplete: false
@@ -62,7 +64,7 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
     handleTemplateSelect: (template: TemplateConfig) => {
       setWizardState(prev => ({ ...prev, selectedTemplate: template }));
       cardEditor.updateCardField('template_id', template.id);
-      cardEditor.updateDesignMetadata('template_data', template.template_data);
+      cardEditor.updateCardField('design_metadata', template.template_data);
       setCurrentStep(4); // Move to card details
     },
 
@@ -76,7 +78,7 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
     },
 
     updateCardField: (field: string, value: any) => {
-      cardEditor.updateCardField(field, value);
+      cardEditor.updateCardField(field as keyof typeof cardEditor.cardData, value);
     },
 
     updateCreatorAttribution: (attribution: any) => {

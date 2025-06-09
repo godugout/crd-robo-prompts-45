@@ -1,5 +1,4 @@
 
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useCardEditor, CardData } from '@/hooks/useCardEditor';
@@ -40,6 +39,11 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
       updateCardField('image_url', photo);
     },
 
+    handleImageAdjusted: (adjustedImageUrl: string) => {
+      setWizardState(prev => ({ ...prev, selectedPhoto: adjustedImageUrl }));
+      updateCardField('image_url', adjustedImageUrl);
+    },
+
     handleAiAnalysis: (analysis: CardAnalysisResult) => {
       updateCardField('title', analysis.title);
       updateCardField('description', analysis.description);
@@ -75,7 +79,7 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
         toast.error('Please select a template');
         return;
       }
-      if (wizardState.currentStep === 3 && !cardData.title.trim()) {
+      if (wizardState.currentStep === 3 && !cardData.title?.trim()) {
         toast.error('Please enter a card title');
         return;
       }
@@ -103,17 +107,17 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
       }
     },
 
-    updatePublishingOptions: (key, value) => {
+    updatePublishingOptions: (options: any) => {
       updateCardField('publishing_options', {
         ...cardData.publishing_options,
-        [key]: value
+        ...options
       });
     },
 
-    updateCreatorAttribution: (key, value) => {
+    updateCreatorAttribution: (attribution: any) => {
       updateCardField('creator_attribution', {
         ...cardData.creator_attribution,
-        [key]: value
+        ...attribution
       });
     },
 
@@ -129,4 +133,3 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
     updateCardField
   };
 };
-
