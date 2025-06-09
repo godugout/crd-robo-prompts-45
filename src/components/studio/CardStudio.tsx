@@ -25,7 +25,6 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { useStudioState } from '@/hooks/useStudioState';
-import { AdvancedImageProcessor } from './image/AdvancedImageProcessor';
 import { EffectLayer, EffectLayerData } from './effects/EffectLayer';
 import { StudioCardRenderer } from './renderer/StudioCardRenderer';
 import { ExportCardRenderer } from '@/components/editor/canvas/ExportCardRenderer';
@@ -63,7 +62,6 @@ const STUDIO_TABS: StudioTab[] = [
 export const CardStudio: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>('photo');
-  const [showImageProcessor, setShowImageProcessor] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [currentPhoto, setCurrentPhoto] = useState<string>('');
   const [selectedTemplate, setSelectedTemplate] = useState(DEFAULT_TEMPLATES[0]);
@@ -291,19 +289,12 @@ export const CardStudio: React.FC = () => {
                 </div>
                 <div className="flex gap-2">
                   <Button
-                    onClick={() => setShowImageProcessor(true)}
+                    onClick={() => document.getElementById('photo-upload')?.click()}
                     variant="outline"
                     className="flex-1 border-editor-border text-white hover:bg-editor-border"
                   >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Edit Image
-                  </Button>
-                  <Button
-                    onClick={() => document.getElementById('photo-upload')?.click()}
-                    variant="outline"
-                    className="border-editor-border text-white hover:bg-editor-border"
-                  >
-                    <Upload className="w-4 h-4" />
+                    <Upload className="w-4 h-4 mr-2" />
+                    Change Photo
                   </Button>
                 </div>
                 
@@ -683,14 +674,6 @@ export const CardStudio: React.FC = () => {
       </div>
 
       {/* Advanced Modals */}
-      {showImageProcessor && currentPhoto && (
-        <AdvancedImageProcessor
-          imageUrl={currentPhoto}
-          onImageProcessed={handleImageProcessed}
-          onClose={() => setShowImageProcessor(false)}
-        />
-      )}
-
       {showVectorEditor && (
         <div className="fixed inset-0 bg-black z-50">
           <div className="h-full">
