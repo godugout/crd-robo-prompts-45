@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Lightbulb, Sun, Moon, Zap, Palette } from 'lucide-react';
 import { toast } from 'sonner';
+import type { LightingState } from '@/hooks/useStudioState';
 
 interface LightingPreset {
   id: string;
@@ -24,20 +25,24 @@ const LIGHTING_PRESETS: LightingPreset[] = [
   { id: 'neon', name: 'Neon', icon: Zap, ambient: 50, directional: 70, temperature: 8000, shadows: 60 },
 ];
 
-export const LightingControls: React.FC = () => {
-  const [selectedPreset, setSelectedPreset] = useState<string>('studio');
-  const [ambientIntensity, setAmbientIntensity] = useState([70]);
-  const [directionalIntensity, setDirectionalIntensity] = useState([80]);
-  const [colorTemperature, setColorTemperature] = useState([5500]);
-  const [shadowIntensity, setShadowIntensity] = useState([40]);
+interface LightingControlsProps {
+  lightingState: LightingState;
+  onUpdateLighting: (updates: Partial<LightingState>) => void;
+  onApplyPreset: (preset: string) => void;
+}
 
+export const LightingControls: React.FC<LightingControlsProps> = ({
+  lightingState,
+  onUpdateLighting,
+  onApplyPreset
+}) => {
   const applyPreset = (preset: LightingPreset) => {
-    setSelectedPreset(preset.id);
-    setAmbientIntensity([preset.ambient]);
-    setDirectionalIntensity([preset.directional]);
-    setColorTemperature([preset.temperature]);
-    setShadowIntensity([preset.shadows]);
-    toast.success(`Applied ${preset.name} lighting`);
+    onApplyPreset(preset.id);
+  };
+
+  const handleColorFilter = (filter: 'warm' | 'cool' | 'neutral') => {
+    onUpdateLighting({ colorFilter: filter });
+    toast.success(`${filter} filter applied`);
   };
 
   return (
@@ -57,9 +62,9 @@ export const LightingControls: React.FC = () => {
             <Button
               key={preset.id}
               onClick={() => applyPreset(preset)}
-              variant={selectedPreset === preset.id ? "default" : "outline"}
+              variant={lightingState.preset === preset.id ? "default" : "outline"}
               className={`p-3 h-auto flex flex-col items-center gap-2 ${
-                selectedPreset === preset.id 
+                lightingState.preset === preset.id 
                   ? 'bg-crd-green text-black' 
                   : 'border-editor-border text-white hover:bg-editor-border'
               }`}
@@ -81,12 +86,12 @@ export const LightingControls: React.FC = () => {
               <div className="flex justify-between items-center mb-2">
                 <label className="text-crd-lightGray text-sm">Ambient Light</label>
                 <Badge variant="outline" className="text-xs">
-                  {ambientIntensity[0]}%
+                  {lightingState.ambientIntensity}%
                 </Badge>
               </div>
               <Slider
-                value={ambientIntensity}
-                onValueChange={setAmbientIntensity}
+                value={[lightingState.ambientIntensity]}
+                onValueChange={(value) => onUpdateLighting({ ambientIntensity: value[0] })}
                 max={100}
                 step={1}
                 className="w-full"
@@ -97,12 +102,12 @@ export const LightingControls: React.FC = () => {
               <div className="flex justify-between items-center mb-2">
                 <label className="text-crd-lightGray text-sm">Directional Light</label>
                 <Badge variant="outline" className="text-xs">
-                  {directionalIntensity[0]}%
+                  {lightingState.directionalIntensity}%
                 </Badge>
               </div>
               <Slider
-                value={directionalIntensity}
-                onValueChange={setDirectionalIntensity}
+                value={[lightingState.directionalIntensity]}
+                onValueChange={(value) => onUpdateLighting({ directionalIntensity: value[0] })}
                 max={100}
                 step={1}
                 className="w-full"
@@ -113,12 +118,12 @@ export const LightingControls: React.FC = () => {
               <div className="flex justify-between items-center mb-2">
                 <label className="text-crd-lightGray text-sm">Color Temperature</label>
                 <Badge variant="outline" className="text-xs">
-                  {colorTemperature[0]}K
+                  {lightingState.colorTemperature}K
                 </Badge>
               </div>
               <Slider
-                value={colorTemperature}
-                onValueChange={setColorTemperature}
+                value={[lightingState.colorTemperature]}
+                onValueChange={(value) => onUpdateLighting({ colorTemperature: value[0] })}
                 min={2700}
                 max={9000}
                 step={100}
@@ -130,12 +135,12 @@ export const LightingControls: React.FC = () => {
               <div className="flex justify-between items-center mb-2">
                 <label className="text-crd-lightGray text-sm">Shadow Intensity</label>
                 <Badge variant="outline" className="text-xs">
-                  {shadowIntensity[0]}%
+                  {lightingState.shadowIntensity}%
                 </Badge>
               </div>
               <Slider
-                value={shadowIntensity}
-                onValueChange={setShadowIntensity}
+                value={[lightingState.shadowIntensity]}
+                onValueChange={(value) => onUpdateLighting({ shadowIntensity: value[0] })}
                 max={100}
                 step={1}
                 className="w-full"
@@ -150,28 +155,28 @@ export const LightingControls: React.FC = () => {
         <h4 className="text-white font-medium text-sm uppercase tracking-wide">Color Effects</h4>
         <div className="grid grid-cols-3 gap-2">
           <Button
-            variant="outline"
+            variant={lightingState.colorFilter === 'warm' ? 'default' : 'outline'}
             size="sm"
-            className="border-editor-border text-white hover:bg-editor-border"
-            onClick={() => toast.success('Warm filter applied')}
+            className={`${lightingState.colorFilter === 'warm' ? 'bg-crd-green text-black' : 'border-editor-border text-white hover:bg-editor-border'}`}
+            onClick={() => handleColorFilter('warm')}
           >
             <Palette className="w-4 h-4 mr-1" />
             Warm
           </Button>
           <Button
-            variant="outline"
+            variant={lightingState.colorFilter === 'cool' ? 'default' : 'outline'}
             size="sm"
-            className="border-editor-border text-white hover:bg-editor-border"
-            onClick={() => toast.success('Cool filter applied')}
+            className={`${lightingState.colorFilter === 'cool' ? 'bg-crd-green text-black' : 'border-editor-border text-white hover:bg-editor-border'}`}
+            onClick={() => handleColorFilter('cool')}
           >
             <Palette className="w-4 h-4 mr-1" />
             Cool
           </Button>
           <Button
-            variant="outline"
+            variant={lightingState.colorFilter === 'neutral' ? 'default' : 'outline'}
             size="sm"
-            className="border-editor-border text-white hover:bg-editor-border"
-            onClick={() => toast.success('Neutral filter applied')}
+            className={`${lightingState.colorFilter === 'neutral' ? 'bg-crd-green text-black' : 'border-editor-border text-white hover:bg-editor-border'}`}
+            onClick={() => handleColorFilter('neutral')}
           >
             <Palette className="w-4 h-4 mr-1" />
             Neutral

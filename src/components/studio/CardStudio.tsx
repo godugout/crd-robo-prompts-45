@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
@@ -22,9 +23,10 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useCardEditor } from '@/hooks/useCardEditor';
+import { useStudioState } from '@/hooks/useStudioState';
 import { AdvancedImageProcessor } from './image/AdvancedImageProcessor';
 import { EffectLayer, EffectLayerData } from './effects/EffectLayer';
-import { DynamicTemplateRenderer } from '@/components/editor/canvas/DynamicTemplateRenderer';
+import { StudioCardRenderer } from './renderer/StudioCardRenderer';
 import { ExportCardRenderer } from '@/components/editor/canvas/ExportCardRenderer';
 import { DEFAULT_TEMPLATES } from '@/components/editor/wizard/wizardConfig';
 import { ProfessionalToolbar } from './interface/ProfessionalToolbar';
@@ -68,12 +70,28 @@ export const CardStudio: React.FC = () => {
   const [projectName, setProjectName] = useState('Untitled Studio Project');
   const exportRef = useRef<HTMLDivElement>(null);
 
+  // Initialize Studio state management
+  const {
+    studioState,
+    updateLighting,
+    updateDesign,
+    updateLayer,
+    addLayer,
+    removeLayer,
+    reorderLayers,
+    selectLayer,
+    applyLightingPreset
+  } = useStudioState();
+
   const cardEditor = useCardEditor({
     initialData: {
       title: 'My Studio Card',
       rarity: 'rare',
       tags: ['studio', 'professional'],
-      design_metadata: selectedTemplate.template_data,
+      design_metadata: {
+        ...selectedTemplate.template_data,
+        studioSettings: studioState
+      },
       template_id: selectedTemplate.id,
       visibility: 'private',
       creator_attribution: { collaboration_type: 'solo' },
@@ -88,13 +106,19 @@ export const CardStudio: React.FC = () => {
     autoSave: true
   });
 
+  // Update card editor when studio state changes
+  useEffect(() => {
+    cardEditor.updateDesignMetadata('studioSettings', studioState);
+  }, [studioState]);
+
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
       setCurrentPhoto(url);
       cardEditor.updateCardField('image_url', url);
-      setActiveTab('effects');
+      setActiveTab('design');
+      toast.success('Photo uploaded! Now customize your design.');
     }
   };
 
@@ -143,18 +167,22 @@ export const CardStudio: React.FC = () => {
     ));
   };
 
-  const handleSaveProject = () => {
-    // Save current state to localStorage or database
-    const projectData = {
-      name: projectName,
-      cardData: cardEditor.cardData,
-      currentPhoto,
-      effectLayers,
-      template: selectedTemplate,
-      timestamp: new Date().toISOString()
-    };
-    localStorage.setItem(`studio-project-${Date.now()}`, JSON.stringify(projectData));
-    toast.success('Project saved successfully!');
+  const handleSaveProject = async () => {
+    // Save current state including Studio settings
+    const success = await cardEditor.saveCard();
+    if (success) {
+      const projectData = {
+        name: projectName,
+        cardData: cardEditor.cardData,
+        currentPhoto,
+        effectLayers,
+        studioState,
+        template: selectedTemplate,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem(`studio-project-${Date.now()}`, JSON.stringify(projectData));
+      toast.success('Studio project saved successfully!');
+    }
   };
 
   const handleExport = async () => {
@@ -189,6 +217,11 @@ export const CardStudio: React.FC = () => {
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const handleAddElement = (type: string) => {
+    toast.success(`${type} element will be added to the card`);
+    // This would integrate with the card renderer to add interactive elements
   };
 
   const renderTabContent = () => {
@@ -267,13 +300,35 @@ export const CardStudio: React.FC = () => {
         );
 
       case 'layers':
-        return <EnhancedLayersPanel />;
+        return (
+          <EnhancedLayersPanel
+            layers={studioState.layers}
+            selectedLayerId={studioState.selectedLayerId}
+            onUpdateLayer={updateLayer}
+            onAddLayer={addLayer}
+            onRemoveLayer={removeLayer}
+            onReorderLayers={reorderLayers}
+            onSelectLayer={selectLayer}
+          />
+        );
 
       case 'lighting':
-        return <LightingControls />;
+        return (
+          <LightingControls
+            lightingState={studioState.lighting}
+            onUpdateLighting={updateLighting}
+            onApplyPreset={applyLightingPreset}
+          />
+        );
 
       case 'design':
-        return <DesignTools />;
+        return (
+          <DesignTools
+            designState={studioState.design}
+            onUpdateDesign={updateDesign}
+            onAddElement={handleAddElement}
+          />
+        );
 
       case 'branding':
         return (
@@ -424,13 +479,17 @@ export const CardStudio: React.FC = () => {
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-crd-green/20 via-transparent to-crd-purple/20 blur-3xl"></div>
             <div className="relative z-10">
-              <DynamicTemplateRenderer
+              <StudioCardRenderer
                 template={templateForRenderer}
                 cardData={cardEditor.cardData}
                 currentPhoto={currentPhoto}
+                studioState={studioState}
                 scaleFactor={1.3}
                 onPhotoUpload={() => document.getElementById('photo-upload')?.click()}
-                onElementSelect={() => {}}
+                onElementSelect={(elementId) => {
+                  selectLayer(elementId);
+                  toast.info(`Selected ${elementId} layer`);
+                }}
               />
             </div>
           </div>
@@ -475,13 +534,23 @@ export const CardStudio: React.FC = () => {
 
       {/* Hidden Export Renderer */}
       <div ref={exportRef} className="absolute -left-[9999px] -top-[9999px] pointer-events-none">
-        <ExportCardRenderer
+        <StudioCardRenderer
           template={templateForRenderer}
           cardData={cardEditor.cardData}
           currentPhoto={currentPhoto}
+          studioState={studioState}
           dimensions={{ width: 750, height: 1050 }}
         />
       </div>
+
+      {/* Hidden file input */}
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handlePhotoUpload}
+        className="hidden"
+        id="photo-upload"
+      />
     </StudioLayout>
   );
 };

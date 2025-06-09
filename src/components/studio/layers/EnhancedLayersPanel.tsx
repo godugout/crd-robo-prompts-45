@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,66 +20,66 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
+import type { LayerState } from '@/hooks/useStudioState';
 
-interface Layer {
-  id: string;
-  name: string;
-  type: 'text' | 'shape' | 'image' | 'background';
-  visible: boolean;
-  locked: boolean;
-  opacity: number;
-  blendMode: string;
+interface EnhancedLayersPanelProps {
+  layers: LayerState[];
+  selectedLayerId: string | null;
+  onUpdateLayer: (layerId: string, updates: Partial<LayerState>) => void;
+  onAddLayer: (layer: Omit<LayerState, 'zIndex'>) => void;
+  onRemoveLayer: (layerId: string) => void;
+  onReorderLayers: (fromIndex: number, toIndex: number) => void;
+  onSelectLayer: (layerId: string | null) => void;
 }
 
-const INITIAL_LAYERS: Layer[] = [
-  { id: '1', name: 'Background', type: 'background', visible: true, locked: false, opacity: 100, blendMode: 'normal' },
-  { id: '2', name: 'Card Art', type: 'image', visible: true, locked: false, opacity: 100, blendMode: 'normal' },
-  { id: '3', name: 'Title Text', type: 'text', visible: true, locked: false, opacity: 100, blendMode: 'normal' },
-];
-
-export const EnhancedLayersPanel: React.FC = () => {
-  const [layers, setLayers] = useState<Layer[]>(INITIAL_LAYERS);
-  const [selectedLayerId, setSelectedLayerId] = useState<string>('2');
-
+export const EnhancedLayersPanel: React.FC<EnhancedLayersPanelProps> = ({
+  layers,
+  selectedLayerId,
+  onUpdateLayer,
+  onAddLayer,
+  onRemoveLayer,
+  onReorderLayers,
+  onSelectLayer
+}) => {
   const toggleLayerVisibility = (layerId: string) => {
-    setLayers(prev => prev.map(layer => 
-      layer.id === layerId ? { ...layer, visible: !layer.visible } : layer
-    ));
     const layer = layers.find(l => l.id === layerId);
-    toast.success(`${layer?.name} ${layer?.visible ? 'hidden' : 'shown'}`);
+    if (layer) {
+      onUpdateLayer(layerId, { visible: !layer.visible });
+      toast.success(`${layer.name} ${layer.visible ? 'hidden' : 'shown'}`);
+    }
   };
 
   const toggleLayerLock = (layerId: string) => {
-    setLayers(prev => prev.map(layer => 
-      layer.id === layerId ? { ...layer, locked: !layer.locked } : layer
-    ));
     const layer = layers.find(l => l.id === layerId);
-    toast.success(`${layer?.name} ${layer?.locked ? 'unlocked' : 'locked'}`);
+    if (layer) {
+      onUpdateLayer(layerId, { locked: !layer.locked });
+      toast.success(`${layer.name} ${layer.locked ? 'unlocked' : 'locked'}`);
+    }
   };
 
   const updateLayerOpacity = (layerId: string, opacity: number[]) => {
-    setLayers(prev => prev.map(layer => 
-      layer.id === layerId ? { ...layer, opacity: opacity[0] } : layer
-    ));
+    onUpdateLayer(layerId, { opacity: opacity[0] });
   };
 
   const duplicateLayer = (layerId: string) => {
     const layer = layers.find(l => l.id === layerId);
     if (layer) {
-      const newLayer: Layer = {
+      const newLayer: Omit<LayerState, 'zIndex'> = {
         ...layer,
         id: `${Date.now()}`,
         name: `${layer.name} Copy`
       };
-      setLayers(prev => [...prev, newLayer]);
+      onAddLayer(newLayer);
       toast.success(`${layer.name} duplicated`);
     }
   };
 
   const deleteLayer = (layerId: string) => {
     const layer = layers.find(l => l.id === layerId);
-    setLayers(prev => prev.filter(l => l.id !== layerId));
-    toast.success(`${layer?.name} deleted`);
+    if (layer && layer.type !== 'background') {
+      onRemoveLayer(layerId);
+      toast.success(`${layer.name} deleted`);
+    }
   };
 
   const moveLayer = (layerId: string, direction: 'up' | 'down') => {
@@ -89,16 +89,14 @@ export const EnhancedLayersPanel: React.FC = () => {
     const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
     if (newIndex < 0 || newIndex >= layers.length) return;
     
-    const newLayers = [...layers];
-    [newLayers[currentIndex], newLayers[newIndex]] = [newLayers[newIndex], newLayers[currentIndex]];
-    setLayers(newLayers);
+    onReorderLayers(currentIndex, newIndex);
     
     const layer = layers[currentIndex];
     toast.success(`${layer.name} moved ${direction}`);
   };
 
-  const addNewLayer = (type: Layer['type']) => {
-    const newLayer: Layer = {
+  const addNewLayer = (type: LayerState['type']) => {
+    const newLayer: Omit<LayerState, 'zIndex'> = {
       id: `${Date.now()}`,
       name: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
       type,
@@ -107,12 +105,12 @@ export const EnhancedLayersPanel: React.FC = () => {
       opacity: 100,
       blendMode: 'normal'
     };
-    setLayers(prev => [...prev, newLayer]);
-    setSelectedLayerId(newLayer.id);
+    onAddLayer(newLayer);
+    onSelectLayer(newLayer.id);
     toast.success(`${newLayer.name} layer added`);
   };
 
-  const getLayerIcon = (type: Layer['type']) => {
+  const getLayerIcon = (type: LayerState['type']) => {
     switch (type) {
       case 'text': return Type;
       case 'shape': return Square;
@@ -122,7 +120,7 @@ export const EnhancedLayersPanel: React.FC = () => {
     }
   };
 
-  const getLayerTypeColor = (type: Layer['type']) => {
+  const getLayerTypeColor = (type: LayerState['type']) => {
     switch (type) {
       case 'text': return 'bg-blue-500';
       case 'shape': return 'bg-crd-orange';
@@ -182,7 +180,7 @@ export const EnhancedLayersPanel: React.FC = () => {
                 className={`bg-editor-dark border-editor-border p-3 cursor-pointer transition-all ${
                   selectedLayerId === layer.id ? 'ring-2 ring-crd-green' : ''
                 }`}
-                onClick={() => setSelectedLayerId(layer.id)}
+                onClick={() => onSelectLayer(layer.id)}
               >
                 <div className="space-y-3">
                   {/* Layer Header */}
