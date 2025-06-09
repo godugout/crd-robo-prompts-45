@@ -1,8 +1,7 @@
-
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
-import { Image, Upload, Sparkles, Crop } from 'lucide-react';
+import { Image as ImageIcon, Upload, Sparkles, Crop } from 'lucide-react';
 import { toast } from 'sonner';
 import { analyzeCardImage } from '@/services/cardAnalyzer';
 
@@ -24,7 +23,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const img = new Image();
+      const img = new HTMLImageElement();
       
       img.onload = () => {
         // Standard trading card aspect ratio is 2.5:3.5 (roughly 0.714)
@@ -193,7 +192,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
           </div>
         ) : (
           <div className="space-y-4">
-            <Image className="w-16 h-16 text-crd-lightGray mx-auto" />
+            <ImageIcon className="w-16 h-16 text-crd-lightGray mx-auto" />
             <div>
               <p className="text-crd-lightGray mb-2">
                 {isDragActive ? 'Drop your photo here' : 'Drag and drop your photo here'}
