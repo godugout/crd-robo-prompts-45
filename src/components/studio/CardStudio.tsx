@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -33,6 +32,9 @@ import { AdvancedEffectSystem } from './effects/AdvancedEffectSystem';
 import { CRDCardBack } from './branding/CRDCardBack';
 import { EnhancedExportDialog } from './export/EnhancedExportDialog';
 import { StudioLayout } from './interface/StudioLayout';
+import { LightingControls } from './lighting/LightingControls';
+import { DesignTools } from './design/DesignTools';
+import { EnhancedLayersPanel } from './layers/EnhancedLayersPanel';
 
 interface StudioTab {
   id: string;
@@ -263,6 +265,15 @@ export const CardStudio: React.FC = () => {
             onToggleVisibility={toggleLayerVisibility}
           />
         );
+
+      case 'layers':
+        return <EnhancedLayersPanel />;
+
+      case 'lighting':
+        return <LightingControls />;
+
+      case 'design':
+        return <DesignTools />;
 
       case 'branding':
         return (
