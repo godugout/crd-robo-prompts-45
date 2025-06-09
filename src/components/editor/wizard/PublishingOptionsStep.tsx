@@ -46,7 +46,7 @@ export const PublishingOptionsStep = ({
                   onCheckedChange={(checked) => onPublishingUpdate('crd_catalog_inclusion', checked)}
                 />
               </div>
-            </Card>
+            </CardContent>
           </Card>
 
           {/* Marketplace Listing */}
