@@ -6,14 +6,9 @@ export interface EffectLayerData {
   name: string;
   type: 'holographic' | 'metallic' | 'prismatic' | 'vintage' | 'crystal' | 'foil';
   opacity: number;
-  blendMode: string;
+  blendMode: 'normal' | 'multiply' | 'screen' | 'overlay' | 'soft-light' | 'hard-light' | 'color-dodge' | 'color-burn';
   visible: boolean;
-  parameters: {
-    intensity: number;
-    spread: number;
-    shimmer: number;
-    depth: number;
-  };
+  parameters: Record<string, number>;
 }
 
 export const useStudioEffects = () => {

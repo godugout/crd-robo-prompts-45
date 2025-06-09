@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -43,7 +42,7 @@ interface StudioTabContentProps {
   updateLayer: (updates: any) => void;
   addLayer: (layer: any) => void;
   removeLayer: (id: string) => void;
-  reorderLayers: (layers: any[]) => void;
+  reorderLayers: (fromIndex: number, toIndex: number) => void;
   selectLayer: (id: string) => void;
   applyLightingPreset: (preset: string) => void;
   handleAddElement: (type: string) => void;
@@ -85,6 +84,16 @@ export const StudioTabContent: React.FC<StudioTabContentProps> = ({
   handleAddElement,
   handleExport
 }) => {
+  // Wrapper function to convert array-based reorder to index-based
+  const handleReorderLayers = (layers: any[]) => {
+    layers.forEach((layer, newIndex) => {
+      const currentIndex = studioState.layers.findIndex(l => l.id === layer.id);
+      if (currentIndex !== newIndex && currentIndex !== -1) {
+        reorderLayers(currentIndex, newIndex);
+      }
+    });
+  };
+
   switch (activeTab) {
     case 'photo':
       return (
@@ -274,7 +283,7 @@ export const StudioTabContent: React.FC<StudioTabContentProps> = ({
           onUpdateLayer={updateLayer}
           onAddLayer={addLayer}
           onRemoveLayer={removeLayer}
-          onReorderLayers={reorderLayers}
+          onReorderLayers={handleReorderLayers}
           onSelectLayer={selectLayer}
         />
       );
