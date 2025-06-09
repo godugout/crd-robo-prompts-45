@@ -19,8 +19,7 @@ import {
   Zap,
   Sparkles,
   Wand2,
-  Shapes,
-  Brain
+  Shapes
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -40,7 +39,6 @@ import { LightingControls } from './lighting/LightingControls';
 import { DesignTools } from './design/DesignTools';
 import { EnhancedLayersPanel } from './layers/EnhancedLayersPanel';
 import { Advanced3DCardRenderer } from './advanced/Advanced3DCardRenderer';
-import { AIImageProcessor } from './advanced/AIImageProcessor';
 import { VectorGraphicsEngine } from './advanced/VectorGraphicsEngine';
 
 interface StudioTab {
@@ -52,7 +50,6 @@ interface StudioTab {
 
 const STUDIO_TABS: StudioTab[] = [
   { id: 'photo', label: 'Photo', icon: Camera, category: 'creation' },
-  { id: 'ai-tools', label: 'AI Lab', icon: Brain, category: 'advanced' },
   { id: '3d-preview', label: '3D View', icon: Sparkles, category: 'advanced' },
   { id: 'vector', label: 'Vector', icon: Shapes, category: 'advanced' },
   { id: 'effects', label: 'Effects', icon: Wand2, category: 'effects' },
@@ -67,7 +64,6 @@ export const CardStudio: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>('photo');
   const [showImageProcessor, setShowImageProcessor] = useState(false);
-  const [showAIProcessor, setShowAIProcessor] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [currentPhoto, setCurrentPhoto] = useState<string>('');
   const [selectedTemplate, setSelectedTemplate] = useState(DEFAULT_TEMPLATES[0]);
@@ -142,8 +138,8 @@ export const CardStudio: React.FC = () => {
       const url = URL.createObjectURL(file);
       setCurrentPhoto(url);
       cardEditor.updateCardField('image_url', url);
-      setActiveTab('ai-tools');
-      toast.success('Photo uploaded! Try AI enhancement tools.');
+      setActiveTab('3d-preview');
+      toast.success('Photo uploaded! Try the enhanced 3D preview and vector tools.');
     }
   };
 
@@ -152,14 +148,6 @@ export const CardStudio: React.FC = () => {
     cardEditor.updateCardField('image_url', processedUrl);
     setShowImageProcessor(false);
     toast.success('Image processing complete!');
-  };
-
-  const handleAIProcessed = (processedUrl: string, metadata: any) => {
-    setCurrentPhoto(processedUrl);
-    cardEditor.updateCardField('image_url', processedUrl);
-    cardEditor.updateDesignMetadata('aiProcessing', metadata);
-    setShowAIProcessor(false);
-    toast.success('AI processing complete!');
   };
 
   const addEffectLayer = (type: EffectLayerData['type']) => {
@@ -308,7 +296,7 @@ export const CardStudio: React.FC = () => {
                     className="flex-1 border-editor-border text-white hover:bg-editor-border"
                   >
                     <Settings className="w-4 h-4 mr-2" />
-                    Basic Edit
+                    Edit Image
                   </Button>
                   <Button
                     onClick={() => document.getElementById('photo-upload')?.click()}
@@ -318,64 +306,10 @@ export const CardStudio: React.FC = () => {
                     <Upload className="w-4 h-4" />
                   </Button>
                 </div>
-              </div>
-            )}
-          </div>
-        );
-
-      case 'ai-tools':
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-white font-semibold text-lg mb-2">AI Laboratory</h3>
-              <p className="text-crd-lightGray text-sm mb-6">
-                Advanced AI-powered image processing and enhancement
-              </p>
-            </div>
-
-            {currentPhoto ? (
-              <div className="space-y-4">
-                <div className="aspect-[3/4] bg-editor-darker rounded-lg overflow-hidden">
-                  <img 
-                    src={currentPhoto} 
-                    alt="AI processing preview" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
                 
-                <div className="space-y-2">
-                  <Button
-                    onClick={() => setShowAIProcessor(true)}
-                    className="w-full bg-crd-green hover:bg-crd-green/90 text-black"
-                  >
-                    <Brain className="w-4 h-4 mr-2" />
-                    Open AI Lab
-                  </Button>
-                  
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      onClick={() => toast.success('AI background removal starting...')}
-                      variant="outline"
-                      className="border-crd-blue text-crd-blue hover:bg-crd-blue hover:text-white"
-                    >
-                      <Wand2 className="w-4 h-4 mr-1" />
-                      Remove BG
-                    </Button>
-                    <Button
-                      onClick={() => toast.success('AI enhancement starting...')}
-                      variant="outline"
-                      className="border-crd-purple text-crd-purple hover:bg-crd-purple hover:text-white"
-                    >
-                      <Sparkles className="w-4 h-4 mr-1" />
-                      Enhance
-                    </Button>
-                  </div>
+                <div className="text-xs text-crd-lightGray p-3 bg-editor-tool rounded">
+                  💡 Tip: Try the 3D View and Vector tools for advanced editing!
                 </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Brain className="w-12 h-12 text-crd-lightGray mx-auto mb-4" />
-                <p className="text-crd-lightGray">Upload a photo to access AI tools</p>
               </div>
             )}
           </div>
@@ -441,18 +375,25 @@ export const CardStudio: React.FC = () => {
                       </div>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-crd-lightGray text-sm">Bloom Effect</span>
+                        <span className="text-crd-lightGray text-sm">Glow Effect</span>
                         <Button
                           size="sm"
-                          variant={advanced3DEffects.bloom ? 'default' : 'outline'}
-                          onClick={() => setAdvanced3DEffects(prev => ({ ...prev, bloom: !prev.bloom }))}
-                          className={advanced3DEffects.bloom ? 'bg-crd-green text-black' : ''}
+                          variant={advanced3DEffects.glow ? 'default' : 'outline'}
+                          onClick={() => setAdvanced3DEffects(prev => ({ ...prev, glow: !prev.glow }))}
+                          className={advanced3DEffects.glow ? 'bg-crd-green text-black' : ''}
                         >
-                          {advanced3DEffects.bloom ? 'ON' : 'OFF'}
+                          {advanced3DEffects.glow ? 'ON' : 'OFF'}
                         </Button>
                       </div>
                     </div>
                   </Card>
+                </div>
+              )}
+
+              {!currentPhoto && (
+                <div className="text-center py-8">
+                  <Sparkles className="w-12 h-12 text-crd-lightGray mx-auto mb-4" />
+                  <p className="text-crd-lightGray">Upload a photo first to see 3D effects</p>
                 </div>
               )}
             </div>
@@ -465,7 +406,7 @@ export const CardStudio: React.FC = () => {
             <div className="text-center">
               <h3 className="text-white font-semibold text-lg mb-2">Vector Graphics</h3>
               <p className="text-crd-lightGray text-sm mb-6">
-                Professional vector editing with Fabric.js
+                Professional vector editing with advanced tools
               </p>
             </div>
 
@@ -477,8 +418,16 @@ export const CardStudio: React.FC = () => {
               Open Vector Editor
             </Button>
 
-            <div className="text-xs text-crd-lightGray p-3 bg-editor-tool rounded">
-              Vector graphics provide infinite scalability and precision for professional card design elements.
+            <div className="space-y-3">
+              <div className="text-xs text-crd-lightGray p-3 bg-editor-tool rounded">
+                <div className="font-medium mb-1">Vector Features:</div>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Shapes: Rectangle, Circle, Polygon</li>
+                  <li>Text editing with font controls</li>
+                  <li>Layer management and effects</li>
+                  <li>Professional export options</li>
+                </ul>
+              </div>
             </div>
           </div>
         );
@@ -614,7 +563,7 @@ export const CardStudio: React.FC = () => {
       default:
         return (
           <div className="text-center text-crd-lightGray py-8">
-            <p>Advanced feature coming soon...</p>
+            <p>Feature coming soon...</p>
           </div>
         );
     }
@@ -739,14 +688,6 @@ export const CardStudio: React.FC = () => {
           imageUrl={currentPhoto}
           onImageProcessed={handleImageProcessed}
           onClose={() => setShowImageProcessor(false)}
-        />
-      )}
-
-      {showAIProcessor && currentPhoto && (
-        <AIImageProcessor
-          imageUrl={currentPhoto}
-          onImageProcessed={handleAIProcessed}
-          onClose={() => setShowAIProcessor(false)}
         />
       )}
 
