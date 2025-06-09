@@ -8,7 +8,7 @@ import { LoadingState } from '@/components/common/LoadingState';
 import { ProfileStats } from '@/components/profile/ProfileStats';
 import { ProfileTabs } from '@/components/profile/ProfileTabs';
 import { useProfilePage } from '@/hooks/useProfilePage';
-import { useCards } from '@/hooks/useCards';
+import { useUserCards } from '@/hooks/useUserCards';
 import { useUserMemories } from '@/hooks/useUserMemories';
 import { Edit, Settings } from 'lucide-react';
 import type { Memory } from '@/types/memory';
@@ -35,7 +35,8 @@ const Profile = () => {
     following
   } = useProfilePage();
 
-  const { userCards, loading: cardsLoading } = useCards();
+  // Use the new useUserCards hook to get ALL user cards (public and private)
+  const { userCards, loading: cardsLoading } = useUserCards(user?.id);
   const { memories, loading: memoriesLoading } = useUserMemories(user?.id);
 
   if (isLoading) {
@@ -70,7 +71,7 @@ const Profile = () => {
     title: card.title,
     description: card.description,
     teamId: '', // Set empty string since team_id doesn't exist on Card type
-    visibility: 'public' as const,
+    visibility: card.is_public ? 'public' : 'private',
     createdAt: card.created_at,
     tags: card.tags || [],
     metadata: card.design_metadata || {},

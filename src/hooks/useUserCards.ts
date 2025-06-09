@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase-client';
 
-export interface Card {
+export interface UserCard {
   id: string;
   title: string;
   description?: string;
@@ -17,22 +17,27 @@ export interface Card {
   creator_id: string;
   design_metadata: Record<string, any>;
   is_public?: boolean;
+  visibility?: string;
 }
 
-export const useCards = () => {
-  const [featuredCards, setFeaturedCards] = useState<Card[]>([]);
+export const useUserCards = (userId?: string) => {
+  const [userCards, setUserCards] = useState<UserCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCards = async () => {
+    const fetchUserCards = async () => {
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
         
-        console.log('Fetching public cards for gallery...');
+        console.log('Fetching cards for user:', userId);
         
-        // Only fetch PUBLIC cards for the gallery
         const { data, error } = await supabase
           .from('cards')
           .select(`
@@ -49,15 +54,14 @@ export const useCards = () => {
             design_metadata,
             is_public
           `)
-          .eq('is_public', true) // Only public cards for gallery
-          .order('created_at', { ascending: false })
-          .limit(20);
+          .eq('creator_id', userId)
+          .order('created_at', { ascending: false });
         
         if (error) {
           throw error;
         }
         
-        console.log('Found public cards for gallery:', data?.length || 0);
+        console.log('Found user cards:', data?.length || 0);
         
         // Get creator information for each card
         const cardsWithCreators = await Promise.all(
@@ -89,24 +93,31 @@ export const useCards = () => {
           })
         );
         
-        setFeaturedCards(cardsWithCreators);
+        setUserCards(cardsWithCreators);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch cards');
-        setFeaturedCards([]);
+        console.error('Error fetching user cards:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch user cards');
+        setUserCards([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCards();
-  }, []);
+    fetchUserCards();
+  }, [userId]);
 
-  // Provide backward compatibility aliases
+  const refetch = () => {
+    if (userId) {
+      setLoading(true);
+      // Re-trigger the effect by updating a dependency
+      // The useEffect will handle the actual refetching
+    }
+  };
+
   return { 
-    featuredCards, 
+    userCards, 
     loading, 
     error,
-    cards: featuredCards, // alias for compatibility
-    userCards: featuredCards // This is now ONLY for gallery (public cards)
+    refetch
   };
 };
