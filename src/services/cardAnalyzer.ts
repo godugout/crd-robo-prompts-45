@@ -4,39 +4,53 @@ export interface CardAnalysisResult {
   description: string;
   rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
   tags: string[];
-  category: string;
+  category?: string;
 }
 
-export const analyzeCardImage = async (input: File | string): Promise<CardAnalysisResult> => {
-  // Simulate AI analysis delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  // Handle both File objects and data URL strings
-  let fileName = '';
-  if (input instanceof File) {
-    fileName = input.name.toLowerCase();
-  } else if (typeof input === 'string') {
-    // For data URLs, we can't get a meaningful filename, so use empty string
-    fileName = '';
-  }
-  
-  const categories = ['sports', 'pokemon', 'gaming', 'art', 'anime', 'nature'];
-  const adjectives = ['Amazing', 'Epic', 'Legendary', 'Rare', 'Powerful', 'Mystical', 'Unique'];
-  const nouns = ['Card', 'Hero', 'Champion', 'Legend', 'Master', 'Guardian'];
-  
-  // Generate suggestions based on filename or random
-  const category = categories.find(cat => fileName.includes(cat)) || categories[Math.floor(Math.random() * categories.length)];
-  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  
-  const rarities: CardAnalysisResult['rarity'][] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
-  const rarity = rarities[Math.floor(Math.random() * rarities.length)];
-  
-  return {
-    title: `${adjective} ${noun}`,
-    description: `A ${rarity} ${category} card with incredible power and unique abilities. Perfect for collectors and enthusiasts.`,
-    rarity,
-    tags: [category, adjective.toLowerCase(), noun.toLowerCase(), 'auto-generated'],
-    category
-  };
+export const analyzeCardImage = async (imageFile: File): Promise<CardAnalysisResult> => {
+  // Simulate AI analysis for now - in a real implementation this would call an AI service
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Generate some example analysis based on file name or random selection
+      const filename = imageFile.name.toLowerCase();
+      
+      let analysis: CardAnalysisResult;
+      
+      if (filename.includes('car') || filename.includes('vehicle')) {
+        analysis = {
+          title: 'Classic Sports Car',
+          description: 'A stunning vintage sports car captured in perfect lighting.',
+          rarity: 'rare',
+          tags: ['vehicle', 'sports', 'classic', 'automotive'],
+          category: 'vehicles'
+        };
+      } else if (filename.includes('person') || filename.includes('portrait')) {
+        analysis = {
+          title: 'Portrait Card',
+          description: 'A memorable portrait captured in time.',
+          rarity: 'uncommon',
+          tags: ['portrait', 'person', 'character'],
+          category: 'people'
+        };
+      } else if (filename.includes('nature') || filename.includes('landscape')) {
+        analysis = {
+          title: 'Natural Wonder',
+          description: 'A breathtaking view of nature\'s beauty.',
+          rarity: 'common',
+          tags: ['nature', 'landscape', 'scenic'],
+          category: 'nature'
+        };
+      } else {
+        analysis = {
+          title: 'My Awesome Card',
+          description: 'A unique and special card created from your image.',
+          rarity: 'uncommon',
+          tags: ['custom', 'unique', 'special'],
+          category: 'general'
+        };
+      }
+      
+      resolve(analysis);
+    }, 2000); // Simulate processing time
+  });
 };

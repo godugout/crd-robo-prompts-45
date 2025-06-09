@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Check, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Sparkles, Save } from 'lucide-react';
 
 interface WizardNavigationProps {
   currentStep: number;
@@ -24,24 +24,24 @@ export const WizardNavigation = ({
   onBack,
   onNext,
   onComplete,
-  canSkipToEnd = false
+  canSkipToEnd
 }: WizardNavigationProps) => {
   return (
-    <div className="flex justify-between items-center mt-8 pt-6 border-t border-editor-border">
-      <div className="flex items-center gap-3">
+    <div className="flex items-center justify-between pt-6 border-t border-editor-border">
+      <div className="flex gap-3">
         <Button
-          onClick={onCancel}
           variant="outline"
-          className="border-editor-border text-white hover:bg-editor-border"
+          onClick={onCancel}
+          className="border-editor-border text-crd-lightGray hover:text-crd-white"
         >
           Cancel
         </Button>
         
         {currentStep > 1 && (
           <Button
-            onClick={onBack}
             variant="outline"
-            className="border-editor-border text-white hover:bg-editor-border"
+            onClick={onBack}
+            className="border-editor-border text-crd-lightGray hover:text-crd-white"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
@@ -50,32 +50,37 @@ export const WizardNavigation = ({
       </div>
 
       <div className="flex items-center gap-3">
+        {/* Skip to end option when AI analysis is complete */}
         {canSkipToEnd && currentStep < totalSteps && (
           <Button
+            variant="outline"
             onClick={() => {
-              // Skip to final step
-              while (currentStep < totalSteps) {
+              // Skip to the last step
+              for (let i = currentStep; i < totalSteps - 1; i++) {
                 onNext();
               }
             }}
-            className="bg-crd-green/20 hover:bg-crd-green/30 text-crd-green border border-crd-green/30"
+            className="border-crd-green text-crd-green hover:bg-crd-green hover:text-crd-dark"
           >
             <Sparkles className="w-4 h-4 mr-2" />
-            Skip to Preview
+            Skip to Publish
           </Button>
         )}
-        
+
         {isLastStep ? (
           <Button
             onClick={onComplete}
             disabled={isSaving}
-            className="bg-crd-green hover:bg-crd-green/90 text-black"
+            className="bg-crd-green hover:bg-crd-green/90 text-crd-dark min-w-[120px]"
           >
             {isSaving ? (
-              'Creating...'
+              <>
+                <Save className="w-4 h-4 mr-2 animate-spin" />
+                Creating...
+              </>
             ) : (
               <>
-                <Check className="w-4 h-4 mr-2" />
+                <Sparkles className="w-4 h-4 mr-2" />
                 Create Card
               </>
             )}
@@ -83,7 +88,7 @@ export const WizardNavigation = ({
         ) : (
           <Button
             onClick={onNext}
-            className="bg-crd-green hover:bg-crd-green/90 text-black"
+            className="bg-crd-green hover:bg-crd-green/90 text-crd-dark"
           >
             Next
             <ArrowRight className="w-4 h-4 ml-2" />

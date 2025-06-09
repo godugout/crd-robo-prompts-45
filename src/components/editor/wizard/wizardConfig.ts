@@ -1,173 +1,116 @@
 
-
 export interface TemplateConfig {
   id: string;
   name: string;
+  category: string;
   description: string;
-  category: 'classic' | 'modern' | 'full-bleed' | 'social';
-  preview: string;
+  preview_url?: string;
+  template_data: Record<string, any>;
+  is_premium: boolean;
+  usage_count: number;
   tags: string[];
-  is_premium: boolean; // Made required to match DesignTemplate
-  usage_count: number; // Made required to match DesignTemplate
-  template_data: {
-    colors: {
-      background: string;
-      primary: string;
-      secondary: string;
-      accent: string;
-      text: string;
-    };
-    regions: Record<string, {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    }>;
-    layout_type: 'standard' | 'full-bleed-minimal' | 'full-bleed-social';
-    supports_stickers?: boolean;
-  };
 }
-
-export interface WizardStep {
-  number: number;
-  title: string;
-  description: string;
-}
-
-export const WIZARD_STEPS: WizardStep[] = [
-  {
-    number: 1,
-    title: 'Upload Photo',
-    description: 'Add your main image or photo'
-  },
-  {
-    number: 2,
-    title: 'Select Template',
-    description: 'Choose a design style'
-  },
-  {
-    number: 3,
-    title: 'Card Details',
-    description: 'Add title and description'
-  },
-  {
-    number: 4,
-    title: 'Publishing',
-    description: 'Set visibility and options'
-  }
-];
 
 export const DEFAULT_TEMPLATES: TemplateConfig[] = [
   {
-    id: 'tcg-classic',
-    name: 'TCG Classic',
-    description: 'Traditional trading card game layout',
-    category: 'classic',
-    preview: '/placeholder.svg',
-    tags: ['gaming', 'tcg', 'classic'],
-    is_premium: false,
-    usage_count: 1250,
+    id: 'classic-portrait',
+    name: 'Classic Portrait',
+    category: 'Portrait',
+    description: 'A timeless portrait template with elegant borders and typography.',
     template_data: {
-      colors: {
-        background: '#1e293b',
-        primary: '#2563eb',
-        secondary: '#fbbf24',
-        accent: '#f59e0b',
-        text: '#ffffff'
-      },
-      regions: {
-        title: { x: 20, y: 20, width: 260, height: 40 },
-        image: { x: 20, y: 70, width: 260, height: 200 },
-        stats: { x: 20, y: 280, width: 260, height: 120 }
-      },
-      layout_type: 'standard'
-    }
+      layout: 'portrait',
+      border: 'classic',
+      typography: 'serif',
+      colorScheme: 'neutral'
+    },
+    is_premium: false,
+    usage_count: 1247,
+    tags: ['portrait', 'classic', 'elegant', 'border']
   },
   {
-    id: 'sports-modern',
-    name: 'Sports Modern',
-    description: 'Modern sports card design',
-    category: 'modern',
-    preview: '/placeholder.svg',
-    tags: ['sports', 'modern'],
-    is_premium: false,
-    usage_count: 890,
+    id: 'modern-minimal',
+    name: 'Modern Minimal',
+    category: 'Modern',
+    description: 'Clean, minimalist design with focus on your image.',
     template_data: {
-      colors: {
-        background: '#0f172a',
-        primary: '#10b981',
-        secondary: '#1f2937',
-        accent: '#06b6d4',
-        text: '#ffffff'
-      },
-      regions: {
-        playerName: { x: 20, y: 20, width: 260, height: 35 },
-        image: { x: 20, y: 65, width: 260, height: 220 },
-        team: { x: 20, y: 295, width: 120, height: 25 },
-        position: { x: 150, y: 295, width: 130, height: 25 },
-        stats: { x: 20, y: 330, width: 260, height: 90 }
-      },
-      layout_type: 'standard'
-    }
-  },
-  // NEW FULL-BLEED TEMPLATES
-  {
-    id: 'clean-photo-card',
-    name: 'Clean Photo Card',
-    description: 'Minimal full-bleed photo with clean overlay',
-    category: 'full-bleed',
-    preview: '/placeholder.svg',
-    tags: ['photo', 'minimal', 'clean', 'full-bleed'],
+      layout: 'minimal',
+      border: 'none',
+      typography: 'sans-serif',
+      colorScheme: 'monochrome'
+    },
     is_premium: false,
-    usage_count: 432,
-    template_data: {
-      colors: {
-        background: '#000000',
-        primary: '#ffffff',
-        secondary: 'rgba(0,0,0,0.7)',
-        accent: '#16a085',
-        text: '#ffffff'
-      },
-      regions: {
-        background_image: { x: 0, y: 0, width: 300, height: 420 },
-        logo: { x: 15, y: 15, width: 40, height: 20 },
-        name: { x: 15, y: 375, width: 200, height: 30 },
-        number: { x: 250, y: 15, width: 35, height: 20 }
-      },
-      layout_type: 'full-bleed-minimal'
-    }
+    usage_count: 892,
+    tags: ['modern', 'minimal', 'clean', 'simple']
   },
   {
-    id: 'social-sticker-card',
-    name: 'Social Sticker Card',
-    description: 'Full-bleed photo with customizable stickers and layers',
-    category: 'full-bleed',
-    preview: '/placeholder.svg',
-    tags: ['social', 'stickers', 'custom', 'layers', 'full-bleed'],
+    id: 'gaming-legend',
+    name: 'Gaming Legend',
+    category: 'Gaming',
+    description: 'Epic template for gaming characters and moments.',
+    template_data: {
+      layout: 'gaming',
+      border: 'metallic',
+      typography: 'display',
+      colorScheme: 'electric',
+      effects: ['glow', 'metallic']
+    },
     is_premium: true,
-    usage_count: 267,
+    usage_count: 634,
+    tags: ['gaming', 'epic', 'metallic', 'glow', 'character']
+  },
+  {
+    id: 'sports-action',
+    name: 'Sports Action',
+    category: 'Sports',
+    description: 'Dynamic template perfect for capturing sports moments.',
     template_data: {
-      colors: {
-        background: '#000000',
-        primary: '#ffffff',
-        secondary: '#ff6b6b',
-        accent: '#4ecdc4',
-        text: '#ffffff'
-      },
-      regions: {
-        background_image: { x: 0, y: 0, width: 300, height: 420 },
-        sticker_area: { x: 0, y: 0, width: 300, height: 420 }
-      },
-      layout_type: 'full-bleed-social',
-      supports_stickers: true
-    }
+      layout: 'action',
+      border: 'dynamic',
+      typography: 'bold',
+      colorScheme: 'energetic',
+      effects: ['motion-blur', 'energy']
+    },
+    is_premium: false,
+    usage_count: 1156,
+    tags: ['sports', 'action', 'dynamic', 'energy', 'motion']
+  },
+  {
+    id: 'vintage-classic',
+    name: 'Vintage Classic',
+    category: 'Vintage',
+    description: 'Nostalgic design with vintage colors and decorative elements.',
+    template_data: {
+      layout: 'vintage',
+      border: 'ornate',
+      typography: 'vintage',
+      colorScheme: 'sepia',
+      effects: ['aged', 'vintage-filter']
+    },
+    is_premium: false,
+    usage_count: 723,
+    tags: ['vintage', 'nostalgic', 'ornate', 'sepia', 'classic']
+  },
+  {
+    id: 'holographic-premium',
+    name: 'Holographic Premium',
+    category: 'Premium',
+    description: 'Stunning holographic effects with premium finishes.',
+    template_data: {
+      layout: 'premium',
+      border: 'holographic',
+      typography: 'futuristic',
+      colorScheme: 'rainbow',
+      effects: ['holographic', 'rainbow', 'shine']
+    },
+    is_premium: true,
+    usage_count: 445,
+    tags: ['holographic', 'premium', 'rainbow', 'futuristic', 'shine']
   }
 ];
 
-export const TEMPLATE_CATEGORIES = [
-  { id: 'classic', name: 'Classic', description: 'Traditional card layouts' },
-  { id: 'modern', name: 'Modern', description: 'Contemporary designs' },
-  { id: 'full-bleed', name: 'Full-Bleed Photo', description: 'Photo-focused templates' },
-  { id: 'social', name: 'Social Media', description: 'Social sharing optimized' }
+export const WIZARD_STEPS = [
+  { number: 1, title: 'Upload Photo', description: 'Add your image' },
+  { number: 2, title: 'Choose Template', description: 'Select design style' },
+  { number: 3, title: 'Card Details', description: 'Add information' },
+  { number: 4, title: 'Publishing', description: 'Set visibility options' }
 ];
-

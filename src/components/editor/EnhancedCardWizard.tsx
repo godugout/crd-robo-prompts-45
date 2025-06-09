@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { WizardStepIndicator } from './wizard/WizardStepIndicator';
@@ -12,14 +11,9 @@ import { PublishingOptionsStep } from './wizard/PublishingOptionsStep';
 import { useWizardState } from './wizard/useWizardState';
 import { WIZARD_STEPS } from './wizard/wizardConfig';
 import type { EnhancedCardWizardProps } from './wizard/types';
-import type { CardData, CardRarity, CardVisibility } from '@/hooks/useCardEditor';
 
 export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardProps) => {
   const { wizardState, cardData, handlers, isSaving, templates, updateCardField } = useWizardState(onComplete);
-
-  const handleFieldUpdate = <K extends keyof CardData>(field: K, value: CardData[K]) => {
-    updateCardField(field, value);
-  };
 
   const renderStepContent = () => {
     switch (wizardState.currentStep) {
@@ -43,7 +37,7 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
         return (
           <CardDetailsStep
             cardData={cardData}
-            onFieldUpdate={handleFieldUpdate}
+            onFieldUpdate={updateCardField}
             onCreatorAttributionUpdate={handlers.updateCreatorAttribution}
             aiAnalysisComplete={wizardState.aiAnalysisComplete}
           />
@@ -89,4 +83,3 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
     </div>
   );
 };
-

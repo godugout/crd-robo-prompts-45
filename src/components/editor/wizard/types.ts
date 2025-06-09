@@ -1,6 +1,6 @@
 
+import type { CardData } from '@/hooks/useCardEditor';
 import type { TemplateConfig } from './wizardConfig';
-import type { CardData, CardRarity, CardVisibility } from '@/hooks/useCardEditor';
 import type { CardAnalysisResult } from '@/services/cardAnalyzer';
 
 export interface WizardState {
@@ -19,11 +19,10 @@ export interface WizardHandlers {
   handleComplete: () => Promise<void>;
   updatePublishingOptions: (key: string, value: any) => void;
   updateCreatorAttribution: (key: string, value: any) => void;
-  updateCardField: <K extends keyof CardData>(field: K, value: CardData[K]) => void;
+  updateCardField: (field: keyof CardData, value: any) => void;
 }
 
 export interface EnhancedCardWizardProps {
   onComplete: (cardData: CardData) => void;
-  onCancel?: () => void;
+  onCancel: () => void;
 }
-

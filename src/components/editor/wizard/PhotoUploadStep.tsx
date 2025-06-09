@@ -2,7 +2,7 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
-import { Image, Upload, Sparkles, Crop, RotateCw } from 'lucide-react';
+import { Image, Upload, Sparkles, Crop } from 'lucide-react';
 import { toast } from 'sonner';
 import { analyzeCardImage } from '@/services/cardAnalyzer';
 
@@ -24,7 +24,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const img = document.createElement('img'); // Fixed: Use createElement instead of new Image()
+      const img = new Image();
       
       img.onload = () => {
         // Standard trading card aspect ratio is 2.5:3.5 (roughly 0.714)
@@ -121,29 +121,10 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
     noKeyboard: true
   });
 
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      try {
-        toast.info('Processing image for card format...');
-        const processedImageUrl = await processImageForCard(file);
-        onPhotoSelect(processedImageUrl);
-        toast.success('Photo processed and ready for card!');
-        
-        // Trigger AI analysis with the original file
-        await handlePhotoAnalysis(file);
-      } catch (error) {
-        console.error('Error processing image:', error);
-        toast.error('Failed to process image. Please try again.');
-      }
-    }
-    event.target.value = '';
-  };
-
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-xl font-semibold text-white mb-2">Upload Your Photo</h2>
+        <h2 className="text-xl font-semibold text-crd-white mb-2">Upload Your Photo</h2>
         <p className="text-crd-lightGray">Choose the image that will be featured on your card</p>
         {isAnalyzing && (
           <div className="mt-2 flex items-center justify-center gap-2 text-crd-green">
@@ -166,13 +147,13 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
           <div className="space-y-4">
             {/* Card Preview */}
             <div className="flex justify-center">
-              <div className="relative bg-white p-2 rounded-lg shadow-lg" style={{ width: 200, height: 280 }}>
+              <div className="relative bg-crd-white p-2 rounded-lg shadow-lg" style={{ width: 200, height: 280 }}>
                 <img 
                   src={selectedPhoto} 
                   alt="Card preview" 
                   className="w-full h-full object-cover rounded"
                 />
-                <div className="absolute top-1 right-1 bg-black/50 text-white text-xs px-1 rounded">
+                <div className="absolute top-1 right-1 bg-crd-dark/50 text-crd-white text-xs px-1 rounded">
                   Card Preview
                 </div>
               </div>
@@ -194,7 +175,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
               <Button
                 onClick={open}
                 variant="outline"
-                className="border-editor-border text-white hover:bg-editor-border"
+                className="border-editor-border text-crd-white hover:bg-editor-border"
                 disabled={isAnalyzing}
               >
                 <Upload className="w-4 h-4 mr-2" />
@@ -202,7 +183,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
               </Button>
               <Button
                 variant="outline"
-                className="border-editor-border text-white hover:bg-editor-border"
+                className="border-editor-border text-crd-white hover:bg-editor-border"
                 disabled={isAnalyzing}
               >
                 <Crop className="w-4 h-4 mr-2" />
@@ -212,7 +193,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
           </div>
         ) : (
           <div className="space-y-4">
-            <Image className="w-16 h-16 text-gray-400 mx-auto" />
+            <Image className="w-16 h-16 text-crd-lightGray mx-auto" />
             <div>
               <p className="text-crd-lightGray mb-2">
                 {isDragActive ? 'Drop your photo here' : 'Drag and drop your photo here'}
@@ -222,7 +203,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
               </p>
               <Button
                 onClick={open}
-                className="bg-crd-green hover:bg-crd-green/90 text-black"
+                className="bg-crd-green hover:bg-crd-green/90 text-crd-dark"
                 disabled={isAnalyzing}
               >
                 <Upload className="w-4 h-4 mr-2" />
@@ -231,15 +212,6 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
             </div>
           </div>
         )}
-        
-        {/* Hidden file input for manual selection */}
-        <input
-          id="photo-input"
-          type="file"
-          accept="image/*"
-          onChange={handlePhotoUpload}
-          className="hidden"
-        />
       </div>
 
       {selectedPhoto && !isAnalyzing && (
@@ -257,7 +229,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
 
       {/* Format Info */}
       <div className="bg-editor-darker p-4 rounded-lg">
-        <h4 className="text-white font-medium text-sm mb-2">Supported Formats</h4>
+        <h4 className="text-crd-white font-medium text-sm mb-2">Supported Formats</h4>
         <div className="grid grid-cols-2 gap-4 text-xs text-crd-lightGray">
           <div>
             <div className="font-medium">File Types:</div>
