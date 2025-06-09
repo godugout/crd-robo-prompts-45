@@ -144,7 +144,6 @@ export const CardStudio: React.FC = () => {
   const handleImageProcessed = (processedUrl: string) => {
     setCurrentPhoto(processedUrl);
     cardEditor.updateCardField('image_url', processedUrl);
-    setShowImageProcessor(false);
     toast.success('Image processing complete!');
   };
 
