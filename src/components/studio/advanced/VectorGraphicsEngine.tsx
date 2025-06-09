@@ -24,7 +24,7 @@ import {
   AlignRight,
   ChevronUp,
   ChevronDown,
-  Polygon as PolygonIcon
+  Hexagon
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -488,7 +488,7 @@ export const VectorGraphicsEngine: React.FC<VectorGraphicsEngineProps> = ({
                 size="sm"
                 className="w-full border-editor-border text-white hover:bg-editor-border"
               >
-                <PolygonIcon className="w-4 h-4 mr-2" />
+                <Hexagon className="w-4 h-4 mr-2" />
                 Polygon
               </Button>
               <Button
