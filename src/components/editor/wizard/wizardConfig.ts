@@ -1,4 +1,3 @@
-
 export interface TemplateConfig {
   id: string;
   name: string;
@@ -109,8 +108,34 @@ export const DEFAULT_TEMPLATES: TemplateConfig[] = [
 ];
 
 export const WIZARD_STEPS = [
-  { number: 1, title: 'Upload Photo', description: 'Add your image' },
-  { number: 2, title: 'Choose Template', description: 'Select design style' },
-  { number: 3, title: 'Card Details', description: 'Add information' },
-  { number: 4, title: 'Publishing', description: 'Set visibility options' }
+  {
+    id: 1,
+    title: 'Upload Photo',
+    description: 'Choose your image',
+    component: 'PhotoUploadStep'
+  },
+  {
+    id: 2,
+    title: 'Adjust Image',
+    description: 'Crop and position for perfect cards',
+    component: 'ImageAdjustmentStep'
+  },
+  {
+    id: 3,
+    title: 'Choose Template',
+    description: 'Select card style',
+    component: 'TemplateSelectionStep'
+  },
+  {
+    id: 4,
+    title: 'Card Details',
+    description: 'Add information',
+    component: 'CardDetailsStep'
+  },
+  {
+    id: 5,
+    title: 'Publishing',
+    description: 'Final settings',
+    component: 'PublishingOptionsStep'
+  }
 ];

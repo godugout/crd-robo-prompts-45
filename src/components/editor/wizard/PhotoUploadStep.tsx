@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
@@ -26,7 +25,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
       try {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        const img = new HTMLImageElement();
+        const img = new Image(); // Fixed: Use new Image() instead of new HTMLImageElement()
         
         if (!ctx) {
           reject(new Error('Could not get canvas context'));
@@ -35,48 +34,16 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
         
         img.onload = () => {
           try {
-            // Standard trading card aspect ratio is 2.5:3.5 (roughly 0.714)
-            const targetAspectRatio = 2.5 / 3.5;
-            const sourceAspectRatio = img.width / img.height;
-            
-            // Set canvas to optimal card dimensions (300x420 pixels for good quality)
-            canvas.width = 300;
-            canvas.height = 420;
-            
-            // Clear canvas with white background
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            let drawWidth, drawHeight, offsetX, offsetY;
-            
-            if (sourceAspectRatio > targetAspectRatio) {
-              // Image is wider - fit to height and center horizontally
-              drawHeight = canvas.height;
-              drawWidth = drawHeight * sourceAspectRatio;
-              offsetX = (canvas.width - drawWidth) / 2;
-              offsetY = 0;
-            } else {
-              // Image is taller - fit to width and center vertically
-              drawWidth = canvas.width;
-              drawHeight = drawWidth / sourceAspectRatio;
-              offsetX = 0;
-              offsetY = (canvas.height - drawHeight) / 2;
-            }
-            
-            // Draw the image centered and fitted
-            ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-            
-            // Convert to data URL
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-            
-            // Store image details
+            // Store original image dimensions for later editing
             setImageDetails({
               dimensions: { width: img.width, height: img.height },
-              aspectRatio: sourceAspectRatio,
+              aspectRatio: img.width / img.height,
               fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB'
             });
             
-            resolve(dataUrl);
+            // For initial upload, just return the original image URL
+            // The enhanced editor will handle proper card fitting
+            resolve(URL.createObjectURL(file));
           } catch (error) {
             console.error('Error processing image:', error);
             reject(new Error('Failed to process image'));
@@ -131,16 +98,16 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
 
     setIsProcessing(true);
     try {
-      toast.info('Processing image for card format...');
-      const processedImageUrl = await processImageForCard(file);
-      onPhotoSelect(processedImageUrl);
-      toast.success('Photo processed and ready for card!');
+      toast.info('Loading image...');
+      const imageUrl = await processImageForCard(file);
+      onPhotoSelect(imageUrl);
+      toast.success('Photo loaded! Ready for card adjustment.');
       
       // Trigger AI analysis with the original file
       await handlePhotoAnalysis(file);
     } catch (error) {
       console.error('Error processing image:', error);
-      toast.error('Failed to process image. Please try again.');
+      toast.error('Failed to load image. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -166,7 +133,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
           <div className="mt-2 flex items-center justify-center gap-2 text-crd-green">
             <Sparkles className="w-4 h-4 animate-pulse" />
             <span className="text-sm">
-              {isProcessing ? 'Processing your image...' : 'AI is analyzing your image...'}
+              {isProcessing ? 'Loading your image...' : 'AI is analyzing your image...'}
             </span>
           </div>
         )}
@@ -183,27 +150,27 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
         <input {...getInputProps()} />
         {selectedPhoto ? (
           <div className="space-y-4">
-            {/* Card Preview */}
+            {/* Image Preview */}
             <div className="flex justify-center">
               <div className="relative bg-crd-white p-2 rounded-lg shadow-lg" style={{ width: 200, height: 280 }}>
                 <img 
                   src={selectedPhoto} 
-                  alt="Card preview" 
+                  alt="Upload preview" 
                   className="w-full h-full object-cover rounded"
                 />
                 <div className="absolute top-1 right-1 bg-crd-dark/50 text-crd-white text-xs px-1 rounded">
-                  Card Preview
+                  Preview
                 </div>
               </div>
             </div>
             
-            <p className="text-crd-green font-medium">Photo optimized for card format!</p>
+            <p className="text-crd-green font-medium">Photo uploaded successfully!</p>
             
             {imageDetails && (
               <div className="text-xs text-crd-lightGray bg-editor-tool p-3 rounded">
                 <div className="grid grid-cols-3 gap-2">
-                  <div>Original: {imageDetails.dimensions.width}×{imageDetails.dimensions.height}</div>
-                  <div>Size: {imageDetails.fileSize}</div>
+                  <div>Size: {imageDetails.dimensions.width}×{imageDetails.dimensions.height}</div>
+                  <div>File: {imageDetails.fileSize}</div>
                   <div>Ratio: {imageDetails.aspectRatio.toFixed(2)}:1</div>
                 </div>
               </div>
@@ -219,14 +186,6 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
                 <Upload className="w-4 h-4 mr-2" />
                 Choose Different Photo
               </Button>
-              <Button
-                variant="outline"
-                className="border-editor-border text-crd-white hover:bg-editor-border"
-                disabled={isAnalyzing || isProcessing}
-              >
-                <Crop className="w-4 h-4 mr-2" />
-                Adjust Crop
-              </Button>
             </div>
           </div>
         ) : (
@@ -237,7 +196,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
                 {isDragActive ? 'Drop your photo here' : 'Drag and drop your photo here'}
               </p>
               <p className="text-crd-lightGray/70 text-sm mb-4">
-                Images will be automatically optimized for trading card format (2.5:3.5 ratio)
+                Upload any image to get started. You'll be able to crop and position it perfectly for your card in the next step.
               </p>
               <Button
                 onClick={open}
@@ -245,7 +204,7 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
                 disabled={isAnalyzing || isProcessing}
               >
                 <Upload className="w-4 h-4 mr-2" />
-                {isProcessing ? 'Processing...' : 'Select Photo'}
+                {isProcessing ? 'Loading...' : 'Select Photo'}
               </Button>
             </div>
           </div>
@@ -255,12 +214,11 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
       {selectedPhoto && !isAnalyzing && !isProcessing && (
         <div className="bg-editor-tool p-4 rounded-lg">
           <div className="flex items-center gap-2 text-crd-green mb-2">
-            <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">Ready for Card Creation</span>
+            <Crop className="w-4 h-4" />
+            <span className="text-sm font-medium">Ready for Card Adjustment</span>
           </div>
           <p className="text-crd-lightGray text-xs">
-            Your image has been processed and optimized for the standard trading card format. 
-            You can now choose a template that matches your style.
+            Your image has been uploaded successfully. In the next step, you'll be able to crop, position, and adjust it to fit the perfect 2.5:3.5 trading card format.
           </p>
         </div>
       )}
@@ -274,8 +232,8 @@ export const PhotoUploadStep = ({ selectedPhoto, onPhotoSelect, onAnalysisComple
             <div>JPG, PNG, WebP, GIF</div>
           </div>
           <div>
-            <div className="font-medium">Recommendations:</div>
-            <div>High resolution, good lighting</div>
+            <div className="font-medium">What's Next:</div>
+            <div>Crop & position for perfect cards</div>
           </div>
         </div>
       </div>
