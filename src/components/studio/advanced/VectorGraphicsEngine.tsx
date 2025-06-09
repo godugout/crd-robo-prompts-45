@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Canvas as FabricCanvas, Circle, Rect, Path, Textbox, Image as FabricImage } from 'fabric';
+import { Canvas as FabricCanvas, Circle, Rect, Path, Textbox, Image as FabricImage, FabricObject } from 'fabric';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -24,7 +24,7 @@ interface VectorElement {
   id: string;
   type: 'rectangle' | 'circle' | 'text' | 'path' | 'image';
   properties: any;
-  fabricObject?: any;
+  fabricObject?: FabricObject;
 }
 
 interface VectorGraphicsEngineProps {
@@ -45,7 +45,6 @@ export const VectorGraphicsEngine: React.FC<VectorGraphicsEngineProps> = ({
   const [selectedTool, setSelectedTool] = useState<string>('select');
   const [elements, setElements] = useState<VectorElement[]>([]);
   const [selectedElement, setSelectedElement] = useState<VectorElement | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
   
   // Element properties for editing
   const [elementProps, setElementProps] = useState({
@@ -87,8 +86,8 @@ export const VectorGraphicsEngine: React.FC<VectorGraphicsEngineProps> = ({
         
         // Update property panel with selected object properties
         setElementProps({
-          fill: activeObject.fill as string || '#3B82F6',
-          stroke: activeObject.stroke as string || '#000000',
+          fill: (activeObject.fill as string) || '#3B82F6',
+          stroke: (activeObject.stroke as string) || '#000000',
           strokeWidth: activeObject.strokeWidth || 2,
           opacity: activeObject.opacity || 1,
           fontSize: (activeObject as any).fontSize || 24,
@@ -133,7 +132,7 @@ export const VectorGraphicsEngine: React.FC<VectorGraphicsEngineProps> = ({
   }, [fabricCanvas, onElementsChange]);
 
   // Get object type
-  const getObjectType = (obj: any): VectorElement['type'] => {
+  const getObjectType = (obj: FabricObject): VectorElement['type'] => {
     if (obj.type === 'rect') return 'rectangle';
     if (obj.type === 'circle') return 'circle';
     if (obj.type === 'textbox' || obj.type === 'text') return 'text';
@@ -143,7 +142,7 @@ export const VectorGraphicsEngine: React.FC<VectorGraphicsEngineProps> = ({
   };
 
   // Extract object properties
-  const extractObjectProperties = (obj: any) => ({
+  const extractObjectProperties = (obj: FabricObject) => ({
     left: obj.left,
     top: obj.top,
     width: obj.width,
@@ -155,9 +154,9 @@ export const VectorGraphicsEngine: React.FC<VectorGraphicsEngineProps> = ({
     angle: obj.angle,
     scaleX: obj.scaleX,
     scaleY: obj.scaleY,
-    text: obj.text,
-    fontSize: obj.fontSize,
-    fontFamily: obj.fontFamily
+    text: (obj as any).text,
+    fontSize: (obj as any).fontSize,
+    fontFamily: (obj as any).fontFamily
   });
 
   // Tool functions
@@ -254,33 +253,47 @@ export const VectorGraphicsEngine: React.FC<VectorGraphicsEngineProps> = ({
   const moveLayerUp = () => {
     if (!fabricCanvas || !selectedElement?.fabricObject) return;
     
-    selectedElement.fabricObject.bringForward();
-    fabricCanvas.renderAll();
-    toast.success('Moved forward!');
+    try {
+      fabricCanvas.bringObjectForward(selectedElement.fabricObject);
+      fabricCanvas.renderAll();
+      toast.success('Moved forward!');
+    } catch (error) {
+      console.error('Error moving layer up:', error);
+      toast.error('Could not move layer up');
+    }
   };
 
   const moveLayerDown = () => {
     if (!fabricCanvas || !selectedElement?.fabricObject) return;
     
-    selectedElement.fabricObject.sendBackwards();
-    fabricCanvas.renderAll();
-    toast.success('Moved backward!');
+    try {
+      fabricCanvas.sendObjectBackwards(selectedElement.fabricObject);
+      fabricCanvas.renderAll();
+      toast.success('Moved backward!');
+    } catch (error) {
+      console.error('Error moving layer down:', error);
+      toast.error('Could not move layer down');
+    }
   };
 
   const duplicateElement = () => {
     if (!fabricCanvas || !selectedElement?.fabricObject) return;
     
-    selectedElement.fabricObject.clone().then((cloned: any) => {
-      cloned.set({
-        left: cloned.left + 20,
-        top: cloned.top + 20
+    try {
+      selectedElement.fabricObject.clone().then((cloned: FabricObject) => {
+        cloned.set({
+          left: (cloned.left || 0) + 20,
+          top: (cloned.top || 0) + 20
+        });
+        (cloned as any).id = `${selectedElement.type}-${Date.now()}`;
+        fabricCanvas.add(cloned);
+        fabricCanvas.setActiveObject(cloned);
+        toast.success('Element duplicated!');
       });
-      cloned.id = `${selectedElement.type}-${Date.now()}`;
-      fabricCanvas.add(cloned);
-      fabricCanvas.setActiveObject(cloned);
-    });
-    
-    toast.success('Element duplicated!');
+    } catch (error) {
+      console.error('Error duplicating element:', error);
+      toast.error('Could not duplicate element');
+    }
   };
 
   const deleteElement = () => {
@@ -296,21 +309,26 @@ export const VectorGraphicsEngine: React.FC<VectorGraphicsEngineProps> = ({
   const exportCanvas = () => {
     if (!fabricCanvas) return;
     
-    const dataUrl = fabricCanvas.toDataURL({
-      format: 'png',
-      quality: 1,
-      multiplier: 2 // High resolution export
-    });
-    
-    onExport?.(dataUrl);
-    
-    // Also trigger download
-    const link = document.createElement('a');
-    link.download = 'vector-design.png';
-    link.href = dataUrl;
-    link.click();
-    
-    toast.success('Design exported!');
+    try {
+      const dataUrl = fabricCanvas.toDataURL({
+        format: 'png',
+        quality: 1,
+        multiplier: 2 // High resolution export
+      });
+      
+      onExport?.(dataUrl);
+      
+      // Also trigger download
+      const link = document.createElement('a');
+      link.download = 'vector-design.png';
+      link.href = dataUrl;
+      link.click();
+      
+      toast.success('Design exported!');
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Export failed');
+    }
   };
 
   return (

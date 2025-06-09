@@ -1,6 +1,6 @@
 
 import React, { useRef, useMemo, useEffect, useState } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { 
   OrbitControls, 
   Environment, 
@@ -94,12 +94,10 @@ const HolographicMaterial = ({ texture }: { texture: THREE.Texture | null }) => 
   return (
     <shaderMaterial
       ref={materialRef}
-      args={[{
-        vertexShader,
-        fragmentShader,
-        uniforms,
-        transparent: true
-      }]}
+      vertexShader={vertexShader}
+      fragmentShader={fragmentShader}
+      uniforms={uniforms}
+      transparent={true}
     />
   );
 };
@@ -117,8 +115,14 @@ const Card3D = ({
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   
-  // Load card texture
-  const texture = useTexture(imageUrl || '/placeholder-card.png');
+  // Load card texture with fallback
+  let texture;
+  try {
+    texture = useTexture(imageUrl || '/placeholder-card.png');
+  } catch (error) {
+    console.warn('Failed to load texture:', error);
+    texture = null;
+  }
   
   useFrame((state) => {
     if (meshRef.current) {
