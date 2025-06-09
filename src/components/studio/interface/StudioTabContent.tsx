@@ -283,7 +283,7 @@ export const StudioTabContent: React.FC<StudioTabContentProps> = ({
           onUpdateLayer={updateLayer}
           onAddLayer={addLayer}
           onRemoveLayer={removeLayer}
-          onReorderLayers={handleReorderLayers}
+          onReorderLayers={reorderLayers}
           onSelectLayer={selectLayer}
         />
       );

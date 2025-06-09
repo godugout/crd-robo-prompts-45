@@ -127,16 +127,6 @@ export const CardStudio: React.FC = () => {
     }
   };
 
-  const handleReorderLayers = (layers: any[]) => {
-    // Convert array-based reorder to index-based for the hook
-    layers.forEach((layer, index) => {
-      const currentIndex = studioState.layers.findIndex(l => l.id === layer.id);
-      if (currentIndex !== index && currentIndex !== -1) {
-        reorderLayers(currentIndex, index);
-      }
-    });
-  };
-
   const templateForRenderer = {
     id: selectedTemplate.id,
     name: selectedTemplate.name,
@@ -221,7 +211,7 @@ export const CardStudio: React.FC = () => {
                     updateLayer={handleUpdateLayer}
                     addLayer={addLayer}
                     removeLayer={removeLayer}
-                    reorderLayers={handleReorderLayers}
+                    reorderLayers={reorderLayers}
                     selectLayer={selectLayer}
                     applyLightingPreset={applyLightingPreset}
                     handleAddElement={handleAddElement}
