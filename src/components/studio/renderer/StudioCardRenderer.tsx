@@ -59,22 +59,22 @@ export const StudioCardRenderer: React.FC<StudioCardRendererProps> = ({
     fontFamily: design.fontFamily,
     fontSize: `${design.fontSize}px`,
     color: design.textColor,
-    fontWeight: design.fontWeight,
-    fontStyle: design.fontStyle,
-    textDecoration: design.textDecoration,
-    textAlign: design.textAlign
+    fontWeight: design.fontWeight as 'normal' | 'bold',
+    fontStyle: design.fontStyle as 'normal' | 'italic',
+    textDecoration: design.textDecoration as 'none' | 'underline',
+    textAlign: design.textAlign as 'left' | 'center' | 'right'
   });
 
-  // Get layer styles
+  // Get layer styles with proper typing
   const getLayerStyles = (layerId: string) => {
     const layer = layers.find(l => l.id === layerId);
     if (!layer) return {};
     
     return {
       opacity: layer.visible ? layer.opacity / 100 : 0,
-      mixBlendMode: layer.blendMode as any,
+      mixBlendMode: layer.blendMode as 'normal' | 'multiply' | 'screen' | 'overlay' | 'soft-light' | 'hard-light' | 'color-dodge' | 'color-burn' | 'darken' | 'lighten' | 'difference' | 'exclusion' | 'hue' | 'saturation' | 'color' | 'luminosity',
       zIndex: layer.zIndex,
-      pointerEvents: layer.locked ? 'none' : 'auto',
+      pointerEvents: (layer.locked ? 'none' : 'auto') as 'none' | 'auto',
       transition: 'opacity 0.3s ease'
     };
   };
