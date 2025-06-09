@@ -248,11 +248,11 @@ export const VectorGraphicsEngine: React.FC<VectorGraphicsEngineProps> = ({
     updateSelectedObject(property, value);
   };
 
-  // Layer operations
+  // Layer operations - using correct Fabric.js v6 methods
   const moveLayerUp = () => {
     if (!fabricCanvas || !selectedElement?.fabricObject) return;
     
-    fabricCanvas.bringForward(selectedElement.fabricObject);
+    selectedElement.fabricObject.bringForward();
     fabricCanvas.renderAll();
     toast.success('Moved forward!');
   };
@@ -260,7 +260,7 @@ export const VectorGraphicsEngine: React.FC<VectorGraphicsEngineProps> = ({
   const moveLayerDown = () => {
     if (!fabricCanvas || !selectedElement?.fabricObject) return;
     
-    fabricCanvas.sendBackwards(selectedElement.fabricObject);
+    selectedElement.fabricObject.sendBackwards();
     fabricCanvas.renderAll();
     toast.success('Moved backward!');
   };
@@ -268,7 +268,7 @@ export const VectorGraphicsEngine: React.FC<VectorGraphicsEngineProps> = ({
   const duplicateElement = () => {
     if (!fabricCanvas || !selectedElement?.fabricObject) return;
     
-    selectedElement.fabricObject.clone((cloned: any) => {
+    selectedElement.fabricObject.clone().then((cloned: any) => {
       cloned.set({
         left: cloned.left + 20,
         top: cloned.top + 20

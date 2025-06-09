@@ -6,17 +6,13 @@ import {
   Environment, 
   PerspectiveCamera,
   useTexture,
-  Sparkles,
-  Effects
+  Sparkles
 } from '@react-three/drei';
 import * as THREE from 'three';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import type { CardData } from '@/hooks/useCardEditor';
 
 // Advanced holographic shader material
-const HolographicMaterial = () => {
+const HolographicMaterial = ({ texture }: { texture: THREE.Texture | null }) => {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
   const vertexShader = `
@@ -80,8 +76,8 @@ const HolographicMaterial = () => {
     uHolographicIntensity: { value: 0.5 },
     uRainbowIntensity: { value: 0.7 },
     uShimmerSpeed: { value: 2.0 },
-    uTexture: { value: null }
-  }), []);
+    uTexture: { value: texture }
+  }), [texture]);
 
   useFrame((state) => {
     if (materialRef.current) {
@@ -89,13 +85,21 @@ const HolographicMaterial = () => {
     }
   });
 
+  useEffect(() => {
+    if (materialRef.current && texture) {
+      materialRef.current.uniforms.uTexture.value = texture;
+    }
+  }, [texture]);
+
   return (
     <shaderMaterial
       ref={materialRef}
-      vertexShader={vertexShader}
-      fragmentShader={fragmentShader}
-      uniforms={uniforms}
-      transparent
+      args={[{
+        vertexShader,
+        fragmentShader,
+        uniforms,
+        transparent: true
+      }]}
     />
   );
 };
@@ -139,7 +143,7 @@ const Card3D = ({
       >
         <planeGeometry args={[2.5, 3.5, 32, 32]} />
         {effects.holographic ? (
-          <HolographicMaterial />
+          <HolographicMaterial texture={texture} />
         ) : (
           <meshStandardMaterial 
             map={texture}
@@ -175,30 +179,6 @@ const Card3D = ({
   );
 };
 
-// Post-processing effects
-const PostProcessing = ({ effects }: { effects: any }) => {
-  const { gl, scene, camera } = useThree();
-  
-  useEffect(() => {
-    const composer = new EffectComposer(gl);
-    composer.addPass(new RenderPass(scene, camera));
-    
-    if (effects.bloom) {
-      const bloomPass = new UnrealBloomPass(
-        new THREE.Vector2(window.innerWidth, window.innerHeight),
-        effects.bloomStrength || 1.5,
-        effects.bloomRadius || 0.4,
-        effects.bloomThreshold || 0.85
-      );
-      composer.addPass(bloomPass);
-    }
-    
-    return () => composer.dispose();
-  }, [gl, scene, camera, effects]);
-  
-  return null;
-};
-
 interface Advanced3DCardRendererProps {
   cardData: CardData;
   imageUrl?: string;
@@ -209,10 +189,6 @@ interface Advanced3DCardRendererProps {
     particles?: boolean;
     glow?: boolean;
     glowColor?: string;
-    bloom?: boolean;
-    bloomStrength?: number;
-    bloomRadius?: number;
-    bloomThreshold?: number;
   };
   onInteraction?: (type: string, data: any) => void;
 }
@@ -259,9 +235,6 @@ export const Advanced3DCardRenderer: React.FC<Advanced3DCardRendererProps> = ({
           maxDistance={8}
           autoRotate={false}
         />
-        
-        {/* Post-processing effects */}
-        <PostProcessing effects={effects} />
       </Canvas>
       
       {/* Overlay UI for 3D controls */}
