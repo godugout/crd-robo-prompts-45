@@ -70,9 +70,11 @@ export const VectorGraphicsEngine: React.FC<VectorGraphicsEngineProps> = ({
       preserveObjectStacking: true
     });
 
-    // Configure drawing brush
-    canvas.freeDrawingBrush.color = elementProps.stroke;
-    canvas.freeDrawingBrush.width = elementProps.strokeWidth;
+    // Configure drawing brush with null check
+    if (canvas.freeDrawingBrush) {
+      canvas.freeDrawingBrush.color = elementProps.stroke;
+      canvas.freeDrawingBrush.width = elementProps.strokeWidth;
+    }
 
     setFabricCanvas(canvas);
 
@@ -165,7 +167,7 @@ export const VectorGraphicsEngine: React.FC<VectorGraphicsEngineProps> = ({
     setSelectedTool(tool);
     fabricCanvas.isDrawingMode = tool === 'draw';
     
-    if (tool === 'draw') {
+    if (tool === 'draw' && fabricCanvas.freeDrawingBrush) {
       fabricCanvas.freeDrawingBrush.color = elementProps.stroke;
       fabricCanvas.freeDrawingBrush.width = elementProps.strokeWidth;
     }
