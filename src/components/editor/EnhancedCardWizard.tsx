@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DEFAULT_TEMPLATES, WIZARD_STEPS, TemplateConfig } from './wizard/wizardConfig';
@@ -195,12 +196,12 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
           />
         </div>
 
-        {/* Navigation only show for steps that need manual navigation */}
-        {(currentStep === 3 || currentStep === 4 || currentStep === 5) && (
+        {/* Navigation - show for steps that need manual navigation */}
+        {(currentStep >= 3) && (
           <div className="flex justify-between mt-8">
             <Button
               onClick={handlePrevious}
-              disabled={currentStep === 1}
+              disabled={currentStep <= 1}
               variant="outline"
               className="border-editor-border text-crd-white hover:bg-editor-border"
             >
@@ -240,3 +241,4 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
     </div>
   );
 };
+
