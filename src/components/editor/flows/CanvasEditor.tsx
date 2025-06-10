@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { FabricCanvasComponent } from '../canvas/FabricCanvas';
 import { Canvas as FabricCanvas, FabricImage, FabricText, Rect, Circle } from 'fabric';
@@ -28,12 +27,14 @@ interface CanvasEditorProps {
   selectedFrame: FrameTemplate;
   onSave: (canvasData: string) => void;
   onExport: (imageData: string) => void;
+  onImageChange?: (imageUrl: string) => void;
 }
 
 export const CanvasEditor: React.FC<CanvasEditorProps> = ({
   selectedFrame,
   onSave,
-  onExport
+  onExport,
+  onImageChange
 }) => {
   const [canvas, setCanvas] = useState<FabricCanvas | null>(null);
   const [selectedObject, setSelectedObject] = useState<any>(null);
@@ -107,6 +108,12 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({
         canvas.add(img);
         canvas.setActiveObject(img);
         canvas.renderAll();
+        
+        // Notify parent component about the image change
+        if (onImageChange && e.target?.result) {
+          onImageChange(e.target.result as string);
+        }
+        
         toast.success('Photo added to canvas');
       };
       imgElement.src = e.target?.result as string;
