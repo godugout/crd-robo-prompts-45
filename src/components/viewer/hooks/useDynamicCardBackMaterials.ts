@@ -145,6 +145,51 @@ export const CARD_BACK_MATERIALS: Record<string, CardBackMaterial> = {
 export const useDynamicCardBackMaterials = (effectValues: EffectValues, cardData?: CardData) => {
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
   
+  // Smart metadata-based material selection - moved before useMemo to avoid initialization error
+  const getMaterialFromMetadata = useCallback((card: CardData): string => {
+    if (!card) return 'default';
+    
+    const rarity = card.rarity?.toLowerCase();
+    const tags = card.tags || [];
+    const templateId = card.template_id;
+    
+    // Rarity-based selection
+    switch (rarity) {
+      case 'legendary':
+        return 'gold';
+      case 'epic':
+        return 'holographic';
+      case 'rare':
+        return 'prizm';
+      case 'uncommon':
+        return 'crystal';
+      case 'common':
+      default:
+        // Fall back to template or tag-based selection
+        break;
+    }
+    
+    // Template-based selection
+    if (templateId) {
+      if (templateId.includes('premium') || templateId.includes('elite')) return 'chrome';
+      if (templateId.includes('vintage') || templateId.includes('classic')) return 'vintage';
+      if (templateId.includes('neon') || templateId.includes('cyber')) return 'starlight';
+      if (templateId.includes('sports')) return 'prizm';
+    }
+    
+    // Tag-based selection
+    for (const tag of tags) {
+      const tagLower = tag.toLowerCase();
+      if (tagLower.includes('vintage') || tagLower.includes('retro')) return 'vintage';
+      if (tagLower.includes('premium') || tagLower.includes('luxury')) return 'gold';
+      if (tagLower.includes('sports') || tagLower.includes('athletic')) return 'prizm';
+      if (tagLower.includes('tech') || tagLower.includes('cyber')) return 'starlight';
+      if (tagLower.includes('nature') || tagLower.includes('natural')) return 'crystal';
+    }
+    
+    return 'default';
+  }, []);
+  
   // Smart material selection based on card metadata AND effects
   const selectedMaterial = useMemo(() => {
     console.log('🎨 Material Selection: Starting with card data:', cardData?.rarity, cardData?.tags);
@@ -208,52 +253,7 @@ export const useDynamicCardBackMaterials = (effectValues: EffectValues, cardData
     console.log('🎨 Material Selection: Selected material:', materialId, selectedMat.name);
     
     return selectedMat;
-  }, [effectValues, cardData]);
-  
-  // Smart metadata-based material selection
-  const getMaterialFromMetadata = useCallback((card: CardData): string => {
-    if (!card) return 'default';
-    
-    const rarity = card.rarity?.toLowerCase();
-    const tags = card.tags || [];
-    const templateId = card.template_id;
-    
-    // Rarity-based selection
-    switch (rarity) {
-      case 'legendary':
-        return 'gold';
-      case 'epic':
-        return 'holographic';
-      case 'rare':
-        return 'prizm';
-      case 'uncommon':
-        return 'crystal';
-      case 'common':
-      default:
-        // Fall back to template or tag-based selection
-        break;
-    }
-    
-    // Template-based selection
-    if (templateId) {
-      if (templateId.includes('premium') || templateId.includes('elite')) return 'chrome';
-      if (templateId.includes('vintage') || templateId.includes('classic')) return 'vintage';
-      if (templateId.includes('neon') || templateId.includes('cyber')) return 'starlight';
-      if (templateId.includes('sports')) return 'prizm';
-    }
-    
-    // Tag-based selection
-    for (const tag of tags) {
-      const tagLower = tag.toLowerCase();
-      if (tagLower.includes('vintage') || tagLower.includes('retro')) return 'vintage';
-      if (tagLower.includes('premium') || tagLower.includes('luxury')) return 'gold';
-      if (tagLower.includes('sports') || tagLower.includes('athletic')) return 'prizm';
-      if (tagLower.includes('tech') || tagLower.includes('cyber')) return 'starlight';
-      if (tagLower.includes('nature') || tagLower.includes('natural')) return 'crystal';
-    }
-    
-    return 'default';
-  }, []);
+  }, [effectValues, cardData, getMaterialFromMetadata]);
   
   // Pre-calculate material lookup for performance
   const getMaterialForEffect = useCallback((effectId: string): CardBackMaterial => {
