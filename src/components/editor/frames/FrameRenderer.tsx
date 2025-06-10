@@ -3,7 +3,10 @@ import React from 'react';
 import { 
   ClassicSportsFrame, 
   ModernHolographicFrame, 
-  VintageOrnateFrame 
+  VintageOrnateFrame,
+  DonrussSpecialFrame,
+  DonrussRookieFrame,
+  ChromeEditionFrame
 } from './EnhancedFrameTemplates';
 
 interface FrameRendererProps {
@@ -29,11 +32,14 @@ export const FrameRenderer: React.FC<FrameRendererProps> = ({
     'classic-sports': ClassicSportsFrame,
     'holographic-modern': ModernHolographicFrame,
     'vintage-ornate': VintageOrnateFrame,
+    'donruss-special': DonrussSpecialFrame,
+    'donruss-rookie': DonrussRookieFrame,
+    'chrome-edition': ChromeEditionFrame,
     // Legacy support for old frame IDs
     'template1': ClassicSportsFrame,
     'template2': VintageOrnateFrame,
     'template3': ModernHolographicFrame,
-    'template4': ModernHolographicFrame
+    'template4': DonrussSpecialFrame
   };
 
   const FrameComponent = frameComponents[frameId as keyof typeof frameComponents];
