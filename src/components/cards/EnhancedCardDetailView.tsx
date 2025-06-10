@@ -1,0 +1,344 @@
+
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { 
+  Maximize2, 
+  Share, 
+  Download, 
+  Star, 
+  Calendar, 
+  Tag, 
+  Heart,
+  Eye,
+  Bookmark,
+  ArrowLeft,
+  MoreHorizontal,
+  Sparkles
+} from 'lucide-react';
+import { CompactCardViewer } from '@/components/viewer/CompactCardViewer';
+import { CommentSection } from '@/components/social/CommentSection';
+import { ReactionBar } from '@/components/social/ReactionBar';
+import { convertToViewerCardData } from '@/components/viewer/types';
+import type { CardData } from '@/hooks/useCardData';
+
+interface EnhancedCardDetailViewProps {
+  card: CardData;
+  onOpenViewer: () => void;
+  onShare: () => void;
+  onDownload: () => void;
+  onGoBack: () => void;
+}
+
+export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
+  card,
+  onOpenViewer,
+  onShare,
+  onDownload,
+  onGoBack
+}) => {
+  const [isLiked, setIsLiked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [viewCount] = useState(Math.floor(Math.random() * 1000) + 100);
+  const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 50) + 10);
+
+  const getRarityColor = (rarity: string) => {
+    switch (rarity.toLowerCase()) {
+      case 'legendary':
+        return 'from-yellow-400 to-orange-500';
+      case 'epic':
+        return 'from-purple-400 to-pink-500';
+      case 'rare':
+        return 'from-blue-400 to-cyan-500';
+      case 'uncommon':
+        return 'from-green-400 to-emerald-500';
+      default:
+        return 'from-gray-400 to-gray-500';
+    }
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Unknown';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const handleLike = () => {
+    setIsLiked(!isLiked);
+    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+  };
+
+  const handleBookmark = () => {
+    setIsBookmarked(!isBookmarked);
+  };
+
+  // Convert CardData to viewer format
+  const universalCard = {
+    id: card.id,
+    title: card.title,
+    description: card.description,
+    image_url: card.image_url,
+    thumbnail_url: card.thumbnail_url,
+    rarity: card.rarity,
+    price: card.price,
+    creator_name: card.creator_name,
+    creator_verified: card.creator_verified,
+    stock: 3,
+    tags: card.tags
+  };
+
+  const viewerCard = convertToViewerCardData(universalCard);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-crd-darkest via-crd-darker to-crd-darkest relative overflow-hidden">
+      {/* Animated background particles */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-crd-blue/5 to-transparent rounded-full animate-pulse"></div>
+        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-crd-green/5 to-transparent rounded-full animate-pulse delay-1000"></div>
+      </div>
+
+      {/* Header Navigation */}
+      <div className="relative z-10 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onGoBack}
+            className="bg-black/20 backdrop-blur-sm hover:bg-black/30 text-white border border-white/10"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          
+          <div className="flex items-center gap-2">
+            <Badge className={`bg-gradient-to-r ${getRarityColor(card.rarity)} text-white font-bold px-3 py-1`}>
+              <Sparkles className="w-3 h-3 mr-1" />
+              {card.rarity.toUpperCase()}
+            </Badge>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Card Viewer Section */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Hero Card Display */}
+              <div className="relative">
+                <div className="aspect-[4/3] relative rounded-2xl overflow-hidden bg-gradient-to-br from-editor-dark to-editor-darker border border-white/10 shadow-2xl">
+                  <CompactCardViewer
+                    card={viewerCard}
+                    onFullscreen={onOpenViewer}
+                    width={600}
+                    height={450}
+                  />
+                  
+                  {/* Overlay Stats */}
+                  <div className="absolute top-4 right-4 flex gap-2">
+                    <div className="bg-black/60 backdrop-blur-sm rounded-lg px-3 py-1 flex items-center gap-1 text-white text-sm">
+                      <Eye className="w-3 h-3" />
+                      {viewCount.toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Bar */}
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Button
+                    onClick={onOpenViewer}
+                    className="bg-gradient-to-r from-crd-blue to-crd-blue/80 hover:from-crd-blue/90 hover:to-crd-blue/70 text-white font-medium flex-1 sm:flex-none min-w-[200px] h-12"
+                    size="lg"
+                  >
+                    <Maximize2 className="w-5 h-5 mr-2" />
+                    Experience in 3D
+                  </Button>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={handleLike}
+                      className={`border-white/20 backdrop-blur-sm h-12 w-12 ${
+                        isLiked ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={handleBookmark}
+                      className={`border-white/20 backdrop-blur-sm h-12 w-12 ${
+                        isBookmarked ? 'bg-crd-green/20 text-crd-green border-crd-green/30' : 'text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <Bookmark className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={onShare}
+                      className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm h-12 w-12"
+                    >
+                      <Share className="w-5 h-5" />
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={onDownload}
+                      className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm h-12 w-12"
+                    >
+                      <Download className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Engagement Stats */}
+                <div className="mt-4 flex items-center gap-4 text-sm text-crd-lightGray">
+                  <span className="flex items-center gap-1">
+                    <Heart className="w-4 h-4" />
+                    {likeCount} likes
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Eye className="w-4 h-4" />
+                    {viewCount} views
+                  </span>
+                </div>
+              </div>
+
+              {/* Social Features */}
+              <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold text-white mb-4">Community</h3>
+                  
+                  {/* Reactions */}
+                  <div className="mb-6">
+                    <ReactionBar 
+                      memoryId={card.id}
+                      initialReactions={[]}
+                      initialUserReactions={[]}
+                    />
+                  </div>
+                  
+                  {/* Comments */}
+                  <CommentSection 
+                    memoryId={card.id}
+                    expanded={true}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Information Sidebar */}
+            <div className="space-y-6">
+              {/* Card Title & Creator */}
+              <div className="text-center lg:text-left">
+                <h1 className="text-4xl font-bold text-white mb-3 leading-tight">{card.title}</h1>
+                <div className="flex items-center justify-center lg:justify-start gap-2 text-crd-lightGray">
+                  <span>Created by</span>
+                  <span className="text-white font-semibold">{card.creator_name}</span>
+                  {card.creator_verified && (
+                    <Star className="w-4 h-4 text-crd-green fill-current" />
+                  )}
+                </div>
+              </div>
+
+              {/* Quick Stats */}
+              <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
+                <CardContent className="p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3">Quick Facts</h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-crd-lightGray">Rarity</span>
+                      <Badge className={`bg-gradient-to-r ${getRarityColor(card.rarity)} text-white font-medium`}>
+                        {card.rarity}
+                      </Badge>
+                    </div>
+                    
+                    {card.price && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-crd-lightGray">Price</span>
+                        <span className="text-white font-medium">${card.price}</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-crd-lightGray flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        Created
+                      </span>
+                      <span className="text-white">{formatDate(card.created_at)}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Description */}
+              {card.description && (
+                <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
+                  <CardContent className="p-4">
+                    <h3 className="text-lg font-semibold text-white mb-3">Description</h3>
+                    <p className="text-crd-lightGray leading-relaxed">{card.description}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Tags */}
+              {card.tags && card.tags.length > 0 && (
+                <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
+                  <CardContent className="p-4">
+                    <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                      <Tag className="w-4 h-4" />
+                      Tags
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {card.tags.map((tag, index) => (
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="border-white/20 text-crd-lightGray hover:bg-white/10 hover:text-white cursor-pointer transition-colors"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* More Actions */}
+              <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
+                <CardContent className="p-4">
+                  <h3 className="text-lg font-semibold text-white mb-3">More Actions</h3>
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start border-white/20 text-crd-lightGray hover:bg-white/10 hover:text-white"
+                    >
+                      <MoreHorizontal className="w-4 h-4 mr-2" />
+                      Add to Collection
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start border-white/20 text-crd-lightGray hover:bg-white/10 hover:text-white"
+                    >
+                      <Star className="w-4 h-4 mr-2" />
+                      Create Similar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

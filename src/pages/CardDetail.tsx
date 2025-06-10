@@ -2,10 +2,9 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ImmersiveCardViewer } from "@/components/viewer/ImmersiveCardViewer";
-import { CardDetailView } from "@/components/cards/CardDetailView";
+import { EnhancedCardDetailView } from "@/components/cards/EnhancedCardDetailView";
 import { useCardActions } from "@/hooks/useCardActions";
 import { useCardData } from "@/hooks/useCardData";
-import { convertToViewerCardData } from "@/components/viewer/types";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader } from "lucide-react";
 import { toast } from "sonner";
@@ -48,7 +47,7 @@ export default function CardDetail() {
         price: card.price,
         creator_name: card.creator_name,
         creator_verified: card.creator_verified,
-        stock: 3, // Default value
+        stock: 3,
         tags: card.tags
       };
       await handleShare(universalCard);
@@ -99,7 +98,7 @@ export default function CardDetail() {
     price: card.price,
     creator_name: card.creator_name,
     creator_verified: card.creator_verified,
-    stock: 3, // Default value
+    stock: 3,
     tags: card.tags
   };
 
@@ -135,29 +134,14 @@ export default function CardDetail() {
     );
   }
 
-  // Show card detail view
+  // Show enhanced card detail view
   return (
-    <>
-      {/* Back Button */}
-      <div className="fixed top-4 left-4 z-40">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleGoBack}
-          className="bg-black bg-opacity-80 hover:bg-opacity-90 backdrop-blur text-white border border-white/20"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-      </div>
-
-      {/* Card Detail View */}
-      <CardDetailView
-        card={card}
-        onOpenViewer={handleOpenViewer}
-        onShare={handleShareCard}
-        onDownload={handleDownload}
-      />
-    </>
+    <EnhancedCardDetailView
+      card={card}
+      onOpenViewer={handleOpenViewer}
+      onShare={handleShareCard}
+      onDownload={handleDownload}
+      onGoBack={handleGoBack}
+    />
   );
 }
