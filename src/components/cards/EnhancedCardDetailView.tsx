@@ -125,118 +125,96 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
 
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Card Viewer Section */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Hero Card Display */}
-              <div className="relative">
-                <div className="aspect-[4/3] relative rounded-2xl overflow-hidden bg-gradient-to-br from-editor-dark to-editor-darker border border-white/10 shadow-2xl">
+            {/* Main Content Area - Full Width Card Viewer + Community */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Enhanced Card Viewer - Full Background */}
+              <div className="relative min-h-[600px] rounded-2xl overflow-hidden bg-gradient-to-br from-editor-dark to-editor-darker border border-white/10 shadow-2xl">
+                {/* Full background card viewer */}
+                <div className="absolute inset-0 flex items-center justify-center p-8">
                   <CompactCardViewer
                     card={viewerCard}
                     onFullscreen={onOpenViewer}
-                    width={600}
-                    height={450}
+                    width={500}
+                    height={700}
                   />
-                  
-                  {/* Overlay Stats */}
-                  <div className="absolute top-4 right-4 flex gap-2">
-                    <div className="bg-black/60 backdrop-blur-sm rounded-lg px-3 py-1 flex items-center gap-1 text-white text-sm">
-                      <Eye className="w-3 h-3" />
-                      {viewCount.toLocaleString()}
-                    </div>
-                  </div>
                 </div>
-
-                {/* Action Bar */}
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <Button
-                    onClick={onOpenViewer}
-                    className="bg-gradient-to-r from-crd-blue to-crd-blue/80 hover:from-crd-blue/90 hover:to-crd-blue/70 text-white font-medium flex-1 sm:flex-none min-w-[200px] h-12"
-                    size="lg"
-                  >
-                    <Maximize2 className="w-5 h-5 mr-2" />
-                    Experience in 3D
-                  </Button>
-                  
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={handleLike}
-                      className={`border-white/20 backdrop-blur-sm h-12 w-12 ${
-                        isLiked ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'text-white hover:bg-white/10'
-                      }`}
-                    >
-                      <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={handleBookmark}
-                      className={`border-white/20 backdrop-blur-sm h-12 w-12 ${
-                        isBookmarked ? 'bg-crd-green/20 text-crd-green border-crd-green/30' : 'text-white hover:bg-white/10'
-                      }`}
-                    >
-                      <Bookmark className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} />
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={onShare}
-                      className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm h-12 w-12"
-                    >
-                      <Share className="w-5 h-5" />
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={onDownload}
-                      className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm h-12 w-12"
-                    >
-                      <Download className="w-5 h-5" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Engagement Stats */}
-                <div className="mt-4 flex items-center gap-4 text-sm text-crd-lightGray">
-                  <span className="flex items-center gap-1">
-                    <Heart className="w-4 h-4" />
-                    {likeCount} likes
-                  </span>
-                  <span className="flex items-center gap-1">
+                
+                {/* Overlay Stats - Top Right */}
+                <div className="absolute top-6 right-6 flex gap-2">
+                  <div className="bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center gap-2 text-white text-sm">
                     <Eye className="w-4 h-4" />
-                    {viewCount} views
-                  </span>
+                    {viewCount.toLocaleString()}
+                  </div>
+                  <div className="bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center gap-2 text-white text-sm">
+                    <Heart className="w-4 h-4" />
+                    {likeCount}
+                  </div>
                 </div>
               </div>
 
-              {/* Social Features */}
-              <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-4">Community</h3>
+              {/* Full Width Community Section */}
+              <div className="space-y-6">
+                {/* Engagement Summary */}
+                <div className="flex items-center justify-between text-sm text-crd-lightGray bg-editor-dark/30 rounded-lg p-4 backdrop-blur-sm border border-white/5">
+                  <div className="flex items-center gap-6">
+                    <span className="flex items-center gap-2">
+                      <Heart className="w-4 h-4" />
+                      {likeCount} likes
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <Eye className="w-4 h-4" />
+                      {viewCount} views
+                    </span>
+                  </div>
                   
-                  {/* Reactions */}
-                  <div className="mb-6">
+                  {/* Quick Action Buttons */}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleLike}
+                      className={`h-8 px-3 ${
+                        isLiked ? 'text-red-400 bg-red-500/10' : 'text-crd-lightGray hover:text-white'
+                      }`}
+                    >
+                      <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={onShare}
+                      className="h-8 px-3 text-crd-lightGray hover:text-white"
+                    >
+                      <Share className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Reactions */}
+                <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-bold text-white mb-4">Community Reactions</h3>
                     <ReactionBar 
                       memoryId={card.id}
                       initialReactions={[]}
                       initialUserReactions={[]}
                     />
-                  </div>
-                  
-                  {/* Comments */}
-                  <CommentSection 
-                    memoryId={card.id}
-                    expanded={true}
-                  />
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+                
+                {/* Comments Section */}
+                <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
+                  <CardContent className="p-6">
+                    <CommentSection 
+                      memoryId={card.id}
+                      expanded={true}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
             </div>
 
-            {/* Information Sidebar */}
+            {/* Right Sidebar - Card Information & Actions */}
             <div className="space-y-6">
               {/* Card Title & Creator */}
               <div className="text-center lg:text-left">
@@ -275,6 +253,66 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
                         Created
                       </span>
                       <span className="text-white">{formatDate(card.created_at)}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Primary Actions */}
+              <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
+                <CardContent className="p-4">
+                  <h3 className="text-lg font-semibold text-white mb-4">Actions</h3>
+                  <div className="space-y-3">
+                    <Button
+                      onClick={onOpenViewer}
+                      className="w-full bg-gradient-to-r from-crd-blue to-crd-blue/80 hover:from-crd-blue/90 hover:to-crd-blue/70 text-white font-medium"
+                    >
+                      <Maximize2 className="w-4 h-4 mr-2" />
+                      Experience in 3D
+                    </Button>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={handleLike}
+                        className={`border-white/20 backdrop-blur-sm ${
+                          isLiked ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'text-white hover:bg-white/10'
+                        }`}
+                      >
+                        <Heart className={`w-4 h-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
+                        {isLiked ? 'Liked' : 'Like'}
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={handleBookmark}
+                        className={`border-white/20 backdrop-blur-sm ${
+                          isBookmarked ? 'bg-crd-green/20 text-crd-green border-crd-green/30' : 'text-white hover:bg-white/10'
+                        }`}
+                      >
+                        <Bookmark className={`w-4 h-4 mr-2 ${isBookmarked ? 'fill-current' : ''}`} />
+                        Save
+                      </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={onShare}
+                        className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
+                      >
+                        <Share className="w-4 h-4 mr-2" />
+                        Share
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        onClick={onDownload}
+                        className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Save
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
