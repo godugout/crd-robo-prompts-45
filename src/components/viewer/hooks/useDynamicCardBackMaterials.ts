@@ -1,6 +1,7 @@
 
 import { useMemo, useRef, useCallback } from 'react';
 import type { EffectValues } from './useEnhancedCardEffects';
+import type { CardData } from '@/hooks/useCardEditor';
 
 export interface CardBackMaterial {
   id: string;
@@ -141,11 +142,21 @@ export const CARD_BACK_MATERIALS: Record<string, CardBackMaterial> = {
   }
 };
 
-export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
+export const useDynamicCardBackMaterials = (effectValues: EffectValues, cardData?: CardData) => {
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
   
-  // Debounced material calculation for smoother transitions
+  // Smart material selection based on card metadata AND effects
   const selectedMaterial = useMemo(() => {
+    console.log('🎨 Material Selection: Starting with card data:', cardData?.rarity, cardData?.tags);
+    
+    // If no effects but we have card data, use metadata-based selection
+    if (cardData && (!effectValues || Object.keys(effectValues).length === 0)) {
+      const materialId = getMaterialFromMetadata(cardData);
+      const selectedMat = CARD_BACK_MATERIALS[materialId];
+      console.log('🎨 Material Selection: Based on metadata:', materialId, selectedMat.name);
+      return selectedMat;
+    }
+    
     if (!effectValues) {
       console.log('🎨 Material Selection: No effect values, using default');
       return CARD_BACK_MATERIALS.default;
@@ -159,9 +170,15 @@ export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
     
     console.log('🎨 Material Selection: Active effects (>5 intensity):', effectIntensities);
     
-    // If no effects are active, return default
+    // If no effects are active, fall back to metadata
     if (effectIntensities.length === 0) {
-      console.log('🎨 Material Selection: No active effects, using default');
+      if (cardData) {
+        const materialId = getMaterialFromMetadata(cardData);
+        const selectedMat = CARD_BACK_MATERIALS[materialId];
+        console.log('🎨 Material Selection: No active effects, using metadata fallback:', materialId, selectedMat.name);
+        return selectedMat;
+      }
+      console.log('🎨 Material Selection: No active effects or metadata, using default');
       return CARD_BACK_MATERIALS.default;
     }
     
@@ -181,17 +198,62 @@ export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
       gold: 'gold',
       vintage: 'vintage',
       prizm: 'prizm',
-      interference: 'ice', // Map interference to ice material
-      foilspray: 'starlight' // Map foil spray to starlight material
+      interference: 'ice',
+      foilspray: 'starlight'
     };
     
-    const materialId = materialMapping[dominantEffect.effectId] || 'default';
+    const materialId = materialMapping[dominantEffect.effectId] || getMaterialFromMetadata(cardData) || 'default';
     const selectedMat = CARD_BACK_MATERIALS[materialId];
     
     console.log('🎨 Material Selection: Selected material:', materialId, selectedMat.name);
     
     return selectedMat;
-  }, [effectValues]);
+  }, [effectValues, cardData]);
+  
+  // Smart metadata-based material selection
+  const getMaterialFromMetadata = useCallback((card: CardData): string => {
+    if (!card) return 'default';
+    
+    const rarity = card.rarity?.toLowerCase();
+    const tags = card.tags || [];
+    const templateId = card.template_id;
+    
+    // Rarity-based selection
+    switch (rarity) {
+      case 'legendary':
+        return 'gold';
+      case 'epic':
+        return 'holographic';
+      case 'rare':
+        return 'prizm';
+      case 'uncommon':
+        return 'crystal';
+      case 'common':
+      default:
+        // Fall back to template or tag-based selection
+        break;
+    }
+    
+    // Template-based selection
+    if (templateId) {
+      if (templateId.includes('premium') || templateId.includes('elite')) return 'chrome';
+      if (templateId.includes('vintage') || templateId.includes('classic')) return 'vintage';
+      if (templateId.includes('neon') || templateId.includes('cyber')) return 'starlight';
+      if (templateId.includes('sports')) return 'prizm';
+    }
+    
+    // Tag-based selection
+    for (const tag of tags) {
+      const tagLower = tag.toLowerCase();
+      if (tagLower.includes('vintage') || tagLower.includes('retro')) return 'vintage';
+      if (tagLower.includes('premium') || tagLower.includes('luxury')) return 'gold';
+      if (tagLower.includes('sports') || tagLower.includes('athletic')) return 'prizm';
+      if (tagLower.includes('tech') || tagLower.includes('cyber')) return 'starlight';
+      if (tagLower.includes('nature') || tagLower.includes('natural')) return 'crystal';
+    }
+    
+    return 'default';
+  }, []);
   
   // Pre-calculate material lookup for performance
   const getMaterialForEffect = useCallback((effectId: string): CardBackMaterial => {
@@ -214,6 +276,7 @@ export const useDynamicCardBackMaterials = (effectValues: EffectValues) => {
   return {
     selectedMaterial,
     availableMaterials: CARD_BACK_MATERIALS,
-    getMaterialForEffect
+    getMaterialForEffect,
+    getMaterialFromMetadata
   };
 };

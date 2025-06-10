@@ -1,5 +1,6 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
 import type { ImageAdjustments } from './EnhancedCardImageEditor';
 
 interface SmartCardFitterProps {
@@ -21,6 +22,35 @@ export const SmartCardFitter: React.FC<SmartCardFitterProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [scale, setScale] = useState(1);
+
+  // Auto-fit function to fill entire card surface
+  const autoFitToCard = useCallback(() => {
+    if (!image) return;
+
+    const imageAspect = image.width / image.height;
+    
+    // Calculate scale to fill entire card (crop mode)
+    let newScale;
+    if (imageAspect > targetAspectRatio) {
+      // Image is wider - scale by height to fill
+      newScale = 1.2; // Scale up to ensure full coverage
+    } else {
+      // Image is taller - scale by width to fill
+      newScale = targetAspectRatio / imageAspect * 1.1; // Scale up to ensure full coverage
+    }
+
+    onAdjustmentsChange({
+      scale: Math.max(1.0, newScale),
+      position: { x: 0, y: 0 } // Center the image
+    });
+  }, [image, targetAspectRatio, onAdjustmentsChange]);
+
+  // Auto-fit when image changes
+  useEffect(() => {
+    if (image && adjustments.scale === 1) {
+      autoFitToCard();
+    }
+  }, [image, autoFitToCard]);
 
   const drawCanvas = useCallback(() => {
     if (!canvasRef.current || !image) return;
@@ -70,8 +100,13 @@ export const SmartCardFitter: React.FC<SmartCardFitterProps> = ({
     ctx.scale(adjustments.scale, adjustments.scale);
     ctx.translate(-centerX + adjustments.position.x * scale, -centerY + adjustments.position.y * scale);
     
-    // Draw image
-    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    // Draw image to fill entire canvas
+    const scaledWidth = canvas.width * adjustments.scale;
+    const scaledHeight = canvas.height * adjustments.scale;
+    const offsetX = -scaledWidth / 2;
+    const offsetY = -scaledHeight / 2;
+    
+    ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
     
     ctx.restore();
     
@@ -83,28 +118,14 @@ export const SmartCardFitter: React.FC<SmartCardFitterProps> = ({
       drawGrid(ctx, canvas.width, canvas.height);
     }
     
-    // Draw adjustment handles
-    drawAdjustmentHandles(ctx, canvas.width, canvas.height);
-    
   }, [image, adjustments, showGrid, scale]);
 
   const drawCardBoundary = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    const imageAspect = width / height;
-    let boundaryWidth, boundaryHeight, offsetX, offsetY;
-    
-    if (imageAspect > targetAspectRatio) {
-      // Image is wider, fit by height
-      boundaryHeight = height * 0.8;
-      boundaryWidth = boundaryHeight * targetAspectRatio;
-      offsetX = (width - boundaryWidth) / 2;
-      offsetY = (height - boundaryHeight) / 2;
-    } else {
-      // Image is taller, fit by width
-      boundaryWidth = width * 0.8;
-      boundaryHeight = boundaryWidth / targetAspectRatio;
-      offsetX = (width - boundaryWidth) / 2;
-      offsetY = (height - boundaryHeight) / 2;
-    }
+    // Card boundary should cover the entire canvas for full bleed
+    const boundaryWidth = width;
+    const boundaryHeight = height;
+    const offsetX = 0;
+    const offsetY = 0;
     
     // Draw boundary rectangle
     ctx.strokeStyle = '#22c55e';
@@ -148,7 +169,7 @@ export const SmartCardFitter: React.FC<SmartCardFitterProps> = ({
     // Add label
     ctx.fillStyle = '#22c55e';
     ctx.font = '12px sans-serif';
-    ctx.fillText('Card Boundary (2.5:3.5)', offsetX, offsetY - 8);
+    ctx.fillText('Full Card Coverage', offsetX, offsetY - 8);
   };
 
   const drawGrid = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -169,50 +190,6 @@ export const SmartCardFitter: React.FC<SmartCardFitterProps> = ({
       ctx.lineTo(width, (height / 3) * i);
       ctx.stroke();
     }
-  };
-
-  const drawAdjustmentHandles = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const handleSize = 12;
-    
-    // Center handle for position
-    ctx.fillStyle = '#3b82f6';
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, handleSize / 2, 0, 2 * Math.PI);
-    ctx.fill();
-    
-    // Scale handles at corners
-    ctx.fillStyle = '#8b5cf6';
-    const margin = 40;
-    
-    // Corner handles
-    [-1, 1].forEach(x => {
-      [-1, 1].forEach(y => {
-        ctx.beginPath();
-        ctx.rect(
-          centerX + x * (width / 2 - margin) - handleSize / 2,
-          centerY + y * (height / 2 - margin) - handleSize / 2,
-          handleSize,
-          handleSize
-        );
-        ctx.fill();
-      });
-    });
-    
-    // Rotation handle
-    ctx.fillStyle = '#f59e0b';
-    ctx.beginPath();
-    ctx.arc(centerX, centerY - 60, handleSize / 2, 0, 2 * Math.PI);
-    ctx.fill();
-    
-    // Line to rotation handle
-    ctx.strokeStyle = '#f59e0b';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    ctx.lineTo(centerX, centerY - 60);
-    ctx.stroke();
   };
 
   useEffect(() => {
@@ -256,8 +233,8 @@ export const SmartCardFitter: React.FC<SmartCardFitterProps> = ({
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    const newScale = Math.max(0.1, Math.min(3, adjustments.scale * delta));
+    const delta = e.deltaY > 0 ? 0.95 : 1.05;
+    const newScale = Math.max(0.5, Math.min(5, adjustments.scale * delta));
     
     onAdjustmentsChange({
       scale: newScale
@@ -266,9 +243,32 @@ export const SmartCardFitter: React.FC<SmartCardFitterProps> = ({
 
   return (
     <div className="relative">
+      <div className="mb-4 flex gap-2">
+        <Button
+          onClick={autoFitToCard}
+          variant="outline"
+          size="sm"
+          className="text-xs"
+        >
+          Fill Card Surface
+        </Button>
+        <Button
+          onClick={() => onAdjustmentsChange({
+            scale: 1,
+            position: { x: 0, y: 0 },
+            rotation: 0
+          })}
+          variant="outline"
+          size="sm"
+          className="text-xs"
+        >
+          Reset
+        </Button>
+      </div>
+      
       <canvas
         ref={canvasRef}
-        className="max-w-full h-auto cursor-move"
+        className="max-w-full h-auto cursor-move border border-gray-600 rounded"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -276,10 +276,10 @@ export const SmartCardFitter: React.FC<SmartCardFitterProps> = ({
         style={{ maxHeight: '600px' }}
       />
       
-      <div className="absolute top-4 left-4 bg-black bg-opacity-75 text-white text-xs p-2 rounded">
+      <div className="absolute top-16 left-4 bg-black bg-opacity-75 text-white text-xs p-2 rounded">
         <div>Click and drag to reposition</div>
         <div>Scroll to zoom</div>
-        <div>Green outline shows card boundary</div>
+        <div>Green outline shows full card area</div>
       </div>
     </div>
   );
