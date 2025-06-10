@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Sparkles, Search } from 'lucide-react';
+import { ArrowLeft, Sparkles, Search, CheckCircle, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FrameTemplatePreview, type FrameTemplate } from './FrameTemplate';
 import { CanvasEditor } from './CanvasEditor';
@@ -71,6 +71,9 @@ export const DesignScratchFlow = () => {
       } 
     });
   };
+
+  // Check if user can proceed to next step
+  const canProceedFromCustomize = cardTitle.trim().length >= 3;
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -159,16 +162,64 @@ export const DesignScratchFlow = () => {
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Change Frame
                 </Button>
-                <Button
-                  onClick={handleFinalize}
-                  className="bg-crd-green hover:bg-crd-green/90 text-black"
-                >
-                  Finalize Card
-                  <Sparkles className="w-4 h-4 ml-2" />
-                </Button>
               </div>
             </div>
 
+            {/* Card Details Section - Now in Customize Step */}
+            <Card className="bg-editor-dark border-editor-border">
+              <CardContent className="p-6">
+                <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                  Card Details
+                  {canProceedFromCustomize ? (
+                    <CheckCircle className="w-5 h-5 text-crd-green" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-yellow-500" />
+                  )}
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-crd-lightGray text-sm block mb-2">
+                      Card Title * 
+                      <span className="ml-2 text-xs">({cardTitle.length}/50)</span>
+                    </label>
+                    <Input
+                      value={cardTitle}
+                      onChange={(e) => setCardTitle(e.target.value)}
+                      placeholder="Enter your card title..."
+                      maxLength={50}
+                      className={`bg-editor-tool border-editor-border text-white ${
+                        cardTitle.trim().length >= 3 
+                          ? 'focus:border-crd-green border-crd-green/30' 
+                          : 'focus:border-yellow-500'
+                      }`}
+                    />
+                    {cardTitle.trim().length > 0 && cardTitle.trim().length < 3 && (
+                      <p className="text-yellow-500 text-xs mt-1">Title must be at least 3 characters</p>
+                    )}
+                    {cardTitle.trim().length >= 3 && (
+                      <p className="text-crd-green text-xs mt-1">✓ Title looks good!</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <label className="text-crd-lightGray text-sm block mb-2">
+                      Description (Optional)
+                      <span className="ml-2 text-xs">({cardDescription.length}/200)</span>
+                    </label>
+                    <textarea
+                      value={cardDescription}
+                      onChange={(e) => setCardDescription(e.target.value)}
+                      placeholder="Describe your card..."
+                      maxLength={200}
+                      rows={3}
+                      className="w-full p-3 bg-editor-tool border border-editor-border rounded-lg text-white placeholder-crd-lightGray focus:border-crd-green focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Canvas Editor */}
             {selectedFrame && (
               <CanvasEditor
                 selectedFrame={selectedFrame}
@@ -176,6 +227,28 @@ export const DesignScratchFlow = () => {
                 onExport={handleExportDesign}
               />
             )}
+
+            {/* Finalize Button - Now prominently displayed */}
+            <div className="flex justify-center pt-6">
+              <Button
+                onClick={handleFinalize}
+                disabled={!canProceedFromCustomize}
+                className={`px-8 py-3 text-lg font-medium ${
+                  canProceedFromCustomize
+                    ? 'bg-crd-green hover:bg-crd-green/90 text-black'
+                    : 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                }`}
+              >
+                {canProceedFromCustomize ? (
+                  <>
+                    Finalize Card
+                    <Sparkles className="w-5 h-5 ml-2" />
+                  </>
+                ) : (
+                  'Enter card title to continue'
+                )}
+              </Button>
+            </div>
           </div>
         );
 
@@ -184,8 +257,8 @@ export const DesignScratchFlow = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-white">Finalize Your Card</h2>
-                <p className="text-crd-lightGray">Add final details and create your card</p>
+                <h2 className="text-2xl font-bold text-white">Ready to Create!</h2>
+                <p className="text-crd-lightGray">Review your card and publish it</p>
               </div>
               <Button
                 variant="outline"
@@ -198,39 +271,24 @@ export const DesignScratchFlow = () => {
             </div>
 
             <div className="grid lg:grid-cols-2 gap-8">
-              {/* Card Details */}
+              {/* Card Summary */}
               <Card className="bg-editor-dark border-editor-border">
                 <CardContent className="p-6">
-                  <h3 className="text-white font-semibold mb-4">Card Details</h3>
+                  <h3 className="text-white font-semibold mb-4">Card Summary</h3>
                   <div className="space-y-4">
-                    <div>
-                      <label className="text-crd-lightGray text-sm block mb-2">Card Title *</label>
-                      <Input
-                        value={cardTitle}
-                        onChange={(e) => setCardTitle(e.target.value)}
-                        placeholder="Enter card title..."
-                        className="bg-editor-tool border-editor-border text-white"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="text-crd-lightGray text-sm block mb-2">Description</label>
-                      <textarea
-                        value={cardDescription}
-                        onChange={(e) => setCardDescription(e.target.value)}
-                        placeholder="Enter description..."
-                        rows={3}
-                        className="w-full p-3 bg-editor-tool border border-editor-border rounded-lg text-white placeholder-crd-lightGray focus:border-crd-green focus:outline-none"
-                      />
+                    <div className="p-4 bg-editor-tool rounded-lg">
+                      <h4 className="text-white font-medium text-lg">{cardTitle}</h4>
+                      {cardDescription && (
+                        <p className="text-crd-lightGray text-sm mt-2">{cardDescription}</p>
+                      )}
                     </div>
                     
                     <Button
                       onClick={handleCreateCard}
-                      disabled={!cardTitle.trim()}
-                      className="w-full bg-crd-green hover:bg-crd-green/90 text-black"
+                      className="w-full bg-crd-green hover:bg-crd-green/90 text-black font-medium py-3"
                     >
                       Create Card
-                      <Sparkles className="w-4 h-4 ml-2" />
+                      <Sparkles className="w-5 h-5 ml-2" />
                     </Button>
                   </div>
                 </CardContent>
@@ -272,7 +330,7 @@ export const DesignScratchFlow = () => {
   return (
     <div className="min-h-screen bg-crd-darkest">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
+        {/* Header with Progress */}
         <div className="flex items-center gap-4 mb-8">
           <Button
             variant="ghost"
@@ -282,9 +340,33 @@ export const DesignScratchFlow = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold text-white">Design from Scratch</h1>
             <p className="text-crd-lightGray">Create a custom card with full design control</p>
+          </div>
+          
+          {/* Progress Indicator */}
+          <div className="flex items-center gap-2 text-sm">
+            <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+              currentStep === 'frames' ? 'bg-crd-green text-black' : 'bg-editor-border text-crd-lightGray'
+            }`}>
+              <span className={currentStep === 'frames' ? 'text-black' : 'text-crd-lightGray'}>1</span>
+              Frame
+            </div>
+            <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+              currentStep === 'customize' ? 'bg-crd-green text-black' : 
+              selectedFrame ? 'bg-editor-border text-crd-lightGray' : 'bg-gray-800 text-gray-500'
+            }`}>
+              <span>2</span>
+              Customize
+            </div>
+            <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+              currentStep === 'finalize' ? 'bg-crd-green text-black' : 
+              canProceedFromCustomize ? 'bg-editor-border text-crd-lightGray' : 'bg-gray-800 text-gray-500'
+            }`}>
+              <span>3</span>
+              Finalize
+            </div>
           </div>
         </div>
 
