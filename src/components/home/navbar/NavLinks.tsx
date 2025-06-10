@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Bug, Palette, Upload } from "lucide-react";
+import { Beaker, Palette } from "lucide-react";
 
 export const NavLinks = () => {
   const location = useLocation();
@@ -23,13 +23,6 @@ export const NavLinks = () => {
         Create
       </Link>
       <Link 
-        to="/cards/bulk-upload" 
-        className={`nav-item ${isActive('/cards/bulk-upload') ? 'active' : ''} flex items-center gap-2`}
-      >
-        <Upload className="w-4 h-4" />
-        Bulk Upload
-      </Link>
-      <Link 
         to="/studio" 
         className={`nav-item ${isActive('/studio') ? 'active' : ''} flex items-center gap-2`}
       >
@@ -49,12 +42,11 @@ export const NavLinks = () => {
         Creators
       </Link>
       <Link 
-        to="/debug-detection" 
-        className={`nav-item ${isActive('/debug-detection') ? 'active' : ''} flex items-center gap-2`}
-        title="Debug Card Detection"
+        to="/labs" 
+        className={`nav-item ${isActive('/labs') || location.pathname.startsWith('/labs') ? 'active' : ''} flex items-center gap-2`}
       >
-        <Bug className="w-4 h-4" />
-        Debug
+        <Beaker className="w-4 h-4" />
+        Labs
       </Link>
     </div>
   );

@@ -8,12 +8,13 @@ import Gallery from '@/pages/Gallery';
 import Profile from '@/pages/Profile';
 import AccountSettings from '@/pages/AccountSettings';
 import Creators from '@/pages/Creators';
-import DebugDetection from '@/pages/DebugDetection';
+import Labs from '@/pages/Labs';
+import LabsBulkUpload from '@/pages/LabsBulkUpload';
+import LabsDebugDetection from '@/pages/LabsDebugDetection';
 import Studio from '@/pages/Studio';
 import CardDetail from '@/pages/CardDetail';
 import { AuthPage } from '@/components/auth/AuthPage';
 import { CardCreationFlow } from '@/components/editor/CardCreationFlow';
-import { MobileCardsWrapper } from '@/components/cards/MobileCardsWrapper';
 
 function App() {
   return (
@@ -24,7 +25,8 @@ function App() {
             <Route index element={<Index />} />
             <Route path="cards" element={<CardCreationFlow />} />
             <Route path="cards/create" element={<CardCreationFlow />} />
-            <Route path="cards/bulk-upload" element={<MobileCardsWrapper />} />
+            {/* Redirect old bulk upload route to labs */}
+            <Route path="cards/bulk-upload" element={<Navigate to="/labs/bulk-upload" replace />} />
             <Route path="card/:id" element={<CardDetail />} />
             <Route path="studio" element={<Studio />} />
             <Route path="gallery" element={<Gallery />} />
@@ -32,7 +34,12 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<AccountSettings />} />
             <Route path="creators" element={<Creators />} />
-            <Route path="debug-detection" element={<DebugDetection />} />
+            {/* Labs routes */}
+            <Route path="labs" element={<Labs />} />
+            <Route path="labs/bulk-upload" element={<LabsBulkUpload />} />
+            <Route path="labs/debug-detection" element={<LabsDebugDetection />} />
+            {/* Redirect old debug route to labs */}
+            <Route path="debug-detection" element={<Navigate to="/labs/debug-detection" replace />} />
             <Route path="*" element={<RouteErrorBoundary />} />
           </Route>
         </Routes>
