@@ -8,7 +8,7 @@ import { AdjustAndFinalizeStep } from './components/AdjustAndFinalizeStep';
 import { CollectionSelectionPhase } from './components/CollectionSelectionPhase';
 import { StepIndicator } from './components/StepIndicator';
 import { bulkCardSaver } from '@/services/cardSaving/bulkCardSaver';
-import type { FramedImage, UploadWorkflowState } from './types/bulkUploadTypes';
+import type { FramedImage, UploadWorkflowState, ExtractedCard } from './types/bulkUploadTypes';
 
 type WorkflowStep = 1 | 2 | 3 | 4 | 5;
 
@@ -40,10 +40,16 @@ export const BulkUploadWorkflow: React.FC = () => {
   }, [user]);
 
   const handleImagesUploaded = (framedImages: FramedImage[]) => {
+    // Ensure each framed image has an imageUrl (using the preview for now)
+    const imagesWithUrl = framedImages.map(img => ({
+      ...img,
+      imageUrl: img.preview
+    }));
+    
     setWorkflowState(prev => ({
       ...prev,
-      framedImages,
-      uploadedImages: framedImages.map(img => img.originalFile)
+      framedImages: imagesWithUrl,
+      uploadedImages: imagesWithUrl.map(img => img.originalFile)
     }));
     setCurrentStep(2);
   };
@@ -74,6 +80,21 @@ export const BulkUploadWorkflow: React.FC = () => {
       processedImages: allProcessedImages
     }));
     setCurrentStep(4); // Go to collection selection
+  };
+
+  // Helper function to convert FramedImage to ExtractedCard (synchronous version for props)
+  const convertToExtractedCard = (framedImage: FramedImage): ExtractedCard => {
+    return {
+      id: framedImage.id,
+      name: framedImage.originalFile.name.replace(/\.[^/.]+$/, ''), // Remove file extension
+      description: 'Extracted from bulk upload',
+      rarity: 'common' as const,
+      tags: ['bulk-upload'],
+      confidence: 0.95,
+      sourceImageName: framedImage.originalFile.name,
+      imageUrl: framedImage.imageUrl,
+      imageBlob: new Blob() // Placeholder blob, will be created during save
+    };
   };
 
   const handleCollectionSelected = async (collectionId: string) => {
@@ -193,16 +214,7 @@ export const BulkUploadWorkflow: React.FC = () => {
 
       {currentStep === 4 && (
         <CollectionSelectionPhase
-          extractedCards={workflowState.processedImages.map(img => ({
-            id: `temp-${Date.now()}-${Math.random()}`,
-            name: img.originalFile.name,
-            description: 'Extracted from bulk upload',
-            rarity: 'common' as const,
-            tags: ['bulk-upload'],
-            confidence: 0.95,
-            sourceImageName: img.originalFile.name,
-            imageUrl: img.imageUrl
-          }))}
+          extractedCards={workflowState.processedImages.map(img => convertToExtractedCard(img))}
           onCollectionSelected={handleCollectionSelected}
           onGoBack={goBack}
         />

@@ -3,6 +3,7 @@ export interface FramedImage {
   id: string;
   originalFile: File;
   preview: string;
+  imageUrl: string; // Add this property
   frameId: string;
   frameConfig: any;
   position: {
@@ -31,4 +32,16 @@ export interface UploadWorkflowState {
 
 export interface StepProps {
   onGoBack?: () => void;
+}
+
+export interface ExtractedCard {
+  id: string;
+  name: string;
+  description: string;
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+  tags: string[];
+  confidence: number;
+  sourceImageName: string;
+  imageUrl: string;
+  imageBlob: Blob;
 }

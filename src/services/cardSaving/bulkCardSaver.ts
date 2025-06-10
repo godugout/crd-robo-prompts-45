@@ -36,30 +36,14 @@ export const bulkCardSaver = {
 
       for (const framedImage of framedImages) {
         try {
-          // Convert canvas to blob
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          const img = new Image();
-          
-          await new Promise<void>((resolve, reject) => {
-            img.onload = () => {
-              canvas.width = img.width;
-              canvas.height = img.height;
-              ctx?.drawImage(img, 0, 0);
-              resolve();
-            };
-            img.onerror = reject;
-            img.src = framedImage.imageUrl;
-          });
-
-          const blob = await new Promise<Blob>((resolve) => {
-            canvas.toBlob((blob) => resolve(blob!), 'image/jpeg', 0.9);
-          });
+          // Convert image URL to blob
+          const response = await fetch(framedImage.imageUrl);
+          const blob = await response.blob();
 
           // Generate unique filename
           const filename = `card-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.jpg`;
           
-          // Upload to Supabase storage (we'll create the bucket in the next step)
+          // Upload to Supabase storage
           const { data: uploadData, error: uploadError } = await supabase.storage
             .from('card-images')
             .upload(`bulk-uploads/${userId}/${filename}`, blob, {
