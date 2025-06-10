@@ -1,6 +1,8 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
+import { Target, RotateCcw, Download, ZoomIn, ZoomOut } from 'lucide-react';
+import { toast } from 'sonner';
 import type { ImageAdjustments } from './EnhancedCardImageEditor';
 
 interface SmartCardFitterProps {
@@ -9,6 +11,7 @@ interface SmartCardFitterProps {
   onAdjustmentsChange: (updates: Partial<ImageAdjustments>) => void;
   showGrid: boolean;
   targetAspectRatio: number;
+  onCroppedImageChange?: (croppedImageUrl: string) => void;
 }
 
 export const SmartCardFitter: React.FC<SmartCardFitterProps> = ({
@@ -16,7 +19,8 @@ export const SmartCardFitter: React.FC<SmartCardFitterProps> = ({
   adjustments,
   onAdjustmentsChange,
   showGrid,
-  targetAspectRatio
+  targetAspectRatio,
+  onCroppedImageChange
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -43,7 +47,63 @@ export const SmartCardFitter: React.FC<SmartCardFitterProps> = ({
       scale: Math.max(1.0, newScale),
       position: { x: 0, y: 0 } // Center the image
     });
+
+    toast.success('Image auto-fitted to fill card surface');
   }, [image, targetAspectRatio, onAdjustmentsChange]);
+
+  // Export the exact crop area as 2.5x3.5 image
+  const exportCrop = useCallback(() => {
+    if (!canvasRef.current || !image) return;
+
+    // Create a new canvas for the exact crop export
+    const exportCanvas = document.createElement('canvas');
+    const exportCtx = exportCanvas.getContext('2d')!;
+    
+    // Set exact card dimensions (high resolution)
+    const cardWidth = 750; // 2.5 inches at 300 DPI
+    const cardHeight = 1050; // 3.5 inches at 300 DPI
+    
+    exportCanvas.width = cardWidth;
+    exportCanvas.height = cardHeight;
+    
+    // Calculate the source area from the original image
+    const { scale: imageScale, position, rotation, enhancements } = adjustments;
+    
+    // Apply image transformations to get the exact crop area
+    exportCtx.save();
+    
+    // Apply enhancements
+    const { brightness, contrast, saturation } = enhancements;
+    exportCtx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+    
+    // Center and apply transformations
+    const centerX = cardWidth / 2;
+    const centerY = cardHeight / 2;
+    
+    exportCtx.translate(centerX, centerY);
+    exportCtx.rotate((rotation * Math.PI) / 180);
+    exportCtx.scale(imageScale, imageScale);
+    exportCtx.translate(-centerX + position.x, -centerY + position.y);
+    
+    // Draw the image to fill the exact card area
+    const scaledWidth = cardWidth * imageScale;
+    const scaledHeight = cardHeight * imageScale;
+    const offsetX = -scaledWidth / 2;
+    const offsetY = -scaledHeight / 2;
+    
+    exportCtx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
+    exportCtx.restore();
+    
+    // Convert to blob and update the image
+    exportCanvas.toBlob((blob) => {
+      if (blob && onCroppedImageChange) {
+        const croppedUrl = URL.createObjectURL(blob);
+        onCroppedImageChange(croppedUrl);
+        toast.success('Crop applied! Image updated to exact card dimensions.');
+      }
+    }, 'image/png', 0.95);
+    
+  }, [image, adjustments, onCroppedImageChange]);
 
   // Auto-fit when image changes
   useEffect(() => {
@@ -169,7 +229,7 @@ export const SmartCardFitter: React.FC<SmartCardFitterProps> = ({
     // Add label
     ctx.fillStyle = '#22c55e';
     ctx.font = '12px sans-serif';
-    ctx.fillText('Full Card Coverage', offsetX, offsetY - 8);
+    ctx.fillText('Full Card Coverage (2.5" x 3.5")', offsetX, offsetY - 8);
   };
 
   const drawGrid = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -243,32 +303,67 @@ export const SmartCardFitter: React.FC<SmartCardFitterProps> = ({
 
   return (
     <div className="relative">
-      <div className="mb-4 flex gap-2">
-        <Button
-          onClick={autoFitToCard}
-          variant="outline"
-          size="sm"
-          className="text-xs"
-        >
-          Fill Card Surface
-        </Button>
-        <Button
-          onClick={() => onAdjustmentsChange({
-            scale: 1,
-            position: { x: 0, y: 0 },
-            rotation: 0
-          })}
-          variant="outline"
-          size="sm"
-          className="text-xs"
-        >
-          Reset
-        </Button>
+      {/* Enhanced Control Bar */}
+      <div className="mb-4 p-3 bg-editor-tool rounded-lg border border-editor-border">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-white font-medium text-sm">Image Fitting Controls</h4>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => onAdjustmentsChange({ scale: Math.min(5, adjustments.scale * 1.1) })}
+              variant="outline"
+              size="sm"
+              className="border-editor-border text-crd-lightGray hover:text-white p-2"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </Button>
+            <Button
+              onClick={() => onAdjustmentsChange({ scale: Math.max(0.5, adjustments.scale * 0.9) })}
+              variant="outline"
+              size="sm"
+              className="border-editor-border text-crd-lightGray hover:text-white p-2"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button
+            onClick={autoFitToCard}
+            variant="outline"
+            size="sm"
+            className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black flex-1"
+          >
+            <Target className="w-4 h-4 mr-2" />
+            Fill Card Surface
+          </Button>
+          <Button
+            onClick={() => onAdjustmentsChange({
+              scale: 1,
+              position: { x: 0, y: 0 },
+              rotation: 0
+            })}
+            variant="outline"
+            size="sm"
+            className="border-editor-border text-crd-lightGray hover:text-white"
+          >
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Reset
+          </Button>
+          <Button
+            onClick={exportCrop}
+            className="bg-crd-green hover:bg-crd-green/90 text-black"
+            size="sm"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Apply Crop
+          </Button>
+        </div>
       </div>
       
       <canvas
         ref={canvasRef}
-        className="max-w-full h-auto cursor-move border border-gray-600 rounded"
+        className="max-w-full h-auto cursor-move border border-gray-600 rounded bg-editor-darker"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -276,10 +371,16 @@ export const SmartCardFitter: React.FC<SmartCardFitterProps> = ({
         style={{ maxHeight: '600px' }}
       />
       
-      <div className="absolute top-16 left-4 bg-black bg-opacity-75 text-white text-xs p-2 rounded">
-        <div>Click and drag to reposition</div>
-        <div>Scroll to zoom</div>
-        <div>Green outline shows full card area</div>
+      {/* Instructions Overlay */}
+      <div className="absolute top-20 left-4 bg-black/80 text-white text-xs p-3 rounded-lg max-w-xs">
+        <div className="space-y-1">
+          <div><strong>Controls:</strong></div>
+          <div>• <Target className="w-3 h-3 inline mr-1" />Target: Auto-fit to fill card</div>
+          <div>• Drag: Reposition image</div>
+          <div>• Scroll: Zoom in/out</div>
+          <div>• Green outline: Card boundaries</div>
+          <div>• Apply Crop: Save exact 2.5"×3.5" area</div>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +8,7 @@ import { FrameTemplatePreview, type FrameTemplate } from './FrameTemplate';
 import { CanvasEditor } from './CanvasEditor';
 import { FRAME_TEMPLATES, FRAME_CATEGORIES } from './FrameTemplatesData';
 import { toast } from 'sonner';
+import { TemplatePreviewWithImage } from './TemplatePreviewWithImage';
 
 export const DesignScratchFlow = () => {
   const navigate = useNavigate();
@@ -19,6 +19,7 @@ export const DesignScratchFlow = () => {
   const [canvasData, setCanvasData] = useState<string>('');
   const [cardTitle, setCardTitle] = useState('');
   const [cardDescription, setCardDescription] = useState('');
+  const [currentImageUrl, setCurrentImageUrl] = useState<string>('');
 
   // Filter frames based on category and search
   const filteredFrames = FRAME_TEMPLATES.filter(frame => {
@@ -121,13 +122,15 @@ export const DesignScratchFlow = () => {
               Showing {filteredFrames.length} of {FRAME_TEMPLATES.length} frames
             </p>
 
-            {/* Frame Grid */}
+            {/* Enhanced Frame Grid with Image Previews */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredFrames.map((frame) => (
-                <FrameTemplatePreview
+                <TemplatePreviewWithImage
                   key={frame.id}
-                  template={frame}
-                  isSelected={false}
+                  templateId={frame.id}
+                  templateName={frame.name}
+                  currentImageUrl={currentImageUrl}
+                  isSelected={selectedFrame?.id === frame.id}
                   onSelect={() => handleFrameSelect(frame)}
                 />
               ))}
@@ -165,8 +168,8 @@ export const DesignScratchFlow = () => {
               </div>
             </div>
 
-            {/* Card Details Section - Now in Customize Step */}
-            <Card className="bg-editor-dark border-editor-border">
+            {/* Card Details Section - Enhanced UI */}
+            <Card className="bg-editor-tool border-editor-border">
               <CardContent className="p-6">
                 <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
                   Card Details
@@ -178,16 +181,16 @@ export const DesignScratchFlow = () => {
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-crd-lightGray text-sm block mb-2">
+                    <label className="text-white text-sm font-medium block mb-2">
                       Card Title * 
-                      <span className="ml-2 text-xs">({cardTitle.length}/50)</span>
+                      <span className="ml-2 text-xs text-crd-lightGray">({cardTitle.length}/50)</span>
                     </label>
                     <Input
                       value={cardTitle}
                       onChange={(e) => setCardTitle(e.target.value)}
                       placeholder="Enter your card title..."
                       maxLength={50}
-                      className={`bg-editor-tool border-editor-border text-white ${
+                      className={`bg-editor-dark border-editor-border text-white placeholder-crd-lightGray ${
                         cardTitle.trim().length >= 3 
                           ? 'focus:border-crd-green border-crd-green/30' 
                           : 'focus:border-yellow-500'
@@ -202,9 +205,9 @@ export const DesignScratchFlow = () => {
                   </div>
                   
                   <div>
-                    <label className="text-crd-lightGray text-sm block mb-2">
+                    <label className="text-white text-sm font-medium block mb-2">
                       Description (Optional)
-                      <span className="ml-2 text-xs">({cardDescription.length}/200)</span>
+                      <span className="ml-2 text-xs text-crd-lightGray">({cardDescription.length}/200)</span>
                     </label>
                     <textarea
                       value={cardDescription}
@@ -212,7 +215,7 @@ export const DesignScratchFlow = () => {
                       placeholder="Describe your card..."
                       maxLength={200}
                       rows={3}
-                      className="w-full p-3 bg-editor-tool border border-editor-border rounded-lg text-white placeholder-crd-lightGray focus:border-crd-green focus:outline-none"
+                      className="w-full p-3 bg-editor-dark border border-editor-border rounded-lg text-white placeholder-crd-lightGray focus:border-crd-green focus:outline-none"
                     />
                   </div>
                 </div>
@@ -225,29 +228,41 @@ export const DesignScratchFlow = () => {
                 selectedFrame={selectedFrame}
                 onSave={handleSaveDesign}
                 onExport={handleExportDesign}
+                onImageChange={setCurrentImageUrl}
               />
             )}
 
-            {/* Finalize Button - Now prominently displayed */}
+            {/* Enhanced Finalize Button */}
             <div className="flex justify-center pt-6">
-              <Button
-                onClick={handleFinalize}
-                disabled={!canProceedFromCustomize}
-                className={`px-8 py-3 text-lg font-medium ${
-                  canProceedFromCustomize
-                    ? 'bg-crd-green hover:bg-crd-green/90 text-black'
-                    : 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                }`}
-              >
-                {canProceedFromCustomize ? (
-                  <>
-                    Finalize Card
-                    <Sparkles className="w-5 h-5 ml-2" />
-                  </>
-                ) : (
-                  'Enter card title to continue'
-                )}
-              </Button>
+              <div className="bg-editor-tool p-6 rounded-xl border border-editor-border w-full max-w-md">
+                <div className="text-center mb-4">
+                  <h3 className="text-white font-medium mb-2">Ready to Continue?</h3>
+                  <p className="text-crd-lightGray text-sm">
+                    {canProceedFromCustomize 
+                      ? 'Your card details look good! Ready to finalize.' 
+                      : 'Please complete the card title to continue.'
+                    }
+                  </p>
+                </div>
+                <Button
+                  onClick={handleFinalize}
+                  disabled={!canProceedFromCustomize}
+                  className={`w-full px-8 py-3 text-lg font-medium ${
+                    canProceedFromCustomize
+                      ? 'bg-crd-green hover:bg-crd-green/90 text-black'
+                      : 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                  }`}
+                >
+                  {canProceedFromCustomize ? (
+                    <>
+                      Finalize Card
+                      <Sparkles className="w-5 h-5 ml-2" />
+                    </>
+                  ) : (
+                    'Enter card title to continue'
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         );
@@ -280,6 +295,15 @@ export const DesignScratchFlow = () => {
                       <h4 className="text-white font-medium text-lg">{cardTitle}</h4>
                       {cardDescription && (
                         <p className="text-crd-lightGray text-sm mt-2">{cardDescription}</p>
+                      )}
+                      {currentImageUrl && (
+                        <div className="mt-3">
+                          <img 
+                            src={currentImageUrl} 
+                            alt="Card preview" 
+                            className="w-full max-w-48 h-auto rounded border border-editor-border"
+                          />
+                        </div>
                       )}
                     </div>
                     
@@ -315,6 +339,10 @@ export const DesignScratchFlow = () => {
                       <span className="text-crd-lightGray">Effects:</span>
                       <span className="text-white">{selectedFrame?.effects?.length || 0} applied</span>
                     </div>
+                    <div className="flex justify-between">
+                      <span className="text-crd-lightGray">Image:</span>
+                      <span className="text-white">{currentImageUrl ? 'Added' : 'None'}</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -330,7 +358,7 @@ export const DesignScratchFlow = () => {
   return (
     <div className="min-h-screen bg-crd-darkest">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header with Progress */}
+        {/* Header with Enhanced Progress */}
         <div className="flex items-center gap-4 mb-8">
           <Button
             variant="ghost"
@@ -345,27 +373,34 @@ export const DesignScratchFlow = () => {
             <p className="text-crd-lightGray">Create a custom card with full design control</p>
           </div>
           
-          {/* Progress Indicator */}
-          <div className="flex items-center gap-2 text-sm">
-            <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
-              currentStep === 'frames' ? 'bg-crd-green text-black' : 'bg-editor-border text-crd-lightGray'
-            }`}>
-              <span className={currentStep === 'frames' ? 'text-black' : 'text-crd-lightGray'}>1</span>
-              Frame
-            </div>
-            <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
-              currentStep === 'customize' ? 'bg-crd-green text-black' : 
+          {/* Enhanced Progress Indicator */}
+          <div className="flex items-center gap-3 text-sm">
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
+              currentStep === 'frames' ? 'bg-crd-green text-black scale-105' : 
               selectedFrame ? 'bg-editor-border text-crd-lightGray' : 'bg-gray-800 text-gray-500'
             }`}>
-              <span>2</span>
-              Customize
+              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                currentStep === 'frames' ? 'bg-black text-crd-green' : 'bg-gray-600 text-white'
+              }`}>1</span>
+              <span>Choose Frame</span>
             </div>
-            <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
-              currentStep === 'finalize' ? 'bg-crd-green text-black' : 
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
+              currentStep === 'customize' ? 'bg-crd-green text-black scale-105' : 
+              selectedFrame ? 'bg-editor-border text-crd-lightGray' : 'bg-gray-800 text-gray-500'
+            }`}>
+              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                currentStep === 'customize' ? 'bg-black text-crd-green' : 'bg-gray-600 text-white'
+              }`}>2</span>
+              <span>Customize</span>
+            </div>
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
+              currentStep === 'finalize' ? 'bg-crd-green text-black scale-105' : 
               canProceedFromCustomize ? 'bg-editor-border text-crd-lightGray' : 'bg-gray-800 text-gray-500'
             }`}>
-              <span>3</span>
-              Finalize
+              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                currentStep === 'finalize' ? 'bg-black text-crd-green' : 'bg-gray-600 text-white'
+              }`}>3</span>
+              <span>Finalize</span>
             </div>
           </div>
         </div>
