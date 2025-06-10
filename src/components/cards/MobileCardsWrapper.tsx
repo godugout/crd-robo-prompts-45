@@ -1,48 +1,13 @@
 
 import React from 'react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { CardsPage } from './CardsPage';
+import { BulkUploadWorkflow } from './BulkUploadWorkflow';
 
 export const MobileCardsWrapper: React.FC = () => {
-  const isMobile = useIsMobile();
-
-  if (isMobile) {
-    return (
-      <div className="min-h-screen bg-crd-darkest">
-        <div className="mobile-card-workflow">
-          <style>{`
-            .mobile-card-workflow .max-w-7xl {
-              max-width: 100%;
-              padding-left: 1rem;
-              padding-right: 1rem;
-            }
-            
-            .mobile-card-workflow .grid {
-              grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-              gap: 0.75rem;
-            }
-            
-            .mobile-card-workflow .aspect-[3/4] {
-              aspect-ratio: 3/4;
-            }
-            
-            .mobile-card-workflow .text-2xl {
-              font-size: 1.5rem;
-            }
-            
-            .mobile-card-workflow .p-8 {
-              padding: 1rem;
-            }
-            
-            .mobile-card-workflow .gap-6 {
-              gap: 1rem;
-            }
-          `}</style>
-          <CardsPage />
-        </div>
+  return (
+    <div className="min-h-screen bg-crd-darkest">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <BulkUploadWorkflow />
       </div>
-    );
-  }
-
-  return <CardsPage />;
+    </div>
+  );
 };
