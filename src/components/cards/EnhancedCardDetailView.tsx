@@ -125,27 +125,27 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
 
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content Area - Full Width Card Viewer + Community */}
+            {/* Main Content Area - Enhanced Card Viewer + Community */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Enhanced Card Viewer - Full Background */}
-              <div className="relative min-h-[600px] rounded-2xl overflow-hidden bg-gradient-to-br from-editor-dark to-editor-darker border border-white/10 shadow-2xl">
-                {/* Full background card viewer */}
-                <div className="absolute inset-0 flex items-center justify-center p-8">
+              {/* Enhanced Card Viewer - Larger, More Immersive */}
+              <div className="relative min-h-[700px] rounded-2xl overflow-hidden bg-gradient-to-br from-editor-dark to-editor-darker border border-white/10 shadow-2xl">
+                {/* Full background card viewer - larger and more prominent */}
+                <div className="absolute inset-0 flex items-center justify-center p-6">
                   <CompactCardViewer
                     card={viewerCard}
                     onFullscreen={onOpenViewer}
-                    width={500}
-                    height={700}
+                    width={600}
+                    height={840}
                   />
                 </div>
                 
-                {/* Overlay Stats - Top Right */}
-                <div className="absolute top-6 right-6 flex gap-2">
-                  <div className="bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center gap-2 text-white text-sm">
+                {/* Overlay Stats - More subtle positioning */}
+                <div className="absolute top-4 right-4 flex gap-2">
+                  <div className="bg-black/40 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center gap-2 text-white text-sm">
                     <Eye className="w-4 h-4" />
                     {viewCount.toLocaleString()}
                   </div>
-                  <div className="bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center gap-2 text-white text-sm">
+                  <div className="bg-black/40 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center gap-2 text-white text-sm">
                     <Heart className="w-4 h-4" />
                     {likeCount}
                   </div>
@@ -154,42 +154,6 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
 
               {/* Full Width Community Section */}
               <div className="space-y-6">
-                {/* Engagement Summary */}
-                <div className="flex items-center justify-between text-sm text-crd-lightGray bg-editor-dark/30 rounded-lg p-4 backdrop-blur-sm border border-white/5">
-                  <div className="flex items-center gap-6">
-                    <span className="flex items-center gap-2">
-                      <Heart className="w-4 h-4" />
-                      {likeCount} likes
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <Eye className="w-4 h-4" />
-                      {viewCount} views
-                    </span>
-                  </div>
-                  
-                  {/* Quick Action Buttons */}
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleLike}
-                      className={`h-8 px-3 ${
-                        isLiked ? 'text-red-400 bg-red-500/10' : 'text-crd-lightGray hover:text-white'
-                      }`}
-                    >
-                      <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={onShare}
-                      className="h-8 px-3 text-crd-lightGray hover:text-white"
-                    >
-                      <Share className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
                 {/* Reactions */}
                 <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
                   <CardContent className="p-6">
@@ -258,7 +222,7 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
                 </CardContent>
               </Card>
 
-              {/* Primary Actions */}
+              {/* Primary Actions - Moved from below card viewer */}
               <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
                 <CardContent className="p-4">
                   <h3 className="text-lg font-semibold text-white mb-4">Actions</h3>
