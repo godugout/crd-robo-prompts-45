@@ -12,7 +12,7 @@ import {
   DollarSign,
   Sparkles
 } from 'lucide-react';
-import type { CardData } from '@/types/card';
+import type { CardData } from '@/hooks/useCardData';
 
 interface CardQuickFactsPanelProps {
   card: CardData;
@@ -67,16 +67,16 @@ export const CardQuickFactsPanel: React.FC<CardQuickFactsPanelProps> = ({
     {
       icon: Hash,
       label: 'Edition',
-      value: `${card.publishing_options?.distribution?.edition_size || 1}`,
+      value: '1',
       color: 'text-crd-lightGray'
     }
   ];
 
-  if (card.publishing_options?.pricing?.base_price) {
+  if (card.price) {
     quickFacts.push({
       icon: DollarSign,
       label: 'Price',
-      value: `$${card.publishing_options.pricing.base_price}`,
+      value: `$${card.price}`,
       color: 'text-crd-green'
     });
   }
@@ -112,13 +112,13 @@ export const CardQuickFactsPanel: React.FC<CardQuickFactsPanelProps> = ({
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-br from-crd-blue to-crd-green rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-bold">
-                {card.creator_attribution?.creator_name?.charAt(0).toUpperCase() || 'U'}
+                {card.creator_name?.charAt(0).toUpperCase() || 'U'}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1">
-                <span className="text-white font-medium text-sm truncate">{card.creator_attribution?.creator_name || 'Unknown'}</span>
-                <Star className="w-3 h-3 text-crd-green fill-current" />
+                <span className="text-white font-medium text-sm truncate">{card.creator_name || 'Unknown'}</span>
+                {card.creator_verified && <Star className="w-3 h-3 text-crd-green fill-current" />}
               </div>
               <div className="text-xs text-crd-lightGray">Creator</div>
             </div>

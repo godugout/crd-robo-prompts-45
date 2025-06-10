@@ -15,12 +15,12 @@ import { CompactCardViewer } from '@/components/viewer/CompactCardViewer';
 import { CommentSection } from '@/components/social/CommentSection';
 import { ReactionBar } from '@/components/social/ReactionBar';
 import { convertToViewerCardData } from '@/components/viewer/types';
-import type { CardData } from '@/types/card';
+import type { CardData as HookCardData } from '@/hooks/useCardData';
 import { CardQuickFactsPanel } from './components/CardQuickFactsPanel';
 import { CardMetadataPanel } from './components/CardMetadataPanel';
 
 interface EnhancedCardDetailViewProps {
-  card: CardData;
+  card: HookCardData;
   onOpenViewer: () => void;
   onShare: () => void;
   onDownload: () => void;
@@ -55,11 +55,11 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
     image_url: card.image_url,
     thumbnail_url: card.thumbnail_url,
     rarity: card.rarity,
-    price: card.publishing_options?.pricing?.base_price,
-    creator_name: card.creator_attribution?.creator_name,
-    creator_verified: false,
-    stock: card.publishing_options?.distribution?.edition_size || 3,
-    tags: card.tags
+    price: card.price,
+    creator_name: card.creator_name,
+    creator_verified: card.creator_verified || false,
+    stock: 3,
+    tags: card.tags || []
   };
 
   const viewerCard = convertToViewerCardData(universalCard);
