@@ -1,4 +1,3 @@
-
 import { Wand2, Upload, Settings, Share } from 'lucide-react';
 
 export interface WizardStep {
@@ -29,6 +28,9 @@ export interface FrameTemplate {
     };
   };
 }
+
+// Backward compatibility - keep old interface name
+export type TemplateConfig = FrameTemplate;
 
 export const WIZARD_STEPS: WizardStep[] = [
   {
@@ -143,3 +145,6 @@ export const DEFAULT_FRAMES: FrameTemplate[] = [
     }
   }
 ];
+
+// Backward compatibility - export with old name
+export const DEFAULT_TEMPLATES = DEFAULT_FRAMES;
