@@ -35,8 +35,6 @@ export const CardDetailMainContent: React.FC<CardDetailMainContentProps> = ({
           <CompactCardViewer
             card={viewerCard}
             onFullscreen={onOpenViewer}
-            width="100%"
-            height="100%"
           />
         </div>
         
