@@ -11,6 +11,12 @@ export interface WizardStep {
 export interface FrameTemplate {
   id: string;
   name: string;
+  category: string;
+  description: string;
+  preview_url?: string;
+  is_premium?: boolean;
+  usage_count?: number;
+  tags: string[];
   template_data: {
     layout: string;
     style: {
@@ -26,7 +32,15 @@ export interface FrameTemplate {
       titleSize: number;
       bodySize: number;
     };
+    effects?: string[];
+    supports_stickers?: boolean;
   };
+  default_colors?: {
+    background: string;
+    border: string;
+    text: string;
+  };
+  effects?: string[];
 }
 
 // Backward compatibility - keep old interface name
@@ -67,6 +81,11 @@ export const DEFAULT_FRAMES: FrameTemplate[] = [
   {
     id: 'classic',
     name: 'Classic Card Frame',
+    category: 'traditional',
+    description: 'A timeless card design perfect for any photo',
+    is_premium: false,
+    usage_count: 1247,
+    tags: ['classic', 'traditional', 'versatile', 'photo'],
     template_data: {
       layout: 'standard',
       style: {
@@ -81,12 +100,24 @@ export const DEFAULT_FRAMES: FrameTemplate[] = [
         bodyFont: 'Inter',
         titleSize: 18,
         bodySize: 14
-      }
+      },
+      effects: ['border', 'shadow'],
+      supports_stickers: true
+    },
+    default_colors: {
+      background: '#1a1a2e',
+      border: '#16a085',
+      text: '#ecf0f1'
     }
   },
   {
     id: 'vintage',
     name: 'Vintage Card Frame',
+    category: 'vintage',
+    description: 'Nostalgic design with classic typography and warm colors',
+    is_premium: false,
+    usage_count: 892,
+    tags: ['vintage', 'retro', 'warm', 'classic'],
     template_data: {
       layout: 'vintage',
       style: {
@@ -101,12 +132,24 @@ export const DEFAULT_FRAMES: FrameTemplate[] = [
         bodyFont: 'serif',
         titleSize: 20,
         bodySize: 15
-      }
+      },
+      effects: ['texture', 'sepia'],
+      supports_stickers: true
+    },
+    default_colors: {
+      background: '#f4f1de',
+      border: '#e07a5f',
+      text: '#3d405b'
     }
   },
   {
     id: 'modern',
     name: 'Modern Edge Frame',
+    category: 'modern',
+    description: 'Sleek contemporary design with bold colors and clean lines',
+    is_premium: true,
+    usage_count: 634,
+    tags: ['modern', 'sleek', 'contemporary', 'bold'],
     template_data: {
       layout: 'modern',
       style: {
@@ -121,12 +164,24 @@ export const DEFAULT_FRAMES: FrameTemplate[] = [
         bodyFont: 'sans-serif',
         titleSize: 16,
         bodySize: 12
-      }
+      },
+      effects: ['gradient', 'glow'],
+      supports_stickers: true
+    },
+    default_colors: {
+      background: '#2d1b69',
+      border: '#8e44ad',
+      text: '#f39c12'
     }
   },
   {
     id: 'neon',
     name: 'Neon Glow Frame',
+    category: 'futuristic',
+    description: 'Futuristic neon design perfect for gaming and tech themes',
+    is_premium: true,
+    usage_count: 423,
+    tags: ['neon', 'futuristic', 'gaming', 'tech'],
     template_data: {
       layout: 'futuristic',
       style: {
@@ -141,7 +196,14 @@ export const DEFAULT_FRAMES: FrameTemplate[] = [
         bodyFont: 'monospace',
         titleSize: 14,
         bodySize: 11
-      }
+      },
+      effects: ['neon', 'glow', 'holographic'],
+      supports_stickers: true
+    },
+    default_colors: {
+      background: '#0f0f23',
+      border: '#ff006e',
+      text: '#8338ec'
     }
   }
 ];
