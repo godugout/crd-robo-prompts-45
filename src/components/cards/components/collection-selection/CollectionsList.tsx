@@ -1,7 +1,14 @@
 
 import React from 'react';
-import type { Collection } from './types';
 import { formatDate } from './utils';
+
+interface Collection {
+  id: string;
+  title: string;
+  description?: string;
+  cardCount: number;
+  createdAt: Date;
+}
 
 interface CollectionsListProps {
   collections: Collection[];
@@ -35,7 +42,7 @@ export const CollectionsList: React.FC<CollectionsListProps> = ({
           }`}
           onClick={() => onSelectCollection(collection.id)}
         >
-          <h6 className="font-semibold text-crd-white mb-1">{collection.name}</h6>
+          <h6 className="font-semibold text-crd-white mb-1">{collection.title}</h6>
           {collection.description && (
             <p className="text-sm text-crd-lightGray mb-2 line-clamp-2">
               {collection.description}

@@ -1,9 +1,20 @@
 
 import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import type { Collection, ExtractedCard } from './types';
+import { supabase } from '@/lib/supabase-client';
+import type { ExtractedCard } from './types';
+
+interface Collection {
+  id: string;
+  title: string;
+  description?: string;
+  cardCount: number;
+  createdAt: Date;
+}
 
 export const useCollectionOperations = () => {
+  const { user } = useAuth();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
@@ -11,47 +22,96 @@ export const useCollectionOperations = () => {
   const [newCollectionDescription, setNewCollectionDescription] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Load existing collections
+  // Load existing collections from Supabase
+  const loadCollections = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('collections')
+        .select(`
+          id,
+          title,
+          description,
+          created_at,
+          collection_cards(count)
+        `)
+        .eq('owner_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading collections:', error);
+        return;
+      }
+
+      const formattedCollections: Collection[] = (data || []).map(collection => ({
+        id: collection.id,
+        title: collection.title,
+        description: collection.description,
+        cardCount: collection.collection_cards?.[0]?.count || 0,
+        createdAt: new Date(collection.created_at)
+      }));
+
+      setCollections(formattedCollections);
+    } catch (error) {
+      console.error('Failed to load collections:', error);
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     loadCollections();
-  }, []);
+  }, [loadCollections]);
 
-  const loadCollections = useCallback(() => {
-    const savedCollections = JSON.parse(localStorage.getItem('cardshow_collections') || '[]');
-    setCollections(savedCollections);
-  }, []);
-
-  const handleCreateNewCollection = useCallback(() => {
-    if (!newCollectionName.trim()) {
+  const handleCreateNewCollection = useCallback(async () => {
+    if (!newCollectionName.trim() || !user?.id) {
       toast.error('Please enter a collection name');
       return;
     }
 
-    const newCollection: Collection = {
-      id: `collection-${Date.now()}`,
-      name: newCollectionName.trim(),
-      description: newCollectionDescription.trim(),
-      cardCount: 0,
-      createdAt: new Date()
-    };
+    try {
+      const { data, error } = await supabase
+        .from('collections')
+        .insert({
+          title: newCollectionName.trim(),
+          description: newCollectionDescription.trim() || null,
+          owner_id: user.id,
+          visibility: 'private'
+        })
+        .select()
+        .single();
 
-    const updatedCollections = [...collections, newCollection];
-    localStorage.setItem('cardshow_collections', JSON.stringify(updatedCollections));
-    
-    setCollections(updatedCollections);
-    setSelectedCollectionId(newCollection.id);
-    setIsCreatingNew(false);
-    setNewCollectionName('');
-    setNewCollectionDescription('');
-    
-    toast.success('Collection created successfully');
-  }, [newCollectionName, newCollectionDescription, collections]);
+      if (error) {
+        console.error('Error creating collection:', error);
+        toast.error('Failed to create collection');
+        return;
+      }
+
+      const newCollection: Collection = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        cardCount: 0,
+        createdAt: new Date(data.created_at)
+      };
+
+      setCollections(prev => [newCollection, ...prev]);
+      setSelectedCollectionId(data.id);
+      setIsCreatingNew(false);
+      setNewCollectionName('');
+      setNewCollectionDescription('');
+      
+      toast.success('Collection created successfully');
+    } catch (error) {
+      console.error('Failed to create collection:', error);
+      toast.error('Failed to create collection');
+    }
+  }, [newCollectionName, newCollectionDescription, user?.id]);
 
   const handleSaveCards = useCallback(async (
     extractedCards: ExtractedCard[],
     onCollectionSelected: (collectionId: string) => void
   ) => {
-    if (!selectedCollectionId) {
+    if (!selectedCollectionId || !user?.id) {
       toast.error('Please select a collection');
       return;
     }
@@ -59,44 +119,8 @@ export const useCollectionOperations = () => {
     setIsSaving(true);
     
     try {
-      toast.loading('Saving cards to collection...', {
-        description: `Adding ${extractedCards.length} cards`
-      });
-
-      const cardsToSave = extractedCards.map(card => ({
-        id: card.id,
-        name: card.name,
-        description: card.description,
-        rarity: card.rarity,
-        tags: card.tags,
-        confidence: card.confidence,
-        sourceImageName: card.sourceImageName,
-        collectionId: selectedCollectionId,
-        imageUrl: card.imageUrl,
-        createdAt: new Date()
-      }));
-
-      // Save cards to localStorage
-      const existingCards = JSON.parse(localStorage.getItem('cardshow_saved_cards') || '[]');
-      const updatedCards = [...existingCards, ...cardsToSave];
-      localStorage.setItem('cardshow_saved_cards', JSON.stringify(updatedCards));
-
-      // Update collection card count
-      const updatedCollections = collections.map(collection =>
-        collection.id === selectedCollectionId
-          ? { ...collection, cardCount: collection.cardCount + extractedCards.length }
-          : collection
-      );
-      localStorage.setItem('cardshow_collections', JSON.stringify(updatedCollections));
-      setCollections(updatedCollections);
-
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      toast.success(`Successfully saved ${extractedCards.length} cards!`, {
-        description: 'Cards have been added to your collection'
-      });
-
+      // Call the parent component's collection selection handler
+      // This will trigger the bulk card saver which handles the actual saving
       onCollectionSelected(selectedCollectionId);
       
     } catch (error) {
@@ -105,7 +129,7 @@ export const useCollectionOperations = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [selectedCollectionId, collections]);
+  }, [selectedCollectionId, user?.id]);
 
   const cancelNewCollection = useCallback(() => {
     setIsCreatingNew(false);

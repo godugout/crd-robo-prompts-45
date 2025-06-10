@@ -34,6 +34,24 @@ export const bulkCardSaver = {
     try {
       console.log(`🚀 Starting bulk save of ${framedImages.length} cards to collection ${collectionId}`);
 
+      // Validate that collectionId is a proper UUID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(collectionId)) {
+        throw new Error(`Invalid collection ID format: ${collectionId}. Expected UUID format.`);
+      }
+
+      // Verify collection exists and user owns it
+      const { data: collection, error: collectionError } = await supabase
+        .from('collections')
+        .select('id, owner_id')
+        .eq('id', collectionId)
+        .eq('owner_id', userId)
+        .single();
+
+      if (collectionError || !collection) {
+        throw new Error(`Collection not found or access denied: ${collectionId}`);
+      }
+
       for (const framedImage of framedImages) {
         try {
           // Convert image URL to blob
@@ -70,7 +88,6 @@ export const bulkCardSaver = {
             rarity: 'common' as const,
             tags: ['bulk-upload'],
             creator_id: userId,
-            collection_id: collectionId,
             is_public: false,
             design_metadata: {
               uploadMethod: 'bulk',
@@ -91,7 +108,24 @@ export const bulkCardSaver = {
             continue;
           }
 
-          result.savedCards.push(cardRecord);
+          // Add card to collection
+          const { error: collectionCardError } = await supabase
+            .from('collection_cards')
+            .insert({
+              collection_id: collectionId,
+              card_id: cardRecord.id
+            });
+
+          if (collectionCardError) {
+            console.error('Collection card linking error:', collectionCardError);
+            result.errors.push(`Failed to add card to collection: ${collectionCardError.message}`);
+            continue;
+          }
+
+          result.savedCards.push({
+            ...cardRecord,
+            collection_id: collectionId
+          });
           console.log(`✅ Successfully saved card: ${cardRecord.id}`);
 
         } catch (error) {
