@@ -41,7 +41,6 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
 }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [viewCount] = useState(Math.floor(Math.random() * 1000) + 100);
   const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 50) + 10);
 
   const getRarityColor = (rarity: string) => {
@@ -122,25 +121,14 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
             <div className="lg:col-span-2 space-y-8">
               {/* Card Viewer - Full Space */}
               <div className="relative min-h-[700px] rounded-2xl overflow-hidden bg-gradient-to-br from-editor-dark to-editor-darker border border-white/10 shadow-2xl">
-                {/* Card viewer fills entire container */}
-                <div className="absolute inset-0">
+                {/* Card viewer fills entire container - removed all padding and margin */}
+                <div className="absolute inset-0 w-full h-full">
                   <CompactCardViewer
                     card={viewerCard}
                     onFullscreen={onOpenViewer}
                     width={800}
                     height={700}
                   />
-                </div>
-                
-                {/* Floating 3D Button */}
-                <div className="absolute bottom-6 right-6 z-50">
-                  <Button
-                    onClick={onOpenViewer}
-                    className="bg-gradient-to-r from-crd-blue to-crd-blue/80 hover:from-crd-blue/90 hover:to-crd-blue/70 text-white font-semibold px-6 py-3 rounded-full shadow-xl border border-white/20 backdrop-blur-sm"
-                  >
-                    <Maximize2 className="w-5 h-5 mr-2" />
-                    Experience in 3D
-                  </Button>
                 </div>
               </div>
 
@@ -175,6 +163,7 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
               {/* Card Title & Creator */}
               <div className="text-center lg:text-left">
                 <h1 className="text-4xl font-bold text-white mb-4 leading-tight">{card.title}</h1>
+                
                 <div className="flex items-center justify-center lg:justify-start gap-2 text-crd-lightGray mb-4">
                   <span>Created by</span>
                   <span className="text-white font-semibold">{card.creator_name}</span>
@@ -183,53 +172,31 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
                   )}
                 </div>
                 
-                {/* Rarity Badge - Now with the title */}
-                <div className="flex justify-center lg:justify-start">
-                  <Badge className={`bg-gradient-to-r ${getRarityColor(card.rarity)} text-white font-bold px-4 py-2`}>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    {card.rarity.toUpperCase()}
-                  </Badge>
+                {/* Rarity Badge with card info */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-center lg:justify-start">
+                    <Badge className={`bg-gradient-to-r ${getRarityColor(card.rarity)} text-white font-bold px-4 py-2`}>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      {card.rarity.toUpperCase()}
+                    </Badge>
+                  </div>
+                  
+                  {/* Quick stats row */}
+                  <div className="flex justify-center lg:justify-start gap-4 text-sm text-crd-lightGray">
+                    {card.price && (
+                      <span className="text-crd-green font-medium">${card.price}</span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {formatDate(card.created_at)}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Heart className="w-3 h-3" />
+                      {likeCount}
+                    </span>
+                  </div>
                 </div>
               </div>
-
-              {/* Card Details */}
-              <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
-                <CardContent className="p-4">
-                  <h3 className="text-lg font-semibold text-white mb-3">Card Details</h3>
-                  <div className="space-y-3 text-sm">
-                    {card.price && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-crd-lightGray">Price</span>
-                        <span className="text-white font-medium">${card.price}</span>
-                      </div>
-                    )}
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-crd-lightGray flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        Created
-                      </span>
-                      <span className="text-white">{formatDate(card.created_at)}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-crd-lightGray flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        Views
-                      </span>
-                      <span className="text-white">{viewCount.toLocaleString()}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-crd-lightGray flex items-center gap-1">
-                        <Heart className="w-3 h-3" />
-                        Likes
-                      </span>
-                      <span className="text-white">{likeCount}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
 
               {/* Actions */}
               <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
