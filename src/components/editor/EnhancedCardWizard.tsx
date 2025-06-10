@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DEFAULT_TEMPLATES, WIZARD_STEPS, TemplateConfig } from './wizard/wizardConfig';
@@ -51,31 +49,28 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
     handlePhotoSelect: (photo: string) => {
       setWizardState(prev => ({ ...prev, selectedPhoto: photo }));
       cardEditor.updateCardField('image_url', photo);
-      setCurrentStep(2); // Move to image adjustment step
+      setCurrentStep(2); // Move to combined adjust & template step
     },
 
     handleImageAdjusted: (adjustedImageUrl: string) => {
       setWizardState(prev => ({ ...prev, selectedPhoto: adjustedImageUrl }));
       cardEditor.updateCardField('image_url', adjustedImageUrl);
       cardEditor.updateCardField('thumbnail_url', adjustedImageUrl);
-      setCurrentStep(3); // Move to template selection
-      toast.success('Image adjusted! Now choose your card template.');
+      setCurrentStep(3); // Move to card details
+      toast.success('Image adjusted and template selected! Now add your card details.');
     },
 
     handleTemplateSelect: (template: TemplateConfig) => {
       setWizardState(prev => ({ ...prev, selectedTemplate: template }));
       cardEditor.updateCardField('template_id', template.id);
       cardEditor.updateCardField('design_metadata', template.template_data);
-      setCurrentStep(4); // Move to card details
     },
 
     handleAiAnalysis: (analysis: any) => {
       setWizardState(prev => ({ ...prev, aiAnalysisComplete: true }));
-      // Update card data based on AI analysis
       if (analysis?.name) {
         cardEditor.updateCardField('title', analysis.name);
       }
-      // Add more fields as needed
     },
 
     updateCardField: (field: string, value: any) => {
@@ -96,12 +91,10 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
       case 1:
         return wizardState.selectedPhoto !== '';
       case 2:
-        return wizardState.selectedPhoto !== '';
+        return wizardState.selectedPhoto !== '' && !!wizardState.selectedTemplate;
       case 3:
-        return !!wizardState.selectedTemplate;
-      case 4:
         return cardEditor.cardData.title?.trim() !== '';
-      case 5:
+      case 4:
         return true;
       default:
         return false;
@@ -241,4 +234,3 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
     </div>
   );
 };
-

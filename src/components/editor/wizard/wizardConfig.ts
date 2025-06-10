@@ -111,31 +111,21 @@ export const WIZARD_STEPS = [
   {
     id: 1,
     title: 'Upload Photo',
-    description: 'Choose your image',
-    component: 'PhotoUploadStep'
+    description: 'Choose your image'
   },
   {
     id: 2,
-    title: 'Adjust Image',
-    description: 'Crop and position for perfect cards',
-    component: 'ImageAdjustmentStep'
+    title: 'Adjust & Template',
+    description: 'Perfect your image and choose design'
   },
   {
     id: 3,
-    title: 'Choose Template',
-    description: 'Select card style',
-    component: 'TemplateSelectionStep'
+    title: 'Card Details',
+    description: 'Add information'
   },
   {
     id: 4,
-    title: 'Card Details',
-    description: 'Add information',
-    component: 'CardDetailsStep'
-  },
-  {
-    id: 5,
     title: 'Publishing',
-    description: 'Final settings',
-    component: 'PublishingOptionsStep'
+    description: 'Final settings'
   }
 ];

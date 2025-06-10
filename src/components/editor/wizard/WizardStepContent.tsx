@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { PhotoUploadStep } from './PhotoUploadStep';
-import { ImageAdjustmentStep } from './ImageAdjustmentStep';
-import { TemplateSelectionStep } from './TemplateSelectionStep';
+import { AdjustWithTemplateStep } from './AdjustWithTemplateStep';
 import { CardDetailsStep } from './CardDetailsStep';
 import { PublishingOptionsStep } from './PublishingOptionsStep';
 import type { WizardState, WizardHandlers } from './types';
@@ -35,21 +34,15 @@ export const WizardStepContent = ({
       );
     case 2:
       return (
-        <ImageAdjustmentStep
+        <AdjustWithTemplateStep
           selectedPhoto={wizardState.selectedPhoto}
-          onImageAdjusted={handlers.handleImageAdjusted}
-          onSkip={() => handlers.handleImageAdjusted(wizardState.selectedPhoto)}
-        />
-      );
-    case 3:
-      return (
-        <TemplateSelectionStep
           templates={templates}
           selectedTemplate={wizardState.selectedTemplate}
           onTemplateSelect={handlers.handleTemplateSelect}
+          onImageAdjusted={handlers.handleImageAdjusted}
         />
       );
-    case 4:
+    case 3:
       return (
         <CardDetailsStep
           cardData={cardData}
@@ -58,7 +51,7 @@ export const WizardStepContent = ({
           aiAnalysisComplete={wizardState.aiAnalysisComplete}
         />
       );
-    case 5:
+    case 4:
       return (
         <PublishingOptionsStep
           publishingOptions={cardData.publishing_options}
