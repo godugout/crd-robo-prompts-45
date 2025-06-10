@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -29,6 +28,7 @@ interface ImageAdjustments {
     brightness: number;
     contrast: number;
     saturation: number;
+    sharpness: number;
   };
   perspective: {
     topLeft: { x: number; y: number };
@@ -67,7 +67,8 @@ export const AdjustWithTemplateStep: React.FC<AdjustWithTemplateStepProps> = ({
     enhancements: {
       brightness: 100,
       contrast: 100,
-      saturation: 100
+      saturation: 100,
+      sharpness: 100
     },
     perspective: {
       topLeft: { x: 0, y: 0 },

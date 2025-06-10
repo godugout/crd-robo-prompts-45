@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DEFAULT_TEMPLATES, WIZARD_STEPS, TemplateConfig } from './wizard/wizardConfig';
@@ -83,6 +84,33 @@ export const EnhancedCardWizard = ({ onComplete, onCancel }: EnhancedCardWizardP
 
     updatePublishingOptions: (options: any) => {
       cardEditor.updateCardField('publishing_options', options);
+    },
+
+    handleNext: () => {
+      if (canProceed() && currentStep < WIZARD_STEPS.length) {
+        setCurrentStep(prev => prev + 1);
+      }
+    },
+
+    handleBack: () => {
+      if (currentStep > 1) {
+        setCurrentStep(prev => prev - 1);
+      }
+    },
+
+    handleComplete: async () => {
+      setIsCreating(true);
+      try {
+        // Save the card data
+        await cardEditor.saveCard();
+        toast.success('Card created successfully!');
+        onComplete(cardEditor.cardData);
+      } catch (error) {
+        console.error('Error creating card:', error);
+        toast.error('Failed to create card. Please try again.');
+      } finally {
+        setIsCreating(false);
+      }
     }
   };
 
