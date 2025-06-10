@@ -11,6 +11,9 @@ interface CardItem {
   description?: string;
   image_url?: string;
   rarity?: string;
+  creator_id?: string;
+  creator_name?: string;
+  creator_verified?: boolean;
 }
 
 interface CardsGridProps {
@@ -26,7 +29,9 @@ const convertToUniversalCard = (card: CardItem): UniversalCardData => ({
   image_url: card.image_url,
   rarity: (card.rarity as any) || 'common',
   price: 1.5 + Math.random() * 3, // Sample pricing
-  creator_name: 'Creator',
+  creator_name: card.creator_name || 'Creator',
+  creator_verified: card.creator_verified,
+  creator_id: card.creator_id,
   stock: Math.floor(Math.random() * 10) + 1
 });
 
@@ -38,30 +43,19 @@ export const CardsGrid: React.FC<CardsGridProps> = ({
   const navigate = useNavigate();
 
   const handleView = (card: UniversalCardData) => {
-    // Find original card for callback
+    // Navigate to card detail page which will show the immersive viewer
+    navigate(`/card/${card.id}`);
+    
+    // Also call the original callback for any additional logic
     const originalCard = cards.find(c => c.id === card.id);
     if (originalCard) {
       onCardClick(originalCard);
     }
   };
 
-  const handleRemix = (card: UniversalCardData) => {
+  const handleEdit = (card: UniversalCardData) => {
     navigate(`/cards/create?template=${card.id}`);
-    toast.success(`Starting remix of "${card.title}"`);
-  };
-
-  const handleStage = (card: UniversalCardData) => {
-    navigate(`/studio?card=${card.id}`);
-    toast.success(`Opening "${card.title}" in Studio`);
-  };
-
-  const handleFavorite = (card: UniversalCardData) => {
-    toast.success(`Added "${card.title}" to favorites`);
-  };
-
-  const handleShare = (card: UniversalCardData) => {
-    navigator.clipboard.writeText(`${window.location.origin}/card/${card.id}`);
-    toast.success('Card link copied to clipboard');
+    toast.success(`Opening "${card.title}" for editing`);
   };
 
   const universalCards = cards.map(convertToUniversalCard);
@@ -73,10 +67,7 @@ export const CardsGrid: React.FC<CardsGridProps> = ({
       title="Featured Cards"
       subtitle="Discover amazing cards from our community"
       onView={handleView}
-      onRemix={handleRemix}
-      onStage={handleStage}
-      onFavorite={handleFavorite}
-      onShare={handleShare}
+      onEdit={handleEdit}
     />
   );
 };

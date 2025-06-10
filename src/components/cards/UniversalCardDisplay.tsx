@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,16 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Eye, 
-  Edit, 
-  Zap, 
-  Heart, 
-  Share,
-  MoreHorizontal,
-  User,
+  Edit2,
   Star
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CachedImage } from '@/components/common/CachedImage';
+import { useCardOwnership } from '@/hooks/useCardOwnership';
 
 export type CardDisplayMode = 'grid' | 'row' | 'table';
 export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
@@ -29,6 +26,7 @@ export interface UniversalCardData {
   price?: number;
   creator_name?: string;
   creator_verified?: boolean;
+  creator_id?: string;
   stock?: number;
   highest_bid?: number;
   edition_size?: number;
@@ -39,12 +37,10 @@ interface UniversalCardDisplayProps {
   card: UniversalCardData;
   mode: CardDisplayMode;
   onView?: (card: UniversalCardData) => void;
-  onRemix?: (card: UniversalCardData) => void;
-  onStage?: (card: UniversalCardData) => void;
-  onFavorite?: (card: UniversalCardData) => void;
-  onShare?: (card: UniversalCardData) => void;
+  onEdit?: (card: UniversalCardData) => void;
   showActions?: boolean;
   loading?: boolean;
+  className?: string;
 }
 
 const RARITY_COLORS = {
@@ -66,16 +62,13 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
   card,
   mode = 'grid',
   onView,
-  onRemix,
-  onStage,
-  onFavorite,
-  onShare,
+  onEdit,
   showActions = true,
-  loading = false
+  loading = false,
+  className
 }) => {
   const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
-  const [isHovered, setIsHovered] = useState(false);
+  const { isOwner } = useCardOwnership(card.creator_id);
 
   // Add safety checks for card and card.id
   if (!card || !card.id) {
@@ -87,34 +80,59 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
     ? FALLBACK_IMAGES[parseInt(card.id.slice(-1), 16) % FALLBACK_IMAGES.length]
     : (card.thumbnail_url || card.image_url);
 
-  const handleImageLoad = () => setImageLoading(false);
   const handleImageError = () => {
     setImageError(true);
-    setImageLoading(false);
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger card click if clicking on action buttons
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    onView?.(card);
+  };
+
+  const handleViewClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onView?.(card);
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit?.(card);
   };
 
   if (loading) {
     return (
       <div className={cn(
         'animate-pulse bg-crd-mediumGray/20 rounded-lg',
-        mode === 'grid' ? 'aspect-[3/4]' : 'h-24'
+        mode === 'grid' ? 'aspect-[3/4]' : 'h-24',
+        className
       )}>
         <div className="w-full h-full bg-gradient-to-br from-crd-mediumGray/10 to-crd-mediumGray/30 rounded-lg" />
       </div>
     );
   }
 
-  const imageUrl = card.thumbnail_url || card.image_url || '/placeholder.svg';
+  const imageUrl = card.thumbnail_url || card.image_url || displayImage;
 
   if (mode === 'grid') {
     return (
-      <Card className="bg-crd-dark border-crd-mediumGray hover:border-crd-blue/50 transition-all duration-200 group overflow-hidden">
+      <Card 
+        className={cn(
+          "bg-crd-dark border-crd-mediumGray hover:border-crd-blue/50 transition-all duration-200 group overflow-hidden cursor-pointer",
+          "hover:scale-[1.02] hover:shadow-lg hover:shadow-crd-blue/10",
+          className
+        )}
+        onClick={handleCardClick}
+      >
         <div className="relative aspect-[3/4] overflow-hidden">
           <CachedImage
             src={imageUrl}
             alt={card.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
             loading="lazy"
+            onError={handleImageError}
           />
           
           {/* Rarity Badge */}
@@ -124,25 +142,30 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
             </Badge>
           </div>
 
-          {/* Quick Actions */}
-          {showActions && isHovered && (
+          {/* Always Visible Action Buttons */}
+          {showActions && (
             <div className="absolute top-2 right-2 flex gap-1">
               <Button
                 size="sm"
                 variant="ghost"
-                className="w-8 h-8 p-0 bg-black/70 hover:bg-black/90"
-                onClick={(e) => { e.stopPropagation(); onFavorite?.(card); }}
+                className="w-8 h-8 p-0 bg-black/70 hover:bg-black/90 text-white/90 hover:text-white backdrop-blur-sm border border-white/10"
+                onClick={handleViewClick}
+                title="View in 3D"
               >
-                <Heart className="w-3 h-3" />
+                <Eye className="w-3 h-3" />
               </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="w-8 h-8 p-0 bg-black/70 hover:bg-black/90"
-                onClick={(e) => { e.stopPropagation(); onShare?.(card); }}
-              >
-                <Share className="w-3 h-3" />
-              </Button>
+              
+              {isOwner && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="w-8 h-8 p-0 bg-black/70 hover:bg-black/90 text-white/90 hover:text-white backdrop-blur-sm border border-white/10"
+                  onClick={handleEditClick}
+                  title="Edit Card"
+                >
+                  <Edit2 className="w-3 h-3" />
+                </Button>
+              )}
             </div>
           )}
 
@@ -152,53 +175,17 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
               {card.price ? `${card.price} ETH` : '1.5 ETH'}
             </Badge>
           </div>
-
-          {/* Main Actions */}
-          {showActions && isHovered && (
-            <div className="absolute bottom-2 right-2 flex gap-1">
-              <Button
-                size="sm"
-                className="w-8 h-8 p-0 bg-crd-blue hover:bg-crd-blue/90"
-                onClick={(e) => { e.stopPropagation(); onView?.(card); }}
-              >
-                <Eye className="w-3 h-3" />
-              </Button>
-              <Button
-                size="sm"
-                className="w-8 h-8 p-0 bg-crd-purple hover:bg-crd-purple/90"
-                onClick={(e) => { e.stopPropagation(); onRemix?.(card); }}
-              >
-                <Edit className="w-3 h-3" />
-              </Button>
-              <Button
-                size="sm"
-                className="w-8 h-8 p-0 bg-crd-green hover:bg-crd-green/90 text-black"
-                onClick={(e) => { e.stopPropagation(); onStage?.(card); }}
-              >
-                <Zap className="w-3 h-3" />
-              </Button>
-            </div>
-          )}
         </div>
         
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <h3 className="text-crd-white font-semibold mb-1 line-clamp-1 flex-1">{card.title || 'Untitled Card'}</h3>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={(e) => { e.stopPropagation(); }}
-            >
-              <MoreHorizontal className="w-3 h-3" />
-            </Button>
           </div>
           
           <p className="text-crd-lightGray text-sm line-clamp-2 mb-3">{card.description || 'Digital collectible card'}</p>
           
           <div className="flex items-center justify-between text-xs text-crd-lightGray">
             <span className="flex items-center gap-1">
-              <User className="w-3 h-3" />
               {card.creator_name || 'Anonymous'}
               {card.creator_verified && <Star className="w-3 h-3 text-yellow-400" />}
             </span>
@@ -211,7 +198,14 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
 
   if (mode === 'row') {
     return (
-      <Card className="bg-crd-dark border-crd-mediumGray hover:border-crd-blue/50 transition-all duration-200">
+      <Card 
+        className={cn(
+          "bg-crd-dark border-crd-mediumGray hover:border-crd-blue/50 transition-all duration-200 cursor-pointer",
+          "hover:bg-crd-mediumGray/5",
+          className
+        )}
+        onClick={handleCardClick}
+      >
         <div className="flex items-center p-4 gap-4">
           <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
             <CachedImage
@@ -219,6 +213,7 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
               alt={card.title}
               className="w-full h-full object-cover"
               loading="lazy"
+              onError={handleImageError}
             />
           </div>
           
@@ -234,7 +229,6 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
             
             <div className="flex items-center gap-4 text-sm text-crd-lightGray mb-3">
               <span className="flex items-center gap-1">
-                <User className="w-3 h-3" />
                 {card.creator_name || 'Anonymous'}
                 {card.creator_verified && <Star className="w-3 h-3 text-yellow-400" />}
               </span>
@@ -246,17 +240,26 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
                 {card.price ? `${card.price} ETH` : '1.5 ETH'}
               </span>
               
-              {showActions && isHovered && (
+              {showActions && (
                 <div className="flex items-center gap-1">
-                  <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); onView?.(card); }}>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={handleViewClick}
+                    className="hover:bg-crd-blue/20"
+                  >
                     <Eye className="w-4 h-4" />
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); onRemix?.(card); }}>
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); onStage?.(card); }}>
-                    <Zap className="w-4 h-4" />
-                  </Button>
+                  {isOwner && (
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={handleEditClick}
+                      className="hover:bg-crd-purple/20"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -268,13 +271,20 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
 
   if (mode === 'table') {
     return (
-      <div className="flex items-center p-4 border-b border-crd-mediumGray hover:bg-crd-mediumGray/10 transition-colors">
+      <div 
+        className={cn(
+          "flex items-center p-4 border-b border-crd-mediumGray hover:bg-crd-mediumGray/10 transition-colors cursor-pointer",
+          className
+        )}
+        onClick={handleCardClick}
+      >
         <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
           <CachedImage
             src={imageUrl}
             alt={card.title}
             className="w-full h-full object-cover"
             loading="lazy"
+            onError={handleImageError}
           />
         </div>
         
@@ -295,15 +305,14 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
 
         {showActions && (
           <div className="flex items-center gap-1 ml-4">
-            <Button size="sm" variant="ghost" onClick={() => onView?.(card)}>
+            <Button size="sm" variant="ghost" onClick={handleViewClick}>
               <Eye className="w-4 h-4" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => onRemix?.(card)}>
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => onStage?.(card)}>
-              <Zap className="w-4 h-4" />
-            </Button>
+            {isOwner && (
+              <Button size="sm" variant="ghost" onClick={handleEditClick}>
+                <Edit2 className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         )}
       </div>

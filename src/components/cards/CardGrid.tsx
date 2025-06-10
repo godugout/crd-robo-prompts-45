@@ -15,6 +15,7 @@ interface CardData {
   rarity?: string;
   creator_name?: string;
   creator_verified?: boolean;
+  creator_id?: string;
   stock?: number;
   highest_bid?: number;
   edition_size?: number;
@@ -38,6 +39,7 @@ const convertToUniversalCard = (card: CardData): UniversalCardData => ({
   price: card.price ? parseFloat(card.price) : undefined,
   creator_name: card.creator_name,
   creator_verified: card.creator_verified,
+  creator_id: card.creator_id,
   stock: card.stock,
   highest_bid: card.highest_bid,
   edition_size: card.edition_size,
@@ -52,26 +54,13 @@ export const CardGrid: React.FC<CardGridProps> = ({
   const navigate = useNavigate();
 
   const handleView = (card: UniversalCardData) => {
+    // Navigate to card detail page which will show the immersive viewer
     navigate(`/card/${card.id}`);
   };
 
-  const handleRemix = (card: UniversalCardData) => {
+  const handleEdit = (card: UniversalCardData) => {
     navigate(`/cards/create?template=${card.id}`);
-    toast.success(`Starting remix of "${card.title}"`);
-  };
-
-  const handleStage = (card: UniversalCardData) => {
-    navigate(`/studio?card=${card.id}`);
-    toast.success(`Opening "${card.title}" in Studio`);
-  };
-
-  const handleFavorite = (card: UniversalCardData) => {
-    toast.success(`Added "${card.title}" to favorites`);
-  };
-
-  const handleShare = (card: UniversalCardData) => {
-    navigator.clipboard.writeText(`${window.location.origin}/card/${card.id}`);
-    toast.success('Card link copied to clipboard');
+    toast.success(`Opening "${card.title}" for editing`);
   };
 
   const universalCards = cards.map(convertToUniversalCard);
@@ -82,10 +71,7 @@ export const CardGrid: React.FC<CardGridProps> = ({
       loading={loading}
       defaultMode={viewMode === 'feed' ? 'row' : 'grid'}
       onView={handleView}
-      onRemix={handleRemix}
-      onStage={handleStage}
-      onFavorite={handleFavorite}
-      onShare={handleShare}
+      onEdit={handleEdit}
     />
   );
 };

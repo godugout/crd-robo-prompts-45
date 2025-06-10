@@ -6,7 +6,7 @@ import { EnhancedCardDetailView } from "@/components/cards/EnhancedCardDetailVie
 import { useCardActions } from "@/hooks/useCardActions";
 import { useCardData } from "@/hooks/useCardData";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader } from "lucide-react";
+import { ArrowLeft, Loader, Info } from "lucide-react";
 import { toast } from "sonner";
 
 export default function CardDetail() {
@@ -14,14 +14,15 @@ export default function CardDetail() {
   const navigate = useNavigate();
   const { handleShare, handleRemix, handleStage } = useCardActions();
   const { card, loading, error } = useCardData(id);
-  const [showViewer, setShowViewer] = useState(false);
+  // Default to immersive viewer mode
+  const [showViewer, setShowViewer] = useState(true);
 
   const handleGoBack = () => {
     navigate(-1);
   };
 
-  const handleOpenViewer = () => {
-    setShowViewer(true);
+  const handleToggleView = () => {
+    setShowViewer(!showViewer);
   };
 
   const handleCloseViewer = () => {
@@ -47,6 +48,7 @@ export default function CardDetail() {
         price: card.price,
         creator_name: card.creator_name,
         creator_verified: card.creator_verified,
+        creator_id: card.creator_id,
         stock: 3,
         tags: card.tags
       };
@@ -98,24 +100,35 @@ export default function CardDetail() {
     price: card.price,
     creator_name: card.creator_name,
     creator_verified: card.creator_verified,
+    creator_id: card.creator_id,
     stock: 3,
     tags: card.tags
   };
 
-  // Show immersive viewer if requested
+  // Show immersive viewer by default
   if (showViewer) {
     return (
       <>
-        {/* Back Button */}
-        <div className="fixed top-4 left-4 z-50">
+        {/* Navigation Controls */}
+        <div className="fixed top-4 left-4 z-50 flex gap-2">
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleCloseViewer}
+            onClick={handleGoBack}
             className="bg-black bg-opacity-80 hover:bg-opacity-90 backdrop-blur text-white border border-white/20"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Details
+            Back
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleToggleView}
+            className="bg-black bg-opacity-80 hover:bg-opacity-90 backdrop-blur text-white border border-white/20"
+          >
+            <Info className="w-4 h-4 mr-2" />
+            Details
           </Button>
         </div>
 
@@ -138,7 +151,7 @@ export default function CardDetail() {
   return (
     <EnhancedCardDetailView
       card={card}
-      onOpenViewer={handleOpenViewer}
+      onOpenViewer={() => setShowViewer(true)}
       onShare={handleShareCard}
       onDownload={handleDownload}
       onGoBack={handleGoBack}

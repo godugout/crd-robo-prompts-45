@@ -8,12 +8,14 @@ interface MemoryGridProps {
   memories: Memory[];
   loading?: boolean;
   onReaction?: (memoryId: string, reactionType: 'heart' | 'thumbs-up' | 'party' | 'baseball') => void;
+  onView?: (memory: Memory) => void;
 }
 
 export const MemoryGrid: React.FC<MemoryGridProps> = ({ 
   memories, 
   loading = false,
-  onReaction 
+  onReaction,
+  onView
 }) => {
   if (loading) {
     return (
@@ -49,6 +51,7 @@ export const MemoryGrid: React.FC<MemoryGridProps> = ({
           key={memory.id} 
           memory={memory} 
           onReaction={onReaction}
+          onClick={onView ? () => onView(memory) : undefined}
         />
       ))}
     </div>
