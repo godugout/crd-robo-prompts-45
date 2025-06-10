@@ -6,12 +6,12 @@ import { Maximize2 } from 'lucide-react';
 import { CompactCardViewer } from '@/components/viewer/CompactCardViewer';
 import { CommentSection } from '@/components/social/CommentSection';
 import { ReactionBar } from '@/components/social/ReactionBar';
-import type { ViewerCardData } from '@/components/viewer/types';
+import type { CardData } from '@/hooks/useCardEditor';
 
 interface CardDetailMainContentProps {
   cardTitle: string;
   cardId: string;
-  viewerCard: ViewerCardData;
+  viewerCard: CardData;
   onOpenViewer: () => void;
 }
 
