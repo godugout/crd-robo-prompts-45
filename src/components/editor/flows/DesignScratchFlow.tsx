@@ -2,250 +2,264 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Palette, Layers, Type, Sparkles } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ArrowLeft, Sparkles, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-interface FrameTemplate {
-  id: string;
-  name: string;
-  category: string;
-  preview: string;
-  cutoutAreas: Array<{
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    type: 'photo' | 'text' | 'logo';
-  }>;
-}
-
-const FRAME_TEMPLATES: FrameTemplate[] = [
-  {
-    id: 'classic-border',
-    name: 'Classic Border',
-    category: 'Traditional',
-    preview: '/placeholder.svg',
-    cutoutAreas: [
-      { x: 10, y: 50, width: 280, height: 200, type: 'photo' },
-      { x: 10, y: 260, width: 280, height: 40, type: 'text' }
-    ]
-  },
-  {
-    id: 'modern-split',
-    name: 'Modern Split',
-    category: 'Contemporary',
-    preview: '/placeholder.svg',
-    cutoutAreas: [
-      { x: 150, y: 10, width: 140, height: 250, type: 'photo' },
-      { x: 10, y: 10, width: 130, height: 100, type: 'text' }
-    ]
-  },
-  {
-    id: 'circular-window',
-    name: 'Circular Window',
-    category: 'Creative',
-    preview: '/placeholder.svg',
-    cutoutAreas: [
-      { x: 75, y: 75, width: 150, height: 150, type: 'photo' },
-      { x: 10, y: 240, width: 280, height: 30, type: 'text' }
-    ]
-  }
-];
+import { FrameTemplatePreview, type FrameTemplate } from './FrameTemplate';
+import { CanvasEditor } from './CanvasEditor';
+import { FRAME_TEMPLATES, FRAME_CATEGORIES } from './FrameTemplatesData';
+import { toast } from 'sonner';
 
 export const DesignScratchFlow = () => {
   const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState<'frames' | 'customize' | 'finalize'>('frames');
   const [selectedFrame, setSelectedFrame] = useState<FrameTemplate | null>(null);
-  const [currentStep, setCurrentStep] = useState<'frame' | 'customize' | 'preview'>('frame');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [canvasData, setCanvasData] = useState<string>('');
+  const [cardTitle, setCardTitle] = useState('');
+  const [cardDescription, setCardDescription] = useState('');
+
+  // Filter frames based on category and search
+  const filteredFrames = FRAME_TEMPLATES.filter(frame => {
+    const matchesCategory = selectedCategory === 'All' || frame.category === selectedCategory;
+    const matchesSearch = !searchTerm || 
+      frame.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      frame.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      frame.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    return matchesCategory && matchesSearch;
+  });
 
   const handleFrameSelect = (frame: FrameTemplate) => {
     setSelectedFrame(frame);
     setCurrentStep('customize');
+    toast.success(`${frame.name} frame selected!`);
+  };
+
+  const handleSaveDesign = (data: string) => {
+    setCanvasData(data);
+    toast.success('Design saved successfully');
+  };
+
+  const handleExportDesign = (imageData: string) => {
+    // Create download link
+    const link = document.createElement('a');
+    link.download = `${cardTitle || 'card-design'}.png`;
+    link.href = imageData;
+    link.click();
+    
+    toast.success('Card exported successfully!');
+  };
+
+  const handleFinalize = () => {
+    if (!cardTitle.trim()) {
+      toast.error('Please enter a card title');
+      return;
+    }
+    
+    setCurrentStep('finalize');
+  };
+
+  const handleCreateCard = () => {
+    // Here you would typically save to database
+    toast.success('Card created successfully!');
+    navigate('/profile', { 
+      state: { 
+        message: 'Your custom card has been created!',
+        cardData: { title: cardTitle, description: cardDescription, canvasData }
+      } 
+    });
   };
 
   const renderStepContent = () => {
     switch (currentStep) {
-      case 'frame':
+      case 'frames':
         return (
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-6">Choose Your Frame</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {FRAME_TEMPLATES.map((frame) => (
-                <Card
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-white mb-2">Choose Your Frame</h2>
+              <p className="text-crd-lightGray">Select a frame template to start designing your card</p>
+            </div>
+
+            {/* Search and Filter */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-crd-lightGray" />
+                <Input
+                  placeholder="Search frames..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-editor-tool border-editor-border text-crd-white"
+                />
+              </div>
+              
+              <div className="flex gap-2 overflow-x-auto">
+                {FRAME_CATEGORIES.map((category) => (
+                  <Button
+                    key={category}
+                    size="sm"
+                    variant={selectedCategory === category ? "default" : "outline"}
+                    onClick={() => setSelectedCategory(category)}
+                    className={
+                      selectedCategory === category
+                        ? "bg-crd-green text-crd-dark whitespace-nowrap"
+                        : "border-editor-border text-crd-lightGray hover:text-white whitespace-nowrap"
+                    }
+                  >
+                    {category}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Results Count */}
+            <p className="text-crd-lightGray text-sm">
+              Showing {filteredFrames.length} of {FRAME_TEMPLATES.length} frames
+            </p>
+
+            {/* Frame Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredFrames.map((frame) => (
+                <FrameTemplatePreview
                   key={frame.id}
-                  className="bg-editor-dark border-editor-border hover:border-crd-green/50 cursor-pointer transition-all"
-                  onClick={() => handleFrameSelect(frame)}
-                >
-                  <CardContent className="p-4">
-                    <div className="aspect-[3/4] bg-editor-border rounded-lg mb-4 flex items-center justify-center">
-                      <Palette className="w-12 h-12 text-crd-lightGray" />
-                    </div>
-                    <h3 className="text-white font-semibold mb-1">{frame.name}</h3>
-                    <p className="text-crd-lightGray text-sm">{frame.category}</p>
-                  </CardContent>
-                </Card>
+                  template={frame}
+                  isSelected={false}
+                  onSelect={() => handleFrameSelect(frame)}
+                />
               ))}
             </div>
+
+            {filteredFrames.length === 0 && (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-editor-border rounded-lg mx-auto mb-4 flex items-center justify-center">
+                  <Search className="w-8 h-8 text-crd-lightGray" />
+                </div>
+                <h3 className="text-crd-white font-medium mb-2">No frames found</h3>
+                <p className="text-crd-lightGray text-sm">Try adjusting your search or filter</p>
+              </div>
+            )}
           </div>
         );
 
       case 'customize':
         return (
-          <div>
-            <div className="flex items-center justify-between mb-6">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-white">Customize Your Design</h2>
                 <p className="text-crd-lightGray">Frame: {selectedFrame?.name}</p>
               </div>
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep('frame')}
-                className="border-editor-border text-crd-lightGray hover:text-white"
-              >
-                Change Frame
-              </Button>
-            </div>
-
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Tools Sidebar */}
-              <div className="space-y-4">
-                <Card className="bg-editor-dark border-editor-border">
-                  <CardContent className="p-4">
-                    <h3 className="text-white font-semibold mb-3 flex items-center">
-                      <Layers className="w-4 h-4 mr-2" />
-                      Elements
-                    </h3>
-                    <div className="space-y-2">
-                      <Button variant="outline" size="sm" className="w-full justify-start">
-                        Add Photo
-                      </Button>
-                      <Button variant="outline" size="sm" className="w-full justify-start">
-                        <Type className="w-4 h-4 mr-2" />
-                        Add Text
-                      </Button>
-                      <Button variant="outline" size="sm" className="w-full justify-start">
-                        Add Shape
-                      </Button>
-                      <Button variant="outline" size="sm" className="w-full justify-start">
-                        Add Sticker
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-editor-dark border-editor-border">
-                  <CardContent className="p-4">
-                    <h3 className="text-white font-semibold mb-3">Effects</h3>
-                    <div className="space-y-2">
-                      <Button variant="outline" size="sm" className="w-full justify-start">
-                        Shadow
-                      </Button>
-                      <Button variant="outline" size="sm" className="w-full justify-start">
-                        Glow
-                      </Button>
-                      <Button variant="outline" size="sm" className="w-full justify-start">
-                        Gradient
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Canvas Area */}
-              <div className="lg:col-span-2">
-                <Card className="bg-editor-dark border-editor-border">
-                  <CardContent className="p-6">
-                    <div className="aspect-[3/4] bg-editor-border rounded-lg flex items-center justify-center relative">
-                      <div className="text-center">
-                        <Palette className="w-16 h-16 text-crd-lightGray mx-auto mb-4" />
-                        <p className="text-crd-lightGray">Canvas Area</p>
-                        <p className="text-crd-lightGray text-sm">Frame: {selectedFrame?.name}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-between mt-6">
-                      <Button
-                        variant="outline"
-                        onClick={() => setCurrentStep('frame')}
-                        className="border-editor-border text-crd-lightGray hover:text-white"
-                      >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Back to Frames
-                      </Button>
-                      
-                      <Button
-                        onClick={() => setCurrentStep('preview')}
-                        className="bg-crd-green hover:bg-crd-green/90 text-black"
-                      >
-                        Preview Card
-                        <Sparkles className="w-4 h-4 ml-2" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep('frames')}
+                  className="border-editor-border text-crd-lightGray hover:text-white"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Change Frame
+                </Button>
+                <Button
+                  onClick={handleFinalize}
+                  className="bg-crd-green hover:bg-crd-green/90 text-black"
+                >
+                  Finalize Card
+                  <Sparkles className="w-4 h-4 ml-2" />
+                </Button>
               </div>
             </div>
+
+            {selectedFrame && (
+              <CanvasEditor
+                selectedFrame={selectedFrame}
+                onSave={handleSaveDesign}
+                onExport={handleExportDesign}
+              />
+            )}
           </div>
         );
 
-      case 'preview':
+      case 'finalize':
         return (
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-6">Preview & Finalize</h2>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-white">Finalize Your Card</h2>
+                <p className="text-crd-lightGray">Add final details and create your card</p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep('customize')}
+                className="border-editor-border text-crd-lightGray hover:text-white"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Editor
+              </Button>
+            </div>
+
             <div className="grid lg:grid-cols-2 gap-8">
+              {/* Card Details */}
               <Card className="bg-editor-dark border-editor-border">
                 <CardContent className="p-6">
-                  <h3 className="text-white font-semibold mb-4">Card Preview</h3>
-                  <div className="aspect-[3/4] bg-editor-border rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <Sparkles className="w-16 h-16 text-crd-lightGray mx-auto mb-4" />
-                      <p className="text-crd-lightGray">Final Preview</p>
+                  <h3 className="text-white font-semibold mb-4">Card Details</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-crd-lightGray text-sm block mb-2">Card Title *</label>
+                      <Input
+                        value={cardTitle}
+                        onChange={(e) => setCardTitle(e.target.value)}
+                        placeholder="Enter card title..."
+                        className="bg-editor-tool border-editor-border text-white"
+                      />
                     </div>
+                    
+                    <div>
+                      <label className="text-crd-lightGray text-sm block mb-2">Description</label>
+                      <textarea
+                        value={cardDescription}
+                        onChange={(e) => setCardDescription(e.target.value)}
+                        placeholder="Enter description..."
+                        rows={3}
+                        className="w-full p-3 bg-editor-tool border border-editor-border rounded-lg text-white placeholder-crd-lightGray focus:border-crd-green focus:outline-none"
+                      />
+                    </div>
+                    
+                    <Button
+                      onClick={handleCreateCard}
+                      disabled={!cardTitle.trim()}
+                      className="w-full bg-crd-green hover:bg-crd-green/90 text-black"
+                    >
+                      Create Card
+                      <Sparkles className="w-4 h-4 ml-2" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
 
-              <div className="space-y-6">
-                <Card className="bg-editor-dark border-editor-border">
-                  <CardContent className="p-6">
-                    <h3 className="text-white font-semibold mb-4">Card Details</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-crd-lightGray text-sm block mb-2">Title</label>
-                        <input
-                          type="text"
-                          placeholder="Enter card title..."
-                          className="w-full p-3 bg-editor-border border border-editor-border rounded-lg text-white placeholder-crd-lightGray focus:border-crd-green focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-crd-lightGray text-sm block mb-2">Description</label>
-                        <textarea
-                          placeholder="Enter description..."
-                          rows={3}
-                          className="w-full p-3 bg-editor-border border border-editor-border rounded-lg text-white placeholder-crd-lightGray focus:border-crd-green focus:outline-none"
-                        />
-                      </div>
+              {/* Design Summary */}
+              <Card className="bg-editor-dark border-editor-border">
+                <CardContent className="p-6">
+                  <h3 className="text-white font-semibold mb-4">Design Summary</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-crd-lightGray">Frame:</span>
+                      <span className="text-white">{selectedFrame?.name}</span>
                     </div>
-                  </CardContent>
-                </Card>
-
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setCurrentStep('customize')}
-                    className="flex-1 border-editor-border text-crd-lightGray hover:text-white"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Edit
-                  </Button>
-                  
-                  <Button
-                    className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black"
-                  >
-                    Create Card
-                  </Button>
-                </div>
-              </div>
+                    <div className="flex justify-between">
+                      <span className="text-crd-lightGray">Category:</span>
+                      <span className="text-white">{selectedFrame?.category}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-crd-lightGray">Elements:</span>
+                      <span className="text-white">{selectedFrame?.cutout_areas.length} areas</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-crd-lightGray">Effects:</span>
+                      <span className="text-white">{selectedFrame?.effects?.length || 0} applied</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         );
