@@ -16,4 +16,7 @@ export interface WizardHandlers {
   updateCardField: (field: string, value: any) => void;
   updateCreatorAttribution: (attribution: any) => void;
   updatePublishingOptions: (options: any) => void;
+  handleNext: () => void;
+  handleBack: () => void;
+  handleComplete: () => void;
 }

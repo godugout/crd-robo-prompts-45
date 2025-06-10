@@ -8,6 +8,11 @@ export interface TemplateConfig {
   is_premium: boolean;
   usage_count: number;
   tags: string[];
+  default_colors: {
+    border: string;
+    background: string;
+    text: string;
+  };
 }
 
 export const DEFAULT_TEMPLATES: TemplateConfig[] = [
@@ -24,7 +29,12 @@ export const DEFAULT_TEMPLATES: TemplateConfig[] = [
     },
     is_premium: false,
     usage_count: 1247,
-    tags: ['portrait', 'classic', 'elegant', 'border']
+    tags: ['portrait', 'classic', 'elegant', 'border'],
+    default_colors: {
+      border: '#d4af37',
+      background: '#f8f4e6',
+      text: '#2c1810'
+    }
   },
   {
     id: 'modern-minimal',
@@ -39,7 +49,12 @@ export const DEFAULT_TEMPLATES: TemplateConfig[] = [
     },
     is_premium: false,
     usage_count: 892,
-    tags: ['modern', 'minimal', 'clean', 'simple']
+    tags: ['modern', 'minimal', 'clean', 'simple'],
+    default_colors: {
+      border: '#666666',
+      background: '#ffffff',
+      text: '#000000'
+    }
   },
   {
     id: 'gaming-legend',
@@ -55,7 +70,12 @@ export const DEFAULT_TEMPLATES: TemplateConfig[] = [
     },
     is_premium: true,
     usage_count: 634,
-    tags: ['gaming', 'epic', 'metallic', 'glow', 'character']
+    tags: ['gaming', 'epic', 'metallic', 'glow', 'character'],
+    default_colors: {
+      border: '#00ffff',
+      background: '#0a0a0a',
+      text: '#ffffff'
+    }
   },
   {
     id: 'sports-action',
@@ -71,7 +91,12 @@ export const DEFAULT_TEMPLATES: TemplateConfig[] = [
     },
     is_premium: false,
     usage_count: 1156,
-    tags: ['sports', 'action', 'dynamic', 'energy', 'motion']
+    tags: ['sports', 'action', 'dynamic', 'energy', 'motion'],
+    default_colors: {
+      border: '#ff4500',
+      background: '#1a1a1a',
+      text: '#ffffff'
+    }
   },
   {
     id: 'vintage-classic',
@@ -87,7 +112,12 @@ export const DEFAULT_TEMPLATES: TemplateConfig[] = [
     },
     is_premium: false,
     usage_count: 723,
-    tags: ['vintage', 'nostalgic', 'ornate', 'sepia', 'classic']
+    tags: ['vintage', 'nostalgic', 'ornate', 'sepia', 'classic'],
+    default_colors: {
+      border: '#8b4513',
+      background: '#f4e4bc',
+      text: '#5d4037'
+    }
   },
   {
     id: 'holographic-premium',
@@ -103,7 +133,12 @@ export const DEFAULT_TEMPLATES: TemplateConfig[] = [
     },
     is_premium: true,
     usage_count: 445,
-    tags: ['holographic', 'premium', 'rainbow', 'futuristic', 'shine']
+    tags: ['holographic', 'premium', 'rainbow', 'futuristic', 'shine'],
+    default_colors: {
+      border: '#ff00ff',
+      background: '#000011',
+      text: '#ffffff'
+    }
   }
 ];
 

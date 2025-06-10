@@ -30,6 +30,18 @@ interface ImageAdjustments {
     contrast: number;
     saturation: number;
   };
+  perspective: {
+    topLeft: { x: number; y: number };
+    topRight: { x: number; y: number };
+    bottomLeft: { x: number; y: number };
+    bottomRight: { x: number; y: number };
+  };
+  crop: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
 interface AdjustWithTemplateStepProps {
@@ -56,6 +68,18 @@ export const AdjustWithTemplateStep: React.FC<AdjustWithTemplateStepProps> = ({
       brightness: 100,
       contrast: 100,
       saturation: 100
+    },
+    perspective: {
+      topLeft: { x: 0, y: 0 },
+      topRight: { x: 1, y: 0 },
+      bottomLeft: { x: 0, y: 1 },
+      bottomRight: { x: 1, y: 1 }
+    },
+    crop: {
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1
     }
   });
   const [showGrid, setShowGrid] = useState(true);
