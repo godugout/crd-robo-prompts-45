@@ -55,7 +55,7 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
     image_url: card.image_url,
     thumbnail_url: card.thumbnail_url,
     rarity: card.rarity,
-    price: card.price,
+    price: typeof card.price === 'string' ? parseFloat(card.price) || 0 : card.price,
     creator_name: card.creator_name,
     creator_verified: card.creator_verified || false,
     stock: 3,
