@@ -1,25 +1,20 @@
-
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
-import type { EffectValues } from '../hooks/useEnhancedCardEffects';
+import { useEffectContext } from '../contexts/EffectContext';
 
 interface CardImageRendererProps {
   card: CardData;
-  showEffects: boolean;
-  effectIntensity: number[];
-  mousePosition: { x: number; y: number };
-  effectValues?: EffectValues;
-  isHovering: boolean;
 }
 
-export const CardImageRenderer: React.FC<CardImageRendererProps> = ({
-  card,
-  showEffects,
-  effectIntensity,
-  mousePosition,
-  effectValues,
-  isHovering
-}) => {
+export const CardImageRenderer: React.FC<CardImageRendererProps> = ({ card }) => {
+  const {
+    showEffects,
+    effectIntensity,
+    mousePosition,
+    effectValues,
+    isHovering
+  } = useEffectContext();
+
   console.log('CardImageRenderer: Rendering with card data:', {
     id: card.id,
     title: card.title,

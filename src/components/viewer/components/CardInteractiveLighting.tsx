@@ -1,19 +1,15 @@
 
 import React from 'react';
+import { useEffectContext } from '../contexts/EffectContext';
 
-interface CardInteractiveLightingProps {
-  isHovering: boolean;
-  showEffects: boolean;
-  mousePosition: { x: number; y: number };
-  interactiveLighting?: boolean;
-}
+export const CardInteractiveLighting: React.FC = () => {
+  const {
+    isHovering,
+    showEffects,
+    mousePosition,
+    interactiveLighting
+  } = useEffectContext();
 
-export const CardInteractiveLighting: React.FC<CardInteractiveLightingProps> = ({
-  isHovering,
-  showEffects,
-  mousePosition,
-  interactiveLighting = false
-}) => {
   if (!interactiveLighting || !isHovering) {
     return null;
   }

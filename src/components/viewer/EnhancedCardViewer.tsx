@@ -1,8 +1,10 @@
+
 import React, { useState, useCallback } from 'react';
 import { useEnhancedCardEffects } from './hooks/useEnhancedCardEffects';
 import { useEnhancedCardInteraction } from './hooks/useEnhancedCardInteraction';
 import { EnhancedCardCanvas } from './components/EnhancedCardCanvas';
 import { ComboStudioPanel } from './components/ComboStudioPanel';
+import { EffectProvider } from './contexts/EffectContext';
 import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from './types';
 import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from './constants';
@@ -48,6 +50,7 @@ export const EnhancedCardViewer: React.FC<EnhancedCardViewerProps> = ({
   const [overallBrightness, setOverallBrightness] = useState<number[]>([100]);
   const [interactiveLighting, setInteractiveLighting] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showEffects] = useState(true);
 
   // Material properties - now including clearcoat
   const [materialSettings, setMaterialSettings] = useState<MaterialSettings>({
@@ -56,6 +59,11 @@ export const EnhancedCardViewer: React.FC<EnhancedCardViewerProps> = ({
     reflectivity: 0.5,
     clearcoat: 0.3
   });
+
+  // Calculate effect intensity for context
+  const effectIntensity = Object.values(effectValues).map(effect => 
+    typeof effect.intensity === 'number' ? effect.intensity : 0
+  );
 
   const handleToggleFullscreen = useCallback(() => {
     setIsFullscreen(!isFullscreen);
@@ -70,52 +78,63 @@ export const EnhancedCardViewer: React.FC<EnhancedCardViewerProps> = ({
     setInteractiveLighting(!interactiveLighting);
   }, [interactiveLighting]);
 
+  // Create effect context value
+  const effectContextValue = {
+    effectValues,
+    mousePosition,
+    isHovering,
+    showEffects,
+    materialSettings,
+    interactiveLighting,
+    effectIntensity,
+    handleEffectChange,
+    resetEffect,
+    resetAllEffects
+  };
+
   return (
-    <div className={`relative ${isFullscreen ? 'fixed inset-0 z-50' : 'w-full h-screen'} bg-black overflow-hidden`}>
-      {/* Main Canvas Area */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <EnhancedCardCanvas
-          card={card}
-          effectValues={effectValues}
-          mousePosition={mousePosition}
-          isHovering={isHovering}
-          rotation={rotation}
+    <EffectProvider value={effectContextValue}>
+      <div className={`relative ${isFullscreen ? 'fixed inset-0 z-50' : 'w-full h-screen'} bg-black overflow-hidden`}>
+        {/* Main Canvas Area */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <EnhancedCardCanvas
+            card={card}
+            rotation={rotation}
+            selectedScene={selectedScene}
+            selectedLighting={selectedLighting}
+            overallBrightness={overallBrightness[0]}
+            onMouseMove={handleMouseMove}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            width={isFullscreen ? 500 : 400}
+            height={isFullscreen ? 700 : 560}
+          />
+        </div>
+
+        {/* Combo Studio Panel */}
+        <ComboStudioPanel
           selectedScene={selectedScene}
           selectedLighting={selectedLighting}
-          overallBrightness={overallBrightness[0]}
+          effectValues={effectValues}
+          overallBrightness={overallBrightness}
           interactiveLighting={interactiveLighting}
           materialSettings={materialSettings}
-          onMouseMove={handleMouseMove}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          width={isFullscreen ? 500 : 400}
-          height={isFullscreen ? 700 : 560}
+          isFullscreen={isFullscreen}
+          onSceneChange={setSelectedScene}
+          onLightingChange={setSelectedLighting}
+          onEffectChange={handleEffectChange}
+          onResetEffect={resetEffect}
+          onResetAllEffects={resetAllEffects}
+          onBrightnessChange={setOverallBrightness}
+          onInteractiveLightingToggle={handleInteractiveLightingToggle}
+          onMaterialSettingsChange={setMaterialSettings}
+          onToggleFullscreen={handleToggleFullscreen}
+          onDownload={onDownload}
+          onShare={onShare}
+          onClose={onClose}
+          card={card}
         />
       </div>
-
-      {/* Combo Studio Panel */}
-      <ComboStudioPanel
-        selectedScene={selectedScene}
-        selectedLighting={selectedLighting}
-        effectValues={effectValues}
-        overallBrightness={overallBrightness}
-        interactiveLighting={interactiveLighting}
-        materialSettings={materialSettings}
-        isFullscreen={isFullscreen}
-        onSceneChange={setSelectedScene}
-        onLightingChange={setSelectedLighting}
-        onEffectChange={handleEffectChange}
-        onResetEffect={resetEffect}
-        onResetAllEffects={resetAllEffects}
-        onBrightnessChange={setOverallBrightness}
-        onInteractiveLightingToggle={handleInteractiveLightingToggle}
-        onMaterialSettingsChange={setMaterialSettings}
-        onToggleFullscreen={handleToggleFullscreen}
-        onDownload={onDownload}
-        onShare={onShare}
-        onClose={onClose}
-        card={card}
-      />
-    </div>
+    </EffectProvider>
   );
 };
