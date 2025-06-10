@@ -24,9 +24,6 @@ export const ToolbarZoomControls = ({ currentZoom, handleZoomIn, handleZoomOut }
         onClick={handleZoomOut}
         disabled={currentZoom <= 50}
       />
-      <div className="text-white text-sm px-2 bg-editor-tool rounded mx-1 h-7 flex items-center">
-        {currentZoom}%
-      </div>
       <ToolbarButton 
         icon={<ZoomIn size={18} />} 
         tooltip="Zoom In" 

@@ -67,8 +67,6 @@ export const ReviewCanvasControls: React.FC<ReviewCanvasControlsProps> = ({
           <ZoomOut className="w-4 h-4" />
         </Button>
 
-        <span className="text-gray-300 text-sm">{Math.round(zoom * 100)}%</span>
-
         <Button
           variant="outline"
           size="sm"

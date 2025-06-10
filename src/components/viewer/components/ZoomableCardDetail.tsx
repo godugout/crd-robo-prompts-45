@@ -106,9 +106,6 @@ export const ZoomableCardDetail: React.FC<ZoomableCardDetailProps> = ({
       </div>
       
       <div className="relative">
-        <div className="absolute top-4 right-4 z-10 bg-black/40 px-2 py-1 rounded backdrop-blur">
-          <span className="text-white text-xs">{Math.round(zoom * 100)}%</span>
-        </div>
         <img
           src={imageSrc}
           alt={alt}

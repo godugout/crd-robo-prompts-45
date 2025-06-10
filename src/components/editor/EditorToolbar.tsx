@@ -119,10 +119,6 @@ export const EditorToolbar = ({ onZoomChange, currentZoom }: EditorToolbarProps)
           <ZoomOut className="w-4 h-4" />
         </Button>
         
-        <span className="text-white text-sm px-2 bg-editor-tool rounded h-7 flex items-center">
-          {currentZoom}%
-        </span>
-        
         <Button variant="ghost" size="sm" onClick={handleZoomIn} disabled={currentZoom >= 200}>
           <ZoomIn className="w-4 h-4" />
         </Button>
