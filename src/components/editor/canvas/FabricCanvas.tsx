@@ -28,6 +28,11 @@ export const FabricCanvasComponent = ({
   useEffect(() => {
     if (!canvasRef.current) return;
 
+    // Dispose existing canvas if it exists
+    if (fabricCanvas) {
+      fabricCanvas.dispose();
+    }
+
     const canvas = new FabricCanvas(canvasRef.current, {
       width,
       height,
@@ -36,9 +41,11 @@ export const FabricCanvasComponent = ({
       preserveObjectStacking: true,
     });
 
-    // Initialize drawing brush
-    canvas.freeDrawingBrush.color = '#000000';
-    canvas.freeDrawingBrush.width = 2;
+    // Initialize drawing brush with null checks
+    if (canvas.freeDrawingBrush) {
+      canvas.freeDrawingBrush.color = '#000000';
+      canvas.freeDrawingBrush.width = 2;
+    }
 
     setFabricCanvas(canvas);
     setIsReady(true);
@@ -54,12 +61,22 @@ export const FabricCanvasComponent = ({
 
     return () => {
       canvas.dispose();
+      setFabricCanvas(null);
+      setIsReady(false);
     };
-  }, [width, height]);
+  }, [width, height, onCanvasReady]);
 
   // Update grid overlay
   useEffect(() => {
-    if (!fabricCanvas) return;
+    if (!fabricCanvas || !isReady) return;
+
+    // Clear existing grid lines
+    const objects = fabricCanvas.getObjects();
+    objects.forEach(obj => {
+      if (obj.stroke === 'rgba(255,255,255,0.1)') {
+        fabricCanvas.remove(obj);
+      }
+    });
 
     if (showGrid) {
       const gridSize = 20;
@@ -83,18 +100,10 @@ export const FabricCanvasComponent = ({
         fabricCanvas.add(line);
         fabricCanvas.sendObjectToBack(line);
       }
-    } else {
-      // Remove grid lines
-      const objects = fabricCanvas.getObjects();
-      objects.forEach(obj => {
-        if (obj.stroke === 'rgba(255,255,255,0.1)') {
-          fabricCanvas.remove(obj);
-        }
-      });
     }
 
     fabricCanvas.renderAll();
-  }, [showGrid, fabricCanvas, width, height]);
+  }, [showGrid, fabricCanvas, width, height, isReady]);
 
   // Load existing canvas data
   useEffect(() => {
