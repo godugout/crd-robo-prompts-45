@@ -10,7 +10,6 @@ interface Collection {
   title: string;
   description?: string;
   coverImageUrl?: string;
-  coverTemplate?: string;
   cardCount: number;
   visibility: string;
   createdAt: string;
@@ -22,15 +21,6 @@ interface CollectionCardProps {
   onDelete: (collectionId: string) => void;
   onView: (collection: Collection) => void;
 }
-
-const coverTemplateGradients = {
-  retro: 'from-purple-500 to-pink-500',
-  vintage: 'from-amber-500 to-orange-500',
-  modern: 'from-blue-500 to-cyan-500',
-  neon: 'from-green-400 to-blue-500',
-  classic: 'from-gray-600 to-gray-800',
-  minimal: 'from-slate-400 to-slate-600'
-};
 
 export const CollectionCard = ({ collection, onEdit, onDelete, onView }: CollectionCardProps) => {
   const getCoverElement = () => {
@@ -44,15 +34,23 @@ export const CollectionCard = ({ collection, onEdit, onDelete, onView }: Collect
       );
     }
     
-    if (collection.coverTemplate && coverTemplateGradients[collection.coverTemplate as keyof typeof coverTemplateGradients]) {
-      return (
-        <div className={`w-full h-32 bg-gradient-to-br ${coverTemplateGradients[collection.coverTemplate as keyof typeof coverTemplateGradients]}`} />
-      );
-    }
-    
+    // Default gradient background
     return (
-      <div className="w-full h-32 bg-gradient-to-br from-crd-blue to-crd-orange" />
+      <div className="w-full h-32 bg-gradient-to-br from-crd-blue to-crd-orange flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="text-2xl font-bold">{collection.cardCount}</div>
+          <div className="text-sm opacity-75">Cards</div>
+        </div>
+      </div>
     );
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   return (
@@ -114,6 +112,10 @@ export const CollectionCard = ({ collection, onEdit, onDelete, onView }: Collect
           <div className="flex items-center justify-between text-xs text-crd-lightGray">
             <span>{collection.cardCount} cards</span>
             <span className="capitalize">{collection.visibility}</span>
+          </div>
+          
+          <div className="mt-2 text-xs text-crd-lightGray">
+            Created {formatDate(collection.createdAt)}
           </div>
         </CardContent>
       </div>
