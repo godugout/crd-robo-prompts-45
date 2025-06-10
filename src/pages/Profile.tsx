@@ -2,15 +2,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { CRDButton } from '@/components/ui/design-system';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LoadingState } from '@/components/common/LoadingState';
 import { ProfileStats } from '@/components/profile/ProfileStats';
 import { ProfileTabs } from '@/components/profile/ProfileTabs';
-import { useProfilePage } from '@/hooks/useProfilePage';
-import { useUserCards } from '@/hooks/useUserCards';
-import { useUserMemories } from '@/hooks/useUserMemories';
-import { Edit, Settings } from 'lucide-react';
+import { usePaginatedProfile } from '@/hooks/usePaginatedProfile';
+import { Edit, Settings, Loader } from 'lucide-react';
 import type { Memory } from '@/types/memory';
 
 // Create a unified card interface that matches both Memory and Card types
@@ -31,13 +30,16 @@ const Profile = () => {
     isLoading,
     activeTab,
     setActiveTab,
+    userCards,
+    cardsLoading,
+    hasMoreCards,
+    totalCards,
+    loadMoreCards,
+    memories,
+    memoriesLoading,
     followers,
     following
-  } = useProfilePage();
-
-  // Use the new useUserCards hook to get ALL user cards (public and private)
-  const { userCards, loading: cardsLoading } = useUserCards(user?.id);
-  const { memories, loading: memoriesLoading } = useUserMemories(user?.id);
+  } = usePaginatedProfile();
 
   if (isLoading) {
     return <LoadingState message="Loading profile..." fullPage size="lg" />;
@@ -100,6 +102,11 @@ const Profile = () => {
               <div>
                 <CardTitle className="text-2xl text-crd-white">{displayName}</CardTitle>
                 <CardDescription className="text-crd-lightGray">{bioText}</CardDescription>
+                {totalCards > 0 && (
+                  <p className="text-sm text-crd-lightGray mt-1">
+                    {totalCards} cards created
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex space-x-2">
@@ -128,15 +135,30 @@ const Profile = () => {
           />
         </Card>
 
-        {/* Profile Tabs */}
+        {/* Profile Tabs with Pagination */}
         <ProfileTabs
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           memories={[...unifiedCards, ...memories]}
           memoriesLoading={cardsLoading || memoriesLoading}
-          hasMore={false}
-          onLoadMore={() => {}}
+          hasMore={hasMoreCards}
+          onLoadMore={loadMoreCards}
         />
+
+        {/* Load More Button for Cards */}
+        {activeTab === 'memories' && hasMoreCards && !cardsLoading && (
+          <div className="flex justify-center mt-8">
+            <Button 
+              onClick={loadMoreCards}
+              variant="outline" 
+              className="border-crd-mediumGray text-crd-lightGray hover:text-white"
+              disabled={cardsLoading}
+            >
+              {cardsLoading && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+              Load More Cards
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
