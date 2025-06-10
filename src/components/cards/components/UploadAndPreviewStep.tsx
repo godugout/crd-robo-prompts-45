@@ -25,10 +25,12 @@ export const UploadAndPreviewStep: React.FC<UploadAndPreviewStepProps> = ({
 
   const createFramedImage = (file: File): FramedImage => {
     const frameConfig = getRandomFrameConfig();
+    const preview = URL.createObjectURL(file);
     return {
       id: `framed-${Date.now()}-${Math.random()}`,
       originalFile: file,
-      preview: URL.createObjectURL(file),
+      preview,
+      imageUrl: preview, // Add the required imageUrl property
       frameId: frameConfig.id,
       frameConfig,
       position: {
