@@ -93,16 +93,36 @@ const Labs = () => {
             const IconComponent = feature.icon;
             const isDisabled = feature.status === 'coming-soon';
             
-            const CardWrapper = isDisabled ? 'div' : Link;
-            const cardProps = isDisabled ? {} : { to: feature.path };
+            if (isDisabled) {
+              return (
+                <div key={index}>
+                  <Card className="h-full bg-editor-dark/50 backdrop-blur-sm border-white/10 opacity-60 cursor-not-allowed">
+                    <CardHeader className="space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center`}>
+                          <IconComponent className="w-6 h-6 text-white" />
+                        </div>
+                        {getStatusBadge(feature.status)}
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl text-white mb-2 flex items-center gap-2">
+                          {feature.title}
+                        </CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-crd-lightGray leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            }
 
             return (
-              <CardWrapper key={index} {...cardProps}>
-                <Card className={`h-full bg-editor-dark/50 backdrop-blur-sm border-white/10 hover:border-white/20 transition-all duration-300 ${
-                  isDisabled 
-                    ? 'opacity-60 cursor-not-allowed' 
-                    : 'hover:scale-105 hover:shadow-2xl cursor-pointer'
-                }`}>
+              <Link key={index} to={feature.path}>
+                <Card className="h-full bg-editor-dark/50 backdrop-blur-sm border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer">
                   <CardHeader className="space-y-4">
                     <div className="flex items-start justify-between">
                       <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center`}>
@@ -113,7 +133,7 @@ const Labs = () => {
                     <div>
                       <CardTitle className="text-xl text-white mb-2 flex items-center gap-2">
                         {feature.title}
-                        {!isDisabled && <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />}
+                        <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
                       </CardTitle>
                     </div>
                   </CardHeader>
@@ -123,7 +143,7 @@ const Labs = () => {
                     </p>
                   </CardContent>
                 </Card>
-              </CardWrapper>
+              </Link>
             );
           })}
         </div>
