@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ImmersiveCardViewer } from "@/components/viewer/ImmersiveCardViewer";
@@ -109,13 +108,13 @@ export default function CardDetail() {
   if (showViewer) {
     return (
       <>
-        {/* Navigation Controls */}
-        <div className="fixed top-4 left-4 z-50 flex gap-2">
+        {/* Navigation Controls - Fixed z-index and pointer events */}
+        <div className="fixed top-4 left-4 z-[60] flex gap-2 pointer-events-auto">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleGoBack}
-            className="bg-black bg-opacity-80 hover:bg-opacity-90 backdrop-blur text-white border border-white/20"
+            className="bg-black/80 hover:bg-black/90 backdrop-blur-sm text-white border border-white/20 pointer-events-auto"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
@@ -125,7 +124,7 @@ export default function CardDetail() {
             variant="ghost"
             size="sm"
             onClick={handleToggleView}
-            className="bg-black bg-opacity-80 hover:bg-opacity-90 backdrop-blur text-white border border-white/20"
+            className="bg-black/80 hover:bg-black/90 backdrop-blur-sm text-white border border-white/20 pointer-events-auto"
           >
             <Info className="w-4 h-4 mr-2" />
             Details
