@@ -10,7 +10,7 @@ import {
   Shield,
   Palette
 } from 'lucide-react';
-import type { CardData } from '@/hooks/useCardData';
+import type { CardData } from '@/types/card';
 
 interface CardMetadataPanelProps {
   card: CardData;
@@ -80,7 +80,7 @@ export const CardMetadataPanel: React.FC<CardMetadataPanelProps> = ({ card }) =>
           )}
           <div className="flex justify-between">
             <span>Edition Size</span>
-            <span className="text-white">{card.edition_size || 1}</span>
+            <span className="text-white">{card.publishing_options?.distribution?.edition_size || 1}</span>
           </div>
           {card.design_metadata && Object.keys(card.design_metadata).length > 0 && (
             <div className="flex justify-between">
@@ -99,25 +99,25 @@ export const CardMetadataPanel: React.FC<CardMetadataPanelProps> = ({ card }) =>
           <div className="flex justify-between">
             <span>Visibility</span>
             <Badge variant="outline" className="bg-white/10 border-none">
-              {card.visibility.charAt(0).toUpperCase() + card.visibility.slice(1)}
+              {card.visibility?.charAt(0).toUpperCase() + card.visibility?.slice(1) || 'Private'}
             </Badge>
           </div>
           <div className="flex justify-between">
             <span>In Marketplace</span>
-            <Badge variant={card.marketplace_listing ? "default" : "outline"} className={card.marketplace_listing ? "bg-crd-green" : "text-crd-lightGray"}>
-              {card.marketplace_listing ? "Listed" : "Not Listed"}
+            <Badge variant={card.publishing_options?.marketplace_listing ? "default" : "outline"} className={card.publishing_options?.marketplace_listing ? "bg-crd-green" : "text-crd-lightGray"}>
+              {card.publishing_options?.marketplace_listing ? "Listed" : "Not Listed"}
             </Badge>
           </div>
           <div className="flex justify-between">
             <span>In Catalog</span>
-            <Badge variant={card.crd_catalog_inclusion ? "default" : "outline"} className={card.crd_catalog_inclusion ? "bg-crd-blue" : "text-crd-lightGray"}>
-              {card.crd_catalog_inclusion ? "Included" : "Not Included"}
+            <Badge variant={card.publishing_options?.crd_catalog_inclusion ? "default" : "outline"} className={card.publishing_options?.crd_catalog_inclusion ? "bg-crd-blue" : "text-crd-lightGray"}>
+              {card.publishing_options?.crd_catalog_inclusion ? "Included" : "Not Included"}
             </Badge>
           </div>
           <div className="flex justify-between">
             <span>Print Available</span>
-            <Badge variant={card.print_available ? "default" : "outline"} className={card.print_available ? "bg-crd-orange" : "text-crd-lightGray"}>
-              {card.print_available ? "Available" : "Unavailable"}
+            <Badge variant={card.publishing_options?.print_available ? "default" : "outline"} className={card.publishing_options?.print_available ? "bg-crd-orange" : "text-crd-lightGray"}>
+              {card.publishing_options?.print_available ? "Available" : "Unavailable"}
             </Badge>
           </div>
         </div>

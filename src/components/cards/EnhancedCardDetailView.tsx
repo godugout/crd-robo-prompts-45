@@ -15,7 +15,7 @@ import { CompactCardViewer } from '@/components/viewer/CompactCardViewer';
 import { CommentSection } from '@/components/social/CommentSection';
 import { ReactionBar } from '@/components/social/ReactionBar';
 import { convertToViewerCardData } from '@/components/viewer/types';
-import type { CardData } from '@/hooks/useCardData';
+import type { CardData } from '@/types/card';
 import { CardQuickFactsPanel } from './components/CardQuickFactsPanel';
 import { CardMetadataPanel } from './components/CardMetadataPanel';
 
@@ -49,16 +49,16 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
 
   // Convert CardData to viewer format
   const universalCard = {
-    id: card.id,
+    id: card.id || '',
     title: card.title,
     description: card.description,
     image_url: card.image_url,
     thumbnail_url: card.thumbnail_url,
     rarity: card.rarity,
-    price: card.price,
-    creator_name: card.creator_name,
-    creator_verified: card.creator_verified,
-    stock: card.edition_size || 3,
+    price: card.publishing_options?.pricing?.base_price,
+    creator_name: card.creator_attribution?.creator_name,
+    creator_verified: false,
+    stock: card.publishing_options?.distribution?.edition_size || 3,
     tags: card.tags
   };
 
@@ -153,7 +153,7 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
                   <CardContent className="p-6">
                     <h3 className="text-xl font-bold text-white mb-4">Community Reactions</h3>
                     <ReactionBar 
-                      memoryId={card.id}
+                      memoryId={card.id || ''}
                       initialReactions={[]}
                       initialUserReactions={[]}
                     />
@@ -164,7 +164,7 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
                 <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
                   <CardContent className="p-6">
                     <CommentSection 
-                      memoryId={card.id}
+                      memoryId={card.id || ''}
                       expanded={true}
                     />
                   </CardContent>
