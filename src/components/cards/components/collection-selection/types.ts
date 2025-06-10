@@ -1,7 +1,7 @@
 
 export interface Collection {
   id: string;
-  name: string;
+  title: string; // Changed from 'name' to 'title' to match database schema
   description?: string;
   cardCount: number;
   createdAt: Date;

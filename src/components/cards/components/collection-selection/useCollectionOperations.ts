@@ -7,7 +7,7 @@ import type { ExtractedCard } from './types';
 
 interface Collection {
   id: string;
-  title: string;
+  title: string; // Fixed: using title instead of name
   description?: string;
   cardCount: number;
   createdAt: Date;
@@ -46,7 +46,7 @@ export const useCollectionOperations = () => {
 
       const formattedCollections: Collection[] = (data || []).map(collection => ({
         id: collection.id,
-        title: collection.title,
+        title: collection.title, // Fixed: using title consistently
         description: collection.description,
         cardCount: collection.collection_cards?.[0]?.count || 0,
         createdAt: new Date(collection.created_at)
@@ -72,7 +72,7 @@ export const useCollectionOperations = () => {
       const { data, error } = await supabase
         .from('collections')
         .insert({
-          title: newCollectionName.trim(),
+          title: newCollectionName.trim(), // Fixed: using title instead of name
           description: newCollectionDescription.trim() || null,
           owner_id: user.id,
           visibility: 'private'
@@ -88,7 +88,7 @@ export const useCollectionOperations = () => {
 
       const newCollection: Collection = {
         id: data.id,
-        title: data.title,
+        title: data.title, // Fixed: using title consistently
         description: data.description,
         cardCount: 0,
         createdAt: new Date(data.created_at)
