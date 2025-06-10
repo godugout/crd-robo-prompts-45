@@ -1,28 +1,23 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { 
   Maximize2, 
   Share, 
   Download, 
-  Star, 
-  Calendar, 
-  Tag, 
   Heart,
-  Eye,
   Bookmark,
   ArrowLeft,
   MoreHorizontal,
-  Sparkles
 } from 'lucide-react';
 import { CompactCardViewer } from '@/components/viewer/CompactCardViewer';
 import { CommentSection } from '@/components/social/CommentSection';
 import { ReactionBar } from '@/components/social/ReactionBar';
 import { convertToViewerCardData } from '@/components/viewer/types';
 import type { CardData } from '@/hooks/useCardData';
+import { CardQuickFactsPanel } from './components/CardQuickFactsPanel';
+import { CardMetadataPanel } from './components/CardMetadataPanel';
 
 interface EnhancedCardDetailViewProps {
   card: CardData;
@@ -42,30 +37,6 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 50) + 10);
-
-  const getRarityColor = (rarity: string) => {
-    switch (rarity.toLowerCase()) {
-      case 'legendary':
-        return 'from-yellow-400 to-orange-500';
-      case 'epic':
-        return 'from-purple-400 to-pink-500';
-      case 'rare':
-        return 'from-blue-400 to-cyan-500';
-      case 'uncommon':
-        return 'from-green-400 to-emerald-500';
-      default:
-        return 'from-gray-400 to-gray-500';
-    }
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Unknown';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -87,7 +58,7 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
     price: card.price,
     creator_name: card.creator_name,
     creator_verified: card.creator_verified,
-    stock: 3,
+    stock: card.edition_size || 3,
     tags: card.tags
   };
 
@@ -102,8 +73,8 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
       </div>
 
       {/* Header Navigation */}
-      <div className="relative z-10 p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="relative z-10 p-4 md:p-6">
+        <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
             size="sm"
@@ -118,18 +89,61 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content Area - Full Card Viewer + Community */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-6">
+              {/* Card Title */}
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-0 leading-tight lg:hidden">{card.title}</h1>
+              
               {/* Card Viewer - Full Space */}
-              <div className="relative min-h-[700px] rounded-2xl overflow-hidden bg-gradient-to-br from-editor-dark to-editor-darker border border-white/10 shadow-2xl">
-                {/* Card viewer fills entire container - removed all padding and margin */}
+              <div className="relative min-h-[500px] md:min-h-[600px] rounded-2xl overflow-hidden bg-gradient-to-br from-editor-dark to-editor-darker border border-white/10 shadow-2xl">
+                {/* Card viewer fills entire container */}
                 <div className="absolute inset-0 w-full h-full">
                   <CompactCardViewer
                     card={viewerCard}
                     onFullscreen={onOpenViewer}
-                    width={800}
-                    height={700}
+                    width="100%"
+                    height="100%"
                   />
                 </div>
+                
+                {/* Floating action button for fullscreen */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onOpenViewer}
+                  className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm hover:bg-black/60 text-white rounded-full w-10 h-10 p-0 z-10"
+                >
+                  <Maximize2 className="w-5 h-5" />
+                </Button>
+              </div>
+
+              {/* Action Buttons - Mobile Only */}
+              <div className="grid grid-cols-3 gap-3 lg:hidden">
+                <Button 
+                  variant="outline" 
+                  className={`border-white/20 backdrop-blur-sm ${isLiked ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'text-white hover:bg-white/10'}`}
+                  onClick={handleLike}
+                >
+                  <Heart className={`w-4 h-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
+                  {isLiked ? 'Liked' : 'Like'}
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
+                  onClick={onShare}
+                >
+                  <Share className="w-4 h-4 mr-2" />
+                  Share
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
+                  onClick={onDownload}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Save
+                </Button>
               </div>
 
               {/* Community Section */}
@@ -159,47 +173,22 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
             </div>
 
             {/* Right Sidebar - Card Information & Actions */}
-            <div className="space-y-6">
-              {/* Card Title & Creator */}
-              <div className="text-center lg:text-left">
+            <div className="space-y-5">
+              {/* Card Title & Creator - Desktop Only */}
+              <div className="hidden lg:block">
                 <h1 className="text-4xl font-bold text-white mb-4 leading-tight">{card.title}</h1>
-                
-                <div className="flex items-center justify-center lg:justify-start gap-2 text-crd-lightGray mb-4">
-                  <span>Created by</span>
-                  <span className="text-white font-semibold">{card.creator_name}</span>
-                  {card.creator_verified && (
-                    <Star className="w-4 h-4 text-crd-green fill-current" />
-                  )}
-                </div>
-                
-                {/* Rarity Badge with card info */}
-                <div className="flex flex-col gap-3">
-                  <div className="flex justify-center lg:justify-start">
-                    <Badge className={`bg-gradient-to-r ${getRarityColor(card.rarity)} text-white font-bold px-4 py-2`}>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      {card.rarity.toUpperCase()}
-                    </Badge>
-                  </div>
-                  
-                  {/* Quick stats row */}
-                  <div className="flex justify-center lg:justify-start gap-4 text-sm text-crd-lightGray">
-                    {card.price && (
-                      <span className="text-crd-green font-medium">${card.price}</span>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {formatDate(card.created_at)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Heart className="w-3 h-3" />
-                      {likeCount}
-                    </span>
-                  </div>
-                </div>
               </div>
+              
+              {/* Quick Facts Panel */}
+              <CardQuickFactsPanel
+                card={card}
+                likeCount={likeCount}
+                isLiked={isLiked}
+                isBookmarked={isBookmarked}
+              />
 
-              {/* Actions */}
-              <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
+              {/* Actions - Desktop Only */}
+              <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10 hidden lg:block">
                 <CardContent className="p-4">
                   <h3 className="text-lg font-semibold text-white mb-4">Actions</h3>
                   <div className="space-y-3">
@@ -249,39 +238,9 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Description */}
-              {card.description && (
-                <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
-                  <CardContent className="p-4">
-                    <h3 className="text-lg font-semibold text-white mb-3">Description</h3>
-                    <p className="text-crd-lightGray leading-relaxed">{card.description}</p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Tags */}
-              {card.tags && card.tags.length > 0 && (
-                <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
-                  <CardContent className="p-4">
-                    <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                      <Tag className="w-4 h-4" />
-                      Tags
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {card.tags.map((tag, index) => (
-                        <Badge
-                          key={index}
-                          variant="outline"
-                          className="border-white/20 text-crd-lightGray hover:bg-white/10 hover:text-white cursor-pointer transition-colors"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              
+              {/* Enhanced Metadata */}
+              <CardMetadataPanel card={card} />
 
               {/* More Actions */}
               <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
@@ -297,10 +256,11 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
                     </Button>
                     <Button
                       variant="outline"
+                      onClick={onOpenViewer}
                       className="w-full justify-start border-white/20 text-crd-lightGray hover:bg-white/10 hover:text-white"
                     >
-                      <Star className="w-4 h-4 mr-2" />
-                      Create Similar
+                      <Maximize2 className="w-4 h-4 mr-2" />
+                      View in 3D
                     </Button>
                   </div>
                 </CardContent>
