@@ -48,32 +48,32 @@ export type TemplateConfig = FrameTemplate;
 
 export const WIZARD_STEPS: WizardStep[] = [
   {
-    id: 'frame',
-    title: 'Choose Frame',
-    description: 'Select a frame style for your card',
-    icon: Settings,
-    component: 'FramesStep'
-  },
-  {
     id: 'photo',
     title: 'Add Photo',
     description: 'Upload and position your image',
     icon: Upload,
-    component: 'PhotoStep'
+    component: 'PhotoUploadStep'
   },
   {
     id: 'adjust',
-    title: 'Adjust Image',
-    description: 'Fine-tune positioning and scale',
+    title: 'Adjust & Frame',
+    description: 'Fine-tune positioning and choose frame',
     icon: Wand2,
     component: 'EnhancedImageAdjustmentStep'
   },
   {
-    id: 'share',
-    title: 'Share & Export',
-    description: 'Save and share your creation',
+    id: 'details',
+    title: 'Card Details',
+    description: 'Add title, description and metadata',
+    icon: Settings,
+    component: 'CardDetailsStep'
+  },
+  {
+    id: 'publish',
+    title: 'Publish',
+    description: 'Set publishing options and create',
     icon: Share,
-    component: 'ShareStep'
+    component: 'PublishingOptionsStep'
   }
 ];
 

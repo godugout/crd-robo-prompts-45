@@ -84,11 +84,8 @@ export const useWizardState = (onComplete: (cardData: CardData) => void) => {
         return;
       }
       
-      if (wizardState.currentStep === 1 && wizardState.aiAnalysisComplete && wizardState.selectedTemplate) {
-        setWizardState(prev => ({ ...prev, currentStep: 3 }));
-      } else {
-        setWizardState(prev => ({ ...prev, currentStep: Math.min(prev.currentStep + 1, 4) }));
-      }
+      // Updated step flow: photo -> adjust/frame -> details -> publish
+      setWizardState(prev => ({ ...prev, currentStep: Math.min(prev.currentStep + 1, 4) }));
     },
 
     handleBack: () => {

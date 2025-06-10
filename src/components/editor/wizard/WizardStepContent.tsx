@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { PhotoUploadStep } from './PhotoUploadStep';
-import { AdjustWithTemplateStep } from './AdjustWithTemplateStep';
+import { EnhancedImageAdjustmentStep } from './EnhancedImageAdjustmentStep';
 import { CardDetailsStep } from './CardDetailsStep';
 import { PublishingOptionsStep } from './PublishingOptionsStep';
 import type { WizardState, WizardHandlers } from './types';
@@ -34,12 +34,15 @@ export const WizardStepContent = ({
       );
     case 2:
       return (
-        <AdjustWithTemplateStep
+        <EnhancedImageAdjustmentStep
           selectedPhoto={wizardState.selectedPhoto}
-          templates={templates}
-          selectedTemplate={wizardState.selectedTemplate}
-          onTemplateSelect={handlers.handleTemplateSelect}
+          selectedFrame={wizardState.selectedTemplate}
           onImageAdjusted={handlers.handleImageAdjusted}
+          onFrameChanged={(frameId: string) => {
+            const frame = templates.find(t => t.id === frameId);
+            if (frame) handlers.handleTemplateSelect(frame);
+          }}
+          onSkip={() => handlers.handleNext()}
         />
       );
     case 3:

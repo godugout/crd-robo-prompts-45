@@ -5,65 +5,147 @@ import { Card } from '@/components/ui/card';
 import { FixedCardImageEditor } from '@/components/card-editor/enhanced/FixedCardImageEditor';
 import { Crop, RotateCw, Maximize2, CheckCircle, Palette } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface Frame {
-  id: string;
-  name: string;
-  preview: string;
-  style: {
-    primaryColor: string;
-    accentColor: string;
-    backgroundColor: string;
-  };
-}
+import type { FrameTemplate } from './wizardConfig';
 
 interface EnhancedImageAdjustmentStepProps {
   selectedPhoto: string;
-  selectedFrame?: Frame;
+  selectedFrame?: FrameTemplate;
   onImageAdjusted: (adjustedImageUrl: string) => void;
   onFrameChanged?: (frameId: string) => void;
   onSkip?: () => void;
 }
 
-const DEFAULT_FRAMES: Frame[] = [
+const DEFAULT_FRAMES: FrameTemplate[] = [
   {
     id: 'classic',
     name: 'Classic Card',
-    preview: '/placeholder.svg',
-    style: {
-      primaryColor: '#16a085',
-      accentColor: '#eee',
-      backgroundColor: '#1a1a2e'
+    category: 'traditional',
+    description: 'A timeless card design perfect for any photo',
+    preview_url: '/placeholder.svg',
+    is_premium: false,
+    usage_count: 1247,
+    tags: ['classic', 'traditional', 'versatile', 'photo'],
+    template_data: {
+      layout: 'standard',
+      style: {
+        primaryColor: '#16a085',
+        accentColor: '#eee',
+        backgroundColor: '#1a1a2e',
+        borderRadius: 8,
+        borderWidth: 2
+      },
+      typography: {
+        titleFont: 'Inter',
+        bodyFont: 'Inter',
+        titleSize: 18,
+        bodySize: 14
+      },
+      effects: ['border', 'shadow'],
+      supports_stickers: true
+    },
+    default_colors: {
+      background: '#1a1a2e',
+      border: '#16a085',
+      text: '#eee'
     }
   },
   {
     id: 'vintage',
     name: 'Vintage Frame',
-    preview: '/placeholder.svg',
-    style: {
-      primaryColor: '#e07a5f',
-      accentColor: '#3d405b',
-      backgroundColor: '#f4f1de'
+    category: 'vintage',
+    description: 'Nostalgic design with classic typography',
+    preview_url: '/placeholder.svg',
+    is_premium: false,
+    usage_count: 892,
+    tags: ['vintage', 'retro', 'warm', 'classic'],
+    template_data: {
+      layout: 'vintage',
+      style: {
+        primaryColor: '#e07a5f',
+        accentColor: '#3d405b',
+        backgroundColor: '#f4f1de',
+        borderRadius: 12,
+        borderWidth: 3
+      },
+      typography: {
+        titleFont: 'serif',
+        bodyFont: 'serif',
+        titleSize: 20,
+        bodySize: 15
+      },
+      effects: ['texture', 'sepia'],
+      supports_stickers: true
+    },
+    default_colors: {
+      background: '#f4f1de',
+      border: '#e07a5f',
+      text: '#3d405b'
     }
   },
   {
     id: 'modern',
     name: 'Modern Edge',
-    preview: '/placeholder.svg',
-    style: {
-      primaryColor: '#8e44ad',
-      accentColor: '#f39c12',
-      backgroundColor: '#2d1b69'
+    category: 'modern',
+    description: 'Sleek contemporary design',
+    preview_url: '/placeholder.svg',
+    is_premium: true,
+    usage_count: 634,
+    tags: ['modern', 'sleek', 'contemporary', 'bold'],
+    template_data: {
+      layout: 'modern',
+      style: {
+        primaryColor: '#8e44ad',
+        accentColor: '#f39c12',
+        backgroundColor: '#2d1b69',
+        borderRadius: 6,
+        borderWidth: 1
+      },
+      typography: {
+        titleFont: 'sans-serif',
+        bodyFont: 'sans-serif',
+        titleSize: 16,
+        bodySize: 12
+      },
+      effects: ['gradient', 'glow'],
+      supports_stickers: true
+    },
+    default_colors: {
+      background: '#2d1b69',
+      border: '#8e44ad',
+      text: '#f39c12'
     }
   },
   {
     id: 'neon',
     name: 'Neon Glow',
-    preview: '/placeholder.svg',
-    style: {
-      primaryColor: '#ff006e',
-      accentColor: '#8338ec',
-      backgroundColor: '#0f0f23'
+    category: 'futuristic',
+    description: 'Futuristic neon design',
+    preview_url: '/placeholder.svg',
+    is_premium: true,
+    usage_count: 423,
+    tags: ['neon', 'futuristic', 'gaming', 'tech'],
+    template_data: {
+      layout: 'futuristic',
+      style: {
+        primaryColor: '#ff006e',
+        accentColor: '#8338ec',
+        backgroundColor: '#0f0f23',
+        borderRadius: 4,
+        borderWidth: 2
+      },
+      typography: {
+        titleFont: 'monospace',
+        bodyFont: 'monospace',
+        titleSize: 14,
+        bodySize: 11
+      },
+      effects: ['neon', 'glow', 'holographic'],
+      supports_stickers: true
+    },
+    default_colors: {
+      background: '#0f0f23',
+      border: '#ff006e',
+      text: '#8338ec'
     }
   }
 ];
@@ -77,7 +159,7 @@ export const EnhancedImageAdjustmentStep = ({
 }: EnhancedImageAdjustmentStepProps) => {
   const [imageElement, setImageElement] = useState<HTMLImageElement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentFrame, setCurrentFrame] = useState<Frame>(selectedFrame || DEFAULT_FRAMES[0]);
+  const [currentFrame, setCurrentFrame] = useState<FrameTemplate>(selectedFrame || DEFAULT_FRAMES[0]);
 
   useEffect(() => {
     if (selectedPhoto) {
@@ -104,7 +186,7 @@ export const EnhancedImageAdjustmentStep = ({
     if (onSkip) onSkip();
   };
 
-  const handleFrameSelect = (frame: Frame) => {
+  const handleFrameSelect = (frame: FrameTemplate) => {
     setCurrentFrame(frame);
     if (onFrameChanged) onFrameChanged(frame.id);
     toast.success(`Frame changed to ${frame.name}`);
@@ -193,7 +275,7 @@ export const EnhancedImageAdjustmentStep = ({
 
         {/* Current Frame Preview */}
         <Card className="bg-editor-dark border-editor-border p-4">
-          <div className="aspect-[3/4] relative mb-3 rounded-lg overflow-hidden" style={{ backgroundColor: currentFrame.style.backgroundColor }}>
+          <div className="aspect-[3/4] relative mb-3 rounded-lg overflow-hidden" style={{ backgroundColor: currentFrame.default_colors?.background || currentFrame.template_data.style.backgroundColor }}>
             {/* Frame preview with image */}
             <div className="absolute inset-2 border-2 border-dashed border-gray-500 rounded overflow-hidden">
               <img 
@@ -206,14 +288,14 @@ export const EnhancedImageAdjustmentStep = ({
             {/* Frame elements */}
             <div 
               className="absolute top-2 left-2 right-2 h-6 rounded flex items-center justify-center"
-              style={{ backgroundColor: currentFrame.style.primaryColor }}
+              style={{ backgroundColor: currentFrame.template_data.style.primaryColor }}
             >
               <span className="text-white text-xs font-bold">HEADER</span>
             </div>
             
             <div 
               className="absolute bottom-2 left-2 right-2 h-4 rounded flex items-center justify-center"
-              style={{ backgroundColor: currentFrame.style.accentColor }}
+              style={{ backgroundColor: currentFrame.template_data.style.accentColor }}
             >
               <span className="text-black text-xs">Footer</span>
             </div>
@@ -240,16 +322,16 @@ export const EnhancedImageAdjustmentStep = ({
               <div className="flex items-center gap-3">
                 <div 
                   className="w-8 h-10 rounded border"
-                  style={{ backgroundColor: frame.style.backgroundColor }}
+                  style={{ backgroundColor: frame.template_data.style.backgroundColor }}
                 >
                   <div 
                     className="w-full h-2 rounded-t"
-                    style={{ backgroundColor: frame.style.primaryColor }}
+                    style={{ backgroundColor: frame.template_data.style.primaryColor }}
                   />
                   <div className="flex-1" />
                   <div 
                     className="w-full h-1 rounded-b"
-                    style={{ backgroundColor: frame.style.accentColor }}
+                    style={{ backgroundColor: frame.template_data.style.accentColor }}
                   />
                 </div>
                 <div className="text-left">
