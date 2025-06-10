@@ -1,15 +1,17 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { CRDButton } from '@/components/ui/design-system/Button';
-import { Eye, Download } from 'lucide-react';
-import type { DetectedRectangle, DetectionDebugInfo } from '@/services/cardDetection/enhancedRectangleDetection';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
+import { ZoomIn, ZoomOut, Check, X, RotateCcw, Move, Crop } from 'lucide-react';
+import type { DetectedCard, DetectionDebugInfo } from '@/services/cardDetection/improvedCardDetection';
 
 interface DetectionDebugViewerProps {
   originalImage: HTMLImageElement;
-  rectangles: DetectedRectangle[];
+  rectangles: DetectedCard[];
   debugInfo: DetectionDebugInfo;
-  onRectangleSelect?: (rectangle: DetectedRectangle) => void;
+  onRectangleSelect?: (rectangle: DetectedCard | null) => void;
 }
 
 export const DetectionDebugViewer: React.FC<DetectionDebugViewerProps> = ({
@@ -18,235 +20,395 @@ export const DetectionDebugViewer: React.FC<DetectionDebugViewerProps> = ({
   debugInfo,
   onRectangleSelect
 }) => {
+  const [selectedRectId, setSelectedRectId] = useState<number | null>(null);
+  const [croppedCards, setCroppedCards] = useState<Array<{ id: number; imageUrl: string; rect: DetectedCard }>>([]);
+  const [approvedCards, setApprovedCards] = useState<Set<number>>(new Set());
+  const [rejectedCards, setRejectedCards] = useState<Set<number>>(new Set());
+  const [viewMode, setViewMode] = useState<'overlay' | 'grid'>('overlay');
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [adjustmentMode, setAdjustmentMode] = useState<'move' | 'resize' | null>(null);
+  
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const edgeCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    drawDetectionResults();
-  }, [originalImage, rectangles]);
+    if (rectangles.length > 0) {
+      generateCroppedCards();
+    }
+  }, [rectangles, originalImage]);
 
   useEffect(() => {
-    if (debugInfo.edgeCanvas && edgeCanvasRef.current) {
-      const ctx = edgeCanvasRef.current.getContext('2d');
-      if (ctx) {
-        edgeCanvasRef.current.width = debugInfo.edgeCanvas.width;
-        edgeCanvasRef.current.height = debugInfo.edgeCanvas.height;
-        ctx.drawImage(debugInfo.edgeCanvas, 0, 0);
+    drawOverlay();
+  }, [selectedRectId, zoomLevel, rectangles]);
+
+  const generateCroppedCards = async () => {
+    const cards = [];
+    
+    for (let i = 0; i < rectangles.length; i++) {
+      const rect = rectangles[i];
+      const croppedUrl = await cropCardFromImage(rect, i);
+      if (croppedUrl) {
+        cards.push({ id: i, imageUrl: croppedUrl, rect });
       }
     }
-  }, [debugInfo.edgeCanvas]);
+    
+    setCroppedCards(cards);
+  };
 
-  const drawDetectionResults = () => {
-    if (!canvasRef.current || !originalImage) return;
+  const cropCardFromImage = async (rect: DetectedCard, id: number): Promise<string | null> => {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
 
+      // Standard card dimensions for consistent output
+      const targetWidth = 300;
+      const targetHeight = 420;
+      
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+
+      // Apply perspective correction if needed
+      if (rect.angle !== 0) {
+        ctx.save();
+        ctx.translate(targetWidth / 2, targetHeight / 2);
+        ctx.rotate((rect.angle * Math.PI) / 180);
+        ctx.translate(-targetWidth / 2, -targetHeight / 2);
+      }
+
+      // Draw the cropped region
+      ctx.drawImage(
+        originalImage,
+        rect.x, rect.y, rect.width, rect.height,
+        0, 0, targetWidth, targetHeight
+      );
+
+      if (rect.angle !== 0) {
+        ctx.restore();
+      }
+
+      return canvas.toDataURL('image/jpeg', 0.9);
+    } catch (error) {
+      console.error('Failed to crop card:', error);
+      return null;
+    }
+  };
+
+  const drawOverlay = () => {
     const canvas = canvasRef.current;
+    if (!canvas || rectangles.length === 0) return;
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size
-    const maxWidth = 800;
-    const scale = Math.min(maxWidth / originalImage.width, 1);
-    canvas.width = originalImage.width * scale;
-    canvas.height = originalImage.height * scale;
+    // Set canvas size to match original image with zoom
+    const displayWidth = originalImage.width * zoomLevel;
+    const displayHeight = originalImage.height * zoomLevel;
+    
+    canvas.width = displayWidth;
+    canvas.height = displayHeight;
 
-    // Draw original image
-    ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+    // Draw the original image
+    ctx.drawImage(originalImage, 0, 0, displayWidth, displayHeight);
 
-    // Draw detected rectangles
+    // Draw detection rectangles
     rectangles.forEach((rect, index) => {
-      const x = rect.x * scale;
-      const y = rect.y * scale;
-      const width = rect.width * scale;
-      const height = rect.height * scale;
+      const isSelected = selectedRectId === index;
+      const isApproved = approvedCards.has(index);
+      const isRejected = rejectedCards.has(index);
+      
+      // Scale rectangle coordinates for zoom level
+      const scaledRect = {
+        x: rect.x * zoomLevel,
+        y: rect.y * zoomLevel,
+        width: rect.width * zoomLevel,
+        height: rect.height * zoomLevel
+      };
 
-      // Rectangle outline
-      ctx.strokeStyle = `hsl(${index * 60}, 70%, 50%)`;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x, y, width, height);
+      // Set stroke style based on state
+      if (isApproved) {
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 3;
+      } else if (isRejected) {
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3;
+      } else if (isSelected) {
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 4;
+      } else {
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2;
+      }
 
-      // Fill with semi-transparent color
-      ctx.fillStyle = `hsla(${index * 60}, 70%, 50%, 0.15)`;
-      ctx.fillRect(x, y, width, height);
+      // Draw rectangle
+      ctx.strokeRect(scaledRect.x, scaledRect.y, scaledRect.width, scaledRect.height);
 
-      // Confidence score
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = '#000000';
-      ctx.font = '14px Arial';
-      ctx.lineWidth = 3;
-      const text = `${(rect.confidence * 100).toFixed(1)}%`;
-      ctx.strokeText(text, x + 5, y + 20);
-      ctx.fillText(text, x + 5, y + 20);
+      // Draw confidence score
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillRect(scaledRect.x, scaledRect.y - 25, 80, 25);
+      
+      ctx.fillStyle = 'white';
+      ctx.font = '12px Arial';
+      ctx.fillText(
+        `${Math.round(rect.confidence * 100)}%`,
+        scaledRect.x + 5,
+        scaledRect.y - 8
+      );
 
-      // Aspect ratio
-      const aspectText = `${rect.aspectRatio.toFixed(2)}`;
-      ctx.strokeText(aspectText, x + 5, y + 40);
-      ctx.fillText(aspectText, x + 5, y + 40);
-
-      // Card number
-      const cardText = `Card ${index + 1}`;
-      ctx.strokeText(cardText, x + 5, y + height - 10);
-      ctx.fillText(cardText, x + 5, y + height - 10);
+      // Draw corner indicators for selected rectangle
+      if (isSelected && rect.corners) {
+        ctx.fillStyle = '#3b82f6';
+        rect.corners.forEach(corner => {
+          ctx.beginPath();
+          ctx.arc(corner.x * zoomLevel, corner.y * zoomLevel, 4, 0, 2 * Math.PI);
+          ctx.fill();
+        });
+      }
     });
   };
 
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || !onRectangleSelect) return;
-
     const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    if (!canvas) return;
 
-    // Convert to image coordinates
-    const scale = canvas.width / originalImage.width;
-    const imageX = x / scale;
-    const imageY = y / scale;
+    const rect = canvas.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / zoomLevel;
+    const y = (event.clientY - rect.top) / zoomLevel;
 
     // Find clicked rectangle
-    const clickedRect = rectangles.find(r =>
-      imageX >= r.x && imageX <= r.x + r.width &&
-      imageY >= r.y && imageY <= r.y + r.height
+    const clickedIndex = rectangles.findIndex(r => 
+      x >= r.x && x <= r.x + r.width && 
+      y >= r.y && y <= r.y + r.height
     );
 
-    if (clickedRect) {
-      onRectangleSelect(clickedRect);
+    if (clickedIndex !== -1) {
+      setSelectedRectId(clickedIndex);
+      onRectangleSelect?.(rectangles[clickedIndex]);
+    } else {
+      setSelectedRectId(null);
+      onRectangleSelect?.(null);
     }
   };
 
-  const downloadDebugImage = () => {
-    if (!canvasRef.current) return;
-    
-    const link = document.createElement('a');
-    link.download = 'card-detection-debug.png';
-    link.href = canvasRef.current.toDataURL();
-    link.click();
+  const approveCard = (id: number) => {
+    setApprovedCards(prev => new Set([...prev, id]));
+    setRejectedCards(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(id);
+      return newSet;
+    });
   };
 
-  const downloadEdgeImage = () => {
-    if (!edgeCanvasRef.current) return;
-    
-    const link = document.createElement('a');
-    link.download = 'edge-detection-debug.png';
-    link.href = edgeCanvasRef.current.toDataURL();
-    link.click();
+  const rejectCard = (id: number) => {
+    setRejectedCards(prev => new Set([...prev, id]));
+    setApprovedCards(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(id);
+      return newSet;
+    });
+  };
+
+  const resetCardState = (id: number) => {
+    setApprovedCards(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(id);
+      return newSet;
+    });
+    setRejectedCards(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(id);
+      return newSet;
+    });
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Detection Summary */}
       <Card className="p-4 bg-gray-900 border-gray-700">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex justify-between items-center mb-4">
           <h3 className="text-white font-semibold">Detection Results</h3>
           <div className="flex gap-2">
-            <CRDButton
-              variant="outline"
+            <Button
+              variant={viewMode === 'overlay' ? 'default' : 'outline'}
               size="sm"
-              onClick={downloadDebugImage}
-              className="border-crd-mediumGray text-crd-lightGray hover:text-crd-white"
+              onClick={() => setViewMode('overlay')}
             >
-              <Download className="w-4 h-4 mr-2" />
-              Download
-            </CRDButton>
+              Overlay View
+            </Button>
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+            >
+              Grid View
+            </Button>
           </div>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Main detection view */}
-          <div>
-            <h4 className="text-gray-300 text-sm mb-2">Detection Overlay</h4>
+        <div className="grid grid-cols-4 gap-4 text-sm">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-blue-400">{rectangles.length}</div>
+            <div className="text-gray-400">Detected</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-400">{approvedCards.size}</div>
+            <div className="text-gray-400">Approved</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-red-400">{rejectedCards.size}</div>
+            <div className="text-gray-400">Rejected</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-yellow-400">
+              {rectangles.length - approvedCards.size - rejectedCards.size}
+            </div>
+            <div className="text-gray-400">Pending</div>
+          </div>
+        </div>
+
+        <div className="mt-4 text-xs text-gray-400">
+          Processing time: {debugInfo.processingTime}ms | 
+          Strategies: {debugInfo.strategiesUsed.join(', ')}
+        </div>
+      </Card>
+
+      {viewMode === 'overlay' && (
+        <Card className="p-4 bg-gray-900 border-gray-700">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-white font-semibold">Image Overlay</h3>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => setZoomLevel(prev => Math.max(0.25, prev - 0.25))}>
+                  <ZoomOut className="w-4 h-4" />
+                </Button>
+                <span className="text-white text-sm w-12 text-center">{Math.round(zoomLevel * 100)}%</span>
+                <Button variant="outline" size="sm" onClick={() => setZoomLevel(prev => Math.min(3, prev + 0.25))}>
+                  <ZoomIn className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border border-gray-700 rounded-lg overflow-auto max-h-96">
             <canvas
               ref={canvasRef}
-              className="border border-gray-600 rounded cursor-pointer max-w-full"
               onClick={handleCanvasClick}
+              className="cursor-crosshair"
+              style={{ maxWidth: '100%', height: 'auto' }}
             />
           </div>
+        </Card>
+      )}
 
-          {/* Edge detection view */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-gray-300 text-sm">Edge Detection</h4>
-              <CRDButton
-                variant="ghost"
-                size="sm"
-                onClick={downloadEdgeImage}
-                className="text-crd-lightGray hover:text-crd-white p-1"
-              >
-                <Download className="w-3 h-3" />
-              </CRDButton>
-            </div>
-            <canvas
-              ref={edgeCanvasRef}
-              className="border border-gray-600 rounded max-w-full"
-              style={{ filter: 'invert(1)' }}
-            />
-          </div>
-        </div>
-      </Card>
-
-      {/* Detection Statistics */}
-      <Card className="p-4 bg-gray-900 border-gray-700">
-        <h3 className="text-white font-semibold mb-3">Detection Statistics</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div>
-            <div className="text-gray-400">Rectangles Found</div>
-            <div className="text-white font-bold">{rectangles.length}</div>
-          </div>
-          <div>
-            <div className="text-gray-400">Avg Confidence</div>
-            <div className="text-white font-bold">
-              {rectangles.length > 0 
-                ? (rectangles.reduce((sum, r) => sum + r.confidence, 0) / rectangles.length * 100).toFixed(1) + '%'
-                : '0%'
-              }
-            </div>
-          </div>
-          <div>
-            <div className="text-gray-400">Best Match</div>
-            <div className="text-white font-bold">
-              {rectangles.length > 0 ? (rectangles[0].confidence * 100).toFixed(1) + '%' : '0%'}
-            </div>
-          </div>
-          <div>
-            <div className="text-gray-400">Processing Steps</div>
-            <div className="text-white font-bold">{debugInfo.processingSteps.length}</div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Processing Steps */}
-      <Card className="p-4 bg-gray-900 border-gray-700">
-        <h3 className="text-white font-semibold mb-3">Processing Steps</h3>
-        <div className="space-y-1 text-sm max-h-40 overflow-y-auto">
-          {debugInfo.processingSteps.map((step, index) => (
-            <div key={index} className="text-gray-300">
-              {index + 1}. {step}
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      {/* Rectangle Details */}
-      {rectangles.length > 0 && (
+      {viewMode === 'grid' && croppedCards.length > 0 && (
         <Card className="p-4 bg-gray-900 border-gray-700">
-          <h3 className="text-white font-semibold mb-3">Detected Rectangles</h3>
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {rectangles.map((rect, index) => (
-              <div
-                key={index}
-                className="bg-gray-800 p-3 rounded cursor-pointer hover:bg-gray-700 transition-colors"
-                onClick={() => onRectangleSelect?.(rect)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="text-white font-medium">Card {index + 1}</div>
-                  <div className="text-green-400">{(rect.confidence * 100).toFixed(1)}%</div>
+          <h3 className="text-white font-semibold mb-4">Cropped Cards Grid</h3>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {croppedCards.map(({ id, imageUrl, rect }) => (
+              <div key={id} className="relative group">
+                <div className="border-2 rounded-lg overflow-hidden transition-all hover:shadow-lg"
+                     style={{
+                       borderColor: approvedCards.has(id) ? '#22c55e' : 
+                                   rejectedCards.has(id) ? '#ef4444' : '#374151'
+                     }}>
+                  <img
+                    src={imageUrl}
+                    alt={`Card ${id + 1}`}
+                    className="w-full h-auto"
+                    onClick={() => setSelectedRectId(selectedRectId === id ? null : id)}
+                  />
+                  
+                  {/* Overlay controls */}
+                  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-green-600 border-green-600 text-white hover:bg-green-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        approveCard(id);
+                      }}
+                    >
+                      <Check className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-red-600 border-red-600 text-white hover:bg-red-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        rejectCard(id);
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-yellow-600 border-yellow-600 text-white hover:bg-yellow-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        resetCardState(id);
+                      }}
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="text-gray-400 text-sm">
-                  {rect.width}×{rect.height} • Ratio: {rect.aspectRatio.toFixed(2)}
-                </div>
-                <div className="text-gray-500 text-xs">
-                  Position: ({rect.x}, {rect.y})
+                
+                {/* Card info */}
+                <div className="mt-2 text-xs">
+                  <div className="flex justify-between items-center">
+                    <Badge variant={rect.confidence > 0.8 ? 'default' : 'secondary'}>
+                      {Math.round(rect.confidence * 100)}%
+                    </Badge>
+                    <span className="text-gray-400">
+                      {Math.round(rect.width)}×{Math.round(rect.height)}
+                    </span>
+                  </div>
+                  <div className="text-gray-400 mt-1">
+                    Ratio: {rect.aspectRatio.toFixed(3)} | {rect.backgroundType} | {rect.cardCondition}
+                  </div>
                 </div>
               </div>
             ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Batch Actions */}
+      {rectangles.length > 0 && (
+        <Card className="p-4 bg-gray-900 border-gray-700">
+          <h3 className="text-white font-semibold mb-4">Batch Actions</h3>
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              className="border-green-600 text-green-400 hover:bg-green-600 hover:text-white"
+              onClick={() => {
+                rectangles.forEach((_, index) => approveCard(index));
+              }}
+            >
+              Approve All
+            </Button>
+            <Button
+              variant="outline"
+              className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+              onClick={() => {
+                rectangles.forEach((_, index) => rejectCard(index));
+              }}
+            >
+              Reject All
+            </Button>
+            <Button
+              variant="outline"
+              className="border-yellow-600 text-yellow-400 hover:bg-yellow-600 hover:text-white"
+              onClick={() => {
+                setApprovedCards(new Set());
+                setRejectedCards(new Set());
+              }}
+            >
+              Reset All
+            </Button>
           </div>
         </Card>
       )}

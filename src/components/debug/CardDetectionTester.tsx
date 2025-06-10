@@ -2,19 +2,40 @@
 import React, { useState, useCallback } from 'react';
 import { CRDButton } from '@/components/ui/design-system/Button';
 import { Card } from '@/components/ui/card';
-import { Upload, Play, RotateCcw } from 'lucide-react';
+import { Upload, Play, RotateCcw, Settings, Download } from 'lucide-react';
 import { toast } from 'sonner';
-import { enhancedRectangleDetector } from '@/services/cardDetection/enhancedRectangleDetection';
+import { improvedCardDetector } from '@/services/cardDetection/improvedCardDetection';
 import { DetectionDebugViewer } from './DetectionDebugViewer';
-import type { DetectedRectangle, DetectionDebugInfo } from '@/services/cardDetection/enhancedRectangleDetection';
+import type { DetectedCard, DetectionDebugInfo } from '@/services/cardDetection/improvedCardDetection';
+
+interface DetectionSettings {
+  sensitivity: number;
+  backgroundType: 'auto' | 'clean' | 'cluttered' | 'mixed';
+  cardCondition: 'auto' | 'raw' | 'sleeved' | 'graded' | 'cased';
+  minSize: number;
+  maxSize: number;
+}
 
 export const CardDetectionTester: React.FC = () => {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [rectangles, setRectangles] = useState<DetectedRectangle[]>([]);
-  const [debugInfo, setDebugInfo] = useState<DetectionDebugInfo>({ processingSteps: [] });
+  const [detectedCards, setDetectedCards] = useState<DetectedCard[]>([]);
+  const [debugInfo, setDebugInfo] = useState<DetectionDebugInfo>({ 
+    processingTime: 0, 
+    strategiesUsed: [], 
+    totalCandidates: 0, 
+    processingSteps: [] 
+  });
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedRectangle, setSelectedRectangle] = useState<DetectedRectangle | null>(null);
+  const [selectedCard, setSelectedCard] = useState<DetectedCard | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState<DetectionSettings>({
+    sensitivity: 70,
+    backgroundType: 'auto',
+    cardCondition: 'auto',
+    minSize: 5,
+    maxSize: 80
+  });
 
   const handleImageUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -36,7 +57,7 @@ export const CardDetectionTester: React.FC = () => {
     img.onload = () => {
       console.log('🖼️ Image loaded:', { width: img.width, height: img.height, file: file.name });
       setImage(img);
-      toast.success('Image loaded! Click "Run Detection" to test.');
+      toast.success('Image loaded! Click "Detect Cards" to analyze.');
     };
     img.onerror = () => {
       console.error('❌ Failed to load image');
@@ -51,67 +72,175 @@ export const CardDetectionTester: React.FC = () => {
       return;
     }
 
-    console.log('🚀 Starting detection process...');
+    console.log('🚀 Starting improved card detection...');
     setIsProcessing(true);
-    toast.loading('Running enhanced rectangle detection...');
-
-    // Create a timeout to prevent infinite hanging
-    const detectionTimeout = setTimeout(() => {
-      console.error('⏰ Detection timeout after 30 seconds');
-      setIsProcessing(false);
-      toast.dismiss();
-      toast.error('Detection timed out. The image might be too complex or large.');
-    }, 30000);
+    
+    const detectionToast = toast.loading('🔍 Analyzing image with advanced detection...', {
+      description: 'Using multi-strategy algorithm for precise card detection'
+    });
 
     try {
-      console.log('🔍 Calling enhancedRectangleDetector.detectCardRectangles...');
+      const result = await improvedCardDetector.detectCards(image);
       
-      // Add a small delay to allow the UI to update
-      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('✅ Detection completed:', {
+        cardsFound: result.cards.length,
+        processingTime: result.debugInfo.processingTime,
+        strategies: result.debugInfo.strategiesUsed
+      });
       
-      const result = await enhancedRectangleDetector.detectCardRectangles(image);
-      
-      console.log('✅ Detection completed:', result);
-      clearTimeout(detectionTimeout);
-      
-      setRectangles(result.rectangles);
+      setDetectedCards(result.cards);
       setDebugInfo(result.debugInfo);
-      setSelectedRectangle(null);
+      setSelectedCard(null);
       
-      toast.dismiss();
-      if (result.rectangles.length > 0) {
-        toast.success(`Detected ${result.rectangles.length} potential cards!`);
+      toast.dismiss(detectionToast);
+      
+      if (result.cards.length > 0) {
+        toast.success(`🎯 Detected ${result.cards.length} potential cards!`, {
+          description: `Analysis completed in ${result.debugInfo.processingTime}ms`
+        });
       } else {
-        toast.info('No rectangles detected. Try adjusting the image or detection parameters.');
+        toast.info('🤔 No cards detected in this image', {
+          description: 'Try adjusting detection settings or use a different image'
+        });
       }
     } catch (error) {
-      clearTimeout(detectionTimeout);
       console.error('💥 Detection error:', error);
-      toast.dismiss();
-      toast.error('Detection failed. Check console for details.');
+      toast.dismiss(detectionToast);
+      toast.error('❌ Detection failed', {
+        description: 'Please check the console for details'
+      });
     } finally {
       setIsProcessing(false);
       console.log('🏁 Detection process finished');
     }
   }, [image]);
 
+  const exportApprovedCards = useCallback(() => {
+    // This would implement exporting approved cards
+    toast.success('Export functionality coming soon!');
+  }, []);
+
   const reset = useCallback(() => {
     console.log('🔄 Resetting detection tester...');
     setImage(null);
     setImageFile(null);
-    setRectangles([]);
-    setDebugInfo({ processingSteps: [] });
-    setSelectedRectangle(null);
+    setDetectedCards([]);
+    setDebugInfo({ processingTime: 0, strategiesUsed: [], totalCandidates: 0, processingSteps: [] });
+    setSelectedCard(null);
+    setShowSettings(false);
   }, []);
 
   return (
     <div className="space-y-6 p-6 bg-gray-950 min-h-screen">
+      {/* Header Controls */}
       <Card className="p-6 bg-gray-900 border-gray-700">
-        <h2 className="text-white text-xl font-bold mb-4">Card Detection Tester</h2>
-        <p className="text-gray-400 mb-6">
-          Test the enhanced rectangle detection algorithm with your own images.
-        </p>
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h2 className="text-white text-xl font-bold mb-2">Advanced Card Detection Studio</h2>
+            <p className="text-gray-400">
+              Upload any image to detect trading cards with intelligent cropping and analysis.
+            </p>
+          </div>
+          
+          <div className="flex gap-2">
+            <CRDButton
+              variant="outline"
+              onClick={() => setShowSettings(!showSettings)}
+              className="border-crd-mediumGray text-crd-lightGray hover:text-crd-white"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
+            </CRDButton>
+            
+            {detectedCards.length > 0 && (
+              <CRDButton
+                variant="outline"
+                onClick={exportApprovedCards}
+                className="border-green-600 text-green-400 hover:bg-green-600 hover:text-white"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </CRDButton>
+            )}
+          </div>
+        </div>
         
+        {/* Detection Settings */}
+        {showSettings && (
+          <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-600">
+            <h3 className="text-white font-semibold mb-4">Detection Settings</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
+                  Sensitivity: {settings.sensitivity}%
+                </label>
+                <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={settings.sensitivity}
+                  onChange={(e) => setSettings(prev => ({ ...prev, sensitivity: parseInt(e.target.value) }))}
+                  className="w-full"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">Background Type</label>
+                <select
+                  value={settings.backgroundType}
+                  onChange={(e) => setSettings(prev => ({ ...prev, backgroundType: e.target.value as any }))}
+                  className="w-full bg-gray-700 text-white rounded border border-gray-600 px-3 py-2"
+                >
+                  <option value="auto">Auto-detect</option>
+                  <option value="clean">Clean background</option>
+                  <option value="cluttered">Cluttered background</option>
+                  <option value="mixed">Mixed background</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">Card Condition</label>
+                <select
+                  value={settings.cardCondition}
+                  onChange={(e) => setSettings(prev => ({ ...prev, cardCondition: e.target.value as any }))}
+                  className="w-full bg-gray-700 text-white rounded border border-gray-600 px-3 py-2"
+                >
+                  <option value="auto">Auto-detect</option>
+                  <option value="raw">Raw cards</option>
+                  <option value="sleeved">Sleeved cards</option>
+                  <option value="graded">Graded/slabbed</option>
+                  <option value="cased">In cases</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
+                  Size Range: {settings.minSize}%-{settings.maxSize}%
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="range"
+                    min="1"
+                    max="50"
+                    value={settings.minSize}
+                    onChange={(e) => setSettings(prev => ({ ...prev, minSize: parseInt(e.target.value) }))}
+                    className="flex-1"
+                  />
+                  <input
+                    type="range"
+                    min="20"
+                    max="100"
+                    value={settings.maxSize}
+                    onChange={(e) => setSettings(prev => ({ ...prev, maxSize: parseInt(e.target.value) }))}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Upload and Action Controls */}
         <div className="flex flex-wrap gap-4">
           <div>
             <input
@@ -138,12 +267,12 @@ export const CardDetectionTester: React.FC = () => {
             {isProcessing ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                Processing...
+                Detecting...
               </>
             ) : (
               <>
                 <Play className="w-4 h-4 mr-2" />
-                Run Detection
+                Detect Cards
               </>
             )}
           </CRDButton>
@@ -159,61 +288,97 @@ export const CardDetectionTester: React.FC = () => {
           </CRDButton>
         </div>
 
+        {/* File Info */}
         {imageFile && (
-          <div className="mt-4 text-sm text-gray-400">
-            Loaded: {imageFile.name} ({(imageFile.size / 1024 / 1024).toFixed(2)} MB)
-            {image && ` • ${image.width}×${image.height}px`}
+          <div className="mt-4 p-3 bg-gray-800 rounded border border-gray-600">
+            <div className="text-sm text-gray-300">
+              <strong>Loaded:</strong> {imageFile.name} 
+              <span className="ml-2 text-gray-400">
+                ({(imageFile.size / 1024 / 1024).toFixed(2)} MB)
+              </span>
+              {image && (
+                <span className="ml-2 text-gray-400">
+                  • {image.width}×{image.height}px
+                </span>
+              )}
+            </div>
           </div>
         )}
 
+        {/* Processing Status */}
         {isProcessing && (
-          <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-600 rounded">
-            <p className="text-yellow-400 text-sm">
-              🔄 Detection is running... This may take up to 30 seconds for complex images.
-              <br />
-              If it takes longer, the process will timeout automatically.
-            </p>
+          <div className="mt-4 p-4 bg-blue-900/20 border border-blue-600 rounded">
+            <div className="flex items-center text-blue-400">
+              <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-3" />
+              <div>
+                <p className="font-medium">Advanced detection in progress...</p>
+                <p className="text-sm text-blue-300 mt-1">
+                  Running multi-strategy analysis for optimal card detection
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </Card>
 
+      {/* Detection Results */}
       {image && (
         <DetectionDebugViewer
           originalImage={image}
-          rectangles={rectangles}
+          rectangles={detectedCards}
           debugInfo={debugInfo}
-          onRectangleSelect={setSelectedRectangle}
+          onRectangleSelect={setSelectedCard}
         />
       )}
 
-      {selectedRectangle && (
+      {/* Selected Card Details */}
+      {selectedCard && (
         <Card className="p-4 bg-gray-900 border-gray-700">
-          <h3 className="text-white font-semibold mb-3">Selected Rectangle Details</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <h3 className="text-white font-semibold mb-3">Selected Card Analysis</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
             <div>
               <div className="text-gray-400">Position</div>
-              <div className="text-white">({selectedRectangle.x}, {selectedRectangle.y})</div>
+              <div className="text-white">{Math.round(selectedCard.x)}, {Math.round(selectedCard.y)}</div>
             </div>
             <div>
-              <div className="text-gray-400">Size</div>
-              <div className="text-white">{selectedRectangle.width}×{selectedRectangle.height}</div>
+              <div className="text-gray-400">Dimensions</div>
+              <div className="text-white">{Math.round(selectedCard.width)}×{Math.round(selectedCard.height)}</div>
             </div>
             <div>
               <div className="text-gray-400">Confidence</div>
-              <div className="text-white">{(selectedRectangle.confidence * 100).toFixed(1)}%</div>
+              <div className="text-white">{(selectedCard.confidence * 100).toFixed(1)}%</div>
             </div>
             <div>
               <div className="text-gray-400">Aspect Ratio</div>
-              <div className="text-white">{selectedRectangle.aspectRatio.toFixed(3)}</div>
+              <div className="text-white">{selectedCard.aspectRatio.toFixed(3)}</div>
+            </div>
+            <div>
+              <div className="text-gray-400">Background</div>
+              <div className="text-white capitalize">{selectedCard.backgroundType}</div>
+            </div>
+            <div>
+              <div className="text-gray-400">Condition</div>
+              <div className="text-white capitalize">{selectedCard.cardCondition}</div>
+            </div>
+          </div>
+          
+          <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <div className="text-gray-400">Edge Strength</div>
+              <div className="text-white">{(selectedCard.edgeStrength * 100).toFixed(1)}%</div>
+            </div>
+            <div>
+              <div className="text-gray-400">Geometry Score</div>
+              <div className="text-white">{(selectedCard.geometryScore * 100).toFixed(1)}%</div>
             </div>
           </div>
           
           <div className="mt-3">
             <div className="text-gray-400 text-sm mb-1">Standard Card Comparison</div>
             <div className="text-gray-300 text-sm">
-              Target: 0.714 • Difference: {Math.abs(selectedRectangle.aspectRatio - (2.5/3.5)).toFixed(3)}
-              {Math.abs(selectedRectangle.aspectRatio - (2.5/3.5)) < 0.1 && 
-                <span className="text-green-400 ml-2">✓ Good match!</span>
+              Target Ratio: 0.714 • Difference: {Math.abs(selectedCard.aspectRatio - 0.714).toFixed(3)}
+              {Math.abs(selectedCard.aspectRatio - 0.714) < 0.1 && 
+                <span className="text-green-400 ml-2">✓ Excellent match!</span>
               }
             </div>
           </div>
