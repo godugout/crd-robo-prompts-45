@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,7 @@ interface FramesStepProps {
 }
 
 export const FramesStep = ({ selectedTemplate, onSelectTemplate, searchQuery }: FramesStepProps) => {
-  const [activeSection, setActiveSection] = useState<'templates' | 'extract' | 'instagram' | 'generate'>('templates');
+  const [activeSection, setActiveSection] = useState<'frames' | 'extract' | 'instagram' | 'generate'>('frames');
   const [isInstagramModalOpen, setIsInstagramModalOpen] = useState(false);
   const [importedFrames, setImportedFrames] = useState<Frame[]>([]);
 
@@ -89,16 +90,16 @@ export const FramesStep = ({ selectedTemplate, onSelectTemplate, searchQuery }: 
     frame.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleTemplateSelect = (templateId: string) => {
+  const handleFrameSelect = (templateId: string) => {
     onSelectTemplate(templateId);
     
-    // Send template change event to main preview
-    const template = defaultFrames.find(t => t.id === templateId);
-    if (template) {
-      window.dispatchEvent(new CustomEvent('templateChange', {
+    // Send frame change event to main preview
+    const frame = defaultFrames.find(t => t.id === templateId);
+    if (frame) {
+      window.dispatchEvent(new CustomEvent('frameChange', {
         detail: { 
-          templateId, 
-          colors: template.defaultStyle 
+          frameId: templateId, 
+          colors: frame.defaultStyle 
         }
       }));
     }
@@ -107,7 +108,7 @@ export const FramesStep = ({ selectedTemplate, onSelectTemplate, searchQuery }: 
   const handleImportCards = (cards: DetectedCard[]) => {
     const newFrames: Frame[] = cards.map((card, index) => ({
       id: `instagram-${Date.now()}-${index}`,
-      name: `Instagram Card ${index + 1}`,
+      name: `Instagram Frame ${index + 1}`,
       preview: card.imageUrl,
       category: 'imported',
       gradient: 'from-pink-500 to-purple-500',
@@ -125,7 +126,7 @@ export const FramesStep = ({ selectedTemplate, onSelectTemplate, searchQuery }: 
   const handleExtractedCards = (cards: ExtractedCard[]) => {
     const newFrames: Frame[] = cards.map((card, index) => ({
       id: `extracted-${Date.now()}-${index}`,
-      name: `Extracted Card ${index + 1}`,
+      name: `Extracted Frame ${index + 1}`,
       preview: URL.createObjectURL(card.imageBlob),
       category: 'extracted',
       gradient: 'from-blue-500 to-purple-500',
@@ -146,19 +147,19 @@ export const FramesStep = ({ selectedTemplate, onSelectTemplate, searchQuery }: 
         <div className="text-center">
           <h3 className="text-white font-medium text-lg mb-2">Choose Your Frame</h3>
           <p className="text-crd-lightGray text-sm">
-            Select a template style that matches your vision
+            Select a frame style that matches your vision
           </p>
         </div>
 
         {/* Frame Source Options */}
         <div className="grid grid-cols-2 gap-2">
           <Button
-            variant={activeSection === 'templates' ? 'default' : 'outline'}
+            variant={activeSection === 'frames' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setActiveSection('templates')}
-            className={activeSection === 'templates' ? 'bg-crd-green text-black' : 'border-editor-border text-white'}
+            onClick={() => setActiveSection('frames')}
+            className={activeSection === 'frames' ? 'bg-crd-green text-black' : 'border-editor-border text-white'}
           >
-            Templates
+            Frames
           </Button>
           <Button
             variant={activeSection === 'extract' ? 'default' : 'outline'}
@@ -193,7 +194,7 @@ export const FramesStep = ({ selectedTemplate, onSelectTemplate, searchQuery }: 
         </div>
 
         {/* Content based on active section */}
-        {activeSection === 'templates' && (
+        {activeSection === 'frames' && (
           <div className="grid grid-cols-2 gap-3">
             {filteredFrames.map((frame) => (
               <div 
@@ -203,7 +204,7 @@ export const FramesStep = ({ selectedTemplate, onSelectTemplate, searchQuery }: 
                     ? 'ring-2 ring-crd-green shadow-lg scale-105' 
                     : 'hover:scale-102 hover:shadow-md'
                 }`}
-                onClick={() => handleTemplateSelect(frame.id)}
+                onClick={() => handleFrameSelect(frame.id)}
               >
                 {frame.category === 'imported' || frame.category === 'extracted' ? (
                   <div className="aspect-[3/4] relative">
@@ -218,7 +219,7 @@ export const FramesStep = ({ selectedTemplate, onSelectTemplate, searchQuery }: 
                     className="aspect-[3/4] relative"
                     style={{ backgroundColor: frame.defaultStyle.backgroundColor }}
                   >
-                    {/* Template preview with placeholder photo */}
+                    {/* Frame preview with placeholder photo */}
                     <div className="absolute inset-2 border-2 border-dashed border-gray-500 rounded-lg overflow-hidden">
                       <img 
                         src={`https://images.unsplash.com/photo-1472396961693-142e6e269027?w=300&h=400&fit=crop`}
@@ -281,14 +282,14 @@ export const FramesStep = ({ selectedTemplate, onSelectTemplate, searchQuery }: 
           <GeneratorTab />
         )}
 
-        {/* Continue Button - only show if template is selected */}
+        {/* Continue Button - only show if frame is selected */}
         {selectedTemplate && (
           <div className="pt-4 border-t border-editor-border">
             <Button 
               className="w-full bg-crd-green hover:bg-crd-green/90 text-black font-medium"
               onClick={() => onSelectTemplate(selectedTemplate)}
             >
-              Continue to Elements
+              Continue to Photo
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>

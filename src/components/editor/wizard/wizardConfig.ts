@@ -1,166 +1,145 @@
-export interface TemplateConfig {
+
+import { Wand2, Upload, Settings, Share } from 'lucide-react';
+
+export interface WizardStep {
+  id: string;
+  title: string;
+  description: string;
+  icon: any;
+  component: string;
+}
+
+export interface FrameTemplate {
   id: string;
   name: string;
-  category: string;
-  description: string;
-  preview_url?: string;
-  template_data: Record<string, any>;
-  is_premium: boolean;
-  usage_count: number;
-  tags: string[];
-  default_colors: {
-    border: string;
-    background: string;
-    text: string;
+  template_data: {
+    layout: string;
+    style: {
+      primaryColor: string;
+      accentColor: string;
+      backgroundColor: string;
+      borderRadius: number;
+      borderWidth: number;
+    };
+    typography: {
+      titleFont: string;
+      bodyFont: string;
+      titleSize: number;
+      bodySize: number;
+    };
   };
 }
 
-export const DEFAULT_TEMPLATES: TemplateConfig[] = [
+export const WIZARD_STEPS: WizardStep[] = [
   {
-    id: 'classic-portrait',
-    name: 'Classic Portrait',
-    category: 'Portrait',
-    description: 'A timeless portrait template with elegant borders and typography.',
-    template_data: {
-      layout: 'portrait',
-      border: 'classic',
-      typography: 'serif',
-      colorScheme: 'neutral'
-    },
-    is_premium: false,
-    usage_count: 1247,
-    tags: ['portrait', 'classic', 'elegant', 'border'],
-    default_colors: {
-      border: '#d4af37',
-      background: '#f8f4e6',
-      text: '#2c1810'
-    }
+    id: 'frame',
+    title: 'Choose Frame',
+    description: 'Select a frame style for your card',
+    icon: Settings,
+    component: 'FramesStep'
   },
   {
-    id: 'modern-minimal',
-    name: 'Modern Minimal',
-    category: 'Modern',
-    description: 'Clean, minimalist design with focus on your image.',
-    template_data: {
-      layout: 'minimal',
-      border: 'none',
-      typography: 'sans-serif',
-      colorScheme: 'monochrome'
-    },
-    is_premium: false,
-    usage_count: 892,
-    tags: ['modern', 'minimal', 'clean', 'simple'],
-    default_colors: {
-      border: '#666666',
-      background: '#ffffff',
-      text: '#000000'
-    }
+    id: 'photo',
+    title: 'Add Photo',
+    description: 'Upload and position your image',
+    icon: Upload,
+    component: 'PhotoStep'
   },
   {
-    id: 'gaming-legend',
-    name: 'Gaming Legend',
-    category: 'Gaming',
-    description: 'Epic template for gaming characters and moments.',
-    template_data: {
-      layout: 'gaming',
-      border: 'metallic',
-      typography: 'display',
-      colorScheme: 'electric',
-      effects: ['glow', 'metallic']
-    },
-    is_premium: true,
-    usage_count: 634,
-    tags: ['gaming', 'epic', 'metallic', 'glow', 'character'],
-    default_colors: {
-      border: '#00ffff',
-      background: '#0a0a0a',
-      text: '#ffffff'
-    }
+    id: 'adjust',
+    title: 'Adjust Image',
+    description: 'Fine-tune positioning and scale',
+    icon: Wand2,
+    component: 'EnhancedImageAdjustmentStep'
   },
   {
-    id: 'sports-action',
-    name: 'Sports Action',
-    category: 'Sports',
-    description: 'Dynamic template perfect for capturing sports moments.',
-    template_data: {
-      layout: 'action',
-      border: 'dynamic',
-      typography: 'bold',
-      colorScheme: 'energetic',
-      effects: ['motion-blur', 'energy']
-    },
-    is_premium: false,
-    usage_count: 1156,
-    tags: ['sports', 'action', 'dynamic', 'energy', 'motion'],
-    default_colors: {
-      border: '#ff4500',
-      background: '#1a1a1a',
-      text: '#ffffff'
-    }
-  },
-  {
-    id: 'vintage-classic',
-    name: 'Vintage Classic',
-    category: 'Vintage',
-    description: 'Nostalgic design with vintage colors and decorative elements.',
-    template_data: {
-      layout: 'vintage',
-      border: 'ornate',
-      typography: 'vintage',
-      colorScheme: 'sepia',
-      effects: ['aged', 'vintage-filter']
-    },
-    is_premium: false,
-    usage_count: 723,
-    tags: ['vintage', 'nostalgic', 'ornate', 'sepia', 'classic'],
-    default_colors: {
-      border: '#8b4513',
-      background: '#f4e4bc',
-      text: '#5d4037'
-    }
-  },
-  {
-    id: 'holographic-premium',
-    name: 'Holographic Premium',
-    category: 'Premium',
-    description: 'Stunning holographic effects with premium finishes.',
-    template_data: {
-      layout: 'premium',
-      border: 'holographic',
-      typography: 'futuristic',
-      colorScheme: 'rainbow',
-      effects: ['holographic', 'rainbow', 'shine']
-    },
-    is_premium: true,
-    usage_count: 445,
-    tags: ['holographic', 'premium', 'rainbow', 'futuristic', 'shine'],
-    default_colors: {
-      border: '#ff00ff',
-      background: '#000011',
-      text: '#ffffff'
-    }
+    id: 'share',
+    title: 'Share & Export',
+    description: 'Save and share your creation',
+    icon: Share,
+    component: 'ShareStep'
   }
 ];
 
-export const WIZARD_STEPS = [
+export const DEFAULT_FRAMES: FrameTemplate[] = [
   {
-    id: 1,
-    title: 'Upload Photo',
-    description: 'Choose your image'
+    id: 'classic',
+    name: 'Classic Card Frame',
+    template_data: {
+      layout: 'standard',
+      style: {
+        primaryColor: '#16a085',
+        accentColor: '#ecf0f1',
+        backgroundColor: '#1a1a2e',
+        borderRadius: 8,
+        borderWidth: 2
+      },
+      typography: {
+        titleFont: 'Inter',
+        bodyFont: 'Inter',
+        titleSize: 18,
+        bodySize: 14
+      }
+    }
   },
   {
-    id: 2,
-    title: 'Adjust & Template',
-    description: 'Perfect your image and choose design'
+    id: 'vintage',
+    name: 'Vintage Card Frame',
+    template_data: {
+      layout: 'vintage',
+      style: {
+        primaryColor: '#e07a5f',
+        accentColor: '#3d405b',
+        backgroundColor: '#f4f1de',
+        borderRadius: 12,
+        borderWidth: 3
+      },
+      typography: {
+        titleFont: 'serif',
+        bodyFont: 'serif',
+        titleSize: 20,
+        bodySize: 15
+      }
+    }
   },
   {
-    id: 3,
-    title: 'Card Details',
-    description: 'Add information'
+    id: 'modern',
+    name: 'Modern Edge Frame',
+    template_data: {
+      layout: 'modern',
+      style: {
+        primaryColor: '#8e44ad',
+        accentColor: '#f39c12',
+        backgroundColor: '#2d1b69',
+        borderRadius: 6,
+        borderWidth: 1
+      },
+      typography: {
+        titleFont: 'sans-serif',
+        bodyFont: 'sans-serif',
+        titleSize: 16,
+        bodySize: 12
+      }
+    }
   },
   {
-    id: 4,
-    title: 'Publishing',
-    description: 'Final settings'
+    id: 'neon',
+    name: 'Neon Glow Frame',
+    template_data: {
+      layout: 'futuristic',
+      style: {
+        primaryColor: '#ff006e',
+        accentColor: '#8338ec',
+        backgroundColor: '#0f0f23',
+        borderRadius: 4,
+        borderWidth: 2
+      },
+      typography: {
+        titleFont: 'monospace',
+        bodyFont: 'monospace',
+        titleSize: 14,
+        bodySize: 11
+      }
+    }
   }
 ];
