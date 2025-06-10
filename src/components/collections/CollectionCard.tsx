@@ -4,16 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Eye, Edit, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-
-interface Collection {
-  id: string;
-  title: string;
-  description?: string;
-  coverImageUrl?: string;
-  cardCount: number;
-  visibility: string;
-  createdAt: string;
-}
+import type { Collection } from '@/repositories/collection/types';
 
 interface CollectionCardProps {
   collection: Collection;
@@ -38,7 +29,7 @@ export const CollectionCard = ({ collection, onEdit, onDelete, onView }: Collect
     return (
       <div className="w-full h-32 bg-gradient-to-br from-crd-blue to-crd-orange flex items-center justify-center">
         <div className="text-white text-center">
-          <div className="text-2xl font-bold">{collection.cardCount}</div>
+          <div className="text-2xl font-bold">{collection.cardCount || 0}</div>
           <div className="text-sm opacity-75">Cards</div>
         </div>
       </div>
@@ -110,7 +101,7 @@ export const CollectionCard = ({ collection, onEdit, onDelete, onView }: Collect
           )}
           
           <div className="flex items-center justify-between text-xs text-crd-lightGray">
-            <span>{collection.cardCount} cards</span>
+            <span>{collection.cardCount || 0} cards</span>
             <span className="capitalize">{collection.visibility}</span>
           </div>
           

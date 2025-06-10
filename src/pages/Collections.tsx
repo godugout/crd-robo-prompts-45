@@ -154,15 +154,7 @@ const Collections = () => {
           {collections.map((collection) => (
             <CollectionCard
               key={collection.id}
-              collection={{
-                id: collection.id,
-                title: collection.title,
-                description: collection.description,
-                coverImageUrl: collection.coverImageUrl,
-                cardCount: collection.cardCount,
-                visibility: collection.visibility,
-                createdAt: collection.createdAt
-              }}
+              collection={collection}
               onEdit={handleEditCollection}
               onDelete={handleDeleteCollection}
               onView={handleViewCollection}
