@@ -7,10 +7,6 @@ import { CardBack } from './CardBack';
 interface CardContainerProps {
   card: CardData;
   isFlipped: boolean;
-  isHovering: boolean;
-  showEffects: boolean;
-  effectIntensity: number[];
-  mousePosition: { x: number; y: number };
   rotation: { x: number; y: number };
   zoom: number;
   isDragging: boolean;
@@ -27,10 +23,6 @@ interface CardContainerProps {
 export const CardContainer: React.FC<CardContainerProps> = ({
   card,
   isFlipped,
-  isHovering,
-  showEffects,
-  effectIntensity,
-  mousePosition,
   rotation,
   zoom,
   isDragging,
@@ -73,12 +65,7 @@ export const CardContainer: React.FC<CardContainerProps> = ({
         <CardFront
           card={card}
           isFlipped={isFlipped}
-          isHovering={isHovering}
-          showEffects={showEffects}
-          effectIntensity={effectIntensity}
-          mousePosition={mousePosition}
           frameStyles={frameStyles}
-          physicalEffectStyles={physicalEffectStyles}
           SurfaceTexture={SurfaceTexture}
         />
 
@@ -86,10 +73,6 @@ export const CardContainer: React.FC<CardContainerProps> = ({
         <CardBack
           card={card}
           isFlipped={isFlipped}
-          isHovering={isHovering}
-          showEffects={showEffects}
-          effectIntensity={effectIntensity}
-          mousePosition={mousePosition}
           physicalEffectStyles={physicalEffectStyles}
           SurfaceTexture={SurfaceTexture}
         />

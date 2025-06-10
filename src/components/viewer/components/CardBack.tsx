@@ -3,35 +3,32 @@ import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import { CardEffectsLayer } from './CardEffectsLayer';
 import { useDynamicCardBackMaterials } from '../hooks/useDynamicCardBackMaterials';
-import type { EffectValues } from '../hooks/useEnhancedCardEffects';
+import { useEffectContext } from '../contexts/EffectContext';
 
 interface CardBackProps {
   card: CardData;
   isFlipped: boolean;
-  isHovering: boolean;
-  showEffects: boolean;
-  effectIntensity: number[];
-  mousePosition: { x: number; y: number };
   physicalEffectStyles: React.CSSProperties;
   SurfaceTexture: React.ReactNode;
-  effectValues?: EffectValues;
-  materialSettings?: any;
-  interactiveLighting?: boolean;
 }
 
 export const CardBack: React.FC<CardBackProps> = ({
   card,
   isFlipped,
-  isHovering,
-  showEffects,
-  effectIntensity,
-  mousePosition,
   physicalEffectStyles,
-  SurfaceTexture,
-  effectValues,
-  materialSettings,
-  interactiveLighting = false
+  SurfaceTexture
 }) => {
+  // Get effect data from context
+  const {
+    isHovering,
+    showEffects,
+    effectIntensity,
+    mousePosition,
+    effectValues,
+    materialSettings,
+    interactiveLighting
+  } = useEffectContext();
+
   // Get dynamic material based on card metadata and effects
   const { selectedMaterial } = useDynamicCardBackMaterials(effectValues || {}, card);
   
@@ -149,16 +146,7 @@ export const CardBack: React.FC<CardBackProps> = ({
       )}
 
       {/* Effects Layer - z-index 40 - Above everything else */}
-      <CardEffectsLayer
-        showEffects={showEffects}
-        isHovering={isHovering}
-        effectIntensity={effectIntensity}
-        mousePosition={mousePosition}
-        physicalEffectStyles={physicalEffectStyles}
-        effectValues={effectValues}
-        materialSettings={materialSettings}
-        interactiveLighting={interactiveLighting}
-      />
+      <CardEffectsLayer />
 
       {/* Material-specific border enhancement - z-index 45 */}
       <div 

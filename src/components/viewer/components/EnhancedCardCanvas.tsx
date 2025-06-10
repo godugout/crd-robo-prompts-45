@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';

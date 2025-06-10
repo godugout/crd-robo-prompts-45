@@ -99,10 +99,15 @@ export const EnhancedCardViewer: React.FC<EnhancedCardViewerProps> = ({
         <div className="absolute inset-0 flex items-center justify-center">
           <EnhancedCardCanvas
             card={card}
+            effectValues={effectValues}
+            mousePosition={mousePosition}
+            isHovering={isHovering}
             rotation={rotation}
             selectedScene={selectedScene}
             selectedLighting={selectedLighting}
             overallBrightness={overallBrightness[0]}
+            interactiveLighting={interactiveLighting}
+            materialSettings={materialSettings}
             onMouseMove={handleMouseMove}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
