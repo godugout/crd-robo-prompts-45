@@ -1,36 +1,35 @@
 
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
-import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import { CardEffectsLayer } from './CardEffectsLayer';
+import { useEffectContext } from '../contexts/EffectContext';
 
 interface CardFrontContainerProps {
   card: CardData;
   isFlipped: boolean;
-  isHovering: boolean;
-  showEffects: boolean;
-  effectValues: EffectValues;
-  mousePosition: { x: number; y: number };
   frameStyles: React.CSSProperties;
   enhancedEffectStyles: React.CSSProperties;
   SurfaceTexture: React.ReactNode;
-  interactiveLighting?: boolean;
   onClick: () => void;
 }
 
 export const CardFrontContainer: React.FC<CardFrontContainerProps> = ({
   card,
   isFlipped,
-  isHovering,
-  showEffects,
-  effectValues,
-  mousePosition,
   frameStyles,
   enhancedEffectStyles,
   SurfaceTexture,
-  interactiveLighting = false,
   onClick
 }) => {
+  // Get all data from Effect Context
+  const {
+    isHovering,
+    showEffects,
+    effectValues,
+    mousePosition,
+    interactiveLighting
+  } = useEffectContext();
+
   return (
     <div 
       className={`absolute inset-0 rounded-xl overflow-hidden ${
@@ -44,15 +43,7 @@ export const CardFrontContainer: React.FC<CardFrontContainerProps> = ({
       }}
     >
       {/* Enhanced Effects Layer with Individual Effect Values */}
-      <CardEffectsLayer
-        showEffects={showEffects}
-        isHovering={isHovering}
-        effectIntensity={[50]} // Keep for backward compatibility
-        mousePosition={mousePosition}
-        physicalEffectStyles={enhancedEffectStyles}
-        effectValues={effectValues}
-        interactiveLighting={interactiveLighting}
-      />
+      <CardEffectsLayer />
 
       {/* Surface Texture - Now layered properly */}
       <div className="relative z-20">

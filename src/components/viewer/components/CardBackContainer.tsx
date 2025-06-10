@@ -3,30 +3,31 @@ import React from 'react';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import { CardEffectsLayer } from './CardEffectsLayer';
 import { useDynamicCardBackMaterials } from '../hooks/useDynamicCardBackMaterials';
+import { useEffectContext } from '../contexts/EffectContext';
 
 interface CardBackContainerProps {
   isFlipped: boolean;
-  isHovering: boolean;
-  showEffects: boolean;
-  effectValues: EffectValues;
-  mousePosition: { x: number; y: number };
   frameStyles: React.CSSProperties;
   enhancedEffectStyles: React.CSSProperties;
   SurfaceTexture: React.ReactNode;
-  interactiveLighting?: boolean;
 }
 
 export const CardBackContainer: React.FC<CardBackContainerProps> = ({
   isFlipped,
-  isHovering,
-  showEffects,
-  effectValues,
-  mousePosition,
   frameStyles,
   enhancedEffectStyles,
-  SurfaceTexture,
-  interactiveLighting = false
+  SurfaceTexture
 }) => {
+  // Get all data from Effect Context
+  const {
+    isHovering,
+    showEffects,
+    effectValues,
+    mousePosition,
+    materialSettings,
+    interactiveLighting
+  } = useEffectContext();
+
   // Get dynamic material based on current effects
   const { selectedMaterial } = useDynamicCardBackMaterials(effectValues);
   
@@ -90,15 +91,7 @@ export const CardBackContainer: React.FC<CardBackContainerProps> = ({
       data-material-name={selectedMaterial.name}
     >
       {/* Back Effects Layer */}
-      <CardEffectsLayer
-        showEffects={showEffects}
-        isHovering={isHovering}
-        effectIntensity={[50]} // Keep for backward compatibility
-        mousePosition={mousePosition}
-        physicalEffectStyles={enhancedEffectStyles}
-        effectValues={effectValues}
-        interactiveLighting={interactiveLighting}
-      />
+      <CardEffectsLayer />
 
       {/* Surface Texture on Back */}
       <div className="relative z-20">

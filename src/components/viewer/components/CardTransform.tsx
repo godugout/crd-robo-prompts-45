@@ -7,15 +7,9 @@ import { CardBack } from './CardBack';
 interface CardTransformProps {
   card: any;
   isFlipped: boolean;
-  isHovering: boolean;
-  showEffects: boolean;
-  effectIntensity: number[];
-  mousePosition: { x: number; y: number };
   frameStyles: any;
   physicalEffectStyles: any;
   SurfaceTexture: React.ComponentType<any>;
-  interactiveLighting: boolean;
-  effectValues: Record<string, Record<string, number | boolean | string>>;
   currentIsFlipped: boolean;
   currentZoom: number;
   currentRotation: { x: number; y: number };
@@ -26,15 +20,9 @@ interface CardTransformProps {
 export const CardTransform: React.FC<CardTransformProps> = ({
   card,
   isFlipped,
-  isHovering,
-  showEffects,
-  effectIntensity,
-  mousePosition,
   frameStyles,
   physicalEffectStyles,
   SurfaceTexture,
-  interactiveLighting,
-  effectValues,
   currentIsFlipped,
   currentZoom,
   currentRotation,
@@ -81,21 +69,8 @@ export const CardTransform: React.FC<CardTransformProps> = ({
           <CardFront 
             card={card}
             isFlipped={currentIsFlipped}
-            isHovering={isHovering}
-            showEffects={showEffects}
-            effectIntensity={effectIntensity}
-            mousePosition={mousePosition}
             frameStyles={frameStyles}
-            physicalEffectStyles={physicalEffectStyles}
-            SurfaceTexture={<SurfaceTexture 
-              effectValues={effectValues}
-              mousePosition={mousePosition}
-              isHovering={isHovering}
-              interactiveLighting={interactiveLighting}
-            />}
-            effectValues={effectValues}
-            materialSettings={{}}
-            interactiveLighting={interactiveLighting}
+            SurfaceTexture={<SurfaceTexture />}
           />
         </div>
 
@@ -110,18 +85,8 @@ export const CardTransform: React.FC<CardTransformProps> = ({
           <CardBack
             card={card}
             isFlipped={currentIsFlipped}
-            isHovering={isHovering}
-            showEffects={showEffects}
-            effectIntensity={effectIntensity}
-            mousePosition={mousePosition}
             physicalEffectStyles={physicalEffectStyles}
-            SurfaceTexture={<SurfaceTexture 
-              effectValues={effectValues}
-              mousePosition={mousePosition}
-              isHovering={isHovering}
-              interactiveLighting={false}
-            />}
-            effectValues={effectValues}
+            SurfaceTexture={<SurfaceTexture />}
           />
         </div>
       </div>
