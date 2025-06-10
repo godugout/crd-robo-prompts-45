@@ -13,6 +13,7 @@ interface UniversalCardGridProps {
   subtitle?: string;
   defaultMode?: CardDisplayMode;
   onView?: (card: UniversalCardData) => void;
+  onEdit?: (card: UniversalCardData) => void;
   onRemix?: (card: UniversalCardData) => void;
   onStage?: (card: UniversalCardData) => void;
   onFavorite?: (card: UniversalCardData) => void;
@@ -38,6 +39,7 @@ export const UniversalCardGrid: React.FC<UniversalCardGridProps> = ({
   subtitle,
   defaultMode = 'grid',
   onView,
+  onEdit,
   onRemix,
   onStage,
   onFavorite,
@@ -199,10 +201,7 @@ export const UniversalCardGrid: React.FC<UniversalCardGridProps> = ({
             card={card}
             mode={viewMode}
             onView={onView}
-            onRemix={onRemix}
-            onStage={onStage}
-            onFavorite={onFavorite}
-            onShare={onShare}
+            onEdit={onEdit}
             loading={loading}
           />
         ))}

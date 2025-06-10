@@ -8,6 +8,7 @@ interface CachedImageProps {
   className?: string;
   fallback?: string;
   loading?: 'lazy' | 'eager';
+  onError?: () => void;
 }
 
 export const CachedImage: React.FC<CachedImageProps> = ({
@@ -15,7 +16,8 @@ export const CachedImage: React.FC<CachedImageProps> = ({
   alt,
   className,
   fallback = '/placeholder.svg',
-  loading = 'lazy'
+  loading = 'lazy',
+  onError
 }) => {
   const [cachedSrc, setCachedSrc] = useState<string>(src);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +44,7 @@ export const CachedImage: React.FC<CachedImageProps> = ({
           setCachedSrc(fallback);
           setIsLoading(false);
           setHasError(true);
+          onError?.();
         }
       }
     };
@@ -51,12 +54,13 @@ export const CachedImage: React.FC<CachedImageProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [src, fallback]);
+  }, [src, fallback, onError]);
 
   const handleError = () => {
     if (!hasError) {
       setCachedSrc(fallback);
       setHasError(true);
+      onError?.();
     }
   };
 

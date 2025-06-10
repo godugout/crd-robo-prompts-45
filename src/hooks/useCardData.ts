@@ -10,6 +10,7 @@ export interface CardData {
   image_url?: string;
   thumbnail_url?: string;
   rarity: CardRarity;
+  creator_id?: string;
   creator_name?: string;
   creator_verified?: boolean;
   price?: number;

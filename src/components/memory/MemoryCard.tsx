@@ -11,9 +11,10 @@ import { toast } from '@/hooks/use-toast';
 interface MemoryCardProps {
   memory: Memory;
   onReaction?: (memoryId: string, reactionType: 'heart' | 'thumbs-up' | 'party' | 'baseball') => void;
+  onClick?: () => void;
 }
 
-export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) => {
+export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction, onClick }) => {
   const handleReaction = () => {
     if (onReaction) {
       onReaction(memory.id, 'heart');
@@ -32,6 +33,10 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) =>
     });
   };
 
+  const handleCardClick = () => {
+    onClick?.();
+  };
+
   // Format date to more readable format
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -43,7 +48,7 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) =>
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow duration-300">
+    <Card className="overflow-hidden hover:shadow-md transition-shadow duration-300 cursor-pointer" onClick={handleCardClick}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
@@ -56,7 +61,7 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) =>
               <p className="text-xs text-muted-foreground">{formatDate(memory.createdAt)}</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </div>
@@ -94,7 +99,10 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) =>
             variant="ghost" 
             size="sm" 
             className="flex gap-1 items-center text-muted-foreground hover:text-primary"
-            onClick={handleReaction}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleReaction();
+            }}
           >
             <Heart className={`h-4 w-4 ${(memory.reactions?.filter(r => r.type === 'heart').length || 0) > 0 ? 'fill-primary text-primary' : ''}`} />
             <span>
@@ -106,6 +114,7 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) =>
             variant="ghost" 
             size="sm" 
             className="flex gap-1 items-center text-muted-foreground hover:text-primary"
+            onClick={(e) => e.stopPropagation()}
           >
             <MessageCircle className="h-4 w-4" />
             <span>{memory.commentCount || 0}</span>
@@ -117,7 +126,10 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) =>
             variant="ghost" 
             size="sm" 
             className="flex gap-1 items-center text-muted-foreground hover:text-primary"
-            onClick={handleShare}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleShare();
+            }}
           >
             <Share className="h-4 w-4" />
           </Button>
@@ -126,6 +138,7 @@ export const MemoryCard: React.FC<MemoryCardProps> = ({ memory, onReaction }) =>
             variant="ghost" 
             size="sm" 
             className="flex gap-1 items-center text-muted-foreground hover:text-primary"
+            onClick={(e) => e.stopPropagation()}
           >
             <Bookmark className="h-4 w-4" />
           </Button>
