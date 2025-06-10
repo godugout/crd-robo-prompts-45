@@ -1,65 +1,56 @@
 
 import React from 'react';
-import { Upload, Eye, Settings } from 'lucide-react';
 
 interface StepIndicatorProps {
-  currentStep: 1 | 2 | 3;
+  currentStep: number;
 }
 
 export const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep }) => {
   const steps = [
-    { number: 1, title: 'Upload & Preview', icon: Upload, description: 'Add your images' },
-    { number: 2, title: 'Review & Mark', icon: Eye, description: 'Approve or mark for editing' },
-    { number: 3, title: 'Adjust & Finalize', icon: Settings, description: 'Fine-tune your cards' }
+    { number: 1, label: 'Upload', description: 'Upload images' },
+    { number: 2, label: 'Review', description: 'Review & mark cards' },
+    { number: 3, label: 'Adjust', description: 'Fine-tune extractions' },
+    { number: 4, label: 'Collection', description: 'Choose collection' },
+    { number: 5, label: 'Complete', description: 'Cards saved' }
   ];
 
   return (
-    <div className="flex justify-center">
-      <div className="flex items-center space-x-8">
+    <div className="bg-editor-dark rounded-lg p-6 border border-crd-mediumGray/20">
+      <div className="flex items-center justify-between">
         {steps.map((step, index) => {
-          const isActive = currentStep === step.number;
+          const isActive = step.number === currentStep;
           const isCompleted = currentStep > step.number;
-          const IconComponent = step.icon;
+          const isDisabled = currentStep < step.number;
           
           return (
             <div key={step.number} className="flex items-center">
-              {/* Step Circle */}
-              <div className="flex flex-col items-center">
-                <div className={`
-                  w-12 h-12 rounded-full border-2 flex items-center justify-center transition-colors
-                  ${isCompleted 
-                    ? 'bg-crd-green border-crd-green text-black' 
-                    : isActive 
-                    ? 'border-crd-green text-crd-green bg-crd-green/10' 
-                    : 'border-crd-mediumGray text-crd-lightGray'
-                  }
-                `}>
+              <div className={`flex items-center ${
+                isActive ? 'text-crd-green' : 
+                isCompleted ? 'text-white' : 'text-crd-lightGray'
+              }`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 text-sm font-medium ${
+                  isActive ? 'border-crd-green bg-crd-green text-black' :
+                  isCompleted ? 'border-white bg-white text-black' : 
+                  'border-crd-mediumGray'
+                }`}>
                   {isCompleted ? (
-                    <span className="font-bold">✓</span>
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
                   ) : (
-                    <IconComponent className="w-5 h-5" />
+                    step.number
                   )}
                 </div>
-                
-                {/* Step Info */}
-                <div className="text-center mt-2">
-                  <div className={`font-medium text-sm ${
-                    isActive ? 'text-crd-green' : isCompleted ? 'text-white' : 'text-crd-lightGray'
-                  }`}>
-                    {step.title}
-                  </div>
-                  <div className="text-xs text-crd-lightGray mt-1">
-                    {step.description}
-                  </div>
+                <div className="ml-3">
+                  <div className="font-medium text-sm">{step.label}</div>
+                  <div className="text-xs opacity-75">{step.description}</div>
                 </div>
               </div>
               
-              {/* Connector Line */}
               {index < steps.length - 1 && (
-                <div className={`
-                  w-16 h-0.5 mx-4 mb-8 transition-colors
-                  ${currentStep > step.number ? 'bg-crd-green' : 'bg-crd-mediumGray'}
-                `} />
+                <div className={`h-0.5 w-16 mx-4 ${
+                  isCompleted ? 'bg-crd-green' : 'bg-crd-mediumGray'
+                }`} />
               )}
             </div>
           );
