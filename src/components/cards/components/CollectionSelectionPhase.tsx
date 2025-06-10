@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { CRDButton } from '@/components/ui/design-system';
 import { toast } from 'sonner';
@@ -20,7 +21,7 @@ interface Collection {
   name: string;
   description: string;
   cardCount: number;
-  createdAt: Date;
+  createdAt: Date | string;
 }
 
 interface CollectionSelectionPhaseProps {
@@ -28,6 +29,19 @@ interface CollectionSelectionPhaseProps {
   onCollectionSelected: (collectionId: string) => void;
   onGoBack: () => void;
 }
+
+// Helper function to safely format dates
+const formatDate = (date: Date | string): string => {
+  try {
+    if (typeof date === 'string') {
+      return new Date(date).toLocaleDateString();
+    }
+    return date.toLocaleDateString();
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Unknown date';
+  }
+};
 
 export const CollectionSelectionPhase: React.FC<CollectionSelectionPhaseProps> = ({
   extractedCards,
@@ -271,7 +285,7 @@ export const CollectionSelectionPhase: React.FC<CollectionSelectionPhaseProps> =
                   </p>
                 )}
                 <div className="text-xs text-crd-lightGray">
-                  {collection.cardCount} cards • Created {collection.createdAt.toLocaleDateString()}
+                  {collection.cardCount} cards • Created {formatDate(collection.createdAt)}
                 </div>
               </div>
             ))}
