@@ -5,21 +5,17 @@ import { useSafeMobileControl } from '../hooks/useSafeMobileControl';
 import { CardTransform } from './CardTransform';
 import { CardIndicators } from './CardIndicators';
 import { CardGestureHandler } from './CardGestureHandler';
+import { useEffectContext } from '../contexts/EffectContext';
 
 interface EnhancedCardContainerProps {
   card: any;
   isFlipped: boolean;
-  isHovering: boolean;
-  showEffects: boolean;
-  effectValues: Record<string, Record<string, number | boolean | string>>;
-  mousePosition: { x: number; y: number };
   rotation: { x: number; y: number };
   zoom: number;
   isDragging: boolean;
   frameStyles: any;
   enhancedEffectStyles: any;
   SurfaceTexture: React.ComponentType<any>;
-  interactiveLighting: boolean;
   onMouseDown?: (e: React.MouseEvent) => void;
   onMouseMove?: (e: React.MouseEvent) => void;
   onMouseEnter?: () => void;
@@ -37,17 +33,12 @@ interface EnhancedCardContainerProps {
 export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
   card,
   isFlipped,
-  isHovering,
-  showEffects,
-  effectValues,
-  mousePosition,
   rotation,
   zoom,
   isDragging,
   frameStyles,
   enhancedEffectStyles,
   SurfaceTexture,
-  interactiveLighting,
   onMouseDown,
   onMouseMove,
   onMouseEnter,
@@ -72,6 +63,9 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
     applyRotationStep
   } = useSafeMobileControl();
   
+  // Get effect data from context
+  const { effectIntensity } = useEffectContext();
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const [preventTap, setPreventTap] = useState(false);
 
@@ -90,11 +84,6 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
     ...enhancedEffectStyles,
     transition: 'all 0.3s ease'
   };
-
-  // Get effectIntensity array for consistent intensity values across components
-  const effectIntensity = Object.entries(effectValues).map(([id, params]) => {
-    return typeof params.intensity === 'number' ? params.intensity : 0;
-  });
 
   // Unified flip handler that works for both mobile and desktop
   const handleCardFlip = () => {
@@ -161,15 +150,9 @@ export const EnhancedCardContainer: React.FC<EnhancedCardContainerProps> = ({
           <CardTransform
             card={card}
             isFlipped={isFlipped}
-            isHovering={isHovering}
-            showEffects={showEffects}
-            effectIntensity={effectIntensity}
-            mousePosition={mousePosition}
             frameStyles={frameStyles}
             physicalEffectStyles={physicalEffectStyles}
             SurfaceTexture={SurfaceTexture}
-            interactiveLighting={interactiveLighting}
-            effectValues={effectValues}
             currentIsFlipped={currentIsFlipped}
             currentZoom={currentZoom}
             currentRotation={currentRotation}
