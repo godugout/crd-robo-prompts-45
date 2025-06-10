@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { CardExtractionUpload } from '../../upload/CardExtractionUpload';
 import { GeneratorTab } from '../GeneratorTab';
 import { DetectedCard } from '@/services/cardDetector';
 import type { ExtractedCard } from '@/services/cardExtractor';
+import { FramePreviewGrid } from '../../frames/FramePreviewGrid';
 
 interface Frame {
   id: string;
@@ -34,75 +34,18 @@ export const FramesStep = ({ selectedTemplate, onSelectTemplate, searchQuery }: 
   const [isInstagramModalOpen, setIsInstagramModalOpen] = useState(false);
   const [importedFrames, setImportedFrames] = useState<Frame[]>([]);
 
-  const defaultFrames: Frame[] = [
-    { 
-      id: 'template1', 
-      name: 'Cardshow Nostalgia', 
-      preview: '/placeholder.svg',
-      category: 'featured',
-      gradient: 'from-green-500 to-blue-500',
-      defaultStyle: {
-        primaryColor: '#16a085',
-        accentColor: '#eee',
-        backgroundColor: '#1a1a2e'
-      }
-    },
-    { 
-      id: 'template2', 
-      name: 'Classic Cardboard', 
-      preview: '/placeholder.svg',
-      category: 'featured',
-      gradient: 'from-orange-500 to-red-500',
-      defaultStyle: {
-        primaryColor: '#e07a5f',
-        accentColor: '#3d405b',
-        backgroundColor: '#f4f1de'
-      }
-    },
-    { 
-      id: 'template3', 
-      name: 'Nifty Framework', 
-      preview: '/placeholder.svg',
-      category: 'popular',
-      gradient: 'from-purple-500 to-pink-500',
-      defaultStyle: {
-        primaryColor: '#8e44ad',
-        accentColor: '#f39c12',
-        backgroundColor: '#2d1b69'
-      }
-    },
-    { 
-      id: 'template4', 
-      name: 'Synthwave Dreams', 
-      preview: '/placeholder.svg',
-      category: 'popular',
-      gradient: 'from-cyan-500 to-purple-500',
-      defaultStyle: {
-        primaryColor: '#ff006e',
-        accentColor: '#8338ec',
-        backgroundColor: '#0f0f23'
-      }
-    }
-  ];
-
-  const allFrames = [...defaultFrames, ...importedFrames];
-  const filteredFrames = allFrames.filter(frame => 
-    frame.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const handleFrameSelect = (templateId: string) => {
     onSelectTemplate(templateId);
     
     // Send frame change event to main preview
-    const frame = defaultFrames.find(t => t.id === templateId);
-    if (frame) {
-      window.dispatchEvent(new CustomEvent('frameChange', {
-        detail: { 
-          frameId: templateId, 
-          colors: frame.defaultStyle 
-        }
-      }));
-    }
+    window.dispatchEvent(new CustomEvent('frameChange', {
+      detail: { 
+        frameId: templateId,
+        frameType: 'enhanced'
+      }
+    }));
+    
+    toast.success(`Enhanced frame selected: ${templateId}`);
   };
 
   const handleImportCards = (cards: DetectedCard[]) => {
@@ -147,7 +90,7 @@ export const FramesStep = ({ selectedTemplate, onSelectTemplate, searchQuery }: 
         <div className="text-center">
           <h3 className="text-white font-medium text-lg mb-2">Choose Your Frame</h3>
           <p className="text-crd-lightGray text-sm">
-            Select a frame style that matches your vision
+            Professional card frames inspired by premium trading cards
           </p>
         </div>
 
@@ -195,68 +138,11 @@ export const FramesStep = ({ selectedTemplate, onSelectTemplate, searchQuery }: 
 
         {/* Content based on active section */}
         {activeSection === 'frames' && (
-          <div className="grid grid-cols-2 gap-3">
-            {filteredFrames.map((frame) => (
-              <div 
-                key={frame.id}
-                className={`relative group cursor-pointer rounded-xl overflow-hidden transition-all duration-200 ${
-                  selectedTemplate === frame.id
-                    ? 'ring-2 ring-crd-green shadow-lg scale-105' 
-                    : 'hover:scale-102 hover:shadow-md'
-                }`}
-                onClick={() => handleFrameSelect(frame.id)}
-              >
-                {frame.category === 'imported' || frame.category === 'extracted' ? (
-                  <div className="aspect-[3/4] relative">
-                    <img 
-                      src={frame.preview} 
-                      alt={frame.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div 
-                    className="aspect-[3/4] relative"
-                    style={{ backgroundColor: frame.defaultStyle.backgroundColor }}
-                  >
-                    {/* Frame preview with placeholder photo */}
-                    <div className="absolute inset-2 border-2 border-dashed border-gray-500 rounded-lg overflow-hidden">
-                      <img 
-                        src={`https://images.unsplash.com/photo-1472396961693-142e6e269027?w=300&h=400&fit=crop`}
-                        alt="Placeholder"
-                        className="w-full h-full object-cover opacity-60"
-                      />
-                    </div>
-                    
-                    {/* Frame elements */}
-                    <div 
-                      className="absolute top-2 left-2 right-2 h-6 rounded flex items-center justify-center"
-                      style={{ backgroundColor: frame.defaultStyle.primaryColor }}
-                    >
-                      <span className="text-white text-xs font-bold">FRAME HEADER</span>
-                    </div>
-                    
-                    <div 
-                      className="absolute bottom-2 left-2 right-2 h-4 rounded flex items-center justify-center"
-                      style={{ backgroundColor: frame.defaultStyle.accentColor }}
-                    >
-                      <span className="text-black text-xs">Footer</span>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                  <p className="text-white text-xs font-medium truncate">{frame.name}</p>
-                </div>
-                {selectedTemplate === frame.id && (
-                  <div className="absolute top-2 left-2 w-4 h-4 bg-crd-green rounded-full shadow-lg flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <FramePreviewGrid
+            selectedFrame={selectedTemplate}
+            onSelectFrame={handleFrameSelect}
+            searchQuery={searchQuery}
+          />
         )}
 
         {activeSection === 'extract' && (
