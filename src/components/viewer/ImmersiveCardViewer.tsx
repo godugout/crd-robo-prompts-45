@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -619,14 +620,12 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     );
   }
 
-  // Desktop Layout (unchanged)
+  // Desktop Layout - Fixed for full background and centered card
   return (
     <>
       <div 
         ref={containerRef}
-        className={`fixed inset-0 z-50 flex items-center justify-center ${
-          isFullscreen ? 'p-0' : 'p-8'
-        } ${showCustomizePanel && !isMobile ? 'pr-80' : ''}`}
+        className="fixed inset-0 z-50 flex items-center justify-center"
         style={{
           ...getEnvironmentStyle(),
         }}
@@ -649,7 +648,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         )}
 
-        {/* Settings Panel Toggle Button - Updated for mobile */}
+        {/* Settings Panel Toggle Button - Fixed positioning */}
         {!showCustomizePanel && (
           <div className="absolute top-4 right-4 z-10">
             <Button
@@ -664,8 +663,8 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
 
-        {/* Desktop Controls */}
-        <div className={`transition-opacity duration-200 ${isHoveringControls ? 'opacity-100 z-20' : 'opacity-100 z-10'}`}>
+        {/* Desktop Controls - Fixed positioning */}
+        <div className={`absolute bottom-4 left-4 z-20 transition-opacity duration-200 ${isHoveringControls ? 'opacity-100' : 'opacity-100'}`}>
           <ViewerControls
             showEffects={showEffects}
             autoRotate={autoRotate}
@@ -677,7 +676,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         </div>
 
-        {/* Card Navigation Controls */}
+        {/* Card Navigation Controls - Fixed positioning */}
         {hasMultipleCards && (
           <div className="absolute bottom-4 right-4 z-10">
             <div className="flex items-center space-x-2 bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-3 border border-white/10">
@@ -708,43 +707,45 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           </div>
         )}
 
-        {/* Desktop Customize Panel */}
+        {/* Desktop Customize Panel - Absolute positioning */}
         {showCustomizePanel && (
-          <ProgressiveCustomizePanel
-            selectedScene={selectedScene}
-            selectedLighting={selectedLighting}
-            effectValues={effectValues}
-            overallBrightness={overallBrightness}
-            interactiveLighting={interactiveLighting}
-            materialSettings={materialSettings}
-            isFullscreen={isFullscreen}
-            onSceneChange={setSelectedScene}
-            onLightingChange={setSelectedLighting}
-            onEffectChange={handleManualEffectChange}
-            onResetAllEffects={resetAllEffects}
-            onBrightnessChange={setOverallBrightness}
-            onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
-            onMaterialSettingsChange={setMaterialSettings}
-            onToggleFullscreen={toggleFullscreen}
-            onDownload={handleDownloadClick}
-            onShare={handleShareClick}
-            onClose={() => {
-              if (onClose) {
-                onClose();
-              } else {
-                setShowCustomizePanel(false);
-              }
-            }}
-            card={card}
-            selectedPresetId={selectedPresetId}
-            onPresetSelect={setSelectedPresetId}
-            onApplyCombo={handleComboApplication}
-            isApplyingPreset={isApplyingPreset}
-          />
+          <div className="absolute top-0 right-0 h-full w-80 z-30">
+            <ProgressiveCustomizePanel
+              selectedScene={selectedScene}
+              selectedLighting={selectedLighting}
+              effectValues={effectValues}
+              overallBrightness={overallBrightness}
+              interactiveLighting={interactiveLighting}
+              materialSettings={materialSettings}
+              isFullscreen={isFullscreen}
+              onSceneChange={setSelectedScene}
+              onLightingChange={setSelectedLighting}
+              onEffectChange={handleManualEffectChange}
+              onResetAllEffects={resetAllEffects}
+              onBrightnessChange={setOverallBrightness}
+              onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
+              onMaterialSettingsChange={setMaterialSettings}
+              onToggleFullscreen={toggleFullscreen}
+              onDownload={handleDownloadClick}
+              onShare={handleShareClick}
+              onClose={() => {
+                if (onClose) {
+                  onClose();
+                } else {
+                  setShowCustomizePanel(false);
+                }
+              }}
+              card={card}
+              selectedPresetId={selectedPresetId}
+              onPresetSelect={setSelectedPresetId}
+              onApplyCombo={handleComboApplication}
+              isApplyingPreset={isApplyingPreset}
+            />
+          </div>
         )}
 
-        {/* Enhanced Card Container - Add mobile gesture support */}
-        <div ref={cardContainerRef}>
+        {/* Enhanced Card Container - Centered regardless of panels */}
+        <div ref={cardContainerRef} className="flex items-center justify-center w-full h-full">
           <EnhancedCardContainer
             card={viewerCard}
             isFlipped={isFlipped}
@@ -774,21 +775,23 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           />
         </div>
 
-        {/* Configuration Details Panel */}
+        {/* Configuration Details Panel - Fixed positioning */}
         {!showCustomizePanel && (
-          <ConfigurationDetailsPanel
-            effectValues={effectValues}
-            selectedScene={selectedScene}
-            selectedLighting={selectedLighting}
-            materialSettings={materialSettings}
-            overallBrightness={overallBrightness}
-            interactiveLighting={interactiveLighting}
-          />
+          <div className="absolute top-4 left-4 z-10">
+            <ConfigurationDetailsPanel
+              effectValues={effectValues}
+              selectedScene={selectedScene}
+              selectedLighting={selectedLighting}
+              materialSettings={materialSettings}
+              overallBrightness={overallBrightness}
+              interactiveLighting={interactiveLighting}
+            />
+          </div>
         )}
 
-        {/* Info Panel - Enhanced visibility */}
+        {/* Info Panel - Fixed positioning */}
         {showStats && !isFlipped && !showCustomizePanel && (
-          <div className="absolute bottom-4 left-4 right-4 max-w-2xl mx-auto z-10" style={{ marginRight: hasMultipleCards ? '180px' : '100px' }}>
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 max-w-2xl">
             <div className="bg-black bg-opacity-80 backdrop-blur-lg rounded-lg p-4 border border-white/10">
               <div className="flex items-center justify-between text-white">
                 <div className="flex space-x-4 text-sm">
