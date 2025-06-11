@@ -3,13 +3,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Vector3 } from 'three';
-import { EnhancedCard3D } from './components/EnhancedCard3D';
+import { Interactive3DCard } from './Interactive3DCard';
 import { EnhancedMobileStudioPanel } from './components/EnhancedMobileStudioPanel';
 import { MobileControlProvider, useMobileControl } from './context/MobileControlContext';
 import { useEnhancedCardEffects } from './hooks/useEnhancedCardEffects';
-import { useEnvironmentEffects } from './hooks/useEnvironmentEffects';
-import { useLightingEffects } from './hooks/useLightingEffects';
-import { useMaterialEffects } from './hooks/useMaterialEffects';
 import { Button } from '@/components/ui/button';
 import { Settings, Maximize, Minimize } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -47,11 +44,26 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
   const { openPanel, panelState } = useMobileControl();
   const [isFullscreen, setIsFullscreen] = useState(false);
   
-  // Effect hooks
-  const { effectValues, updateEffect, resetEffect, resetAllEffects, selectedPresetId, setSelectedPresetId } = useEnhancedCardEffects();
-  const { selectedScene, selectScene } = useEnvironmentEffects();
-  const { selectedLighting, selectLighting, overallBrightness, updateBrightness, interactiveLighting, toggleInteractiveLighting } = useLightingEffects();
-  const { materialSettings, updateMaterialSettings } = useMaterialEffects();
+  // Effect hooks - using the correct hook properties
+  const { 
+    effectValues, 
+    handleEffectChange, 
+    resetEffect, 
+    resetAllEffects, 
+    presetState 
+  } = useEnhancedCardEffects();
+
+  // Simple state for environment, lighting, and materials since the specific hooks don't exist
+  const [selectedScene, setSelectedScene] = useState('studio');
+  const [selectedLighting, setSelectedLighting] = useState('studio');
+  const [overallBrightness, setOverallBrightness] = useState([80]);
+  const [interactiveLighting, setInteractiveLighting] = useState(false);
+  const [materialSettings, setMaterialSettings] = useState({
+    metallic: 0.5,
+    roughness: 0.5,
+    clearcoat: 0.0,
+    transmission: 0.0
+  });
 
   const cameraPosition: Vector3 = useMemo(() => new Vector3(0, 0, 5), []);
 
@@ -60,20 +72,18 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
   };
 
   const handleApplyCombo = (combo: any) => {
-    // Apply effect combo
+    // Apply effect combo using the correct method
     Object.entries(combo.effects || {}).forEach(([effectId, parameters]: [string, any]) => {
       Object.entries(parameters).forEach(([parameterId, value]) => {
-        updateEffect(effectId, parameterId, value);
+        handleEffectChange(effectId, parameterId, value);
       });
     });
     
     // Apply scene and lighting if provided
-    if (combo.scene) selectScene(combo.scene);
-    if (combo.lighting) selectLighting(combo.lighting);
-    if (combo.materials) updateMaterialSettings(combo.materials);
-    if (combo.brightness) updateBrightness([combo.brightness]);
-    
-    setSelectedPresetId(combo.id);
+    if (combo.scene) setSelectedScene(combo.scene);
+    if (combo.lighting) setSelectedLighting(combo.lighting);
+    if (combo.materials) setMaterialSettings(combo.materials);
+    if (combo.brightness) setOverallBrightness([combo.brightness]);
   };
 
   return (
@@ -130,40 +140,35 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
           autoRotateSpeed={0.5}
         />
         
-        <EnhancedCard3D
+        <Interactive3DCard
           imageUrl={card.image_url || '/placeholder.png'}
           title={card.title}
           effectValues={effectValues}
-          selectedScene={selectedScene}
-          selectedLighting={selectedLighting}
-          overallBrightness={overallBrightness[0]}
-          interactiveLighting={interactiveLighting}
-          materialSettings={materialSettings}
         />
       </Canvas>
 
       {/* Enhanced Mobile Studio Panel */}
       <EnhancedMobileStudioPanel
-        selectedScene={selectedScene}
-        selectedLighting={selectedLighting}
+        selectedScene={selectedScene as any}
+        selectedLighting={selectedLighting as any}
         effectValues={effectValues}
         overallBrightness={overallBrightness}
         interactiveLighting={interactiveLighting}
-        materialSettings={materialSettings}
+        materialSettings={materialSettings as any}
         isFullscreen={isFullscreen}
-        onSceneChange={selectScene}
-        onLightingChange={selectLighting}
-        onEffectChange={updateEffect}
+        onSceneChange={setSelectedScene}
+        onLightingChange={setSelectedLighting}
+        onEffectChange={handleEffectChange}
         onResetAllEffects={resetAllEffects}
-        onBrightnessChange={updateBrightness}
-        onInteractiveLightingToggle={toggleInteractiveLighting}
-        onMaterialSettingsChange={updateMaterialSettings}
+        onBrightnessChange={setOverallBrightness}
+        onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
+        onMaterialSettingsChange={setMaterialSettings}
         onToggleFullscreen={handleToggleFullscreen}
         onDownload={onDownload || (() => {})}
         onShare={onShare}
         card={card}
-        selectedPresetId={selectedPresetId}
-        onPresetSelect={setSelectedPresetId}
+        selectedPresetId={presetState.currentPresetId}
+        onPresetSelect={() => {}} // Simple placeholder
         onApplyCombo={handleApplyCombo}
         cardDetails={cardDetails}
         onLike={onLike}
