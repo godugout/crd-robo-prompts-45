@@ -19,10 +19,10 @@ export const EnvironmentComboSection: React.FC<EnvironmentComboSectionProps> = (
         {ENVIRONMENT_SCENES.map((scene) => (
           <Button
             key={scene.id}
-            onClick={() => onSceneChange(scene)}
-            variant={selectedScene.id === scene.id ? "default" : "outline"}
+            onClick={() => onSceneChange(scene.id)}
+            variant={selectedScene === scene.id ? "default" : "outline"}
             className={`h-auto p-3 flex flex-col items-center space-y-1 ${
-              selectedScene.id === scene.id
+              selectedScene === scene.id
                 ? 'bg-crd-green text-black border-crd-green'
                 : 'border-editor-border hover:border-crd-green hover:bg-crd-green/10'
             }`}

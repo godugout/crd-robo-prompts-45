@@ -1,8 +1,9 @@
 
 import { useMemo } from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
-import type { EffectValues } from './useEnhancedCardEffects';
+import type { EffectValues } from '../types';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
+import { getEnvironmentSceneConfig, getLightingPresetConfig } from '../types';
 
 interface UseCardEffectsParams {
   card: CardData;
@@ -71,11 +72,16 @@ export const useCardEffects = (params: UseCardEffectsParams) => {
   }, [showEffects, effectValues, interactiveLighting, isHovering, mousePosition]);
 
   const getEnvironmentStyle = useMemo(() => {
-    return () => ({
-      background: selectedScene.backgroundImage || selectedScene.gradient,
-      filter: `brightness(${selectedLighting.brightness}%)`,
-      transition: 'all 0.5s ease'
-    });
+    return () => {
+      const sceneConfig = getEnvironmentSceneConfig(selectedScene);
+      const lightingConfig = getLightingPresetConfig(selectedLighting);
+      
+      return {
+        background: sceneConfig.backgroundImage || sceneConfig.gradient,
+        filter: `brightness(${lightingConfig.brightness || 100}%)`,
+        transition: 'all 0.5s ease'
+      };
+    };
   }, [selectedScene, selectedLighting]);
 
   const SurfaceTexture = useMemo(() => {

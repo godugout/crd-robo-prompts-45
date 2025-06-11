@@ -1,13 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { useEffectConfigurations } from './useEffectConfigurations';
-
-export interface EffectValues {
-  [effectId: string]: {
-    [parameterId: string]: number | boolean | string;
-    intensity?: number;
-  };
-}
+import type { EffectValues } from '../types';
 
 export const useEffectValues = () => {
   const { defaultEffectValues } = useEffectConfigurations();

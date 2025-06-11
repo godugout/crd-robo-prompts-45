@@ -29,10 +29,10 @@ export const LightingComboSection: React.FC<LightingComboSectionProps> = ({
         {LIGHTING_PRESETS.map((preset) => (
           <Button
             key={preset.id}
-            onClick={() => onLightingChange(preset)}
-            variant={selectedLighting.id === preset.id ? "default" : "outline"}
+            onClick={() => onLightingChange(preset.id)}
+            variant={selectedLighting === preset.id ? "default" : "outline"}
             className={`h-auto p-2 flex flex-col items-center space-y-1 text-xs ${
-              selectedLighting.id === preset.id
+              selectedLighting === preset.id
                 ? 'bg-crd-green text-black border-crd-green'
                 : 'border-editor-border hover:border-crd-green hover:bg-crd-green/10 text-white'
             }`}
