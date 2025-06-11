@@ -20,7 +20,7 @@ export const useViewerEffects = () => {
     reflectivity: 50
   }));
 
-  // Stable callback functions
+  // Stable callback functions - memoized to prevent infinite renders
   const handleSceneChange = useCallback((sceneId: string) => {
     setSelectedScene(sceneId);
     console.log('Scene changed to:', sceneId);
@@ -105,6 +105,14 @@ export const useViewerEffects = () => {
     }
   }, [handleEffectChange, resetAllEffects]);
 
+  const handleBrightnessChange = useCallback((value: number[]) => {
+    setOverallBrightness(value);
+  }, []);
+
+  const handleInteractiveLightingToggle = useCallback(() => {
+    setInteractiveLighting(prev => !prev);
+  }, []);
+
   // Memoize the return value to prevent unnecessary re-renders
   return useMemo(() => ({
     effectValues,
@@ -120,8 +128,8 @@ export const useViewerEffects = () => {
     handleLightingChange,
     handleMaterialSettingsChange,
     handleApplyCombo,
-    setOverallBrightness,
-    setInteractiveLighting
+    setOverallBrightness: handleBrightnessChange,
+    setInteractiveLighting: handleInteractiveLightingToggle
   }), [
     effectValues,
     handleEffectChange,
@@ -135,6 +143,8 @@ export const useViewerEffects = () => {
     handleSceneChange,
     handleLightingChange,
     handleMaterialSettingsChange,
-    handleApplyCombo
+    handleApplyCombo,
+    handleBrightnessChange,
+    handleInteractiveLightingToggle
   ]);
 };

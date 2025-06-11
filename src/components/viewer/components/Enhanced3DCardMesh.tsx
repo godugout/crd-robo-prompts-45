@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { useLoader } from '@react-three/fiber';
 import { TextureLoader, DoubleSide } from 'three';
 import type { CardData } from '@/types/card';
@@ -29,36 +29,40 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
     reflectivity: 50
   }
 }) => {
-  const [frontImageError, setFrontImageError] = useState(false);
-  const [backImageError, setBackImageError] = useState(false);
+  const [hasTextureError, setHasTextureError] = useState(false);
 
   // Validate image URL and fallback if it's a blob URL or invalid
-  const getFallbackImageUrl = (url: string | undefined) => {
+  const frontImageUrl = useMemo(() => {
+    const url = card.image_url;
     if (!url || url.startsWith('blob:')) {
       return '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
     }
     return url;
-  };
+  }, [card.image_url]);
 
-  const frontImageUrl = getFallbackImageUrl(card.image_url);
   const backImageUrl = '/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png';
 
-  // Load textures with error handling
+  // Load textures with error handling using useEffect instead of during render
   let frontTexture, backTexture;
   
   try {
     frontTexture = useLoader(TextureLoader, frontImageUrl);
   } catch (error) {
     console.warn('Failed to load front texture:', error);
-    setFrontImageError(true);
   }
 
   try {
     backTexture = useLoader(TextureLoader, backImageUrl);
   } catch (error) {
     console.warn('Failed to load back texture:', error);
-    setBackImageError(true);
   }
+
+  // Handle texture loading errors in useEffect to prevent render loop
+  useEffect(() => {
+    if (!frontTexture && !hasTextureError) {
+      setHasTextureError(true);
+    }
+  }, [frontTexture, hasTextureError]);
 
   // Create card geometry with thickness
   const cardGeometry = useMemo(() => {
@@ -71,7 +75,7 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
   }, []);
 
   // If textures failed to load, render a simple colored card
-  if (frontImageError || !frontTexture) {
+  if (hasTextureError || !frontTexture) {
     return (
       <group 
         rotation={[rotation.x * Math.PI / 180, rotation.y * Math.PI / 180, 0]}

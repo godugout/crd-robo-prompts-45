@@ -1,3 +1,4 @@
+
 import React, { useCallback } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
@@ -39,11 +40,6 @@ export const StudioTabContent: React.FC<StudioTabContentProps> = ({
     console.log('Applying preset:', presetId);
     // This will be wired up to the parent component
   }, []);
-
-  // Stable toggle handler
-  const handleInteractiveLightingToggle = useCallback(() => {
-    onInteractiveLightingToggle();
-  }, [onInteractiveLightingToggle]);
 
   return (
     <div className="p-4 space-y-6 text-white">
@@ -101,7 +97,7 @@ export const StudioTabContent: React.FC<StudioTabContentProps> = ({
             <span className="text-sm text-white/70">Interactive Lighting</span>
             <Switch
               checked={interactiveLighting}
-              onCheckedChange={handleInteractiveLightingToggle}
+              onCheckedChange={onInteractiveLightingToggle}
             />
           </div>
           
