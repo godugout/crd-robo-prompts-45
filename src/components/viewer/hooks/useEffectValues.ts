@@ -25,14 +25,21 @@ export const useEffectValues = () => {
     
     setEffectValues(prev => {
       const newValues: EffectValues = { ...prev };
+      
+      // Ensure the effect exists with proper structure
       if (!newValues[effectId]) {
         newValues[effectId] = { intensity: 0 };
       }
-      newValues[effectId] = {
-        ...newValues[effectId],
+      
+      // Ensure the effect always has the intensity property
+      const currentEffect = newValues[effectId];
+      const updatedEffect = {
+        ...currentEffect,
         [parameterId]: value,
-        intensity: newValues[effectId].intensity
+        intensity: currentEffect.intensity || 0 // Ensure intensity is always present
       };
+      
+      newValues[effectId] = updatedEffect;
       return newValues;
     });
   }, []);
@@ -53,7 +60,10 @@ export const useEffectValues = () => {
       });
       setEffectValues(prev => ({
         ...prev,
-        [effectId]: resetValues
+        [effectId]: {
+          ...resetValues,
+          intensity: 0 // Ensure intensity is always present
+        }
       }));
     }
   }, []);
