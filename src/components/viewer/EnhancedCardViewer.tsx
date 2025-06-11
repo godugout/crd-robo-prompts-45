@@ -166,7 +166,7 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
           overallBrightness={overallBrightness}
           onBrightnessChange={setOverallBrightness}
           interactiveLighting={interactiveLighting}
-          onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
+          onInteractiveLightingToggle={setInteractiveLighting}
           materialSettings={materialSettings}
           onMaterialSettingsChange={handleMaterialSettingsChange}
           onLike={onLike}
