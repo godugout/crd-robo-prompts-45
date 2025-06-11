@@ -7,7 +7,7 @@ import { LoadingState } from '@/components/common/LoadingState';
 import { CardDetailStudioLayout } from '@/components/cards/CardDetailStudioLayout';
 import { CardDetailRightPanel } from '@/components/cards/CardDetailRightPanel';
 import { CardDetailHeader } from '@/components/cards/components/CardDetailHeader';
-import { CardViewer } from '@/components/viewer/CardViewer';
+import { EnhancedCardViewer } from '@/components/viewer/EnhancedCardViewer';
 import { toast } from 'sonner';
 
 interface CardData {
@@ -186,7 +186,7 @@ const CardDetail = () => {
         />
       }
     >
-      <CardViewer 
+      <EnhancedCardViewer 
         card={cardViewerData}
         showCustomizePanel={false}
         onCardChange={() => {}}
