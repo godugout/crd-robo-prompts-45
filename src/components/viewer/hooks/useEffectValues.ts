@@ -23,14 +23,18 @@ export const useEffectValues = () => {
   const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
     console.log('🎛️ Effect Change:', { effectId, parameterId, value });
     
-    setEffectValues(prev => ({
-      ...prev,
-      [effectId]: {
-        ...prev[effectId],
-        [parameterId]: value,
-        intensity: prev[effectId]?.intensity || 0
+    setEffectValues(prev => {
+      const newValues: EffectValues = { ...prev };
+      if (!newValues[effectId]) {
+        newValues[effectId] = { intensity: 0 };
       }
-    }));
+      newValues[effectId] = {
+        ...newValues[effectId],
+        [parameterId]: value,
+        intensity: newValues[effectId].intensity
+      };
+      return newValues;
+    });
   }, []);
 
   const resetEffectValues = useCallback(() => {
@@ -63,7 +67,7 @@ export const useEffectValues = () => {
       if (typeof values === 'function') {
         setEffectValues(values);
       } else {
-        setEffectValues(convertToEffectValues(values as any));
+        setEffectValues(values);
       }
     }
   };

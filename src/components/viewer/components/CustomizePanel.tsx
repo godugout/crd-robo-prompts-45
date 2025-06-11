@@ -126,9 +126,9 @@ export const CustomizePanel: React.FC<CustomizePanelProps> = ({
               {ENVIRONMENT_SCENES.map((scene) => (
                 <button
                   key={scene.id}
-                  onClick={() => onSceneChange(scene)}
+                  onClick={() => onSceneChange(scene.id)}
                   className={`aspect-square rounded-lg p-3 transition-all ${
-                    selectedScene.id === scene.id 
+                    selectedScene === scene.id 
                       ? 'ring-2 ring-blue-500 scale-105' 
                       : 'hover:scale-102'
                   }`}
@@ -193,9 +193,9 @@ export const CustomizePanel: React.FC<CustomizePanelProps> = ({
                 {LIGHTING_PRESETS.map((preset) => (
                   <button
                     key={preset.id}
-                    onClick={() => onLightingChange(preset)}
+                    onClick={() => onLightingChange(preset.id)}
                     className={`w-full p-3 rounded-lg text-left transition-colors ${
-                      selectedLighting.id === preset.id 
+                      selectedLighting === preset.id 
                         ? 'bg-blue-600 text-white' 
                         : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                     }`}

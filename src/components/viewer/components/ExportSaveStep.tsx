@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Share2, RotateCcw, Check } from 'lucide-react';
 import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset } from '../types';
+import { getEnvironmentSceneName, getLightingPresetName } from '../types';
 
 interface ExportSaveStepProps {
   card: CardData;
@@ -71,12 +72,12 @@ export const ExportSaveStep: React.FC<ExportSaveStepProps> = ({
           
           <div>
             <span className="text-crd-lightGray">Environment:</span>
-            <p className="text-white font-medium">{selectedScene.name}</p>
+            <p className="text-white font-medium">{getEnvironmentSceneName(selectedScene)}</p>
           </div>
           
           <div>
             <span className="text-crd-lightGray">Lighting:</span>
-            <p className="text-white font-medium">{selectedLighting.name}</p>
+            <p className="text-white font-medium">{getLightingPresetName(selectedLighting)}</p>
           </div>
           
           <div>

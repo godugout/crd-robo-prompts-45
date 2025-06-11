@@ -58,9 +58,9 @@ export const EnvironmentTuningStep: React.FC<EnvironmentTuningStepProps> = ({
           {ENVIRONMENT_SCENES.map((scene) => (
             <button
               key={scene.id}
-              onClick={() => onSceneChange(scene)}
+              onClick={() => onSceneChange(scene.id)}
               className={`aspect-square rounded-lg p-3 transition-all ${
-                selectedScene.id === scene.id 
+                selectedScene === scene.id 
                   ? 'ring-2 ring-crd-green scale-105' 
                   : 'hover:scale-[1.02]'
               }`}
@@ -87,9 +87,9 @@ export const EnvironmentTuningStep: React.FC<EnvironmentTuningStepProps> = ({
           {LIGHTING_PRESETS.map((preset) => (
             <button
               key={preset.id}
-              onClick={() => onLightingChange(preset)}
+              onClick={() => onLightingChange(preset.id)}
               className={`w-full p-3 rounded-lg text-left transition-colors ${
-                selectedLighting.id === preset.id 
+                selectedLighting === preset.id 
                   ? 'bg-crd-green text-black' 
                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
