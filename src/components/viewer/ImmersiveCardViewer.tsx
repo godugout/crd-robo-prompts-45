@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
@@ -106,11 +105,12 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const [overallBrightness, setOverallBrightness] = useState([100]);
   const [interactiveLighting, setInteractiveLighting] = useState(true);
   
-  // Material properties - More balanced defaults
+  // Material properties - More balanced defaults with transmission
   const [materialSettings, setMaterialSettings] = useState<MaterialSettings>({
     roughness: 0.40,
     metalness: 0.45,
     clearcoat: 0.60,
+    transmission: 0.0,
     reflectivity: 0.40
   });
 

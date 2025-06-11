@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react';
 
 export interface EffectValues {
+  [key: string]: { intensity: number; [key: string]: any };
   holographic?: { intensity: number };
   foilspray?: { intensity: number };
   prizm?: { intensity: number };
@@ -21,6 +22,7 @@ export const useEnhancedCardEffects = () => {
   });
 
   const [presetState, setPresetState] = useState<string>('custom');
+  const [isApplyingPreset, setIsApplyingPreset] = useState(false);
 
   const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
     setEffectValues(prev => ({
@@ -52,11 +54,32 @@ export const useEnhancedCardEffects = () => {
     setPresetState('custom');
   }, []);
 
+  const applyPreset = useCallback((presetEffects: any, presetId?: string) => {
+    setIsApplyingPreset(true);
+    
+    // Apply the preset effects
+    if (presetEffects) {
+      setEffectValues(presetEffects);
+    }
+    
+    // Update preset state
+    if (presetId) {
+      setPresetState(presetId);
+    }
+    
+    // Reset the applying state after a brief delay
+    setTimeout(() => {
+      setIsApplyingPreset(false);
+    }, 100);
+  }, []);
+
   return {
     effectValues,
     handleEffectChange,
     resetEffect,
     resetAllEffects,
-    presetState
+    presetState,
+    applyPreset,
+    isApplyingPreset
   };
 };
