@@ -10,15 +10,29 @@ export interface MaterialSettings {
   reflectivity: number;
 }
 
-// Main Card data interface - make it compatible with viewer requirements
+// Unified EffectValues interface - compatible with all components
+export interface EffectValues {
+  [key: string]: { 
+    intensity: number;
+    [key: string]: any;
+  };
+  holographic?: { intensity: number; [key: string]: any };
+  foilspray?: { intensity: number; [key: string]: any };
+  prizm?: { intensity: number; [key: string]: any };
+  chrome?: { intensity: number; [key: string]: any };
+  crystal?: { intensity: number; [key: string]: any };
+  gold?: { intensity: number; [key: string]: any };
+}
+
+// Main Card data interface - aligned with useCardEditor
 export interface CardData {
   id: string;
   title: string;
   description?: string;
   image_url?: string;
   rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
-  tags: string[]; // Make required to match useCardEditor
-  visibility: 'public' | 'private' | 'unlisted';
+  tags: string[];
+  visibility: 'public' | 'private' | 'shared'; // Match useCardEditor exactly
   is_public: boolean;
   template_id?: string;
   collection_id?: string;
@@ -63,20 +77,6 @@ export interface ImmersiveCardViewerProps {
   ambient?: boolean;
 }
 
-// Unified EffectValues interface for all components
-export interface EffectValues {
-  [key: string]: { 
-    intensity: number;
-    [key: string]: any;
-  };
-  holographic?: { intensity: number; [key: string]: any };
-  foilspray?: { intensity: number; [key: string]: any };
-  prizm?: { intensity: number; [key: string]: any };
-  chrome?: { intensity: number; [key: string]: any };
-  crystal?: { intensity: number; [key: string]: any };
-  gold?: { intensity: number; [key: string]: any };
-}
-
 // Visual effect interface
 export interface VisualEffect {
   id: string;
@@ -95,7 +95,7 @@ export interface VisualEffect {
   }>;
 }
 
-// Environment scene object interface
+// Environment scene object interface - with all properties needed
 export interface EnvironmentSceneConfig {
   id: EnvironmentScene;
   name: string;
@@ -103,13 +103,20 @@ export interface EnvironmentSceneConfig {
   backgroundImage?: string;
   icon: string;
   description: string;
+  lighting?: {
+    color: { r: number; g: number; b: number };
+    intensity: number;
+  };
 }
 
-// Lighting preset object interface
+// Lighting preset object interface - with all properties needed
 export interface LightingPresetConfig {
   id: LightingPreset;
   name: string;
   description: string;
+  brightness?: number;
+  contrast?: number;
+  temperature?: number;
 }
 
 // Conversion functions
@@ -120,8 +127,8 @@ export const convertToViewerCardData = (card: any): CardData => {
     description: card.description,
     image_url: card.image_url,
     rarity: card.rarity || 'common',
-    tags: card.tags || [], // Ensure tags is always an array
-    visibility: card.visibility || 'public',
+    tags: card.tags || [],
+    visibility: card.visibility === 'unlisted' ? 'public' : (card.visibility || 'public'), // Convert unlisted to public
     is_public: card.is_public !== false,
     template_id: card.template_id,
     collection_id: card.collection_id,
@@ -166,7 +173,8 @@ export const getEnvironmentSceneConfig = (scene: EnvironmentScene): EnvironmentS
       gradient: 'from-gray-900 to-gray-700',
       icon: '🎬',
       backgroundImage: '/studio-bg.jpg',
-      description: 'Professional studio environment'
+      description: 'Professional studio environment',
+      lighting: { color: { r: 255, g: 255, b: 255 }, intensity: 1.0 }
     },
     {
       id: 'forest',
@@ -174,7 +182,8 @@ export const getEnvironmentSceneConfig = (scene: EnvironmentScene): EnvironmentS
       gradient: 'from-green-900 to-green-700',
       icon: '🌲',
       backgroundImage: '/forest-bg.jpg',
-      description: 'Natural forest setting'
+      description: 'Natural forest setting',
+      lighting: { color: { r: 200, g: 255, b: 200 }, intensity: 0.8 }
     },
     {
       id: 'mountain',
@@ -182,7 +191,8 @@ export const getEnvironmentSceneConfig = (scene: EnvironmentScene): EnvironmentS
       gradient: 'from-blue-900 to-gray-700',
       icon: '⛰️',
       backgroundImage: '/mountain-bg.jpg',
-      description: 'Majestic mountain landscape'
+      description: 'Majestic mountain landscape',
+      lighting: { color: { r: 200, g: 220, b: 255 }, intensity: 0.9 }
     },
     {
       id: 'cavern',
@@ -190,7 +200,8 @@ export const getEnvironmentSceneConfig = (scene: EnvironmentScene): EnvironmentS
       gradient: 'from-purple-900 to-gray-800',
       icon: '🕳️',
       backgroundImage: '/cavern-bg.jpg',
-      description: 'Mysterious underground cavern'
+      description: 'Mysterious underground cavern',
+      lighting: { color: { r: 180, g: 150, b: 220 }, intensity: 0.6 }
     },
     {
       id: 'metropolis',
@@ -198,7 +209,8 @@ export const getEnvironmentSceneConfig = (scene: EnvironmentScene): EnvironmentS
       gradient: 'from-cyan-900 to-gray-800',
       icon: '🏙️',
       backgroundImage: '/city-bg.jpg',
-      description: 'Urban cityscape environment'
+      description: 'Urban cityscape environment',
+      lighting: { color: { r: 150, g: 200, b: 255 }, intensity: 1.1 }
     }
   ];
   return scenes.find(s => s.id === scene) || scenes[0];
@@ -209,27 +221,42 @@ export const getLightingPresetConfig = (preset: LightingPreset): LightingPresetC
     {
       id: 'studio',
       name: 'Studio',
-      description: 'Balanced studio lighting'
+      description: 'Balanced studio lighting',
+      brightness: 100,
+      contrast: 50,
+      temperature: 5500
     },
     {
       id: 'natural',
       name: 'Natural',
-      description: 'Soft natural lighting'
+      description: 'Soft natural lighting',
+      brightness: 80,
+      contrast: 30,
+      temperature: 6500
     },
     {
       id: 'dramatic',
       name: 'Dramatic',
-      description: 'High contrast dramatic lighting'
+      description: 'High contrast dramatic lighting',
+      brightness: 120,
+      contrast: 80,
+      temperature: 4500
     },
     {
       id: 'soft',
       name: 'Soft',
-      description: 'Gentle diffused lighting'
+      description: 'Gentle diffused lighting',
+      brightness: 70,
+      contrast: 20,
+      temperature: 7000
     },
     {
       id: 'vibrant',
       name: 'Vibrant',
-      description: 'Bright colorful lighting'
+      description: 'Bright colorful lighting',
+      brightness: 140,
+      contrast: 60,
+      temperature: 5000
     }
   ];
   return presets.find(p => p.id === preset) || presets[0];

@@ -1,6 +1,5 @@
 
 import React from 'react';
-import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import { CardEffectsLayer } from './CardEffectsLayer';
 import { useDynamicCardBackMaterials } from '../hooks/useDynamicCardBackMaterials';
 import { useEffectContext } from '../contexts/EffectContext';

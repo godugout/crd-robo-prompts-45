@@ -108,9 +108,6 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffect[] = [
   }
 ];
 
-// Export EffectValues type for external use
-export type { EffectValues } from '../types';
-
 // Export for backward compatibility
 export type VisualEffectConfig = typeof ENHANCED_VISUAL_EFFECTS[0];
 

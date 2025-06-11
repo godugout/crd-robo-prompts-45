@@ -9,7 +9,8 @@ export const ENVIRONMENT_SCENES: EnvironmentSceneConfig[] = [
     gradient: 'from-gray-900 to-gray-700',
     icon: '🎬',
     backgroundImage: '/studio-bg.jpg',
-    description: 'Professional studio environment'
+    description: 'Professional studio environment',
+    lighting: { color: { r: 255, g: 255, b: 255 }, intensity: 1.0 }
   },
   {
     id: 'forest',
@@ -17,7 +18,8 @@ export const ENVIRONMENT_SCENES: EnvironmentSceneConfig[] = [
     gradient: 'from-green-900 to-green-700',
     icon: '🌲',
     backgroundImage: '/forest-bg.jpg',
-    description: 'Natural forest setting'
+    description: 'Natural forest setting',
+    lighting: { color: { r: 200, g: 255, b: 200 }, intensity: 0.8 }
   },
   {
     id: 'mountain',
@@ -25,7 +27,8 @@ export const ENVIRONMENT_SCENES: EnvironmentSceneConfig[] = [
     gradient: 'from-blue-900 to-gray-700',
     icon: '⛰️',
     backgroundImage: '/mountain-bg.jpg',
-    description: 'Majestic mountain landscape'
+    description: 'Majestic mountain landscape',
+    lighting: { color: { r: 200, g: 220, b: 255 }, intensity: 0.9 }
   },
   {
     id: 'cavern',
@@ -33,7 +36,8 @@ export const ENVIRONMENT_SCENES: EnvironmentSceneConfig[] = [
     gradient: 'from-purple-900 to-gray-800',
     icon: '🕳️',
     backgroundImage: '/cavern-bg.jpg',
-    description: 'Mysterious underground cavern'
+    description: 'Mysterious underground cavern',
+    lighting: { color: { r: 180, g: 150, b: 220 }, intensity: 0.6 }
   },
   {
     id: 'metropolis',
@@ -41,7 +45,8 @@ export const ENVIRONMENT_SCENES: EnvironmentSceneConfig[] = [
     gradient: 'from-cyan-900 to-gray-800',
     icon: '🏙️',
     backgroundImage: '/city-bg.jpg',
-    description: 'Urban cityscape environment'
+    description: 'Urban cityscape environment',
+    lighting: { color: { r: 150, g: 200, b: 255 }, intensity: 1.1 }
   }
 ];
 
@@ -50,27 +55,42 @@ export const LIGHTING_PRESETS: LightingPresetConfig[] = [
   {
     id: 'studio',
     name: 'Studio',
-    description: 'Balanced studio lighting'
+    description: 'Balanced studio lighting',
+    brightness: 100,
+    contrast: 50,
+    temperature: 5500
   },
   {
     id: 'natural',
     name: 'Natural',
-    description: 'Soft natural lighting'
+    description: 'Soft natural lighting',
+    brightness: 80,
+    contrast: 30,
+    temperature: 6500
   },
   {
     id: 'dramatic',
     name: 'Dramatic',
-    description: 'High contrast dramatic lighting'
+    description: 'High contrast dramatic lighting',
+    brightness: 120,
+    contrast: 80,
+    temperature: 4500
   },
   {
     id: 'soft',
     name: 'Soft',
-    description: 'Gentle diffused lighting'
+    description: 'Gentle diffused lighting',
+    brightness: 70,
+    contrast: 20,
+    temperature: 7000
   },
   {
     id: 'vibrant',
     name: 'Vibrant',
-    description: 'Bright colorful lighting'
+    description: 'Bright colorful lighting',
+    brightness: 140,
+    contrast: 60,
+    temperature: 5000
   }
 ];
 
