@@ -4,26 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase-client';
 import { LoadingState } from '@/components/common/LoadingState';
-import { CardDetailHeader } from '@/components/cards/components/CardDetailHeader';
-import { EnhancedCardViewer } from '@/components/viewer/EnhancedCardViewer';
+import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
 import { toast } from 'sonner';
-
-interface CardData {
-  id: string;
-  title: string;
-  description?: string;
-  image_url?: string;
-  thumbnail_url?: string;
-  rarity: string;
-  price?: string;
-  creator_name?: string;
-  creator_verified?: boolean;
-  creator_id?: string;
-  tags?: string[];
-  created_at: string;
-  view_count?: number;
-  like_count?: number;
-}
 
 const CardDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -72,11 +54,9 @@ const CardDetail = () => {
         ...data,
         creator_name,
         creator_verified,
-        price: data.price ? data.price.toString() : undefined,
+        price: typeof data.price === 'number' ? data.price : 0,
         tags: data.tags || [],
-        view_count: Math.floor(Math.random() * 1000) + 100, // Mock data
-        like_count: Math.floor(Math.random() * 50) + 10 // Mock data
-      } as CardData;
+      };
     },
     enabled: !!id
   });
@@ -115,14 +95,6 @@ const CardDetail = () => {
     }
   };
 
-  const handleLike = () => {
-    toast.success('Liked! (Feature coming soon)');
-  };
-
-  const handleBookmark = () => {
-    toast.success('Bookmarked! (Feature coming soon)');
-  };
-
   if (isLoading) {
     return <LoadingState message="Loading card..." />;
   }
@@ -144,47 +116,17 @@ const CardDetail = () => {
     );
   }
 
-  // Convert card data to format expected by EnhancedCardViewer
-  const cardViewerData = {
-    id: card.id,
-    title: card.title,
-    description: card.description,
-    image_url: card.image_url,
-    rarity: card.rarity as any,
-    tags: card.tags || [],
-    visibility: 'public' as any,
-    is_public: true,
-    template_id: undefined,
-    collection_id: undefined,
-    team_id: undefined,
-    creator_attribution: {
-      creator_name: card.creator_name,
-      creator_id: card.creator_id
-    },
-    publishing_options: {
-      marketplace_listing: false,
-      crd_catalog_inclusion: true,
-      print_available: false,
-      pricing: { currency: 'USD' },
-      distribution: { limited_edition: false }
-    },
-    design_metadata: {}
-  };
-
   return (
-    <div className="min-h-screen bg-crd-darkest relative">
-      <CardDetailHeader onGoBack={handleGoBack} />
-      <div className="h-screen pt-16">
-        <EnhancedCardViewer 
-          card={cardViewerData}
-          onDownload={() => handleDownload()}
-          onShare={() => handleShare()}
-          cardDetails={card}
-          onLike={handleLike}
-          onBookmark={handleBookmark}
-        />
-      </div>
-    </div>
+    <ImmersiveCardViewer
+      card={card}
+      isOpen={true}
+      onClose={handleGoBack}
+      onShare={handleShare}
+      onDownload={handleDownload}
+      allowRotation={true}
+      showStats={true}
+      ambient={true}
+    />
   );
 };
 
