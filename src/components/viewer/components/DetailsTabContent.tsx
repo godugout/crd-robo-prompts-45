@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Heart, Bookmark, Share2, Download, Eye, Clock, Tag, User, Shield } from 'lucide-react';
+import { Heart, Bookmark, Share2, Download, Eye, User, Shield } from 'lucide-react';
 import type { CardData } from '@/types/card';
 
 interface DetailsTabContentProps {
@@ -109,9 +109,8 @@ export const DetailsTabContent: React.FC<DetailsTabContentProps> = ({
             {cardDetails.tags.map((tag, index) => (
               <span
                 key={index}
-                className="px-2 py-1 bg-white/10 rounded-md text-xs text-white/70 flex items-center gap-1"
+                className="px-2 py-1 bg-white/10 rounded-md text-xs text-white/70"
               >
-                <Tag className="w-3 h-3" />
                 {tag}
               </span>
             ))}

@@ -245,6 +245,67 @@ export type Database = {
         }
         Relationships: []
       }
+      bookmarks: {
+        Row: {
+          card_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookmarks_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_downloads: {
+        Row: {
+          card_id: string
+          created_at: string
+          download_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          download_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          download_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_downloads_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cards: {
         Row: {
           collection_id: string | null
@@ -3461,6 +3522,13 @@ export type Database = {
         Args: { p_app_key: string }
         Returns: string
       }
+      get_card_reaction_counts: {
+        Args: { card_uuid: string }
+        Returns: {
+          like_count: number
+          view_count: number
+        }[]
+      }
       get_column_exists: {
         Args: { p_table_name: string; p_column_name: string }
         Returns: boolean
@@ -3472,6 +3540,13 @@ export type Database = {
       get_table_exists: {
         Args: { table_name: string }
         Returns: boolean
+      }
+      get_user_card_status: {
+        Args: { card_uuid: string; user_uuid: string }
+        Returns: {
+          is_liked: boolean
+          is_bookmarked: boolean
+        }[]
       }
       get_user_team_role: {
         Args: { team_id: string; user_id: string }

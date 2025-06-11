@@ -1,58 +1,91 @@
 
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { UniversalCardData } from '@/components/cards/UniversalCardDisplay';
+import { useState, useEffect } from 'react';
+import { cardActionService } from '@/services/cardActions';
 
-export const useCardActions = () => {
-  const navigate = useNavigate();
+export const useCardActions = (cardId: string) => {
+  const [likeCount, setLikeCount] = useState(0);
+  const [viewCount, setViewCount] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleView = (card: UniversalCardData) => {
-    navigate(`/card/${card.id}`);
-  };
+  useEffect(() => {
+    if (!cardId) return;
 
-  const handleRemix = (card: UniversalCardData) => {
-    navigate(`/cards/create?template=${card.id}`);
-    toast.success(`Starting remix of "${card.title}"`);
-  };
+    const fetchCardStats = async () => {
+      setLoading(true);
+      try {
+        const stats = await cardActionService.getCardStats(cardId);
+        setLikeCount(stats.likeCount);
+        setViewCount(stats.viewCount);
+        setIsLiked(stats.isLiked);
+        setIsBookmarked(stats.isBookmarked);
+      } catch (error) {
+        console.error('Error fetching card stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleStage = (card: UniversalCardData) => {
-    navigate(`/studio?card=${card.id}`);
-    toast.success(`Opening "${card.title}" in Studio`);
-  };
+    fetchCardStats();
+  }, [cardId]);
 
-  const handleFavorite = async (card: UniversalCardData) => {
-    try {
-      // TODO: Implement actual favorite functionality
-      toast.success(`Added "${card.title}" to favorites`);
-    } catch (error) {
-      toast.error('Failed to add to favorites');
+  const handleLike = async () => {
+    const success = isLiked 
+      ? await cardActionService.unlikeCard(cardId)
+      : await cardActionService.likeCard(cardId);
+    
+    if (success) {
+      setIsLiked(!isLiked);
+      setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
     }
   };
 
-  const handleShare = async (card: UniversalCardData) => {
-    try {
-      const url = `${window.location.origin}/card/${card.id}`;
-      
-      if (navigator.share) {
+  const handleBookmark = async () => {
+    const success = isBookmarked
+      ? await cardActionService.removeBookmark(cardId)
+      : await cardActionService.bookmarkCard(cardId);
+    
+    if (success) {
+      setIsBookmarked(!isBookmarked);
+    }
+  };
+
+  const handleDownload = async () => {
+    await cardActionService.downloadCard(cardId);
+  };
+
+  const handleShare = async () => {
+    const shareUrl = window.location.href;
+    const shareText = `Check out this card!`;
+    
+    if (navigator.share) {
+      try {
         await navigator.share({
-          title: card.title,
-          text: card.description,
-          url: url
+          title: shareText,
+          url: shareUrl
         });
-      } else {
-        await navigator.clipboard.writeText(url);
-        toast.success('Card link copied to clipboard');
+      } catch (error) {
+        // Fallback to clipboard
+        navigator.clipboard.writeText(shareUrl);
+        // toast is handled in the service
       }
-    } catch (error) {
-      toast.error('Failed to share card');
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      // Using a simple approach since toast is in service
+      console.log('Link copied to clipboard');
     }
   };
 
   return {
-    handleView,
-    handleRemix,
-    handleStage,
-    handleFavorite,
+    likeCount,
+    viewCount,
+    isLiked,
+    isBookmarked,
+    loading,
+    handleLike,
+    handleBookmark,
+    handleDownload,
     handleShare
   };
 };

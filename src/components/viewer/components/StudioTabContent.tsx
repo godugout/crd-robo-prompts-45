@@ -1,11 +1,9 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { RotateCcw, Sparkles } from 'lucide-react';
+import { RotateCcw, Palette, Camera, Lightbulb } from 'lucide-react';
 import type { EffectValues } from '../hooks/useEffectValues';
 
 interface StudioTabContentProps {
@@ -26,17 +24,6 @@ interface StudioTabContentProps {
   onMaterialSettingsChange: (settings: any) => void;
 }
 
-const STYLE_PRESETS = [
-  'Ocean Waves', 'Custom', 'Holographic', 'Crystal', 'Chrome', 'Golden',
-  'Ocean', 'Aurora', 'Prizm', 'Vintage', 'Ice', 'Starlight', 'Lunar'
-];
-
-const ENVIRONMENT_2D = [
-  'Enchanted Forest', 'Mountain Vista', 'Crystal Cavern', 'Neon Metropolis'
-];
-
-const LIGHTING_PRESETS = ['Natural', 'Dramatic', 'Soft', 'Vibrant'];
-
 export const StudioTabContent: React.FC<StudioTabContentProps> = ({
   effectValues,
   onEffectChange,
@@ -48,288 +35,243 @@ export const StudioTabContent: React.FC<StudioTabContentProps> = ({
   materialSettings,
   onMaterialSettingsChange
 }) => {
+  const handlePresetClick = (presetId: string) => {
+    console.log('Applying preset:', presetId);
+    // This will be wired up to the parent component
+  };
+
   return (
-    <div className="p-4 space-y-6 text-white overflow-y-auto">
-      {/* Header with Reset */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-crd-green" />
-          Studio Controls
-        </h3>
-        <Button
-          onClick={onResetAllEffects}
-          variant="outline"
-          size="sm"
-          className="border-white/20 text-white hover:bg-white/10"
-        >
-          <RotateCcw className="w-4 h-4 mr-2" />
-          Reset
-        </Button>
-      </div>
-
-      {/* Styles Section */}
+    <div className="p-4 space-y-6 text-white">
+      {/* Quick Presets */}
       <div className="space-y-3">
-        <h4 className="text-sm font-medium text-white/80">Styles</h4>
+        <div className="flex items-center gap-2">
+          <Palette className="w-4 h-4" />
+          <h3 className="text-sm font-medium text-white/80">Quick Presets</h3>
+        </div>
         <div className="grid grid-cols-2 gap-2">
-          {STYLE_PRESETS.slice(0, 8).map((preset) => (
-            <Button
-              key={preset}
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs border-white/20 text-white/70 hover:bg-white/10 hover:text-white"
-            >
-              {preset}
-            </Button>
-          ))}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePresetClick('vintage')}
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            Vintage
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePresetClick('holographic')}
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            Holographic
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePresetClick('chrome')}
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            Chrome
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePresetClick('gold')}
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            Gold
+          </Button>
         </div>
       </div>
 
-      <Separator className="bg-white/10" />
-
-      {/* Effects Controls */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-white/80">Effects</h4>
-        
-        {/* Holographic */}
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Holographic</Label>
-          <Slider
-            value={[effectValues.holographic?.intensity || 0]}
-            onValueChange={(value) => onEffectChange('holographic', 'intensity', value[0])}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-        </div>
-
-        {/* Foil Spray */}
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Foil Spray</Label>
-          <Slider
-            value={[effectValues.foilspray?.intensity || 0]}
-            onValueChange={(value) => onEffectChange('foilspray', 'intensity', value[0])}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-        </div>
-
-        {/* Prizm */}
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Prizm</Label>
-          <Slider
-            value={[effectValues.prizm?.intensity || 0]}
-            onValueChange={(value) => onEffectChange('prizm', 'intensity', value[0])}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-        </div>
-
-        {/* Chrome */}
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Chrome</Label>
-          <Slider
-            value={[effectValues.chrome?.intensity || 0]}
-            onValueChange={(value) => onEffectChange('chrome', 'intensity', value[0])}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-        </div>
-
-        {/* Crystal */}
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Crystal</Label>
-          <Slider
-            value={[effectValues.crystal?.intensity || 0]}
-            onValueChange={(value) => onEffectChange('crystal', 'intensity', value[0])}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-        </div>
-
-        {/* Gold */}
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Gold</Label>
-          <Slider
-            value={[effectValues.gold?.intensity || 0]}
-            onValueChange={(value) => onEffectChange('gold', 'intensity', value[0])}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-        </div>
-      </div>
-
-      <Separator className="bg-white/10" />
-
-      {/* 2D Environments */}
+      {/* Lighting Controls */}
       <div className="space-y-3">
-        <h4 className="text-sm font-medium text-white/80">2D Environments</h4>
-        <div className="grid grid-cols-1 gap-2">
-          {ENVIRONMENT_2D.map((env) => (
-            <Button
-              key={env}
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs border-white/20 text-white/70 hover:bg-white/10 hover:text-white"
-            >
-              {env}
-            </Button>
-          ))}
+        <div className="flex items-center gap-2">
+          <Lightbulb className="w-4 h-4" />
+          <h3 className="text-sm font-medium text-white/80">Lighting</h3>
+        </div>
+        
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/70">Interactive Lighting</span>
+            <Switch
+              checked={interactiveLighting}
+              onCheckedChange={onInteractiveLightingToggle}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-white/70">Overall Brightness</span>
+              <span className="text-xs text-white/50">{overallBrightness[0]}%</span>
+            </div>
+            <Slider
+              value={overallBrightness}
+              onValueChange={onBrightnessChange}
+              max={100}
+              min={0}
+              step={1}
+              className="w-full"
+            />
+          </div>
         </div>
       </div>
-
-      <Separator className="bg-white/10" />
 
       {/* Camera Controls */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-white/80">Camera Controls</h4>
-        
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Orbit Speed</Label>
-          <Slider
-            value={[50]}
-            onValueChange={(value) => {}}
-            max={100}
-            step={1}
-            className="w-full"
-          />
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Camera className="w-4 h-4" />
+          <h3 className="text-sm font-medium text-white/80">Camera</h3>
         </div>
-
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Camera Distance</Label>
-          <Slider
-            value={[80]}
-            onValueChange={(value) => {}}
-            max={100}
-            step={1}
-            className="w-full"
-          />
+        
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-white/70">Orbit Speed</span>
+              <span className="text-xs text-white/50">
+                {effectValues.camera?.orbitSpeed || 0.5}
+              </span>
+            </div>
+            <Slider
+              value={[effectValues.camera?.orbitSpeed || 0.5]}
+              onValueChange={([value]) => onEffectChange('camera', 'orbitSpeed', value)}
+              max={2}
+              min={0}
+              step={0.1}
+              className="w-full"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-white/70">Distance</span>
+              <span className="text-xs text-white/50">
+                {effectValues.camera?.distance || 8}
+              </span>
+            </div>
+            <Slider
+              value={[effectValues.camera?.distance || 8]}
+              onValueChange={([value]) => onEffectChange('camera', 'distance', value)}
+              max={15}
+              min={3}
+              step={0.5}
+              className="w-full"
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/70">Auto Rotate</span>
+            <Switch
+              checked={effectValues.camera?.autoRotate || false}
+              onCheckedChange={(checked) => onEffectChange('camera', 'autoRotate', checked)}
+            />
+          </div>
         </div>
       </div>
 
-      <Separator className="bg-white/10" />
-
-      {/* Card Physics */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-white/80">Card Physics</h4>
+      {/* Material Properties */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-white/80">Material Properties</h3>
         
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Float Intensity</Label>
-          <Slider
-            value={[30]}
-            onValueChange={(value) => {}}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Gravity Effect</Label>
-          <Slider
-            value={[20]}
-            onValueChange={(value) => {}}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <Label className="text-xs text-white/70">Auto Rotate Card</Label>
-          <Switch checked={false} onCheckedChange={() => {}} />
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-white/70">Metalness</span>
+              <span className="text-xs text-white/50">{Math.round(materialSettings.metalness * 100)}%</span>
+            </div>
+            <Slider
+              value={[materialSettings.metalness]}
+              onValueChange={([value]) => onMaterialSettingsChange({ metalness: value })}
+              max={1}
+              min={0}
+              step={0.01}
+              className="w-full"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-white/70">Roughness</span>
+              <span className="text-xs text-white/50">{Math.round(materialSettings.roughness * 100)}%</span>
+            </div>
+            <Slider
+              value={[materialSettings.roughness]}
+              onValueChange={([value]) => onMaterialSettingsChange({ roughness: value })}
+              max={1}
+              min={0}
+              step={0.01}
+              className="w-full"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-white/70">Clearcoat</span>
+              <span className="text-xs text-white/50">{Math.round(materialSettings.clearcoat * 100)}%</span>
+            </div>
+            <Slider
+              value={[materialSettings.clearcoat]}
+              onValueChange={([value]) => onMaterialSettingsChange({ clearcoat: value })}
+              max={1}
+              min={0}
+              step={0.01}
+              className="w-full"
+            />
+          </div>
         </div>
       </div>
 
-      <Separator className="bg-white/10" />
-
-      {/* Lighting */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-white/80">Lighting</h4>
+      {/* Effect Controls */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-white/80">Effects</h3>
         
-        <div className="grid grid-cols-2 gap-2">
-          {LIGHTING_PRESETS.map((preset) => (
-            <Button
-              key={preset}
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs border-white/20 text-white/70 hover:bg-white/10 hover:text-white"
-            >
-              {preset}
-            </Button>
-          ))}
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Overall Brightness</Label>
-          <Slider
-            value={overallBrightness}
-            onValueChange={onBrightnessChange}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <Label className="text-xs text-white/70">Interactive Lighting</Label>
-          <Switch checked={interactiveLighting} onCheckedChange={onInteractiveLightingToggle} />
+        <div className="space-y-3">
+          {Object.entries(effectValues).map(([effectId, effect]) => {
+            if (effectId === 'camera') return null; // Skip camera as it's handled above
+            
+            return (
+              <div key={effectId} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-white/70 capitalize">{effectId}</span>
+                  <Switch
+                    checked={effect.enabled || false}
+                    onCheckedChange={(checked) => onEffectChange(effectId, 'enabled', checked)}
+                  />
+                </div>
+                {effect.enabled && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-white/50">Intensity</span>
+                      <span className="text-xs text-white/50">
+                        {Math.round((effect.intensity || 0) * 100)}%
+                      </span>
+                    </div>
+                    <Slider
+                      value={[effect.intensity || 0]}
+                      onValueChange={([value]) => onEffectChange(effectId, 'intensity', value)}
+                      max={1}
+                      min={0}
+                      step={0.01}
+                      className="w-full"
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      <Separator className="bg-white/10" />
-
-      {/* Surface/Material Properties */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-white/80">Surface/Material Properties</h4>
-        
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Metalness</Label>
-          <Slider
-            value={[materialSettings.metalness * 100]}
-            onValueChange={(value) => onMaterialSettingsChange({ metalness: value[0] / 100 })}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Roughness</Label>
-          <Slider
-            value={[materialSettings.roughness * 100]}
-            onValueChange={(value) => onMaterialSettingsChange({ roughness: value[0] / 100 })}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Reflectivity</Label>
-          <Slider
-            value={[materialSettings.reflectivity]}
-            onValueChange={(value) => onMaterialSettingsChange({ reflectivity: value[0] })}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-xs text-white/70">Clearcoat</Label>
-          <Slider
-            value={[materialSettings.clearcoat * 100]}
-            onValueChange={(value) => onMaterialSettingsChange({ clearcoat: value[0] / 100 })}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-        </div>
+      {/* Reset Button */}
+      <div className="pt-4 border-t border-white/10">
+        <Button
+          variant="outline"
+          onClick={onResetAllEffects}
+          className="w-full border-white/20 text-white hover:bg-white/10"
+        >
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Reset All Effects
+        </Button>
       </div>
     </div>
   );
