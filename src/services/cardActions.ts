@@ -193,34 +193,49 @@ class CardActionServiceImpl implements CardActionService {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Get counts using the database function
-      const { data: counts, error: countsError } = await supabase
-        .rpc('get_card_reaction_counts', { card_uuid: cardId });
+      // Get like count
+      const { count: likeCount } = await supabase
+        .from('reactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('card_id', cardId)
+        .eq('reaction_type', 'like');
 
-      if (countsError) {
-        console.error('Error getting card counts:', countsError);
-      }
+      // Get view count (using downloads as proxy for views)
+      const { count: viewCount } = await supabase
+        .from('card_downloads')
+        .select('*', { count: 'exact', head: true })
+        .eq('card_id', cardId);
 
       let isLiked = false;
       let isBookmarked = false;
 
       // Get user status if logged in
       if (user) {
-        const { data: userStatus, error: statusError } = await supabase
-          .rpc('get_user_card_status', { 
-            card_uuid: cardId, 
-            user_uuid: user.id 
-          });
+        // Check if user liked the card
+        const { data: likeData } = await supabase
+          .from('reactions')
+          .select('id')
+          .eq('card_id', cardId)
+          .eq('user_id', user.id)
+          .eq('reaction_type', 'like')
+          .single();
 
-        if (!statusError && userStatus && userStatus.length > 0) {
-          isLiked = userStatus[0].is_liked;
-          isBookmarked = userStatus[0].is_bookmarked;
-        }
+        isLiked = !!likeData;
+
+        // Check if user bookmarked the card
+        const { data: bookmarkData } = await supabase
+          .from('bookmarks')
+          .select('id')
+          .eq('card_id', cardId)
+          .eq('user_id', user.id)
+          .single();
+
+        isBookmarked = !!bookmarkData;
       }
 
       return {
-        likeCount: counts && counts.length > 0 ? Number(counts[0].like_count) : 0,
-        viewCount: counts && counts.length > 0 ? Number(counts[0].view_count) : 0,
+        likeCount: likeCount || 0,
+        viewCount: viewCount || 0,
         isLiked,
         isBookmarked
       };

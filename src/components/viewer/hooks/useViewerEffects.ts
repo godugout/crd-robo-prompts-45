@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import { useEffectValues } from './useEffectValues';
 
 export const useViewerEffects = () => {
-  const { effectValues, handleEffectChange, resetAllEffects } = useEffectValues();
+  const { effectValues, handleEffectChange, resetEffectValues } = useEffectValues();
   
   const [presetState, setPresetState] = useState<string>('none');
   const [selectedScene, setSelectedScene] = useState<string>('studio');
@@ -34,6 +34,19 @@ export const useViewerEffects = () => {
     setMaterialSettings(prev => ({ ...prev, ...settings }));
     console.log('Material settings changed:', settings);
   }, []);
+
+  const resetAllEffects = useCallback(() => {
+    resetEffectValues();
+    setMaterialSettings({
+      metalness: 0.5,
+      roughness: 0.5,
+      clearcoat: 0.0,
+      transmission: 0.0,
+      reflectivity: 50
+    });
+    setOverallBrightness([80]);
+    setPresetState('none');
+  }, [resetEffectValues]);
 
   const handleApplyCombo = useCallback((comboId: string) => {
     console.log('Applying combo preset:', comboId);
@@ -88,14 +101,6 @@ export const useViewerEffects = () => {
       default:
         // Reset to default
         resetAllEffects();
-        setMaterialSettings({
-          metalness: 0.5,
-          roughness: 0.5,
-          clearcoat: 0.0,
-          transmission: 0.0,
-          reflectivity: 50
-        });
-        setOverallBrightness([80]);
         break;
     }
   }, [handleEffectChange, resetAllEffects]);

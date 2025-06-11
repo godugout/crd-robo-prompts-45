@@ -129,11 +129,11 @@ export const StudioTabContent: React.FC<StudioTabContentProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-sm text-white/70">Orbit Speed</span>
               <span className="text-xs text-white/50">
-                {effectValues.camera?.orbitSpeed || 0.5}
+                {typeof effectValues.camera?.orbitSpeed === 'number' ? effectValues.camera.orbitSpeed : 0.5}
               </span>
             </div>
             <Slider
-              value={[effectValues.camera?.orbitSpeed || 0.5]}
+              value={[typeof effectValues.camera?.orbitSpeed === 'number' ? effectValues.camera.orbitSpeed : 0.5]}
               onValueChange={([value]) => onEffectChange('camera', 'orbitSpeed', value)}
               max={2}
               min={0}
@@ -146,11 +146,11 @@ export const StudioTabContent: React.FC<StudioTabContentProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-sm text-white/70">Distance</span>
               <span className="text-xs text-white/50">
-                {effectValues.camera?.distance || 8}
+                {typeof effectValues.camera?.distance === 'number' ? effectValues.camera.distance : 8}
               </span>
             </div>
             <Slider
-              value={[effectValues.camera?.distance || 8]}
+              value={[typeof effectValues.camera?.distance === 'number' ? effectValues.camera.distance : 8]}
               onValueChange={([value]) => onEffectChange('camera', 'distance', value)}
               max={15}
               min={3}
@@ -162,7 +162,7 @@ export const StudioTabContent: React.FC<StudioTabContentProps> = ({
           <div className="flex items-center justify-between">
             <span className="text-sm text-white/70">Auto Rotate</span>
             <Switch
-              checked={effectValues.camera?.autoRotate || false}
+              checked={typeof effectValues.camera?.autoRotate === 'boolean' ? effectValues.camera.autoRotate : false}
               onCheckedChange={(checked) => onEffectChange('camera', 'autoRotate', checked)}
             />
           </div>
@@ -234,7 +234,7 @@ export const StudioTabContent: React.FC<StudioTabContentProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-white/70 capitalize">{effectId}</span>
                   <Switch
-                    checked={effect.enabled || false}
+                    checked={typeof effect.enabled === 'boolean' ? effect.enabled : false}
                     onCheckedChange={(checked) => onEffectChange(effectId, 'enabled', checked)}
                   />
                 </div>
@@ -243,11 +243,11 @@ export const StudioTabContent: React.FC<StudioTabContentProps> = ({
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-white/50">Intensity</span>
                       <span className="text-xs text-white/50">
-                        {Math.round((effect.intensity || 0) * 100)}%
+                        {Math.round((typeof effect.intensity === 'number' ? effect.intensity : 0) * 100)}%
                       </span>
                     </div>
                     <Slider
-                      value={[effect.intensity || 0]}
+                      value={[typeof effect.intensity === 'number' ? effect.intensity : 0]}
                       onValueChange={([value]) => onEffectChange(effectId, 'intensity', value)}
                       max={1}
                       min={0}
