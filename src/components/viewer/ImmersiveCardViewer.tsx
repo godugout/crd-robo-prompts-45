@@ -28,6 +28,7 @@ import { MobileCreateCardPanel } from './components/MobileCreateCardPanel';
 import { MobileFramesPanel } from './components/MobileFramesPanel';
 import { MobileShowcasePanel } from './components/MobileShowcasePanel';
 import { useMobileControl } from './context/MobileControlContext';
+import { EffectProvider } from './contexts/EffectContext';
 
 // Update the interface to support card navigation
 interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
@@ -443,29 +444,10 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
   if (!isOpen) return null;
 
-  // Calculate effect intensity for context
-  const effectIntensity = Object.values(effectValues).map(effect => 
-    typeof effect.intensity === 'number' ? effect.intensity : 0
-  );
-
-  // Create effect context value
-  const effectContextValue = {
-    effectValues,
-    mousePosition,
-    isHovering,
-    showEffects,
-    materialSettings,
-    interactiveLighting,
-    effectIntensity,
-    handleEffectChange,
-    resetEffect,
-    resetAllEffects
-  };
-
   // Mobile Layout with Enhanced Two-Level System
   if (isMobile) {
     return (
-      <>
+      <EffectProvider value={effectContextValue}>
         <div 
           ref={containerRef}
           className="fixed inset-0 z-50"
@@ -629,13 +611,13 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           isVisible={showGestureHelp}
           onClose={() => setShowGestureHelp(false)}
         />
-      </>
+      </EffectProvider>
     );
   }
 
   // Desktop Layout - Fixed for full background and centered card
   return (
-    <>
+    <EffectProvider value={effectContextValue}>
       <div 
         ref={containerRef}
         className="fixed inset-0 z-50 flex items-center justify-center"
@@ -842,7 +824,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         isVisible={showGestureHelp}
         onClose={() => setShowGestureHelp(false)}
       />
-    </>
+    </EffectProvider>
   );
 };
 
