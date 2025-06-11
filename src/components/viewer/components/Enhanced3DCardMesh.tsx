@@ -65,7 +65,6 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
           opacity={0.95}
           metalness={materialSettings.metalness}
           roughness={materialSettings.roughness}
-          clearcoat={materialSettings.clearcoat}
         />
       </mesh>
 
@@ -78,7 +77,6 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
           opacity={0.95}
           metalness={materialSettings.metalness}
           roughness={materialSettings.roughness}
-          clearcoat={materialSettings.clearcoat}
         />
       </mesh>
 
