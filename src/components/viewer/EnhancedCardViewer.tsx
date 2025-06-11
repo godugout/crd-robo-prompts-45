@@ -88,6 +88,8 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
     );
   }
 
+  console.log('EnhancedCardViewer: Rendering card:', card.id, 'Image URL:', card.image_url);
+
   const effectContextValue = {
     effectValues,
     mousePosition,
@@ -112,26 +114,33 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
       />
 
       <Canvas
-        camera={{ position: cameraPosition, fov: 50 }}
+        camera={{ position: [0, 0, 8], fov: 45 }}
         className="w-full h-full"
         gl={{ 
           antialias: true, 
           alpha: true,
           powerPreference: "high-performance"
         }}
+        onCreated={({ gl, scene, camera }) => {
+          gl.setClearColor('#000000', 0);
+          console.log('Canvas created successfully');
+        }}
       >
         <OrbitControls
           enablePan={true}
           enableZoom={true}
           enableRotate={true}
-          minDistance={2}
-          maxDistance={10}
+          minDistance={3}
+          maxDistance={15}
           autoRotate={false}
           autoRotateSpeed={0.5}
         />
         
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
+        {/* Enhanced lighting setup for better card visibility */}
+        <ambientLight intensity={0.6} />
+        <directionalLight position={[10, 10, 5]} intensity={1.2} />
+        <directionalLight position={[-10, -10, -5]} intensity={0.4} />
+        <pointLight position={[0, 0, 10]} intensity={0.8} />
         
         <EffectProvider value={effectContextValue}>
           <Simple3DCardMesh 
