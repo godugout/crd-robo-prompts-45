@@ -444,6 +444,25 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
   if (!isOpen) return null;
 
+  // Calculate effect intensity for context
+  const effectIntensity = Object.values(effectValues).map(effect => 
+    typeof effect.intensity === 'number' ? effect.intensity : 0
+  );
+
+  // Create effect context value
+  const effectContextValue = {
+    effectValues,
+    mousePosition,
+    isHovering,
+    showEffects,
+    materialSettings,
+    interactiveLighting,
+    effectIntensity,
+    handleEffectChange,
+    resetEffect,
+    resetAllEffects
+  };
+
   // Mobile Layout with Enhanced Two-Level System
   if (isMobile) {
     return (
@@ -827,8 +846,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     </EffectProvider>
   );
 };
-
-// ... keep existing code (presets array at the bottom)
 
 const presets = [
   {
