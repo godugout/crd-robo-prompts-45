@@ -31,7 +31,7 @@ export interface CardData {
   description?: string;
   image_url?: string;
   rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
-  tags: string[];
+  tags: string[]; // Required to match useCardEditor
   visibility: 'public' | 'private' | 'shared'; // Match useCardEditor exactly
   is_public: boolean;
   template_id?: string;
@@ -127,7 +127,7 @@ export const convertToViewerCardData = (card: any): CardData => {
     description: card.description,
     image_url: card.image_url,
     rarity: card.rarity || 'common',
-    tags: card.tags || [],
+    tags: card.tags || [], // Ensure tags is always an array
     visibility: card.visibility === 'unlisted' ? 'public' : (card.visibility || 'public'), // Convert unlisted to public
     is_public: card.is_public !== false,
     template_id: card.template_id,
@@ -164,7 +164,7 @@ export const convertToUniversalCardData = (card: any): UniversalCardData => {
   };
 };
 
-// Helper functions to get scene and lighting data
+// Helper functions to get scene and lighting data with proper name properties
 export const getEnvironmentSceneConfig = (scene: EnvironmentScene): EnvironmentSceneConfig => {
   const scenes: EnvironmentSceneConfig[] = [
     {
@@ -260,4 +260,13 @@ export const getLightingPresetConfig = (preset: LightingPreset): LightingPresetC
     }
   ];
   return presets.find(p => p.id === preset) || presets[0];
+};
+
+// Helper functions to get name properties for scene and lighting
+export const getEnvironmentSceneName = (scene: EnvironmentScene): string => {
+  return getEnvironmentSceneConfig(scene).name;
+};
+
+export const getLightingPresetName = (preset: LightingPreset): string => {
+  return getLightingPresetConfig(preset).name;
 };

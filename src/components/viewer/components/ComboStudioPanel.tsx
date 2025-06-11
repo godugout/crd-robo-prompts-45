@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Settings,
@@ -26,6 +25,7 @@ import { EnvironmentComboSection } from './EnvironmentComboSection';
 import { LightingComboSection } from './LightingComboSection';
 import { MaterialComboSection } from './MaterialComboSection';
 import { ComboMemorySection } from './ComboMemorySection';
+import { getEnvironmentSceneConfig, getLightingPresetConfig } from '../types';
 
 interface ComboStudioPanelProps {
   selectedScene: EnvironmentScene;
@@ -77,8 +77,7 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
 
   const getActiveEffectsCount = () => {
     return Object.values(effectValues).filter(effect => {
-      const intensity = effect.intensity;
-      return typeof intensity === 'number' && intensity > 0;
+      return effect && typeof effect.intensity === 'number' && effect.intensity > 0;
     }).length;
   };
 
@@ -91,7 +90,8 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
       metalness: 0.5,
       roughness: 0.5,
       reflectivity: 0.5,
-      clearcoat: 0.3
+      clearcoat: 0.3,
+      transmission: 0.0 // Add missing transmission property
     });
   };
 
@@ -268,7 +268,7 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
               <Card className="bg-editor-dark border-editor-border">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-white text-sm">
-                    Environment ({selectedScene.name})
+                    Environment ({getEnvironmentSceneConfig(selectedScene).name})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -283,7 +283,7 @@ export const ComboStudioPanel: React.FC<ComboStudioPanelProps> = ({
               <Card className="bg-editor-dark border-editor-border">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-white text-sm">
-                    Lighting ({selectedLighting.name})
+                    Lighting ({getLightingPresetConfig(selectedLighting).name})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

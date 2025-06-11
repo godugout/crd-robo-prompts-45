@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Info, X, Eye, EyeOff } from 'lucide-react';
-import type { EffectValues } from '../hooks/useEnhancedCardEffects';
+import type { EffectValues } from '../types';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
 import { useDynamicCardBackMaterials } from '../hooks/useDynamicCardBackMaterials';
+import { getEnvironmentSceneName, getLightingPresetName } from '../types';
 
 interface ConfigurationDetailsPanelProps {
   effectValues: EffectValues;
@@ -136,11 +137,11 @@ export const ConfigurationDetailsPanel: React.FC<ConfigurationDetailsPanelProps>
             <div className="space-y-1">
               <div className="flex justify-between">
                 <span className="text-gray-300">Scene:</span>
-                <span className="text-green-300">{selectedScene.name}</span>
+                <span className="text-green-300">{getEnvironmentSceneName(selectedScene)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-300">Lighting:</span>
-                <span className="text-green-300">{selectedLighting.name}</span>
+                <span className="text-green-300">{getLightingPresetName(selectedLighting)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-300">Brightness:</span>

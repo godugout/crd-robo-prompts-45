@@ -111,6 +111,9 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffect[] = [
 // Export for backward compatibility
 export type VisualEffectConfig = typeof ENHANCED_VISUAL_EFFECTS[0];
 
+// Export EffectValues from types
+export type { EffectValues };
+
 export const useEnhancedCardEffects = () => {
   const [effectValues, setEffectValues] = useState<EffectValues>({
     holographic: { intensity: 0 },

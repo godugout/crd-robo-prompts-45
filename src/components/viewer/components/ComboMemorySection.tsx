@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Save, Trash2, Download } from 'lucide-react';
-import type { EffectValues } from '../hooks/useEnhancedCardEffects';
+import type { EffectValues } from '../types';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
+import { getEnvironmentSceneName, getLightingPresetName } from '../types';
 
 interface SavedCombo {
   id: string;
@@ -59,8 +60,7 @@ export const ComboMemorySection: React.FC<ComboMemorySectionProps> = ({
 
   const getActiveEffectsCount = (effects: EffectValues) => {
     return Object.values(effects).filter(effect => {
-      const intensity = effect.intensity;
-      return typeof intensity === 'number' && intensity > 0;
+      return effect && typeof effect.intensity === 'number' && effect.intensity > 0;
     }).length;
   };
 
@@ -98,7 +98,7 @@ export const ComboMemorySection: React.FC<ComboMemorySectionProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="text-white text-sm font-medium truncate">{combo.name}</div>
                 <div className="text-crd-lightGray text-xs">
-                  {getActiveEffectsCount(combo.effects)} effects • {combo.scene?.name} • {combo.lighting?.name}
+                  {getActiveEffectsCount(combo.effects)} effects • {combo.scene ? getEnvironmentSceneName(combo.scene) : 'No scene'} • {combo.lighting ? getLightingPresetName(combo.lighting) : 'No lighting'}
                 </div>
               </div>
               <div className="flex space-x-1 ml-2">
