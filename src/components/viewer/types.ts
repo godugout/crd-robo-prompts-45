@@ -17,7 +17,7 @@ export interface CardData {
   description?: string;
   image_url?: string;
   rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
-  tags?: string[];
+  tags: string[]; // Make required to match useCardEditor
   visibility: 'public' | 'private' | 'unlisted';
   is_public: boolean;
   template_id?: string;
@@ -120,7 +120,7 @@ export const convertToViewerCardData = (card: any): CardData => {
     description: card.description,
     image_url: card.image_url,
     rarity: card.rarity || 'common',
-    tags: card.tags || [],
+    tags: card.tags || [], // Ensure tags is always an array
     visibility: card.visibility || 'public',
     is_public: card.is_public !== false,
     template_id: card.template_id,

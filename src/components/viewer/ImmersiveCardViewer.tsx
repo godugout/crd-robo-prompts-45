@@ -1,8 +1,7 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
-import { convertToViewerCardData, getEnvironmentSceneConfig, getLightingPresetConfig } from './types';
+import { convertToViewerCardData } from './types';
 import { 
   useEnhancedCardEffects, 
   type EffectValues 

@@ -2,7 +2,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
-import type { EffectValues } from '../hooks/useEnhancedCardEffects';
+import type { EffectValues } from '../types';
 import { getEnvironmentSceneConfig } from '../types';
 import { EnhancedCardContainer } from './EnhancedCardContainer';
 import { EffectProvider } from '../contexts/EffectContext';
@@ -137,7 +137,7 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
           style={{
             background: backgroundLoaded && sceneConfig.backgroundImage 
               ? `url(${sceneConfig.backgroundImage})` 
-              : sceneConfig.gradient,
+              : `linear-gradient(135deg, ${sceneConfig.gradient.replace('from-', '').replace('-900', '').replace('-700', '').replace('-800', '')})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
