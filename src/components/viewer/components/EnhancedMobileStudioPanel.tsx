@@ -1,8 +1,10 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronUp, ChevronDown, Settings, Palette, Zap, X } from 'lucide-react';
+import { ChevronUp, ChevronDown, Settings, Palette, Zap, X, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { QuickComboPresets } from './QuickComboPresets';
 import { MobileStudioDrawer } from './MobileStudioDrawer';
+import { CardDetailsSection } from '@/components/cards/components/CardDetailsSection';
 import { useMobileControl } from '../context/MobileControlContext';
 import { cn } from '@/lib/utils';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
@@ -31,6 +33,22 @@ interface EnhancedMobileStudioPanelProps {
   onPresetSelect: (presetId: string) => void;
   onApplyCombo: (combo: any) => void;
   isApplyingPreset?: boolean;
+  // Card details props
+  cardDetails?: {
+    id: string;
+    title: string;
+    description?: string;
+    rarity: string;
+    creator_name?: string;
+    creator_verified?: boolean;
+    price?: string;
+    created_at: string;
+    tags?: string[];
+    view_count?: number;
+    like_count?: number;
+  };
+  onLike?: () => void;
+  onBookmark?: () => void;
 }
 
 export const EnhancedMobileStudioPanel: React.FC<EnhancedMobileStudioPanelProps> = ({
@@ -55,10 +73,14 @@ export const EnhancedMobileStudioPanel: React.FC<EnhancedMobileStudioPanelProps>
   selectedPresetId,
   onPresetSelect,
   onApplyCombo,
-  isApplyingPreset = false
+  isApplyingPreset = false,
+  cardDetails,
+  onLike,
+  onBookmark
 }) => {
   const { panelState, closePanel, activePanel } = useMobileControl();
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const isVisible = panelState.studio;
 
@@ -138,7 +160,7 @@ export const EnhancedMobileStudioPanel: React.FC<EnhancedMobileStudioPanelProps>
           "fixed bottom-20 left-0 right-0 z-50",
           "bg-black/95 backdrop-blur-lg border-t border-white/10 rounded-t-xl",
           "transform transition-all duration-250 ease-out",
-          "pb-safe-area-inset-bottom"
+          "pb-safe-area-inset-bottom max-h-[70vh] overflow-hidden"
         )}
         style={{
           animation: 'slideUp 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94)'
@@ -175,62 +197,97 @@ export const EnhancedMobileStudioPanel: React.FC<EnhancedMobileStudioPanelProps>
           </div>
         </div>
 
-        {/* Advanced Controls Toggle */}
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between">
+        {/* Control Buttons */}
+        <div className="px-4 py-3 border-b border-white/10">
+          <div className="grid grid-cols-3 gap-2">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="text-white text-sm hover:bg-white/10 flex-1 justify-start"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Advanced Studio
-              {showAdvanced ? (
-                <ChevronUp className="w-4 h-4 ml-auto" />
-              ) : (
-                <ChevronDown className="w-4 h-4 ml-auto" />
+              onClick={() => {
+                setShowAdvanced(!showAdvanced);
+                setShowDetails(false);
+              }}
+              className={cn(
+                "text-white text-xs hover:bg-white/10 flex-col h-auto py-2",
+                showAdvanced && "bg-crd-green/20 text-crd-green"
               )}
+            >
+              <Settings className="w-4 h-4 mb-1" />
+              Studio
             </Button>
+            
+            {cardDetails && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowDetails(!showDetails);
+                  setShowAdvanced(false);
+                }}
+                className={cn(
+                  "text-white text-xs hover:bg-white/10 flex-col h-auto py-2",
+                  showDetails && "bg-crd-green/20 text-crd-green"
+                )}
+              >
+                <Info className="w-4 h-4 mb-1" />
+                Details
+              </Button>
+            )}
             
             <Button
               variant="ghost"
               size="sm"
-              className="text-white text-sm hover:bg-white/10 ml-2"
+              className="text-white text-xs hover:bg-white/10 flex-col h-auto py-2"
             >
-              <Palette className="w-4 h-4 mr-2" />
+              <Palette className="w-4 h-4 mb-1" />
               Themes
             </Button>
           </div>
         </div>
 
-        {/* Advanced Studio Drawer */}
-        <MobileStudioDrawer
-          selectedScene={selectedScene}
-          selectedLighting={selectedLighting}
-          effectValues={effectValues}
-          overallBrightness={overallBrightness}
-          interactiveLighting={interactiveLighting}
-          materialSettings={materialSettings}
-          isFullscreen={isFullscreen}
-          onSceneChange={onSceneChange}
-          onLightingChange={onLightingChange}
-          onEffectChange={onEffectChange}
-          onResetAllEffects={onResetAllEffects}
-          onBrightnessChange={onBrightnessChange}
-          onInteractiveLightingToggle={onInteractiveLightingToggle}
-          onMaterialSettingsChange={onMaterialSettingsChange}
-          onToggleFullscreen={onToggleFullscreen}
-          onDownload={onDownload}
-          onShare={onShare}
-          card={card}
-          selectedPresetId={selectedPresetId}
-          onPresetSelect={onPresetSelect}
-          onApplyCombo={onApplyCombo}
-          isApplyingPreset={isApplyingPreset}
-          isOpen={showAdvanced}
-          onOpenChange={setShowAdvanced}
-        />
+        {/* Expandable Content */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Card Details Section */}
+          {showDetails && cardDetails && (
+            <div className="p-4">
+              <CardDetailsSection
+                card={cardDetails}
+                onShare={onShare}
+                onDownload={onDownload}
+                onLike={onLike}
+                onBookmark={onBookmark}
+              />
+            </div>
+          )}
+
+          {/* Advanced Studio Drawer */}
+          <MobileStudioDrawer
+            selectedScene={selectedScene}
+            selectedLighting={selectedLighting}
+            effectValues={effectValues}
+            overallBrightness={overallBrightness}
+            interactiveLighting={interactiveLighting}
+            materialSettings={materialSettings}
+            isFullscreen={isFullscreen}
+            onSceneChange={onSceneChange}
+            onLightingChange={onLightingChange}
+            onEffectChange={onEffectChange}
+            onResetAllEffects={onResetAllEffects}
+            onBrightnessChange={onBrightnessChange}
+            onInteractiveLightingToggle={onInteractiveLightingToggle}
+            onMaterialSettingsChange={onMaterialSettingsChange}
+            onToggleFullscreen={onToggleFullscreen}
+            onDownload={onDownload}
+            onShare={onShare}
+            card={card}
+            selectedPresetId={selectedPresetId}
+            onPresetSelect={onPresetSelect}
+            onApplyCombo={onApplyCombo}
+            isApplyingPreset={isApplyingPreset}
+            isOpen={showAdvanced}
+            onOpenChange={setShowAdvanced}
+          />
+        </div>
 
         {/* Swipe Indicator */}
         <div className="absolute top-2 left-1/2 transform -translate-x-1/2">

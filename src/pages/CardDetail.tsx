@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase-client';
 import { LoadingState } from '@/components/common/LoadingState';
 import { CardDetailStudioLayout } from '@/components/cards/CardDetailStudioLayout';
-import { CardDetailRightPanel } from '@/components/cards/CardDetailRightPanel';
 import { CardDetailHeader } from '@/components/cards/components/CardDetailHeader';
 import { EnhancedCardViewer } from '@/components/viewer/EnhancedCardViewer';
 import { toast } from 'sonner';
@@ -176,20 +175,15 @@ const CardDetail = () => {
   return (
     <CardDetailStudioLayout
       header={<CardDetailHeader onGoBack={handleGoBack} />}
-      rightPanel={
-        <CardDetailRightPanel
-          card={card}
-          onShare={handleShare}
-          onDownload={handleDownload}
-          onLike={handleLike}
-          onBookmark={handleBookmark}
-        />
-      }
+      rightPanel={null}
     >
       <EnhancedCardViewer 
         card={cardViewerData}
         onDownload={() => handleDownload()}
         onShare={() => handleShare()}
+        cardDetails={card}
+        onLike={handleLike}
+        onBookmark={handleBookmark}
       />
     </CardDetailStudioLayout>
   );
