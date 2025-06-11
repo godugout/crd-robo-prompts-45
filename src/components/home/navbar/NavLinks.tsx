@@ -36,10 +36,10 @@ export const NavLinks = () => {
         Gallery
       </Link>
       <Link 
-        to="/creators" 
-        className={`nav-item ${isActive('/creators') ? 'active' : ''}`}
+        to="/collections" 
+        className={`nav-item ${isActive('/collections') ? 'active' : ''}`}
       >
-        Creators
+        Collections
       </Link>
       <Link 
         to="/labs" 

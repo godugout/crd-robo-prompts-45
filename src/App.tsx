@@ -7,7 +7,7 @@ import Index from '@/pages/Index';
 import Gallery from '@/pages/Gallery';
 import Profile from '@/pages/Profile';
 import AccountSettings from '@/pages/AccountSettings';
-import Creators from '@/pages/Creators';
+import Collections from '@/pages/Collections';
 import Labs from '@/pages/Labs';
 import LabsBulkUpload from '@/pages/LabsBulkUpload';
 import LabsDebugDetection from '@/pages/LabsDebugDetection';
@@ -37,7 +37,9 @@ function App() {
             <Route path="auth" element={<AuthPage />} />
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<AccountSettings />} />
-            <Route path="creators" element={<Creators />} />
+            <Route path="collections" element={<Collections />} />
+            {/* Redirect old creators route to collections */}
+            <Route path="creators" element={<Navigate to="/collections" replace />} />
             {/* Labs routes */}
             <Route path="labs" element={<Labs />} />
             <Route path="labs/bulk-upload" element={<LabsBulkUpload />} />
