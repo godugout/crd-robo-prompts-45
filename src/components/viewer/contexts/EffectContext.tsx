@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
-import type { EffectValues } from '../hooks/useEffectValues';
+import type { EffectValues } from '../types';
 import type { MaterialSettings } from '../types';
 
 interface EffectContextType {

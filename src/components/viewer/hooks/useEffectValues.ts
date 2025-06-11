@@ -6,7 +6,19 @@ import type { EffectValues } from '../types';
 export const useEffectValues = () => {
   const { defaultEffectValues } = useEffectConfigurations();
   
-  const [effectValues, setEffectValues] = useState<EffectValues>(() => defaultEffectValues);
+  // Convert defaultEffectValues to proper EffectValues format
+  const convertToEffectValues = (values: Record<string, Record<string, any>>): EffectValues => {
+    const converted: EffectValues = {};
+    Object.entries(values).forEach(([effectId, params]) => {
+      converted[effectId] = {
+        ...params,
+        intensity: typeof params.intensity === 'number' ? params.intensity : 0
+      };
+    });
+    return converted;
+  };
+  
+  const [effectValues, setEffectValues] = useState<EffectValues>(() => convertToEffectValues(defaultEffectValues));
 
   const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
     console.log('🎛️ Effect Change:', { effectId, parameterId, value });
@@ -15,14 +27,15 @@ export const useEffectValues = () => {
       ...prev,
       [effectId]: {
         ...prev[effectId],
-        [parameterId]: value
+        [parameterId]: value,
+        intensity: prev[effectId]?.intensity || 0
       }
     }));
   }, []);
 
   const resetEffectValues = useCallback(() => {
     console.log('🔄 Resetting all effect values');
-    setEffectValues(defaultEffectValues);
+    setEffectValues(convertToEffectValues(defaultEffectValues));
   }, [defaultEffectValues]);
 
   const resetSingleEffect = useCallback((effectId: string) => {
@@ -30,7 +43,7 @@ export const useEffectValues = () => {
     const { ENHANCED_VISUAL_EFFECTS } = require('./useEffectConfigurations');
     const effect = ENHANCED_VISUAL_EFFECTS.find((e: any) => e.id === effectId);
     if (effect) {
-      const resetValues: Record<string, any> = {};
+      const resetValues: Record<string, any> = { intensity: 0 };
       effect.parameters.forEach((param: any) => {
         resetValues[param.id] = param.defaultValue;
       });
@@ -46,6 +59,12 @@ export const useEffectValues = () => {
     handleEffectChange,
     resetEffectValues,
     resetSingleEffect,
-    setEffectValues
+    setEffectValues: (values: EffectValues | ((prev: EffectValues) => EffectValues)) => {
+      if (typeof values === 'function') {
+        setEffectValues(values);
+      } else {
+        setEffectValues(convertToEffectValues(values as any));
+      }
+    }
   };
 };

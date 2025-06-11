@@ -16,8 +16,9 @@ import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
-import type { EffectValues } from '../hooks/useEnhancedCardEffects';
+import type { EffectValues } from '../types';
 import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from '../constants';
+import { getEnvironmentSceneName, getLightingPresetName } from '../types';
 import { EnhancedEffectControls } from './EnhancedEffectControls';
 import { DemoFeature } from './DemoFeature';
 import { GuidedTour } from './GuidedTour';
@@ -100,13 +101,13 @@ export const EnhancedCustomizePanel: React.FC<EnhancedCustomizePanelProps> = ({
       case 2:
         // Switch to cosmic void scene
         const cosmicScene = ENVIRONMENT_SCENES.find(s => s.name === 'Cosmic Void');
-        if (cosmicScene) onSceneChange(cosmicScene);
+        if (cosmicScene) onSceneChange(cosmicScene.id);
         setActiveTab('environment');
         break;
       case 3:
         // Apply golden hour lighting
         const goldenLighting = LIGHTING_PRESETS.find(l => l.name === 'Golden Hour');
-        if (goldenLighting) onLightingChange(goldenLighting);
+        if (goldenLighting) onLightingChange(goldenLighting.id);
         break;
       case 4:
         // Switch to effects tab
@@ -221,9 +222,9 @@ export const EnhancedCustomizePanel: React.FC<EnhancedCustomizePanelProps> = ({
                   {ENVIRONMENT_SCENES.map((scene) => (
                     <button
                       key={scene.id}
-                      onClick={() => onSceneChange(scene)}
+                      onClick={() => onSceneChange(scene.id)}
                       className={`aspect-square rounded-lg p-3 transition-all ${
-                        selectedScene.id === scene.id 
+                        selectedScene === scene.id 
                           ? 'ring-2 ring-blue-500 scale-105' 
                           : 'hover:scale-102'
                       }`}
@@ -250,9 +251,9 @@ export const EnhancedCustomizePanel: React.FC<EnhancedCustomizePanelProps> = ({
                   {LIGHTING_PRESETS.map((preset) => (
                     <button
                       key={preset.id}
-                      onClick={() => onLightingChange(preset)}
+                      onClick={() => onLightingChange(preset.id)}
                       className={`w-full p-3 rounded-lg text-left transition-colors ${
-                        selectedLighting.id === preset.id 
+                        selectedLighting === preset.id 
                           ? 'bg-blue-600 text-white' 
                           : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                       }`}
@@ -345,8 +346,8 @@ export const EnhancedCustomizePanel: React.FC<EnhancedCustomizePanelProps> = ({
                 <div className="bg-editor-dark border border-editor-border rounded-lg p-4">
                   <h4 className="text-white font-medium mb-2">Current Settings</h4>
                   <div className="space-y-1 text-sm text-crd-lightGray">
-                    <p>Scene: {selectedScene.name}</p>
-                    <p>Lighting: {selectedLighting.name}</p>
+                    <p>Scene: {getEnvironmentSceneName(selectedScene)}</p>
+                    <p>Lighting: {getLightingPresetName(selectedLighting)}</p>
                     <p>Active Effects: {getActiveEffectsCount()}</p>
                   </div>
                 </div>

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sparkles } from 'lucide-react';
 import type { EnvironmentScene, LightingPreset } from '../types';
 import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from '../constants';
+import { getEnvironmentSceneName, getLightingPresetName } from '../types';
 
 interface EnvironmentSectionProps {
   selectedScene: EnvironmentScene;
@@ -49,13 +50,13 @@ export const EnvironmentSection: React.FC<EnvironmentSectionProps> = ({
             <Label htmlFor="scene-select" className="text-white text-sm mb-2 block">
               Scene
             </Label>
-            <Select onValueChange={(value) => onSceneChange(JSON.parse(value))}>
+            <Select onValueChange={(value) => onSceneChange(value as EnvironmentScene)}>
               <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
-                <SelectValue placeholder={selectedScene.name} />
+                <SelectValue placeholder={getEnvironmentSceneName(selectedScene)} />
               </SelectTrigger>
               <SelectContent className="bg-black border-white/20">
                 {ENVIRONMENT_SCENES.map((scene) => (
-                  <SelectItem key={scene.name} value={JSON.stringify(scene)} className="text-white hover:bg-white/10">
+                  <SelectItem key={scene.id} value={scene.id} className="text-white hover:bg-white/10">
                     {scene.name}
                   </SelectItem>
                 ))}
@@ -66,13 +67,13 @@ export const EnvironmentSection: React.FC<EnvironmentSectionProps> = ({
             <Label htmlFor="lighting-select" className="text-white text-sm mb-2 block">
               Lighting
             </Label>
-            <Select onValueChange={(value) => onLightingChange(JSON.parse(value))}>
+            <Select onValueChange={(value) => onLightingChange(value as LightingPreset)}>
               <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
-                <SelectValue placeholder={selectedLighting.name} />
+                <SelectValue placeholder={getLightingPresetName(selectedLighting)} />
               </SelectTrigger>
               <SelectContent className="bg-black border-white/20">
                 {LIGHTING_PRESETS.map((lighting) => (
-                  <SelectItem key={lighting.name} value={JSON.stringify(lighting)} className="text-white hover:bg-white/10">
+                  <SelectItem key={lighting.id} value={lighting.id} className="text-white hover:bg-white/10">
                     {lighting.name}
                   </SelectItem>
                 ))}

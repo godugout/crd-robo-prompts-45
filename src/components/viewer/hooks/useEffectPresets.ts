@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useRef, startTransition } from 'react';
-import { EffectValues } from './useEffectValues';
+import type { EffectValues } from '../types';
 
 // Enhanced state interface for tracking preset application with locks
 interface PresetApplicationState {
@@ -53,13 +53,25 @@ export const useEffectPresets = (
     
     // Use startTransition for smooth updates with forced reset
     startTransition(() => {
+      // Convert defaultEffectValues to proper EffectValues format
+      const convertToEffectValues = (values: Record<string, Record<string, any>>): EffectValues => {
+        const converted: EffectValues = {};
+        Object.entries(values).forEach(([effectId, params]) => {
+          converted[effectId] = {
+            ...params,
+            intensity: typeof params.intensity === 'number' ? params.intensity : 0
+          };
+        });
+        return converted;
+      };
+
       // Step 1: Force complete reset to defaults (prevents material sticking)
-      const resetValues = { ...defaultEffectValues };
+      const resetValues = convertToEffectValues(defaultEffectValues);
       setEffectValues(resetValues);
       
       // Step 2: Apply preset effects after a brief delay for reset to complete
       presetTimeoutRef.current = setTimeout(() => {
-        const newEffectValues = { ...defaultEffectValues };
+        const newEffectValues = convertToEffectValues(defaultEffectValues);
         
         // Apply preset effects with proper validation
         Object.entries(preset).forEach(([effectId, effectParams]) => {
