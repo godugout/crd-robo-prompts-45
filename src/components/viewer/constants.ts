@@ -1,14 +1,8 @@
 
-import type { EnvironmentScene, LightingPreset, VisualEffect } from './types';
+import type { EnvironmentScene, LightingPreset, VisualEffect, EnvironmentSceneConfig, LightingPresetConfig } from './types';
 
 // Environment scene objects with all required properties
-export const ENVIRONMENT_SCENES: Array<{
-  id: EnvironmentScene;
-  name: string;
-  gradient: string;
-  backgroundImage?: string;
-  icon: string;
-}> = [
+export const ENVIRONMENT_SCENES: EnvironmentSceneConfig[] = [
   {
     id: 'studio',
     name: 'Studio',
@@ -47,11 +41,7 @@ export const ENVIRONMENT_SCENES: Array<{
 ];
 
 // Lighting preset objects with all required properties
-export const LIGHTING_PRESETS: Array<{
-  id: LightingPreset;
-  name: string;
-  description: string;
-}> = [
+export const LIGHTING_PRESETS: LightingPresetConfig[] = [
   {
     id: 'studio',
     name: 'Studio',
@@ -178,3 +168,15 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffect[] = [
     ]
   }
 ];
+
+// Export as VISUAL_EFFECTS for backward compatibility
+export const VISUAL_EFFECTS = ENHANCED_VISUAL_EFFECTS;
+
+// Helper functions to get scene and lighting data
+export const getEnvironmentSceneConfig = (scene: EnvironmentScene): EnvironmentSceneConfig => {
+  return ENVIRONMENT_SCENES.find(s => s.id === scene) || ENVIRONMENT_SCENES[0];
+};
+
+export const getLightingPresetConfig = (preset: LightingPreset): LightingPresetConfig => {
+  return LIGHTING_PRESETS.find(p => p.id === preset) || LIGHTING_PRESETS[0];
+};

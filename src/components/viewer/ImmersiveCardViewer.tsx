@@ -100,8 +100,8 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
   const { selectedMaterial } = useDynamicCardBackMaterials(effectValues);
   
   // Advanced settings - Updated for more professional defaults
-  const [selectedScene, setSelectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[0]);
-  const [selectedLighting, setSelectedLighting] = useState<LightingPreset>(LIGHTING_PRESETS[0]);
+  const [selectedScene, setSelectedScene] = useState<EnvironmentScene>('studio');
+  const [selectedLighting, setSelectedLighting] = useState<LightingPreset>('studio');
   const [overallBrightness, setOverallBrightness] = useState([100]);
   const [interactiveLighting, setInteractiveLighting] = useState(true);
   
@@ -113,8 +113,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     transmission: 0.0,
     reflectivity: 0.40
   });
-
-  const cardContainerRef = useRef<HTMLDivElement>(null);
 
   // Add state for preset selection tracking
   const [selectedPresetId, setSelectedPresetId] = useState<string>();
@@ -146,6 +144,8 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     rotation: viewerInteraction.rotation,
     isHovering: viewerInteraction.isHovering
   });
+
+  const cardContainerRef = useRef<HTMLDivElement>(null);
 
   // Create a proper component from the SurfaceTexture element
   const SurfaceTextureComponent = React.useMemo(() => {
@@ -187,6 +187,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     await new Promise(resolve => setTimeout(resolve, 1000));
   }, [card]);
 
+  // Handle applying a frame
   const handleApplyFrame = useCallback((frameId: string) => {
     viewerState.setSelectedFrameId(frameId);
     viewerState.setShowFramesPanel(false);
@@ -198,6 +199,33 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     viewerState.setShowShowcasePanel(false);
     console.log('Selecting showcase layout:', layoutId);
   }, [viewerState]);
+
+  // Create complete viewer card with all required properties
+  const completeViewerCard = {
+    id: viewerCard.id,
+    title: viewerCard.title,
+    description: viewerCard.description,
+    image_url: viewerCard.image_url,
+    rarity: viewerCard.rarity as any,
+    tags: viewerCard.tags,
+    visibility: 'public' as any,
+    is_public: true,
+    template_id: undefined,
+    collection_id: undefined,
+    team_id: undefined,
+    creator_attribution: {
+      creator_name: card.creator_name,
+      creator_id: undefined
+    },
+    publishing_options: {
+      marketplace_listing: false,
+      crd_catalog_inclusion: true,
+      print_available: false,
+      pricing: { currency: 'USD' },
+      distribution: { limited_edition: false }
+    },
+    design_metadata: {}
+  };
 
   if (!isOpen) return null;
 
@@ -322,7 +350,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             {/* Enhanced Card Container with Full Gesture Support */}
             <div ref={cardContainerRef}>
               <EnhancedCardContainer
-                card={viewerCard}
+                card={completeViewerCard}
                 isFlipped={viewerInteraction.isFlipped}
                 rotation={viewerInteraction.rotation}
                 zoom={viewerInteraction.zoom}
@@ -460,7 +488,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         {/* Enhanced Card Container - Centered regardless of panels */}
         <div ref={cardContainerRef} className="flex items-center justify-center w-full h-full">
           <EnhancedCardContainer
-            card={viewerCard}
+            card={completeViewerCard}
             isFlipped={viewerInteraction.isFlipped}
             rotation={viewerInteraction.rotation}
             zoom={viewerInteraction.zoom}

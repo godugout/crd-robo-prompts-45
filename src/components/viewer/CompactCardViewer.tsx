@@ -23,8 +23,8 @@ export const CompactCardViewer: React.FC<CompactCardViewerProps> = ({
   height = 560
 }) => {
   // Use simple default settings for compact view
-  const [selectedScene] = useState<EnvironmentScene>(ENVIRONMENT_SCENES[0]); // Studio
-  const [selectedLighting] = useState<LightingPreset>(LIGHTING_PRESETS[0]); // Natural
+  const [selectedScene] = useState<EnvironmentScene>('studio'); // Use string ID
+  const [selectedLighting] = useState<LightingPreset>('studio'); // Use string ID
   const [overallBrightness] = useState<number[]>([100]);
   const [interactiveLighting] = useState(true);
   const [zoom, setZoom] = useState(1);

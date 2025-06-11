@@ -46,7 +46,7 @@ export interface ImmersiveCardViewerProps {
   ambient?: boolean;
 }
 
-// Visual effect interface
+// Visual effect interface - match the one used in hooks
 export interface VisualEffect {
   id: string;
   name: string;
@@ -61,6 +61,22 @@ export interface VisualEffect {
     defaultValue: any;
     options?: Array<{ value: string; label: string }>;
   }>;
+}
+
+// Environment scene object interface
+export interface EnvironmentSceneConfig {
+  id: EnvironmentScene;
+  name: string;
+  gradient: string;
+  backgroundImage?: string;
+  icon: string;
+}
+
+// Lighting preset object interface
+export interface LightingPresetConfig {
+  id: LightingPreset;
+  name: string;
+  description: string;
 }
 
 // Conversion functions
