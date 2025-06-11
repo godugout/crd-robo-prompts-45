@@ -11,6 +11,106 @@ export interface EffectValues {
   gold?: { intensity: number };
 }
 
+// Export ENHANCED_VISUAL_EFFECTS for CompactEffectControls
+export const ENHANCED_VISUAL_EFFECTS = [
+  {
+    id: 'holographic',
+    name: 'Holographic',
+    category: 'prismatic',
+    parameters: [
+      {
+        id: 'intensity',
+        name: 'Intensity',
+        type: 'slider',
+        min: 0,
+        max: 100,
+        step: 1,
+        defaultValue: 0
+      }
+    ]
+  },
+  {
+    id: 'foilspray',
+    name: 'Foil Spray',
+    category: 'prismatic',
+    parameters: [
+      {
+        id: 'intensity',
+        name: 'Intensity',
+        type: 'slider',
+        min: 0,
+        max: 100,
+        step: 1,
+        defaultValue: 0
+      }
+    ]
+  },
+  {
+    id: 'prizm',
+    name: 'Prizm',
+    category: 'prismatic',
+    parameters: [
+      {
+        id: 'intensity',
+        name: 'Intensity',
+        type: 'slider',
+        min: 0,
+        max: 100,
+        step: 1,
+        defaultValue: 0
+      }
+    ]
+  },
+  {
+    id: 'chrome',
+    name: 'Chrome',
+    category: 'metallic',
+    parameters: [
+      {
+        id: 'intensity',
+        name: 'Intensity',
+        type: 'slider',
+        min: 0,
+        max: 100,
+        step: 1,
+        defaultValue: 0
+      }
+    ]
+  },
+  {
+    id: 'crystal',
+    name: 'Crystal',
+    category: 'special',
+    parameters: [
+      {
+        id: 'intensity',
+        name: 'Intensity',
+        type: 'slider',
+        min: 0,
+        max: 100,
+        step: 1,
+        defaultValue: 0
+      }
+    ]
+  },
+  {
+    id: 'gold',
+    name: 'Gold',
+    category: 'metallic',
+    parameters: [
+      {
+        id: 'intensity',
+        name: 'Intensity',
+        type: 'slider',
+        min: 0,
+        max: 100,
+        step: 1,
+        defaultValue: 0
+      }
+    ]
+  }
+];
+
 export const useEnhancedCardEffects = () => {
   const [effectValues, setEffectValues] = useState<EffectValues>({
     holographic: { intensity: 0 },

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { convertToViewerCardData } from '@/components/viewer/types';
 import type { CardData as HookCardData } from '@/hooks/useCardData';
@@ -50,7 +49,32 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
     tags: card.tags || []
   };
 
-  const viewerCard = convertToViewerCardData(universalCard);
+  // Create complete viewer card with all required properties
+  const viewerCard = {
+    id: universalCard.id,
+    title: universalCard.title,
+    description: universalCard.description,
+    image_url: universalCard.image_url,
+    rarity: universalCard.rarity as any,
+    tags: universalCard.tags,
+    visibility: 'public' as any,
+    is_public: true,
+    template_id: undefined,
+    collection_id: undefined,
+    team_id: undefined,
+    creator_attribution: {
+      creator_name: universalCard.creator_name,
+      creator_id: card.creator_id
+    },
+    publishing_options: {
+      marketplace_listing: false,
+      crd_catalog_inclusion: true,
+      print_available: false,
+      pricing: { currency: 'USD' },
+      distribution: { limited_edition: false }
+    },
+    design_metadata: {}
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-crd-darkest via-crd-darker to-crd-darkest relative overflow-hidden">

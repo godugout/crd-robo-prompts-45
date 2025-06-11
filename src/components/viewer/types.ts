@@ -46,6 +46,23 @@ export interface ImmersiveCardViewerProps {
   ambient?: boolean;
 }
 
+// Visual effect interface
+export interface VisualEffect {
+  id: string;
+  name: string;
+  category: string;
+  parameters: Array<{
+    id: string;
+    name: string;
+    type: string;
+    min?: number;
+    max?: number;
+    step?: number;
+    defaultValue: any;
+    options?: Array<{ value: string; label: string }>;
+  }>;
+}
+
 // Conversion functions
 export const convertToViewerCardData = (card: any): CardData => {
   return {

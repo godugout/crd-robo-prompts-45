@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -49,8 +48,32 @@ const CardDetail = () => {
     );
   }
 
-  // Convert to viewer format
-  const viewerCard = convertToViewerCardData(card);
+  // Convert to viewer format properly with all required fields
+  const viewerCard = {
+    id: card.id,
+    title: card.title,
+    description: card.description,
+    image_url: card.image_url,
+    rarity: card.rarity as any,
+    tags: card.tags || [],
+    visibility: 'public' as any,
+    is_public: true,
+    template_id: undefined,
+    collection_id: undefined,
+    team_id: undefined,
+    creator_attribution: {
+      creator_name: card.creator_name,
+      creator_id: card.creator_id
+    },
+    publishing_options: {
+      marketplace_listing: false,
+      crd_catalog_inclusion: true,
+      print_available: false,
+      pricing: { currency: 'USD' },
+      distribution: { limited_edition: false }
+    },
+    design_metadata: {}
+  };
 
   // Mock card details for enhanced features
   const cardDetails = {

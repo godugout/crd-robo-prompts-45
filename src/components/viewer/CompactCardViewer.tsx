@@ -29,12 +29,13 @@ export const CompactCardViewer: React.FC<CompactCardViewerProps> = ({
   const [interactiveLighting] = useState(true);
   const [zoom, setZoom] = useState(1);
 
-  // Material properties
+  // Material properties - Fixed to include transmission
   const [materialSettings] = useState<MaterialSettings>({
     metalness: 0.5,
     roughness: 0.5,
     reflectivity: 0.5,
-    clearcoat: 0.3
+    clearcoat: 0.3,
+    transmission: 0.0
   });
 
   // Enhanced effects system - using defaults
