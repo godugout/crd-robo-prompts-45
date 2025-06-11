@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -444,6 +443,25 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
 
   if (!isOpen) return null;
 
+  // Calculate effect intensity for context
+  const effectIntensity = Object.values(effectValues).map(effect => 
+    typeof effect.intensity === 'number' ? effect.intensity : 0
+  );
+
+  // Create effect context value
+  const effectContextValue = {
+    effectValues,
+    mousePosition,
+    isHovering,
+    showEffects,
+    materialSettings,
+    interactiveLighting,
+    effectIntensity,
+    handleEffectChange,
+    resetEffect,
+    resetAllEffects
+  };
+
   // Mobile Layout with Enhanced Two-Level System
   if (isMobile) {
     return (
@@ -575,17 +593,12 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
               <EnhancedCardContainer
                 card={viewerCard}
                 isFlipped={isFlipped}
-                isHovering={isHovering}
-                showEffects={showEffects}
-                effectValues={effectValues}
-                mousePosition={mousePosition}
                 rotation={rotation}
                 zoom={zoom}
                 isDragging={isDragging}
                 frameStyles={getFrameStyles()}
                 enhancedEffectStyles={getEnhancedEffectStyles()}
                 SurfaceTexture={SurfaceTextureComponent}
-                interactiveLighting={interactiveLighting}
                 onMouseDown={handleDragStart}
                 onMouseMove={handleDrag}
                 onMouseEnter={() => setIsHovering(true)}
@@ -749,17 +762,12 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
           <EnhancedCardContainer
             card={viewerCard}
             isFlipped={isFlipped}
-            isHovering={isHovering}
-            showEffects={showEffects}
-            effectValues={effectValues}
-            mousePosition={mousePosition}
             rotation={rotation}
             zoom={zoom}
             isDragging={isDragging}
             frameStyles={getFrameStyles()}
             enhancedEffectStyles={getEnhancedEffectStyles()}
             SurfaceTexture={SurfaceTextureComponent}
-            interactiveLighting={interactiveLighting}
             onMouseDown={handleDragStart}
             onMouseMove={handleDrag}
             onMouseEnter={() => setIsHovering(true)}

@@ -1,8 +1,10 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import { EnhancedCardContainer } from './EnhancedCardContainer';
+import { EffectProvider } from '../contexts/EffectContext';
 
 interface EnhancedCardCanvasProps {
   card: CardData;
@@ -91,175 +93,191 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
     />
   ));
 
+  // Calculate effect intensity for context
+  const effectIntensity = Object.values(effectValues).map(effect => 
+    typeof effect.intensity === 'number' ? effect.intensity : 0
+  );
+
+  // Create effect context value
+  const effectContextValue = {
+    effectValues,
+    mousePosition,
+    isHovering,
+    showEffects: true,
+    materialSettings,
+    interactiveLighting,
+    effectIntensity,
+    handleEffectChange: () => {},
+    resetEffect: () => {},
+    resetAllEffects: () => {}
+  };
+
   return (
-    <div
-      ref={canvasRef}
-      className="relative flex items-center justify-center overflow-hidden"
-      style={{
-        width: `${width}px`,
-        height: `${height}px`,
-        perspective: '1000px'
-      }}
-      onMouseMove={onMouseMove}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      onClick={handleCardClick}
-    >
-      {/* High-Resolution Background */}
-      <div 
-        className="absolute inset-0 z-0"
-        style={{
-          background: backgroundLoaded && selectedScene.backgroundImage 
-            ? `url(${selectedScene.backgroundImage})` 
-            : selectedScene.gradient,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed',
-          filter: `brightness(${overallBrightness / 100}) contrast(1.05) saturate(1.1)`,
-          transition: 'all 0.3s ease',
-          transform: 'scale(1.05)' // Slight scale to ensure full coverage
-        }}
-      />
-
-      {/* Enhanced overlay for better card contrast */}
-      <div 
-        className="absolute inset-0 z-10"
-        style={{
-          background: `
-            radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.3) 80%),
-            linear-gradient(45deg, rgba(0,0,0,0.1) 0%, transparent 50%, rgba(0,0,0,0.1) 100%)
-          `,
-          pointerEvents: 'none'
-        }}
-      />
-
-      {/* CRD Logo Branding - Upper Right */}
-      <div className="absolute top-4 right-4 z-50">
-        <img 
-          src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
-          alt="CRD Logo" 
-          className="w-16 h-auto opacity-60 hover:opacity-80 transition-opacity duration-200"
-          style={{
-            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))',
-          }}
-          onLoad={() => console.log('Canvas CRD branding logo loaded successfully')}
-          onError={() => console.log('Error loading Canvas CRD branding logo')}
-        />
-      </div>
-
-      {/* 3D Card Container */}
+    <EffectProvider value={effectContextValue}>
       <div
-        className="relative cursor-pointer transition-transform duration-700 preserve-3d z-20"
+        ref={canvasRef}
+        className="relative flex items-center justify-center overflow-hidden"
         style={{
-          width: '300px',
-          height: '420px',
-          transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) ${isFlipped ? 'rotateY(180deg)' : ''}`,
-          transformStyle: 'preserve-3d'
+          width: `${width}px`,
+          height: `${height}px`,
+          perspective: '1000px'
         }}
+        onMouseMove={onMouseMove}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onClick={handleCardClick}
       >
-        {/* Card Front */}
-        <div
-          className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden"
+        {/* High-Resolution Background */}
+        <div 
+          className="absolute inset-0 z-0"
           style={{
-            backfaceVisibility: 'hidden',
-            transform: 'rotateY(0deg)'
+            background: backgroundLoaded && selectedScene.backgroundImage 
+              ? `url(${selectedScene.backgroundImage})` 
+              : selectedScene.gradient,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundAttachment: 'fixed',
+            filter: `brightness(${overallBrightness / 100}) contrast(1.05) saturate(1.1)`,
+            transition: 'all 0.3s ease',
+            transform: 'scale(1.05)' // Slight scale to ensure full coverage
           }}
-        >
-          <EnhancedCardContainer
-            card={card}
-            isFlipped={false}
-            isHovering={isHovering}
-            showEffects={true}
-            effectValues={effectValues}
-            mousePosition={mousePosition}
-            rotation={rotation}
-            zoom={1}
-            isDragging={isDragging}
-            frameStyles={frameStyles}
-            enhancedEffectStyles={enhancedEffectStyles}
-            SurfaceTexture={SurfaceTextureComponent}
-            interactiveLighting={interactiveLighting}
-            onMouseDown={() => setIsDragging(true)}
-            onMouseMove={onMouseMove}
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={() => {
-              setIsDragging(false);
-              onMouseLeave();
+        />
+
+        {/* Enhanced overlay for better card contrast */}
+        <div 
+          className="absolute inset-0 z-10"
+          style={{
+            background: `
+              radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.3) 80%),
+              linear-gradient(45deg, rgba(0,0,0,0.1) 0%, transparent 50%, rgba(0,0,0,0.1) 100%)
+            `,
+            pointerEvents: 'none'
+          }}
+        />
+
+        {/* CRD Logo Branding - Upper Right */}
+        <div className="absolute top-4 right-4 z-50">
+          <img 
+            src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
+            alt="CRD Logo" 
+            className="w-16 h-auto opacity-60 hover:opacity-80 transition-opacity duration-200"
+            style={{
+              filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))',
             }}
-            onClick={handleCardClick}
+            onLoad={() => console.log('Canvas CRD branding logo loaded successfully')}
+            onError={() => console.log('Error loading Canvas CRD branding logo')}
           />
         </div>
 
-        {/* Card Back - with environment-aware styling */}
+        {/* 3D Card Container */}
         <div
-          className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden"
+          className="relative cursor-pointer transition-transform duration-700 preserve-3d z-20"
           style={{
-            backfaceVisibility: 'hidden',
-            transform: 'rotateY(180deg)'
+            width: '300px',
+            height: '420px',
+            transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) ${isFlipped ? 'rotateY(180deg)' : ''}`,
+            transformStyle: 'preserve-3d'
           }}
         >
-          {/* Environment-aware background */}
-          <div 
-            className="absolute inset-0"
+          {/* Card Front */}
+          <div
+            className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden"
             style={{
-              background: backgroundLoaded && selectedScene.backgroundImage 
-                ? `
-                  linear-gradient(135deg, rgba(26,26,26,0.8) 0%, rgba(45,45,45,0.6) 50%, rgba(26,26,26,0.8) 100%),
-                  url(${selectedScene.backgroundImage})
-                `
-                : `
-                  linear-gradient(135deg, rgba(26,26,26,0.9) 0%, rgba(45,45,45,0.8) 50%, rgba(26,26,26,0.9) 100%)
-                `,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundColor: '#0a0a0a'
+              backfaceVisibility: 'hidden',
+              transform: 'rotateY(0deg)'
             }}
-          />
-          
-          {/* Centered CRD Logo */}
-          <div className="relative h-full flex items-center justify-center z-30">
-            <div className="flex items-center justify-center">
-              <img 
-                src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
-                alt="CRD Logo" 
-                className="w-48 h-auto opacity-90"
-                style={{
-                  filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
-                }}
-                onLoad={() => console.log('Enhanced Canvas CRD logo loaded successfully')}
-                onError={() => console.log('Error loading Enhanced Canvas CRD logo')}
-              />
+          >
+            <EnhancedCardContainer
+              card={card}
+              isFlipped={false}
+              rotation={rotation}
+              zoom={1}
+              isDragging={isDragging}
+              frameStyles={frameStyles}
+              enhancedEffectStyles={enhancedEffectStyles}
+              SurfaceTexture={SurfaceTextureComponent}
+              onMouseDown={() => setIsDragging(true)}
+              onMouseMove={onMouseMove}
+              onMouseEnter={onMouseEnter}
+              onMouseLeave={() => {
+                setIsDragging(false);
+                onMouseLeave();
+              }}
+              onClick={handleCardClick}
+            />
+          </div>
+
+          {/* Card Back - with environment-aware styling */}
+          <div
+            className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden"
+            style={{
+              backfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)'
+            }}
+          >
+            {/* Environment-aware background */}
+            <div 
+              className="absolute inset-0"
+              style={{
+                background: backgroundLoaded && selectedScene.backgroundImage 
+                  ? `
+                    linear-gradient(135deg, rgba(26,26,26,0.8) 0%, rgba(45,45,45,0.6) 50%, rgba(26,26,26,0.8) 100%),
+                    url(${selectedScene.backgroundImage})
+                  `
+                  : `
+                    linear-gradient(135deg, rgba(26,26,26,0.9) 0%, rgba(45,45,45,0.8) 50%, rgba(26,26,26,0.9) 100%)
+                  `,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundColor: '#0a0a0a'
+              }}
+            />
+            
+            {/* Centered CRD Logo */}
+            <div className="relative h-full flex items-center justify-center z-30">
+              <div className="flex items-center justify-center">
+                <img 
+                  src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png" 
+                  alt="CRD Logo" 
+                  className="w-48 h-auto opacity-90"
+                  style={{
+                    filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))',
+                  }}
+                  onLoad={() => console.log('Enhanced Canvas CRD logo loaded successfully')}
+                  onError={() => console.log('Error loading Enhanced Canvas CRD logo')}
+                />
+              </div>
+            </div>
+
+            {/* Interactive lighting effects for consistency */}
+            <div className="absolute inset-0 pointer-events-none z-40">
+              {interactiveLighting && isHovering && (
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: `
+                      radial-gradient(
+                        ellipse 180% 140% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+                        rgba(255, 255, 255, 0.02) 0%,
+                        rgba(255, 255, 255, 0.01) 50%,
+                        transparent 85%
+                      )
+                    `,
+                    mixBlendMode: 'overlay',
+                    transition: 'opacity 0.2s ease'
+                  }}
+                />
+              )}
             </div>
           </div>
+        </div>
 
-          {/* Interactive lighting effects for consistency */}
-          <div className="absolute inset-0 pointer-events-none z-40">
-            {interactiveLighting && isHovering && (
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: `
-                    radial-gradient(
-                      ellipse 180% 140% at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
-                      rgba(255, 255, 255, 0.02) 0%,
-                      rgba(255, 255, 255, 0.01) 50%,
-                      transparent 85%
-                    )
-                  `,
-                  mixBlendMode: 'overlay',
-                  transition: 'opacity 0.2s ease'
-                }}
-              />
-            )}
-          </div>
+        {/* Click instruction */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white/60 text-sm z-30">
+          Click to flip card
         </div>
       </div>
-
-      {/* Click instruction */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white/60 text-sm z-30">
-        Click to flip card
-      </div>
-    </div>
+    </EffectProvider>
   );
 };
