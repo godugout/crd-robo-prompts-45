@@ -10,7 +10,7 @@ export interface MaterialSettings {
   reflectivity: number;
 }
 
-// Card data interfaces
+// Main Card data interface - make it compatible with viewer requirements
 export interface CardData {
   id: string;
   title: string;
@@ -18,6 +18,23 @@ export interface CardData {
   image_url?: string;
   rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
   tags?: string[];
+  visibility: 'public' | 'private' | 'unlisted';
+  is_public: boolean;
+  template_id?: string;
+  collection_id?: string;
+  team_id?: string;
+  creator_attribution: {
+    creator_name?: string;
+    creator_id?: string;
+  };
+  publishing_options: {
+    marketplace_listing: boolean;
+    crd_catalog_inclusion: boolean;
+    print_available: boolean;
+    pricing: { currency: string };
+    distribution: { limited_edition: boolean };
+  };
+  design_metadata: Record<string, any>;
 }
 
 export interface UniversalCardData {
@@ -46,11 +63,26 @@ export interface ImmersiveCardViewerProps {
   ambient?: boolean;
 }
 
-// Visual effect interface - match the one used in hooks
+// Unified EffectValues interface for all components
+export interface EffectValues {
+  [key: string]: { 
+    intensity: number;
+    [key: string]: any;
+  };
+  holographic?: { intensity: number; [key: string]: any };
+  foilspray?: { intensity: number; [key: string]: any };
+  prizm?: { intensity: number; [key: string]: any };
+  chrome?: { intensity: number; [key: string]: any };
+  crystal?: { intensity: number; [key: string]: any };
+  gold?: { intensity: number; [key: string]: any };
+}
+
+// Visual effect interface
 export interface VisualEffect {
   id: string;
   name: string;
   category: string;
+  description: string;
   parameters: Array<{
     id: string;
     name: string;
@@ -70,6 +102,7 @@ export interface EnvironmentSceneConfig {
   gradient: string;
   backgroundImage?: string;
   icon: string;
+  description: string;
 }
 
 // Lighting preset object interface
@@ -87,7 +120,24 @@ export const convertToViewerCardData = (card: any): CardData => {
     description: card.description,
     image_url: card.image_url,
     rarity: card.rarity || 'common',
-    tags: card.tags || []
+    tags: card.tags || [],
+    visibility: card.visibility || 'public',
+    is_public: card.is_public !== false,
+    template_id: card.template_id,
+    collection_id: card.collection_id,
+    team_id: card.team_id,
+    creator_attribution: {
+      creator_name: card.creator_name || card.creator_attribution?.creator_name,
+      creator_id: card.creator_id || card.creator_attribution?.creator_id
+    },
+    publishing_options: card.publishing_options || {
+      marketplace_listing: false,
+      crd_catalog_inclusion: true,
+      print_available: false,
+      pricing: { currency: 'USD' },
+      distribution: { limited_edition: false }
+    },
+    design_metadata: card.design_metadata || {}
   };
 };
 
@@ -105,4 +155,82 @@ export const convertToUniversalCardData = (card: any): UniversalCardData => {
     stock: card.stock || 0,
     tags: card.tags || []
   };
+};
+
+// Helper functions to get scene and lighting data
+export const getEnvironmentSceneConfig = (scene: EnvironmentScene): EnvironmentSceneConfig => {
+  const scenes: EnvironmentSceneConfig[] = [
+    {
+      id: 'studio',
+      name: 'Studio',
+      gradient: 'from-gray-900 to-gray-700',
+      icon: '🎬',
+      backgroundImage: '/studio-bg.jpg',
+      description: 'Professional studio environment'
+    },
+    {
+      id: 'forest',
+      name: 'Forest',
+      gradient: 'from-green-900 to-green-700',
+      icon: '🌲',
+      backgroundImage: '/forest-bg.jpg',
+      description: 'Natural forest setting'
+    },
+    {
+      id: 'mountain',
+      name: 'Mountain',
+      gradient: 'from-blue-900 to-gray-700',
+      icon: '⛰️',
+      backgroundImage: '/mountain-bg.jpg',
+      description: 'Majestic mountain landscape'
+    },
+    {
+      id: 'cavern',
+      name: 'Cavern',
+      gradient: 'from-purple-900 to-gray-800',
+      icon: '🕳️',
+      backgroundImage: '/cavern-bg.jpg',
+      description: 'Mysterious underground cavern'
+    },
+    {
+      id: 'metropolis',
+      name: 'Metropolis',
+      gradient: 'from-cyan-900 to-gray-800',
+      icon: '🏙️',
+      backgroundImage: '/city-bg.jpg',
+      description: 'Urban cityscape environment'
+    }
+  ];
+  return scenes.find(s => s.id === scene) || scenes[0];
+};
+
+export const getLightingPresetConfig = (preset: LightingPreset): LightingPresetConfig => {
+  const presets: LightingPresetConfig[] = [
+    {
+      id: 'studio',
+      name: 'Studio',
+      description: 'Balanced studio lighting'
+    },
+    {
+      id: 'natural',
+      name: 'Natural',
+      description: 'Soft natural lighting'
+    },
+    {
+      id: 'dramatic',
+      name: 'Dramatic',
+      description: 'High contrast dramatic lighting'
+    },
+    {
+      id: 'soft',
+      name: 'Soft',
+      description: 'Gentle diffused lighting'
+    },
+    {
+      id: 'vibrant',
+      name: 'Vibrant',
+      description: 'Bright colorful lighting'
+    }
+  ];
+  return presets.find(p => p.id === preset) || presets[0];
 };

@@ -8,35 +8,40 @@ export const ENVIRONMENT_SCENES: EnvironmentSceneConfig[] = [
     name: 'Studio',
     gradient: 'from-gray-900 to-gray-700',
     icon: '🎬',
-    backgroundImage: '/studio-bg.jpg'
+    backgroundImage: '/studio-bg.jpg',
+    description: 'Professional studio environment'
   },
   {
     id: 'forest',
     name: 'Forest',
     gradient: 'from-green-900 to-green-700',
     icon: '🌲',
-    backgroundImage: '/forest-bg.jpg'
+    backgroundImage: '/forest-bg.jpg',
+    description: 'Natural forest setting'
   },
   {
     id: 'mountain',
     name: 'Mountain',
     gradient: 'from-blue-900 to-gray-700',
     icon: '⛰️',
-    backgroundImage: '/mountain-bg.jpg'
+    backgroundImage: '/mountain-bg.jpg',
+    description: 'Majestic mountain landscape'
   },
   {
     id: 'cavern',
     name: 'Cavern',
     gradient: 'from-purple-900 to-gray-800',
     icon: '🕳️',
-    backgroundImage: '/cavern-bg.jpg'
+    backgroundImage: '/cavern-bg.jpg',
+    description: 'Mysterious underground cavern'
   },
   {
     id: 'metropolis',
     name: 'Metropolis',
     gradient: 'from-cyan-900 to-gray-800',
     icon: '🏙️',
-    backgroundImage: '/city-bg.jpg'
+    backgroundImage: '/city-bg.jpg',
+    description: 'Urban cityscape environment'
   }
 ];
 
@@ -75,6 +80,7 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffect[] = [
     id: 'holographic',
     name: 'Holographic',
     category: 'prismatic',
+    description: 'Dynamic rainbow shifting with prismatic effects',
     parameters: [
       {
         id: 'intensity',
@@ -91,6 +97,7 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffect[] = [
     id: 'foilspray',
     name: 'Foil Spray',
     category: 'prismatic',
+    description: 'Metallic spray pattern with directional flow',
     parameters: [
       {
         id: 'intensity',
@@ -107,6 +114,7 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffect[] = [
     id: 'prizm',
     name: 'Prizm',
     category: 'prismatic',
+    description: 'Geometric prismatic patterns with color separation',
     parameters: [
       {
         id: 'intensity',
@@ -123,6 +131,7 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffect[] = [
     id: 'chrome',
     name: 'Chrome',
     category: 'metallic',
+    description: 'Metallic chrome finish with mirror-like reflections',
     parameters: [
       {
         id: 'intensity',
@@ -139,6 +148,7 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffect[] = [
     id: 'crystal',
     name: 'Crystal',
     category: 'special',
+    description: 'Crystalline faceted surface with light dispersion',
     parameters: [
       {
         id: 'intensity',
@@ -155,6 +165,7 @@ export const ENHANCED_VISUAL_EFFECTS: VisualEffect[] = [
     id: 'gold',
     name: 'Gold',
     category: 'metallic',
+    description: 'Luxurious gold plating with authentic shimmer',
     parameters: [
       {
         id: 'intensity',

@@ -1,22 +1,14 @@
 
 import { useState, useCallback } from 'react';
-
-export interface EffectValues {
-  [key: string]: { intensity: number; [key: string]: any };
-  holographic?: { intensity: number };
-  foilspray?: { intensity: number };
-  prizm?: { intensity: number };
-  chrome?: { intensity: number };
-  crystal?: { intensity: number };
-  gold?: { intensity: number };
-}
+import type { EffectValues, VisualEffect } from '../types';
 
 // Export ENHANCED_VISUAL_EFFECTS for CompactEffectControls
-export const ENHANCED_VISUAL_EFFECTS = [
+export const ENHANCED_VISUAL_EFFECTS: VisualEffect[] = [
   {
     id: 'holographic',
     name: 'Holographic',
     category: 'prismatic',
+    description: 'Dynamic rainbow shifting with prismatic effects',
     parameters: [
       {
         id: 'intensity',
@@ -33,6 +25,7 @@ export const ENHANCED_VISUAL_EFFECTS = [
     id: 'foilspray',
     name: 'Foil Spray',
     category: 'prismatic',
+    description: 'Metallic spray pattern with directional flow',
     parameters: [
       {
         id: 'intensity',
@@ -49,6 +42,7 @@ export const ENHANCED_VISUAL_EFFECTS = [
     id: 'prizm',
     name: 'Prizm',
     category: 'prismatic',
+    description: 'Geometric prismatic patterns with color separation',
     parameters: [
       {
         id: 'intensity',
@@ -65,6 +59,7 @@ export const ENHANCED_VISUAL_EFFECTS = [
     id: 'chrome',
     name: 'Chrome',
     category: 'metallic',
+    description: 'Metallic chrome finish with mirror-like reflections',
     parameters: [
       {
         id: 'intensity',
@@ -81,6 +76,7 @@ export const ENHANCED_VISUAL_EFFECTS = [
     id: 'crystal',
     name: 'Crystal',
     category: 'special',
+    description: 'Crystalline faceted surface with light dispersion',
     parameters: [
       {
         id: 'intensity',
@@ -97,6 +93,7 @@ export const ENHANCED_VISUAL_EFFECTS = [
     id: 'gold',
     name: 'Gold',
     category: 'metallic',
+    description: 'Luxurious gold plating with authentic shimmer',
     parameters: [
       {
         id: 'intensity',

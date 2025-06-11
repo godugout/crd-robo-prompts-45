@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
+import { getEnvironmentSceneConfig } from '../types';
 import { EnhancedCardContainer } from './EnhancedCardContainer';
 import { EffectProvider } from '../contexts/EffectContext';
 
@@ -46,24 +47,27 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [backgroundLoaded, setBackgroundLoaded] = useState(false);
 
+  // Get scene configuration using helper function
+  const sceneConfig = getEnvironmentSceneConfig(selectedScene);
+
   console.log('EnhancedCardCanvas rendering, isFlipped:', isFlipped);
 
   // Preload background image with better error handling
   useEffect(() => {
-    if (selectedScene.backgroundImage) {
+    if (sceneConfig.backgroundImage) {
       setBackgroundLoaded(false);
       const img = new Image();
       img.onload = () => {
-        console.log('Background image loaded successfully:', selectedScene.backgroundImage);
+        console.log('Background image loaded successfully:', sceneConfig.backgroundImage);
         setBackgroundLoaded(true);
       };
       img.onerror = () => {
-        console.log('Background image failed to load, falling back to gradient:', selectedScene.backgroundImage);
+        console.log('Background image failed to load, falling back to gradient:', sceneConfig.backgroundImage);
         setBackgroundLoaded(false);
       };
-      img.src = selectedScene.backgroundImage;
+      img.src = sceneConfig.backgroundImage;
     }
-  }, [selectedScene.backgroundImage]);
+  }, [sceneConfig.backgroundImage]);
 
   // Handle card flip on click
   const handleCardClick = () => {
@@ -131,9 +135,9 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
         <div 
           className="absolute inset-0 z-0"
           style={{
-            background: backgroundLoaded && selectedScene.backgroundImage 
-              ? `url(${selectedScene.backgroundImage})` 
-              : selectedScene.gradient,
+            background: backgroundLoaded && sceneConfig.backgroundImage 
+              ? `url(${sceneConfig.backgroundImage})` 
+              : sceneConfig.gradient,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
@@ -220,10 +224,10 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             <div 
               className="absolute inset-0"
               style={{
-                background: backgroundLoaded && selectedScene.backgroundImage 
+                background: backgroundLoaded && sceneConfig.backgroundImage 
                   ? `
                     linear-gradient(135deg, rgba(26,26,26,0.8) 0%, rgba(45,45,45,0.6) 50%, rgba(26,26,26,0.8) 100%),
-                    url(${selectedScene.backgroundImage})
+                    url(${sceneConfig.backgroundImage})
                   `
                   : `
                     linear-gradient(135deg, rgba(26,26,26,0.9) 0%, rgba(45,45,45,0.8) 50%, rgba(26,26,26,0.9) 100%)

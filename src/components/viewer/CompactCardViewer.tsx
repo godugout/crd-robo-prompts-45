@@ -5,7 +5,7 @@ import { useEnhancedCardInteraction } from './hooks/useEnhancedCardInteraction';
 import { EnhancedCardCanvas } from './components/EnhancedCardCanvas';
 import type { CardData } from '@/hooks/useCardEditor';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from './types';
-import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from './constants';
+import { getEnvironmentSceneConfig, getLightingPresetConfig } from './types';
 import { Button } from '@/components/ui/button';
 import { Maximize2, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
 
@@ -23,8 +23,8 @@ export const CompactCardViewer: React.FC<CompactCardViewerProps> = ({
   height = 560
 }) => {
   // Use simple default settings for compact view
-  const [selectedScene] = useState<EnvironmentScene>('studio'); // Use string ID
-  const [selectedLighting] = useState<LightingPreset>('studio'); // Use string ID
+  const [selectedScene] = useState<EnvironmentScene>('studio');
+  const [selectedLighting] = useState<LightingPreset>('studio');
   const [overallBrightness] = useState<number[]>([100]);
   const [interactiveLighting] = useState(true);
   const [zoom, setZoom] = useState(1);

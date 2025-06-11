@@ -1,8 +1,8 @@
+
 import React, { useState, useCallback, useRef } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
-import { convertToViewerCardData } from './types';
-import { ENVIRONMENT_SCENES, LIGHTING_PRESETS } from './constants';
+import { convertToViewerCardData, getEnvironmentSceneConfig, getLightingPresetConfig } from './types';
 import { 
   useEnhancedCardEffects, 
   type EffectValues 
@@ -200,33 +200,6 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
     console.log('Selecting showcase layout:', layoutId);
   }, [viewerState]);
 
-  // Create complete viewer card with all required properties
-  const completeViewerCard = {
-    id: viewerCard.id,
-    title: viewerCard.title,
-    description: viewerCard.description,
-    image_url: viewerCard.image_url,
-    rarity: viewerCard.rarity as any,
-    tags: viewerCard.tags,
-    visibility: 'public' as any,
-    is_public: true,
-    template_id: undefined,
-    collection_id: undefined,
-    team_id: undefined,
-    creator_attribution: {
-      creator_name: card.creator_name,
-      creator_id: undefined
-    },
-    publishing_options: {
-      marketplace_listing: false,
-      crd_catalog_inclusion: true,
-      print_available: false,
-      pricing: { currency: 'USD' },
-      distribution: { limited_edition: false }
-    },
-    design_metadata: {}
-  };
-
   if (!isOpen) return null;
 
   // Calculate effect intensity for context
@@ -350,7 +323,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
             {/* Enhanced Card Container with Full Gesture Support */}
             <div ref={cardContainerRef}>
               <EnhancedCardContainer
-                card={completeViewerCard}
+                card={viewerCard}
                 isFlipped={viewerInteraction.isFlipped}
                 rotation={viewerInteraction.rotation}
                 zoom={viewerInteraction.zoom}
@@ -488,7 +461,7 @@ export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = (
         {/* Enhanced Card Container - Centered regardless of panels */}
         <div ref={cardContainerRef} className="flex items-center justify-center w-full h-full">
           <EnhancedCardContainer
-            card={completeViewerCard}
+            card={viewerCard}
             isFlipped={viewerInteraction.isFlipped}
             rotation={viewerInteraction.rotation}
             zoom={viewerInteraction.zoom}
