@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useEffectValues } from './useEffectValues';
 
 export const useViewerEffects = () => {
@@ -10,27 +10,28 @@ export const useViewerEffects = () => {
   const [selectedLighting, setSelectedLighting] = useState<string>('natural');
   const [overallBrightness, setOverallBrightness] = useState<number[]>([80]);
   const [interactiveLighting, setInteractiveLighting] = useState<boolean>(true);
-  const [materialSettings, setMaterialSettings] = useState({
+  
+  // Memoize material settings to prevent infinite renders
+  const [materialSettings, setMaterialSettings] = useState(() => ({
     metalness: 0.5,
     roughness: 0.5,
     clearcoat: 0.0,
     transmission: 0.0,
     reflectivity: 50
-  });
+  }));
 
+  // Stable callback functions
   const handleSceneChange = useCallback((sceneId: string) => {
     setSelectedScene(sceneId);
     console.log('Scene changed to:', sceneId);
-    // Add scene switching logic here
   }, []);
 
   const handleLightingChange = useCallback((lightingId: string) => {
     setSelectedLighting(lightingId);
     console.log('Lighting changed to:', lightingId);
-    // Add lighting switching logic here
   }, []);
 
-  const handleMaterialSettingsChange = useCallback((settings: any) => {
+  const handleMaterialSettingsChange = useCallback((settings: Partial<typeof materialSettings>) => {
     setMaterialSettings(prev => ({ ...prev, ...settings }));
     console.log('Material settings changed:', settings);
   }, []);
@@ -99,13 +100,13 @@ export const useViewerEffects = () => {
         setOverallBrightness([85]);
         break;
       default:
-        // Reset to default
         resetAllEffects();
         break;
     }
   }, [handleEffectChange, resetAllEffects]);
 
-  return {
+  // Memoize the return value to prevent unnecessary re-renders
+  return useMemo(() => ({
     effectValues,
     handleEffectChange,
     resetAllEffects,
@@ -121,5 +122,19 @@ export const useViewerEffects = () => {
     handleApplyCombo,
     setOverallBrightness,
     setInteractiveLighting
-  };
+  }), [
+    effectValues,
+    handleEffectChange,
+    resetAllEffects,
+    presetState,
+    selectedScene,
+    selectedLighting,
+    overallBrightness,
+    interactiveLighting,
+    materialSettings,
+    handleSceneChange,
+    handleLightingChange,
+    handleMaterialSettingsChange,
+    handleApplyCombo
+  ]);
 };

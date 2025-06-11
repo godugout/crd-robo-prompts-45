@@ -30,7 +30,7 @@ class CardActionServiceImpl implements CardActionService {
         .insert({
           card_id: cardId,
           user_id: user.id,
-          reaction_type: 'like'
+          type: 'like'
         });
 
       if (error) {
@@ -61,7 +61,7 @@ class CardActionServiceImpl implements CardActionService {
         .delete()
         .eq('card_id', cardId)
         .eq('user_id', user.id)
-        .eq('reaction_type', 'like');
+        .eq('type', 'like');
 
       if (error) {
         console.error('Error unliking card:', error);
@@ -198,7 +198,7 @@ class CardActionServiceImpl implements CardActionService {
         .from('reactions')
         .select('*', { count: 'exact', head: true })
         .eq('card_id', cardId)
-        .eq('reaction_type', 'like');
+        .eq('type', 'like');
 
       // Get view count (using downloads as proxy for views)
       const { count: viewCount } = await supabase
@@ -217,8 +217,8 @@ class CardActionServiceImpl implements CardActionService {
           .select('id')
           .eq('card_id', cardId)
           .eq('user_id', user.id)
-          .eq('reaction_type', 'like')
-          .single();
+          .eq('type', 'like')
+          .maybeSingle();
 
         isLiked = !!likeData;
 
@@ -228,7 +228,7 @@ class CardActionServiceImpl implements CardActionService {
           .select('id')
           .eq('card_id', cardId)
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         isBookmarked = !!bookmarkData;
       }
