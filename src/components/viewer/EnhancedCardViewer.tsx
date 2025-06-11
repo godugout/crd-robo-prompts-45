@@ -61,7 +61,7 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
   const [overallBrightness, setOverallBrightness] = useState([80]);
   const [interactiveLighting, setInteractiveLighting] = useState(false);
   const [materialSettings, setMaterialSettings] = useState({
-    metallic: 0.5,
+    metalness: 0.5,  // Fixed: was 'metallic', should be 'metalness'
     roughness: 0.5,
     clearcoat: 0.0,
     transmission: 0.0,
@@ -221,22 +221,25 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
           autoRotateSpeed={0.5}
         />
         
+        {/* Basic lighting for the 3D scene */}
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[10, 10, 5]} intensity={1} />
+        
         <EffectProvider value={effectContextValue}>
-          <CardContainer
-            card={card}
-            isFlipped={isFlipped}
-            rotation={rotation}
-            zoom={zoom}
-            isDragging={isDragging}
-            frameStyles={{}}
-            physicalEffectStyles={{}}
-            SurfaceTexture={null}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            onClick={handleClick}
-          />
+          {/* Simple Three.js mesh instead of HTML-based CardContainer */}
+          <mesh 
+            position={[0, 0, 0]}
+            rotation={[rotation.x * Math.PI / 180, rotation.y * Math.PI / 180, 0]}
+            scale={zoom}
+          >
+            <planeGeometry args={[4, 5.6]} />
+            <meshStandardMaterial 
+              map={card.image_url ? undefined : undefined}
+              color="#ffffff"
+              transparent
+              opacity={0.9}
+            />
+          </mesh>
         </EffectProvider>
       </Canvas>
 
