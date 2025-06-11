@@ -60,7 +60,7 @@ const CardDetail = () => {
     rarity: card.rarity,
     creator_name: card.creator_name,
     creator_verified: card.creator_verified,
-    price: card.price,
+    price: card.price ? card.price.toString() : undefined,
     created_at: card.created_at || new Date().toISOString(),
     tags: card.tags,
     view_count: Math.floor(Math.random() * 1000) + 100,
