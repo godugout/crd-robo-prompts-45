@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Settings, Maximize, Minimize } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CardData } from '@/hooks/useCardData';
+import type { EnvironmentScene, LightingPreset } from './types';
 
 interface EnhancedCardViewerProps {
   card: CardData;
@@ -54,8 +55,8 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
   } = useEnhancedCardEffects();
 
   // Simple state for environment, lighting, and materials since the specific hooks don't exist
-  const [selectedScene, setSelectedScene] = useState('studio');
-  const [selectedLighting, setSelectedLighting] = useState('studio');
+  const [selectedScene, setSelectedScene] = useState<EnvironmentScene>('studio' as any);
+  const [selectedLighting, setSelectedLighting] = useState<LightingPreset>('studio' as any);
   const [overallBrightness, setOverallBrightness] = useState([80]);
   const [interactiveLighting, setInteractiveLighting] = useState(false);
   const [materialSettings, setMaterialSettings] = useState({
@@ -71,11 +72,11 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
     setIsFullscreen(!isFullscreen);
   };
 
-  const handleSceneChange = (scene: string) => {
+  const handleSceneChange = (scene: EnvironmentScene) => {
     setSelectedScene(scene);
   };
 
-  const handleLightingChange = (lighting: string) => {
+  const handleLightingChange = (lighting: LightingPreset) => {
     setSelectedLighting(lighting);
   };
 
@@ -106,6 +107,25 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
       </div>
     );
   }
+
+  // Create a properly formatted card object for Interactive3DCard
+  const formattedCard = {
+    ...card,
+    design_metadata: card.design_metadata || {},
+    visibility: card.visibility || 'public' as any,
+    creator_attribution: card.creator_attribution || {
+      creator_name: cardDetails?.creator_name,
+      creator_id: undefined,
+      collaboration_type: 'solo' as any
+    },
+    publishing_options: card.publishing_options || {
+      marketplace_listing: false,
+      crd_catalog_inclusion: true,
+      print_available: false,
+      pricing: { currency: 'USD' },
+      distribution: { limited_edition: false }
+    }
+  };
 
   return (
     <div className={cn(
@@ -162,7 +182,7 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
         />
         
         <Interactive3DCard
-          card={card}
+          card={formattedCard}
         />
       </Canvas>
 
