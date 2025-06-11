@@ -146,7 +146,7 @@ const CardDetail = () => {
     );
   }
 
-  // Convert card data to format expected by CardViewer
+  // Convert card data to format expected by EnhancedCardViewer
   const cardViewerData = {
     id: card.id,
     title: card.title,
@@ -188,10 +188,8 @@ const CardDetail = () => {
     >
       <EnhancedCardViewer 
         card={cardViewerData}
-        showCustomizePanel={false}
-        onCardChange={() => {}}
-        cards={[cardViewerData]}
-        currentCardIndex={0}
+        onDownload={() => handleDownload()}
+        onShare={() => handleShare()}
       />
     </CardDetailStudioLayout>
   );
