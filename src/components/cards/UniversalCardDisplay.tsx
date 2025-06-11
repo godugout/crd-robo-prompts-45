@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -84,21 +83,29 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
     setImageError(true);
   };
 
+  // Fix: Ensure card click always triggers onView and prevent button event bubbling
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't trigger card click if clicking on action buttons
-    if ((e.target as HTMLElement).closest('button')) {
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('[data-action-button]')) {
       return;
     }
+    
+    console.log('Card clicked:', card.id);
     onView?.(card);
   };
 
   const handleViewClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
+    console.log('View button clicked:', card.id);
     onView?.(card);
   };
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
+    console.log('Edit button clicked:', card.id);
     onEdit?.(card);
   };
 
@@ -127,6 +134,12 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
         onClick={handleCardClick}
       >
         <div className="relative aspect-[3/4] overflow-hidden">
+          {/* Make entire image area clickable */}
+          <div 
+            className="absolute inset-0 z-0 cursor-pointer"
+            onClick={handleCardClick}
+          />
+          
           <CachedImage
             src={imageUrl}
             alt={card.title}
@@ -136,21 +149,22 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
           />
           
           {/* Rarity Badge */}
-          <div className="absolute top-2 left-2">
+          <div className="absolute top-2 left-2 z-10">
             <Badge className={cn('text-xs', RARITY_COLORS[card.rarity || 'common'])}>
               {card.rarity || 'common'}
             </Badge>
           </div>
 
-          {/* Always Visible Action Buttons */}
+          {/* Action Buttons with proper z-index and data attributes */}
           {showActions && (
-            <div className="absolute top-2 right-2 flex gap-1">
+            <div className="absolute top-2 right-2 flex gap-1 z-20">
               <Button
                 size="sm"
                 variant="ghost"
                 className="w-8 h-8 p-0 bg-black/70 hover:bg-black/90 text-white/90 hover:text-white backdrop-blur-sm border border-white/10"
                 onClick={handleViewClick}
                 title="View in 3D"
+                data-action-button="true"
               >
                 <Eye className="w-3 h-3" />
               </Button>
@@ -162,6 +176,7 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
                   className="w-8 h-8 p-0 bg-black/70 hover:bg-black/90 text-white/90 hover:text-white backdrop-blur-sm border border-white/10"
                   onClick={handleEditClick}
                   title="Edit Card"
+                  data-action-button="true"
                 >
                   <Edit2 className="w-3 h-3" />
                 </Button>
@@ -170,7 +185,7 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
           )}
 
           {/* Price Badge */}
-          <div className="absolute bottom-2 left-2">
+          <div className="absolute bottom-2 left-2 z-10">
             <Badge variant="secondary" className="bg-black/70 text-crd-green">
               {card.price ? `${card.price} ETH` : '1.5 ETH'}
             </Badge>
@@ -207,7 +222,7 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
         onClick={handleCardClick}
       >
         <div className="flex items-center p-4 gap-4">
-          <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+          <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer">
             <CachedImage
               src={imageUrl}
               alt={card.title}
@@ -247,6 +262,7 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
                     variant="ghost" 
                     onClick={handleViewClick}
                     className="hover:bg-crd-blue/20"
+                    data-action-button="true"
                   >
                     <Eye className="w-4 h-4" />
                   </Button>
@@ -256,6 +272,7 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
                       variant="ghost" 
                       onClick={handleEditClick}
                       className="hover:bg-crd-purple/20"
+                      data-action-button="true"
                     >
                       <Edit2 className="w-4 h-4" />
                     </Button>
@@ -278,7 +295,7 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
         )}
         onClick={handleCardClick}
       >
-        <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
+        <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0 cursor-pointer">
           <CachedImage
             src={imageUrl}
             alt={card.title}
@@ -305,11 +322,21 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
 
         {showActions && (
           <div className="flex items-center gap-1 ml-4">
-            <Button size="sm" variant="ghost" onClick={handleViewClick}>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              onClick={handleViewClick}
+              data-action-button="true"
+            >
               <Eye className="w-4 h-4" />
             </Button>
             {isOwner && (
-              <Button size="sm" variant="ghost" onClick={handleEditClick}>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={handleEditClick}
+                data-action-button="true"
+              >
                 <Edit2 className="w-4 h-4" />
               </Button>
             )}

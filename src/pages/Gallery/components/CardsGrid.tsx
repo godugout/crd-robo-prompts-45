@@ -43,6 +43,15 @@ export const CardsGrid: React.FC<CardsGridProps> = ({
   const navigate = useNavigate();
 
   const handleView = (card: UniversalCardData) => {
+    console.log('Navigating to card detail:', card.id);
+    
+    // Ensure we have a valid card ID before navigating
+    if (!card.id) {
+      console.error('Card ID is missing:', card);
+      toast.error('Card ID is missing - cannot navigate');
+      return;
+    }
+    
     // Navigate to card detail page which will show the immersive viewer
     navigate(`/card/${card.id}`);
     
@@ -54,6 +63,12 @@ export const CardsGrid: React.FC<CardsGridProps> = ({
   };
 
   const handleEdit = (card: UniversalCardData) => {
+    if (!card.id) {
+      console.error('Card ID is missing for edit:', card);
+      toast.error('Card ID is missing - cannot edit');
+      return;
+    }
+    
     navigate(`/cards/create?template=${card.id}`);
     toast.success(`Opening "${card.title}" for editing`);
   };
