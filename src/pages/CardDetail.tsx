@@ -1,159 +1,200 @@
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ImmersiveCardViewer } from "@/components/viewer/ImmersiveCardViewer";
-import { EnhancedCardDetailView } from "@/components/cards/EnhancedCardDetailView";
-import { useCardActions } from "@/hooks/useCardActions";
-import { useCardData } from "@/hooks/useCardData";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader, Info } from "lucide-react";
-import { toast } from "sonner";
 
-export default function CardDetail() {
+import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase-client';
+import { LoadingState } from '@/components/common/LoadingState';
+import { CardDetailStudioLayout } from '@/components/cards/CardDetailStudioLayout';
+import { CardDetailRightPanel } from '@/components/cards/CardDetailRightPanel';
+import { CardDetailHeader } from '@/components/cards/components/CardDetailHeader';
+import { CardViewer } from '@/components/viewer/CardViewer';
+import { toast } from 'sonner';
+
+interface CardData {
+  id: string;
+  title: string;
+  description?: string;
+  image_url?: string;
+  thumbnail_url?: string;
+  rarity: string;
+  price?: string;
+  creator_name?: string;
+  creator_verified?: boolean;
+  creator_id?: string;
+  tags?: string[];
+  created_at: string;
+  view_count?: number;
+  like_count?: number;
+}
+
+const CardDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { handleShare, handleRemix, handleStage } = useCardActions();
-  const { card, loading, error } = useCardData(id);
-  // Default to immersive viewer mode
-  const [showViewer, setShowViewer] = useState(true);
+
+  const { data: card, isLoading } = useQuery({
+    queryKey: ['card', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cards')
+        .select(`
+          id,
+          title,
+          description,
+          image_url,
+          thumbnail_url,
+          rarity,
+          price,
+          tags,
+          creator_id,
+          created_at
+        `)
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      
+      // Get creator information
+      let creator_name = 'Unknown Creator';
+      let creator_verified = false;
+      
+      if (data.creator_id) {
+        const { data: profileData } = await supabase
+          .from('crd_profiles')
+          .select('display_name, creator_verified')
+          .eq('id', data.creator_id)
+          .single();
+        
+        if (profileData) {
+          creator_name = profileData.display_name || 'Unknown Creator';
+          creator_verified = profileData.creator_verified || false;
+        }
+      }
+      
+      return {
+        ...data,
+        creator_name,
+        creator_verified,
+        price: data.price ? data.price.toString() : undefined,
+        tags: data.tags || [],
+        view_count: Math.floor(Math.random() * 1000) + 100, // Mock data
+        like_count: Math.floor(Math.random() * 50) + 10 // Mock data
+      } as CardData;
+    },
+    enabled: !!id
+  });
 
   const handleGoBack = () => {
-    navigate(-1);
+    navigate('/gallery');
   };
 
-  const handleToggleView = () => {
-    setShowViewer(!showViewer);
-  };
-
-  const handleCloseViewer = () => {
-    setShowViewer(false);
-  };
-
-  const handleDownload = async () => {
-    if (card) {
-      toast.success(`Downloading "${card.title}"`);
-      // Download logic would go here
+  const handleShare = () => {
+    const shareUrl = window.location.href;
+    const shareText = `Check out this card: ${card?.title}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: card?.title,
+        text: shareText,
+        url: shareUrl
+      });
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      toast.success('Card link copied to clipboard!');
     }
   };
 
-  const handleShareCard = async () => {
-    if (card) {
-      const universalCard = {
-        id: card.id,
-        title: card.title,
-        description: card.description,
-        image_url: card.image_url,
-        thumbnail_url: card.thumbnail_url,
-        rarity: card.rarity,
-        price: card.price,
-        creator_name: card.creator_name,
-        creator_verified: card.creator_verified,
-        creator_id: card.creator_id,
-        stock: 3,
-        tags: card.tags
-      };
-      await handleShare(universalCard);
+  const handleDownload = () => {
+    if (card?.image_url) {
+      const link = document.createElement('a');
+      link.href = card.image_url;
+      link.download = `${card.title || 'card'}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Card download started!');
+    } else {
+      toast.error('No image available for download');
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-crd-darkest flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader className="w-8 h-8 animate-spin text-crd-blue" />
-          <p className="text-crd-lightGray">Loading card...</p>
-        </div>
-      </div>
-    );
+  const handleLike = () => {
+    toast.success('Liked! (Feature coming soon)');
+  };
+
+  const handleBookmark = () => {
+    toast.success('Bookmarked! (Feature coming soon)');
+  };
+
+  if (isLoading) {
+    return <LoadingState message="Loading card..." />;
   }
 
-  if (error || !card) {
+  if (!card) {
     return (
       <div className="min-h-screen bg-crd-darkest flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Card Not Found</h1>
-          <p className="text-crd-lightGray mb-6">{error || "The card you're looking for doesn't exist."}</p>
-          <Button onClick={handleGoBack} variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back
-          </Button>
+          <h2 className="text-2xl font-bold text-white mb-4">Card Not Found</h2>
+          <p className="text-crd-lightGray mb-6">The card you're looking for doesn't exist.</p>
+          <button 
+            onClick={handleGoBack}
+            className="bg-crd-green hover:bg-crd-green/90 text-black px-6 py-2 rounded-lg font-medium"
+          >
+            Back to Gallery
+          </button>
         </div>
       </div>
     );
   }
 
-  console.log('CardDetail: Card data received:', {
-    id: card.id,
-    title: card.title,
-    image_url: card.image_url,
-    hasImage: !!card.image_url
-  });
-
-  // Convert CardData to UniversalCardData format
-  const universalCard = {
+  // Convert card data to format expected by CardViewer
+  const cardViewerData = {
     id: card.id,
     title: card.title,
     description: card.description,
     image_url: card.image_url,
-    thumbnail_url: card.thumbnail_url,
-    rarity: card.rarity,
-    price: card.price,
-    creator_name: card.creator_name,
-    creator_verified: card.creator_verified,
-    creator_id: card.creator_id,
-    stock: 3,
-    tags: card.tags
+    rarity: card.rarity as any,
+    tags: card.tags || [],
+    visibility: 'public' as any,
+    is_public: true,
+    template_id: undefined,
+    collection_id: undefined,
+    team_id: undefined,
+    creator_attribution: {
+      creator_name: card.creator_name,
+      creator_id: card.creator_id
+    },
+    publishing_options: {
+      marketplace_listing: false,
+      crd_catalog_inclusion: true,
+      print_available: false,
+      pricing: { currency: 'USD' },
+      distribution: { limited_edition: false }
+    },
+    design_metadata: {}
   };
 
-  // Show immersive viewer by default
-  if (showViewer) {
-    return (
-      <>
-        {/* Navigation Controls - Fixed z-index and pointer events */}
-        <div className="fixed top-4 left-4 z-[60] flex gap-2 pointer-events-auto">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleGoBack}
-            className="bg-black/80 hover:bg-black/90 backdrop-blur-sm text-white border border-white/20 pointer-events-auto"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleToggleView}
-            className="bg-black/80 hover:bg-black/90 backdrop-blur-sm text-white border border-white/20 pointer-events-auto"
-          >
-            <Info className="w-4 h-4 mr-2" />
-            Details
-          </Button>
-        </div>
-
-        {/* Immersive 3D Card Viewer */}
-        <ImmersiveCardViewer
-          card={universalCard}
-          isOpen={true}
-          onClose={handleCloseViewer}
-          onShare={handleShareCard}
-          onDownload={handleDownload}
-          allowRotation={true}
-          showStats={true}
-          ambient={true}
-        />
-      </>
-    );
-  }
-
-  // Show enhanced card detail view
   return (
-    <EnhancedCardDetailView
-      card={card}
-      onOpenViewer={() => setShowViewer(true)}
-      onShare={handleShareCard}
-      onDownload={handleDownload}
-      onGoBack={handleGoBack}
-    />
+    <CardDetailStudioLayout
+      header={<CardDetailHeader onGoBack={handleGoBack} />}
+      rightPanel={
+        <CardDetailRightPanel
+          card={card}
+          onShare={handleShare}
+          onDownload={handleDownload}
+          onLike={handleLike}
+          onBookmark={handleBookmark}
+        />
+      }
+    >
+      <CardViewer 
+        card={cardViewerData}
+        showCustomizePanel={false}
+        onCardChange={() => {}}
+        cards={[cardViewerData]}
+        currentCardIndex={0}
+      />
+    </CardDetailStudioLayout>
   );
-}
+};
+
+export default CardDetail;
