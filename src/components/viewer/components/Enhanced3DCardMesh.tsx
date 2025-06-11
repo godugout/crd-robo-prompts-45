@@ -1,7 +1,7 @@
 
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState, Suspense } from 'react';
 import { useLoader } from '@react-three/fiber';
-import { TextureLoader, DoubleSide } from 'three';
+import { TextureLoader } from 'three';
 import type { CardData } from '@/types/card';
 
 interface Enhanced3DCardMeshProps {
@@ -17,6 +17,74 @@ interface Enhanced3DCardMeshProps {
   };
 }
 
+// Fallback component when textures fail to load
+const FallbackCard: React.FC<{ geometry: any; materialSettings: any }> = ({ geometry, materialSettings }) => {
+  return (
+    <group>
+      <mesh position={[0, 0, 0.05]}>
+        <planeGeometry args={[geometry.width, geometry.height]} />
+        <meshStandardMaterial 
+          color="#1a1a1a"
+          metalness={materialSettings.metalness}
+          roughness={materialSettings.roughness}
+        />
+      </mesh>
+      <mesh position={[0, 0, -0.05]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[geometry.width, geometry.height]} />
+        <meshStandardMaterial 
+          color="#2a2a2a"
+          metalness={materialSettings.metalness}
+          roughness={materialSettings.roughness}
+        />
+      </mesh>
+    </group>
+  );
+};
+
+// Component to load and render textures
+const TexturedCard: React.FC<{ 
+  frontUrl: string; 
+  backUrl: string; 
+  geometry: any; 
+  materialSettings: any;
+}> = ({ frontUrl, backUrl, geometry, materialSettings }) => {
+  try {
+    const frontTexture = useLoader(TextureLoader, frontUrl);
+    const backTexture = useLoader(TextureLoader, backUrl);
+
+    return (
+      <group>
+        {/* Card Front */}
+        <mesh position={[0, 0, geometry.depth / 2]}>
+          <planeGeometry args={[geometry.width, geometry.height]} />
+          <meshStandardMaterial 
+            map={frontTexture}
+            transparent
+            opacity={0.95}
+            metalness={materialSettings.metalness}
+            roughness={materialSettings.roughness}
+          />
+        </mesh>
+
+        {/* Card Back */}
+        <mesh position={[0, 0, -geometry.depth / 2]} rotation={[0, Math.PI, 0]}>
+          <planeGeometry args={[geometry.width, geometry.height]} />
+          <meshStandardMaterial 
+            map={backTexture}
+            transparent
+            opacity={0.95}
+            metalness={materialSettings.metalness}
+            roughness={materialSettings.roughness}
+          />
+        </mesh>
+      </group>
+    );
+  } catch (error) {
+    console.warn('Failed to load textures:', error);
+    return <FallbackCard geometry={geometry} materialSettings={materialSettings} />;
+  }
+};
+
 export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
   card,
   rotation,
@@ -29,41 +97,19 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
     reflectivity: 50
   }
 }) => {
-  const [imageError, setImageError] = useState(false);
-  const [backError, setBackError] = useState(false);
+  const [textureError, setTextureError] = useState(false);
 
-  // Safe image URL with fallback
-  const safeImageUrl = useMemo(() => {
-    if (!card.image_url || imageError) {
+  // Safe image URLs with fallbacks
+  const frontImageUrl = useMemo(() => {
+    if (!card?.image_url || card.image_url.includes('blob:')) {
       return '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
     }
     return card.image_url;
-  }, [card.image_url, imageError]);
+  }, [card?.image_url]);
 
-  // Safe back texture URL with fallback
-  const safeBackUrl = useMemo(() => {
-    if (backError) {
-      return '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
-    }
+  const backImageUrl = useMemo(() => {
     return '/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png';
-  }, [backError]);
-
-  // Load textures with error handling
-  const frontTexture = useLoader(TextureLoader, safeImageUrl);
-  const backTexture = useLoader(TextureLoader, safeBackUrl);
-
-  // Handle texture loading errors
-  useEffect(() => {
-    if (card.image_url && !card.image_url.startsWith('blob:')) {
-      const img = new Image();
-      img.onload = () => setImageError(false);
-      img.onerror = () => {
-        console.warn('Failed to load card image:', card.image_url);
-        setImageError(true);
-      };
-      img.src = card.image_url;
-    }
-  }, [card.image_url]);
+  }, []);
 
   // Create card geometry with standard proportions
   const cardGeometry = useMemo(() => {
@@ -73,36 +119,9 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
     return { width, height, depth };
   }, []);
 
-  return (
-    <group 
-      rotation={[rotation.x * Math.PI / 180, rotation.y * Math.PI / 180, 0]}
-      scale={zoom}
-    >
-      {/* Card Front */}
-      <mesh position={[0, 0, cardGeometry.depth / 2]}>
-        <planeGeometry args={[cardGeometry.width, cardGeometry.height]} />
-        <meshStandardMaterial 
-          map={frontTexture}
-          transparent
-          opacity={0.95}
-          metalness={materialSettings.metalness}
-          roughness={materialSettings.roughness}
-        />
-      </mesh>
-
-      {/* Card Back */}
-      <mesh position={[0, 0, -cardGeometry.depth / 2]} rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[cardGeometry.width, cardGeometry.height]} />
-        <meshStandardMaterial 
-          map={backTexture}
-          transparent
-          opacity={0.95}
-          metalness={materialSettings.metalness}
-          roughness={materialSettings.roughness}
-        />
-      </mesh>
-
-      {/* Card Edges */}
+  // Card edges component
+  const CardEdges: React.FC = () => (
+    <>
       {/* Top Edge */}
       <mesh position={[0, cardGeometry.height / 2, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <planeGeometry args={[cardGeometry.width, cardGeometry.depth]} />
@@ -142,6 +161,28 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
           roughness={materialSettings.roughness}
         />
       </mesh>
+    </>
+  );
+
+  if (!card) {
+    return null;
+  }
+
+  return (
+    <group 
+      rotation={[rotation.x * Math.PI / 180, rotation.y * Math.PI / 180, 0]}
+      scale={zoom}
+    >
+      <Suspense fallback={<FallbackCard geometry={cardGeometry} materialSettings={materialSettings} />}>
+        <TexturedCard 
+          frontUrl={frontImageUrl}
+          backUrl={backImageUrl}
+          geometry={cardGeometry}
+          materialSettings={materialSettings}
+        />
+      </Suspense>
+      
+      <CardEdges />
     </group>
   );
 };

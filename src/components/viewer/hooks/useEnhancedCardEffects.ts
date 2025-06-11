@@ -1,53 +1,62 @@
 
-import { useEffectConfigurations } from './useEffectConfigurations';
-import { useEffectValues } from './useEffectValues';
-import { useEffectPresets } from './useEffectPresets';
-import { useEffectOperations } from './useEffectOperations';
+import { useState, useCallback } from 'react';
 
-// Re-export types for backward compatibility
-export type { EffectParameter, VisualEffectConfig } from './useEffectConfigurations';
-export type { EffectValues } from './useEffectValues';
-
-// Re-export constants for backward compatibility
-export { ENHANCED_VISUAL_EFFECTS } from './useEffectConfigurations';
+export interface EffectValues {
+  holographic?: { intensity: number };
+  foilspray?: { intensity: number };
+  prizm?: { intensity: number };
+  chrome?: { intensity: number };
+  crystal?: { intensity: number };
+  gold?: { intensity: number };
+}
 
 export const useEnhancedCardEffects = () => {
-  const { defaultEffectValues } = useEffectConfigurations();
-  
-  const {
-    effectValues,
-    handleEffectChange: baseHandleEffectChange,
-    resetEffectValues,
-    resetSingleEffect,
-    setEffectValues
-  } = useEffectValues();
+  const [effectValues, setEffectValues] = useState<EffectValues>({
+    holographic: { intensity: 0 },
+    foilspray: { intensity: 0 },
+    prizm: { intensity: 0 },
+    chrome: { intensity: 0 },
+    crystal: { intensity: 0 },
+    gold: { intensity: 0 }
+  });
 
-  const {
-    presetState,
-    applyPreset,
-    clearPresetState,
-    isApplyingPreset
-  } = useEffectPresets(defaultEffectValues, setEffectValues);
+  const [presetState, setPresetState] = useState<string>('custom');
 
-  const {
-    handleEffectChange,
-    resetEffect,
-    resetAllEffects
-  } = useEffectOperations(
-    baseHandleEffectChange,
-    resetSingleEffect,
-    resetEffectValues,
-    clearPresetState,
-    isApplyingPreset
-  );
+  const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
+    setEffectValues(prev => ({
+      ...prev,
+      [effectId]: {
+        ...prev[effectId],
+        [parameterId]: value
+      }
+    }));
+    setPresetState('custom');
+  }, []);
+
+  const resetEffect = useCallback((effectId: string) => {
+    setEffectValues(prev => ({
+      ...prev,
+      [effectId]: { intensity: 0 }
+    }));
+  }, []);
+
+  const resetAllEffects = useCallback(() => {
+    setEffectValues({
+      holographic: { intensity: 0 },
+      foilspray: { intensity: 0 },
+      prizm: { intensity: 0 },
+      chrome: { intensity: 0 },
+      crystal: { intensity: 0 },
+      gold: { intensity: 0 }
+    });
+    setPresetState('custom');
+  }, []);
 
   return {
     effectValues,
     handleEffectChange,
     resetEffect,
     resetAllEffects,
-    applyPreset,
-    presetState,
-    isApplyingPreset
+    presetState
   };
 };

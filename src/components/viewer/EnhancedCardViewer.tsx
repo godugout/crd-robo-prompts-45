@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -43,6 +44,7 @@ class ViewerErrorBoundary extends React.Component<
   }
 
   static getDerivedStateFromError(error: Error) {
+    console.error('ViewerErrorBoundary caught error:', error);
     return { hasError: true, error };
   }
 
@@ -58,6 +60,9 @@ class ViewerErrorBoundary extends React.Component<
             <h2 className="text-xl font-bold mb-4">Card Viewer Error</h2>
             <p className="text-gray-400 mb-4">
               Unable to load the card viewer. Please try refreshing the page.
+            </p>
+            <p className="text-xs text-gray-500 mb-4">
+              Error: {this.state.error?.message}
             </p>
             <button 
               onClick={() => this.setState({ hasError: false })}
@@ -84,6 +89,28 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   
+  console.log('EnhancedCardViewer: Starting render', { card: card?.id, hasCard: !!card });
+
+  // Initialize hooks with error handling
+  let cardInteractionHook;
+  let viewerEffectsHook;
+
+  try {
+    cardInteractionHook = useCardInteraction();
+    console.log('EnhancedCardViewer: Card interaction hook loaded');
+  } catch (error) {
+    console.error('Failed to load card interaction hook:', error);
+    throw new Error('Card interaction system failed to initialize');
+  }
+
+  try {
+    viewerEffectsHook = useViewerEffects();
+    console.log('EnhancedCardViewer: Viewer effects hook loaded');
+  } catch (error) {
+    console.error('Failed to load viewer effects hook:', error);
+    throw new Error('Effects system failed to initialize');
+  }
+
   const {
     isFlipped,
     rotation,
@@ -97,7 +124,7 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
     handleMouseEnter,
     handleMouseLeave,
     handleClick
-  } = useCardInteraction();
+  } = cardInteractionHook;
 
   const {
     effectValues,
@@ -115,13 +142,14 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
     handleApplyCombo,
     setOverallBrightness,
     setInteractiveLighting
-  } = useViewerEffects();
+  } = viewerEffectsHook;
 
   const handleToggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
   };
 
   if (!card) {
+    console.warn('EnhancedCardViewer: No card provided');
     return (
       <div className="w-full h-full flex items-center justify-center bg-black text-white">
         <p>Loading card...</p>
@@ -223,6 +251,8 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
 };
 
 export const EnhancedCardViewer: React.FC<EnhancedCardViewerProps> = (props) => {
+  console.log('EnhancedCardViewer: Wrapper component rendering');
+  
   return (
     <MobileControlProvider>
       <EnhancedCardViewerContent {...props} />
