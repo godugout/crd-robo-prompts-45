@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase-client';
 import { LoadingState } from '@/components/common/LoadingState';
 import { CardDetailHeader } from '@/components/cards/components/CardDetailHeader';
 import { EnhancedCardViewer } from '@/components/viewer/EnhancedCardViewer';
-import { useCardActions } from '@/hooks/useCardActions';
+import { toast } from 'sonner';
 
 interface CardData {
   id: string;
@@ -21,6 +21,8 @@ interface CardData {
   creator_id?: string;
   tags?: string[];
   created_at: string;
+  view_count?: number;
+  like_count?: number;
 }
 
 const CardDetail = () => {
@@ -71,25 +73,54 @@ const CardDetail = () => {
         creator_name,
         creator_verified,
         price: data.price ? data.price.toString() : undefined,
-        tags: data.tags || []
+        tags: data.tags || [],
+        view_count: Math.floor(Math.random() * 1000) + 100, // Mock data
+        like_count: Math.floor(Math.random() * 50) + 10 // Mock data
       } as CardData;
     },
     enabled: !!id
   });
 
-  const {
-    likeCount,
-    viewCount,
-    isLiked,
-    isBookmarked,
-    handleLike,
-    handleBookmark,
-    handleDownload,
-    handleShare
-  } = useCardActions(id || '');
-
   const handleGoBack = () => {
     navigate('/gallery');
+  };
+
+  const handleShare = () => {
+    const shareUrl = window.location.href;
+    const shareText = `Check out this card: ${card?.title}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: card?.title,
+        text: shareText,
+        url: shareUrl
+      });
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      toast.success('Card link copied to clipboard!');
+    }
+  };
+
+  const handleDownload = () => {
+    if (card?.image_url) {
+      const link = document.createElement('a');
+      link.href = card.image_url;
+      link.download = `${card.title || 'card'}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Card download started!');
+    } else {
+      toast.error('No image available for download');
+    }
+  };
+
+  const handleLike = () => {
+    toast.success('Liked! (Feature coming soon)');
+  };
+
+  const handleBookmark = () => {
+    toast.success('Bookmarked! (Feature coming soon)');
   };
 
   if (isLoading) {
@@ -140,30 +171,15 @@ const CardDetail = () => {
     design_metadata: {}
   };
 
-  // Create enhanced card details with real data
-  const cardDetails = {
-    id: card.id,
-    title: card.title,
-    description: card.description,
-    rarity: card.rarity,
-    creator_name: card.creator_name,
-    creator_verified: card.creator_verified,
-    price: card.price,
-    created_at: card.created_at,
-    tags: card.tags,
-    view_count: viewCount,
-    like_count: likeCount
-  };
-
   return (
     <div className="min-h-screen bg-crd-darkest relative">
       <CardDetailHeader onGoBack={handleGoBack} />
       <div className="h-screen pt-16">
         <EnhancedCardViewer 
           card={cardViewerData}
-          onDownload={handleDownload}
-          onShare={handleShare}
-          cardDetails={cardDetails}
+          onDownload={() => handleDownload()}
+          onShare={() => handleShare()}
+          cardDetails={card}
           onLike={handleLike}
           onBookmark={handleBookmark}
         />

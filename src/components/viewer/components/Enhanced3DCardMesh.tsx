@@ -1,5 +1,5 @@
 
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useLoader } from '@react-three/fiber';
 import { TextureLoader, DoubleSide } from 'three';
 import type { CardData } from '@/types/card';
@@ -29,40 +29,17 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
     reflectivity: 50
   }
 }) => {
-  const [hasTextureError, setHasTextureError] = useState(false);
+  // Load the card image as a texture
+  const frontTexture = useLoader(
+    TextureLoader, 
+    card.image_url || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png'
+  );
 
-  // Validate image URL and fallback if it's a blob URL or invalid
-  const frontImageUrl = useMemo(() => {
-    const url = card.image_url;
-    if (!url || url.startsWith('blob:')) {
-      return '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
-    }
-    return url;
-  }, [card.image_url]);
-
-  const backImageUrl = '/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png';
-
-  // Load textures with error handling using useEffect instead of during render
-  let frontTexture, backTexture;
-  
-  try {
-    frontTexture = useLoader(TextureLoader, frontImageUrl);
-  } catch (error) {
-    console.warn('Failed to load front texture:', error);
-  }
-
-  try {
-    backTexture = useLoader(TextureLoader, backImageUrl);
-  } catch (error) {
-    console.warn('Failed to load back texture:', error);
-  }
-
-  // Handle texture loading errors in useEffect to prevent render loop
-  useEffect(() => {
-    if (!frontTexture && !hasTextureError) {
-      setHasTextureError(true);
-    }
-  }, [frontTexture, hasTextureError]);
+  // Load a default back texture (you can customize this)
+  const backTexture = useLoader(
+    TextureLoader, 
+    '/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png'
+  );
 
   // Create card geometry with thickness
   const cardGeometry = useMemo(() => {
@@ -73,27 +50,6 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
     
     return { width, height, depth };
   }, []);
-
-  // If textures failed to load, render a simple colored card
-  if (hasTextureError || !frontTexture) {
-    return (
-      <group 
-        rotation={[rotation.x * Math.PI / 180, rotation.y * Math.PI / 180, 0]}
-        scale={zoom}
-      >
-        <mesh position={[0, 0, cardGeometry.depth / 2]}>
-          <planeGeometry args={[cardGeometry.width, cardGeometry.height]} />
-          <meshStandardMaterial 
-            color="#4a5568"
-            transparent
-            opacity={0.95}
-            metalness={materialSettings.metalness}
-            roughness={materialSettings.roughness}
-          />
-        </mesh>
-      </group>
-    );
-  }
 
   return (
     <group 
@@ -113,18 +69,16 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
       </mesh>
 
       {/* Card Back */}
-      {backTexture && (
-        <mesh position={[0, 0, -cardGeometry.depth / 2]} rotation={[0, Math.PI, 0]}>
-          <planeGeometry args={[cardGeometry.width, cardGeometry.height]} />
-          <meshStandardMaterial 
-            map={backTexture}
-            transparent
-            opacity={0.95}
-            metalness={materialSettings.metalness}
-            roughness={materialSettings.roughness}
-          />
-        </mesh>
-      )}
+      <mesh position={[0, 0, -cardGeometry.depth / 2]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[cardGeometry.width, cardGeometry.height]} />
+        <meshStandardMaterial 
+          map={backTexture}
+          transparent
+          opacity={0.95}
+          metalness={materialSettings.metalness}
+          roughness={materialSettings.roughness}
+        />
+      </mesh>
 
       {/* Card Edges */}
       {/* Top Edge */}
