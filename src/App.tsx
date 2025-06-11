@@ -14,6 +14,7 @@ import LabsDebugDetection from '@/pages/LabsDebugDetection';
 import Studio from '@/pages/Studio';
 import CardDetail from '@/pages/CardDetail';
 import CardsExtractMultiple from '@/pages/CardsExtractMultiple';
+import CollectionDetail from '@/pages/CollectionDetail';
 import { AuthPage } from '@/components/auth/AuthPage';
 import { CardCreationFlow } from '@/components/editor/CardCreationFlow';
 
@@ -30,6 +31,7 @@ function App() {
             {/* Redirect old bulk upload route to labs */}
             <Route path="cards/bulk-upload" element={<Navigate to="/labs/bulk-upload" replace />} />
             <Route path="card/:id" element={<CardDetail />} />
+            <Route path="collection/:id" element={<CollectionDetail />} />
             <Route path="studio" element={<Studio />} />
             <Route path="gallery" element={<Gallery />} />
             <Route path="auth" element={<AuthPage />} />

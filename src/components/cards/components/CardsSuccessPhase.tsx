@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { CRDButton } from '@/components/ui/design-system';
 import { CheckCircle, Eye, RotateCcw, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface ExtractedCard {
   id: string;
@@ -37,6 +37,8 @@ export const CardsSuccessPhase: React.FC<CardsSuccessPhaseProps> = ({
   onStartNew,
   onViewCollection
 }) => {
+  const navigate = useNavigate();
+  
   const rarityBreakdown = extractedCards.reduce((acc, card) => {
     acc[card.rarity] = (acc[card.rarity] || 0) + 1;
     return acc;
@@ -54,6 +56,15 @@ export const CardsSuccessPhase: React.FC<CardsSuccessPhaseProps> = ({
     } else {
       navigator.clipboard.writeText(shareText);
       toast.success('Share text copied to clipboard!');
+    }
+  };
+
+  const handleViewCollection = () => {
+    if (collectionId) {
+      navigate(`/collection/${collectionId}`);
+    } else {
+      // Fallback to the original onViewCollection prop
+      onViewCollection();
     }
   };
 
@@ -148,7 +159,7 @@ export const CardsSuccessPhase: React.FC<CardsSuccessPhaseProps> = ({
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <CRDButton
           variant="primary"
-          onClick={onViewCollection}
+          onClick={handleViewCollection}
           className="bg-crd-green hover:bg-crd-green/90 text-black"
         >
           <Eye className="w-4 h-4 mr-2" />

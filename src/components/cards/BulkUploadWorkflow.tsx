@@ -241,7 +241,13 @@ export const BulkUploadWorkflow: React.FC = () => {
               Upload More Cards
             </button>
             <button
-              onClick={() => window.location.href = '/gallery'}
+              onClick={() => {
+                if (workflowState.selectedCollectionId) {
+                  window.location.href = `/collection/${workflowState.selectedCollectionId}`;
+                } else {
+                  window.location.href = '/gallery';
+                }
+              }}
               className="px-6 py-3 border border-crd-mediumGray text-crd-lightGray hover:text-white hover:border-crd-lightGray rounded-lg transition-colors"
             >
               View Collection
