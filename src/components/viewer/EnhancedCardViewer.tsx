@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, ErrorBoundary } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { FlexibleMobilePanel } from './components/FlexibleMobilePanel';
@@ -31,6 +31,48 @@ interface EnhancedCardViewerProps {
   };
   onLike?: () => void;
   onBookmark?: () => void;
+}
+
+// Error boundary component
+class ViewerErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Enhanced Card Viewer Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="w-full h-full flex items-center justify-center bg-black text-white">
+          <div className="text-center p-8">
+            <h2 className="text-xl font-bold mb-4">Card Viewer Error</h2>
+            <p className="text-gray-400 mb-4">
+              Unable to load the card viewer. Please try refreshing the page.
+            </p>
+            <button 
+              onClick={() => this.setState({ hasError: false })}
+              className="bg-crd-green text-black px-4 py-2 rounded-lg hover:bg-crd-green/90"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
 }
 
 const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
@@ -104,78 +146,80 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
   };
 
   return (
-    <div className={cn(
-      "relative w-full h-full bg-gradient-to-br from-gray-900 via-black to-gray-800 flex",
-      isFullscreen && "fixed inset-0 z-50"
-    )}>
-      {/* 3D Viewer */}
-      <div className="flex-1 relative">
-        <ViewerControlButtons 
-          isFullscreen={isFullscreen}
-          onToggleFullscreen={handleToggleFullscreen}
-        />
-
-        <Canvas
-          camera={{ position: [0, 0, 8], fov: 45 }}
-          className="w-full h-full"
-          gl={{ 
-            antialias: true, 
-            alpha: true,
-            powerPreference: "high-performance"
-          }}
-          onCreated={({ gl, scene, camera }) => {
-            gl.setClearColor('#000000', 0);
-            console.log('Canvas created successfully');
-          }}
-        >
-          <OrbitControls
-            enablePan={true}
-            enableZoom={true}
-            enableRotate={true}
-            minDistance={3}
-            maxDistance={15}
-            autoRotate={false}
-            autoRotateSpeed={0.5}
+    <ViewerErrorBoundary>
+      <div className={cn(
+        "relative w-full h-full bg-gradient-to-br from-gray-900 via-black to-gray-800 flex",
+        isFullscreen && "fixed inset-0 z-50"
+      )}>
+        {/* 3D Viewer */}
+        <div className="flex-1 relative">
+          <ViewerControlButtons 
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={handleToggleFullscreen}
           />
-          
-          {/* Enhanced lighting setup for better card visibility */}
-          <ambientLight intensity={0.6} />
-          <directionalLight position={[10, 10, 5]} intensity={1.2} />
-          <directionalLight position={[-10, -10, -5]} intensity={0.4} />
-          <pointLight position={[0, 0, 10]} intensity={0.8} />
-          
-          <EffectProvider value={effectContextValue}>
-            <Enhanced3DCardMesh 
-              card={card}
-              rotation={rotation}
-              zoom={zoom}
-              materialSettings={materialSettings}
-            />
-          </EffectProvider>
-        </Canvas>
-      </div>
 
-      {/* Flexible Panel */}
-      <div className="w-80 h-full">
-        <FlexibleMobilePanel
-          card={card}
-          cardDetails={cardDetails}
-          effectValues={effectValues}
-          onEffectChange={handleEffectChange}
-          onResetAllEffects={resetAllEffects}
-          overallBrightness={overallBrightness}
-          onBrightnessChange={setOverallBrightness}
-          interactiveLighting={interactiveLighting}
-          onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
-          materialSettings={materialSettings}
-          onMaterialSettingsChange={handleMaterialSettingsChange}
-          onLike={onLike}
-          onBookmark={onBookmark}
-          onShare={onShare}
-          onDownload={onDownload}
-        />
+          <Canvas
+            camera={{ position: [0, 0, 8], fov: 45 }}
+            className="w-full h-full"
+            gl={{ 
+              antialias: true, 
+              alpha: true,
+              powerPreference: "high-performance"
+            }}
+            onCreated={({ gl, scene, camera }) => {
+              gl.setClearColor('#000000', 0);
+              console.log('Canvas created successfully');
+            }}
+          >
+            <OrbitControls
+              enablePan={true}
+              enableZoom={true}
+              enableRotate={true}
+              minDistance={3}
+              maxDistance={15}
+              autoRotate={false}
+              autoRotateSpeed={0.5}
+            />
+            
+            {/* Enhanced lighting setup for better card visibility */}
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[10, 10, 5]} intensity={1.2} />
+            <directionalLight position={[-10, -10, -5]} intensity={0.4} />
+            <pointLight position={[0, 0, 10]} intensity={0.8} />
+            
+            <EffectProvider value={effectContextValue}>
+              <Enhanced3DCardMesh 
+                card={card}
+                rotation={rotation}
+                zoom={zoom}
+                materialSettings={materialSettings}
+              />
+            </EffectProvider>
+          </Canvas>
+        </div>
+
+        {/* Flexible Panel */}
+        <div className="w-80 h-full">
+          <FlexibleMobilePanel
+            card={card}
+            cardDetails={cardDetails}
+            effectValues={effectValues}
+            onEffectChange={handleEffectChange}
+            onResetAllEffects={resetAllEffects}
+            overallBrightness={overallBrightness}
+            onBrightnessChange={setOverallBrightness}
+            interactiveLighting={interactiveLighting}
+            onInteractiveLightingToggle={setInteractiveLighting}
+            materialSettings={materialSettings}
+            onMaterialSettingsChange={handleMaterialSettingsChange}
+            onLike={onLike}
+            onBookmark={onBookmark}
+            onShare={onShare}
+            onDownload={onDownload}
+          />
+        </div>
       </div>
-    </div>
+    </ViewerErrorBoundary>
   );
 };
 

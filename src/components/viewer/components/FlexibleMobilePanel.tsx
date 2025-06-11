@@ -5,7 +5,7 @@ import { DetailsTabContent } from './DetailsTabContent';
 import { StudioTabContent } from './StudioTabContent';
 import { Info, Settings } from 'lucide-react';
 import type { CardData } from '@/types/card';
-import type { EffectValues } from '../hooks/useEffectValues';
+import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 
 interface FlexibleMobilePanelProps {
   card: CardData;

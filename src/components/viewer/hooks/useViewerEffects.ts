@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useEnhancedCardEffects } from './useEnhancedCardEffects';
 import type { EnvironmentScene, LightingPreset } from '../types';
 
@@ -24,19 +24,19 @@ export const useViewerEffects = () => {
     reflectivity: 50
   });
 
-  const handleSceneChange = (scene: EnvironmentScene) => {
+  const handleSceneChange = useCallback((scene: EnvironmentScene) => {
     setSelectedScene(scene);
-  };
+  }, []);
 
-  const handleLightingChange = (lighting: LightingPreset) => {
+  const handleLightingChange = useCallback((lighting: LightingPreset) => {
     setSelectedLighting(lighting);
-  };
+  }, []);
 
-  const handleMaterialSettingsChange = (settings: any) => {
+  const handleMaterialSettingsChange = useCallback((settings: any) => {
     setMaterialSettings(prevSettings => ({ ...prevSettings, ...settings }));
-  };
+  }, []);
 
-  const handleApplyCombo = (combo: any) => {
+  const handleApplyCombo = useCallback((combo: any) => {
     Object.entries(combo.effects || {}).forEach(([effectId, parameters]: [string, any]) => {
       Object.entries(parameters).forEach(([parameterId, value]) => {
         handleEffectChange(effectId, parameterId, value as string | number | boolean);
@@ -47,7 +47,15 @@ export const useViewerEffects = () => {
     if (combo.lighting) setSelectedLighting(combo.lighting);
     if (combo.materials) setMaterialSettings(combo.materials);
     if (combo.brightness) setOverallBrightness([combo.brightness]);
-  };
+  }, [handleEffectChange]);
+
+  const handleBrightnessChange = useCallback((value: number[]) => {
+    setOverallBrightness(value);
+  }, []);
+
+  const handleInteractiveLightingToggle = useCallback(() => {
+    setInteractiveLighting(prev => !prev);
+  }, []);
 
   return {
     effectValues,
@@ -64,7 +72,7 @@ export const useViewerEffects = () => {
     handleLightingChange,
     handleMaterialSettingsChange,
     handleApplyCombo,
-    setOverallBrightness,
-    setInteractiveLighting
+    setOverallBrightness: handleBrightnessChange,
+    setInteractiveLighting: handleInteractiveLightingToggle
   };
 };

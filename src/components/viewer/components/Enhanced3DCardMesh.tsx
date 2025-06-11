@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { useLoader } from '@react-three/fiber';
 import { TextureLoader, DoubleSide } from 'three';
 import type { CardData } from '@/types/card';
@@ -29,25 +29,47 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
     reflectivity: 50
   }
 }) => {
-  // Load the card image as a texture
-  const frontTexture = useLoader(
-    TextureLoader, 
-    card.image_url || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png'
-  );
+  const [imageError, setImageError] = useState(false);
+  const [backError, setBackError] = useState(false);
 
-  // Load a default back texture (you can customize this)
-  const backTexture = useLoader(
-    TextureLoader, 
-    '/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png'
-  );
+  // Safe image URL with fallback
+  const safeImageUrl = useMemo(() => {
+    if (!card.image_url || imageError) {
+      return '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
+    }
+    return card.image_url;
+  }, [card.image_url, imageError]);
 
-  // Create card geometry with thickness
+  // Safe back texture URL with fallback
+  const safeBackUrl = useMemo(() => {
+    if (backError) {
+      return '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
+    }
+    return '/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png';
+  }, [backError]);
+
+  // Load textures with error handling
+  const frontTexture = useLoader(TextureLoader, safeImageUrl);
+  const backTexture = useLoader(TextureLoader, safeBackUrl);
+
+  // Handle texture loading errors
+  useEffect(() => {
+    if (card.image_url && !card.image_url.startsWith('blob:')) {
+      const img = new Image();
+      img.onload = () => setImageError(false);
+      img.onerror = () => {
+        console.warn('Failed to load card image:', card.image_url);
+        setImageError(true);
+      };
+      img.src = card.image_url;
+    }
+  }, [card.image_url]);
+
+  // Create card geometry with standard proportions
   const cardGeometry = useMemo(() => {
-    // Standard trading card proportions (2.5" x 3.5")
     const width = 4;
     const height = 5.6;
-    const depth = 0.1; // Card thickness
-    
+    const depth = 0.1;
     return { width, height, depth };
   }, []);
 
