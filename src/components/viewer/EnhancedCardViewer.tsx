@@ -3,14 +3,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Vector3 } from 'three';
-import { Interactive3DCard } from './Interactive3DCard';
+import { CardContainer } from './components/CardContainer';
 import { EnhancedMobileStudioPanel } from './components/EnhancedMobileStudioPanel';
 import { MobileControlProvider, useMobileControl } from './context/MobileControlContext';
 import { useEnhancedCardEffects } from './hooks/useEnhancedCardEffects';
 import { Button } from '@/components/ui/button';
 import { Settings, Maximize, Minimize } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { CardData } from '@/hooks/useCardData';
+import type { CardData } from '@/types/card';
 import type { EnvironmentScene, LightingPreset } from './types';
 
 interface EnhancedCardViewerProps {
@@ -66,6 +66,12 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
     transmission: 0.0
   });
 
+  // Card interaction state for CardContainer
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [rotation, setRotation] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
+
   const cameraPosition: Vector3 = useMemo(() => new Vector3(0, 0, 5), []);
 
   const handleToggleFullscreen = () => {
@@ -108,23 +114,31 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
     );
   }
 
-  // Create a properly formatted card object for Interactive3DCard
-  const formattedCard = {
-    ...card,
-    design_metadata: card.design_metadata || {},
-    visibility: card.visibility || 'public' as any,
-    creator_attribution: card.creator_attribution || {
-      creator_name: cardDetails?.creator_name,
-      creator_id: undefined,
-      collaboration_type: 'solo' as any
-    },
-    publishing_options: card.publishing_options || {
-      marketplace_listing: false,
-      crd_catalog_inclusion: true,
-      print_available: false,
-      pricing: { currency: 'USD' },
-      distribution: { limited_edition: false }
+  // Simple card interaction handlers for CardContainer
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      // Simple rotation based on mouse movement
+      setRotation(prev => ({
+        x: prev.x + e.movementY * 0.5,
+        y: prev.y + e.movementX * 0.5
+      }));
     }
+  };
+
+  const handleMouseEnter = () => {
+    // Card hover effect
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleClick = () => {
+    setIsFlipped(!isFlipped);
   };
 
   return (
@@ -181,8 +195,20 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
           autoRotateSpeed={0.5}
         />
         
-        <Interactive3DCard
-          card={formattedCard}
+        <CardContainer
+          card={card}
+          isFlipped={isFlipped}
+          rotation={rotation}
+          zoom={zoom}
+          isDragging={isDragging}
+          frameStyles={{}}
+          physicalEffectStyles={{}}
+          SurfaceTexture={null}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onClick={handleClick}
         />
       </Canvas>
 
