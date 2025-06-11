@@ -1,10 +1,9 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase-client';
 import { LoadingState } from '@/components/common/LoadingState';
-import { CardDetailStudioLayout } from '@/components/cards/CardDetailStudioLayout';
 import { CardDetailHeader } from '@/components/cards/components/CardDetailHeader';
 import { EnhancedCardViewer } from '@/components/viewer/EnhancedCardViewer';
 import { toast } from 'sonner';
@@ -173,19 +172,19 @@ const CardDetail = () => {
   };
 
   return (
-    <CardDetailStudioLayout
-      header={<CardDetailHeader onGoBack={handleGoBack} />}
-      rightPanel={null}
-    >
-      <EnhancedCardViewer 
-        card={cardViewerData}
-        onDownload={() => handleDownload()}
-        onShare={() => handleShare()}
-        cardDetails={card}
-        onLike={handleLike}
-        onBookmark={handleBookmark}
-      />
-    </CardDetailStudioLayout>
+    <div className="min-h-screen bg-crd-darkest relative">
+      <CardDetailHeader onGoBack={handleGoBack} />
+      <div className="h-screen pt-16">
+        <EnhancedCardViewer 
+          card={cardViewerData}
+          onDownload={() => handleDownload()}
+          onShare={() => handleShare()}
+          cardDetails={card}
+          onLike={handleLike}
+          onBookmark={handleBookmark}
+        />
+      </div>
+    </div>
   );
 };
 

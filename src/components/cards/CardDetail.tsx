@@ -10,9 +10,9 @@ import { convertToViewerCardData } from '@/components/viewer/types';
 const CardDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: cards, isLoading } = useCardData();
+  const { card, loading, error } = useCardData(id);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-crd-darkest flex items-center justify-center">
         <div className="text-white">Loading card...</div>
@@ -20,7 +20,20 @@ const CardDetail = () => {
     );
   }
 
-  const card = cards?.find(c => c.id === id);
+  if (error) {
+    return (
+      <div className="min-h-screen bg-crd-darkest flex items-center justify-center">
+        <div className="text-center text-white">
+          <h1 className="text-2xl font-bold mb-4">Error Loading Card</h1>
+          <p className="mb-4">{error}</p>
+          <Button onClick={() => navigate('/cards')} variant="outline">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Cards
+          </Button>
+        </div>
+      </div>
+    );
+  }
   
   if (!card) {
     return (
