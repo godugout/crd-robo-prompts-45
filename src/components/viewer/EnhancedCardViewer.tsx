@@ -6,6 +6,7 @@ import { Vector3 } from 'three';
 import { CardContainer } from './components/CardContainer';
 import { EnhancedMobileStudioPanel } from './components/EnhancedMobileStudioPanel';
 import { MobileControlProvider, useMobileControl } from './context/MobileControlContext';
+import { EffectProvider } from './contexts/EffectContext';
 import { useEnhancedCardEffects } from './hooks/useEnhancedCardEffects';
 import { Button } from '@/components/ui/button';
 import { Settings, Maximize, Minimize } from 'lucide-react';
@@ -63,7 +64,8 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
     metallic: 0.5,
     roughness: 0.5,
     clearcoat: 0.0,
-    transmission: 0.0
+    transmission: 0.0,
+    reflectivity: 50
   });
 
   // Card interaction state for CardContainer
@@ -71,6 +73,8 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0.5, y: 0.5 });
+  const [isHovering, setIsHovering] = useState(false);
 
   const cameraPosition: Vector3 = useMemo(() => new Vector3(0, 0, 5), []);
 
@@ -127,18 +131,40 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
         y: prev.y + e.movementX * 0.5
       }));
     }
+    
+    // Update mouse position for effects
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    setMousePosition({
+      x: (e.clientX - rect.left) / rect.width,
+      y: (e.clientY - rect.top) / rect.height
+    });
   };
 
   const handleMouseEnter = () => {
-    // Card hover effect
+    setIsHovering(true);
   };
 
   const handleMouseLeave = () => {
     setIsDragging(false);
+    setIsHovering(false);
   };
 
   const handleClick = () => {
     setIsFlipped(!isFlipped);
+  };
+
+  // Prepare context values for EffectProvider
+  const effectContextValue = {
+    effectValues,
+    mousePosition,
+    isHovering,
+    showEffects: true,
+    materialSettings,
+    interactiveLighting,
+    effectIntensity: [80],
+    handleEffectChange,
+    resetEffect,
+    resetAllEffects
   };
 
   return (
@@ -195,21 +221,23 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
           autoRotateSpeed={0.5}
         />
         
-        <CardContainer
-          card={card}
-          isFlipped={isFlipped}
-          rotation={rotation}
-          zoom={zoom}
-          isDragging={isDragging}
-          frameStyles={{}}
-          physicalEffectStyles={{}}
-          SurfaceTexture={null}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          onClick={handleClick}
-        />
+        <EffectProvider value={effectContextValue}>
+          <CardContainer
+            card={card}
+            isFlipped={isFlipped}
+            rotation={rotation}
+            zoom={zoom}
+            isDragging={isDragging}
+            frameStyles={{}}
+            physicalEffectStyles={{}}
+            SurfaceTexture={null}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            onClick={handleClick}
+          />
+        </EffectProvider>
       </Canvas>
 
       {/* Enhanced Mobile Studio Panel */}
