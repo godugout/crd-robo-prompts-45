@@ -71,11 +71,23 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
     setIsFullscreen(!isFullscreen);
   };
 
+  const handleSceneChange = (scene: string) => {
+    setSelectedScene(scene);
+  };
+
+  const handleLightingChange = (lighting: string) => {
+    setSelectedLighting(lighting);
+  };
+
+  const handleMaterialSettingsChange = (settings: any) => {
+    setMaterialSettings(prevSettings => ({ ...prevSettings, ...settings }));
+  };
+
   const handleApplyCombo = (combo: any) => {
     // Apply effect combo using the correct method
     Object.entries(combo.effects || {}).forEach(([effectId, parameters]: [string, any]) => {
       Object.entries(parameters).forEach(([parameterId, value]) => {
-        handleEffectChange(effectId, parameterId, value);
+        handleEffectChange(effectId, parameterId, value as string | number | boolean);
       });
     });
     
@@ -85,6 +97,15 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
     if (combo.materials) setMaterialSettings(combo.materials);
     if (combo.brightness) setOverallBrightness([combo.brightness]);
   };
+
+  // Ensure card data is available before rendering
+  if (!card) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-black text-white">
+        <p>Loading card...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={cn(
@@ -141,9 +162,7 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
         />
         
         <Interactive3DCard
-          imageUrl={card.image_url || '/placeholder.png'}
-          title={card.title}
-          effectValues={effectValues}
+          card={card}
         />
       </Canvas>
 
@@ -156,13 +175,13 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
         interactiveLighting={interactiveLighting}
         materialSettings={materialSettings as any}
         isFullscreen={isFullscreen}
-        onSceneChange={setSelectedScene}
-        onLightingChange={setSelectedLighting}
+        onSceneChange={handleSceneChange}
+        onLightingChange={handleLightingChange}
         onEffectChange={handleEffectChange}
         onResetAllEffects={resetAllEffects}
         onBrightnessChange={setOverallBrightness}
         onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
-        onMaterialSettingsChange={setMaterialSettings}
+        onMaterialSettingsChange={handleMaterialSettingsChange}
         onToggleFullscreen={handleToggleFullscreen}
         onDownload={onDownload || (() => {})}
         onShare={onShare}
