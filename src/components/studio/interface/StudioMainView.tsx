@@ -41,26 +41,11 @@ export const StudioMainView: React.FC<StudioMainViewProps> = ({
   // Calculate responsive dimensions based on fullscreen mode
   const getCardDimensions = () => {
     if (isFullscreen) {
-      // In fullscreen, use maximum available space with minimal margins
-      const availableWidth = window.innerWidth - 40; // Small margin
-      const availableHeight = window.innerHeight - 40; // Small margin
-      const aspectRatio = 2.5 / 3.5; // Standard trading card ratio (width/height)
-      
-      // Calculate dimensions that fit within available space
-      let width, height;
-      
-      // Try fitting by width first
-      const heightFromWidth = availableWidth / aspectRatio;
-      if (heightFromWidth <= availableHeight) {
-        width = availableWidth;
-        height = heightFromWidth;
-      } else {
-        // If that doesn't fit, fit by height
-        height = availableHeight;
-        width = height * aspectRatio;
-      }
-      
-      return { width, height };
+      // In fullscreen, use viewport dimensions directly with minimal margins
+      return {
+        width: window.innerWidth - 20,
+        height: window.innerHeight - 20
+      };
     } else {
       // Normal mode - use a reasonable size
       return {
@@ -74,21 +59,25 @@ export const StudioMainView: React.FC<StudioMainViewProps> = ({
   const scaleFactor = cardDimensions.width / 384; // Scale relative to base size
 
   return (
-    <div className={`flex-1 flex items-center justify-center ${
-      isFullscreen ? 'p-5' : 'p-8'
-    } bg-gradient-to-br from-editor-darker via-black to-editor-darker relative ${
-      isFullscreen ? 'w-full h-full' : ''
-    }`}>
+    <div className={`${
+      isFullscreen 
+        ? 'w-screen h-screen p-2 fixed inset-0 z-40' 
+        : 'flex-1 p-8'
+    } bg-gradient-to-br from-editor-darker via-black to-editor-darker relative flex items-center justify-center`}>
       {/* Card Preview Container */}
-      <div className={`relative ${isFullscreen ? 'w-full h-full flex items-center justify-center' : ''}`}>
+      <div className={`relative ${
+        isFullscreen 
+          ? 'w-full h-full flex items-center justify-center' 
+          : ''
+      }`}>
         <div className="absolute inset-0 bg-gradient-to-r from-crd-green/20 via-transparent to-crd-purple/20 blur-3xl"></div>
-        <div className="relative z-10">
+        <div className="relative z-10 w-full h-full flex items-center justify-center">
           {show3DPreview ? (
             <div 
               className={isFullscreen ? 'w-full h-full' : ''}
               style={{
-                width: isFullscreen ? '100%' : cardDimensions.width,
-                height: isFullscreen ? '100%' : cardDimensions.height
+                width: isFullscreen ? '100vw' : cardDimensions.width,
+                height: isFullscreen ? '100vh' : cardDimensions.height
               }}
             >
               <Advanced3DCardRenderer
@@ -116,7 +105,7 @@ export const StudioMainView: React.FC<StudioMainViewProps> = ({
       </div>
 
       {/* Floating Action Buttons */}
-      <div className={`absolute ${isFullscreen ? 'bottom-4 right-4' : 'bottom-6 right-6'} flex flex-col gap-2`}>
+      <div className={`absolute ${isFullscreen ? 'bottom-4 right-4' : 'bottom-6 right-6'} flex flex-col gap-2 z-50`}>
         <Button
           onClick={() => setShow3DPreview(!show3DPreview)}
           className={`w-12 h-12 rounded-full ${show3DPreview ? 'bg-crd-green text-black' : 'bg-editor-dark text-white border border-editor-border'}`}
@@ -139,8 +128,20 @@ export const StudioMainView: React.FC<StudioMainViewProps> = ({
 
       {/* Fullscreen indicator */}
       {isFullscreen && (
-        <div className="absolute top-4 right-4 bg-crd-green text-black px-3 py-1 rounded-full text-sm font-medium">
+        <div className="absolute top-4 right-4 bg-crd-green text-black px-3 py-1 rounded-full text-sm font-medium z-50">
           Fullscreen Mode
+        </div>
+      )}
+
+      {/* Exit fullscreen button */}
+      {isFullscreen && (
+        <div className="absolute top-4 left-4 z-50">
+          <Button
+            onClick={() => setIsFullscreen(false)}
+            className="bg-[#ffd700] hover:bg-[#ffd700]/90 text-[#0f4c3a] font-bold"
+          >
+            Exit Fullscreen
+          </Button>
         </div>
       )}
     </div>

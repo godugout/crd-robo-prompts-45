@@ -224,11 +224,21 @@ export const Advanced3DCardRenderer: React.FC<Advanced3DCardRendererProps> = ({
   onInteraction
 }) => {
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative overflow-hidden">
       <Canvas 
         shadows 
-        style={{ width: '100%', height: '100%' }}
-        gl={{ antialias: true, alpha: true }}
+        style={{ 
+          width: '100%', 
+          height: '100%',
+          display: 'block'
+        }}
+        gl={{ 
+          antialias: true, 
+          alpha: true,
+          preserveDrawingBuffer: true 
+        }}
+        dpr={[1, 2]}
+        camera={{ position: [0, 0, 5], fov: 50 }}
       >
         <PerspectiveCamera makeDefault position={[0, 0, 5]} />
         
@@ -266,7 +276,7 @@ export const Advanced3DCardRenderer: React.FC<Advanced3DCardRendererProps> = ({
       </Canvas>
       
       {/* Overlay UI for 3D controls */}
-      <div className="absolute top-4 right-4 bg-black/80 p-3 rounded-lg text-white">
+      <div className="absolute top-4 right-4 bg-black/80 p-3 rounded-lg text-white z-10">
         <div className="text-xs space-y-1">
           <div>Drag to rotate</div>
           <div>Scroll to zoom</div>
