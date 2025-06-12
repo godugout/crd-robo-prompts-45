@@ -80,7 +80,7 @@ export const SimplifiedCardCreationHub = () => {
               key={option.id} 
               className="relative overflow-hidden bg-editor-dark border-editor-border hover:border-crd-green/50 transition-all duration-300 group"
             >
-              <CardContent className="p-6">
+              <CardContent className="p-6 relative z-10">
                 <div className="flex items-start gap-4">
                   <div className={`p-3 rounded-lg bg-gradient-to-r ${option.color} flex-shrink-0`}>
                     <option.icon className="w-6 h-6 text-white" />
@@ -100,33 +100,24 @@ export const SimplifiedCardCreationHub = () => {
                       {option.description}
                     </p>
                     
-                    {/* Debug: Both Link and Button approaches */}
-                    <div className="space-y-2">
+                    {/* Main navigation button with proper z-index */}
+                    <div className="relative z-20">
                       <Link to={option.href}>
                         <Button 
-                          className="w-full bg-crd-green text-black hover:bg-crd-green/90 group-hover:translate-x-1 transition-transform"
+                          className="w-full bg-crd-green text-black hover:bg-crd-green/90 group-hover:translate-x-1 transition-transform relative z-20"
                           onClick={() => console.log('Link button clicked:', option.href)}
                         >
-                          Get Started (Link)
+                          Get Started
                           <ArrowRight className="w-4 h-4 ml-2" />
                         </Button>
                       </Link>
-                      
-                      <Button 
-                        onClick={() => handleNavigation(option.href, option.title)}
-                        className="w-full bg-blue-600 text-white hover:bg-blue-700"
-                        variant="outline"
-                      >
-                        Get Started (Navigate)
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
                     </div>
                   </div>
                 </div>
               </CardContent>
               
-              {/* Decorative gradient overlay */}
-              <div className={`absolute inset-0 bg-gradient-to-r ${option.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
+              {/* Decorative gradient overlay with pointer-events disabled */}
+              <div className={`absolute inset-0 bg-gradient-to-r ${option.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300 pointer-events-none z-0`} />
             </Card>
           ))}
         </div>
