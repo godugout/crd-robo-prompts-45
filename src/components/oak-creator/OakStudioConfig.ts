@@ -22,8 +22,8 @@ export const OAK_STUDIO_CONFIG = {
       background_color: template.colors?.primary || '#0f4c3a',
       border_color: template.colors?.secondary || '#ffd700',
       text_color: template.colors?.accent || '#ffffff',
-      layout: 'full-bleed',
-      style: 'vintage'
+      layout: 'full-bleed' as const,
+      style: 'vintage' as const
     }
   })),
   
