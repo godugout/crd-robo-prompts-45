@@ -8,7 +8,6 @@ export const convertOakTemplateToStudio = (oakTemplate: OakTemplate): TemplateCo
     id: oakTemplate.id,
     name: oakTemplate.name,
     category: oakTemplate.category.toLowerCase(),
-    thumbnail: oakTemplate.thumbnail,
     template_data: {
       layout: 'full-bleed',
       style: {
@@ -25,7 +24,8 @@ export const convertOakTemplateToStudio = (oakTemplate: OakTemplate): TemplateCo
         bodySize: 14
       },
       effects: ['vintage'],
-      supports_stickers: true
+      supports_stickers: true,
+      thumbnail: oakTemplate.thumbnail
     }
   };
   return templateConfig;
