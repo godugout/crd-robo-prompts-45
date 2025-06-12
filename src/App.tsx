@@ -25,6 +25,11 @@ function App() {
   const { isFeatureEnabled } = useFeatureFlags();
   const showOakFeatures = isFeatureEnabled('OAK_FEATURES');
 
+  console.log('App component rendering', { 
+    currentPath: window.location.pathname,
+    currentSearch: window.location.search 
+  });
+
   return (
     <OverlayProvider>
       <div className="min-h-screen bg-crd-darkest">

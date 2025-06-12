@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -12,6 +12,20 @@ import {
 } from 'lucide-react';
 
 export const SimplifiedCardCreationHub = () => {
+  const navigate = useNavigate();
+  
+  console.log('SimplifiedCardCreationHub rendering');
+
+  const handleNavigation = (href: string, title: string) => {
+    console.log('Navigation clicked:', { href, title });
+    try {
+      navigate(href);
+      console.log('Navigation successful to:', href);
+    } catch (error) {
+      console.error('Navigation failed:', error);
+    }
+  };
+
   const creationOptions = [
     {
       id: 'cutout',
@@ -85,14 +99,28 @@ export const SimplifiedCardCreationHub = () => {
                     <p className="text-gray-300 mb-4 leading-relaxed">
                       {option.description}
                     </p>
-                    <Link to={option.href}>
+                    
+                    {/* Debug: Both Link and Button approaches */}
+                    <div className="space-y-2">
+                      <Link to={option.href}>
+                        <Button 
+                          className="w-full bg-crd-green text-black hover:bg-crd-green/90 group-hover:translate-x-1 transition-transform"
+                          onClick={() => console.log('Link button clicked:', option.href)}
+                        >
+                          Get Started (Link)
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </Link>
+                      
                       <Button 
-                        className="bg-crd-green text-black hover:bg-crd-green/90 group-hover:translate-x-1 transition-transform"
+                        onClick={() => handleNavigation(option.href, option.title)}
+                        className="w-full bg-blue-600 text-white hover:bg-blue-700"
+                        variant="outline"
                       >
-                        Get Started
+                        Get Started (Navigate)
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
-                    </Link>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -107,6 +135,9 @@ export const SimplifiedCardCreationHub = () => {
           <p className="text-gray-400 text-sm">
             New to card creation? Try the <strong className="text-crd-green">Photo Cutout Cards</strong> option for the easiest experience!
           </p>
+          <div className="mt-4 text-xs text-gray-500">
+            Debug: Current URL = {window.location.href}
+          </div>
         </div>
       </div>
     </div>
