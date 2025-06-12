@@ -31,7 +31,7 @@ export const convertOakTemplateToStudio = (oakTemplate: OakTemplate): TemplateCo
   return templateConfig;
 };
 
-export const createOakStudioTemplate = (oakTemplate: OakTemplate, imageUrl?: string) => {
+export const createOakStudioTemplate = (oakTemplate: OakTemplate, imageUrl?: string): TemplateConfig => {
   const studioTemplate = convertOakTemplateToStudio(oakTemplate);
   
   return {
