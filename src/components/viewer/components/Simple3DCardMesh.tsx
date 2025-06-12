@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import { useLoader } from '@react-three/fiber';
 import { TextureLoader } from 'three';
 import type { CardData } from '@/types/card';
+import { Responsive3DCardMesh } from './Responsive3DCardMesh';
 
 interface Simple3DCardMeshProps {
   card: CardData;
@@ -15,33 +16,21 @@ export const Simple3DCardMesh: React.FC<Simple3DCardMeshProps> = ({
   rotation,
   zoom
 }) => {
-  // Load the card image as a texture
-  const texture = useLoader(
-    TextureLoader, 
-    card.image_url || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png'
-  );
-
-  // Memoize the material to prevent unnecessary re-renders
-  const material = useMemo(() => {
-    return {
-      map: texture,
-      transparent: true,
-      opacity: 0.95,
-    };
-  }, [texture]);
+  // Simple material settings for basic 3D rendering
+  const materialSettings = useMemo(() => ({
+    metalness: 0.1,
+    roughness: 0.8,
+    clearcoat: 0.0,
+    transmission: 0.0,
+    reflectivity: 0.2
+  }), []);
 
   return (
-    <mesh 
-      position={[0, 0, 0]}
-      rotation={[rotation.x * Math.PI / 180, rotation.y * Math.PI / 180, 0]}
-      scale={zoom}
-    >
-      <planeGeometry args={[4, 5.6]} />
-      <meshStandardMaterial 
-        map={texture}
-        transparent
-        opacity={0.95}
-      />
-    </mesh>
+    <Responsive3DCardMesh 
+      card={card}
+      rotation={rotation}
+      zoom={zoom}
+      materialSettings={materialSettings}
+    />
   );
 };

@@ -178,7 +178,7 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
         "relative w-full h-full bg-gradient-to-br from-gray-900 via-black to-gray-800 flex",
         isFullscreen && "fixed inset-0 z-50"
       )}>
-        {/* 3D Viewer */}
+        {/* 3D Viewer - Full Canvas */}
         <div className="flex-1 relative">
           <ViewerControlButtons 
             isFullscreen={isFullscreen}
@@ -186,7 +186,7 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
           />
 
           <Canvas
-            camera={{ position: [0, 0, 8], fov: 45 }}
+            camera={{ position: [0, 0, 6], fov: 50 }}
             className="w-full h-full"
             gl={{ 
               antialias: true, 
@@ -202,8 +202,8 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
               enablePan={true}
               enableZoom={true}
               enableRotate={true}
-              minDistance={3}
-              maxDistance={15}
+              minDistance={2}
+              maxDistance={12}
               autoRotate={false}
               autoRotateSpeed={0.5}
             />
