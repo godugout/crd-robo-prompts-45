@@ -36,11 +36,8 @@ export const createOakStudioTemplate = (oakTemplate: OakTemplate, imageUrl?: str
   
   return {
     ...studioTemplate,
-    template_data: {
-      ...studioTemplate.template_data,
-      image_url: imageUrl || oakTemplate.thumbnail,
-      title: oakTemplate.name,
-      description: oakTemplate.description
-    }
+    image_url: imageUrl || oakTemplate.thumbnail,
+    title: oakTemplate.name,
+    description: oakTemplate.description
   };
 };
