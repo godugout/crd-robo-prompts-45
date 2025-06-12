@@ -15,13 +15,22 @@ export const OAK_STUDIO_CONFIG = {
   // Convert OAK templates to studio format
   templates: SAMPLE_OAK_TEMPLATES.map((template): TemplateConfig => {
     const templateData = {
-      primaryColor: template.colors?.primary || '#0f4c3a',
-      accentColor: template.colors?.secondary || '#ffd700',
-      backgroundColor: template.colors?.accent || '#ffffff',
-      borderRadius: 8,
-      borderWidth: 2,
-      layout: 'full-bleed' as const,
-      style: 'vintage' as const
+      layout: 'full-bleed',
+      style: {
+        primaryColor: template.colors?.primary || '#0f4c3a',
+        accentColor: template.colors?.secondary || '#ffd700',
+        backgroundColor: template.colors?.accent || '#ffffff',
+        borderRadius: 8,
+        borderWidth: 2
+      },
+      typography: {
+        titleFont: 'Inter',
+        bodyFont: 'Inter',
+        titleSize: 24,
+        bodySize: 14
+      },
+      effects: ['vintage'],
+      supports_stickers: true
     };
 
     return {

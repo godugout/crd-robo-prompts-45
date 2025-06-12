@@ -5,13 +5,22 @@ import { TemplateConfig } from '@/components/editor/wizard/wizardConfig';
 
 export const convertOakTemplateToStudio = (oakTemplate: OakTemplate): TemplateConfig => {
   const templateData = {
-    primaryColor: oakTemplate.colors?.primary || '#0f4c3a',
-    accentColor: oakTemplate.colors?.secondary || '#ffd700',
-    backgroundColor: oakTemplate.colors?.accent || '#ffffff',
-    borderRadius: 8,
-    borderWidth: 2,
-    layout: 'full-bleed' as const,
-    style: 'vintage' as const
+    layout: 'full-bleed',
+    style: {
+      primaryColor: oakTemplate.colors?.primary || '#0f4c3a',
+      accentColor: oakTemplate.colors?.secondary || '#ffd700',
+      backgroundColor: oakTemplate.colors?.accent || '#ffffff',
+      borderRadius: 8,
+      borderWidth: 2
+    },
+    typography: {
+      titleFont: 'Inter',
+      bodyFont: 'Inter',
+      titleSize: 24,
+      bodySize: 14
+    },
+    effects: ['vintage'],
+    supports_stickers: true
   };
 
   return {
