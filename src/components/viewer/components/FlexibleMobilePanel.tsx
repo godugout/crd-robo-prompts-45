@@ -6,7 +6,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { EnhancedCustomizePanel } from './EnhancedCustomizePanel';
 import { CardInfoSection } from './CardInfoSection';
 import { QuickComboPresets } from './QuickComboPresets';
-import { useMobileControl } from '../context/MobileControlContext';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { MaterialSettings } from '../types';
 
@@ -51,8 +50,6 @@ export const FlexibleMobilePanel: React.FC<FlexibleMobilePanelProps> = ({
   const [selectedPresetId, setSelectedPresetId] = useState<string | undefined>();
   const [isApplyingPreset, setIsApplyingPreset] = useState(false);
 
-  const { selectedScene, selectedLighting } = useMobileControl();
-
   const handleApplyCombo = async (combo: any) => {
     setIsApplyingPreset(true);
     setSelectedPresetId(combo.id);
@@ -60,8 +57,11 @@ export const FlexibleMobilePanel: React.FC<FlexibleMobilePanelProps> = ({
     // Apply each effect with a small delay for smooth animation
     for (const [effectId, parameters] of Object.entries(combo.effects)) {
       for (const [parameterId, value] of Object.entries(parameters as any)) {
-        onEffectChange(effectId, parameterId, value);
-        await new Promise(resolve => setTimeout(resolve, 50));
+        // Type guard to ensure value is of correct type
+        if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') {
+          onEffectChange(effectId, parameterId, value);
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
       }
     }
     
@@ -153,8 +153,8 @@ export const FlexibleMobilePanel: React.FC<FlexibleMobilePanelProps> = ({
       {/* Enhanced Studio Panel Overlay */}
       {showEnhancedPanel && (
         <EnhancedCustomizePanel
-          selectedScene={selectedScene}
-          selectedLighting={selectedLighting}
+          selectedScene={'studio' as any}
+          selectedLighting={'studio' as any}
           effectValues={effectValues}
           overallBrightness={overallBrightness}
           interactiveLighting={interactiveLighting}
