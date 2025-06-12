@@ -18,6 +18,7 @@ export const OAK_STUDIO_CONFIG = {
       id: template.id,
       name: template.name,
       category: template.category.toLowerCase(),
+      thumbnail: template.thumbnail,
       template_data: {
         layout: 'full-bleed',
         style: {
@@ -34,8 +35,7 @@ export const OAK_STUDIO_CONFIG = {
           bodySize: 14
         },
         effects: ['vintage'],
-        supports_stickers: true,
-        thumbnail: template.thumbnail
+        supports_stickers: true
       }
     };
     return templateConfig;
