@@ -1,21 +1,38 @@
 
-/* Custom utility classes for specialized components */
-
-/* Editor-specific utilities */
-.editor-sidebar {
-  scrollbar-width: thin;
-  scrollbar-color: var(--editor-tool) var(--editor-darker);
+/* Custom scrollbar styles */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-.editor-sidebar::-webkit-scrollbar {
-  width: 8px;
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
-.editor-sidebar::-webkit-scrollbar-track {
-  background: var(--editor-darker);
+/* Oakland A's themed custom styles */
+.oak-gradient {
+  background: linear-gradient(135deg, #0f4c3a 0%, #1a5c47 100%);
 }
 
-.editor-sidebar::-webkit-scrollbar-thumb {
-  background-color: var(--editor-tool);
-  border-radius: 4px;
+.oak-gold-glow {
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+/* Smooth transitions for interactive elements */
+.oak-transition {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Template card hover effects */
+.template-card {
+  transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.template-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Canvas zoom animation */
+.canvas-zoom {
+  transition: width 0.3s ease-in-out, height 0.3s ease-in-out;
 }

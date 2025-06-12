@@ -15,6 +15,7 @@ import Studio from '@/pages/Studio';
 import CardDetail from '@/pages/CardDetail';
 import CardsExtractMultiple from '@/pages/CardsExtractMultiple';
 import CollectionDetail from '@/pages/CollectionDetail';
+import OakMemoryCreator from '@/pages/OakMemoryCreator';
 import { AuthPage } from '@/components/auth/AuthPage';
 import { CardCreationFlow } from '@/components/editor/CardCreationFlow';
 
@@ -38,6 +39,7 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<AccountSettings />} />
             <Route path="collections" element={<Collections />} />
+            <Route path="oak-memory-creator" element={<OakMemoryCreator />} />
             {/* Redirect old creators route to collections */}
             <Route path="creators" element={<Navigate to="/collections" replace />} />
             {/* Labs routes */}
