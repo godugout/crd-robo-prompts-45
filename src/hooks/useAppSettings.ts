@@ -4,7 +4,7 @@ import { supabase, getAppId } from '@/integrations/supabase/client';
 
 export interface AppSettings {
   theme?: string;
-  features?: string[];
+  features?: Record<string, boolean>;
   config?: Record<string, any>;
 }
 
