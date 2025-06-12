@@ -41,16 +41,57 @@ const FallbackCard: React.FC<{ geometry: any; materialSettings: any }> = ({ geom
   );
 };
 
-// Component to load and render textures
-const TexturedCard: React.FC<{ 
+// Safe texture loader component
+const SafeTexturedCard: React.FC<{ 
   frontUrl: string; 
   backUrl: string; 
   geometry: any; 
   materialSettings: any;
 }> = ({ frontUrl, backUrl, geometry, materialSettings }) => {
+  const [texturesLoaded, setTexturesLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  // Validate URLs before loading
+  const validFrontUrl = useMemo(() => {
+    try {
+      if (!frontUrl || frontUrl.includes('blob:') || frontUrl === '') {
+        return '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
+      }
+      new URL(frontUrl, window.location.origin);
+      return frontUrl;
+    } catch {
+      return '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
+    }
+  }, [frontUrl]);
+
+  const validBackUrl = useMemo(() => {
+    try {
+      if (!backUrl || backUrl.includes('blob:') || backUrl === '') {
+        return '/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png';
+      }
+      new URL(backUrl, window.location.origin);
+      return backUrl;
+    } catch {
+      return '/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png';
+    }
+  }, [backUrl]);
+
   try {
-    const frontTexture = useLoader(TextureLoader, frontUrl);
-    const backTexture = useLoader(TextureLoader, backUrl);
+    const frontTexture = useLoader(TextureLoader, validFrontUrl, (loader) => {
+      setTexturesLoaded(true);
+    }, (error) => {
+      console.warn('Failed to load front texture:', error);
+      setHasError(true);
+    });
+
+    const backTexture = useLoader(TextureLoader, validBackUrl, undefined, (error) => {
+      console.warn('Failed to load back texture:', error);
+      setHasError(true);
+    });
+
+    if (hasError) {
+      return <FallbackCard geometry={geometry} materialSettings={materialSettings} />;
+    }
 
     return (
       <group>
@@ -80,7 +121,7 @@ const TexturedCard: React.FC<{
       </group>
     );
   } catch (error) {
-    console.warn('Failed to load textures:', error);
+    console.warn('Error in SafeTexturedCard:', error);
     return <FallbackCard geometry={geometry} materialSettings={materialSettings} />;
   }
 };
@@ -97,11 +138,27 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
     reflectivity: 50
   }
 }) => {
-  const [textureError, setTextureError] = useState(false);
+  // Validate card data
+  if (!card || typeof card !== 'object') {
+    console.warn('Invalid card data provided to Enhanced3DCardMesh:', card);
+    return null;
+  }
 
-  // Safe image URLs with fallbacks
+  // Validate rotation data
+  const safeRotation = useMemo(() => ({
+    x: typeof rotation?.x === 'number' && !isNaN(rotation.x) ? rotation.x : 0,
+    y: typeof rotation?.y === 'number' && !isNaN(rotation.y) ? rotation.y : 0
+  }), [rotation]);
+
+  // Validate zoom
+  const safeZoom = useMemo(() => {
+    const zoomValue = typeof zoom === 'number' && !isNaN(zoom) && zoom > 0 ? zoom : 1;
+    return Math.max(0.1, Math.min(5, zoomValue)); // Clamp between 0.1 and 5
+  }, [zoom]);
+
+  // Safe image URLs with validation
   const frontImageUrl = useMemo(() => {
-    if (!card?.image_url || card.image_url.includes('blob:')) {
+    if (!card?.image_url || typeof card.image_url !== 'string') {
       return '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
     }
     return card.image_url;
@@ -164,17 +221,13 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
     </>
   );
 
-  if (!card) {
-    return null;
-  }
-
   return (
     <group 
-      rotation={[rotation.x * Math.PI / 180, rotation.y * Math.PI / 180, 0]}
-      scale={zoom}
+      rotation={[safeRotation.x * Math.PI / 180, safeRotation.y * Math.PI / 180, 0]}
+      scale={safeZoom}
     >
       <Suspense fallback={<FallbackCard geometry={cardGeometry} materialSettings={materialSettings} />}>
-        <TexturedCard 
+        <SafeTexturedCard 
           frontUrl={frontImageUrl}
           backUrl={backImageUrl}
           geometry={cardGeometry}
