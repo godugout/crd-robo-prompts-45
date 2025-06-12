@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { OverlayProvider } from '@/components/overlay/OverlayProvider';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { RouteErrorBoundary } from '@/components/layout/RouteErrorBoundary';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import Index from '@/pages/Index';
 import Gallery from '@/pages/Gallery';
 import Profile from '@/pages/Profile';
@@ -11,6 +12,7 @@ import Collections from '@/pages/Collections';
 import Labs from '@/pages/Labs';
 import LabsBulkUpload from '@/pages/LabsBulkUpload';
 import LabsDebugDetection from '@/pages/LabsDebugDetection';
+import LabsFeatureFlags from '@/pages/LabsFeatureFlags';
 import Studio from '@/pages/Studio';
 import CardDetail from '@/pages/CardDetail';
 import CardsExtractMultiple from '@/pages/CardsExtractMultiple';
@@ -20,6 +22,9 @@ import { AuthPage } from '@/components/auth/AuthPage';
 import { CardCreationFlow } from '@/components/editor/CardCreationFlow';
 
 function App() {
+  const { isFeatureEnabled } = useFeatureFlags();
+  const showOakFeatures = isFeatureEnabled('OAK_FEATURES');
+
   return (
     <OverlayProvider>
       <div className="min-h-screen bg-crd-darkest">
@@ -39,13 +44,17 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<AccountSettings />} />
             <Route path="collections" element={<Collections />} />
-            <Route path="oak-memory-creator" element={<OakMemoryCreator />} />
+            {/* Conditionally render OAK route based on feature flag */}
+            {showOakFeatures && (
+              <Route path="oak-memory-creator" element={<OakMemoryCreator />} />
+            )}
             {/* Redirect old creators route to collections */}
             <Route path="creators" element={<Navigate to="/collections" replace />} />
             {/* Labs routes */}
             <Route path="labs" element={<Labs />} />
             <Route path="labs/bulk-upload" element={<LabsBulkUpload />} />
             <Route path="labs/debug-detection" element={<LabsDebugDetection />} />
+            <Route path="labs/feature-flags" element={<LabsFeatureFlags />} />
             {/* Redirect old debug route to labs */}
             <Route path="debug-detection" element={<Navigate to="/labs/debug-detection" replace />} />
             <Route path="*" element={<RouteErrorBoundary />} />

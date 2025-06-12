@@ -2,173 +2,99 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   Upload, 
   Bug, 
-  Sparkles, 
-  Palette, 
-  Beaker,
-  ArrowRight
+  Beaker, 
+  TestTube, 
+  Zap,
+  Settings
 } from 'lucide-react';
 
 const Labs = () => {
   const labFeatures = [
     {
-      title: "Bulk Card Upload",
-      description: "Upload multiple trading card images at once with AI-powered detection and batch processing.",
+      title: 'Bulk Upload',
+      description: 'Upload multiple card images at once and process them in batches',
       icon: Upload,
-      path: "/labs/bulk-upload",
-      status: "beta",
-      color: "from-blue-500 to-cyan-500"
+      path: '/labs/bulk-upload',
+      status: 'Stable'
     },
     {
-      title: "Detection Debug",
-      description: "Debug and test card detection algorithms with detailed analysis and visual feedback.",
+      title: 'Debug Detection',
+      description: 'Advanced debugging tools for card detection and image processing',
       icon: Bug,
-      path: "/labs/debug-detection",
-      status: "experimental",
-      color: "from-red-500 to-pink-500"
+      path: '/labs/debug-detection',
+      status: 'Beta'
     },
     {
-      title: "Effects Laboratory",
-      description: "Experiment with cutting-edge visual effects and material shaders for your cards.",
-      icon: Sparkles,
-      path: "/labs/effects",
-      status: "coming-soon",
-      color: "from-purple-500 to-indigo-500"
-    },
-    {
-      title: "Template Studio",
-      description: "Create and test experimental card templates with advanced customization options.",
-      icon: Palette,
-      path: "/labs/templates",
-      status: "coming-soon",
-      color: "from-green-500 to-emerald-500"
+      title: 'Feature Flags',
+      description: 'Control experimental features and application toggles',
+      icon: Settings,
+      path: '/labs/feature-flags',
+      status: 'Admin'
     }
   ];
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'beta':
-        return <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">Beta</Badge>;
-      case 'experimental':
-        return <Badge variant="secondary" className="bg-orange-500/20 text-orange-400 border-orange-500/30">Experimental</Badge>;
-      case 'coming-soon':
-        return <Badge variant="secondary" className="bg-gray-500/20 text-gray-400 border-gray-500/30">Coming Soon</Badge>;
-      default:
-        return null;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-crd-darkest via-crd-darker to-crd-darkest">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-crd-green/10 via-transparent to-crd-blue/10" />
-        <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-20">
-          <div className="text-center space-y-6">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <Beaker className="w-12 h-12 text-crd-green" />
-              <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-crd-green to-crd-blue bg-clip-text text-transparent">
-                CRD Labs
-              </h1>
-            </div>
-            <p className="text-xl text-crd-lightGray max-w-3xl mx-auto leading-relaxed">
-              Explore experimental features, beta tools, and cutting-edge technology. 
-              Help us shape the future of card creation and discovery.
-            </p>
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-crd-darkGray/50 rounded-full border border-crd-mediumGray">
-              <div className="w-2 h-2 bg-crd-green rounded-full animate-pulse" />
-              <span className="text-sm text-crd-lightGray">Experimental features may change without notice</span>
-            </div>
+    <div className="container mx-auto py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8 text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Beaker className="w-8 h-8 text-crd-green" />
+            <h1 className="text-3xl font-bold">CRD Labs</h1>
           </div>
-        </div>
-      </div>
-
-      {/* Features Grid */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {labFeatures.map((feature, index) => {
-            const IconComponent = feature.icon;
-            const isDisabled = feature.status === 'coming-soon';
-            
-            if (isDisabled) {
-              return (
-                <div key={index}>
-                  <Card className="h-full bg-editor-dark/50 backdrop-blur-sm border-white/10 opacity-60 cursor-not-allowed">
-                    <CardHeader className="space-y-4">
-                      <div className="flex items-start justify-between">
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center`}>
-                          <IconComponent className="w-6 h-6 text-white" />
-                        </div>
-                        {getStatusBadge(feature.status)}
-                      </div>
-                      <div>
-                        <CardTitle className="text-xl text-white mb-2 flex items-center gap-2">
-                          {feature.title}
-                        </CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-crd-lightGray leading-relaxed">
-                        {feature.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-              );
-            }
-
-            return (
-              <Link key={index} to={feature.path}>
-                <Card className="h-full bg-editor-dark/50 backdrop-blur-sm border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer">
-                  <CardHeader className="space-y-4">
-                    <div className="flex items-start justify-between">
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center`}>
-                        <IconComponent className="w-6 h-6 text-white" />
-                      </div>
-                      {getStatusBadge(feature.status)}
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl text-white mb-2 flex items-center gap-2">
-                        {feature.title}
-                        <ArrowRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-crd-lightGray leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Additional Info */}
-        <div className="mt-16 text-center space-y-6">
-          <h2 className="text-2xl font-bold text-white">Join the Experiment</h2>
-          <p className="text-crd-lightGray max-w-2xl mx-auto">
-            CRD Labs features are experimental and may change based on user feedback. 
-            Help us improve by sharing your thoughts and reporting any issues you encounter.
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Experimental features and advanced tools for power users. 
+            These features are in development and may change.
           </p>
-          <div className="flex flex-wrap justify-center gap-4 text-sm text-crd-lightGray">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full" />
-              <span>Beta - Stable but evolving</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-orange-500 rounded-full" />
-              <span>Experimental - Unstable, testing only</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-gray-500 rounded-full" />
-              <span>Coming Soon - In development</span>
-            </div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {labFeatures.map((feature) => (
+            <Card key={feature.path} className="relative overflow-hidden">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-crd-green/10">
+                    <feature.icon className="w-5 h-5 text-crd-green" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">{feature.title}</CardTitle>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      feature.status === 'Stable' ? 'bg-green-100 text-green-700' :
+                      feature.status === 'Beta' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-blue-100 text-blue-700'
+                    }`}>
+                      {feature.status}
+                    </span>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  {feature.description}
+                </p>
+                <Link to={feature.path}>
+                  <Button className="w-full">
+                    Launch Feature
+                    <TestTube className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="mt-12 p-6 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-3 mb-3">
+            <Zap className="w-5 h-5 text-orange-500" />
+            <h3 className="font-semibold">Experimental Notice</h3>
           </div>
+          <p className="text-sm text-muted-foreground">
+            Features in Labs are experimental and may be unstable. They're designed for 
+            testing and feedback. Use caution when using these features in production workflows.
+          </p>
         </div>
       </div>
     </div>

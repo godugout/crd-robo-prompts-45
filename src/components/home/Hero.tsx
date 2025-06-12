@@ -3,9 +3,13 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { CRDButton, Typography } from "@/components/ui/design-system";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 
 export const Hero: React.FC = () => {
   const { containerPadding, isMobile } = useResponsiveLayout();
+  const { isFeatureEnabled } = useFeatureFlags();
+  
+  const showOakFeatures = isFeatureEnabled('OAK_FEATURES');
   
   console.log('Hero component rendering');
   
@@ -39,15 +43,17 @@ export const Hero: React.FC = () => {
               Get started
             </CRDButton>
           </Link>
-          <Link to="/oak-memory-creator">
-            <CRDButton 
-              variant="secondary"
-              size="lg"
-              className="gap-3 text-lg font-extrabold px-6 py-4 rounded-[90px] max-md:px-5"
-            >
-              Try Oakland A's Creator
-            </CRDButton>
-          </Link>
+          {showOakFeatures && (
+            <Link to="/oak-memory-creator">
+              <CRDButton 
+                variant="secondary"
+                size="lg"
+                className="gap-3 text-lg font-extrabold px-6 py-4 rounded-[90px] max-md:px-5"
+              >
+                Try Oakland A's Creator
+              </CRDButton>
+            </Link>
+          )}
         </div>
       </div>
     </div>

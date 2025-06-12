@@ -3,6 +3,7 @@ import React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 interface EasterEggModalProps {
   isOpen: boolean;
@@ -11,6 +12,14 @@ interface EasterEggModalProps {
 
 export const EasterEggModal: React.FC<EasterEggModalProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+  const { isFeatureEnabled } = useFeatureFlags();
+  
+  const showOakFeatures = isFeatureEnabled('OAK_FEATURES');
+
+  // Don't show the modal if OAK features are disabled
+  if (!showOakFeatures) {
+    return null;
+  }
 
   const handleEnterOakCreator = () => {
     navigate('/oak-memory-creator');
