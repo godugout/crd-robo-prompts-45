@@ -1,5 +1,5 @@
 
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useState } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { TextureLoader } from 'three';
 import { Text, Box, RoundedBox } from '@react-three/drei';
@@ -21,6 +21,7 @@ export const OakMemory3DCard: React.FC<OakMemory3DCardProps> = ({
 }) => {
   const meshRef = useRef<Mesh>(null);
   const backMeshRef = useRef<Mesh>(null);
+  const [textureError, setTextureError] = useState(false);
 
   // Validate template data
   if (!template || typeof template !== 'object' || !template.thumbnail) {
@@ -28,12 +29,14 @@ export const OakMemory3DCard: React.FC<OakMemory3DCardProps> = ({
     return null;
   }
 
-  // Safe template data
+  // Safe template data with local fallback
   const safeTemplate = {
     thumbnail: template.thumbnail || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png',
     name: template.name || 'Oakland A\'s Card',
     id: template.id || 'default'
   };
+
+  console.log('OakMemory3DCard rendering with template:', safeTemplate.name);
 
   // Validate and sanitize props
   const safeRotation = useMemo(() => {
@@ -52,16 +55,26 @@ export const OakMemory3DCard: React.FC<OakMemory3DCardProps> = ({
     return ['matte', 'glossy', 'foil'].includes(finish) ? finish : 'glossy';
   }, [finish]);
 
-  // Load template texture with error handling
+  // Load template texture with comprehensive error handling
   let frontTexture;
   try {
-    frontTexture = useLoader(TextureLoader, safeTemplate.thumbnail);
+    // First try the template thumbnail
+    frontTexture = useLoader(TextureLoader, safeTemplate.thumbnail, undefined, (error) => {
+      console.warn('Failed to load template texture:', safeTemplate.thumbnail, error);
+      setTextureError(true);
+    });
   } catch (error) {
-    console.warn('Failed to load template texture, using fallback:', error);
-    frontTexture = useLoader(TextureLoader, '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png');
+    console.warn('TextureLoader error for template:', error);
+    // Use local fallback
+    try {
+      frontTexture = useLoader(TextureLoader, '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png');
+    } catch (fallbackError) {
+      console.error('Failed to load fallback texture:', fallbackError);
+      return null;
+    }
   }
 
-  // Oakland A's card back design
+  // Oakland A's card back design - create texture programmatically to avoid loading issues
   const oaklandAsBrandingTexture = useMemo(() => {
     try {
       const canvas = document.createElement('canvas');
@@ -109,11 +122,12 @@ export const OakMemory3DCard: React.FC<OakMemory3DCardProps> = ({
       ctx.strokeRect(20, 20, 472, 680);
 
       const texture = new TextureLoader().load(canvas.toDataURL());
+      console.log('Created Oakland A\'s branding texture successfully');
       return texture;
     } catch (error) {
       console.warn('Failed to create Oakland A\'s branding texture:', error);
-      // Return fallback texture
-      return useLoader(TextureLoader, '/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png');
+      // Return basic colored texture as last resort
+      return null;
     }
   }, []);
 
@@ -148,7 +162,7 @@ export const OakMemory3DCard: React.FC<OakMemory3DCardProps> = ({
     }
   }, [safeFinish]);
 
-  // Subtle animation with error handling
+  // Gentle animation with error handling
   useFrame((state) => {
     try {
       if (meshRef.current && backMeshRef.current) {
@@ -207,6 +221,7 @@ export const OakMemory3DCard: React.FC<OakMemory3DCardProps> = ({
         >
           <meshPhysicalMaterial
             map={oaklandAsBrandingTexture}
+            color={oaklandAsBrandingTexture ? undefined : '#0f4c3a'}
             {...materialProps}
             transparent={false}
           />

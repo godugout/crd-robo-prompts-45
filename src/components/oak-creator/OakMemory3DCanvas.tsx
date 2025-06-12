@@ -1,5 +1,5 @@
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei';
 import { ZoomIn, ZoomOut, Maximize, Eye, Box } from 'lucide-react';
@@ -16,12 +16,51 @@ interface OakMemory3DCanvasProps {
   onZoomOut: () => void;
 }
 
-// Loading fallback component
+// Enhanced loading fallback component
 const LoadingFallback: React.FC = () => (
   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0f4c3a] to-[#1a5c47]">
     <div className="text-center">
       <div className="w-8 h-8 border-2 border-[#ffd700] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
       <p className="text-[#ffd700] text-sm">Loading 3D Viewer...</p>
+    </div>
+  </div>
+);
+
+// 3D Error fallback component
+const ThreeDErrorFallback: React.FC<{ template: OakTemplate | null, onRetry: () => void }> = ({ template, onRetry }) => (
+  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0f4c3a] to-[#1a5c47]">
+    <div className="text-center p-8">
+      <div className="w-16 h-16 rounded-full bg-[#ffd700]/20 flex items-center justify-center mx-auto mb-4">
+        <Box className="w-8 h-8 text-[#ffd700]" />
+      </div>
+      <h3 className="text-white text-lg font-semibold mb-2">3D Viewer Error</h3>
+      <p className="text-white/80 text-sm mb-4">
+        The 3D viewer couldn't load. Showing 2D preview instead.
+      </p>
+      {template && (
+        <div className="relative mb-4">
+          <img
+            src={template.thumbnail}
+            alt={template.name}
+            className="w-48 h-64 object-cover rounded-lg shadow-xl mx-auto"
+            onError={(e) => {
+              e.currentTarget.src = '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
+            }}
+          />
+          <div className="absolute inset-0 bg-black/20 flex items-center justify-center rounded-lg">
+            <div className="text-center text-white">
+              <h4 className="text-lg font-bold mb-1">{template.name}</h4>
+              <p className="text-sm opacity-90">2D Preview Mode</p>
+            </div>
+          </div>
+        </div>
+      )}
+      <Button
+        onClick={onRetry}
+        className="bg-[#ffd700] text-[#0f4c3a] hover:bg-[#ffd700]/90"
+      >
+        Try 3D Again
+      </Button>
     </div>
   </div>
 );
@@ -35,6 +74,9 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
   const [is3DMode, setIs3DMode] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [cardFinish, setCardFinish] = useState<'matte' | 'glossy' | 'foil'>('glossy');
+  const [threeDError, setThreeDError] = useState(false);
+  const [isCanvasReady, setIsCanvasReady] = useState(false);
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
   
   const {
     cameraPosition,
@@ -44,13 +86,64 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
     resetView
   } = useOakMemory3DInteraction();
 
+  // Add loading timeout
+  useEffect(() => {
+    if (is3DMode && !threeDError && !isCanvasReady) {
+      const timeout = setTimeout(() => {
+        console.warn('3D Canvas loading timeout - falling back to 2D');
+        setLoadingTimeout(true);
+        setThreeDError(true);
+      }, 10000); // 10 second timeout
+
+      return () => clearTimeout(timeout);
+    }
+  }, [is3DMode, threeDError, isCanvasReady]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('OakMemory3DCanvas state:', {
+      selectedTemplate: selectedTemplate?.name,
+      is3DMode,
+      threeDError,
+      isCanvasReady,
+      loadingTimeout
+    });
+  }, [selectedTemplate, is3DMode, threeDError, isCanvasReady, loadingTimeout]);
+
+  const handleCanvasCreated = (state: any) => {
+    console.log('Canvas created successfully:', state);
+    setIsCanvasReady(true);
+    setThreeDError(false);
+  };
+
+  const handleCanvasError = (error: any) => {
+    console.error('Canvas error:', error);
+    setThreeDError(true);
+    setIsCanvasReady(false);
+  };
+
+  const retryThreeD = () => {
+    console.log('Retrying 3D viewer...');
+    setThreeDError(false);
+    setIsCanvasReady(false);
+    setLoadingTimeout(false);
+    setIs3DMode(true);
+  };
+
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
   };
 
   const toggle3DMode = () => {
+    console.log('Toggling 3D mode from', is3DMode, 'to', !is3DMode);
     setIs3DMode(!is3DMode);
     setAutoRotate(false);
+    if (!is3DMode) {
+      // Reset error state when switching back to 3D
+      setThreeDError(false);
+      setIsCanvasReady(false);
+      setLoadingTimeout(false);
+    }
   };
 
   const toggleAutoRotate = () => {
@@ -100,13 +193,13 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
           {/* View Controls */}
           <div className="flex flex-col gap-1">
             <Button
-              variant={is3DMode ? "default" : "outline"}
+              variant={is3DMode && !threeDError ? "default" : "outline"}
               size="sm"
               onClick={toggle3DMode}
-              className={is3DMode ? "bg-[#0f4c3a] text-[#ffd700]" : "hover:bg-gray-100"}
+              className={is3DMode && !threeDError ? "bg-[#0f4c3a] text-[#ffd700]" : "hover:bg-gray-100"}
             >
               <Box className="w-4 h-4 mr-2" />
-              {is3DMode ? '3D' : '2D'}
+              {is3DMode && !threeDError ? '3D' : '2D'}
             </Button>
             
             <Button
@@ -118,7 +211,7 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
               <Maximize className="w-4 h-4" />
             </Button>
 
-            {is3DMode && (
+            {is3DMode && !threeDError && (
               <Button
                 variant={autoRotate ? "default" : "outline"}
                 size="sm"
@@ -167,16 +260,22 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
             }}
           >
             {isValidTemplate ? (
-              is3DMode ? (
-                <OakMemoryErrorBoundary fallback={<LoadingFallback />}>
+              is3DMode && !threeDError ? (
+                <OakMemoryErrorBoundary 
+                  fallback={<ThreeDErrorFallback template={selectedTemplate} onRetry={retryThreeD} />}
+                >
                   <Canvas
                     shadows
                     camera={{ position: cameraPosition, fov: 50 }}
-                    gl={{ antialias: true, alpha: false }}
-                    dpr={[1, 2]}
-                    onCreated={({ gl }) => {
-                      gl.setClearColor('#f5f5f5');
+                    gl={{ 
+                      antialias: true, 
+                      alpha: false,
+                      powerPreference: "high-performance",
+                      failIfMajorPerformanceCaveat: false
                     }}
+                    dpr={[1, 2]}
+                    onCreated={handleCanvasCreated}
+                    onError={handleCanvasError}
                   >
                     <Suspense fallback={null}>
                       {/* Oakland A's Themed Lighting */}
@@ -214,16 +313,17 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
                         maxPolarAngle={Math.PI}
                       />
 
-                      {/* Oakland Stadium Environment */}
-                      <Environment
-                        background
-                        files={[
-                          'https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=2048&h=1024&fit=crop',
-                        ]}
-                        ground={{ height: 15, radius: 60, scale: 100 }}
-                      />
+                      {/* Simplified Environment - no external URLs */}
+                      <Environment preset="studio" background />
                     </Suspense>
                   </Canvas>
+
+                  {/* Show loading overlay if canvas isn't ready */}
+                  {!isCanvasReady && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#0f4c3a] to-[#1a5c47]">
+                      <LoadingFallback />
+                    </div>
+                  )}
                 </OakMemoryErrorBoundary>
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0f4c3a] to-[#1a5c47]">
@@ -240,7 +340,17 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center rounded-lg">
                       <div className="text-center text-white">
                         <h3 className="text-lg font-bold mb-2">{selectedTemplate.name}</h3>
-                        <p className="text-sm opacity-90">2D Preview Mode</p>
+                        <p className="text-sm opacity-90">
+                          {threeDError ? '2D Mode (3D Error)' : '2D Preview Mode'}
+                        </p>
+                        {threeDError && (
+                          <Button
+                            onClick={retryThreeD}
+                            className="mt-2 bg-[#ffd700] text-[#0f4c3a] hover:bg-[#ffd700]/90 text-xs px-3 py-1"
+                          >
+                            Retry 3D
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
