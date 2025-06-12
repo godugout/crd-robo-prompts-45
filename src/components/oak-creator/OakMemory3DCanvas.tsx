@@ -44,6 +44,7 @@ const ThreeDErrorFallback: React.FC<{ template: OakTemplate | null, onRetry: () 
             alt={template.name}
             className="w-48 h-64 object-cover rounded-lg shadow-xl mx-auto"
             onError={(e) => {
+              console.warn('Template image failed to load:', template.thumbnail);
               e.currentTarget.src = '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
             }}
           />
@@ -76,7 +77,6 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
   const [cardFinish, setCardFinish] = useState<'matte' | 'glossy' | 'foil'>('glossy');
   const [threeDError, setThreeDError] = useState(false);
   const [isCanvasReady, setIsCanvasReady] = useState(false);
-  const [loadingTimeout, setLoadingTimeout] = useState(false);
   
   const {
     cameraPosition,
@@ -86,14 +86,13 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
     resetView
   } = useOakMemory3DInteraction();
 
-  // Add loading timeout
+  // Add loading timeout with shorter duration
   useEffect(() => {
     if (is3DMode && !threeDError && !isCanvasReady) {
       const timeout = setTimeout(() => {
         console.warn('3D Canvas loading timeout - falling back to 2D');
-        setLoadingTimeout(true);
         setThreeDError(true);
-      }, 10000); // 10 second timeout
+      }, 5000); // Reduced to 5 seconds
 
       return () => clearTimeout(timeout);
     }
@@ -101,17 +100,19 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
 
   // Debug logging
   useEffect(() => {
-    console.log('OakMemory3DCanvas state:', {
-      selectedTemplate: selectedTemplate?.name,
-      is3DMode,
-      threeDError,
-      isCanvasReady,
-      loadingTimeout
-    });
-  }, [selectedTemplate, is3DMode, threeDError, isCanvasReady, loadingTimeout]);
+    if (selectedTemplate) {
+      console.log('OakMemory3DCanvas - Selected template:', {
+        name: selectedTemplate.name,
+        thumbnail: selectedTemplate.thumbnail,
+        is3DMode,
+        threeDError,
+        isCanvasReady
+      });
+    }
+  }, [selectedTemplate, is3DMode, threeDError, isCanvasReady]);
 
   const handleCanvasCreated = (state: any) => {
-    console.log('Canvas created successfully:', state);
+    console.log('Canvas created successfully');
     setIsCanvasReady(true);
     setThreeDError(false);
   };
@@ -126,7 +127,6 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
     console.log('Retrying 3D viewer...');
     setThreeDError(false);
     setIsCanvasReady(false);
-    setLoadingTimeout(false);
     setIs3DMode(true);
   };
 
@@ -139,10 +139,8 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
     setIs3DMode(!is3DMode);
     setAutoRotate(false);
     if (!is3DMode) {
-      // Reset error state when switching back to 3D
       setThreeDError(false);
       setIsCanvasReady(false);
-      setLoadingTimeout(false);
     }
   };
 
@@ -163,7 +161,7 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
   return (
     <OakMemoryErrorBoundary>
       <main className="flex-1 bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col relative">
-        {/* Enhanced Controls */}
+        {/* Controls */}
         <div className="absolute top-4 right-4 flex flex-col gap-2 bg-white/90 backdrop-blur rounded-lg shadow-lg p-2 z-10">
           {/* Zoom Controls */}
           <div className="flex items-center gap-2 bg-white rounded-lg p-2">
@@ -278,19 +276,12 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
                     onError={handleCanvasError}
                   >
                     <Suspense fallback={null}>
-                      {/* Oakland A's Themed Lighting */}
-                      <ambientLight intensity={0.4} />
+                      {/* Simplified lighting */}
+                      <ambientLight intensity={0.6} />
                       <directionalLight
-                        position={[10, 10, 5]}
-                        intensity={1}
+                        position={[5, 5, 5]}
+                        intensity={0.8}
                         castShadow
-                        shadow-mapSize-width={2048}
-                        shadow-mapSize-height={2048}
-                      />
-                      <pointLight
-                        position={[-10, -10, -5]}
-                        intensity={0.3}
-                        color="#ffd700"
                       />
 
                       {/* 3D Card */}
@@ -310,15 +301,14 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
                         autoRotateSpeed={1}
                         minDistance={3}
                         maxDistance={8}
-                        maxPolarAngle={Math.PI}
                       />
 
-                      {/* Simplified Environment - no external URLs */}
-                      <Environment preset="studio" background />
+                      {/* Simple environment */}
+                      <Environment preset="studio" />
                     </Suspense>
                   </Canvas>
 
-                  {/* Show loading overlay if canvas isn't ready */}
+                  {/* Loading overlay */}
                   {!isCanvasReady && (
                     <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#0f4c3a] to-[#1a5c47]">
                       <LoadingFallback />

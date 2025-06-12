@@ -29,14 +29,7 @@ export const OakMemory3DCard: React.FC<OakMemory3DCardProps> = ({
     return null;
   }
 
-  // Safe template data with local fallback
-  const safeTemplate = {
-    thumbnail: template.thumbnail || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png',
-    name: template.name || 'Oakland A\'s Card',
-    id: template.id || 'default'
-  };
-
-  console.log('OakMemory3DCard rendering with template:', safeTemplate.name);
+  console.log('OakMemory3DCard rendering with template:', template.name, 'thumbnail:', template.thumbnail);
 
   // Validate and sanitize props
   const safeRotation = useMemo(() => {
@@ -55,17 +48,17 @@ export const OakMemory3DCard: React.FC<OakMemory3DCardProps> = ({
     return ['matte', 'glossy', 'foil'].includes(finish) ? finish : 'glossy';
   }, [finish]);
 
-  // Load template texture with comprehensive error handling
+  // Load template texture with improved error handling
   let frontTexture;
   try {
-    // First try the template thumbnail
-    frontTexture = useLoader(TextureLoader, safeTemplate.thumbnail, undefined, (error) => {
-      console.warn('Failed to load template texture:', safeTemplate.thumbnail, error);
+    frontTexture = useLoader(TextureLoader, template.thumbnail, undefined, (error) => {
+      console.warn('Failed to load template texture:', template.thumbnail, error);
       setTextureError(true);
     });
   } catch (error) {
-    console.warn('TextureLoader error for template:', error);
-    // Use local fallback
+    console.error('TextureLoader error for template:', error);
+    setTextureError(true);
+    // Use default texture as last resort
     try {
       frontTexture = useLoader(TextureLoader, '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png');
     } catch (fallbackError) {
@@ -74,59 +67,52 @@ export const OakMemory3DCard: React.FC<OakMemory3DCardProps> = ({
     }
   }
 
-  // Oakland A's card back design - create texture programmatically to avoid loading issues
+  // Oakland A's card back design - simplified for better performance
   const oaklandAsBrandingTexture = useMemo(() => {
     try {
       const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 720;
+      canvas.width = 256;
+      canvas.height = 360;
       const ctx = canvas.getContext('2d');
       
       if (!ctx) {
         throw new Error('Cannot get canvas context');
       }
 
-      // Background gradient
-      const gradient = ctx.createLinearGradient(0, 0, 0, 720);
-      gradient.addColorStop(0, '#0f4c3a');
-      gradient.addColorStop(1, '#1a5c47');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 512, 720);
+      // Background
+      ctx.fillStyle = '#0f4c3a';
+      ctx.fillRect(0, 0, 256, 360);
 
-      // Oakland A's logo area
+      // Oakland A's logo circle
       ctx.fillStyle = '#ffd700';
       ctx.beginPath();
-      ctx.arc(256, 200, 80, 0, Math.PI * 2);
+      ctx.arc(128, 120, 40, 0, Math.PI * 2);
       ctx.fill();
 
       // "A" letter
       ctx.fillStyle = '#0f4c3a';
-      ctx.font = 'bold 120px Arial';
+      ctx.font = 'bold 60px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('A', 256, 240);
+      ctx.fillText('A', 128, 140);
 
-      // "Oakland Athletics" text
+      // Text
       ctx.fillStyle = '#ffd700';
-      ctx.font = 'bold 24px Arial';
-      ctx.fillText('OAKLAND', 256, 350);
-      ctx.font = 'bold 20px Arial';
-      ctx.fillText('ATHLETICS', 256, 380);
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText('OAKLAND', 128, 200);
+      ctx.font = 'bold 14px Arial';
+      ctx.fillText('ATHLETICS', 128, 220);
+      ctx.font = '12px Arial';
+      ctx.fillText('MEMORY CARD', 128, 260);
 
-      // Memory text
-      ctx.font = '16px Arial';
-      ctx.fillText('MEMORY CARD', 256, 450);
-
-      // Pattern border
+      // Border
       ctx.strokeStyle = '#ffd700';
-      ctx.lineWidth = 4;
-      ctx.strokeRect(20, 20, 472, 680);
+      ctx.lineWidth = 2;
+      ctx.strokeRect(10, 10, 236, 340);
 
       const texture = new TextureLoader().load(canvas.toDataURL());
-      console.log('Created Oakland A\'s branding texture successfully');
       return texture;
     } catch (error) {
       console.warn('Failed to create Oakland A\'s branding texture:', error);
-      // Return basic colored texture as last resort
       return null;
     }
   }, []);
@@ -162,7 +148,7 @@ export const OakMemory3DCard: React.FC<OakMemory3DCardProps> = ({
     }
   }, [safeFinish]);
 
-  // Gentle animation with error handling
+  // Gentle animation
   useFrame((state) => {
     try {
       if (meshRef.current && backMeshRef.current) {
@@ -188,76 +174,75 @@ export const OakMemory3DCard: React.FC<OakMemory3DCardProps> = ({
     }
   });
 
-  try {
-    return (
-      <group scale={safeScale}>
-        {/* Front of card */}
-        <RoundedBox
-          ref={meshRef}
-          args={[2.5, 3.5, 0.05]}
-          radius={0.1}
-          smoothness={4}
-          castShadow
-          receiveShadow
-          position={[0, 0, 0.025]}
-        >
-          <meshPhysicalMaterial
-            map={frontTexture}
-            {...materialProps}
-            transparent={false}
-          />
-        </RoundedBox>
-
-        {/* Back of card */}
-        <RoundedBox
-          ref={backMeshRef}
-          args={[2.5, 3.5, 0.05]}
-          radius={0.1}
-          smoothness={4}
-          castShadow
-          receiveShadow
-          position={[0, 0, -0.025]}
-          rotation={[0, Math.PI, 0]}
-        >
-          <meshPhysicalMaterial
-            map={oaklandAsBrandingTexture}
-            color={oaklandAsBrandingTexture ? undefined : '#0f4c3a'}
-            {...materialProps}
-            transparent={false}
-          />
-        </RoundedBox>
-
-        {/* Card edge (thickness) */}
-        <Box args={[2.5, 3.5, 0.05]} position={[0, 0, 0]}>
-          <meshPhysicalMaterial
-            color="#ffffff"
-            roughness={0.8}
-            metalness={0.1}
-          />
-        </Box>
-
-        {/* Holographic effect for foil finish */}
-        {safeFinish === 'foil' && (
-          <RoundedBox
-            args={[2.52, 3.52, 0.001]}
-            radius={0.1}
-            smoothness={4}
-            position={[0, 0, 0.051]}
-          >
-            <meshPhysicalMaterial
-              color="#ffd700"
-              transparent
-              opacity={0.3}
-              roughness={0}
-              metalness={1}
-              envMapIntensity={2}
-            />
-          </RoundedBox>
-        )}
-      </group>
-    );
-  } catch (error) {
-    console.error('Error rendering OakMemory3DCard:', error);
+  if (!frontTexture) {
     return null;
   }
+
+  return (
+    <group scale={safeScale}>
+      {/* Front of card */}
+      <RoundedBox
+        ref={meshRef}
+        args={[2.5, 3.5, 0.05]}
+        radius={0.1}
+        smoothness={4}
+        castShadow
+        receiveShadow
+        position={[0, 0, 0.025]}
+      >
+        <meshPhysicalMaterial
+          map={frontTexture}
+          {...materialProps}
+          transparent={false}
+        />
+      </RoundedBox>
+
+      {/* Back of card */}
+      <RoundedBox
+        ref={backMeshRef}
+        args={[2.5, 3.5, 0.05]}
+        radius={0.1}
+        smoothness={4}
+        castShadow
+        receiveShadow
+        position={[0, 0, -0.025]}
+        rotation={[0, Math.PI, 0]}
+      >
+        <meshPhysicalMaterial
+          map={oaklandAsBrandingTexture}
+          color={oaklandAsBrandingTexture ? undefined : '#0f4c3a'}
+          {...materialProps}
+          transparent={false}
+        />
+      </RoundedBox>
+
+      {/* Card edge (thickness) */}
+      <Box args={[2.5, 3.5, 0.05]} position={[0, 0, 0]}>
+        <meshPhysicalMaterial
+          color="#ffffff"
+          roughness={0.8}
+          metalness={0.1}
+        />
+      </Box>
+
+      {/* Holographic effect for foil finish */}
+      {safeFinish === 'foil' && (
+        <RoundedBox
+          args={[2.52, 3.52, 0.001]}
+          radius={0.1}
+          smoothness={4}
+          position={[0, 0, 0.051]}
+        >
+          <meshPhysicalMaterial
+            color="#ffd700"
+            transparent
+            opacity={0.3}
+            roughness={0}
+            metalness={1}
+            envMapIntensity={2}
+          />
+        </RoundedBox>
+      )}
+    </group>
+  );
 };
