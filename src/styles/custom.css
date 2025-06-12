@@ -36,3 +36,23 @@
 .canvas-zoom {
   transition: width 0.3s ease-in-out, height 0.3s ease-in-out;
 }
+
+/* Easter egg effects */
+.easter-egg-flash {
+  animation: easter-flash 0.15s ease-out;
+}
+
+@keyframes easter-flash {
+  0% { 
+    filter: brightness(1) drop-shadow(0 0 0px transparent);
+    transform: scale(1);
+  }
+  50% { 
+    filter: brightness(1.5) drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+    transform: scale(1.05);
+  }
+  100% { 
+    filter: brightness(1) drop-shadow(0 0 0px transparent);
+    transform: scale(1);
+  }
+}
