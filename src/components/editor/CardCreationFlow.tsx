@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { SimplifiedCardCreationHub } from '@/components/cards/SimplifiedCardCreationHub';
 import { UploadStyleFlow } from './flows/UploadStyleFlow';
 import { DesignScratchFlow } from './flows/DesignScratchFlow';
@@ -7,21 +8,21 @@ import { RemixFlow } from './flows/RemixFlow';
 import { SimpleCutoutFlow } from './flows/SimpleCutoutFlow';
 
 export const CardCreationFlow = () => {
-  const currentPath = window.location.pathname;
-  const urlParams = new URLSearchParams(window.location.search);
+  const location = useLocation();
+  const urlParams = new URLSearchParams(location.search);
   const mode = urlParams.get('mode');
   
   // Show hub for /cards, specific flows for /cards/create with mode
-  if (currentPath === '/cards') {
+  if (location.pathname === '/cards') {
     return <SimplifiedCardCreationHub />;
   }
   
-  if (currentPath === '/cards/create') {
+  if (location.pathname === '/cards/create') {
     switch (mode) {
       case 'upload-style':
         return <UploadStyleFlow />;
       case 'design-scratch':
-        return <SimpleCutoutFlow />;
+        return <DesignScratchFlow />;
       case 'remix':
         return <RemixFlow />;
       case 'cutout':
