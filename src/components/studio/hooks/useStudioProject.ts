@@ -1,11 +1,30 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useDraftManager } from '@/hooks/useDraftManager';
 import type { CardData } from '@/hooks/useCardEditor';
 
 export const useStudioProject = () => {
+  const [searchParams] = useSearchParams();
+  const draftId = searchParams.get('draft');
+  
+  const { createDraft, updateDraft, loadDraft } = useDraftManager();
   const [projectName, setProjectName] = useState('Untitled Studio Project');
   const [isExporting, setIsExporting] = useState(false);
+  const [currentDraftId, setCurrentDraftId] = useState<string | null>(draftId);
+
+  // Load draft data if coming from draft link
+  useEffect(() => {
+    if (draftId) {
+      const draft = loadDraft(draftId);
+      if (draft) {
+        setProjectName(draft.metadata.name);
+        setCurrentDraftId(draftId);
+        // Additional loading logic can be added here
+      }
+    }
+  }, [draftId, loadDraft]);
 
   const handleSaveProject = async (
     cardEditor: any,
@@ -15,10 +34,8 @@ export const useStudioProject = () => {
     advanced3DEffects: any,
     selectedTemplate: any
   ) => {
-    const success = await cardEditor.saveCard();
-    if (success) {
+    try {
       const projectData = {
-        name: projectName,
         cardData: cardEditor.cardData,
         currentPhoto,
         effectLayers,
@@ -27,8 +44,34 @@ export const useStudioProject = () => {
         template: selectedTemplate,
         timestamp: new Date().toISOString()
       };
-      localStorage.setItem(`studio-project-${Date.now()}`, JSON.stringify(projectData));
-      toast.success('Advanced studio project saved!');
+
+      if (currentDraftId) {
+        // Update existing draft
+        const success = updateDraft(currentDraftId, { name: projectName }, projectData);
+        if (success) {
+          toast.success('Studio project updated!');
+        } else {
+          toast.error('Failed to update project');
+        }
+      } else {
+        // Create new draft
+        const newDraftId = createDraft(
+          projectName,
+          'studio',
+          'Advanced Studio',
+          projectData
+        );
+        setCurrentDraftId(newDraftId);
+      }
+
+      // Also save to card editor if requested
+      const success = await cardEditor.saveCard();
+      if (!success) {
+        toast.error('Failed to save card data');
+      }
+    } catch (error) {
+      console.error('Error saving studio project:', error);
+      toast.error('Failed to save project');
     }
   };
 
@@ -72,6 +115,7 @@ export const useStudioProject = () => {
   return {
     projectName,
     isExporting,
+    currentDraftId,
     setProjectName,
     handleSaveProject,
     handleExport

@@ -4,31 +4,29 @@ import { OakTemplate } from '@/types/oakTemplates';
 import { TemplateConfig } from '@/components/editor/wizard/wizardConfig';
 
 export const convertOakTemplateToStudio = (oakTemplate: OakTemplate): TemplateConfig => {
-  const templateData = {
-    layout: 'full-bleed',
-    style: {
-      primaryColor: oakTemplate.colors?.primary || '#0f4c3a',
-      accentColor: oakTemplate.colors?.secondary || '#ffd700',
-      backgroundColor: oakTemplate.colors?.accent || '#ffffff',
-      borderRadius: 8,
-      borderWidth: 2
-    },
-    typography: {
-      titleFont: 'Inter',
-      bodyFont: 'Inter',
-      titleSize: 24,
-      bodySize: 14
-    },
-    effects: ['vintage'],
-    supports_stickers: true
-  };
-
   return {
     id: oakTemplate.id,
     name: oakTemplate.name,
     category: oakTemplate.category.toLowerCase(),
     thumbnail: oakTemplate.thumbnail,
-    template_data: templateData
+    template_data: {
+      layout: 'full-bleed',
+      style: {
+        primaryColor: oakTemplate.colors?.primary || '#0f4c3a',
+        accentColor: oakTemplate.colors?.secondary || '#ffd700',
+        backgroundColor: oakTemplate.colors?.accent || '#ffffff',
+        borderRadius: 8,
+        borderWidth: 2
+      },
+      typography: {
+        titleFont: 'Inter',
+        bodyFont: 'Inter',
+        titleSize: 24,
+        bodySize: 14
+      },
+      effects: ['vintage'],
+      supports_stickers: true
+    }
   };
 };
 
