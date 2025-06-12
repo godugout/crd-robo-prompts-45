@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Loader2, Search, Crop, Eye } from 'lucide-react';
 import { toast } from 'sonner';
-import { detectCardsInImage } from '@/services/cardDetection';
-import type { DetectedCard } from '@/services/cardDetection';
+import { detectCardsInImage } from '@/services/cardDetection/simpleDetector';
+import type { DetectedCard } from '@/services/cardDetection/simpleDetector';
 
 interface StudioCardDetectorProps {
   imageUrl: string;
