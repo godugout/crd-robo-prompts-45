@@ -127,6 +127,14 @@ export const CardStudio: React.FC = () => {
     }
   };
 
+  // Fix the updateEffectLayer signature to match expected interface
+  const handleUpdateEffectLayer = (id: string, updates: any) => {
+    const existingLayer = effectLayers.find(layer => layer.id === id);
+    if (existingLayer) {
+      updateEffectLayer({ ...existingLayer, ...updates });
+    }
+  };
+
   const templateForRenderer = {
     id: selectedTemplate.id,
     name: selectedTemplate.name,
@@ -202,7 +210,7 @@ export const CardStudio: React.FC = () => {
                     setAdvanced3DEffects={setAdvanced3DEffects}
                     onPhotoUpload={() => document.getElementById('photo-upload')?.click()}
                     addEffectLayer={addEffectLayer}
-                    updateEffectLayer={updateEffectLayer}
+                    updateEffectLayer={handleUpdateEffectLayer}
                     removeEffectLayer={removeEffectLayer}
                     toggleLayerVisibility={toggleLayerVisibility}
                     setSelectedLayerId={setSelectedLayerId}

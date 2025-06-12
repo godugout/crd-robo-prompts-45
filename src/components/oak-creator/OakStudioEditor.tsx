@@ -126,6 +126,14 @@ export const OakStudioEditor: React.FC<OakStudioEditorProps> = ({
     { id: 'export', label: 'Export', icon: 'Download' }
   ];
 
+  // Fix the updateEffectLayer signature to match expected interface
+  const handleUpdateEffectLayer = (id: string, updates: any) => {
+    const existingLayer = effectLayers.find(layer => layer.id === id);
+    if (existingLayer) {
+      updateEffectLayer({ ...existingLayer, ...updates });
+    }
+  };
+
   // Render fullscreen mode as a fixed positioned overlay
   if (isFullscreen) {
     return (
@@ -230,7 +238,7 @@ export const OakStudioEditor: React.FC<OakStudioEditorProps> = ({
                     setAdvanced3DEffects={setAdvanced3DEffects}
                     onPhotoUpload={() => document.getElementById('oak-photo-upload')?.click()}
                     addEffectLayer={addEffectLayer}
-                    updateEffectLayer={updateEffectLayer}
+                    updateEffectLayer={handleUpdateEffectLayer}
                     removeEffectLayer={removeEffectLayer}
                     toggleLayerVisibility={toggleLayerVisibility}
                     setSelectedLayerId={setSelectedLayerId}
