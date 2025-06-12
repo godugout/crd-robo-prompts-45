@@ -1,20 +1,22 @@
 
 import React, { useState } from 'react';
 import { OakMemoryHeader } from '@/components/oak-creator/OakMemoryHeader';
-import { OakMemoryCanvas } from '@/components/oak-creator/OakMemoryCanvas';
-import { OakMemoryToolbar } from '@/components/oak-creator/OakMemoryToolbar';
 import { TemplateGallery } from '@/components/oak-creator/TemplateGallery';
 import { TemplatePreviewModal } from '@/components/oak-creator/TemplatePreviewModal';
+import { OakStudioEditor } from '@/components/oak-creator/OakStudioEditor';
 import { OakTemplate } from '@/types/oakTemplates';
+import { useNavigate } from 'react-router-dom';
 
 export const OakMemoryCreator: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedTemplate, setSelectedTemplate] = useState<OakTemplate | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<OakTemplate | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  const [zoom, setZoom] = useState(100);
+  const [showStudioEditor, setShowStudioEditor] = useState(false);
 
   const handleSelectTemplate = (template: OakTemplate) => {
     setSelectedTemplate(template);
+    setShowStudioEditor(true);
   };
 
   const handlePreviewTemplate = (template: OakTemplate) => {
@@ -23,16 +25,16 @@ export const OakMemoryCreator: React.FC = () => {
   };
 
   const handleFavoriteTemplate = (template: OakTemplate) => {
-    // In a real app, this would update the database
     console.log('Toggle favorite for template:', template.id);
   };
 
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 10, 200));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 10, 50));
-
   const handleBack = () => {
-    // Navigate back to main app
-    console.log('Navigate back');
+    if (showStudioEditor) {
+      setShowStudioEditor(false);
+      setSelectedTemplate(null);
+    } else {
+      navigate('/');
+    }
   };
 
   const handleShare = () => {
@@ -43,39 +45,42 @@ export const OakMemoryCreator: React.FC = () => {
     console.log('Save memory');
   };
 
-  const handleExport = () => {
-    console.log('Export memory');
-  };
+  // Show studio editor when template is selected
+  if (showStudioEditor && selectedTemplate) {
+    return (
+      <OakStudioEditor
+        selectedTemplate={selectedTemplate}
+        onBack={handleBack}
+      />
+    );
+  }
 
+  // Show template selection interface
   return (
-    <div className="h-screen bg-gray-100 flex flex-col">
+    <div className="h-screen bg-gradient-to-br from-[#0f4c3a] to-[#1a5c47] flex flex-col">
       <OakMemoryHeader 
         onBack={handleBack}
         onShare={handleShare}
         onSave={handleSave}
       />
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar with Template Gallery */}
-        <aside className="w-80 bg-[#1a1a1a] border-r border-gray-800 flex flex-col overflow-hidden">
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="max-w-6xl w-full">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-[#ffd700] mb-4">
+              Oakland A's Memory Creator Studio
+            </h1>
+            <p className="text-white/80 text-lg">
+              Choose a template to start creating your professional Oakland A's memory card
+            </p>
+          </div>
+
           <TemplateGallery
             selectedTemplate={selectedTemplate?.id}
             onSelectTemplate={handleSelectTemplate}
           />
-        </aside>
-
-        <OakMemoryCanvas
-          selectedTemplate={selectedTemplate}
-          zoom={zoom}
-          onZoomIn={handleZoomIn}
-          onZoomOut={handleZoomOut}
-        />
+        </div>
       </div>
-
-      <OakMemoryToolbar 
-        selectedTemplate={selectedTemplate}
-        onExport={handleExport}
-      />
 
       {/* Template Preview Modal */}
       <TemplatePreviewModal
