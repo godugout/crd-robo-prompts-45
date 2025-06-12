@@ -22,6 +22,7 @@ import { getEnvironmentSceneName, getLightingPresetName } from '../types';
 import { EnhancedEffectControls } from './EnhancedEffectControls';
 import { DemoFeature } from './DemoFeature';
 import { GuidedTour } from './GuidedTour';
+import { PhotoUploadSection } from './PhotoUploadSection';
 
 interface EnhancedCustomizePanelProps {
   selectedScene: EnvironmentScene;
@@ -43,6 +44,7 @@ interface EnhancedCustomizePanelProps {
   onDownload?: (card: CardData) => void;
   onShare?: (card: CardData) => void;
   onClose?: () => void;
+  onCardImageUpdate?: (imageBlob: Blob) => void;
   card: CardData;
 }
 
@@ -66,6 +68,7 @@ export const EnhancedCustomizePanel: React.FC<EnhancedCustomizePanelProps> = ({
   onDownload,
   onShare,
   onClose,
+  onCardImageUpdate,
   card
 }) => {
   const [showTour, setShowTour] = useState(false);
@@ -125,6 +128,12 @@ export const EnhancedCustomizePanel: React.FC<EnhancedCustomizePanelProps> = ({
     }).length;
   };
 
+  const handleCardImageUpdate = (imageBlob: Blob) => {
+    if (onCardImageUpdate) {
+      onCardImageUpdate(imageBlob);
+    }
+  };
+
   return (
     <>
       <div className="fixed top-0 right-0 w-80 h-full bg-black bg-opacity-95 backdrop-blur-lg overflow-hidden border-l border-white/10 z-10 flex flex-col">
@@ -179,10 +188,13 @@ export const EnhancedCustomizePanel: React.FC<EnhancedCustomizePanelProps> = ({
         {/* Main content area */}
         <div className="flex-1 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-4 bg-gray-900 border-b border-white/10 mx-4 mt-4">
+            <TabsList className="grid w-full grid-cols-5 bg-gray-900 border-b border-white/10 mx-4 mt-4">
               <TabsTrigger value="start" className="text-white data-[state=active]:bg-crd-green data-[state=active]:text-black">
                 <Rocket className="w-3 h-3 mr-1" />
                 Start
+              </TabsTrigger>
+              <TabsTrigger value="photo" className="text-white data-[state=active]:bg-orange-600">
+                Photo
               </TabsTrigger>
               <TabsTrigger value="effects" className="text-white data-[state=active]:bg-purple-600">
                 <Sparkles className="w-3 h-3 mr-1" />
@@ -202,6 +214,12 @@ export const EnhancedCustomizePanel: React.FC<EnhancedCustomizePanelProps> = ({
               <DemoFeature 
                 onApplyPreset={handleApplyPreset}
                 onStartTour={() => setShowTour(true)}
+              />
+            </TabsContent>
+
+            <TabsContent value="photo" className="flex-1 p-4 overflow-y-auto">
+              <PhotoUploadSection 
+                onCardImageUpdate={handleCardImageUpdate}
               />
             </TabsContent>
             

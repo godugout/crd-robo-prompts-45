@@ -10,6 +10,7 @@ import { Enhanced3DCardMesh } from './components/Enhanced3DCardMesh';
 import { useCardInteraction } from './hooks/useCardInteraction';
 import { useViewerEffects } from './hooks/useViewerEffects';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import type { CardData } from '@/types/card';
 
 interface EnhancedCardViewerProps {
@@ -88,6 +89,7 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
   onBookmark
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [currentCardData, setCurrentCardData] = useState(card);
   
   console.log('EnhancedCardViewer: Starting render', { card: card?.id, hasCard: !!card });
 
@@ -146,6 +148,15 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
 
   const handleToggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
+  };
+
+  const handleCardImageUpdate = (imageBlob: Blob) => {
+    const imageUrl = URL.createObjectURL(imageBlob);
+    setCurrentCardData(prev => ({
+      ...prev,
+      image_url: imageUrl
+    }));
+    toast.success('Card image updated! The new image is now displayed in the 3D viewer.');
   };
 
   if (!card) {
@@ -216,7 +227,7 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
             
             <EffectProvider value={effectContextValue}>
               <Enhanced3DCardMesh 
-                card={card}
+                card={currentCardData}
                 rotation={rotation}
                 zoom={zoom}
                 materialSettings={materialSettings}
@@ -228,7 +239,7 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
         {/* Flexible Panel */}
         <div className="w-80 h-full">
           <FlexibleMobilePanel
-            card={card}
+            card={currentCardData}
             cardDetails={cardDetails}
             effectValues={effectValues}
             onEffectChange={handleEffectChange}
@@ -243,6 +254,7 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
             onBookmark={onBookmark}
             onShare={onShare}
             onDownload={onDownload}
+            onCardImageUpdate={handleCardImageUpdate}
           />
         </div>
       </div>
