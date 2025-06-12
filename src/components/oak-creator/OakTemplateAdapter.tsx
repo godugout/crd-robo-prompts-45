@@ -27,7 +27,7 @@ export const convertOakTemplateToStudio = (oakTemplate: OakTemplate): TemplateCo
       effects: ['vintage'],
       supports_stickers: true
     }
-  };
+  } as TemplateConfig;
   return templateConfig;
 };
 
@@ -39,5 +39,5 @@ export const createOakStudioTemplate = (oakTemplate: OakTemplate, imageUrl?: str
     image_url: imageUrl || oakTemplate.thumbnail,
     title: oakTemplate.name,
     description: oakTemplate.description
-  };
+  } as TemplateConfig;
 };

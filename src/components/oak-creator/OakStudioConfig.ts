@@ -37,7 +37,7 @@ export const OAK_STUDIO_CONFIG = {
         effects: ['vintage'],
         supports_stickers: true
       }
-    };
+    } as TemplateConfig;
   }),
   
   // Available studio tabs for Oakland A's users
