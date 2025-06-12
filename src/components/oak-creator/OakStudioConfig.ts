@@ -19,9 +19,11 @@ export const OAK_STUDIO_CONFIG = {
     category: template.category.toLowerCase(),
     thumbnail: template.thumbnail,
     template_data: {
-      background_color: template.colors?.primary || '#0f4c3a',
-      border_color: template.colors?.secondary || '#ffd700',
-      text_color: template.colors?.accent || '#ffffff',
+      primaryColor: template.colors?.primary || '#0f4c3a',
+      accentColor: template.colors?.secondary || '#ffd700',
+      backgroundColor: template.colors?.accent || '#ffffff',
+      borderRadius: 8,
+      borderWidth: 2,
       layout: 'full-bleed' as const,
       style: 'vintage' as const
     }
