@@ -9,6 +9,8 @@ export const convertOakTemplateToStudio = (oakTemplate: OakTemplate): TemplateCo
     name: oakTemplate.name,
     category: oakTemplate.category.toLowerCase(),
     thumbnail: oakTemplate.thumbnail,
+    description: oakTemplate.description || oakTemplate.name,
+    tags: oakTemplate.tags || [],
     template_data: {
       layout: 'full-bleed',
       style: {
@@ -27,7 +29,7 @@ export const convertOakTemplateToStudio = (oakTemplate: OakTemplate): TemplateCo
       effects: ['vintage'],
       supports_stickers: true
     }
-  } as TemplateConfig;
+  };
   return templateConfig;
 };
 
@@ -38,6 +40,6 @@ export const createOakStudioTemplate = (oakTemplate: OakTemplate, imageUrl?: str
     ...studioTemplate,
     image_url: imageUrl || oakTemplate.thumbnail,
     title: oakTemplate.name,
-    description: oakTemplate.description
-  } as TemplateConfig;
+    description: oakTemplate.description || oakTemplate.name
+  };
 };

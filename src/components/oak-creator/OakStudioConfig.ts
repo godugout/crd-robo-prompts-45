@@ -19,6 +19,8 @@ export const OAK_STUDIO_CONFIG = {
       name: template.name,
       category: template.category.toLowerCase(),
       thumbnail: template.thumbnail,
+      description: template.description || template.name,
+      tags: template.tags || [],
       template_data: {
         layout: 'full-bleed',
         style: {
@@ -37,7 +39,7 @@ export const OAK_STUDIO_CONFIG = {
         effects: ['vintage'],
         supports_stickers: true
       }
-    } as TemplateConfig;
+    };
   }),
   
   // Available studio tabs for Oakland A's users
