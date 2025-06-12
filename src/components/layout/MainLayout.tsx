@@ -12,21 +12,22 @@ export const MainLayout = () => {
   console.log('MainLayout rendering, path:', location.pathname, 'isHomePage:', isHomePage);
 
   useEffect(() => {
-    console.log('MainLayout mounted');
+    console.log('MainLayout mounted for path:', location.pathname);
     
     // Quick initialization
     const timer = setTimeout(() => {
       setIsLoading(false);
-      console.log('MainLayout finished loading');
-    }, 50);
+      console.log('MainLayout finished loading for:', location.pathname);
+    }, 100);
     
     return () => {
       clearTimeout(timer);
       console.log('MainLayout unmounted');
     };
-  }, []);
+  }, [location.pathname]);
 
   if (isLoading) {
+    console.log('MainLayout showing loading state');
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#141416]">
         <div className="text-center">
@@ -36,6 +37,8 @@ export const MainLayout = () => {
       </div>
     );
   }
+
+  console.log('MainLayout rendering content for:', location.pathname);
 
   return (
     <>

@@ -7,6 +7,8 @@ import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 export const Hero: React.FC = () => {
   const { containerPadding, isMobile } = useResponsiveLayout();
   
+  console.log('Hero component rendering');
+  
   return (
     <div className={`items-center bg-crd-darkest flex w-full flex-col overflow-hidden text-center pt-32 ${isMobile ? 'px-5' : 'px-[352px]'} max-md:max-w-full max-md:pt-[100px]`}>
       <div className="flex w-full max-w-[736px] flex-col items-center max-md:max-w-full">
@@ -27,15 +29,26 @@ export const Hero: React.FC = () => {
             card art and digital collectibles.
           </Typography>
         </div>
-        <Link to="/cards/create">
-          <CRDButton 
-            variant="primary"
-            size="lg"
-            className="self-stretch gap-3 text-lg font-extrabold mt-6 px-6 py-4 rounded-[90px] max-md:px-5"
-          >
-            Get started
-          </CRDButton>
-        </Link>
+        <div className="flex gap-4 mt-6">
+          <Link to="/cards/create">
+            <CRDButton 
+              variant="primary"
+              size="lg"
+              className="gap-3 text-lg font-extrabold px-6 py-4 rounded-[90px] max-md:px-5"
+            >
+              Get started
+            </CRDButton>
+          </Link>
+          <Link to="/oak-memory-creator">
+            <CRDButton 
+              variant="secondary"
+              size="lg"
+              className="gap-3 text-lg font-extrabold px-6 py-4 rounded-[90px] max-md:px-5"
+            >
+              Try Oakland A's Creator
+            </CRDButton>
+          </Link>
+        </div>
       </div>
     </div>
   );

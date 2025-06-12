@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Beaker, Palette } from "lucide-react";
+import { Beaker, Palette, Trophy } from "lucide-react";
 
 export const NavLinks = () => {
   const location = useLocation();
@@ -28,6 +28,13 @@ export const NavLinks = () => {
       >
         <Palette className="w-4 h-4" />
         Studio
+      </Link>
+      <Link 
+        to="/oak-memory-creator" 
+        className={`nav-item ${isActive('/oak-memory-creator') ? 'active' : ''} flex items-center gap-2`}
+      >
+        <Trophy className="w-4 h-4" />
+        Oakland A's
       </Link>
       <Link 
         to="/gallery" 
