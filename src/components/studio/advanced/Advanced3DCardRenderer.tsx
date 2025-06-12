@@ -225,7 +225,11 @@ export const Advanced3DCardRenderer: React.FC<Advanced3DCardRendererProps> = ({
 }) => {
   return (
     <div className="w-full h-full relative">
-      <Canvas shadows>
+      <Canvas 
+        shadows 
+        style={{ width: '100%', height: '100%' }}
+        gl={{ antialias: true, alpha: true }}
+      >
         <PerspectiveCamera makeDefault position={[0, 0, 5]} />
         
         {/* Advanced lighting setup */}

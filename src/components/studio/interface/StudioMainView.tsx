@@ -41,24 +41,26 @@ export const StudioMainView: React.FC<StudioMainViewProps> = ({
   // Calculate responsive dimensions based on fullscreen mode
   const getCardDimensions = () => {
     if (isFullscreen) {
-      // In fullscreen, use most of the screen real estate
-      const maxHeight = window.innerHeight * 0.9; // 90% of screen height
-      const aspectRatio = 2.5 / 3.5; // Standard trading card ratio
-      const calculatedWidth = maxHeight * aspectRatio;
+      // In fullscreen, use maximum available space with minimal margins
+      const availableWidth = window.innerWidth - 40; // Small margin
+      const availableHeight = window.innerHeight - 40; // Small margin
+      const aspectRatio = 2.5 / 3.5; // Standard trading card ratio (width/height)
       
-      // Ensure we don't exceed screen width
-      const maxWidth = window.innerWidth * 0.8;
-      if (calculatedWidth > maxWidth) {
-        return {
-          width: maxWidth,
-          height: maxWidth / aspectRatio
-        };
+      // Calculate dimensions that fit within available space
+      let width, height;
+      
+      // Try fitting by width first
+      const heightFromWidth = availableWidth / aspectRatio;
+      if (heightFromWidth <= availableHeight) {
+        width = availableWidth;
+        height = heightFromWidth;
+      } else {
+        // If that doesn't fit, fit by height
+        height = availableHeight;
+        width = height * aspectRatio;
       }
       
-      return {
-        width: calculatedWidth,
-        height: maxHeight
-      };
+      return { width, height };
     } else {
       // Normal mode - use a reasonable size
       return {
@@ -73,17 +75,20 @@ export const StudioMainView: React.FC<StudioMainViewProps> = ({
 
   return (
     <div className={`flex-1 flex items-center justify-center ${
-      isFullscreen ? 'p-2' : 'p-8'
-    } bg-gradient-to-br from-editor-darker via-black to-editor-darker relative`}>
+      isFullscreen ? 'p-5' : 'p-8'
+    } bg-gradient-to-br from-editor-darker via-black to-editor-darker relative ${
+      isFullscreen ? 'w-full h-full' : ''
+    }`}>
       {/* Card Preview Container */}
-      <div className="relative">
+      <div className={`relative ${isFullscreen ? 'w-full h-full flex items-center justify-center' : ''}`}>
         <div className="absolute inset-0 bg-gradient-to-r from-crd-green/20 via-transparent to-crd-purple/20 blur-3xl"></div>
         <div className="relative z-10">
           {show3DPreview ? (
             <div 
+              className={isFullscreen ? 'w-full h-full' : ''}
               style={{
-                width: cardDimensions.width,
-                height: cardDimensions.height
+                width: isFullscreen ? '100%' : cardDimensions.width,
+                height: isFullscreen ? '100%' : cardDimensions.height
               }}
             >
               <Advanced3DCardRenderer
