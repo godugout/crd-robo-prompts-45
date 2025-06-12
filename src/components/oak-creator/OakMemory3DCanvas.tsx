@@ -226,7 +226,6 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
                   </Canvas>
                 </OakMemoryErrorBoundary>
               ) : (
-                // 2D Fallback with error handling
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0f4c3a] to-[#1a5c47]">
                   <div className="relative">
                     <img
@@ -260,7 +259,7 @@ export const OakMemory3DCanvas: React.FC<OakMemory3DCanvasProps> = ({
                     Choose from Oakland A's themed designs
                   </p>
                 </div>
-              )}
+              </div>
             )}
           </div>
         </div>
