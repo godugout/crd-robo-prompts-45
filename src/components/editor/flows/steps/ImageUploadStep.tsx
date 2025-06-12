@@ -27,6 +27,13 @@ export const ImageUploadStep: React.FC<ImageUploadStepProps> = ({
     maxFiles: 1
   });
 
+  const handleBrowseClick = () => {
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  };
+
   return (
     <div className="flex h-full">
       {/* Upload Area */}
@@ -68,7 +75,7 @@ export const ImageUploadStep: React.FC<ImageUploadStepProps> = ({
 
           <div className="mt-6">
             <Button
-              onClick={() => document.querySelector('input[type="file"]')?.click()}
+              onClick={handleBrowseClick}
               className="w-full bg-crd-green text-black hover:bg-crd-green/90"
             >
               <Image className="w-4 h-4 mr-2" />
