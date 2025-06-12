@@ -1,38 +1,30 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Grid3X3, Search, ZoomIn, ZoomOut, Maximize, Type, Palette, Sparkles, Download, Share2 } from 'lucide-react';
+import { ArrowLeft, ZoomIn, ZoomOut, Maximize, Type, Palette, Sparkles, Download, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-
-interface Template {
-  id: string;
-  name: string;
-  thumbnail: string;
-  category: string;
-}
-
-const SAMPLE_TEMPLATES: Template[] = [
-  { id: '1', name: 'Classic A\'s', thumbnail: 'https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=200&h=150&fit=crop', category: 'Classic' },
-  { id: '2', name: 'Vintage Green', thumbnail: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=200&h=150&fit=crop', category: 'Vintage' },
-  { id: '3', name: 'Gold Edition', thumbnail: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200&h=150&fit=crop', category: 'Premium' },
-  { id: '4', name: 'Stadium View', thumbnail: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=200&h=150&fit=crop', category: 'Stadium' },
-  { id: '5', name: 'Player Card', thumbnail: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=200&h=150&fit=crop', category: 'Players' },
-  { id: '6', name: 'Team Spirit', thumbnail: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=200&h=150&fit=crop', category: 'Team' },
-];
-
-const CATEGORIES = ['All', 'Classic', 'Vintage', 'Premium', 'Stadium', 'Players', 'Team'];
+import { TemplateGallery } from '@/components/oak-creator/TemplateGallery';
+import { TemplatePreviewModal } from '@/components/oak-creator/TemplatePreviewModal';
+import { OakTemplate } from '@/types/oakTemplates';
 
 export const OakMemoryCreator: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState<OakTemplate | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<OakTemplate | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [zoom, setZoom] = useState(100);
 
-  const filteredTemplates = SAMPLE_TEMPLATES.filter(template => {
-    const matchesCategory = selectedCategory === 'All' || template.category === selectedCategory;
-    const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const handleSelectTemplate = (template: OakTemplate) => {
+    setSelectedTemplate(template);
+  };
+
+  const handlePreviewTemplate = (template: OakTemplate) => {
+    setPreviewTemplate(template);
+    setIsPreviewModalOpen(true);
+  };
+
+  const handleFavoriteTemplate = (template: OakTemplate) => {
+    // In a real app, this would update the database
+    console.log('Toggle favorite for template:', template.id);
+  };
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 10, 200));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 10, 50));
@@ -91,72 +83,12 @@ export const OakMemoryCreator: React.FC = () => {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar */}
+        {/* Left Sidebar with Template Gallery */}
         <aside className="w-80 bg-[#1a1a1a] border-r border-gray-800 flex flex-col overflow-hidden">
-          {/* Templates Header */}
-          <div className="p-4 border-b border-gray-800">
-            <div className="flex items-center gap-2 mb-4">
-              <Grid3X3 className="w-5 h-5 text-orange-500" />
-              <h2 className="text-white font-semibold">Templates</h2>
-            </div>
-
-            {/* Search Input */}
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="Search templates..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-[#ffd700] focus:ring-[#ffd700]"
-              />
-            </div>
-
-            {/* Category Filter Tags */}
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              {CATEGORIES.map((category) => (
-                <Badge
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  className={`cursor-pointer whitespace-nowrap ${
-                    selectedCategory === category
-                      ? 'bg-[#ffd700] text-[#0f4c3a] hover:bg-[#ffd700]/90'
-                      : 'border-gray-600 text-gray-300 hover:border-[#ffd700] hover:text-[#ffd700]'
-                  }`}
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Template Grid */}
-          <div className="flex-1 p-4 overflow-y-auto">
-            <div className="grid grid-cols-2 gap-3">
-              {filteredTemplates.map((template) => (
-                <div
-                  key={template.id}
-                  className="group cursor-pointer bg-gray-800 rounded-lg overflow-hidden border border-gray-700 hover:border-[#ffd700] transition-all duration-200 hover:scale-105"
-                >
-                  <div className="aspect-[4/3] overflow-hidden">
-                    <img
-                      src={template.thumbnail}
-                      alt={template.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200"
-                    />
-                  </div>
-                  <div className="p-2">
-                    <h3 className="text-white text-sm font-medium truncate">
-                      {template.name}
-                    </h3>
-                    <p className="text-gray-400 text-xs">
-                      {template.category}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <TemplateGallery
+            selectedTemplate={selectedTemplate?.id}
+            onSelectTemplate={handleSelectTemplate}
+          />
         </aside>
 
         {/* Main Canvas Area */}
@@ -194,9 +126,9 @@ export const OakMemoryCreator: React.FC = () => {
               </Button>
             </div>
 
-            {/* Canvas Placeholder */}
+            {/* Canvas */}
             <div 
-              className="bg-white rounded-lg shadow-2xl border-2 border-dashed border-gray-300 flex items-center justify-center"
+              className="bg-white rounded-lg shadow-2xl border-2 border-dashed border-gray-300 flex items-center justify-center canvas-zoom"
               style={{
                 width: `${(400 * zoom) / 100}px`,
                 height: `${(600 * zoom) / 100}px`,
@@ -204,17 +136,33 @@ export const OakMemoryCreator: React.FC = () => {
                 maxHeight: '80%',
               }}
             >
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-full bg-[#0f4c3a] flex items-center justify-center mx-auto mb-4">
-                  <span className="text-[#ffd700] font-bold text-2xl">A</span>
+              {selectedTemplate ? (
+                <div className="relative w-full h-full overflow-hidden rounded-lg">
+                  <img
+                    src={selectedTemplate.thumbnail}
+                    alt={selectedTemplate.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+                    <div className="text-center text-white">
+                      <h3 className="text-lg font-bold mb-2">{selectedTemplate.name}</h3>
+                      <p className="text-sm opacity-90">Template loaded - ready to customize</p>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-gray-500 text-lg font-medium">
-                  Select a template to begin
-                </p>
-                <p className="text-gray-400 text-sm mt-1">
-                  Choose from Oakland A's themed designs
-                </p>
-              </div>
+              ) : (
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-full bg-[#0f4c3a] flex items-center justify-center mx-auto mb-4">
+                    <span className="text-[#ffd700] font-bold text-2xl">A</span>
+                  </div>
+                  <p className="text-gray-500 text-lg font-medium">
+                    Select a template to begin
+                  </p>
+                  <p className="text-gray-400 text-sm mt-1">
+                    Choose from Oakland A's themed designs
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -224,6 +172,7 @@ export const OakMemoryCreator: React.FC = () => {
               <Button
                 variant="ghost"
                 className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-gray-100"
+                disabled={!selectedTemplate}
               >
                 <Type className="w-5 h-5" />
                 <span className="text-xs">Text</span>
@@ -232,6 +181,7 @@ export const OakMemoryCreator: React.FC = () => {
               <Button
                 variant="ghost"
                 className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-gray-100"
+                disabled={!selectedTemplate}
               >
                 <Palette className="w-5 h-5" />
                 <span className="text-xs">Colors</span>
@@ -240,6 +190,7 @@ export const OakMemoryCreator: React.FC = () => {
               <Button
                 variant="ghost"
                 className="flex flex-col items-center gap-1 h-auto py-2 px-4 hover:bg-gray-100"
+                disabled={!selectedTemplate}
               >
                 <Sparkles className="w-5 h-5" />
                 <span className="text-xs">Effects</span>
@@ -249,6 +200,7 @@ export const OakMemoryCreator: React.FC = () => {
               
               <Button
                 className="bg-[#0f4c3a] text-[#ffd700] hover:bg-[#0f4c3a]/90 px-6"
+                disabled={!selectedTemplate}
               >
                 <Download className="w-4 h-4 mr-2" />
                 Export
@@ -257,6 +209,15 @@ export const OakMemoryCreator: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* Template Preview Modal */}
+      <TemplatePreviewModal
+        template={previewTemplate}
+        isOpen={isPreviewModalOpen}
+        onClose={() => setIsPreviewModalOpen(false)}
+        onSelectTemplate={handleSelectTemplate}
+        onFavorite={handleFavoriteTemplate}
+      />
     </div>
   );
 };
