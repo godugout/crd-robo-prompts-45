@@ -25,7 +25,10 @@ export const OAK_STUDIO_CONFIG = {
       borderRadius: 8,
       borderWidth: 2,
       layout: 'full-bleed' as const,
-      style: 'vintage' as const
+      style: 'vintage' as const,
+      oaklandTheme: true,
+      era: template.era,
+      tags: template.tags
     }
   })),
   
