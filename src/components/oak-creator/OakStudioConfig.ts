@@ -13,12 +13,8 @@ export const OAK_STUDIO_CONFIG = {
   },
   
   // Convert OAK templates to studio format
-  templates: SAMPLE_OAK_TEMPLATES.map((template): TemplateConfig => ({
-    id: template.id,
-    name: template.name,
-    category: template.category.toLowerCase(),
-    thumbnail: template.thumbnail,
-    template_data: {
+  templates: SAMPLE_OAK_TEMPLATES.map((template): TemplateConfig => {
+    const templateData = {
       primaryColor: template.colors?.primary || '#0f4c3a',
       accentColor: template.colors?.secondary || '#ffd700',
       backgroundColor: template.colors?.accent || '#ffffff',
@@ -26,8 +22,16 @@ export const OAK_STUDIO_CONFIG = {
       borderWidth: 2,
       layout: 'full-bleed' as const,
       style: 'vintage' as const
-    }
-  })),
+    };
+
+    return {
+      id: template.id,
+      name: template.name,
+      category: template.category.toLowerCase(),
+      thumbnail: template.thumbnail,
+      template_data: templateData
+    };
+  }),
   
   // Available studio tabs for Oakland A's users
   enabledTabs: [

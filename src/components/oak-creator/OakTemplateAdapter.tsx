@@ -4,20 +4,22 @@ import { OakTemplate } from '@/types/oakTemplates';
 import { TemplateConfig } from '@/components/editor/wizard/wizardConfig';
 
 export const convertOakTemplateToStudio = (oakTemplate: OakTemplate): TemplateConfig => {
+  const templateData = {
+    primaryColor: oakTemplate.colors?.primary || '#0f4c3a',
+    accentColor: oakTemplate.colors?.secondary || '#ffd700',
+    backgroundColor: oakTemplate.colors?.accent || '#ffffff',
+    borderRadius: 8,
+    borderWidth: 2,
+    layout: 'full-bleed' as const,
+    style: 'vintage' as const
+  };
+
   return {
     id: oakTemplate.id,
     name: oakTemplate.name,
     category: oakTemplate.category.toLowerCase(),
     thumbnail: oakTemplate.thumbnail,
-    template_data: {
-      primaryColor: oakTemplate.colors?.primary || '#0f4c3a',
-      accentColor: oakTemplate.colors?.secondary || '#ffd700',
-      backgroundColor: oakTemplate.colors?.accent || '#ffffff',
-      borderRadius: 8,
-      borderWidth: 2,
-      layout: 'full-bleed' as const,
-      style: 'vintage' as const
-    }
+    template_data: templateData
   };
 };
 
