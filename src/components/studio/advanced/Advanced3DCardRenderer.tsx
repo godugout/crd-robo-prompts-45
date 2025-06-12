@@ -104,7 +104,7 @@ const HolographicMaterial = ({ texture }: { texture: THREE.Texture | null }) => 
 
 // Simple fallback texture component
 const SimpleFallbackTexture = () => {
-  const canvas = useMemo(() => {
+  return useMemo(() => {
     const canvas = document.createElement('canvas');
     canvas.width = 256;
     canvas.height = 256;
@@ -117,13 +117,9 @@ const SimpleFallbackTexture = () => {
       ctx.textAlign = 'center';
       ctx.fillText('A', 128, 140);
     }
-    return canvas;
-  }, []);
-
-  return useMemo(() => {
     const texture = new THREE.CanvasTexture(canvas);
     return texture;
-  }, [canvas]);
+  }, []);
 };
 
 // 3D Card component with advanced effects
@@ -138,25 +134,21 @@ const Card3D = ({
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
-  const [textureError, setTextureError] = useState(false);
+  const [shouldLoadTexture, setShouldLoadTexture] = useState(true);
   
-  // Always call useTexture hook, but handle errors via state
+  // Always create fallback texture
   const fallbackTexture = SimpleFallbackTexture();
+  
+  // Conditionally load texture based on imageUrl and error state
   let texture = fallbackTexture;
   
   try {
-    // Only load texture if we have a valid imageUrl and no previous error
-    if (imageUrl && !textureError) {
-      texture = useTexture(imageUrl, (loadedTexture) => {
-        console.log('Texture loaded successfully');
-      }, (error) => {
-        console.warn('Failed to load texture:', error);
-        setTextureError(true);
-      });
+    if (imageUrl && shouldLoadTexture) {
+      texture = useTexture(imageUrl);
     }
   } catch (error) {
-    console.warn('useTexture hook error:', error);
-    setTextureError(true);
+    console.warn('Failed to load texture:', error);
+    setShouldLoadTexture(false);
     texture = fallbackTexture;
   }
   
