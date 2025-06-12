@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Zap, Maximize } from 'lucide-react';
+import { Sparkles, Zap, Maximize, Minimize } from 'lucide-react';
 import { StudioCardRenderer } from '../renderer/StudioCardRenderer';
 import { Advanced3DCardRenderer } from '../advanced/Advanced3DCardRenderer';
 import type { CardData } from '@/hooks/useCardEditor';
@@ -38,14 +38,54 @@ export const StudioMainView: React.FC<StudioMainViewProps> = ({
   onPhotoUpload,
   onElementSelect
 }) => {
+  // Calculate responsive dimensions based on fullscreen mode
+  const getCardDimensions = () => {
+    if (isFullscreen) {
+      // In fullscreen, use most of the screen real estate
+      const maxHeight = window.innerHeight * 0.9; // 90% of screen height
+      const aspectRatio = 2.5 / 3.5; // Standard trading card ratio
+      const calculatedWidth = maxHeight * aspectRatio;
+      
+      // Ensure we don't exceed screen width
+      const maxWidth = window.innerWidth * 0.8;
+      if (calculatedWidth > maxWidth) {
+        return {
+          width: maxWidth,
+          height: maxWidth / aspectRatio
+        };
+      }
+      
+      return {
+        width: calculatedWidth,
+        height: maxHeight
+      };
+    } else {
+      // Normal mode - use a reasonable size
+      return {
+        width: 384, // w-96 equivalent
+        height: 520
+      };
+    }
+  };
+
+  const cardDimensions = getCardDimensions();
+  const scaleFactor = cardDimensions.width / 384; // Scale relative to base size
+
   return (
-    <div className="flex-1 flex items-center justify-center p-8 bg-gradient-to-br from-editor-darker via-black to-editor-darker relative">
+    <div className={`flex-1 flex items-center justify-center ${
+      isFullscreen ? 'p-2' : 'p-8'
+    } bg-gradient-to-br from-editor-darker via-black to-editor-darker relative`}>
       {/* Card Preview Container */}
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-crd-green/20 via-transparent to-crd-purple/20 blur-3xl"></div>
         <div className="relative z-10">
           {show3DPreview ? (
-            <div className="w-96 h-[520px]">
+            <div 
+              style={{
+                width: cardDimensions.width,
+                height: cardDimensions.height
+              }}
+            >
               <Advanced3DCardRenderer
                 cardData={cardData}
                 imageUrl={currentPhoto}
@@ -61,16 +101,17 @@ export const StudioMainView: React.FC<StudioMainViewProps> = ({
               cardData={cardData}
               currentPhoto={currentPhoto}
               studioState={studioState}
-              scaleFactor={1.3}
+              scaleFactor={scaleFactor}
               onPhotoUpload={onPhotoUpload}
               onElementSelect={onElementSelect}
+              dimensions={cardDimensions}
             />
           )}
         </div>
       </div>
 
       {/* Floating Action Buttons */}
-      <div className="absolute bottom-6 right-6 flex flex-col gap-2">
+      <div className={`absolute ${isFullscreen ? 'bottom-4 right-4' : 'bottom-6 right-6'} flex flex-col gap-2`}>
         <Button
           onClick={() => setShow3DPreview(!show3DPreview)}
           className={`w-12 h-12 rounded-full ${show3DPreview ? 'bg-crd-green text-black' : 'bg-editor-dark text-white border border-editor-border'}`}
@@ -87,9 +128,16 @@ export const StudioMainView: React.FC<StudioMainViewProps> = ({
           onClick={() => setIsFullscreen(!isFullscreen)}
           className="w-12 h-12 rounded-full bg-editor-dark text-white border border-editor-border hover:bg-editor-border"
         >
-          <Maximize className="w-5 h-5" />
+          {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
         </Button>
       </div>
+
+      {/* Fullscreen indicator */}
+      {isFullscreen && (
+        <div className="absolute top-4 right-4 bg-crd-green text-black px-3 py-1 rounded-full text-sm font-medium">
+          Fullscreen Mode
+        </div>
+      )}
     </div>
   );
 };

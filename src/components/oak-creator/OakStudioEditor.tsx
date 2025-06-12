@@ -128,95 +128,99 @@ export const OakStudioEditor: React.FC<OakStudioEditorProps> = ({
 
   return (
     <div className="h-screen bg-[#0f4c3a] flex flex-col">
-      {/* Oakland A's themed header */}
-      <div className="bg-[#0f4c3a] border-b border-[#ffd700]/20">
-        <ProfessionalToolbar
-          projectName={projectName || "Oakland A's Memory"}
-          onProjectNameChange={setProjectName}
-          onSave={() => handleSaveProject(
-            cardEditor,
-            currentPhoto,
-            effectLayers,
-            studioState,
-            advanced3DEffects,
-            templateForRenderer
-          )}
-          onExport={() => setShowExportDialog(true)}
-          onShare={() => toast.success('Share your Oakland A\'s memory!')}
-          onBack={onBack}
-        />
-      </div>
-
-      <div className="flex h-[calc(100vh-4rem)]">
-        {/* Oakland A's themed sidebar */}
-        <div className="w-80 bg-[#1a5c47] border-r border-[#ffd700]/20 overflow-y-auto">
-          <div className="p-4 border-b border-[#ffd700]/20">
-            <h2 className="text-[#ffd700] font-bold text-lg">Oakland A's Studio</h2>
-            <p className="text-white/80 text-sm">Create your memory card</p>
-          </div>
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="h-full">
-            <TabsList className="grid grid-cols-1 h-auto bg-transparent p-2 gap-1">
-              {oakTabs.map((tab) => (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className="w-full justify-start data-[state=active]:bg-[#ffd700] data-[state=active]:text-[#0f4c3a] text-white hover:bg-[#ffd700]/20 transition-colors"
-                >
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            <div className="p-4">
-              {oakTabs.map((tab) => (
-                <TabsContent key={tab.id} value={tab.id} className="mt-0">
-                  <StudioTabContent
-                    activeTab={activeTab}
-                    currentPhoto={currentPhoto}
-                    cardData={cardEditor.cardData}
-                    advanced3DEffects={advanced3DEffects}
-                    effectLayers={effectLayers}
-                    selectedLayerId={selectedLayerId}
-                    studioState={studioState}
-                    show3DPreview={show3DPreview}
-                    showCRDBack={showCRDBack}
-                    isFullscreen={isFullscreen}
-                    isExporting={isExporting}
-                    setShow3DPreview={setShow3DPreview}
-                    setShowCRDBack={setShowCRDBack}
-                    setIsFullscreen={setIsFullscreen}
-                    setShowVectorEditor={() => {}}
-                    setShowExportDialog={setShowExportDialog}
-                    setAdvanced3DEffects={setAdvanced3DEffects}
-                    onPhotoUpload={() => document.getElementById('oak-photo-upload')?.click()}
-                    addEffectLayer={addEffectLayer}
-                    updateEffectLayer={updateEffectLayer}
-                    removeEffectLayer={removeEffectLayer}
-                    toggleLayerVisibility={toggleLayerVisibility}
-                    setSelectedLayerId={setSelectedLayerId}
-                    updateLighting={updateLighting}
-                    updateDesign={updateDesign}
-                    updateLayer={(updates) => {
-                      if (studioState.selectedLayerId) {
-                        updateLayer(studioState.selectedLayerId, updates);
-                      }
-                    }}
-                    addLayer={addLayer}
-                    removeLayer={removeLayer}
-                    reorderLayers={reorderLayers}
-                    selectLayer={selectLayer}
-                    applyLightingPreset={applyLightingPreset}
-                    handleAddElement={() => {}}
-                    handleExport={() => handleExport(exportRef, cardEditor.cardData.title)}
-                  />
-                </TabsContent>
-              ))}
-            </div>
-          </Tabs>
+      {/* Oakland A's themed header - hide in fullscreen */}
+      {!isFullscreen && (
+        <div className="bg-[#0f4c3a] border-b border-[#ffd700]/20">
+          <ProfessionalToolbar
+            projectName={projectName || "Oakland A's Memory"}
+            onProjectNameChange={setProjectName}
+            onSave={() => handleSaveProject(
+              cardEditor,
+              currentPhoto,
+              effectLayers,
+              studioState,
+              advanced3DEffects,
+              templateForRenderer
+            )}
+            onExport={() => setShowExportDialog(true)}
+            onShare={() => toast.success('Share your Oakland A\'s memory!')}
+            onBack={onBack}
+          />
         </div>
+      )}
 
-        {/* Enhanced main canvas with Oakland A's theming */}
+      <div className={`flex ${isFullscreen ? 'h-full' : 'h-[calc(100vh-4rem)]'}`}>
+        {/* Oakland A's themed sidebar - hide in fullscreen */}
+        {!isFullscreen && (
+          <div className="w-80 bg-[#1a5c47] border-r border-[#ffd700]/20 overflow-y-auto">
+            <div className="p-4 border-b border-[#ffd700]/20">
+              <h2 className="text-[#ffd700] font-bold text-lg">Oakland A's Studio</h2>
+              <p className="text-white/80 text-sm">Create your memory card</p>
+            </div>
+            
+            <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="h-full">
+              <TabsList className="grid grid-cols-1 h-auto bg-transparent p-2 gap-1">
+                {oakTabs.map((tab) => (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className="w-full justify-start data-[state=active]:bg-[#ffd700] data-[state=active]:text-[#0f4c3a] text-white hover:bg-[#ffd700]/20 transition-colors"
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              <div className="p-4">
+                {oakTabs.map((tab) => (
+                  <TabsContent key={tab.id} value={tab.id} className="mt-0">
+                    <StudioTabContent
+                      activeTab={activeTab}
+                      currentPhoto={currentPhoto}
+                      cardData={cardEditor.cardData}
+                      advanced3DEffects={advanced3DEffects}
+                      effectLayers={effectLayers}
+                      selectedLayerId={selectedLayerId}
+                      studioState={studioState}
+                      show3DPreview={show3DPreview}
+                      showCRDBack={showCRDBack}
+                      isFullscreen={isFullscreen}
+                      isExporting={isExporting}
+                      setShow3DPreview={setShow3DPreview}
+                      setShowCRDBack={setShowCRDBack}
+                      setIsFullscreen={setIsFullscreen}
+                      setShowVectorEditor={() => {}}
+                      setShowExportDialog={setShowExportDialog}
+                      setAdvanced3DEffects={setAdvanced3DEffects}
+                      onPhotoUpload={() => document.getElementById('oak-photo-upload')?.click()}
+                      addEffectLayer={addEffectLayer}
+                      updateEffectLayer={updateEffectLayer}
+                      removeEffectLayer={removeEffectLayer}
+                      toggleLayerVisibility={toggleLayerVisibility}
+                      setSelectedLayerId={setSelectedLayerId}
+                      updateLighting={updateLighting}
+                      updateDesign={updateDesign}
+                      updateLayer={(updates) => {
+                        if (studioState.selectedLayerId) {
+                          updateLayer(studioState.selectedLayerId, updates);
+                        }
+                      }}
+                      addLayer={addLayer}
+                      removeLayer={removeLayer}
+                      reorderLayers={reorderLayers}
+                      selectLayer={selectLayer}
+                      applyLightingPreset={applyLightingPreset}
+                      handleAddElement={() => {}}
+                      handleExport={() => handleExport(exportRef, cardEditor.cardData.title)}
+                    />
+                  </TabsContent>
+                ))}
+              </div>
+            </Tabs>
+          </div>
+        )}
+
+        {/* Enhanced main canvas with responsive sizing */}
         <StudioMainView
           show3DPreview={show3DPreview}
           showCRDBack={showCRDBack}
@@ -268,6 +272,18 @@ export const OakStudioEditor: React.FC<OakStudioEditorProps> = ({
         className="hidden"
         id="oak-photo-upload"
       />
+
+      {/* Fullscreen exit button when in fullscreen mode */}
+      {isFullscreen && (
+        <div className="absolute top-4 left-4 z-50">
+          <Button
+            onClick={() => setIsFullscreen(false)}
+            className="bg-[#ffd700] hover:bg-[#ffd700]/90 text-[#0f4c3a] font-bold"
+          >
+            Exit Fullscreen
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
