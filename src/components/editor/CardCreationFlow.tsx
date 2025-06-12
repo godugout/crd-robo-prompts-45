@@ -4,6 +4,7 @@ import { SimplifiedCardCreationHub } from '@/components/cards/SimplifiedCardCrea
 import { UploadStyleFlow } from './flows/UploadStyleFlow';
 import { DesignScratchFlow } from './flows/DesignScratchFlow';
 import { RemixFlow } from './flows/RemixFlow';
+import { SimpleCutoutFlow } from './flows/SimpleCutoutFlow';
 
 export const CardCreationFlow = () => {
   const currentPath = window.location.pathname;
@@ -20,9 +21,11 @@ export const CardCreationFlow = () => {
       case 'upload-style':
         return <UploadStyleFlow />;
       case 'design-scratch':
-        return <DesignScratchFlow />;
+        return <SimpleCutoutFlow />;
       case 'remix':
         return <RemixFlow />;
+      case 'cutout':
+        return <SimpleCutoutFlow />;
       default:
         return <SimplifiedCardCreationHub />;
     }
