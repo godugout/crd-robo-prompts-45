@@ -3,6 +3,7 @@ import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { FrameRenderer } from '../../frames/FrameRenderer';
 
 interface ImageUploadStepProps {
   selectedFrame?: string;
@@ -21,18 +22,12 @@ export const ImageUploadStep: React.FC<ImageUploadStepProps> = ({
     }
   }, [onImageUpload]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: { 'image/*': [] },
-    maxFiles: 1
+    maxFiles: 1,
+    noClick: true // We'll handle click manually
   });
-
-  const handleBrowseClick = () => {
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-    if (fileInput) {
-      fileInput.click();
-    }
-  };
 
   return (
     <div className="flex h-full">
@@ -53,6 +48,7 @@ export const ImageUploadStep: React.FC<ImageUploadStepProps> = ({
                 ? 'border-crd-green bg-crd-green/5' 
                 : 'border-gray-600 hover:border-crd-green/50 hover:bg-crd-green/5'
             }`}
+            onClick={open}
           >
             <input {...getInputProps()} />
             <div className="text-center space-y-4">
@@ -75,7 +71,7 @@ export const ImageUploadStep: React.FC<ImageUploadStepProps> = ({
 
           <div className="mt-6">
             <Button
-              onClick={handleBrowseClick}
+              onClick={open}
               className="w-full bg-crd-green text-black hover:bg-crd-green/90"
             >
               <Image className="w-4 h-4 mr-2" />
@@ -88,12 +84,24 @@ export const ImageUploadStep: React.FC<ImageUploadStepProps> = ({
       {/* Frame Preview */}
       <div className="w-80 bg-editor-dark border-l border-editor-border p-6">
         <h4 className="text-lg font-semibold text-white mb-4">Frame Preview</h4>
-        <div className="aspect-[5/7] bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700">
-          <div className="text-center text-gray-400">
-            <div className="w-16 h-16 bg-gray-700 rounded mx-auto mb-4"></div>
-            <p className="text-sm">Your selected frame</p>
-            <p className="text-xs mt-2">Upload an image to see the preview</p>
-          </div>
+        <div className="aspect-[5/7] bg-gray-800 rounded-lg flex items-center justify-center border border-gray-700 overflow-hidden">
+          {selectedFrame ? (
+            <div className="w-full h-full">
+              <FrameRenderer
+                frameId={selectedFrame}
+                title="Your Card Title"
+                subtitle="Upload an image to see it in this frame"
+                width={280}
+                height={392}
+              />
+            </div>
+          ) : (
+            <div className="text-center text-gray-500">
+              <div className="w-16 h-16 bg-gray-700 rounded mx-auto mb-4"></div>
+              <p className="text-sm">No frame selected</p>
+              <p className="text-xs mt-2">Go back to select a frame first</p>
+            </div>
+          )}
         </div>
         
         <div className="mt-4 p-3 bg-editor-darker rounded-lg">
