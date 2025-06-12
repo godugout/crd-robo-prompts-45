@@ -13,8 +13,8 @@ export const OAK_STUDIO_CONFIG = {
   },
   
   // Convert OAK templates to studio format
-  templates: SAMPLE_OAK_TEMPLATES.map((template): TemplateConfig => {
-    return {
+  templates: SAMPLE_OAK_TEMPLATES.map((template) => {
+    const templateConfig: TemplateConfig = {
       id: template.id,
       name: template.name,
       category: template.category.toLowerCase(),
@@ -38,6 +38,7 @@ export const OAK_STUDIO_CONFIG = {
         supports_stickers: true
       }
     };
+    return templateConfig;
   }),
   
   // Available studio tabs for Oakland A's users

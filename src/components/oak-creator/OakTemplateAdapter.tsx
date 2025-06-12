@@ -4,7 +4,7 @@ import { OakTemplate } from '@/types/oakTemplates';
 import { TemplateConfig } from '@/components/editor/wizard/wizardConfig';
 
 export const convertOakTemplateToStudio = (oakTemplate: OakTemplate): TemplateConfig => {
-  return {
+  const templateConfig: TemplateConfig = {
     id: oakTemplate.id,
     name: oakTemplate.name,
     category: oakTemplate.category.toLowerCase(),
@@ -28,6 +28,7 @@ export const convertOakTemplateToStudio = (oakTemplate: OakTemplate): TemplateCo
       supports_stickers: true
     }
   };
+  return templateConfig;
 };
 
 export const createOakStudioTemplate = (oakTemplate: OakTemplate, imageUrl?: string) => {
