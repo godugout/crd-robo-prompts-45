@@ -134,23 +134,15 @@ const Card3D = ({
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
-  const [shouldLoadTexture, setShouldLoadTexture] = useState(true);
   
   // Always create fallback texture
   const fallbackTexture = SimpleFallbackTexture();
   
-  // Conditionally load texture based on imageUrl and error state
-  let texture = fallbackTexture;
+  // Always call useTexture hook with fallback
+  const loadedTexture = useTexture(imageUrl || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png');
   
-  try {
-    if (imageUrl && shouldLoadTexture) {
-      texture = useTexture(imageUrl);
-    }
-  } catch (error) {
-    console.warn('Failed to load texture:', error);
-    setShouldLoadTexture(false);
-    texture = fallbackTexture;
-  }
+  // Use loaded texture if we have a valid imageUrl, otherwise use fallback
+  const texture = imageUrl ? loadedTexture : fallbackTexture;
   
   useFrame((state) => {
     if (meshRef.current) {
