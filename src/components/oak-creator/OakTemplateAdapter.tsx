@@ -16,10 +16,7 @@ export const convertOakTemplateToStudio = (oakTemplate: OakTemplate): TemplateCo
       borderRadius: 8,
       borderWidth: 2,
       layout: 'full-bleed' as const,
-      style: 'vintage' as const,
-      oaklandTheme: true,
-      era: oakTemplate.era,
-      tags: oakTemplate.tags
+      style: 'vintage' as const
     }
   };
 };
