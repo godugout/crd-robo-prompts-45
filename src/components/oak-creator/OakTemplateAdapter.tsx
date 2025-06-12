@@ -8,7 +8,7 @@ export const convertOakTemplateToStudio = (oakTemplate: OakTemplate): TemplateCo
     id: oakTemplate.id,
     name: oakTemplate.name,
     category: oakTemplate.category.toLowerCase(),
-    thumbnail: oakTemplate.thumbnail,
+    preview_url: oakTemplate.thumbnail,
     description: oakTemplate.description || oakTemplate.name,
     tags: oakTemplate.tags || [],
     template_data: {
@@ -38,8 +38,7 @@ export const createOakStudioTemplate = (oakTemplate: OakTemplate, imageUrl?: str
   
   return {
     ...studioTemplate,
-    image_url: imageUrl || oakTemplate.thumbnail,
-    title: oakTemplate.name,
+    preview_url: imageUrl || oakTemplate.thumbnail,
     description: oakTemplate.description || oakTemplate.name
   };
 };
