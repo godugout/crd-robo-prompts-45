@@ -20,15 +20,14 @@ export const Logo = () => {
     <Link 
       to="/" 
       className={cn(
-        "flex items-center transition-all duration-300 relative", // Removed mt-1 and any margin/padding
-        "hover:brightness-150 hover:drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]" // Yellow glow on hover
+        "flex items-center transition-all duration-300 relative",
+        "hover:brightness-150 hover:drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]"
       )}
       onClick={handleClick}
     >
-      {/* Container with no padding/margin - logos positioned absolutely */}
       <div className="relative">
         
-        {/* Normal Cardshow Logo - 6x larger (672x168) - Left aligned */}
+        {/* Normal Cardshow Logo - Properly sized for navbar */}
         <div 
           className={cn(
             "transition-all duration-600 ease-in-out transform flex items-center",
@@ -41,9 +40,8 @@ export const Logo = () => {
           }}
         >
           <CardshowLogo 
-            size="sm"
-            className="h-42 w-auto"
-            style={{ width: '672px', height: '168px' }}
+            size="lg"
+            className="h-8 w-auto"
           />
         </div>
 
@@ -64,7 +62,7 @@ export const Logo = () => {
               <img
                 src="/lovable-uploads/bcb3a676-7a9a-49f6-a43d-cd4be4963620.png"
                 alt="Cardshow Script"
-                className="h-14 w-auto object-contain transition-all duration-300 hover:scale-110 transform"
+                className="h-8 w-auto object-contain transition-all duration-300 hover:scale-110 transform"
                 onError={() => {
                   // Fallback to normal logo if script image fails
                   console.warn('Script logo failed to load, keeping normal logo');
