@@ -20,7 +20,7 @@ export const Logo = () => {
       {showScriptLogo ? (
         // Easter egg: Green script logo
         <img
-          src="/lovable-uploads/03d4a3de-39fc-4a44-8c39-11bd42d4bb74.png"
+          src="/lovable-uploads/bcb3a676-7a9a-49f6-a43d-cd4be4963620.png"
           alt="Cardshow Script"
           className={cn(
             "h-12 w-auto object-contain transition-all duration-300",
