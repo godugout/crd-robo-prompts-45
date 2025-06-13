@@ -28,10 +28,10 @@ export const Logo = () => {
       {/* Dynamic container that adjusts for both logo sizes */}
       <div className={cn(
         "relative w-auto flex items-center transition-all duration-600",
-        showScriptLogo ? "h-16 min-w-[140px]" : "h-14 min-w-[200px]"
+        showScriptLogo ? "h-16 min-w-[140px]" : "h-7 min-w-[112px]"
       )}>
         
-        {/* Normal Cardshow Logo - Made 2/3 Size */}
+        {/* Normal Cardshow Logo - Made 2x1 Aspect Ratio */}
         <div 
           className={cn(
             "absolute inset-0 transition-all duration-600 ease-in-out transform flex items-center",
@@ -44,8 +44,9 @@ export const Logo = () => {
           }}
         >
           <CardshowLogo 
-            size="1.5xl"
-            className="h-full w-auto max-h-14"
+            size="sm"
+            className="h-full w-auto max-h-7"
+            style={{ width: '112px', height: '28px' }}
           />
         </div>
 
