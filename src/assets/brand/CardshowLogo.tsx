@@ -9,8 +9,8 @@ const sizeClasses: Record<LogoSize, string> = {
   md: 'h-6 w-auto',
   lg: 'h-8 w-auto',
   xl: 'h-10 w-auto',
-  '1.5xl': 'h-14 w-auto', // New size - about 2/3 of 2xl
-  '2xl': 'h-20 w-auto', // New larger size option
+  '1.5xl': 'h-14 w-auto',
+  '2xl': 'h-20 w-auto',
 };
 
 export const CardshowLogo: React.FC<LogoProps> = ({
@@ -23,12 +23,13 @@ export const CardshowLogo: React.FC<LogoProps> = ({
   const [imageStatus, setImageStatus] = useState<'loading' | 'loaded' | 'error' | 'fallback'>('loading');
   const [currentSrc, setCurrentSrc] = useState<string>('');
 
-  // Try multiple logo sources in order of preference
+  // Use the new gradient logo as primary source
   const logoSources = [
+    '/lovable-uploads/95a44939-2aae-4c52-94be-6e6d9a5d0853.png', // New gradient logo
     '/lovable-uploads/e4fec02d-cb72-4dd5-955e-ead1e8e3020c.png',
     '/lovable-uploads/943558d8-6411-4472-821c-40584cf51e6a.png',
-    '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png', // Gradient logo
-    '/crd-logo-gradient.png', // Fallback in public folder
+    '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png',
+    '/crd-logo-gradient.png',
   ];
 
   useEffect(() => {
@@ -79,20 +80,19 @@ export const CardshowLogo: React.FC<LogoProps> = ({
     );
   }
 
-  // Show fallback text if all images failed - make it much more visible
+  // Show fallback text if all images failed
   if (imageStatus === 'fallback') {
     console.log('CardshowLogo: Rendering enhanced text fallback for size:', size);
     return (
       <div className={cn(
         'font-bold bg-gradient-to-r from-crd-green to-crd-blue bg-clip-text text-transparent flex items-center justify-center px-2 min-w-max',
-        // Make text size match the logo size properly
         size === 'xs' && 'text-xs h-4',
         size === 'sm' && 'text-sm h-5',
         size === 'md' && 'text-base h-6',
         size === 'lg' && 'text-lg h-8',
         size === 'xl' && 'text-2xl h-10',
-        size === '1.5xl' && 'text-3xl h-14', // New size text
-        size === '2xl' && 'text-4xl h-20', // Large text for new 2xl size
+        size === '1.5xl' && 'text-3xl h-14',
+        size === '2xl' && 'text-4xl h-20',
         animated && 'hover:scale-110 transform transition-all duration-150',
         className
       )} style={style}>
