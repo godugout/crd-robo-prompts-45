@@ -6,31 +6,39 @@ import { MediaPreview } from './MediaPreview';
 import type { MediaItem } from '@/types/media';
 
 interface MediaUploaderProps {
-  memoryId: string;
-  userId: string;
-  onUploadComplete: (mediaItem: MediaItem) => void;
+  bucket: 'static-assets' | 'user-content' | 'card-assets';
+  folder?: string;
+  onUploadComplete: (mediaItem: any) => void;
   onError?: (error: Error) => void;
-  isPrivate?: boolean;
-  detectFaces?: boolean;
+  generateThumbnail?: boolean;
+  optimize?: boolean;
+  tags?: string[];
+  metadata?: Record<string, any>;
 }
 
 export const MediaUploader: React.FC<MediaUploaderProps> = ({
-  memoryId,
-  userId,
+  bucket,
+  folder,
   onUploadComplete,
   onError,
-  isPrivate = false,
-  detectFaces = false
+  generateThumbnail = true,
+  optimize = true,
+  tags = [],
+  metadata = {}
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { upload, isUploading, progress } = useMediaUpload({
-    memoryId,
-    userId,
-    isPrivate,
-    detectFaces
+  const { uploadFile, isUploading, progress } = useMediaUpload({
+    bucket,
+    folder,
+    generateThumbnail,
+    optimize,
+    tags,
+    metadata,
+    onComplete: onUploadComplete,
+    onError: (error) => onError?.(new Error(error))
   });
 
   const createPreview = (file: File) => {
@@ -83,9 +91,8 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
     if (!selectedFile) return;
     
     try {
-      const mediaItem = await upload(selectedFile);
+      const mediaItem = await uploadFile(selectedFile);
       if (mediaItem) {
-        onUploadComplete(mediaItem);
         handleRemoveFile();
       }
     } catch (error) {

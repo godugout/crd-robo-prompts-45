@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -37,6 +36,18 @@ export interface OptimizationOptions {
   sizes: { width: number; height: number; suffix: string }[];
   quality: number;
 }
+
+// Helper function to convert Json to Record<string, any>
+const parseJsonMetadata = (metadata: any): Record<string, any> => {
+  if (typeof metadata === 'string') {
+    try {
+      return JSON.parse(metadata);
+    } catch {
+      return {};
+    }
+  }
+  return metadata || {};
+};
 
 class MediaManagerClass {
   private readonly maxFileSize = {
@@ -118,18 +129,25 @@ class MediaManagerClass {
         return null;
       }
 
+      // Convert the database result to our MediaFile type
+      const result: MediaFile = {
+        ...mediaFile,
+        metadata: parseJsonMetadata(mediaFile.metadata),
+        optimization_variants: parseJsonMetadata(mediaFile.optimization_variants)
+      };
+
       // Generate thumbnail if requested
       if (options.generateThumbnail && file.type.startsWith('image/')) {
-        await this.generateThumbnail(mediaFile, file);
+        await this.generateThumbnail(result, file);
       }
 
       // Optimize if requested
       if (options.optimize && file.type.startsWith('image/')) {
-        this.optimizeImageInBackground(mediaFile, file);
+        this.optimizeImageInBackground(result, file);
       }
 
       toast.success('File uploaded successfully');
-      return mediaFile;
+      return result;
 
     } catch (error) {
       console.error('Upload error:', error);
@@ -150,7 +168,11 @@ class MediaManagerClass {
       return null;
     }
 
-    return data;
+    return {
+      ...data,
+      metadata: parseJsonMetadata(data.metadata),
+      optimization_variants: parseJsonMetadata(data.optimization_variants)
+    };
   }
 
   async getFiles(options: {
@@ -191,7 +213,11 @@ class MediaManagerClass {
       return [];
     }
 
-    return data || [];
+    return (data || []).map(item => ({
+      ...item,
+      metadata: parseJsonMetadata(item.metadata),
+      optimization_variants: parseJsonMetadata(item.optimization_variants)
+    }));
   }
 
   async deleteFile(fileId: string): Promise<boolean> {
@@ -258,7 +284,7 @@ class MediaManagerClass {
     return true;
   }
 
-  async getPublicUrl(bucket: string, path: string): Promise<string> {
+  getPublicUrl(bucket: string, path: string): string {
     const { data } = supabase.storage.from(bucket).getPublicUrl(path);
     return data.publicUrl;
   }

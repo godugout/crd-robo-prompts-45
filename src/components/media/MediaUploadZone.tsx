@@ -123,14 +123,24 @@ export const MediaUploadZone: React.FC<MediaUploadZoneProps> = ({
 
   }, [bucket, folder, maxFiles, generateThumbnail, optimize, tags, metadata, onUploadComplete, onUploadProgress]);
 
+  // Create proper accept object based on bucket type
+  const getAcceptTypes = () => {
+    const acceptTypes: Record<string, string[]> = {
+      'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.gif']
+    };
+    
+    if (bucket === 'user-content') {
+      acceptTypes['video/*'] = ['.mp4', '.webm'];
+    }
+    
+    return acceptTypes;
+  };
+
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     onDrop,
     disabled: isUploading,
     maxFiles,
-    accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.gif'],
-      'video/*': bucket === 'user-content' ? ['.mp4', '.webm'] : undefined,
-    }.filter(Boolean) as any
+    accept: getAcceptTypes()
   });
 
   const getFileIcon = (file: File) => {
