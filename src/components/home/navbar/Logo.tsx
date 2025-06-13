@@ -28,10 +28,10 @@ export const Logo = () => {
       {/* Dynamic container that adjusts for both logo sizes */}
       <div className={cn(
         "relative w-auto flex items-center transition-all duration-600",
-        showScriptLogo ? "h-48 min-w-[300px]" : "h-14 min-w-[140px]"
+        showScriptLogo ? "h-16 min-w-[140px]" : "h-48 min-w-[300px]"
       )}>
         
-        {/* Normal Cardshow Logo - Made Smaller */}
+        {/* Normal Cardshow Logo - Made 3x Bigger */}
         <div 
           className={cn(
             "absolute inset-0 transition-all duration-600 ease-in-out transform flex items-center",
@@ -44,12 +44,12 @@ export const Logo = () => {
           }}
         >
           <CardshowLogo 
-            size="1.5xl"
-            className="h-full w-auto max-h-14"
+            size="2xl"
+            className="h-full w-auto max-h-48"
           />
         </div>
 
-        {/* Script Logo (Easter Egg) - Made 3x Bigger */}
+        {/* Script Logo (Easter Egg) - Made Smaller */}
         <div 
           className={cn(
             "absolute inset-0 flex items-center transition-all duration-600 ease-in-out transform",
@@ -65,7 +65,7 @@ export const Logo = () => {
             <img
               src="/lovable-uploads/bcb3a676-7a9a-49f6-a43d-cd4be4963620.png"
               alt="Cardshow Script"
-              className="h-48 w-auto object-contain transition-all duration-300 hover:scale-110 transform"
+              className="h-14 w-auto object-contain transition-all duration-300 hover:scale-110 transform"
               onError={() => {
                 // Fallback to normal logo if script image fails
                 console.warn('Script logo failed to load, keeping normal logo');
