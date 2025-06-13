@@ -25,13 +25,13 @@ export const Logo = () => {
       )}
       onClick={handleClick}
     >
-      {/* Dynamic container that adjusts for both logo sizes */}
+      {/* Dynamic container that adjusts for both logo sizes - 8x larger */}
       <div className={cn(
         "relative w-auto flex items-center transition-all duration-600",
-        showScriptLogo ? "h-16 min-w-[140px]" : "h-7 min-w-[112px]"
+        showScriptLogo ? "h-16 min-w-[140px]" : "h-56 min-w-[896px]"
       )}>
         
-        {/* Normal Cardshow Logo - Made 2x1 Aspect Ratio */}
+        {/* Normal Cardshow Logo - Made 8x larger (896x224) */}
         <div 
           className={cn(
             "absolute inset-0 transition-all duration-600 ease-in-out transform flex items-center",
@@ -45,8 +45,8 @@ export const Logo = () => {
         >
           <CardshowLogo 
             size="sm"
-            className="h-full w-auto max-h-7"
-            style={{ width: '112px', height: '28px' }}
+            className="h-full w-auto max-h-56"
+            style={{ width: '896px', height: '224px' }}
           />
         </div>
 
