@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { CardshowLogo } from '@/assets/brand';
 
 export const CRDCardBack: React.FC = () => {
   return (
@@ -17,11 +17,7 @@ export const CRDCardBack: React.FC = () => {
       <div className="relative z-10 flex flex-col items-center justify-center h-full p-8">
         {/* Logo Section */}
         <div className="flex items-center justify-center mb-8">
-          <img 
-            src="/lovable-uploads/4b5f3591-e7ce-4903-ba12-be85faf3d44d.png" 
-            alt="Cardshow Logo" 
-            className="w-24 h-24 object-contain"
-          />
+          <CardshowLogo size="xl" showText={false} />
           <div className="text-center ml-4">
             <div className="text-4xl font-bold bg-gradient-to-r from-crd-green to-crd-purple bg-clip-text text-transparent">
               CARDSHOW

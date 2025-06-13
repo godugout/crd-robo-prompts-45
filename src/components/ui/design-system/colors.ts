@@ -1,11 +1,13 @@
 
 // Centralized color system for type safety and consistency
 export const colors = {
-  // Brand colors
+  // Brand colors - Updated to match Cardshow logo
   brand: {
     orange: '#EA6E48',
     blue: '#3772FF', 
-    green: '#45B26B',
+    green: '#4ade80', // Primary green from your logo
+    greenSecondary: '#22c55e', // Secondary green shade
+    greenAccent: '#16a34a', // Darker green accent
     purple: '#9757D7',
     gold: '#FFD700',
   },

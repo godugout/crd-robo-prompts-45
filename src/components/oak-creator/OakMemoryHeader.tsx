@@ -2,6 +2,7 @@
 import React from 'react';
 import { ArrowLeft, Download, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CardshowLogo } from '@/assets/brand';
 
 interface OakMemoryHeaderProps {
   onBack?: () => void;

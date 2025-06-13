@@ -1,18 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { CardshowLogo } from "@/assets/brand";
 
 export const CardHeader = () => {
   return (
     <div className="flex w-full items-center justify-between px-8 py-12 md:px-32 md:py-12">
       <div className="flex items-center gap-2">
-        <img
-          src="/lovable-uploads/4b5f3591-e7ce-4903-ba12-be85faf3d44d.png"
-          alt="Cardshow Logo"
-          className="w-[43px] h-8"
-        />
-        <span className="font-orbitron text-lg font-black text-[#F4F5F6]">
-          CARDSHOW
-        </span>
+        <CardshowLogo size="md" />
       </div>
       
       <div className="flex items-center gap-5">

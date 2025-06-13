@@ -1,4 +1,5 @@
 import React from "react";
+import { CardshowLogo } from "@/assets/brand";
 
 export const Footer: React.FC = () => {
   return (
@@ -6,11 +7,7 @@ export const Footer: React.FC = () => {
       <div className="flex flex-wrap justify-between gap-12 mb-12">
         <div className="flex flex-col gap-6 max-w-sm">
           <div className="flex gap-2 text-lg text-[#F4F5F6] font-black tracking-[-0.36px] leading-8">
-            <img
-              src="/lovable-uploads/4b5f3591-e7ce-4903-ba12-be85faf3d44d.png"
-              className="aspect-[1.34] object-contain w-[43px]"
-              alt="Cardshow Logo"
-            />
+            <CardshowLogo size="sm" showText={false} />
             <div>CARDSHOW</div>
           </div>
           <div className="text-[#777E90] text-base">

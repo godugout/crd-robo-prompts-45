@@ -6,6 +6,7 @@ import { useCardEditor } from '@/hooks/useCardEditor';
 import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
 import { localCardStorage } from '@/lib/localCardStorage';
 import { toast } from 'sonner';
+import { CardshowLogo } from '@/assets/brand';
 
 interface EditorHeaderProps {
   cardEditor?: ReturnType<typeof useCardEditor>;
@@ -126,14 +127,9 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
   return (
     <div className="flex items-center justify-between h-16 px-4 bg-editor-dark border-b border-editor-border">
       <div className="flex items-center space-x-4">
-        {/* Logo instead of back button text */}
         <Link to="/cards" className="flex items-center">
           <ArrowLeft className="w-5 h-5 mr-2 text-white" />
-          <img
-            src="/lovable-uploads/4b5f3591-e7ce-4903-ba12-be85faf3d44d.png"
-            className="h-6 object-contain"
-            alt="Cardshow Logo"
-          />
+          <CardshowLogo size="sm" showText={false} />
         </Link>
         <div className="w-px h-8 bg-editor-border mx-2"></div>
         <h1 className="text-xl font-semibold text-white">Card Editor</h1>
