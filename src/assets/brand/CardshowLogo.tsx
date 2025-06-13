@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { LogoProps, LogoSize } from './types';
@@ -10,7 +9,7 @@ const sizeClasses: Record<LogoSize, string> = {
   lg: 'h-8 w-auto',
   xl: 'h-10 w-auto',
   '1.5xl': 'h-14 w-auto', // New size - about 2/3 of 2xl
-  '2xl': 'h-20 w-auto',
+  '2xl': 'h-20 w-auto', // New larger size option
 };
 
 export const CardshowLogo: React.FC<LogoProps> = ({
@@ -91,7 +90,7 @@ export const CardshowLogo: React.FC<LogoProps> = ({
         size === 'lg' && 'text-lg h-8',
         size === 'xl' && 'text-2xl h-10',
         size === '1.5xl' && 'text-3xl h-14', // New size text
-        size === '2xl' && 'text-4xl h-20',
+        size === '2xl' && 'text-4xl h-20', // Large text for new 2xl size
         animated && 'hover:scale-110 transform transition-all duration-150',
         className
       )}>
