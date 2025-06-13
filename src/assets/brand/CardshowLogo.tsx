@@ -24,8 +24,8 @@ export const CardshowLogo: React.FC<LogoProps> = ({
     className
   );
 
-  // Use the new script logo with fallback to the previous logo if needed
-  const logoUrl = '/lovable-uploads/677ba08d-3b49-4d1c-b33a-76eb06efbbdf.png';
+  // Use the correct new script logo from your latest upload
+  const logoUrl = '/lovable-uploads/e4fec02d-cb72-4dd5-955e-ead1e8e3020c.png';
 
   return (
     <img

@@ -26,7 +26,7 @@ export const LogoUploader = () => {
     setIsUploading(true);
     try {
       // Fetch the current logo from the lovable uploads
-      const response = await fetch('/lovable-uploads/677ba08d-3b49-4d1c-b33a-76eb06efbbdf.png');
+      const response = await fetch('/lovable-uploads/e4fec02d-cb72-4dd5-955e-ead1e8e3020c.png');
       const blob = await response.blob();
       const file = new File([blob], 'cardshow-logo-script.png', { type: 'image/png' });
       
@@ -49,7 +49,7 @@ export const LogoUploader = () => {
         <div className="space-y-4">
           <div className="flex items-center gap-4">
             <img
-              src="/lovable-uploads/677ba08d-3b49-4d1c-b33a-76eb06efbbdf.png"
+              src="/lovable-uploads/e4fec02d-cb72-4dd5-955e-ead1e8e3020c.png"
               alt="Current Logo"
               className="h-12 w-auto border border-editor-border rounded"
             />
