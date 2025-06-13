@@ -1,8 +1,8 @@
 
 import { cardStorageAdapter } from './storage/adapters/CardStorageAdapter';
 
-// Re-export the types
-export type { LocalCard } from './storage/adapters/CardStorageAdapter';
+// Re-export the types from the central types file
+export type { LocalCard } from './storage/types';
 
 // Legacy interface for backwards compatibility
 export const localCardStorage = {
