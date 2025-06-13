@@ -25,8 +25,8 @@ export const Logo = () => {
       )}
       onClick={handleClick}
     >
-      {/* Fixed container with adjusted dimensions for new logo size */}
-      <div className="relative w-auto h-14 flex items-center min-w-[140px]">
+      {/* Fixed container with adjusted dimensions for larger logo size */}
+      <div className="relative w-auto h-20 flex items-center min-w-[200px]">
         
         {/* Normal Cardshow Logo */}
         <div 
@@ -41,12 +41,12 @@ export const Logo = () => {
           }}
         >
           <CardshowLogo 
-            size="1.5xl"
-            className="h-full w-auto max-h-14"
+            size="2xl"
+            className="h-full w-auto max-h-20"
           />
         </div>
 
-        {/* Script Logo (Easter Egg) - reverted to original h-16 size */}
+        {/* Script Logo (Easter Egg) */}
         <div 
           className={cn(
             "absolute inset-0 flex items-center transition-all duration-600 ease-in-out transform",
