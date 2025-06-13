@@ -19,7 +19,7 @@ export const Logo = () => {
         onClick={handleClick}
       >
         <img
-          src="/lovable-uploads/181ce91f-812b-4e93-a9af-aea16fd0b05e.png"
+          src="/lovable-uploads/4b5f3591-e7ce-4903-ba12-be85faf3d44d.png"
           className={cn(
             "h-8 object-contain transition-all duration-150",
             showFlash && "scale-110"
