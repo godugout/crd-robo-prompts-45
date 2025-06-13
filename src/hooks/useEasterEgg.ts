@@ -11,7 +11,7 @@ export const useEasterEgg = () => {
   
   const REQUIRED_CLICKS = 7;
   const RESET_TIMEOUT = 2000; // 2 seconds
-  const TRANSITION_DURATION = 400; // 400ms for smooth transition
+  const TRANSITION_DURATION = 600; // 600ms for smooth crossfade
 
   const handleClick = useCallback(() => {
     setClickCount(prev => {
@@ -35,12 +35,12 @@ export const useEasterEgg = () => {
       if (newCount >= REQUIRED_CLICKS) {
         setIsTransitioning(true);
         
-        // Start transition after a brief delay
+        // Start crossfade transition
         setTimeout(() => {
           setIsActivated(!isActivated);
           setShowScriptLogo(!showScriptLogo);
           
-          // End transition
+          // End transition after animation completes
           setTimeout(() => {
             setIsTransitioning(false);
           }, TRANSITION_DURATION);
