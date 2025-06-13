@@ -16,20 +16,35 @@ export const Logo = () => {
     img.src = "/lovable-uploads/bcb3a676-7a9a-49f6-a43d-cd4be4963620.png";
   }, []);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('Logo component state:', {
+      showScriptLogo,
+      showFlash,
+      isTransitioning,
+      clickCount,
+      imagePreloaded
+    });
+  }, [showScriptLogo, showFlash, isTransitioning, clickCount, imagePreloaded]);
+
   return (
     <Link 
       to="/" 
       className={cn(
-        "self-stretch flex items-center transition-all duration-300 relative",
+        "flex items-center transition-all duration-300 relative",
         showFlash && "brightness-150 drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]"
       )}
       onClick={handleClick}
     >
-      <div className="relative h-32 flex items-center">
+      {/* Fixed container with explicit dimensions */}
+      <div className="relative w-auto h-12 flex items-center min-w-[120px]">
+        {/* Debug border to see container bounds */}
+        <div className="absolute inset-0 border border-red-500 opacity-20" />
+        
         {/* Normal Cardshow Logo */}
         <div 
           className={cn(
-            "absolute inset-0 transition-all duration-600 ease-in-out transform",
+            "absolute inset-0 transition-all duration-600 ease-in-out transform flex items-center",
             showScriptLogo ? "opacity-0 scale-95" : "opacity-100 scale-100"
           )}
           style={{
@@ -41,7 +56,7 @@ export const Logo = () => {
           <CardshowLogo 
             size="xl"
             animated={showFlash}
-            className="h-32 w-auto"
+            className="h-full w-auto max-h-12"
           />
         </div>
 
@@ -62,7 +77,7 @@ export const Logo = () => {
               src="/lovable-uploads/bcb3a676-7a9a-49f6-a43d-cd4be4963620.png"
               alt="Cardshow Script"
               className={cn(
-                "h-12 w-auto object-contain transition-all duration-300",
+                "h-8 w-auto object-contain transition-all duration-300",
                 "hover:scale-110 transform",
                 showFlash && "scale-110"
               )}

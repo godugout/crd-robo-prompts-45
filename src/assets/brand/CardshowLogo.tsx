@@ -29,7 +29,7 @@ export const CardshowLogo: React.FC<LogoProps> = ({
   ];
 
   useEffect(() => {
-    console.log('CardshowLogo: Starting image load sequence');
+    console.log('CardshowLogo: Starting image load sequence for size:', size);
     setImageStatus('loading');
     
     const tryLoadImage = (sources: string[], index: number = 0): void => {
@@ -58,7 +58,7 @@ export const CardshowLogo: React.FC<LogoProps> = ({
     };
 
     tryLoadImage(logoSources);
-  }, []);
+  }, [size]);
 
   const logoClasses = cn(
     sizeClasses[size],
@@ -67,26 +67,27 @@ export const CardshowLogo: React.FC<LogoProps> = ({
     className
   );
 
-  // Show loading state
+  // Show loading state with proper sizing
   if (imageStatus === 'loading') {
     return (
-      <div className={cn(sizeClasses[size], 'bg-crd-mediumGray animate-pulse rounded', className)}>
-        <span className="sr-only">Loading Cardshow logo...</span>
+      <div className={cn(sizeClasses[size], 'bg-crd-mediumGray animate-pulse rounded flex items-center justify-center', className)}>
+        <span className="text-white text-xs">Loading...</span>
       </div>
     );
   }
 
-  // Show fallback text if all images failed
+  // Show fallback text if all images failed - make it much more visible
   if (imageStatus === 'fallback') {
-    console.log('CardshowLogo: Rendering enhanced text fallback');
+    console.log('CardshowLogo: Rendering enhanced text fallback for size:', size);
     return (
       <div className={cn(
-        'font-bold bg-gradient-to-r from-crd-green to-crd-blue bg-clip-text text-transparent flex items-center justify-center px-2',
-        size === 'xs' && 'text-xs',
-        size === 'sm' && 'text-sm',
-        size === 'md' && 'text-base',
-        size === 'lg' && 'text-lg',
-        size === 'xl' && 'text-xl',
+        'font-bold bg-gradient-to-r from-crd-green to-crd-blue bg-clip-text text-transparent flex items-center justify-center px-2 min-w-max',
+        // Make text size match the logo size properly
+        size === 'xs' && 'text-xs h-4',
+        size === 'sm' && 'text-sm h-5',
+        size === 'md' && 'text-base h-6',
+        size === 'lg' && 'text-lg h-8',
+        size === 'xl' && 'text-2xl h-10', // Much larger text for xl size
         animated && 'hover:scale-110 transform transition-all duration-150',
         className
       )}>
@@ -96,7 +97,7 @@ export const CardshowLogo: React.FC<LogoProps> = ({
   }
 
   // Render image if loaded successfully
-  console.log('CardshowLogo: Rendering image:', currentSrc);
+  console.log('CardshowLogo: Rendering image:', currentSrc, 'with size:', size);
   return (
     <img
       src={currentSrc}
