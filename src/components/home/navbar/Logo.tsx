@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useEasterEgg } from "@/hooks/useEasterEgg";
@@ -9,8 +8,8 @@ export const Logo = () => {
   const { clickCount, showScriptLogo, isTransitioning, handleClick, resetEasterEgg } = useEasterEgg();
   const [imagePreloaded, setImagePreloaded] = useState(false);
 
-  // Use a working placeholder image for the easter egg
-  const easterEggImageUrl = "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=200&h=100&fit=crop";
+  // Use your uploaded CRD gradient logo for the easter egg
+  const easterEggImageUrl = "/lovable-uploads/2235150b-53f4-4c6b-ac80-7aa963784c10.png";
 
   // Preload the script logo image for smooth transitions
   useEffect(() => {
