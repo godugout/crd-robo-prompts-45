@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { LogoProps, LogoSize } from './types';
@@ -17,6 +18,7 @@ export const CardshowLogo: React.FC<LogoProps> = ({
   variant = 'default',
   className = '',
   animated = false,
+  style,
 }) => {
   const [imageStatus, setImageStatus] = useState<'loading' | 'loaded' | 'error' | 'fallback'>('loading');
   const [currentSrc, setCurrentSrc] = useState<string>('');
@@ -71,7 +73,7 @@ export const CardshowLogo: React.FC<LogoProps> = ({
   // Show loading state with proper sizing
   if (imageStatus === 'loading') {
     return (
-      <div className={cn(sizeClasses[size], 'bg-crd-mediumGray animate-pulse rounded flex items-center justify-center', className)}>
+      <div className={cn(sizeClasses[size], 'bg-crd-mediumGray animate-pulse rounded flex items-center justify-center', className)} style={style}>
         <span className="text-white text-xs">Loading...</span>
       </div>
     );
@@ -93,7 +95,7 @@ export const CardshowLogo: React.FC<LogoProps> = ({
         size === '2xl' && 'text-4xl h-20', // Large text for new 2xl size
         animated && 'hover:scale-110 transform transition-all duration-150',
         className
-      )}>
+      )} style={style}>
         CARDSHOW
       </div>
     );
@@ -106,6 +108,7 @@ export const CardshowLogo: React.FC<LogoProps> = ({
       src={currentSrc}
       alt="Cardshow"
       className={logoClasses}
+      style={style}
       loading="lazy"
       onLoad={() => {
         console.log('CardshowLogo: Image onLoad event fired for:', currentSrc);

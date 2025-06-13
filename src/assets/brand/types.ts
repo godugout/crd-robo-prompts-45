@@ -8,4 +8,5 @@ export interface LogoProps {
   variant?: LogoVariant;
   className?: string;
   animated?: boolean;
+  style?: React.CSSProperties;
 }
