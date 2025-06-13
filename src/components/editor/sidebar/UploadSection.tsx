@@ -1,102 +1,75 @@
 
-import React, { useState, useCallback } from 'react';
-import { toast } from 'sonner';
-import { useDropzone } from 'react-dropzone';
-import { uploadCardImage } from '@/lib/cardImageUploader';
+import React from 'react';
+import { MediaUploadZone } from '@/components/media/MediaUploadZone';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
-import { DropZone } from '../upload/DropZone';
-import { FilePreview } from '../upload/FilePreview';
+import { toast } from 'sonner';
 
 interface UploadSectionProps {
   cardEditor?: ReturnType<typeof useCardEditor>;
 }
 
 export const UploadSection = ({ cardEditor }: UploadSectionProps) => {
-  const [fileToUpload, setFileToUpload] = useState<File | null>(null);
-  const [uploadPreview, setUploadPreview] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const { user } = useCustomAuth();
 
-  const handleFileSelection = (file: File) => {
-    setFileToUpload(file);
-    
-    const reader = new FileReader();
-    reader.onload = () => {
-      setUploadPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-    
-    toast.success('File selected', { 
-      description: file.name
-    });
-  };
-
-  const handleUpload = async () => {
-    if (!fileToUpload || !cardEditor) {
-      toast.error('Please select a file to upload');
-      return;
-    }
-
-    if (!user) {
-      toast.error('You must be logged in to upload images');
-      return;
-    }
-
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    try {
-      const result = await uploadCardImage({
-        file: fileToUpload,
-        cardId: cardEditor.cardData.id,
-        userId: user.id,
-        onProgress: setUploadProgress
-      });
-
-      if (result) {
-        cardEditor.updateCardField('image_url', result.url);
-        if (result.thumbnailUrl) {
-          cardEditor.updateCardField('thumbnail_url', result.thumbnailUrl);
-          cardEditor.updateDesignMetadata('thumbnailUrl', result.thumbnailUrl);
-        }
-        
-        toast.success('Image uploaded successfully', {
-          description: 'Your card image has been updated.',
-        });
-
-        cancelUpload();
+  const handleUploadComplete = (files: any[]) => {
+    if (files.length > 0 && cardEditor) {
+      const file = files[0];
+      const publicUrl = file.metadata.publicUrl;
+      
+      // Update card with the uploaded image
+      cardEditor.updateCardField('image_url', publicUrl);
+      
+      if (file.thumbnail_path) {
+        cardEditor.updateCardField('thumbnail_url', file.metadata.publicUrl);
+        cardEditor.updateDesignMetadata('thumbnailUrl', file.metadata.publicUrl);
       }
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Failed to upload image');
-    } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
+      
+      toast.success('Card image updated successfully!');
     }
   };
 
-  const cancelUpload = () => {
-    setFileToUpload(null);
-    setUploadPreview(null);
-    setUploadProgress(0);
-  };
+  if (!user) {
+    return (
+      <div className="p-4 text-center">
+        <p className="text-crd-lightGray mb-4">Please sign in to upload images</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4" role="section" aria-label="File upload section">
-      {!fileToUpload ? (
-        <DropZone onFileSelect={handleFileSelection} />
-      ) : (
-        <FilePreview
-          file={fileToUpload}
-          uploadPreview={uploadPreview}
-          isUploading={isUploading}
-          uploadProgress={uploadProgress}
-          onCancel={cancelUpload}
-          onUpload={handleUpload}
-        />
-      )}
+      <h3 className="text-white font-medium">Upload Image</h3>
+      
+      <MediaUploadZone
+        bucket="card-assets"
+        folder="card-images"
+        maxFiles={1}
+        generateThumbnail={true}
+        optimize={true}
+        tags={['card-image']}
+        onUploadComplete={handleUploadComplete}
+        className="min-h-[200px]"
+      >
+        <div className="space-y-4">
+          <div className="w-16 h-16 mx-auto bg-crd-green/20 rounded-full flex items-center justify-center">
+            <span className="text-2xl">🖼️</span>
+          </div>
+          
+          <div>
+            <h3 className="text-white text-lg font-medium mb-2">
+              Upload Card Image
+            </h3>
+            <p className="text-crd-lightGray">
+              Drag & drop your image here or click to browse
+            </p>
+          </div>
+          
+          <div className="text-sm text-crd-lightGray">
+            PNG, JPG, WebP up to 50MB
+          </div>
+        </div>
+      </MediaUploadZone>
     </div>
   );
 };

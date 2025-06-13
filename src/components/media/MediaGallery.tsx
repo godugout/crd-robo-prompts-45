@@ -1,250 +1,276 @@
 
-import React, { useState } from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  Share2,
-  Trash2,
-  X
-} from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogHeader
-} from '@/components/ui/dialog';
+import React, { useState, useEffect } from 'react';
+import { MediaManager, type MediaFile } from '@/lib/storage/MediaManager';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { toast } from '@/hooks/use-toast';
-import type { MediaGalleryProps } from './types';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Search, 
+  Filter, 
+  Download, 
+  Trash2, 
+  Eye, 
+  Tag,
+  Calendar,
+  FileText,
+  Image as ImageIcon,
+  Video
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
-export const MediaGallery = ({ mediaItems, onDelete }: MediaGalleryProps) => {
-  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
-  const [isDeleting, setIsDeleting] = useState(false);
+interface MediaGalleryProps {
+  bucket?: string;
+  userId?: string;
+  showUploader?: boolean;
+  selectable?: boolean;
+  onSelect?: (file: MediaFile) => void;
+  className?: string;
+}
 
-  const handlePrevious = () => {
-    setSelectedIndex(current => 
-      current > 0 ? current - 1 : mediaItems.length - 1
-    );
-  };
+export const MediaGallery: React.FC<MediaGalleryProps> = ({
+  bucket,
+  userId,
+  showUploader = false,
+  selectable = false,
+  onSelect,
+  className
+}) => {
+  const [files, setFiles] = useState<MediaFile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
-  const handleNext = () => {
-    setSelectedIndex(current => 
-      current < mediaItems.length - 1 ? current + 1 : 0
-    );
-  };
+  useEffect(() => {
+    loadFiles();
+  }, [bucket, userId, selectedTags]);
 
-  const handleDownload = async () => {
-    const media = mediaItems[selectedIndex];
+  const loadFiles = async () => {
+    setLoading(true);
     try {
-      const response = await fetch(media.url);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = media.originalFilename || `download.${media.type}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      toast({
-        title: "Download Failed",
-        description: "Could not download the file",
-        variant: "destructive"
+      const files = await MediaManager.getFiles({
+        bucket,
+        userId,
+        tags: selectedTags.length > 0 ? selectedTags : undefined,
+        limit: 50
       });
-    }
-  };
-
-  const handleShare = async () => {
-    const media = mediaItems[selectedIndex];
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: media.originalFilename || 'Shared media',
-          url: media.url
-        });
-      } else {
-        await navigator.clipboard.writeText(media.url);
-        toast({
-          title: "Link Copied",
-          description: "Media URL copied to clipboard"
-        });
-      }
+      setFiles(files);
     } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
-        toast({
-          title: "Share Failed",
-          description: "Could not share the media",
-          variant: "destructive"
-        });
-      }
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!onDelete) return;
-    
-    const media = mediaItems[selectedIndex];
-    setIsDeleting(true);
-    
-    try {
-      await onDelete(media.id);
-      toast({
-        title: "Media Deleted",
-        description: "The media has been removed"
-      });
-      setSelectedIndex(-1);
-    } catch (error) {
-      toast({
-        title: "Delete Failed",
-        description: "Could not delete the media",
-        variant: "destructive"
-      });
+      console.error('Error loading files:', error);
+      toast.error('Failed to load media files');
     } finally {
-      setIsDeleting(false);
+      setLoading(false);
     }
   };
 
-  const renderMediaContent = (media: typeof mediaItems[number]) => {
-    switch (media.type) {
-      case 'image':
-        return (
-          <img
-            src={media.url}
-            alt={media.metadata?.alt || 'Image'}
-            className="w-full h-full object-contain"
-          />
-        );
-      case 'video':
-        return (
-          <video
-            src={media.url}
-            controls
-            className="w-full h-full"
-          />
-        );
-      case 'audio':
-        return (
-          <div className="flex items-center justify-center h-full bg-secondary p-4">
-            <audio src={media.url} controls className="w-full max-w-md" />
-          </div>
-        );
-      default:
-        return null;
+  const handleDelete = async (fileId: string) => {
+    if (!confirm('Are you sure you want to delete this file?')) return;
+    
+    const success = await MediaManager.deleteFile(fileId);
+    if (success) {
+      setFiles(prev => prev.filter(f => f.id !== fileId));
     }
   };
 
-  if (mediaItems.length === 0) {
+  const handleFileSelect = (file: MediaFile) => {
+    if (selectable) {
+      setSelectedFile(file.id);
+      onSelect?.(file);
+    }
+  };
+
+  const getPublicUrl = (file: MediaFile) => {
+    return file.metadata.publicUrl || '';
+  };
+
+  const filteredFiles = files.filter(file => 
+    file.file_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    file.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const allTags = Array.from(new Set(files.flatMap(f => f.tags)));
+
+  const getFileIcon = (mimeType: string) => {
+    if (mimeType.startsWith('image/')) return <ImageIcon className="w-4 h-4" />;
+    if (mimeType.startsWith('video/')) return <Video className="w-4 h-4" />;
+    return <FileText className="w-4 h-4" />;
+  };
+
+  const formatFileSize = (bytes: number) => {
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    if (bytes === 0) return '0 Bytes';
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  if (loading) {
     return (
-      <Alert>
-        <AlertDescription>
-          No media items to display
-        </AlertDescription>
-      </Alert>
+      <div className="flex items-center justify-center p-8">
+        <div className="text-crd-lightGray">Loading media files...</div>
+      </div>
     );
   }
 
   return (
-    <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {mediaItems.map((media, index) => (
-          <button
-            key={media.id}
-            onClick={() => setSelectedIndex(index)}
-            className="group relative rounded-lg overflow-hidden bg-secondary hover:opacity-90 transition-opacity"
-          >
-            <AspectRatio ratio={1}>
-              {media.type === 'image' ? (
-                <img
-                  src={media.thumbnailUrl || media.url}
-                  alt={media.metadata?.alt || 'Thumbnail'}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-secondary">
-                  {media.type === 'video' ? (
-                    <video
-                      src={media.url}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="text-sm text-muted-foreground">
-                      Audio file
-                    </div>
+    <div className={cn('space-y-6', className)}>
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        <div className="flex gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-crd-lightGray" />
+            <Input
+              placeholder="Search files..."
+              value={search
+              
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-editor-dark border-editor-border text-white"
+            />
+          </div>
+          <Button variant="outline" size="sm" className="border-editor-border text-white">
+            <Filter className="w-4 h-4 mr-2" />
+            Filter
+          </Button>
+        </div>
+
+        {/* Tags Filter */}
+        {allTags.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-crd-lightGray">Filter by tags:</h4>
+            <div className="flex flex-wrap gap-2">
+              {allTags.map(tag => (
+                <Badge
+                  key={tag}
+                  variant={selectedTags.includes(tag) ? "default" : "outline"}
+                  className={cn(
+                    "cursor-pointer",
+                    selectedTags.includes(tag) 
+                      ? "bg-crd-green text-black" 
+                      : "border-editor-border text-crd-lightGray hover:border-crd-green"
                   )}
-                </div>
-              )}
-            </AspectRatio>
-          </button>
-        ))}
+                  onClick={() => {
+                    setSelectedTags(prev => 
+                      prev.includes(tag) 
+                        ? prev.filter(t => t !== tag)
+                        : [...prev, tag]
+                    );
+                  }}
+                >
+                  <Tag className="w-3 h-3 mr-1" />
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
-      <Dialog open={selectedIndex !== -1} onOpenChange={() => setSelectedIndex(-1)}>
-        <DialogContent className="max-w-4xl w-[90vw] h-[90vh]">
-          <DialogHeader>
-            <DialogTitle className="text-lg">
-              {mediaItems[selectedIndex]?.originalFilename || 'Media Viewer'}
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="relative flex-1 flex items-center justify-center min-h-0">
-            {selectedIndex !== -1 && renderMediaContent(mediaItems[selectedIndex])}
-            
-            <div className="absolute top-1/2 left-4 -translate-y-1/2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handlePrevious}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="absolute top-1/2 right-4 -translate-y-1/2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleNext}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 mt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownload}
+      {/* Files Grid */}
+      {filteredFiles.length === 0 ? (
+        <div className="text-center py-12">
+          <FileText className="w-12 h-12 text-crd-lightGray mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-white mb-2">No files found</h3>
+          <p className="text-crd-lightGray">
+            {searchTerm || selectedTags.length > 0 
+              ? 'Try adjusting your search or filters'
+              : 'Upload some files to get started'
+            }
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filteredFiles.map((file) => (
+            <Card
+              key={file.id}
+              className={cn(
+                "p-4 bg-editor-dark border-editor-border cursor-pointer transition-all hover:border-crd-green/50",
+                selectable && selectedFile === file.id && "border-crd-green bg-crd-green/10"
+              )}
+              onClick={() => handleFileSelect(file)}
             >
-              <Download className="h-4 w-4 mr-2" />
-              Download
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleShare}
-            >
-              <Share2 className="h-4 w-4 mr-2" />
-              Share
-            </Button>
-            {onDelete && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDelete}
-                disabled={isDeleting}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+              {/* File Preview */}
+              <div className="aspect-square mb-3 bg-editor-border rounded overflow-hidden">
+                {file.mime_type.startsWith('image/') ? (
+                  <img
+                    src={file.thumbnail_path 
+                      ? await MediaManager.getPublicUrl(file.bucket_id, file.thumbnail_path)
+                      : getPublicUrl(file)
+                    }
+                    alt={file.file_name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    {getFileIcon(file.mime_type)}
+                  </div>
+                )}
+              </div>
+
+              {/* File Info */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-white truncate" title={file.file_name}>
+                  {file.file_name}
+                </h4>
+                
+                <div className="flex items-center gap-2 text-xs text-crd-lightGray">
+                  {getFileIcon(file.mime_type)}
+                  <span>{formatFileSize(file.file_size)}</span>
+                  {file.width && file.height && (
+                    <span>{file.width}×{file.height}</span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1 text-xs text-crd-lightGray">
+                  <Calendar className="w-3 h-3" />
+                  {new Date(file.created_at).toLocaleDateString()}
+                </div>
+
+                {/* Tags */}
+                {file.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {file.tags.slice(0, 2).map(tag => (
+                      <Badge key={tag} variant="outline" className="text-xs px-1 py-0 border-editor-border text-crd-lightGray">
+                        {tag}
+                      </Badge>
+                    ))}
+                    {file.tags.length > 2 && (
+                      <span className="text-xs text-crd-lightGray">+{file.tags.length - 2}</span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-1 mt-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 border-editor-border text-crd-lightGray hover:border-crd-green hover:text-crd-green"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(getPublicUrl(file), '_blank');
+                  }}
+                >
+                  <Eye className="w-3 h-3 mr-1" />
+                  View
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-editor-border text-crd-lightGray hover:border-red-500 hover:text-red-500"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(file.id);
+                  }}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };

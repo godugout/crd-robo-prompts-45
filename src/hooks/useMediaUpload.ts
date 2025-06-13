@@ -1,100 +1,43 @@
 
 import { useState } from 'react';
-import { uploadMedia } from '@/lib/mediaManager';
-import { saveForOfflineUpload } from '@/lib/offlineStorage';
-import { toast } from '@/hooks/use-toast';
-import type { MediaItem } from '@/types/media';
+import { MediaManager, type UploadOptions } from '@/lib/storage/MediaManager';
+import { toast } from 'sonner';
 
-interface UseMediaUploadOptions {
-  memoryId: string;
-  userId: string;
-  isPrivate?: boolean;
-  detectFaces?: boolean;
+interface UseMediaUploadOptions extends Omit<UploadOptions, 'onProgress'> {
+  onComplete?: (result: any) => void;
+  onError?: (error: string) => void;
 }
 
-export const useMediaUpload = ({ memoryId, userId, isPrivate, detectFaces }: UseMediaUploadOptions) => {
+export const useMediaUpload = (options: UseMediaUploadOptions) => {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [uploadedFile, setUploadedFile] = useState<any>(null);
 
-  const upload = async (file: File): Promise<MediaItem | null> => {
+  const uploadFile = async (file: File) => {
     setIsUploading(true);
     setProgress(0);
+    setUploadedFile(null);
 
     try {
-      if (!navigator.onLine) {
-        const uploadId = await saveForOfflineUpload(file, memoryId, userId, { detectFaces }, isPrivate);
-        toast({
-          title: "Saved for offline upload",
-          description: "Your file will be uploaded when you're back online"
-        });
-        return null;
-      }
-
-      // For testing without authentication, we'll generate a mock media item
-      if (process.env.NODE_ENV === 'development') {
-        // Simulate progress
-        const interval = setInterval(() => {
-          setProgress(prev => {
-            if (prev >= 95) {
-              clearInterval(interval);
-              return 95;
-            }
-            return prev + 5;
-          });
-        }, 100);
-
-        // Simulate upload completion
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        clearInterval(interval);
-        setProgress(100);
-
-        // Create mock media item
-        const mockMediaItem: MediaItem = {
-          id: 'mock-' + Date.now(),
-          memoryId,
-          type: file.type.startsWith('image/') ? 'image' : 'video',
-          url: URL.createObjectURL(file),
-          thumbnailUrl: URL.createObjectURL(file),
-          originalFilename: file.name,
-          size: file.size,
-          mimeType: file.type,
-          width: 800,
-          height: 600,
-          duration: file.type.startsWith('video/') ? 0 : null, // Add duration property (0 for videos, null otherwise)
-          metadata: null, // Add metadata property (null is valid according to the interface)
-          createdAt: new Date().toISOString()
-        };
-
-        toast({
-          title: "Upload complete",
-          description: "Your file has been uploaded successfully"
-        });
-
-        return mockMediaItem;
-      }
-
-      const mediaItem = await uploadMedia({
-        file,
-        memoryId,
-        userId,
-        isPrivate,
-        metadata: { detectFaces },
-        progressCallback: (progress) => setProgress(progress)
+      const result = await MediaManager.uploadFile(file, {
+        ...options,
+        onProgress: setProgress
       });
 
-      toast({
-        title: "Upload complete",
-        description: "Your file has been uploaded successfully"
-      });
+      if (result) {
+        setUploadedFile(result);
+        options.onComplete?.(result);
+        toast.success('File uploaded successfully');
+      } else {
+        options.onError?.('Upload failed');
+        toast.error('Upload failed');
+      }
 
-      return mediaItem;
+      return result;
     } catch (error) {
-      console.error('Upload error:', error);
-      toast({
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : "Failed to upload file",
-        variant: "destructive"
-      });
+      const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+      options.onError?.(errorMessage);
+      toast.error(errorMessage);
       return null;
     } finally {
       setIsUploading(false);
@@ -102,9 +45,17 @@ export const useMediaUpload = ({ memoryId, userId, isPrivate, detectFaces }: Use
     }
   };
 
+  const reset = () => {
+    setIsUploading(false);
+    setProgress(0);
+    setUploadedFile(null);
+  };
+
   return {
-    upload,
+    uploadFile,
     isUploading,
-    progress
+    progress,
+    uploadedFile,
+    reset
   };
 };

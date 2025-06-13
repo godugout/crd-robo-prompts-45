@@ -24,12 +24,19 @@ export const CardshowLogo: React.FC<LogoProps> = ({
     className
   );
 
+  // Use the proper storage URL for the logo from our static-assets bucket
+  const logoUrl = 'https://wxlwhqlbxyuyujhqeyur.supabase.co/storage/v1/object/public/static-assets/cardshow-logo.png';
+
   return (
     <img
-      src="/lovable-uploads/943558d8-6411-4472-821c-40584cf51e6a.png"
+      src={logoUrl}
       alt="Cardshow"
       className={logoClasses}
       loading="lazy"
+      onError={(e) => {
+        // Fallback to the existing lovable upload if the new one fails
+        (e.target as HTMLImageElement).src = "/lovable-uploads/943558d8-6411-4472-821c-40584cf51e6a.png";
+      }}
     />
   );
 };

@@ -1837,6 +1837,66 @@ export type Database = {
         }
         Relationships: []
       }
+      media_files: {
+        Row: {
+          bucket_id: string
+          created_at: string | null
+          duration: number | null
+          file_name: string
+          file_path: string
+          file_size: number
+          height: number | null
+          id: string
+          is_optimized: boolean | null
+          metadata: Json | null
+          mime_type: string
+          optimization_variants: Json | null
+          tags: string[] | null
+          thumbnail_path: string | null
+          updated_at: string | null
+          user_id: string | null
+          width: number | null
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string | null
+          duration?: number | null
+          file_name: string
+          file_path: string
+          file_size: number
+          height?: number | null
+          id?: string
+          is_optimized?: boolean | null
+          metadata?: Json | null
+          mime_type: string
+          optimization_variants?: Json | null
+          tags?: string[] | null
+          thumbnail_path?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          width?: number | null
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string | null
+          duration?: number | null
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          height?: number | null
+          id?: string
+          is_optimized?: boolean | null
+          metadata?: Json | null
+          mime_type?: string
+          optimization_variants?: Json | null
+          tags?: string[] | null
+          thumbnail_path?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          width?: number | null
+        }
+        Relationships: []
+      }
       media_processing: {
         Row: {
           asset_id: string
@@ -3513,6 +3573,10 @@ export type Database = {
           username: string
           success: boolean
         }[]
+      }
+      cleanup_orphaned_files: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       execute_sql: {
         Args: { query_text: string; query_params?: Json }
