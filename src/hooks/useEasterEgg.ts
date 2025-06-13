@@ -6,10 +6,12 @@ export const useEasterEgg = () => {
   const [isActivated, setIsActivated] = useState(false);
   const [showScriptLogo, setShowScriptLogo] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const REQUIRED_CLICKS = 7;
   const RESET_TIMEOUT = 2000; // 2 seconds
+  const TRANSITION_DURATION = 400; // 400ms for smooth transition
 
   const handleClick = useCallback(() => {
     setClickCount(prev => {
@@ -31,8 +33,19 @@ export const useEasterEgg = () => {
       
       // Check if easter egg should toggle
       if (newCount >= REQUIRED_CLICKS) {
-        setIsActivated(!isActivated);
-        setShowScriptLogo(!showScriptLogo);
+        setIsTransitioning(true);
+        
+        // Start transition after a brief delay
+        setTimeout(() => {
+          setIsActivated(!isActivated);
+          setShowScriptLogo(!showScriptLogo);
+          
+          // End transition
+          setTimeout(() => {
+            setIsTransitioning(false);
+          }, TRANSITION_DURATION);
+        }, 50);
+        
         setClickCount(0);
         
         // Clear the reset timeout since we've activated
@@ -49,6 +62,7 @@ export const useEasterEgg = () => {
     setIsActivated(false);
     setShowScriptLogo(false);
     setClickCount(0);
+    setIsTransitioning(false);
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -68,6 +82,7 @@ export const useEasterEgg = () => {
     isActivated,
     showScriptLogo,
     showFlash,
+    isTransitioning,
     handleClick,
     resetEasterEgg
   };
