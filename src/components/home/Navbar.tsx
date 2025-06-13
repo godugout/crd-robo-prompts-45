@@ -1,21 +1,22 @@
 
-import React from "react";
-import { Logo } from "./navbar/Logo";
-import { NavLinks } from "./navbar/NavLinks";
-import { NavActions } from "./navbar/NavActions";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Logo } from './navbar/Logo';
+import { NavLinks } from './navbar/NavLinks';
+import { NavActions } from './navbar/NavActions';
 
-export const Navbar: React.FC = () => {
+export const Navbar = () => {
   return (
-    <div className="bg-[#141416] w-full overflow-hidden">
-      <div className="flex w-full items-center justify-between flex-wrap px-40 py-5 max-md:max-w-full max-md:px-5">
-        <div className="self-stretch flex min-w-60 items-center gap-8 flex-wrap my-auto max-md:max-w-full">
-          <Logo />
-          <div className="bg-[#353945] self-stretch flex w-0.5 shrink-0 h-10 my-auto rounded-sm" />
-          <NavLinks />
+    <nav className="bg-crd-darkest border-b border-crd-mediumGray/20 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center space-x-8">
+            <Logo />
+            <NavLinks />
+          </div>
+          <NavActions />
         </div>
-        <NavActions />
       </div>
-      <div className="bg-[#353945] flex min-h-px w-full" />
-    </div>
+    </nav>
   );
 };
