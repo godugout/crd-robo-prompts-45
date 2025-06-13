@@ -19,12 +19,12 @@ export const Logo = () => {
         onClick={handleClick}
       >
         <img
-          src="/lovable-uploads/3adf916a-0f96-4c37-a1bb-72235f0a299f.png"
+          src="/lovable-uploads/181ce91f-812b-4e93-a9af-aea16fd0b05e.png"
           className={cn(
             "h-8 object-contain transition-all duration-150",
             showFlash && "scale-110"
           )}
-          alt="Cardshow Logo"
+          alt="CRD Gradient Logo"
         />
         
         {/* Progress indicator for easter egg (subtle) */}
