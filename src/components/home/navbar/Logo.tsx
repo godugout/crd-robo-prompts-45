@@ -18,12 +18,12 @@ export const Logo = () => {
       onClick={handleClick}
     >
       {showScriptLogo ? (
-        // Easter egg: Green script logo
+        // Easter egg: Green script logo (3x larger)
         <img
           src="/lovable-uploads/bcb3a676-7a9a-49f6-a43d-cd4be4963620.png"
           alt="Cardshow Script"
           className={cn(
-            "h-12 w-auto object-contain transition-all duration-300",
+            "h-32 w-auto object-contain transition-all duration-300",
             "hover:scale-110 transform",
             showFlash && "scale-110"
           )}
@@ -34,12 +34,17 @@ export const Logo = () => {
           }}
         />
       ) : (
-        // Normal logo (now larger with xl size)
-        <CardshowLogo 
-          size="xl"
-          animated={showFlash}
-          className={showFlash ? "scale-110" : ""}
-        />
+        // Normal logo (much larger - using custom height)
+        <div className="h-32 flex items-center">
+          <CardshowLogo 
+            size="xl"
+            animated={showFlash}
+            className={cn(
+              "h-32 w-auto",
+              showFlash ? "scale-110" : ""
+            )}
+          />
+        </div>
       )}
       
       {/* Progress indicator for easter egg (subtle) */}
