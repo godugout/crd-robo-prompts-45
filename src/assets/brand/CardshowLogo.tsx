@@ -23,9 +23,10 @@ export const CardshowLogo: React.FC<LogoProps> = ({
   const [imageStatus, setImageStatus] = useState<'loading' | 'loaded' | 'error' | 'fallback'>('loading');
   const [currentSrc, setCurrentSrc] = useState<string>('');
 
-  // Use the new gradient logo as primary source
+  // Use the new uploaded logo as primary source
   const logoSources = [
-    '/lovable-uploads/95a44939-2aae-4c52-94be-6e6d9a5d0853.png', // New gradient logo
+    '/lovable-uploads/524cb36c-bb18-4535-9f92-ecc7b209941c.png', // New uploaded logo
+    '/lovable-uploads/95a44939-2aae-4c52-94be-6e6d9a5d0853.png', // Previous gradient logo
     '/lovable-uploads/e4fec02d-cb72-4dd5-955e-ead1e8e3020c.png',
     '/lovable-uploads/943558d8-6411-4472-821c-40584cf51e6a.png',
     '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png',
