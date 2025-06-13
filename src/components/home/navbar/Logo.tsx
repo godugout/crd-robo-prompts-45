@@ -18,12 +18,12 @@ export const Logo = () => {
       onClick={handleClick}
     >
       {showScriptLogo ? (
-        // Easter egg: Green script logo (3x larger)
+        // Easter egg: Green script logo (reduced to 1/3 size)
         <img
           src="/lovable-uploads/bcb3a676-7a9a-49f6-a43d-cd4be4963620.png"
           alt="Cardshow Script"
           className={cn(
-            "h-32 w-auto object-contain transition-all duration-300",
+            "h-12 w-auto object-contain transition-all duration-300",
             "hover:scale-110 transform",
             showFlash && "scale-110"
           )}
