@@ -27,7 +27,7 @@ export const Logo = () => {
     >
       <div className="relative">
         
-        {/* Normal Cardshow Logo - Properly sized for navbar */}
+        {/* Normal Cardshow Logo - Made slightly bigger */}
         <div 
           className={cn(
             "transition-all duration-600 ease-in-out transform flex items-center",
@@ -40,8 +40,8 @@ export const Logo = () => {
           }}
         >
           <CardshowLogo 
-            size="lg"
-            className="h-8 w-auto"
+            size="xl"
+            className="h-10 w-auto"
           />
         </div>
 
@@ -62,7 +62,7 @@ export const Logo = () => {
               <img
                 src="/lovable-uploads/bcb3a676-7a9a-49f6-a43d-cd4be4963620.png"
                 alt="Cardshow Script"
-                className="h-8 w-auto object-contain transition-all duration-300 hover:scale-110 transform"
+                className="h-10 w-auto object-contain transition-all duration-300 hover:scale-110 transform"
                 onError={() => {
                   // Fallback to normal logo if script image fails
                   console.warn('Script logo failed to load, keeping normal logo');
