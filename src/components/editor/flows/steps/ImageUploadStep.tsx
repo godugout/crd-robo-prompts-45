@@ -15,9 +15,12 @@ export const ImageUploadStep: React.FC<ImageUploadStepProps> = ({
   onImageUpload
 }) => {
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    console.log('Files dropped:', acceptedFiles);
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
+      console.log('Processing file:', file.name, file.size);
       const imageUrl = URL.createObjectURL(file);
+      console.log('Created blob URL:', imageUrl);
       onImageUpload(imageUrl);
     }
   }, [onImageUpload]);
@@ -26,8 +29,15 @@ export const ImageUploadStep: React.FC<ImageUploadStepProps> = ({
     onDrop,
     accept: { 'image/*': [] },
     maxFiles: 1,
-    noClick: true // We'll handle click manually
+    multiple: false
   });
+
+  const handleBrowseClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Browse button clicked, opening file dialog');
+    open();
+  };
 
   return (
     <div className="flex h-full">
@@ -48,7 +58,6 @@ export const ImageUploadStep: React.FC<ImageUploadStepProps> = ({
                 ? 'border-crd-green bg-crd-green/5' 
                 : 'border-gray-600 hover:border-crd-green/50 hover:bg-crd-green/5'
             }`}
-            onClick={open}
           >
             <input {...getInputProps()} />
             <div className="text-center space-y-4">
@@ -71,7 +80,7 @@ export const ImageUploadStep: React.FC<ImageUploadStepProps> = ({
 
           <div className="mt-6">
             <Button
-              onClick={open}
+              onClick={handleBrowseClick}
               className="w-full bg-crd-green text-black hover:bg-crd-green/90"
             >
               <Image className="w-4 h-4 mr-2" />

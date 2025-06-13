@@ -25,7 +25,7 @@ export const ProgressiveWizardLayout: React.FC<ProgressiveWizardLayoutProps> = (
   children
 }) => {
   return (
-    <div className="min-h-screen bg-crd-darkest">
+    <div className="min-h-screen bg-crd-darkest flex flex-col">
       {/* Header */}
       <div className="border-b border-editor-border bg-editor-dark">
         <div className="max-w-6xl mx-auto px-6 py-4">
@@ -92,8 +92,8 @@ export const ProgressiveWizardLayout: React.FC<ProgressiveWizardLayoutProps> = (
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto h-[calc(100vh-200px)]">
+      {/* Main Content - Takes remaining space */}
+      <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full">
         {children}
       </div>
     </div>

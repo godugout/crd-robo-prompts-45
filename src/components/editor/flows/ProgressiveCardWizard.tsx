@@ -169,45 +169,43 @@ export const ProgressiveCardWizard = () => {
       onStepChange={setCurrentStep}
       onBack={() => navigate('/cards')}
     >
-      <div className="flex-1 flex flex-col">
-        {/* Step Content */}
-        <div className="flex-1">
-          {renderStep()}
-        </div>
+      {/* Step Content - Takes remaining space */}
+      <div className="flex-1 overflow-hidden">
+        {renderStep()}
+      </div>
 
-        {/* Navigation */}
-        <div className="border-t border-editor-border p-6 bg-editor-dark">
-          <div className="flex justify-between items-center">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 0}
-              className="border-gray-600 text-white"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
+      {/* Navigation - Fixed at bottom */}
+      <div className="border-t border-editor-border p-6 bg-editor-dark">
+        <div className="flex justify-between items-center">
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={currentStep === 0}
+            className="border-gray-600 text-white"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Previous
+          </Button>
 
-            <div className="flex space-x-3">
-              {currentStep > 1 && (
-                <Button
-                  variant="outline"
-                  onClick={handleSkip}
-                  className="border-gray-600 text-gray-300"
-                >
-                  Skip This Step
-                </Button>
-              )}
-              
+          <div className="flex space-x-3">
+            {currentStep > 1 && (
               <Button
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className="bg-crd-green text-black hover:bg-crd-green/90"
+                variant="outline"
+                onClick={handleSkip}
+                className="border-gray-600 text-gray-300"
               >
-                {currentStep === STEPS.length - 1 ? 'Complete' : 'Continue'}
-                <ArrowRight className="w-4 h-4 ml-2" />
+                Skip This Step
               </Button>
-            </div>
+            )}
+            
+            <Button
+              onClick={handleNext}
+              disabled={!canProceed()}
+              className="bg-crd-green text-black hover:bg-crd-green/90"
+            >
+              {currentStep === STEPS.length - 1 ? 'Complete' : 'Continue'}
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
           </div>
         </div>
       </div>
