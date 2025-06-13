@@ -119,7 +119,7 @@ export class UnifiedSyncService {
     try {
       switch (dataType) {
         case 'cards':
-          return await this.syncCard(key, data);
+          return await this.syncCard(key, data as LocalCard);
         case 'drafts':
           return await this.syncDraft(key, data);
         case 'settings':
@@ -140,6 +140,12 @@ export class UnifiedSyncService {
 
   private async syncCard(key: string, cardData: LocalCard): Promise<boolean> {
     try {
+      // Validate that we have a proper LocalCard object
+      if (!cardData.id || !cardData.title) {
+        console.error('Invalid card data for sync:', cardData);
+        return false;
+      }
+
       const { data: existingCard } = await supabase
         .from('cards')
         .select('id')
