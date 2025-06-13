@@ -21,7 +21,7 @@ export const Logo = () => {
       to="/" 
       className={cn(
         "flex items-center transition-all duration-300 relative mt-1", // Added mt-1 for slight downward alignment
-        showFlash && "brightness-150 drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]" // Changed to yellow glow
+        showFlash && "brightness-150 drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]" // Yellow glow
       )}
       onClick={handleClick}
     >
@@ -47,7 +47,7 @@ export const Logo = () => {
           />
         </div>
 
-        {/* Script Logo (Easter Egg) */}
+        {/* Script Logo (Easter Egg) - reverted to original h-16 size */}
         <div 
           className={cn(
             "absolute inset-0 flex items-center transition-all duration-600 ease-in-out transform",
@@ -64,7 +64,7 @@ export const Logo = () => {
               src="/lovable-uploads/bcb3a676-7a9a-49f6-a43d-cd4be4963620.png"
               alt="Cardshow Script"
               className={cn(
-                "h-10 w-auto object-contain transition-all duration-300", // Reduced from h-16 to h-10 to match proportions
+                "h-16 w-auto object-contain transition-all duration-300", // Reverted back to h-16
                 "hover:scale-110 transform",
                 showFlash && "scale-110"
               )}
