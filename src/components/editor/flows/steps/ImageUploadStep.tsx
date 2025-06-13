@@ -25,19 +25,12 @@ export const ImageUploadStep: React.FC<ImageUploadStepProps> = ({
     }
   }, [onImageUpload]);
 
-  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { 'image/*': [] },
     maxFiles: 1,
     multiple: false
   });
-
-  const handleBrowseClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Browse button clicked, opening file dialog');
-    open();
-  };
 
   return (
     <div className="flex h-full">
@@ -69,23 +62,13 @@ export const ImageUploadStep: React.FC<ImageUploadStepProps> = ({
                   {isDragActive ? 'Drop your image here' : 'Upload Your Image'}
                 </h4>
                 <p className="text-gray-400 text-sm">
-                  Drag and drop an image, or click to browse
+                  Drag and drop an image, or click anywhere in this area
                 </p>
                 <p className="text-gray-500 text-xs mt-2">
                   Supports JPG, PNG, WebP • Max 10MB
                 </p>
               </div>
             </div>
-          </div>
-
-          <div className="mt-6">
-            <Button
-              onClick={handleBrowseClick}
-              className="w-full bg-crd-green text-black hover:bg-crd-green/90"
-            >
-              <Image className="w-4 h-4 mr-2" />
-              Choose File
-            </Button>
           </div>
         </div>
       </div>
