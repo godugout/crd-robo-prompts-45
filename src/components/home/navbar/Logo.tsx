@@ -9,12 +9,26 @@ export const Logo = () => {
   const { clickCount, showScriptLogo, isTransitioning, handleClick, resetEasterEgg } = useEasterEgg();
   const [imagePreloaded, setImagePreloaded] = useState(false);
 
+  // Use a working placeholder image for the easter egg
+  const easterEggImageUrl = "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=200&h=100&fit=crop";
+
   // Preload the script logo image for smooth transitions
   useEffect(() => {
     const img = new Image();
-    img.onload = () => setImagePreloaded(true);
-    img.src = "/lovable-uploads/d9ad57db-10ba-4e27-8231-ab0f49f75d1a.png";
-  }, []);
+    img.onload = () => {
+      console.log('Easter egg image preloaded successfully');
+      setImagePreloaded(true);
+    };
+    img.onerror = (e) => {
+      console.error('Failed to preload easter egg image:', e);
+    };
+    img.src = easterEggImageUrl;
+  }, [easterEggImageUrl]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Logo state:', { clickCount, showScriptLogo, imagePreloaded });
+  }, [clickCount, showScriptLogo, imagePreloaded]);
 
   return (
     <Link 
@@ -58,20 +72,23 @@ export const Logo = () => {
               transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
             }}
           >
-            {imagePreloaded && (
+            {imagePreloaded ? (
               <img
-                src="/lovable-uploads/d9ad57db-10ba-4e27-8231-ab0f49f75d1a.png"
+                src={easterEggImageUrl}
                 alt="CRD Script Logo"
-                className="h-10 w-auto object-contain transition-all duration-300 hover:scale-110 transform"
+                className="h-10 w-auto object-contain transition-all duration-300 hover:scale-110 transform rounded"
                 onLoad={() => {
-                  console.log('CRD easter egg logo loaded successfully');
+                  console.log('CRD easter egg logo displayed successfully');
                 }}
                 onError={(e) => {
-                  console.error('CRD logo failed to load:', e);
-                  console.log('Attempted to load from: /lovable-uploads/d9ad57db-10ba-4e27-8231-ab0f49f75d1a.png');
+                  console.error('CRD logo failed to display:', e);
                   resetEasterEgg();
                 }}
               />
+            ) : (
+              <div className="h-10 w-20 bg-crd-green/20 rounded animate-pulse flex items-center justify-center">
+                <span className="text-xs text-crd-green">CRD</span>
+              </div>
             )}
           </div>
         )}
