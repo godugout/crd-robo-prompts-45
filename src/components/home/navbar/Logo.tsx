@@ -13,7 +13,7 @@ export const Logo = () => {
   useEffect(() => {
     const img = new Image();
     img.onload = () => setImagePreloaded(true);
-    img.src = "/lovable-uploads/bcb3a676-7a9a-49f6-a43d-cd4be4963620.png";
+    img.src = "/CRD_logo.png";
   }, []);
 
   return (
@@ -60,12 +60,12 @@ export const Logo = () => {
           >
             {imagePreloaded && (
               <img
-                src="/lovable-uploads/bcb3a676-7a9a-49f6-a43d-cd4be4963620.png"
-                alt="Cardshow Script"
+                src="/CRD_logo.png"
+                alt="CRD Script Logo"
                 className="h-10 w-auto object-contain transition-all duration-300 hover:scale-110 transform"
                 onError={() => {
                   // Fallback to normal logo if script image fails
-                  console.warn('Script logo failed to load, keeping normal logo');
+                  console.warn('CRD logo failed to load, keeping normal logo');
                   resetEasterEgg();
                 }}
               />
