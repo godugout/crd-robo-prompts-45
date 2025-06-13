@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useEasterEgg } from "@/hooks/useEasterEgg";
@@ -62,9 +63,12 @@ export const Logo = () => {
                 src="/lovable-uploads/d9ad57db-10ba-4e27-8231-ab0f49f75d1a.png"
                 alt="CRD Script Logo"
                 className="h-10 w-auto object-contain transition-all duration-300 hover:scale-110 transform"
-                onError={() => {
-                  // Fallback to normal logo if script image fails
-                  console.warn('CRD logo failed to load, keeping normal logo');
+                onLoad={() => {
+                  console.log('CRD easter egg logo loaded successfully');
+                }}
+                onError={(e) => {
+                  console.error('CRD logo failed to load:', e);
+                  console.log('Attempted to load from: /lovable-uploads/d9ad57db-10ba-4e27-8231-ab0f49f75d1a.png');
                   resetEasterEgg();
                 }}
               />
