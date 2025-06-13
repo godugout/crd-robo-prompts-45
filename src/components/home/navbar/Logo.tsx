@@ -25,17 +25,14 @@ export const Logo = () => {
       )}
       onClick={handleClick}
     >
-      {/* Dynamic container that adjusts for both logo sizes - 6x larger */}
-      <div className={cn(
-        "relative w-auto flex items-center transition-all duration-600",
-        showScriptLogo ? "h-16 min-w-[140px]" : "h-42 min-w-[672px]"
-      )}>
+      {/* Fixed container that maintains consistent left alignment */}
+      <div className="relative flex items-center">
         
-        {/* Normal Cardshow Logo - Made 6x larger (672x168) */}
+        {/* Normal Cardshow Logo - 6x larger (672x168) - Left aligned */}
         <div 
           className={cn(
-            "absolute inset-0 transition-all duration-600 ease-in-out transform flex items-center",
-            showScriptLogo ? "opacity-0 scale-95" : "opacity-100 scale-100"
+            "absolute top-0 left-0 transition-all duration-600 ease-in-out transform flex items-center",
+            showScriptLogo ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"
           )}
           style={{
             transitionProperty: 'opacity, transform',
@@ -45,15 +42,15 @@ export const Logo = () => {
         >
           <CardshowLogo 
             size="sm"
-            className="h-full w-auto max-h-42"
+            className="h-42 w-auto"
             style={{ width: '672px', height: '168px' }}
           />
         </div>
 
-        {/* Script Logo (Easter Egg) - Made Smaller */}
+        {/* Script Logo (Easter Egg) - Left aligned at same position */}
         <div 
           className={cn(
-            "absolute inset-0 flex items-center transition-all duration-600 ease-in-out transform",
+            "absolute top-0 left-0 flex items-center transition-all duration-600 ease-in-out transform",
             !showScriptLogo ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100"
           )}
           style={{
@@ -75,6 +72,12 @@ export const Logo = () => {
             />
           )}
         </div>
+
+        {/* Invisible spacer to maintain layout - uses the larger logo's dimensions */}
+        <div 
+          className="invisible flex items-center"
+          style={{ width: '672px', height: '168px' }}
+        />
       </div>
       
       {/* Progress indicator for easter egg (subtle) */}
