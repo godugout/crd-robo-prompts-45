@@ -109,10 +109,7 @@ export const CardshowLogo: React.FC<LogoProps> = ({
       onError={(e) => {
         console.error('CardshowLogo: Image onError event fired for:', currentSrc, e);
         // This shouldn't happen since we pre-test images, but just in case
-        if (imageStatus !== 'fallback') {
-          setImageStatus('fallback');
-          setCurrentSrc('');
-        }
+        setImageStatus('error');
       }}
     />
   );
