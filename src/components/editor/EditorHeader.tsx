@@ -127,12 +127,15 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
   return (
     <div className="flex items-center justify-between h-16 px-4 bg-editor-dark border-b border-editor-border">
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/cards">
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Cards
-          </Link>
-        </Button>
+        {/* Logo instead of back button text */}
+        <Link to="/cards" className="flex items-center">
+          <ArrowLeft className="w-5 h-5 mr-2 text-white" />
+          <img
+            src="/lovable-uploads/3adf916a-0f96-4c37-a1bb-72235f0a299f.png"
+            className="h-6 object-contain"
+            alt="Cardshow Logo"
+          />
+        </Link>
         <div className="w-px h-8 bg-editor-border mx-2"></div>
         <h1 className="text-xl font-semibold text-white">Card Editor</h1>
       </div>
