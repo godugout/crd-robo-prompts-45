@@ -18,20 +18,16 @@ export const CRDCardBack: React.FC = () => {
         {/* Logo Section */}
         <div className="flex items-center justify-center mb-8">
           <img 
-            src="/crd-logo-gradient.png" 
-            alt="CRD Logo" 
+            src="/lovable-uploads/4b5f3591-e7ce-4903-ba12-be85faf3d44d.png" 
+            alt="Cardshow Logo" 
             className="w-24 h-24 object-contain"
-            onError={(e) => {
-              // Fallback to text logo if image fails
-              e.currentTarget.style.display = 'none';
-            }}
           />
-          <div className="text-center">
+          <div className="text-center ml-4">
             <div className="text-4xl font-bold bg-gradient-to-r from-crd-green to-crd-purple bg-clip-text text-transparent">
-              CRD
+              CARDSHOW
             </div>
             <div className="text-sm text-crd-lightGray uppercase tracking-wider">
-              Card Reality Digital
+              Digital Card Creation Platform
             </div>
           </div>
         </div>
@@ -56,8 +52,8 @@ export const CRDCardBack: React.FC = () => {
         {/* Bottom Section */}
         <div className="absolute bottom-6 left-6 right-6">
           <div className="flex justify-between items-center text-xs text-crd-lightGray/50">
-            <span>© 2024 CRD Platform</span>
-            <span>crd.digital</span>
+            <span>© 2024 Cardshow Platform</span>
+            <span>cardshow.digital</span>
           </div>
         </div>
 

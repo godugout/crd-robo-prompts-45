@@ -19,17 +19,12 @@ export const Logo = () => {
         onClick={handleClick}
       >
         <img
-          src="/crd-logo-gradient.png"
+          src="/lovable-uploads/4b5f3591-e7ce-4903-ba12-be85faf3d44d.png"
           className={cn(
             "h-8 object-contain transition-all duration-150",
             showFlash && "scale-110"
           )}
-          alt="CRD Gradient Logo"
-          onError={(e) => {
-            console.error('Logo failed to load:', e);
-            // Fallback to the uploaded image if the public file doesn't work
-            (e.target as HTMLImageElement).src = "/lovable-uploads/4b5f3591-e7ce-4903-ba12-be85faf3d44d.png";
-          }}
+          alt="Cardshow Logo"
         />
         
         {/* Progress indicator for easter egg (subtle) */}

@@ -1,4 +1,3 @@
-
 import { TemplateConfig } from '@/components/editor/wizard/wizardConfig';
 import { SAMPLE_OAK_TEMPLATES } from '@/data/oakTemplateData';
 
@@ -9,7 +8,7 @@ export const OAK_STUDIO_CONFIG = {
     secondary: '#ffd700',
     accent: '#ffffff',
     name: "Oakland A's Memory Creator",
-    logo: '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png'
+    logo: '/lovable-uploads/4b5f3591-e7ce-4903-ba12-be85faf3d44d.png'
   },
   
   // Convert OAK templates to studio format

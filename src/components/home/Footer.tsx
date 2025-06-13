@@ -1,4 +1,3 @@
-
 import React from "react";
 
 export const Footer: React.FC = () => {
@@ -8,9 +7,9 @@ export const Footer: React.FC = () => {
         <div className="flex flex-col gap-6 max-w-sm">
           <div className="flex gap-2 text-lg text-[#F4F5F6] font-black tracking-[-0.36px] leading-8">
             <img
-              src="https://cdn.builder.io/api/v1/image/assets/55d1eea1cc5a43f6bced987c3407a299/c58b524115847cb6bae550e7e8d188319790873e?placeholderIfAbsent=true"
+              src="/lovable-uploads/4b5f3591-e7ce-4903-ba12-be85faf3d44d.png"
               className="aspect-[1.34] object-contain w-[43px]"
-              alt="Logo"
+              alt="Cardshow Logo"
             />
             <div>CARDSHOW</div>
           </div>

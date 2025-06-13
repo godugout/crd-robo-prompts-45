@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -7,8 +6,8 @@ export const CardHeader = () => {
     <div className="flex w-full items-center justify-between px-8 py-12 md:px-32 md:py-12">
       <div className="flex items-center gap-2">
         <img
-          src="https://cdn.builder.io/api/v1/image/assets/TEMP/0c644015ec0ce7f9366b7df84be178b8bcf46b37"
-          alt="Logo"
+          src="/lovable-uploads/4b5f3591-e7ce-4903-ba12-be85faf3d44d.png"
+          alt="Cardshow Logo"
           className="w-[43px] h-8"
         />
         <span className="font-orbitron text-lg font-black text-[#F4F5F6]">

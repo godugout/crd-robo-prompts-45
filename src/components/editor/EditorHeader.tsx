@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Save, Share, Download, Settings, Moon, ArrowLeft, Cloud, CloudOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -131,7 +130,7 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
         <Link to="/cards" className="flex items-center">
           <ArrowLeft className="w-5 h-5 mr-2 text-white" />
           <img
-            src="/lovable-uploads/3adf916a-0f96-4c37-a1bb-72235f0a299f.png"
+            src="/lovable-uploads/4b5f3591-e7ce-4903-ba12-be85faf3d44d.png"
             className="h-6 object-contain"
             alt="Cardshow Logo"
           />
