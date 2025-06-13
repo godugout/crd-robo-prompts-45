@@ -122,8 +122,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-crd-lightGray" />
             <Input
               placeholder="Search files..."
-              value={search
-              
+              value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 bg-editor-dark border-editor-border text-white"
             />
@@ -194,7 +193,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
                 {file.mime_type.startsWith('image/') ? (
                   <img
                     src={file.thumbnail_path 
-                      ? await MediaManager.getPublicUrl(file.bucket_id, file.thumbnail_path)
+                      ? MediaManager.getPublicUrl(file.bucket_id, file.thumbnail_path)
                       : getPublicUrl(file)
                     }
                     alt={file.file_name}
