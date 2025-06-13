@@ -21,12 +21,12 @@ export const Logo = () => {
       to="/" 
       className={cn(
         "flex items-center transition-all duration-300 relative mt-1", // Added mt-1 for slight downward alignment
-        showFlash && "brightness-150 drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]"
+        showFlash && "brightness-150 drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]" // Changed to yellow glow
       )}
       onClick={handleClick}
     >
-      {/* Fixed container with explicit dimensions - made larger to accommodate 2x size */}
-      <div className="relative w-auto h-20 flex items-center min-w-[160px]">
+      {/* Fixed container with adjusted dimensions for new logo size */}
+      <div className="relative w-auto h-14 flex items-center min-w-[140px]">
         
         {/* Normal Cardshow Logo */}
         <div 
@@ -41,9 +41,9 @@ export const Logo = () => {
           }}
         >
           <CardshowLogo 
-            size="2xl"
+            size="1.5xl"
             animated={showFlash}
-            className="h-full w-auto max-h-20"
+            className="h-full w-auto max-h-14"
           />
         </div>
 
@@ -64,7 +64,7 @@ export const Logo = () => {
               src="/lovable-uploads/bcb3a676-7a9a-49f6-a43d-cd4be4963620.png"
               alt="Cardshow Script"
               className={cn(
-                "h-16 w-auto object-contain transition-all duration-300", // Made 2x larger (h-8 -> h-16)
+                "h-10 w-auto object-contain transition-all duration-300", // Reduced from h-16 to h-10 to match proportions
                 "hover:scale-110 transform",
                 showFlash && "scale-110"
               )}

@@ -9,7 +9,8 @@ const sizeClasses: Record<LogoSize, string> = {
   md: 'h-6 w-auto',
   lg: 'h-8 w-auto',
   xl: 'h-10 w-auto',
-  '2xl': 'h-20 w-auto', // New larger size option
+  '1.5xl': 'h-14 w-auto', // New size - about 2/3 of 2xl
+  '2xl': 'h-20 w-auto',
 };
 
 export const CardshowLogo: React.FC<LogoProps> = ({
@@ -89,7 +90,8 @@ export const CardshowLogo: React.FC<LogoProps> = ({
         size === 'md' && 'text-base h-6',
         size === 'lg' && 'text-lg h-8',
         size === 'xl' && 'text-2xl h-10',
-        size === '2xl' && 'text-4xl h-20', // Large text for new 2xl size
+        size === '1.5xl' && 'text-3xl h-14', // New size text
+        size === '2xl' && 'text-4xl h-20',
         animated && 'hover:scale-110 transform transition-all duration-150',
         className
       )}>
