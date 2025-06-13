@@ -7,11 +7,9 @@ export const useEasterEgg = () => {
   const [showScriptLogo, setShowScriptLogo] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const scriptLogoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const REQUIRED_CLICKS = 7;
   const RESET_TIMEOUT = 2000; // 2 seconds
-  const SCRIPT_LOGO_DURATION = 5000; // 5 seconds
 
   const handleClick = useCallback(() => {
     setClickCount(prev => {
@@ -31,27 +29,21 @@ export const useEasterEgg = () => {
       setShowFlash(true);
       setTimeout(() => setShowFlash(false), 150);
       
-      // Check if easter egg should activate
+      // Check if easter egg should toggle
       if (newCount >= REQUIRED_CLICKS) {
-        setIsActivated(true);
-        setShowScriptLogo(true);
+        setIsActivated(!isActivated);
+        setShowScriptLogo(!showScriptLogo);
         setClickCount(0);
         
         // Clear the reset timeout since we've activated
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
         }
-        
-        // Auto-hide script logo after duration
-        scriptLogoTimeoutRef.current = setTimeout(() => {
-          setShowScriptLogo(false);
-          setIsActivated(false);
-        }, SCRIPT_LOGO_DURATION);
       }
       
       return newCount;
     });
-  }, []);
+  }, [isActivated, showScriptLogo]);
 
   const resetEasterEgg = useCallback(() => {
     setIsActivated(false);
@@ -60,9 +52,6 @@ export const useEasterEgg = () => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    if (scriptLogoTimeoutRef.current) {
-      clearTimeout(scriptLogoTimeoutRef.current);
-    }
   }, []);
 
   // Cleanup timeouts on unmount
@@ -70,9 +59,6 @@ export const useEasterEgg = () => {
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
-      }
-      if (scriptLogoTimeoutRef.current) {
-        clearTimeout(scriptLogoTimeoutRef.current);
       }
     };
   }, []);
