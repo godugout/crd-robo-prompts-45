@@ -37,8 +37,9 @@ export const useEasterEgg = () => {
         
         // Start crossfade transition
         setTimeout(() => {
-          setIsActivated(!isActivated);
-          setShowScriptLogo(!showScriptLogo);
+          const newActivated = !isActivated;
+          setIsActivated(newActivated);
+          setShowScriptLogo(newActivated); // Both should have the same value
           
           // End transition after animation completes
           setTimeout(() => {
@@ -56,7 +57,7 @@ export const useEasterEgg = () => {
       
       return newCount;
     });
-  }, [isActivated, showScriptLogo]);
+  }, [isActivated]);
 
   const resetEasterEgg = useCallback(() => {
     setIsActivated(false);
