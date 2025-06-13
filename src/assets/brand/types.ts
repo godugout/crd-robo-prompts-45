@@ -7,6 +7,5 @@ export interface LogoProps {
   size?: LogoSize;
   variant?: LogoVariant;
   className?: string;
-  showText?: boolean;
   animated?: boolean;
 }

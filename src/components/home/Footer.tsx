@@ -6,9 +6,8 @@ export const Footer: React.FC = () => {
     <footer className="bg-[#141416] w-full py-16 px-[352px] max-md:px-5">
       <div className="flex flex-wrap justify-between gap-12 mb-12">
         <div className="flex flex-col gap-6 max-w-sm">
-          <div className="flex gap-2 text-lg text-[#F4F5F6] font-black tracking-[-0.36px] leading-8">
-            <CardshowLogo size="sm" showText={false} />
-            <div>CARDSHOW</div>
+          <div className="flex items-center">
+            <CardshowLogo size="md" />
           </div>
           <div className="text-[#777E90] text-base">
             The first digital card marketplace for collectors and creators.

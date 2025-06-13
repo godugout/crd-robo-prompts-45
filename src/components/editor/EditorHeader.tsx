@@ -129,7 +129,7 @@ export const EditorHeader = ({ cardEditor }: EditorHeaderProps) => {
       <div className="flex items-center space-x-4">
         <Link to="/cards" className="flex items-center">
           <ArrowLeft className="w-5 h-5 mr-2 text-white" />
-          <CardshowLogo size="sm" showText={false} />
+          <CardshowLogo size="sm" />
         </Link>
         <div className="w-px h-8 bg-editor-border mx-2"></div>
         <h1 className="text-xl font-semibold text-white">Card Editor</h1>

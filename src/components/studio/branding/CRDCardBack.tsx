@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { CardshowLogo } from '@/assets/brand';
 
@@ -17,15 +18,7 @@ export const CRDCardBack: React.FC = () => {
       <div className="relative z-10 flex flex-col items-center justify-center h-full p-8">
         {/* Logo Section */}
         <div className="flex items-center justify-center mb-8">
-          <CardshowLogo size="xl" showText={false} />
-          <div className="text-center ml-4">
-            <div className="text-4xl font-bold bg-gradient-to-r from-crd-green to-crd-purple bg-clip-text text-transparent">
-              CARDSHOW
-            </div>
-            <div className="text-sm text-crd-lightGray uppercase tracking-wider">
-              Digital Card Creation Platform
-            </div>
-          </div>
+          <CardshowLogo size="xl" />
         </div>
 
         {/* Tagline */}

@@ -20,7 +20,7 @@ export const Logo = () => {
         onClick={handleClick}
       >
         <CardshowLogo 
-          size="md"
+          size="lg"
           animated={showFlash}
           className={showFlash ? "scale-110" : ""}
         />
