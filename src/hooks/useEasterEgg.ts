@@ -4,11 +4,14 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 export const useEasterEgg = () => {
   const [clickCount, setClickCount] = useState(0);
   const [isActivated, setIsActivated] = useState(false);
+  const [showScriptLogo, setShowScriptLogo] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scriptLogoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const REQUIRED_CLICKS = 7;
   const RESET_TIMEOUT = 2000; // 2 seconds
+  const SCRIPT_LOGO_DURATION = 5000; // 5 seconds
 
   const handleClick = useCallback(() => {
     setClickCount(prev => {
@@ -31,10 +34,19 @@ export const useEasterEgg = () => {
       // Check if easter egg should activate
       if (newCount >= REQUIRED_CLICKS) {
         setIsActivated(true);
+        setShowScriptLogo(true);
         setClickCount(0);
+        
+        // Clear the reset timeout since we've activated
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
         }
+        
+        // Auto-hide script logo after duration
+        scriptLogoTimeoutRef.current = setTimeout(() => {
+          setShowScriptLogo(false);
+          setIsActivated(false);
+        }, SCRIPT_LOGO_DURATION);
       }
       
       return newCount;
@@ -43,17 +55,24 @@ export const useEasterEgg = () => {
 
   const resetEasterEgg = useCallback(() => {
     setIsActivated(false);
+    setShowScriptLogo(false);
     setClickCount(0);
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+    if (scriptLogoTimeoutRef.current) {
+      clearTimeout(scriptLogoTimeoutRef.current);
+    }
   }, []);
 
-  // Cleanup timeout on unmount
+  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+      }
+      if (scriptLogoTimeoutRef.current) {
+        clearTimeout(scriptLogoTimeoutRef.current);
       }
     };
   }, []);
@@ -61,6 +80,7 @@ export const useEasterEgg = () => {
   return {
     clickCount,
     isActivated,
+    showScriptLogo,
     showFlash,
     handleClick,
     resetEasterEgg
