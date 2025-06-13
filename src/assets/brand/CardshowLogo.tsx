@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { LogoProps, LogoSize } from './types';
@@ -25,7 +24,7 @@ export const CardshowLogo: React.FC<LogoProps> = ({
 
   // Use the new uploaded logo as primary source
   const logoSources = [
-    '/lovable-uploads/524cb36c-bb18-4535-9f92-ecc7b209941c.png', // New uploaded logo
+    '/Cardshow_logo.png', // Renamed logo file
     '/lovable-uploads/95a44939-2aae-4c52-94be-6e6d9a5d0853.png', // Previous gradient logo
     '/lovable-uploads/e4fec02d-cb72-4dd5-955e-ead1e8e3020c.png',
     '/lovable-uploads/943558d8-6411-4472-821c-40584cf51e6a.png',
