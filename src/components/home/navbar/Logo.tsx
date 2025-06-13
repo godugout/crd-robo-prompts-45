@@ -13,7 +13,7 @@ export const Logo = () => {
   useEffect(() => {
     const img = new Image();
     img.onload = () => setImagePreloaded(true);
-    img.src = "/lovable-uploads/c7a2bfde-8173-4cdd-b8de-f61092698e9a.png";
+    img.src = "/lovable-uploads/d9ad57db-10ba-4e27-8231-ab0f49f75d1a.png";
   }, []);
 
   return (
@@ -60,7 +60,7 @@ export const Logo = () => {
           >
             {imagePreloaded && (
               <img
-                src="/lovable-uploads/c7a2bfde-8173-4cdd-b8de-f61092698e9a.png"
+                src="/lovable-uploads/d9ad57db-10ba-4e27-8231-ab0f49f75d1a.png"
                 alt="CRD Script Logo"
                 className="h-10 w-auto object-contain transition-all duration-300 hover:scale-110 transform"
                 onError={() => {
