@@ -20,43 +20,44 @@ export const CardshowLogo: React.FC<LogoProps> = ({
   const [imageStatus, setImageStatus] = useState<'loading' | 'loaded' | 'error' | 'fallback'>('loading');
   const [currentSrc, setCurrentSrc] = useState<string>('');
 
-  const primaryLogoUrl = '/lovable-uploads/e4fec02d-cb72-4dd5-955e-ead1e8e3020c.png';
-  const fallbackLogoUrl = '/lovable-uploads/943558d8-6411-4472-821c-40584cf51e6a.png';
+  // Try multiple logo sources in order of preference
+  const logoSources = [
+    '/lovable-uploads/e4fec02d-cb72-4dd5-955e-ead1e8e3020c.png',
+    '/lovable-uploads/943558d8-6411-4472-821c-40584cf51e6a.png',
+    '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png', // Gradient logo
+    '/crd-logo-gradient.png', // Fallback in public folder
+  ];
 
   useEffect(() => {
     console.log('CardshowLogo: Starting image load sequence');
     setImageStatus('loading');
-    setCurrentSrc(primaryLogoUrl);
     
-    // Test primary image
-    const primaryImg = new Image();
-    primaryImg.onload = () => {
-      console.log('CardshowLogo: Primary image loaded successfully:', primaryLogoUrl);
-      setImageStatus('loaded');
-      setCurrentSrc(primaryLogoUrl);
-    };
-    
-    primaryImg.onerror = () => {
-      console.error('CardshowLogo: Primary image failed to load:', primaryLogoUrl);
-      
-      // Try fallback image
-      const fallbackImg = new Image();
-      fallbackImg.onload = () => {
-        console.log('CardshowLogo: Fallback image loaded successfully:', fallbackLogoUrl);
-        setImageStatus('loaded');
-        setCurrentSrc(fallbackLogoUrl);
-      };
-      
-      fallbackImg.onerror = () => {
-        console.error('CardshowLogo: Fallback image also failed to load:', fallbackLogoUrl);
+    const tryLoadImage = (sources: string[], index: number = 0): void => {
+      if (index >= sources.length) {
+        console.log('CardshowLogo: All image sources failed, using text fallback');
         setImageStatus('fallback');
-        setCurrentSrc('');
+        return;
+      }
+
+      const src = sources[index];
+      console.log(`CardshowLogo: Trying to load image ${index + 1}/${sources.length}:`, src);
+      
+      const img = new Image();
+      img.onload = () => {
+        console.log('CardshowLogo: Successfully loaded:', src);
+        setImageStatus('loaded');
+        setCurrentSrc(src);
       };
       
-      fallbackImg.src = fallbackLogoUrl;
+      img.onerror = () => {
+        console.warn(`CardshowLogo: Failed to load image ${index + 1}:`, src);
+        tryLoadImage(sources, index + 1);
+      };
+      
+      img.src = src;
     };
-    
-    primaryImg.src = primaryLogoUrl;
+
+    tryLoadImage(logoSources);
   }, []);
 
   const logoClasses = cn(
@@ -68,7 +69,6 @@ export const CardshowLogo: React.FC<LogoProps> = ({
 
   // Show loading state
   if (imageStatus === 'loading') {
-    console.log('CardshowLogo: Rendering loading state');
     return (
       <div className={cn(sizeClasses[size], 'bg-crd-mediumGray animate-pulse rounded', className)}>
         <span className="sr-only">Loading Cardshow logo...</span>
@@ -76,12 +76,12 @@ export const CardshowLogo: React.FC<LogoProps> = ({
     );
   }
 
-  // Show fallback text if both images failed
+  // Show fallback text if all images failed
   if (imageStatus === 'fallback') {
-    console.log('CardshowLogo: Rendering text fallback');
+    console.log('CardshowLogo: Rendering enhanced text fallback');
     return (
       <div className={cn(
-        'font-bold text-crd-green flex items-center justify-center px-2',
+        'font-bold bg-gradient-to-r from-crd-green to-crd-blue bg-clip-text text-transparent flex items-center justify-center px-2',
         size === 'xs' && 'text-xs',
         size === 'sm' && 'text-sm',
         size === 'md' && 'text-base',
@@ -90,7 +90,7 @@ export const CardshowLogo: React.FC<LogoProps> = ({
         animated && 'hover:scale-110 transform transition-all duration-150',
         className
       )}>
-        CRD
+        CARDSHOW
       </div>
     );
   }
@@ -108,8 +108,7 @@ export const CardshowLogo: React.FC<LogoProps> = ({
       }}
       onError={(e) => {
         console.error('CardshowLogo: Image onError event fired for:', currentSrc, e);
-        // This shouldn't happen since we pre-test images, but just in case
-        setImageStatus('error');
+        setImageStatus('fallback');
       }}
     />
   );
