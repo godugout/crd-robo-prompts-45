@@ -6,7 +6,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useResponsiveBreakpoints } from '@/hooks/useResponsiveBreakpoints';
 import { useCarouselKeyboardNavigation } from './hooks/useCarouselKeyboardNavigation';
 import { ViewModeToggle } from './components/ViewModeToggle';
-import { DesktopCarouselContainer } from './components/DesktopCarouselContainer';
+import { EnhancedDesktopLayout } from './components/EnhancedDesktopLayout';
 import { MobileCarouselContainer } from './components/MobileCarouselContainer';
 import { GalleryView } from './components/GalleryView';
 import { MinimalistFrameInfo } from './components/MinimalistFrameInfo';
@@ -29,7 +29,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'carousel' | 'gallery'>('carousel');
   const isMobile = useIsMobile();
-  const { responsivePadding, isDesktop } = useResponsiveBreakpoints();
+  const { isDesktop } = useResponsiveBreakpoints();
 
   const onDrop = async (acceptedFiles: File[]) => {
     if (!acceptedFiles.length) return;
@@ -70,7 +70,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
 
   const currentFrame = MINIMALIST_FRAMES[currentIndex];
 
-  // Desktop carousel view
+  // Enhanced desktop layout
   if (isDesktop && viewMode === 'carousel') {
     return (
       <>
@@ -78,13 +78,12 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
           viewMode={viewMode} 
           onViewModeChange={setViewMode} 
         />
-        <DesktopCarouselContainer
+        <EnhancedDesktopLayout
           frames={MINIMALIST_FRAMES}
           currentIndex={currentIndex}
           currentFrame={currentFrame}
           uploadedImage={uploadedImage}
           isDragActive={isDragActive}
-          responsivePadding={responsivePadding}
           onFrameSelect={goToFrame}
           onImageUpload={onImageUpload}
           getRootProps={getRootProps}
