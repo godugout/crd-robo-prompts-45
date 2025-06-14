@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
@@ -53,7 +52,6 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
     onFrameSelect(MINIMALIST_FRAMES[index].id);
   };
 
-  // Use keyboard navigation hook
   useCarouselKeyboardNavigation({
     currentIndex,
     totalFrames: MINIMALIST_FRAMES.length,
@@ -113,27 +111,21 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
           getInputProps={getInputProps}
         />
       ) : (
-        <div className="relative z-10 h-full" {...getRootProps()}>
+        <div className="relative z-10 h-full overflow-y-auto" {...getRootProps()}>
           <input {...getInputProps()} />
           
-          <div className="max-h-[60vh] overflow-y-auto">
-            <GalleryView
-              frames={MINIMALIST_FRAMES}
-              currentIndex={currentIndex}
-              uploadedImage={uploadedImage}
-              isDragActive={isDragActive}
-              onFrameSelect={goToFrame}
-              getRootProps={getRootProps}
-              getInputProps={getInputProps}
-            />
-          </div>
+          <GalleryView
+            frames={MINIMALIST_FRAMES}
+            currentIndex={currentIndex}
+            uploadedImage={uploadedImage}
+            isDragActive={isDragActive}
+            onFrameSelect={goToFrame}
+            getRootProps={getRootProps}
+            getInputProps={getInputProps}
+          />
 
-          <div className="relative z-20 mt-8 animate-fade-in">
+          <div className="relative z-20 mt-8 px-4 lg:px-6">
             <MinimalistFrameInfo frame={currentFrame} />
-          </div>
-
-          <div className="relative z-20 animate-fade-in" style={{ animationDelay: '300ms' }}>
-            <FrameUploadPrompt show={!uploadedImage} />
           </div>
         </div>
       )}
