@@ -65,12 +65,12 @@ export const EmbeddedCardCreator: React.FC = () => {
     }
   };
 
-  const canContinue = () => {
+  const canContinue = (): boolean => {
     switch (step) {
       case 'frameAndImage':
-        return selectedFrame && cardData.image_url;
+        return Boolean(selectedFrame && cardData.image_url);
       case 'customize':
-        return cardData.title.trim().length > 0;
+        return Boolean(cardData.title.trim().length > 0);
       case 'polish':
         return true;
       case 'preview':
