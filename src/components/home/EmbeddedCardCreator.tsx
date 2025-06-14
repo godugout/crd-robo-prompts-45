@@ -1,5 +1,5 @@
+
 import React, { useState } from 'react';
-import { useDropzone } from 'react-dropzone';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,8 +8,9 @@ import { useSimpleCardEditor } from '@/hooks/useSimpleCardEditor';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Wand2 } from 'lucide-react';
 import type { CardRarity } from '@/types/card';
+import { MinimalistFrameCarousel } from '@/components/editor/frames/MinimalistFrameCarousel';
 
 const RARITIES: { value: CardRarity; label: string; color: string }[] = [
   { value: 'common', label: 'Common', color: 'text-gray-400' },
@@ -19,43 +20,29 @@ const RARITIES: { value: CardRarity; label: string; color: string }[] = [
   { value: 'legendary', label: 'Legendary', color: 'text-yellow-400' }
 ];
 
+type Step = 'frameAndImage' | 'customize' | 'polish' | 'preview';
+
 export const EmbeddedCardCreator: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { cardData, updateField, saveCard, isSaving } = useSimpleCardEditor();
-  const [isUploading, setIsUploading] = useState(false);
-  const [step, setStep] = useState<'upload' | 'details' | 'preview'>('upload');
+  const [step, setStep] = useState<Step>('frameAndImage');
+  const [selectedFrame, setSelectedFrame] = useState<string>('');
 
-  const onDrop = async (acceptedFiles: File[]) => {
-    if (!acceptedFiles.length) return;
-
-    const file = acceptedFiles[0];
-    setIsUploading(true);
-
-    try {
-      // Create a simple blob URL for immediate use
-      const imageUrl = URL.createObjectURL(file);
-      updateField('image_url', imageUrl);
-      
-      toast.success('Image loaded successfully!');
-      setStep('details');
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Failed to load image');
-    } finally {
-      setIsUploading(false);
-    }
+  const handleFrameSelect = (frameId: string) => {
+    setSelectedFrame(frameId);
+    updateField('template_id', frameId);
   };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { 'image/*': [] },
-    maxFiles: 1
-  });
+  const handleImageUpload = (imageUrl: string) => {
+    updateField('image_url', imageUrl);
+  };
 
   const handleContinueInStudio = () => {
-    // Store card data in localStorage for the studio
-    localStorage.setItem('draft-card', JSON.stringify(cardData));
+    localStorage.setItem('draft-card', JSON.stringify({
+      ...cardData,
+      selectedFrame,
+    }));
     navigate('/cards/create');
     toast.success('Opening card in studio...');
   };
@@ -75,219 +62,212 @@ export const EmbeddedCardCreator: React.FC = () => {
     const saved = await saveCard();
     if (saved) {
       toast.success('Card created successfully!');
-      setStep('upload');
-      // Reset form
+      // Reset to first step
+      setStep('frameAndImage');
       updateField('title', '');
       updateField('description', '');
       updateField('image_url', '');
       updateField('rarity', 'common');
+      setSelectedFrame('');
     }
   };
 
-  const renderUploadStep = () => (
-    <div className="text-center">
-      <div
-        {...getRootProps()}
-        className={`border-2 border-dashed rounded-xl p-12 transition-all duration-300 cursor-pointer ${
-          isDragActive 
-            ? 'border-crd-green bg-crd-green/5' 
-            : 'border-crd-mediumGray hover:border-crd-green/50 hover:bg-crd-green/5'
-        }`}
-      >
-        <input {...getInputProps()} />
-        <div className="space-y-4">
-          <div className="w-16 h-16 mx-auto bg-gradient-to-br from-crd-green/20 to-crd-green/10 rounded-full flex items-center justify-center">
-            {isUploading ? (
-              <div className="w-8 h-8 border-2 border-crd-green border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Upload className="w-8 h-8 text-crd-green" />
-            )}
+  const canContinue = () => {
+    switch (step) {
+      case 'frameAndImage':
+        return selectedFrame && cardData.image_url;
+      case 'customize':
+        return cardData.title.trim().length > 0;
+      case 'polish':
+        return true;
+      case 'preview':
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  const getStepTitle = () => {
+    switch (step) {
+      case 'frameAndImage':
+        return 'Choose Frame & Upload Image';
+      case 'customize':
+        return 'Customize Your Card';
+      case 'polish':
+        return 'Add Finishing Touches';
+      case 'preview':
+        return 'Preview & Publish';
+      default:
+        return '';
+    }
+  };
+
+  const getStepDescription = () => {
+    switch (step) {
+      case 'frameAndImage':
+        return 'Select a frame style and upload your image to get started';
+      case 'customize':
+        return 'Add your card title, description, and set the rarity';
+      case 'polish':
+        return 'Fine-tune your card with effects and adjustments';
+      case 'preview':
+        return 'Review your card and publish when ready';
+      default:
+        return '';
+    }
+  };
+
+  const renderStepContent = () => {
+    switch (step) {
+      case 'frameAndImage':
+        return (
+          <div className="space-y-8">
+            <MinimalistFrameCarousel
+              selectedFrame={selectedFrame}
+              uploadedImage={cardData.image_url}
+              onFrameSelect={handleFrameSelect}
+              onImageUpload={handleImageUpload}
+            />
           </div>
-          <div>
-            <Typography variant="h3" className="mb-2">
-              {isUploading ? 'Loading...' : 'Upload Your Image'}
-            </Typography>
-            <Typography variant="body" className="text-crd-lightGray">
-              {isDragActive 
-                ? 'Drop your image here...' 
-                : 'Drag and drop an image, or click to browse'
-              }
-            </Typography>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+        );
 
-  const renderDetailsStep = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* Form */}
-      <div className="space-y-6">
-        <div>
-          <Typography variant="h3" className="mb-4">
-            Card Details
-          </Typography>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-crd-lightGray mb-2">
-            Card Title *
-          </label>
-          <Input
-            value={cardData.title}
-            onChange={(e) => updateField('title', e.target.value)}
-            placeholder="Enter your card title"
-            className="bg-[#353945] border-crd-mediumGray text-crd-white"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-crd-lightGray mb-2">
-            Description
-          </label>
-          <Textarea
-            value={cardData.description || ''}
-            onChange={(e) => updateField('description', e.target.value)}
-            placeholder="Describe your card..."
-            rows={3}
-            className="bg-[#353945] border-crd-mediumGray text-crd-white"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-crd-lightGray mb-2">
-            Rarity
-          </label>
-          <Select 
-            value={cardData.rarity} 
-            onValueChange={(value) => updateField('rarity', value as CardRarity)}
-          >
-            <SelectTrigger className="bg-[#353945] border-crd-mediumGray text-crd-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {RARITIES.map((rarity) => (
-                <SelectItem key={rarity.value} value={rarity.value}>
-                  <span className={rarity.color}>{rarity.label}</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex gap-3 pt-4">
-          <CRDButton
-            variant="secondary"
-            onClick={() => setStep('upload')}
-            className="flex-1"
-          >
-            Back
-          </CRDButton>
-          <CRDButton
-            onClick={() => setStep('preview')}
-            disabled={!cardData.title.trim()}
-            className="flex-1"
-          >
-            Preview
-          </CRDButton>
-        </div>
-      </div>
-
-      {/* Live Preview */}
-      <div className="flex flex-col items-center justify-center">
-        <div className="relative">
-          <div className="w-64 h-[22rem] bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden shadow-2xl">
-            {cardData.image_url ? (
-              <img 
-                src={cardData.image_url} 
-                alt="Card preview" 
-                className="w-full h-full object-cover"
+      case 'customize':
+        return (
+          <div className="max-w-2xl mx-auto space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-crd-lightGray mb-2">
+                Card Title *
+              </label>
+              <Input
+                value={cardData.title}
+                onChange={(e) => updateField('title', e.target.value)}
+                placeholder="Enter your card title"
+                className="bg-[#353945] border-crd-mediumGray text-crd-white"
               />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-300 rounded-lg flex items-center justify-center">
-                    <Upload className="w-8 h-8" />
-                  </div>
-                  <p className="text-sm">Your image here</p>
-                </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-crd-lightGray mb-2">
+                Description
+              </label>
+              <Textarea
+                value={cardData.description || ''}
+                onChange={(e) => updateField('description', e.target.value)}
+                placeholder="Describe your card..."
+                rows={3}
+                className="bg-[#353945] border-crd-mediumGray text-crd-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-crd-lightGray mb-2">
+                Rarity
+              </label>
+              <Select 
+                value={cardData.rarity} 
+                onValueChange={(value) => updateField('rarity', value as CardRarity)}
+              >
+                <SelectTrigger className="bg-[#353945] border-crd-mediumGray text-crd-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {RARITIES.map((rarity) => (
+                    <SelectItem key={rarity.value} value={rarity.value}>
+                      <span className={rarity.color}>{rarity.label}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 'polish':
+        return (
+          <div className="max-w-2xl mx-auto text-center space-y-6">
+            <div className="space-y-4">
+              <Typography variant="h3" className="mb-4">
+                Add Some Magic
+              </Typography>
+              <Typography variant="body" className="text-crd-lightGray">
+                Your card looks great! You can add effects or adjustments here, or continue to preview.
+              </Typography>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-[#353945] rounded-lg border border-crd-mediumGray">
+                <Wand2 className="w-8 h-8 mx-auto mb-2 text-crd-green" />
+                <h4 className="text-white font-medium mb-1">Quick Effects</h4>
+                <p className="text-crd-lightGray text-sm">Add instant visual polish</p>
               </div>
-            )}
-            {/* Card title overlay */}
-            {cardData.title && (
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                <h3 className="text-white font-bold text-lg">{cardData.title}</h3>
-                {cardData.rarity !== 'common' && (
+              
+              <div className="p-4 bg-[#353945] rounded-lg border border-crd-mediumGray">
+                <Sparkles className="w-8 h-8 mx-auto mb-2 text-crd-green" />
+                <h4 className="text-white font-medium mb-1">Fine Adjustments</h4>
+                <p className="text-crd-lightGray text-sm">Perfect positioning & colors</p>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'preview':
+        return (
+          <div className="text-center space-y-8">
+            <div>
+              <Typography variant="h3" className="mb-2">
+                Your Card is Ready!
+              </Typography>
+              <Typography variant="body" className="text-crd-lightGray">
+                You can publish it now or continue editing in our full studio
+              </Typography>
+            </div>
+
+            {/* Card Preview - Using the selected frame and data */}
+            <div className="flex justify-center">
+              <div className="relative w-80 h-[28rem] bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden shadow-2xl transform hover:scale-105 transition-transform">
+                {cardData.image_url && (
+                  <img 
+                    src={cardData.image_url} 
+                    alt={cardData.title} 
+                    className="w-full h-3/4 object-cover"
+                  />
+                )}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6">
+                  <h3 className="text-white font-bold text-xl mb-1">{cardData.title}</h3>
+                  {cardData.description && (
+                    <p className="text-gray-200 text-sm mb-2">{cardData.description}</p>
+                  )}
                   <span className={`text-sm font-medium ${RARITIES.find(r => r.value === cardData.rarity)?.color}`}>
                     {RARITIES.find(r => r.value === cardData.rarity)?.label}
                   </span>
-                )}
+                </div>
               </div>
-            )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-4 justify-center">
+              <CRDButton
+                onClick={handleQuickPublish}
+                disabled={isSaving}
+              >
+                {isSaving ? 'Publishing...' : 'Publish Now'}
+              </CRDButton>
+              <CRDButton
+                variant="secondary"
+                onClick={handleContinueInStudio}
+                className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Continue in Studio
+              </CRDButton>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
-  );
+        );
 
-  const renderPreviewStep = () => (
-    <div className="text-center space-y-8">
-      <div>
-        <Typography variant="h3" className="mb-2">
-          Your Card is Ready!
-        </Typography>
-        <Typography variant="body" className="text-crd-lightGray">
-          You can publish it now or continue editing in our full studio
-        </Typography>
-      </div>
-
-      {/* Card Preview */}
-      <div className="flex justify-center">
-        <div className="relative w-80 h-[28rem] bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden shadow-2xl transform hover:scale-105 transition-transform">
-          {cardData.image_url && (
-            <img 
-              src={cardData.image_url} 
-              alt={cardData.title} 
-              className="w-full h-full object-cover"
-            />
-          )}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6">
-            <h3 className="text-white font-bold text-xl mb-1">{cardData.title}</h3>
-            {cardData.description && (
-              <p className="text-gray-200 text-sm mb-2">{cardData.description}</p>
-            )}
-            <span className={`text-sm font-medium ${RARITIES.find(r => r.value === cardData.rarity)?.color}`}>
-              {RARITIES.find(r => r.value === cardData.rarity)?.label}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-4 justify-center">
-        <CRDButton
-          variant="secondary"
-          onClick={() => setStep('details')}
-        >
-          Edit Details
-        </CRDButton>
-        <CRDButton
-          onClick={handleQuickPublish}
-          disabled={isSaving}
-        >
-          {isSaving ? 'Publishing...' : 'Publish Now'}
-        </CRDButton>
-        <CRDButton
-          variant="secondary"
-          onClick={handleContinueInStudio}
-          className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          Continue in Studio
-        </CRDButton>
-      </div>
-    </div>
-  );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="bg-[#141416] py-20 px-4 md:px-8 lg:px-[352px]">
@@ -295,30 +275,30 @@ export const EmbeddedCardCreator: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <Typography as="h2" variant="h1" className="mb-4">
-            Create Your First Card in Minutes
+            Create Your Card in 4 Easy Steps
           </Typography>
           <Typography variant="body" className="text-crd-lightGray text-lg max-w-2xl mx-auto">
-            Upload an image, add some details, and watch your card come to life. No experience needed!
+            {getStepDescription()}
           </Typography>
         </div>
 
         {/* Progress Indicator */}
         <div className="flex justify-center mb-12">
           <div className="flex items-center space-x-4">
-            {['upload', 'details', 'preview'].map((stepName, index) => (
+            {(['frameAndImage', 'customize', 'polish', 'preview'] as const).map((stepName, index) => (
               <div key={stepName} className="flex items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
                   step === stepName 
                     ? 'bg-crd-green text-black' 
-                    : index < ['upload', 'details', 'preview'].indexOf(step)
+                    : index < (['frameAndImage', 'customize', 'polish', 'preview'] as const).indexOf(step)
                     ? 'bg-crd-green text-black'
                     : 'bg-crd-mediumGray text-gray-400'
                 }`}>
                   {index + 1}
                 </div>
-                {index < 2 && (
+                {index < 3 && (
                   <div className={`w-12 h-1 mx-2 transition-colors ${
-                    index < ['upload', 'details', 'preview'].indexOf(step) 
+                    index < (['frameAndImage', 'customize', 'polish', 'preview'] as const).indexOf(step) 
                       ? 'bg-crd-green' 
                       : 'bg-crd-mediumGray'
                   }`} />
@@ -329,10 +309,45 @@ export const EmbeddedCardCreator: React.FC = () => {
         </div>
 
         {/* Step Content */}
-        <div className="bg-[#23262F] rounded-2xl p-8 min-h-[400px]">
-          {step === 'upload' && renderUploadStep()}
-          {step === 'details' && renderDetailsStep()}
-          {step === 'preview' && renderPreviewStep()}
+        <div className="bg-[#23262F] rounded-2xl p-8 min-h-[500px]">
+          <div className="mb-8 text-center">
+            <Typography variant="h2" className="mb-2">
+              {getStepTitle()}
+            </Typography>
+          </div>
+          
+          {renderStepContent()}
+        </div>
+
+        {/* Navigation */}
+        <div className="flex justify-between items-center mt-8">
+          <CRDButton
+            variant="secondary"
+            onClick={() => {
+              const steps: Step[] = ['frameAndImage', 'customize', 'polish', 'preview'];
+              const currentIndex = steps.indexOf(step);
+              if (currentIndex > 0) {
+                setStep(steps[currentIndex - 1]);
+              }
+            }}
+            disabled={step === 'frameAndImage'}
+          >
+            Previous
+          </CRDButton>
+
+          <CRDButton
+            onClick={() => {
+              const steps: Step[] = ['frameAndImage', 'customize', 'polish', 'preview'];
+              const currentIndex = steps.indexOf(step);
+              if (currentIndex < steps.length - 1) {
+                setStep(steps[currentIndex + 1]);
+              }
+            }}
+            disabled={!canContinue() || step === 'preview'}
+          >
+            {step === 'preview' ? 'Complete' : 'Continue'}
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </CRDButton>
         </div>
       </div>
     </div>
