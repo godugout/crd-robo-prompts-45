@@ -36,3 +36,34 @@
 .canvas-zoom {
   transition: width 0.3s ease-in-out, height 0.3s ease-in-out;
 }
+
+/* Frame carousel enhancements */
+.frame-carousel-container {
+  position: relative;
+}
+
+.frame-navigation-edge {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  opacity: 0.6;
+}
+
+.frame-navigation-edge:hover {
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 1;
+}
+
+.frame-gallery-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.frame-gallery-scroll::-webkit-scrollbar {
+  display: none;
+}
