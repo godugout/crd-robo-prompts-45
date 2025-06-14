@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Input } from '@/components/ui/input';
@@ -37,9 +36,6 @@ export const EmbeddedCardCreator: React.FC = () => {
       // Create a simple blob URL for immediate use
       const imageUrl = URL.createObjectURL(file);
       updateField('image_url', imageUrl);
-      
-      // Store file info for later processing
-      updateField('original_file', file);
       
       toast.success('Image loaded successfully!');
       setStep('details');
