@@ -49,7 +49,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
       setCurrentIndex(newIndex);
       onFrameSelect(MINIMALIST_FRAMES[newIndex].id);
       setIsTransitioning(false);
-    }, 150);
+    }, 200);
   };
 
   const prevFrame = () => {
@@ -59,7 +59,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
       setCurrentIndex(newIndex);
       onFrameSelect(MINIMALIST_FRAMES[newIndex].id);
       setIsTransitioning(false);
-    }, 150);
+    }, 200);
   };
 
   const goToFrame = (index: number) => {
@@ -70,7 +70,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
       setCurrentIndex(index);
       onFrameSelect(MINIMALIST_FRAMES[index].id);
       setIsTransitioning(false);
-    }, 150);
+    }, 200);
   };
 
   // Keyboard navigation
@@ -94,14 +94,12 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
   }, [selectedFrame, onFrameSelect]);
 
   const currentFrame = MINIMALIST_FRAMES[currentIndex];
-  const prevFrameData = MINIMALIST_FRAMES[currentIndex === 0 ? MINIMALIST_FRAMES.length - 1 : currentIndex - 1];
-  const nextFrameData = MINIMALIST_FRAMES[(currentIndex + 1) % MINIMALIST_FRAMES.length];
 
   return (
-    <div className="w-full max-w-6xl mx-auto">
+    <div className="w-full max-w-none mx-auto relative min-h-screen">
       {/* View Mode Toggle */}
-      <div className="flex justify-center mb-8">
-        <div className="bg-gray-800 rounded-lg p-1 flex gap-1 animate-fade-in">
+      <div className="flex justify-center mb-8 relative z-30">
+        <div className="bg-gray-800/90 backdrop-blur-md rounded-lg p-1 flex gap-1 animate-fade-in shadow-2xl">
           <button
             onClick={() => setViewMode('carousel')}
             className={`px-6 py-3 rounded-md text-sm font-medium transition-all duration-300 transform ${
@@ -110,7 +108,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
                 : 'text-gray-400 hover:text-white hover:scale-102'
             }`}
           >
-            Carousel View
+            Showcase View
           </button>
           <button
             onClick={() => setViewMode('gallery')}
@@ -127,100 +125,86 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
 
       {viewMode === 'carousel' ? (
         <>
-          {/* Enhanced Carousel Container */}
-          <div className="relative overflow-hidden" {...getRootProps()}>
+          {/* Full-Page Frame Backdrop */}
+          <div className="fixed inset-0 z-10 overflow-hidden" {...getRootProps()}>
             <input {...getInputProps()} />
             
-            {/* Subtle Edge Navigation */}
+            {/* Background Frames Grid */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="grid grid-cols-6 gap-8 w-full max-w-7xl px-8">
+                {MINIMALIST_FRAMES.map((frame, index) => (
+                  <div
+                    key={frame.id}
+                    className={`backdrop-frame-item cursor-pointer transition-all duration-700 ease-out transform ${
+                      index === currentIndex 
+                        ? 'backdrop-frame-selected opacity-0 pointer-events-none' 
+                        : 'backdrop-frame-background opacity-40 hover:opacity-60 hover:scale-110'
+                    }`}
+                    onClick={() => goToFrame(index)}
+                    style={{
+                      animationDelay: `${index * 100}ms`,
+                      willChange: 'transform, opacity'
+                    }}
+                  >
+                    <FramePreview 
+                      frame={frame}
+                      imageUrl={uploadedImage}
+                      size="small"
+                      isDragActive={false}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Subtle Navigation Controls */}
             <button
               onClick={prevFrame}
-              className="fixed left-2 top-1/2 transform -translate-y-1/2 z-20 p-3 bg-black/10 hover:bg-black/30 rounded-full transition-all duration-300 opacity-40 hover:opacity-100 backdrop-blur-sm border border-white/10 hover:scale-110"
+              className="fixed left-4 top-1/2 transform -translate-y-1/2 z-20 p-4 bg-black/20 hover:bg-black/40 rounded-full transition-all duration-300 opacity-50 hover:opacity-100 backdrop-blur-sm border border-white/10 hover:scale-110 group"
               style={{ willChange: 'transform, opacity' }}
             >
-              <ChevronLeft className="w-5 h-5 text-white drop-shadow-lg" />
+              <ChevronLeft className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
             </button>
             
             <button
               onClick={nextFrame}
-              className="fixed right-2 top-1/2 transform -translate-y-1/2 z-20 p-3 bg-black/10 hover:bg-black/30 rounded-full transition-all duration-300 opacity-40 hover:opacity-100 backdrop-blur-sm border border-white/10 hover:scale-110"
+              className="fixed right-4 top-1/2 transform -translate-y-1/2 z-20 p-4 bg-black/20 hover:bg-black/40 rounded-full transition-all duration-300 opacity-50 hover:opacity-100 backdrop-blur-sm border border-white/10 hover:scale-110 group"
               style={{ willChange: 'transform, opacity' }}
             >
-              <ChevronRight className="w-5 h-5 text-white drop-shadow-lg" />
+              <ChevronRight className="w-6 h-6 text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
             </button>
+          </div>
 
-            {/* Enhanced Frame Display with Fluid Animations */}
-            <div className="flex items-center justify-center mb-8 px-8 py-6">
-              {/* Previous Frame Preview - Enhanced */}
-              <div 
-                className={`hidden lg:block cursor-pointer transition-all duration-500 ease-out transform hover:scale-[0.98] ${
-                  isTransitioning ? 'opacity-50 scale-90' : 'opacity-75 scale-95'
-                } hover:opacity-90 -translate-x-8 hover:-translate-x-6`}
-                onClick={prevFrame}
-                style={{ 
-                  willChange: 'transform, opacity',
-                  transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
-                }}
-              >
-                <div className="relative">
-                  <FramePreview 
-                    frame={prevFrameData}
-                    imageUrl={uploadedImage}
-                    size="small"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/10 pointer-events-none" />
-                </div>
-              </div>
-
-              {/* Current Frame - Hero Element */}
-              <div className={`mx-16 transform transition-all duration-500 ease-out ${
-                isTransitioning ? 'scale-105 opacity-90' : 'scale-110 opacity-100'
-              } z-10 relative`}
-              style={{ 
-                willChange: 'transform, opacity',
-                transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
-              }}>
-                <div className="relative">
-                  <FramePreview 
-                    frame={currentFrame}
-                    imageUrl={uploadedImage}
-                    size="large"
-                    isDragActive={isDragActive}
-                  />
-                  {/* Subtle glow effect for selected frame */}
-                  <div className="absolute inset-0 bg-crd-green/5 rounded-lg animate-pulse opacity-50 pointer-events-none" />
-                </div>
-              </div>
-
-              {/* Next Frame Preview - Enhanced */}
-              <div 
-                className={`hidden lg:block cursor-pointer transition-all duration-500 ease-out transform hover:scale-[0.98] ${
-                  isTransitioning ? 'opacity-50 scale-90' : 'opacity-75 scale-95'
-                } hover:opacity-90 translate-x-8 hover:translate-x-6`}
-                onClick={nextFrame}
-                style={{ 
-                  willChange: 'transform, opacity',
-                  transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
-                }}
-              >
-                <div className="relative">
-                  <FramePreview 
-                    frame={nextFrameData}
-                    imageUrl={uploadedImage}
-                    size="small"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-l from-transparent to-black/10 pointer-events-none" />
-                </div>
+          {/* Hero Frame in Focus */}
+          <div className="relative z-20 flex items-center justify-center min-h-[60vh] px-8 py-12">
+            <div className={`hero-frame-container transform transition-all duration-500 ease-out ${
+              isTransitioning ? 'scale-95 opacity-80' : 'scale-125 opacity-100'
+            }`}
+            style={{ 
+              willChange: 'transform, opacity',
+              transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+            }}>
+              <div className="relative">
+                <FramePreview 
+                  frame={currentFrame}
+                  imageUrl={uploadedImage}
+                  size="large"
+                  isDragActive={isDragActive}
+                />
+                {/* Hero glow effect */}
+                <div className="absolute inset-0 bg-crd-green/10 rounded-lg animate-pulse opacity-70 pointer-events-none shadow-2xl" />
+                <div className="absolute inset-0 shadow-2xl shadow-crd-green/20 rounded-lg pointer-events-none" />
               </div>
             </div>
           </div>
 
-          {/* Enhanced Frame Info with Animation */}
-          <div className="animate-fade-in">
+          {/* Enhanced Frame Info */}
+          <div className="relative z-20 animate-fade-in">
             <FrameInfo frame={currentFrame} />
           </div>
 
           {/* Enhanced Dot Indicators */}
-          <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
+          <div className="relative z-20 animate-fade-in" style={{ animationDelay: '200ms' }}>
             <DotIndicators 
               totalFrames={MINIMALIST_FRAMES.length}
               currentIndex={currentIndex}
@@ -231,17 +215,17 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
       ) : (
         <>
           {/* Enhanced Gallery View */}
-          <div className="relative" {...getRootProps()}>
+          <div className="relative z-20" {...getRootProps()}>
             <input {...getInputProps()} />
             
-            <div className="flex gap-6 overflow-x-auto pb-6 px-4 frame-gallery-scroll">
+            <div className="flex gap-8 overflow-x-auto pb-6 px-8 frame-gallery-scroll">
               {MINIMALIST_FRAMES.map((frame, index) => (
                 <div
                   key={frame.id}
                   className={`flex-shrink-0 cursor-pointer transition-all duration-500 ease-out transform ${
                     index === currentIndex 
-                      ? 'scale-110 ring-2 ring-crd-green shadow-2xl opacity-100' 
-                      : 'opacity-75 hover:opacity-90 hover:scale-105 hover:shadow-lg'
+                      ? 'scale-125 ring-2 ring-crd-green shadow-2xl opacity-100' 
+                      : 'opacity-75 hover:opacity-90 hover:scale-110 hover:shadow-xl'
                   }`}
                   onClick={() => goToFrame(index)}
                   style={{ 
@@ -262,14 +246,14 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
           </div>
 
           {/* Frame Info for Gallery */}
-          <div className="mt-8 animate-fade-in">
+          <div className="relative z-20 mt-8 animate-fade-in">
             <FrameInfo frame={currentFrame} />
           </div>
         </>
       )}
 
       {/* Enhanced Upload Prompt */}
-      <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
+      <div className="relative z-20 animate-fade-in" style={{ animationDelay: '300ms' }}>
         <FrameUploadPrompt show={!uploadedImage} />
       </div>
     </div>
