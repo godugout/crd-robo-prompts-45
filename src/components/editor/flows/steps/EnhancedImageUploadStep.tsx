@@ -45,8 +45,8 @@ export const EnhancedImageUploadStep: React.FC<EnhancedImageUploadStepProps> = (
       return;
     }
 
-    // Create image to get metadata
-    const img = new Image();
+    // Create image to get metadata - Fix: Use document.createElement instead of new Image()
+    const img = document.createElement('img');
     img.onload = () => {
       setImageMetadata({
         width: img.naturalWidth,
