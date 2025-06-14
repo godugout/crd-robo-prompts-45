@@ -6,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CRDButton, Typography } from '@/components/ui/design-system';
 import { useSimpleCardEditor } from '@/hooks/useSimpleCardEditor';
-import { uploadCardImage } from '@/lib/cardImageUploader';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -35,29 +34,18 @@ export const EmbeddedCardCreator: React.FC = () => {
     setIsUploading(true);
 
     try {
-      if (user) {
-        const result = await uploadCardImage({
-          file,
-          cardId: cardData.id || 'temp',
-          userId: user.id
-        });
-
-        if (result) {
-          updateField('image_url', result.url);
-          if (result.thumbnailUrl) {
-            updateField('thumbnail_url', result.thumbnailUrl);
-          }
-          setStep('details');
-        }
-      } else {
-        // For non-authenticated users, create a local preview
-        const imageUrl = URL.createObjectURL(file);
-        updateField('image_url', imageUrl);
-        setStep('details');
-      }
+      // Create a simple blob URL for immediate use
+      const imageUrl = URL.createObjectURL(file);
+      updateField('image_url', imageUrl);
+      
+      // Store file info for later processing
+      updateField('original_file', file);
+      
+      toast.success('Image loaded successfully!');
+      setStep('details');
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload image');
+      toast.error('Failed to load image');
     } finally {
       setIsUploading(false);
     }
@@ -69,17 +57,11 @@ export const EmbeddedCardCreator: React.FC = () => {
     maxFiles: 1
   });
 
-  const handleContinueInStudio = async () => {
-    if (user) {
-      const saved = await saveCard();
-      if (saved) {
-        navigate('/cards/create', { state: { cardData } });
-      }
-    } else {
-      // Store in localStorage for non-authenticated users
-      localStorage.setItem('draft-card', JSON.stringify(cardData));
-      navigate('/cards/create');
-    }
+  const handleContinueInStudio = () => {
+    // Store card data in localStorage for the studio
+    localStorage.setItem('draft-card', JSON.stringify(cardData));
+    navigate('/cards/create');
+    toast.success('Opening card in studio...');
   };
 
   const handleQuickPublish = async () => {
@@ -119,11 +101,15 @@ export const EmbeddedCardCreator: React.FC = () => {
         <input {...getInputProps()} />
         <div className="space-y-4">
           <div className="w-16 h-16 mx-auto bg-gradient-to-br from-crd-green/20 to-crd-green/10 rounded-full flex items-center justify-center">
-            <Upload className="w-8 h-8 text-crd-green" />
+            {isUploading ? (
+              <div className="w-8 h-8 border-2 border-crd-green border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Upload className="w-8 h-8 text-crd-green" />
+            )}
           </div>
           <div>
             <Typography variant="h3" className="mb-2">
-              {isUploading ? 'Uploading...' : 'Upload Your Image'}
+              {isUploading ? 'Loading...' : 'Upload Your Image'}
             </Typography>
             <Typography variant="body" className="text-crd-lightGray">
               {isDragActive 
@@ -261,7 +247,7 @@ export const EmbeddedCardCreator: React.FC = () => {
 
       {/* Card Preview */}
       <div className="flex justify-center">
-        <div className="w-80 h-[28rem] bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden shadow-2xl transform hover:scale-105 transition-transform">
+        <div className="relative w-80 h-[28rem] bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden shadow-2xl transform hover:scale-105 transition-transform">
           {cardData.image_url && (
             <img 
               src={cardData.image_url} 
