@@ -1,9 +1,11 @@
 
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Grid3X3, Layout, Eye } from 'lucide-react';
 
 interface ViewModeToggleProps {
-  viewMode: 'carousel' | 'gallery';
-  onViewModeChange: (mode: 'carousel' | 'gallery') => void;
+  viewMode: 'carousel' | 'gallery' | 'showcase';
+  onViewModeChange: (mode: 'carousel' | 'gallery' | 'showcase') => void;
 }
 
 export const ViewModeToggle: React.FC<ViewModeToggleProps> = ({
@@ -11,29 +13,46 @@ export const ViewModeToggle: React.FC<ViewModeToggleProps> = ({
   onViewModeChange
 }) => {
   return (
-    <div className="flex justify-center mb-8 relative z-30">
-      <div className="bg-gray-800/90 backdrop-blur-md rounded-lg p-1 flex gap-1 animate-fade-in shadow-2xl">
-        <button
-          onClick={() => onViewModeChange('carousel')}
-          className={`px-6 py-3 rounded-md text-sm font-medium transition-all duration-300 transform ${
-            viewMode === 'carousel' 
-              ? 'bg-crd-green text-black scale-105 shadow-lg' 
-              : 'text-gray-400 hover:text-white hover:scale-102'
-          }`}
-        >
-          Showcase View
-        </button>
-        <button
-          onClick={() => onViewModeChange('gallery')}
-          className={`px-6 py-3 rounded-md text-sm font-medium transition-all duration-300 transform ${
-            viewMode === 'gallery' 
-              ? 'bg-crd-green text-black scale-105 shadow-lg' 
-              : 'text-gray-400 hover:text-white hover:scale-102'
-          }`}
-        >
-          Gallery View
-        </button>
-      </div>
+    <div className="absolute top-4 right-4 z-20 flex gap-2">
+      <Button
+        onClick={() => onViewModeChange('showcase')}
+        variant={viewMode === 'showcase' ? 'default' : 'outline'}
+        size="sm"
+        className={`${
+          viewMode === 'showcase'
+            ? 'bg-crd-green text-black'
+            : 'bg-black/40 border-white/20 text-white hover:bg-black/60'
+        } backdrop-blur-sm`}
+      >
+        <Eye className="w-4 h-4 mr-1" />
+        Showcase
+      </Button>
+      <Button
+        onClick={() => onViewModeChange('carousel')}
+        variant={viewMode === 'carousel' ? 'default' : 'outline'}
+        size="sm"
+        className={`${
+          viewMode === 'carousel'
+            ? 'bg-crd-green text-black'
+            : 'bg-black/40 border-white/20 text-white hover:bg-black/60'
+        } backdrop-blur-sm`}
+      >
+        <Layout className="w-4 h-4 mr-1" />
+        Carousel
+      </Button>
+      <Button
+        onClick={() => onViewModeChange('gallery')}
+        variant={viewMode === 'gallery' ? 'default' : 'outline'}
+        size="sm"
+        className={`${
+          viewMode === 'gallery'
+            ? 'bg-crd-green text-black'
+            : 'bg-black/40 border-white/20 text-white hover:bg-black/60'
+        } backdrop-blur-sm`}
+      >
+        <Grid3X3 className="w-4 h-4 mr-1" />
+        Gallery
+      </Button>
     </div>
   );
 };

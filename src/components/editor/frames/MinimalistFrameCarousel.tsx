@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
@@ -6,10 +7,10 @@ import { useResponsiveBreakpoints } from '@/hooks/useResponsiveBreakpoints';
 import { useCarouselKeyboardNavigation } from './hooks/useCarouselKeyboardNavigation';
 import { ViewModeToggle } from './components/ViewModeToggle';
 import { EnhancedDesktopLayout } from './components/EnhancedDesktopLayout';
+import { EnhancedShowcaseView } from './components/EnhancedShowcaseView';
 import { MobileCarouselContainer } from './components/MobileCarouselContainer';
 import { GalleryView } from './components/GalleryView';
 import { MinimalistFrameInfo } from './components/MinimalistFrameInfo';
-import { FrameUploadPrompt } from './components/FrameUploadPrompt';
 import { MINIMALIST_FRAMES, type MinimalistFrame } from './data/minimalistFrames';
 
 interface FrameCarouselProps {
@@ -26,7 +27,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
   onImageUpload
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [viewMode, setViewMode] = useState<'carousel' | 'gallery'>('carousel');
+  const [viewMode, setViewMode] = useState<'carousel' | 'gallery' | 'showcase'>('showcase');
   const isMobile = useIsMobile();
   const { isDesktop } = useResponsiveBreakpoints();
 
@@ -67,6 +68,28 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
   }, [selectedFrame, onFrameSelect]);
 
   const currentFrame = MINIMALIST_FRAMES[currentIndex];
+
+  // Enhanced desktop showcase layout
+  if (isDesktop && viewMode === 'showcase') {
+    return (
+      <div className="w-full h-full">
+        <ViewModeToggle 
+          viewMode={viewMode} 
+          onViewModeChange={setViewMode} 
+        />
+        <EnhancedShowcaseView
+          frames={MINIMALIST_FRAMES}
+          currentIndex={currentIndex}
+          uploadedImage={uploadedImage}
+          isDragActive={isDragActive}
+          onFrameSelect={goToFrame}
+          onImageUpload={onImageUpload}
+          getRootProps={getRootProps}
+          getInputProps={getInputProps}
+        />
+      </div>
+    );
+  }
 
   // Enhanced desktop layout
   if (isDesktop && viewMode === 'carousel') {
