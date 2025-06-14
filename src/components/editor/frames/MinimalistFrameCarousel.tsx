@@ -7,7 +7,7 @@ import { useResponsiveBreakpoints } from '@/hooks/useResponsiveBreakpoints';
 import { useCarouselKeyboardNavigation } from './hooks/useCarouselKeyboardNavigation';
 import { ViewModeToggle } from './components/ViewModeToggle';
 import { EnhancedDesktopLayout } from './components/EnhancedDesktopLayout';
-import { EnhancedShowcaseView } from './components/EnhancedShowcaseView';
+import { ProfessionalShowcaseView } from './components/ProfessionalShowcaseView';
 import { MobileCarouselContainer } from './components/MobileCarouselContainer';
 import { GalleryView } from './components/GalleryView';
 import { MinimalistFrameInfo } from './components/MinimalistFrameInfo';
@@ -69,7 +69,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
 
   const currentFrame = MINIMALIST_FRAMES[currentIndex];
 
-  // Enhanced desktop showcase layout
+  // Professional showcase layout for desktop
   if (isDesktop && viewMode === 'showcase') {
     return (
       <div className="w-full h-full">
@@ -77,7 +77,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
           viewMode={viewMode} 
           onViewModeChange={setViewMode} 
         />
-        <EnhancedShowcaseView
+        <ProfessionalShowcaseView
           frames={MINIMALIST_FRAMES}
           currentIndex={currentIndex}
           uploadedImage={uploadedImage}
