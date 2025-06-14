@@ -3,13 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
 import { ViewModeToggle } from './components/ViewModeToggle';
-import { BackdropFrameGrid } from './components/BackdropFrameGrid';
-import { HeroFrameDisplay } from './components/HeroFrameDisplay';
-import { NavigationControls } from './components/NavigationControls';
+import { iPhoneStyleCarousel } from './components/iPhoneStyleCarousel';
 import { GalleryView } from './components/GalleryView';
-import { FrameInfo } from './components/FrameInfo';
+import { MinimalistFrameInfo } from './components/MinimalistFrameInfo';
 import { FrameUploadPrompt } from './components/FrameUploadPrompt';
-import { DotIndicators } from './components/DotIndicators';
 import { MINIMALIST_FRAMES, type MinimalistFrame } from './data/minimalistFrames';
 
 interface FrameCarouselProps {
@@ -27,7 +24,6 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'carousel' | 'gallery'>('carousel');
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const onDrop = async (acceptedFiles: File[]) => {
     if (!acceptedFiles.length) return;
@@ -45,50 +41,29 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
     noClick: true
   });
 
-  const nextFrame = () => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      const newIndex = (currentIndex + 1) % MINIMALIST_FRAMES.length;
-      setCurrentIndex(newIndex);
-      onFrameSelect(MINIMALIST_FRAMES[newIndex].id);
-      setIsTransitioning(false);
-    }, 200);
-  };
-
-  const prevFrame = () => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      const newIndex = currentIndex === 0 ? MINIMALIST_FRAMES.length - 1 : currentIndex - 1;
-      setCurrentIndex(newIndex);
-      onFrameSelect(MINIMALIST_FRAMES[newIndex].id);
-      setIsTransitioning(false);
-    }, 200);
-  };
-
   const goToFrame = (index: number) => {
     if (index === currentIndex) return;
-    
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentIndex(index);
-      onFrameSelect(MINIMALIST_FRAMES[index].id);
-      setIsTransitioning(false);
-    }, 200);
+    setCurrentIndex(index);
+    onFrameSelect(MINIMALIST_FRAMES[index].id);
   };
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (viewMode !== 'carousel') return;
+      
       if (event.key === 'ArrowLeft') {
-        prevFrame();
+        const newIndex = currentIndex === 0 ? MINIMALIST_FRAMES.length - 1 : currentIndex - 1;
+        goToFrame(newIndex);
       } else if (event.key === 'ArrowRight') {
-        nextFrame();
+        const newIndex = (currentIndex + 1) % MINIMALIST_FRAMES.length;
+        goToFrame(newIndex);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex]);
+  }, [currentIndex, viewMode]);
 
   useEffect(() => {
     if (!selectedFrame && MINIMALIST_FRAMES.length > 0) {
@@ -99,67 +74,57 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
   const currentFrame = MINIMALIST_FRAMES[currentIndex];
 
   return (
-    <div className="w-full max-w-none mx-auto relative min-h-screen">
+    <div className="w-full max-w-none mx-auto relative min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <ViewModeToggle 
         viewMode={viewMode} 
         onViewModeChange={setViewMode} 
       />
 
-      {viewMode === 'carousel' ? (
-        <>
-          <BackdropFrameGrid
-            frames={MINIMALIST_FRAMES}
-            currentIndex={currentIndex}
-            uploadedImage={uploadedImage}
-            onFrameSelect={goToFrame}
-            getRootProps={getRootProps}
-            getInputProps={getInputProps}
-          />
+      <div className="relative z-10" {...getRootProps()}>
+        <input {...getInputProps()} />
+        
+        {viewMode === 'carousel' ? (
+          <>
+            {/* iPhone-style carousel */}
+            <div className="flex items-center justify-center min-h-[70vh] px-4">
+              <iPhoneStyleCarousel
+                frames={MINIMALIST_FRAMES}
+                currentIndex={currentIndex}
+                uploadedImage={uploadedImage}
+                onFrameSelect={goToFrame}
+                isDragActive={isDragActive}
+              />
+            </div>
 
-          <NavigationControls
-            onPrevious={prevFrame}
-            onNext={nextFrame}
-          />
-
-          <HeroFrameDisplay
-            frame={currentFrame}
-            uploadedImage={uploadedImage}
-            isDragActive={isDragActive}
-            isTransitioning={isTransitioning}
-          />
-
-          <div className="relative z-20 animate-fade-in">
-            <FrameInfo frame={currentFrame} />
-          </div>
-
-          <div className="relative z-20 animate-fade-in" style={{ animationDelay: '200ms' }}>
-            <DotIndicators 
-              totalFrames={MINIMALIST_FRAMES.length}
+            {/* Frame info below carousel */}
+            <div className="relative z-20 px-8 pb-8">
+              <MinimalistFrameInfo 
+                frame={currentFrame}
+                className="animate-fade-in"
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <GalleryView
+              frames={MINIMALIST_FRAMES}
               currentIndex={currentIndex}
-              onDotClick={goToFrame}
+              uploadedImage={uploadedImage}
+              isDragActive={isDragActive}
+              onFrameSelect={goToFrame}
+              getRootProps={getRootProps}
+              getInputProps={getInputProps}
             />
-          </div>
-        </>
-      ) : (
-        <>
-          <GalleryView
-            frames={MINIMALIST_FRAMES}
-            currentIndex={currentIndex}
-            uploadedImage={uploadedImage}
-            isDragActive={isDragActive}
-            onFrameSelect={goToFrame}
-            getRootProps={getRootProps}
-            getInputProps={getInputProps}
-          />
 
-          <div className="relative z-20 mt-8 animate-fade-in">
-            <FrameInfo frame={currentFrame} />
-          </div>
-        </>
-      )}
+            <div className="relative z-20 mt-8 animate-fade-in">
+              <MinimalistFrameInfo frame={currentFrame} />
+            </div>
+          </>
+        )}
 
-      <div className="relative z-20 animate-fade-in" style={{ animationDelay: '300ms' }}>
-        <FrameUploadPrompt show={!uploadedImage} />
+        <div className="relative z-20 animate-fade-in" style={{ animationDelay: '300ms' }}>
+          <FrameUploadPrompt show={!uploadedImage} />
+        </div>
       </div>
     </div>
   );

@@ -37,7 +37,15 @@
   transition: width 0.3s ease-in-out, height 0.3s ease-in-out;
 }
 
-/* Enhanced Frame carousel animations */
+/* iPhone-style carousel enhancements */
+.transform-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform, opacity;
+}
+
+/* Enhanced frame carousel animations */
 .frame-carousel-container {
   position: relative;
 }
@@ -107,6 +115,43 @@
   filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.3));
 }
 
+/* iPhone-style physics animations */
+@keyframes spring-in {
+  0% {
+    transform: scale(0.8) translateZ(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05) translateZ(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+}
+
+@keyframes elastic-bounce {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  20% {
+    transform: translateX(-5px) scale(1.02);
+  }
+  40% {
+    transform: translateX(3px) scale(0.98);
+  }
+  60% {
+    transform: translateX(-1px) scale(1.01);
+  }
+  80% {
+    transform: translateX(0.5px) scale(0.995);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
+}
+
 /* Advanced animation keyframes */
 @keyframes spring-bounce {
   0% {
@@ -147,6 +192,15 @@
   50% {
     transform: translateY(-10px) scale(0.62);
   }
+}
+
+/* iPhone-style carousel specific animations */
+.iphone-frame-enter {
+  animation: spring-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.iphone-elastic-feedback {
+  animation: elastic-bounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 /* Enhanced frame transition animations */
@@ -195,12 +249,15 @@
   
   .frame-transition-enter,
   .frame-spring-hover,
-  .backdrop-float {
+  .backdrop-float,
+  .iphone-frame-enter,
+  .iphone-elastic-feedback {
     animation: none;
   }
   
   .frame-hover-lift,
-  .backdrop-frame-background {
+  .backdrop-frame-background,
+  .transform-gpu {
     transition: none;
   }
 }
