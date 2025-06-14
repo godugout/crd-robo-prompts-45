@@ -3,7 +3,7 @@ import { FramePreview } from './FramePreview';
 import { useSwipeNavigation } from '../hooks/useSwipeNavigation';
 import type { MinimalistFrame } from '../data/minimalistFrames';
 
-interface iPhoneStyleCarouselProps {
+interface IPhoneStyleCarouselProps {
   frames: MinimalistFrame[];
   currentIndex: number;
   uploadedImage?: string;
@@ -11,7 +11,7 @@ interface iPhoneStyleCarouselProps {
   isDragActive: boolean;
 }
 
-export const iPhoneStyleCarousel: React.FC<iPhoneStyleCarouselProps> = ({
+export const IPhoneStyleCarousel: React.FC<IPhoneStyleCarouselProps> = ({
   frames,
   currentIndex,
   uploadedImage,

@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
 import { ViewModeToggle } from './components/ViewModeToggle';
-import { iPhoneStyleCarousel } from './components/iPhoneStyleCarousel';
+import { IPhoneStyleCarousel } from './components/IPhoneStyleCarousel';
 import { GalleryView } from './components/GalleryView';
 import { MinimalistFrameInfo } from './components/MinimalistFrameInfo';
 import { FrameUploadPrompt } from './components/FrameUploadPrompt';
@@ -87,7 +86,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
           <>
             {/* iPhone-style carousel */}
             <div className="flex items-center justify-center min-h-[70vh] px-4">
-              <iPhoneStyleCarousel
+              <IPhoneStyleCarousel
                 frames={MINIMALIST_FRAMES}
                 currentIndex={currentIndex}
                 uploadedImage={uploadedImage}
