@@ -1,0 +1,14 @@
+
+/* Template card hover effects */
+.template-card {
+  transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.template-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Canvas zoom animation */
+.canvas-zoom {
+  transition: width 0.3s ease-in-out, height 0.3s ease-in-out;
+}

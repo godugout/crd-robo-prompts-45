@@ -1,0 +1,26 @@
+
+/* Custom scrollbar styles */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Enhanced gallery scroll with momentum */
+.frame-gallery-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+}
+
+.frame-gallery-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.frame-gallery-scroll > * {
+  scroll-snap-align: center;
+}

@@ -1,0 +1,29 @@
+
+/* Performance optimizations */
+.hardware-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform, opacity;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .frame-gallery-scroll {
+    scroll-behavior: auto;
+  }
+  
+  .frame-transition-enter,
+  .frame-spring-hover,
+  .backdrop-float,
+  .iphone-frame-enter,
+  .iphone-elastic-feedback {
+    animation: none;
+  }
+  
+  .frame-hover-lift,
+  .backdrop-frame-background,
+  .transform-gpu {
+    transition: none;
+  }
+}

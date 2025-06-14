@@ -4,7 +4,17 @@
 @import './theme.css';
 @import './components.css';
 @import './utilities.css';
-@import './custom.css';
+
+/* Organized custom CSS imports */
+@import './utilities/scrollbar.css';
+@import './themes/oakland.css';
+@import './components/template-cards.css';
+@import './components/backdrop-frames.css';
+@import './animations/keyframes.css';
+@import './animations/iphone-carousel.css';
+@import './animations/frame-transitions.css';
+@import './effects/visual-effects.css';
+@import './performance/optimizations.css';
 
 /* Ensure button text color utilities take priority */
 @layer utilities {

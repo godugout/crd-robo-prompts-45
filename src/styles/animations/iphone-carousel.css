@@ -1,0 +1,39 @@
+
+/* iPhone-style carousel enhancements */
+.transform-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform, opacity;
+}
+
+/* Enhanced frame carousel animations */
+.frame-carousel-container {
+  position: relative;
+}
+
+.frame-navigation-edge {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  opacity: 0.6;
+}
+
+.frame-navigation-edge:hover {
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 1;
+}
+
+/* iPhone-style carousel specific animations */
+.iphone-frame-enter {
+  animation: spring-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.iphone-elastic-feedback {
+  animation: elastic-bounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
