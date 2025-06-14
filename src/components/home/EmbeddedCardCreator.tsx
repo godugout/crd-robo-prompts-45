@@ -6,12 +6,12 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { Typography } from '@/components/ui/design-system';
 import type { CardRarity } from '@/types/card';
-import { StepProgressIndicator } from './components/StepProgressIndicator';
-import { StepNavigation } from './components/StepNavigation';
-import { FrameAndImageStep } from './components/steps/FrameAndImageStep';
-import { CustomizeStep } from './components/steps/CustomizeStep';
-import { PolishStep } from './components/steps/PolishStep';
-import { PreviewStep } from './components/steps/PreviewStep';
+import { StepProgressIndicator } from '@/components/card-creator/components/StepProgressIndicator';
+import { StepNavigation } from '@/components/card-creator/components/StepNavigation';
+import { FrameAndImageStep } from '@/components/card-creator/steps/FrameAndImageStep';
+import { CustomizeStep } from '@/components/card-creator/steps/CustomizeStep';
+import { PolishStep } from '@/components/card-creator/steps/PolishStep';
+import { PreviewStep } from '@/components/card-creator/steps/PreviewStep';
 
 type Step = 'frameAndImage' | 'customize' | 'polish' | 'preview';
 
