@@ -172,16 +172,16 @@ export const EmbeddedCardCreator: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#141416] py-20 px-4 md:px-8 lg:px-[352px]">
-      <div className="max-w-6xl mx-auto">
+    <div className="bg-[#141416] py-12 px-4 md:px-6 lg:px-8">
+      <div className="w-full max-w-none mx-auto">
         <StepProgressIndicator 
           currentStep={step}
           getStepDescription={getStepDescription}
         />
 
         {/* Step Content */}
-        <div className="bg-[#23262F] rounded-2xl p-8 min-h-[500px]">
-          <div className="mb-8 text-center">
+        <div className="bg-[#23262F] rounded-2xl p-4 lg:p-6 min-h-[500px]">
+          <div className="mb-6 text-center">
             <Typography variant="h2" className="mb-2">
               {getStepTitle()}
             </Typography>

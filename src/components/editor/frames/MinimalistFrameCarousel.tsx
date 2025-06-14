@@ -73,7 +73,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
   // Enhanced desktop layout
   if (isDesktop && viewMode === 'carousel') {
     return (
-      <>
+      <div className="w-full h-full">
         <ViewModeToggle 
           viewMode={viewMode} 
           onViewModeChange={setViewMode} 
@@ -89,13 +89,13 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
           getRootProps={getRootProps}
           getInputProps={getInputProps}
         />
-      </>
+      </div>
     );
   }
 
   // Mobile layout or gallery view
   return (
-    <div className="w-full max-w-none mx-auto relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-[600px] max-h-screen">
+    <div className="w-full max-w-none mx-auto relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-[600px]">
       <ViewModeToggle 
         viewMode={viewMode} 
         onViewModeChange={setViewMode} 

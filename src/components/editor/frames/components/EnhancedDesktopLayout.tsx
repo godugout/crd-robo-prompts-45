@@ -29,8 +29,8 @@ export const EnhancedDesktopLayout: React.FC<EnhancedDesktopLayoutProps> = ({
   getInputProps
 }) => {
   return (
-    <div className="w-full h-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6 xl:p-8">
-      <div className="grid grid-cols-4 gap-6 h-full max-h-[85vh]">
+    <div className="w-full h-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-2 lg:p-4">
+      <div className="grid grid-cols-4 gap-3 lg:gap-6 h-full min-h-[600px]">
         {/* Large Card Preview Column - 50% width (2 of 4 columns) */}
         <div className="col-span-2 flex items-center justify-center">
           <LargeCardPreview
