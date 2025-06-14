@@ -53,31 +53,31 @@ export const DesktopFrameCarousel: React.FC<DesktopFrameCarouselProps> = ({
     const distance = index - currentIndex;
     const dragFactor = dragProgress * 0.15;
     
-    // Enhanced positioning for larger screens - show more frames
-    let translateX = distance * 55; // Reduced spacing for more frames visible
+    // Improved positioning with better spacing to prevent overlap
+    let translateX = distance * 75; // Increased spacing from 55 to 75
     let scale = 1;
     let opacity = 1;
     let zIndex = 1;
     let blur = 0;
 
     if (distance === 0) {
-      // Current frame - larger and prominent
+      // Current frame - centered and prominent
       translateX += dragOffset * 0.5;
-      scale = 1.2 - Math.abs(dragProgress) * 0.03;
+      scale = 1.1 - Math.abs(dragProgress) * 0.03; // Reduced from 1.2 to 1.1
       zIndex = 20;
     } else if (Math.abs(distance) === 1) {
-      // Adjacent frames - visible and interactive
+      // Adjacent frames - better spaced
       translateX = distance > 0 
-        ? 45 + dragOffset * 0.5 
-        : -45 + dragOffset * 0.5;
-      scale = 0.95 + (distance < 0 ? dragProgress * 0.08 : -dragProgress * 0.08);
+        ? 70 + dragOffset * 0.5  // Increased from 45 to 70
+        : -70 + dragOffset * 0.5; // Increased from -45 to -70
+      scale = 0.9 + (distance < 0 ? dragProgress * 0.08 : -dragProgress * 0.08);
       opacity = 0.8 + (Math.abs(dragProgress) * 0.2);
       zIndex = 10;
     } else if (Math.abs(distance) === 2) {
-      // Second-level frames - partially visible
-      translateX = distance > 0 ? 85 : -85;
-      scale = 0.8;
-      opacity = 0.4;
+      // Second-level frames - more spaced out
+      translateX = distance > 0 ? 130 : -130; // Increased from 85 to 130
+      scale = 0.75; // Reduced from 0.8 to 0.75
+      opacity = 0.3; // Reduced from 0.4 to 0.3
       blur = 1;
       zIndex = 5;
     } else {
@@ -108,7 +108,7 @@ export const DesktopFrameCarousel: React.FC<DesktopFrameCarouselProps> = ({
 
   return (
     <div 
-      className="relative w-full h-full max-w-6xl overflow-hidden"
+      className="relative w-full h-full overflow-hidden" // Removed max-w-6xl constraint
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
         setIsHovered(false);
@@ -130,7 +130,7 @@ export const DesktopFrameCarousel: React.FC<DesktopFrameCarouselProps> = ({
           return (
             <div
               key={frame.id}
-              className="absolute w-96 h-[32rem] xl:w-[26rem] xl:h-[36rem] 2xl:w-[28rem] 2xl:h-[38rem] cursor-grab active:cursor-grabbing"
+              className="absolute w-80 h-[28rem] xl:w-[22rem] xl:h-[30rem] 2xl:w-[24rem] 2xl:h-[32rem] cursor-grab active:cursor-grabbing" // Reduced sizes
               style={getFrameStyle(index)}
               onClick={() => index !== currentIndex && onFrameSelect(index)}
               onMouseEnter={() => setHoveredIndex(index)}
@@ -149,10 +149,10 @@ export const DesktopFrameCarousel: React.FC<DesktopFrameCarouselProps> = ({
                   className="absolute inset-0 rounded-lg pointer-events-none transition-all duration-300"
                   style={{
                     boxShadow: index === currentIndex 
-                      ? '0 40px 80px rgba(0, 0, 0, 0.4), 0 0 60px rgba(74, 222, 128, 0.15)'
+                      ? '0 30px 60px rgba(0, 0, 0, 0.3), 0 0 40px rgba(74, 222, 128, 0.1)' // Reduced shadow intensity
                       : hoveredIndex === index
-                      ? '0 25px 50px rgba(0, 0, 0, 0.3), 0 0 30px rgba(74, 222, 128, 0.1)'
-                      : '0 20px 40px rgba(0, 0, 0, 0.2)'
+                      ? '0 20px 40px rgba(0, 0, 0, 0.25), 0 0 20px rgba(74, 222, 128, 0.08)'
+                      : '0 15px 30px rgba(0, 0, 0, 0.15)' // Reduced shadow intensity
                   }}
                 />
 
@@ -168,15 +168,15 @@ export const DesktopFrameCarousel: React.FC<DesktopFrameCarouselProps> = ({
         })}
       </div>
 
-      {/* Enhanced navigation arrows - larger and more prominent */}
+      {/* Enhanced navigation arrows */}
       <div className={`absolute inset-y-0 left-0 flex items-center transition-opacity duration-300 ${
         isHovered ? 'opacity-100' : 'opacity-60'
       }`}>
         <button
           onClick={prevFrame}
-          className="w-14 h-14 xl:w-16 xl:h-16 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-black/60 transition-all duration-200 hover:scale-110 ml-4"
+          className="w-12 h-12 xl:w-14 xl:h-14 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-black/60 transition-all duration-200 hover:scale-110 ml-6" // Increased margin
         >
-          <ChevronLeft className="w-6 h-6 xl:w-7 xl:h-7" />
+          <ChevronLeft className="w-5 h-5 xl:w-6 xl:h-6" />
         </button>
       </div>
 
@@ -185,9 +185,9 @@ export const DesktopFrameCarousel: React.FC<DesktopFrameCarouselProps> = ({
       }`}>
         <button
           onClick={nextFrame}
-          className="w-14 h-14 xl:w-16 xl:h-16 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-black/60 transition-all duration-200 hover:scale-110 mr-4"
+          className="w-12 h-12 xl:w-14 xl:h-14 rounded-full bg-black/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-black/60 transition-all duration-200 hover:scale-110 mr-6" // Increased margin
         >
-          <ChevronRight className="w-6 h-6 xl:w-7 xl:h-7" />
+          <ChevronRight className="w-5 h-5 xl:w-6 xl:h-6" />
         </button>
       </div>
 
@@ -214,8 +214,8 @@ export const DesktopFrameCarousel: React.FC<DesktopFrameCarouselProps> = ({
       </div>
 
       {/* Subtle gradient edges for depth */}
-      <div className="absolute left-0 top-0 w-24 xl:w-32 h-full bg-gradient-to-r from-black/8 via-black/4 to-transparent pointer-events-none" />
-      <div className="absolute right-0 top-0 w-24 xl:w-32 h-full bg-gradient-to-l from-black/8 via-black/4 to-transparent pointer-events-none" />
+      <div className="absolute left-0 top-0 w-20 xl:w-28 h-full bg-gradient-to-r from-black/6 via-black/3 to-transparent pointer-events-none" />
+      <div className="absolute right-0 top-0 w-20 xl:w-28 h-full bg-gradient-to-l from-black/6 via-black/3 to-transparent pointer-events-none" />
     </div>
   );
 };

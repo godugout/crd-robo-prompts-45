@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useResponsiveBreakpoints } from '@/hooks/useResponsiveBreakpoints';
 import { ViewModeToggle } from './components/ViewModeToggle';
 import { IPhoneStyleCarousel } from './components/IPhoneStyleCarousel';
 import { DesktopFrameCarousel } from './components/DesktopFrameCarousel';
@@ -27,6 +28,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'carousel' | 'gallery'>('carousel');
   const isMobile = useIsMobile();
+  const { responsivePadding, isDesktop } = useResponsiveBreakpoints();
 
   const onDrop = async (acceptedFiles: File[]) => {
     if (!acceptedFiles.length) return;
@@ -103,20 +105,20 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
   const currentFrame = MINIMALIST_FRAMES[currentIndex];
 
   // Enhanced desktop layout: full-width with smart responsive padding
-  if (!isMobile && viewMode === 'carousel') {
+  if (isDesktop && viewMode === 'carousel') {
     return (
-      <div className="w-full relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-[600px] max-h-[85vh] px-4 md:px-8 lg:px-12 xl:px-16 2xl:px-24">
+      <div className={`w-full relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-[600px] max-h-[85vh] ${responsivePadding}`}>
         <ViewModeToggle 
           viewMode={viewMode} 
           onViewModeChange={setViewMode} 
         />
 
-        <div className="relative z-10 flex h-full max-h-[75vh] gap-8 lg:gap-12" {...getRootProps()}>
+        <div className="relative z-10 flex h-full max-h-[75vh] gap-6 lg:gap-8 xl:gap-12" {...getRootProps()}>
           <input {...getInputProps()} />
           
-          {/* Enhanced Carousel Section - 65% of width */}
+          {/* Enhanced Carousel Section - 70% of width for better space utilization */}
           <div 
-            className="flex-[65] flex items-center justify-center py-8 min-w-0"
+            className="flex-[70] flex items-center justify-center py-6 min-w-0"
             data-carousel-area
           >
             <DesktopFrameCarousel
@@ -128,17 +130,17 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
             />
           </div>
 
-          {/* Enhanced Sidebar - 35% of width */}
-          <div className="flex-[35] min-w-[320px] max-w-[500px] flex flex-col justify-center py-8">
+          {/* Enhanced Sidebar - 30% of width, more compact */}
+          <div className="flex-[30] min-w-[280px] max-w-[400px] flex flex-col justify-center py-6">
             {/* Frame Info Section */}
-            <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-8 mb-6">
+            <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-6 mb-4">
               <MinimalistFrameInfo 
                 frame={currentFrame}
                 className="animate-fade-in"
               />
               
               {/* Frame Navigation Indicators */}
-              <div className="flex justify-center mt-6 space-x-2">
+              <div className="flex justify-center mt-4 space-x-2">
                 {MINIMALIST_FRAMES.map((_, index) => (
                   <button
                     key={index}
@@ -153,22 +155,22 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
               </div>
               
               {/* Keyboard Shortcuts Hint */}
-              <div className="text-center mt-4 text-xs text-gray-400">
+              <div className="text-center mt-3 text-xs text-gray-400">
                 Use ← → keys, 1-9 numbers, or mouse wheel
               </div>
             </div>
 
             {/* Enhanced Upload Section */}
-            <div className="bg-black/10 backdrop-blur-sm rounded-2xl p-6">
+            <div className="bg-black/10 backdrop-blur-sm rounded-2xl p-5">
               {!uploadedImage ? (
                 <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-crd-green/20 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-crd-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-crd-green/20 flex items-center justify-center">
+                    <svg className="w-7 h-7 text-crd-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
                   </div>
                   <h4 className="text-white font-medium mb-2">Add Your Image</h4>
-                  <p className="text-gray-400 text-sm mb-4">
+                  <p className="text-gray-400 text-sm mb-3">
                     Drag and drop anywhere or click to browse
                   </p>
                   <div className="text-xs text-gray-500">
@@ -177,7 +179,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
                 </div>
               ) : (
                 <div className="text-center">
-                  <div className="w-20 h-20 mx-auto mb-3 rounded-lg overflow-hidden bg-gray-700">
+                  <div className="w-16 h-16 mx-auto mb-3 rounded-lg overflow-hidden bg-gray-700">
                     <img 
                       src={uploadedImage} 
                       alt="Uploaded" 
