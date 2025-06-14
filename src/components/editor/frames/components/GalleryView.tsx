@@ -46,12 +46,12 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                 ? 'ring-2 ring-crd-green ring-offset-2 ring-offset-gray-800 scale-105 z-10' 
                 : 'hover:scale-102 hover:ring-1 hover:ring-gray-500 hover:ring-offset-1 hover:ring-offset-gray-800'
               }
-              rounded-lg overflow-hidden bg-gray-800/50 backdrop-blur-sm
+              rounded-lg overflow-hidden bg-gray-800/30 backdrop-blur-sm
             `}
             onClick={() => onFrameSelect(index)}
           >
-            {/* Frame Preview Container */}
-            <div className="aspect-[3/4] p-3">
+            {/* Frame Preview Container - Fixed aspect ratio 2.5:3.5 (5:7) */}
+            <div className="aspect-[5/7] w-full">
               <FramePreview 
                 frame={frame}
                 imageUrl={uploadedImage}
@@ -61,7 +61,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
             </div>
             
             {/* Frame Info */}
-            <div className="p-3 bg-gray-900/80 backdrop-blur-sm">
+            <div className="p-3 bg-gray-900/90 backdrop-blur-sm">
               <h3 className="text-white text-sm font-medium truncate mb-1">
                 {frame.name}
               </h3>

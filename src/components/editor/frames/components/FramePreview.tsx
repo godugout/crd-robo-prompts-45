@@ -26,46 +26,37 @@ export const FramePreview: React.FC<FramePreviewProps> = ({
   size, 
   isDragActive 
 }) => {
-  const dimensions = {
-    small: { width: 120, height: 168 },
-    medium: { width: 180, height: 252 },
-    large: { width: 400, height: 560 }
-  };
-
   const iconSize = {
-    small: 'w-6 h-6',
-    medium: 'w-8 h-8',
-    large: 'w-12 h-12'
+    small: 'w-4 h-4',
+    medium: 'w-6 h-6',
+    large: 'w-8 h-8'
   };
 
   const textSize = {
-    small: 'text-sm',
-    medium: 'text-base',
-    large: 'text-xl'
-  };
-
-  const subtextSize = {
     small: 'text-xs',
     medium: 'text-sm',
     large: 'text-base'
   };
 
-  const padding = {
-    small: 'p-2',
-    medium: 'p-4',
-    large: 'p-6'
+  const subtextSize = {
+    small: 'text-xs',
+    medium: 'text-xs',
+    large: 'text-sm'
   };
 
-  const { width, height } = dimensions[size];
+  const padding = {
+    small: 'p-1',
+    medium: 'p-2',
+    large: 'p-3'
+  };
   
   return (
     <div 
-      className={`relative ${frame.borderStyle} ${frame.backgroundColor} overflow-hidden transition-all duration-300 ${
+      className={`relative ${frame.borderStyle} ${frame.backgroundColor} overflow-hidden transition-all duration-300 w-full h-full ${
         isDragActive ? 'ring-2 ring-crd-green ring-opacity-50' : ''
       }`}
-      style={{ width, height }}
     >
-      {/* Image Area */}
+      {/* Image Area - Takes up most of the card space */}
       <div className="w-full h-3/4 relative overflow-hidden">
         {imageUrl ? (
           <img 
@@ -76,19 +67,19 @@ export const FramePreview: React.FC<FramePreviewProps> = ({
         ) : (
           <div className={`w-full h-full ${frame.accentColor} flex items-center justify-center`}>
             <div className="text-center">
-              <Upload className={`${iconSize[size]} mx-auto mb-2 ${frame.textColor} opacity-50`} />
+              <Upload className={`${iconSize[size]} mx-auto mb-1 ${frame.textColor} opacity-50`} />
               <p className={`${subtextSize[size]} ${frame.textColor} opacity-50`}>Your Image</p>
             </div>
           </div>
         )}
       </div>
       
-      {/* Text Area */}
+      {/* Text Area - Compact bottom section */}
       <div className={`w-full h-1/4 ${padding[size]} flex flex-col justify-center`}>
-        <h4 className={`${frame.textColor} font-semibold ${textSize[size]} text-center truncate`}>
+        <h4 className={`${frame.textColor} font-semibold ${textSize[size]} text-center truncate leading-tight`}>
           Your Card Title
         </h4>
-        <p className={`${frame.textColor} opacity-70 ${subtextSize[size]} text-center truncate`}>
+        <p className={`${frame.textColor} opacity-70 ${subtextSize[size]} text-center truncate leading-tight`}>
           Description
         </p>
       </div>
