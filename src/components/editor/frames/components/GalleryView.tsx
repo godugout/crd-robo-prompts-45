@@ -25,6 +25,19 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
 }) => {
   const isMobile = useIsMobile();
 
+  // Function to determine container border radius based on frame border style
+  const getContainerBorderRadius = (frame: MinimalistFrame) => {
+    // Check if frame has sharp/pointy corners by looking at border style
+    if (frame.borderStyle.includes('border-0') || 
+        frame.borderStyle.includes('border-2') || 
+        frame.borderStyle.includes('border-4')) {
+      // For frames with sharp borders, use sharp corners
+      return 'rounded-none';
+    }
+    // Default to rounded corners for other frames
+    return 'rounded-lg';
+  };
+
   return (
     <div className="relative z-10 p-4 lg:p-6" {...getRootProps()}>
       <input {...getInputProps()} />
@@ -46,7 +59,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                 ? 'ring-2 ring-crd-green ring-offset-2 ring-offset-gray-800 scale-105 z-10' 
                 : 'hover:scale-102 hover:ring-1 hover:ring-gray-500 hover:ring-offset-1 hover:ring-offset-gray-800'
               }
-              rounded-lg overflow-hidden bg-gray-800/30 backdrop-blur-sm
+              ${getContainerBorderRadius(frame)} overflow-hidden bg-gray-800/30 backdrop-blur-sm
             `}
             onClick={() => onFrameSelect(index)}
           >
@@ -84,7 +97,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
 
             {/* Drag Active Overlay */}
             {isDragActive && index === currentIndex && (
-              <div className="absolute inset-0 bg-crd-green/20 border-2 border-dashed border-crd-green rounded-lg flex items-center justify-center backdrop-blur-sm">
+              <div className={`absolute inset-0 bg-crd-green/20 border-2 border-dashed border-crd-green ${getContainerBorderRadius(frame)} flex items-center justify-center backdrop-blur-sm`}>
                 <div className="text-center">
                   <div className="w-8 h-8 mx-auto mb-2 rounded-full bg-crd-green/30 flex items-center justify-center">
                     <svg className="w-4 h-4 text-crd-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">

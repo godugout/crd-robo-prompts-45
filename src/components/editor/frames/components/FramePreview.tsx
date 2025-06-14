@@ -49,15 +49,25 @@ export const FramePreview: React.FC<FramePreviewProps> = ({
     medium: 'p-2',
     large: 'p-3'
   };
+
+  // Determine border radius based on frame border style
+  const getFrameBorderRadius = () => {
+    if (frame.borderStyle.includes('border-0') || 
+        frame.borderStyle.includes('border-2') || 
+        frame.borderStyle.includes('border-4')) {
+      return 'rounded-none';
+    }
+    return 'rounded-lg';
+  };
   
   return (
     <div 
-      className={`relative ${frame.borderStyle} ${frame.backgroundColor} overflow-hidden transition-all duration-300 w-full h-full ${
+      className={`relative ${frame.borderStyle} ${frame.backgroundColor} overflow-hidden transition-all duration-300 w-full h-full ${getFrameBorderRadius()} ${
         isDragActive ? 'ring-2 ring-crd-green ring-opacity-50' : ''
       }`}
     >
       {/* Image Area - Takes up most of the card space */}
-      <div className="w-full h-3/4 relative overflow-hidden">
+      <div className={`w-full h-3/4 relative overflow-hidden ${getFrameBorderRadius()}`}>
         {imageUrl ? (
           <img 
             src={imageUrl} 
