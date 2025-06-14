@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
@@ -78,17 +79,17 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
   // Desktop layout: two-column with carousel on left, info on right
   if (!isMobile && viewMode === 'carousel') {
     return (
-      <div className="w-full max-w-none mx-auto relative min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="w-full max-w-none mx-auto relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-[600px] max-h-[90vh]">
         <ViewModeToggle 
           viewMode={viewMode} 
           onViewModeChange={setViewMode} 
         />
 
-        <div className="relative z-10 flex h-screen" {...getRootProps()}>
+        <div className="relative z-10 flex h-full max-h-[80vh]" {...getRootProps()}>
           <input {...getInputProps()} />
           
           {/* Left side: Carousel */}
-          <div className="flex-1 flex items-center justify-center px-8">
+          <div className="flex-1 flex items-center justify-center px-8 py-8">
             <DesktopFrameCarousel
               frames={MINIMALIST_FRAMES}
               currentIndex={currentIndex}
@@ -118,19 +119,19 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
 
   // Mobile layout or gallery view - keep existing behavior
   return (
-    <div className="w-full max-w-none mx-auto relative min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="w-full max-w-none mx-auto relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-[600px] max-h-screen">
       <ViewModeToggle 
         viewMode={viewMode} 
         onViewModeChange={setViewMode} 
       />
 
-      <div className="relative z-10" {...getRootProps()}>
+      <div className="relative z-10 h-full" {...getRootProps()}>
         <input {...getInputProps()} />
         
         {viewMode === 'carousel' ? (
           <>
             {/* iPhone-style carousel for mobile */}
-            <div className="flex items-center justify-center min-h-[70vh] px-4">
+            <div className="flex items-center justify-center h-[50vh] max-h-[500px] px-4">
               <IPhoneStyleCarousel
                 frames={MINIMALIST_FRAMES}
                 currentIndex={currentIndex}
@@ -150,15 +151,17 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
           </>
         ) : (
           <>
-            <GalleryView
-              frames={MINIMALIST_FRAMES}
-              currentIndex={currentIndex}
-              uploadedImage={uploadedImage}
-              isDragActive={isDragActive}
-              onFrameSelect={goToFrame}
-              getRootProps={getRootProps}
-              getInputProps={getInputProps}
-            />
+            <div className="max-h-[60vh] overflow-y-auto">
+              <GalleryView
+                frames={MINIMALIST_FRAMES}
+                currentIndex={currentIndex}
+                uploadedImage={uploadedImage}
+                isDragActive={isDragActive}
+                onFrameSelect={goToFrame}
+                getRootProps={getRootProps}
+                getInputProps={getInputProps}
+              />
+            </div>
 
             <div className="relative z-20 mt-8 animate-fade-in">
               <MinimalistFrameInfo frame={currentFrame} />
