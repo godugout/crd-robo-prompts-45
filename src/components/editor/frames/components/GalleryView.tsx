@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { FramePreview } from './FramePreview';
 import type { MinimalistFrame } from '../data/minimalistFrames';
 
@@ -22,19 +23,29 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
   getRootProps,
   getInputProps
 }) => {
+  const isMobile = useIsMobile();
+
   return (
     <div className="relative z-20" {...getRootProps()}>
       <input {...getInputProps()} />
       
-      <div className="flex gap-8 overflow-x-auto pb-6 px-8 frame-gallery-scroll">
+      <div className={`
+        ${isMobile 
+          ? 'flex gap-8 overflow-x-auto pb-6 px-8 frame-gallery-scroll' 
+          : 'grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-8 py-12'
+        }
+      `}>
         {frames.map((frame, index) => (
           <div
             key={frame.id}
-            className={`flex-shrink-0 cursor-pointer transition-all duration-500 ease-out transform ${
-              index === currentIndex 
-                ? 'scale-125 ring-2 ring-crd-green shadow-2xl opacity-100' 
-                : 'opacity-75 hover:opacity-90 hover:scale-110 hover:shadow-xl'
-            }`}
+            className={`
+              ${isMobile ? 'flex-shrink-0' : ''}
+              cursor-pointer transition-all duration-500 ease-out transform 
+              ${index === currentIndex 
+                ? `${isMobile ? 'scale-125' : 'scale-110'} ring-2 ring-crd-green shadow-2xl opacity-100` 
+                : 'opacity-75 hover:opacity-90 hover:scale-105 hover:shadow-xl'
+              }
+            `}
             onClick={() => onFrameSelect(index)}
             style={{ 
               willChange: 'transform, opacity',
@@ -45,7 +56,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
             <FramePreview 
               frame={frame}
               imageUrl={uploadedImage}
-              size="small"
+              size={isMobile ? "small" : "large"}
               isDragActive={isDragActive && index === currentIndex}
             />
           </div>

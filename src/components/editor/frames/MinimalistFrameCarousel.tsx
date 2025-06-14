@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { ViewModeToggle } from './components/ViewModeToggle';
 import { IPhoneStyleCarousel } from './components/IPhoneStyleCarousel';
+import { DesktopFrameCarousel } from './components/DesktopFrameCarousel';
 import { GalleryView } from './components/GalleryView';
 import { MinimalistFrameInfo } from './components/MinimalistFrameInfo';
 import { FrameUploadPrompt } from './components/FrameUploadPrompt';
@@ -23,6 +25,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'carousel' | 'gallery'>('carousel');
+  const isMobile = useIsMobile();
 
   const onDrop = async (acceptedFiles: File[]) => {
     if (!acceptedFiles.length) return;
@@ -72,6 +75,48 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
 
   const currentFrame = MINIMALIST_FRAMES[currentIndex];
 
+  // Desktop layout: two-column with carousel on left, info on right
+  if (!isMobile && viewMode === 'carousel') {
+    return (
+      <div className="w-full max-w-none mx-auto relative min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <ViewModeToggle 
+          viewMode={viewMode} 
+          onViewModeChange={setViewMode} 
+        />
+
+        <div className="relative z-10 flex h-screen" {...getRootProps()}>
+          <input {...getInputProps()} />
+          
+          {/* Left side: Carousel */}
+          <div className="flex-1 flex items-center justify-center px-8">
+            <DesktopFrameCarousel
+              frames={MINIMALIST_FRAMES}
+              currentIndex={currentIndex}
+              uploadedImage={uploadedImage}
+              onFrameSelect={goToFrame}
+              isDragActive={isDragActive}
+            />
+          </div>
+
+          {/* Right side: Frame info and controls */}
+          <div className="w-96 flex flex-col justify-center px-8 py-12 bg-black/20 backdrop-blur-sm">
+            <div className="space-y-8">
+              <MinimalistFrameInfo 
+                frame={currentFrame}
+                className="animate-fade-in"
+              />
+              
+              <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
+                <FrameUploadPrompt show={!uploadedImage} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Mobile layout or gallery view - keep existing behavior
   return (
     <div className="w-full max-w-none mx-auto relative min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <ViewModeToggle 
@@ -84,7 +129,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
         
         {viewMode === 'carousel' ? (
           <>
-            {/* iPhone-style carousel */}
+            {/* iPhone-style carousel for mobile */}
             <div className="flex items-center justify-center min-h-[70vh] px-4">
               <IPhoneStyleCarousel
                 frames={MINIMALIST_FRAMES}
