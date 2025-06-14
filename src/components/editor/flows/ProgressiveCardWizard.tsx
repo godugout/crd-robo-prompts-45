@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { FrameSelectionStep } from './steps/FrameSelectionStep';
-import { ImageUploadStep } from './steps/ImageUploadStep';
+import { EnhancedImageUploadStep } from './steps/EnhancedImageUploadStep';
 import { ImageAdjustmentStep } from './steps/ImageAdjustmentStep';
 import { TextElementsStep } from './steps/TextElementsStep';
 import { LayerElementsStep } from './steps/LayerElementsStep';
@@ -99,8 +99,9 @@ export const ProgressiveCardWizard = () => {
         );
       case 1:
         return (
-          <ImageUploadStep
+          <EnhancedImageUploadStep
             selectedFrame={cardData.selectedFrame}
+            uploadedImage={cardData.imageUrl}
             onImageUpload={(imageUrl) => updateCardData({ imageUrl })}
           />
         );
