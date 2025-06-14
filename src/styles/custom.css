@@ -37,7 +37,7 @@
   transition: width 0.3s ease-in-out, height 0.3s ease-in-out;
 }
 
-/* Frame carousel enhancements */
+/* Enhanced Frame carousel animations */
 .frame-carousel-container {
   position: relative;
 }
@@ -59,11 +59,112 @@
   opacity: 1;
 }
 
+/* Enhanced gallery scroll with momentum */
 .frame-gallery-scroll {
   scrollbar-width: none;
   -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
 }
 
 .frame-gallery-scroll::-webkit-scrollbar {
   display: none;
+}
+
+.frame-gallery-scroll > * {
+  scroll-snap-align: center;
+}
+
+/* Advanced animation keyframes */
+@keyframes spring-bounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gentle-pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Enhanced frame transition animations */
+.frame-transition-enter {
+  animation: fade-slide-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.frame-spring-hover {
+  animation: spring-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Smooth hover states */
+.frame-hover-lift {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform, opacity;
+}
+
+.frame-hover-lift:hover {
+  transform: translateY(-4px) scale(1.02);
+  filter: brightness(1.1);
+}
+
+/* Performance optimizations */
+.hardware-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform, opacity;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .frame-gallery-scroll {
+    scroll-behavior: auto;
+  }
+  
+  .frame-transition-enter,
+  .frame-spring-hover {
+    animation: none;
+  }
+  
+  .frame-hover-lift {
+    transition: none;
+  }
+}
+
+/* Enhanced glow effects */
+.frame-selected-glow {
+  box-shadow: 
+    0 0 20px rgba(74, 222, 128, 0.3),
+    0 0 40px rgba(74, 222, 128, 0.2),
+    0 0 60px rgba(74, 222, 128, 0.1);
+  animation: gentle-pulse 3s ease-in-out infinite;
+}
+
+/* Backdrop blur support */
+.backdrop-blur-glass {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
