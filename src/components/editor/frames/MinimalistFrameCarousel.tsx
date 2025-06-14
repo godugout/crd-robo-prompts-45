@@ -76,10 +76,10 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
 
   const currentFrame = MINIMALIST_FRAMES[currentIndex];
 
-  // Desktop layout: two-column with carousel on left, info on right
+  // Desktop layout: full-width two-column with carousel on left, info on right
   if (!isMobile && viewMode === 'carousel') {
     return (
-      <div className="w-full max-w-none mx-auto relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-[600px] max-h-[90vh]">
+      <div className="w-full relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-[600px] max-h-[90vh]">
         <ViewModeToggle 
           viewMode={viewMode} 
           onViewModeChange={setViewMode} 
@@ -88,8 +88,8 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
         <div className="relative z-10 flex h-full max-h-[80vh]" {...getRootProps()}>
           <input {...getInputProps()} />
           
-          {/* Left side: Carousel */}
-          <div className="flex-1 flex items-center justify-center px-8 py-8">
+          {/* Left side: Carousel - takes up more space */}
+          <div className="flex-[2] flex items-center justify-center px-8 py-8">
             <DesktopFrameCarousel
               frames={MINIMALIST_FRAMES}
               currentIndex={currentIndex}
@@ -99,8 +99,8 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
             />
           </div>
 
-          {/* Right side: Frame info and controls */}
-          <div className="w-96 flex flex-col justify-center px-8 py-12 bg-black/20 backdrop-blur-sm">
+          {/* Right side: Frame info and controls - flexible width */}
+          <div className="flex-1 min-w-[400px] max-w-[500px] flex flex-col justify-center px-8 py-12 bg-black/20 backdrop-blur-sm">
             <div className="space-y-8">
               <MinimalistFrameInfo 
                 frame={currentFrame}
