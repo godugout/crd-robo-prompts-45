@@ -64,13 +64,22 @@ export const EnhancedCardRenderer: React.FC<EnhancedCardRendererProps> = ({
           rgba(58,134,255,${holographic_intensity / 200}) 50%, 
           rgba(255,206,84,${holographic_intensity / 200}) 75%, 
           rgba(255,0,110,${holographic_intensity / 200}) 100%)`,
-        animation: 'holographic 3s ease-in-out infinite'
+        animation: 'holographic-shimmer 3s ease-in-out infinite'
       }}
     />
   );
 
   return (
     <div className="relative">
+      <style>
+        {`
+          @keyframes holographic-shimmer {
+            0%, 100% { transform: translateX(-10px) rotate(-1deg); }
+            50% { transform: translateX(10px) rotate(1deg); }
+          }
+        `}
+      </style>
+      
       <div
         className="relative rounded-xl overflow-hidden transform hover:scale-105 transition-all duration-300 cursor-pointer group"
         style={cardStyle}
@@ -157,14 +166,6 @@ export const EnhancedCardRenderer: React.FC<EnhancedCardRendererProps> = ({
         {/* Premium Shine Effect */}
         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       </div>
-
-      {/* CSS for holographic animation */}
-      <style jsx>{`
-        @keyframes holographic {
-          0%, 100% { transform: translateX(-10px) rotate(-1deg); }
-          50% { transform: translateX(10px) rotate(1deg); }
-        }
-      `}</style>
     </div>
   );
 };
