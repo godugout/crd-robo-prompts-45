@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Save, Download, Share2, ArrowLeft } from 'lucide-react';
@@ -73,6 +74,31 @@ export const WhiteboardStudio: React.FC = () => {
       }
     }
   });
+
+  useEffect(() => {
+    const handleCardUpdated = (event: CustomEvent) => {
+      const { cardId, cardData } = event.detail;
+      if (cardId && cardData) {
+        setCards(prev => prev.map(c => (c.id === cardId ? { ...c, cardData } : c)));
+      }
+    };
+    window.addEventListener('cardUpdated', handleCardUpdated as EventListener);
+    return () => {
+      window.removeEventListener('cardUpdated', handleCardUpdated as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    // When selected card changes, notify the properties panel
+    if (selectedCardId) {
+      const card = cards.find(c => c.id === selectedCardId);
+      if (card) {
+        window.dispatchEvent(new CustomEvent('cardSelectedForEditing', { detail: { card } }));
+      }
+    } else {
+       window.dispatchEvent(new CustomEvent('cardSelectedForEditing', { detail: null }));
+    }
+  }, [selectedCardId, cards]);
 
   useEffect(() => {
     const handleFrameSelected = (event: CustomEvent) => {
