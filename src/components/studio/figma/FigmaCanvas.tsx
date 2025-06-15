@@ -50,7 +50,7 @@ export const FigmaCanvas: React.FC<FigmaCanvasProps> = ({ children }) => {
     });
   }, []);
 
-  const bind = useGesture({
+  const gestureBinder = useGesture({
     onDrag: ({ offset: [x, y], pinching }) => {
       if (spacePressed && !pinching) {
         updateTransform({ ...transform, x, y });
@@ -80,7 +80,7 @@ export const FigmaCanvas: React.FC<FigmaCanvasProps> = ({ children }) => {
       className={`flex-1 bg-[#1a1a1a] relative overflow-hidden ${
         spacePressed ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
       }`}
-      {...bind()}
+      {...gestureBinder()}
     >
       {/* Canvas Boundary - Visible working area */}
       <div 
