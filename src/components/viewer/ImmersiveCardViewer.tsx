@@ -2,12 +2,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Maximize2, Minimize2, Share2, Download, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { EnhancedCard3D } from './components/EnhancedCard3D';
+import { Enhanced3DCardMesh } from './components/Enhanced3DCardMesh';
 import { ComboStudioPanel } from './components/ComboStudioPanel';
 import { EnhancedMobileStudioPanel } from './components/EnhancedMobileStudioPanel';
 import { useMobileControl } from './context/MobileControlContext';
 import { useViewerEffects } from './hooks/useViewerEffects';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
+import { Canvas } from '@react-three/fiber';
 import type { UserCard } from '@/hooks/useUserCards';
 
 interface ImmersiveCardViewerProps {
@@ -35,7 +36,6 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   const [showStudioPanel, setShowStudioPanel] = useState(true);
   const viewerRef = useRef<HTMLDivElement>(null);
   const { isMobile } = useDeviceDetection();
-  const { togglePanel } = useMobileControl();
 
   const {
     effectValues,
@@ -99,6 +99,36 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   }, [onClose, toggleFullscreen, toggleStudioPanel]);
 
   if (!isOpen) return null;
+
+  // Convert UserCard to CardData format for 3D mesh
+  const cardData = {
+    id: card.id,
+    title: card.title,
+    description: card.description,
+    rarity: card.rarity,
+    tags: card.tags || [],
+    image_url: card.image_url,
+    thumbnail_url: card.thumbnail_url,
+    design_metadata: card.design_metadata || {},
+    visibility: card.is_public ? 'public' as const : 'private' as const,
+    is_public: card.is_public,
+    creator_attribution: {
+      creator_name: card.creator_name,
+      creator_id: card.creator_id,
+      collaboration_type: 'solo' as const
+    },
+    publishing_options: {
+      marketplace_listing: false,
+      crd_catalog_inclusion: false,
+      print_available: false,
+      pricing: {
+        currency: 'USD'
+      },
+      distribution: {
+        limited_edition: false
+      }
+    }
+  };
 
   return (
     <div 
@@ -179,18 +209,14 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
 
       {/* 3D Card Display */}
       <div className="absolute inset-0">
-        <EnhancedCard3D
-          card={card}
-          effectValues={effectValues}
-          selectedScene={selectedScene}
-          selectedLighting={selectedLighting}
-          overallBrightness={overallBrightness}
-          interactiveLighting={interactiveLighting}
-          materialSettings={materialSettings}
-          allowRotation={allowRotation}
-          ambient={ambient}
-          isFullscreen={isFullscreen}
-        />
+        <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
+          <Enhanced3DCardMesh
+            card={cardData}
+            rotation={{ x: 0, y: 0 }}
+            zoom={1}
+            materialSettings={materialSettings}
+          />
+        </Canvas>
       </div>
 
       {/* Desktop Studio Panel */}
@@ -240,10 +266,10 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
           onDownload={onDownload}
           onShare={onShare}
           card={card}
-          selectedPresetId={presetState.selectedPresetId}
-          onPresetSelect={presetState.setSelectedPresetId}
+          selectedPresetId={presetState.selectedPresetId || ''}
+          onPresetSelect={presetState.setSelectedPresetId || (() => {})}
           onApplyCombo={handleApplyCombo}
-          isApplyingPreset={presetState.isApplying}
+          isApplyingPreset={presetState.isApplying || false}
           cardDetails={{
             id: card.id,
             title: card.title,
