@@ -10,6 +10,7 @@ import {
   ChromeEditionFrame
 } from './components';
 
+// Organized frame templates for optimal user experience
 export const ENHANCED_FRAME_TEMPLATES: EnhancedFrameTemplate[] = [
   {
     id: 'classic-sports',
@@ -36,6 +37,14 @@ export const ENHANCED_FRAME_TEMPLATES: EnhancedFrameTemplate[] = [
     config: ALL_FRAME_CONFIGS.find(c => c.id === 'vintage-gold')
   },
   {
+    id: 'chrome-edition',
+    name: 'Chrome Edition',
+    category: 'Modern',
+    description: 'Sleek chrome finish with metallic elements',
+    preview_component: ChromeEditionFrame,
+    config: ALL_FRAME_CONFIGS.find(c => c.id === 'chrome-edition')
+  },
+  {
     id: 'donruss-special',
     name: 'Donruss Special',
     category: 'Vintage',
@@ -50,13 +59,5 @@ export const ENHANCED_FRAME_TEMPLATES: EnhancedFrameTemplate[] = [
     description: '1987 Donruss rookie card design with red accents',
     preview_component: DonrussRookieFrame,
     config: ALL_FRAME_CONFIGS.find(c => c.id === 'donruss-1987-rookie')
-  },
-  {
-    id: 'chrome-edition',
-    name: 'Chrome Edition',
-    category: 'Modern',
-    description: 'Sleek chrome finish with metallic elements',
-    preview_component: ChromeEditionFrame,
-    config: ALL_FRAME_CONFIGS.find(c => c.id === 'chrome-edition')
   }
 ];
