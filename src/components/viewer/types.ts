@@ -51,6 +51,7 @@ export interface CardData {
   design_metadata: Record<string, any>;
 }
 
+// Updated UniversalCardData to include missing properties
 export interface UniversalCardData {
   id: string;
   title: string;
@@ -61,8 +62,11 @@ export interface UniversalCardData {
   price?: number;
   creator_name?: string;
   creator_verified?: boolean;
+  creator_id: string; // Added missing property
   stock?: number;
   tags?: string[];
+  design_metadata: Record<string, any>; // Added missing property
+  created_at?: string;
 }
 
 // ImmersiveCardViewer props interface
@@ -126,7 +130,7 @@ export const convertToViewerCardData = (card: any): CardData => {
     title: card.title || 'Untitled Card',
     description: card.description,
     image_url: card.image_url,
-    rarity: card.rarity || 'common',
+    rarity: (card.rarity || 'common') as 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary',
     tags: card.tags || [], // Ensure tags is always an array
     visibility: card.visibility === 'unlisted' ? 'public' : (card.visibility || 'public'), // Convert unlisted to public
     is_public: card.is_public !== false,
@@ -159,8 +163,11 @@ export const convertToUniversalCardData = (card: any): UniversalCardData => {
     price: typeof card.price === 'number' ? card.price : 0,
     creator_name: card.creator_name || card.creator_attribution?.creator_name,
     creator_verified: card.creator_verified || false,
+    creator_id: card.creator_id || card.creator_attribution?.creator_id || '',
     stock: card.stock || 0,
-    tags: card.tags || []
+    tags: card.tags || [],
+    design_metadata: card.design_metadata || {},
+    created_at: card.created_at
   };
 };
 

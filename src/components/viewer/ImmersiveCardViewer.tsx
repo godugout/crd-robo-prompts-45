@@ -105,7 +105,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     id: card.id,
     title: card.title,
     description: card.description,
-    rarity: card.rarity,
+    rarity: card.rarity as 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary',
     tags: card.tags || [],
     image_url: card.image_url,
     thumbnail_url: card.thumbnail_url,
@@ -142,7 +142,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
             <h2 className="text-white text-lg font-medium">{card.title}</h2>
             {showStats && (
               <div className="text-crd-lightGray text-sm">
-                {card.rarity} • Created {new Date(card.created_at).toLocaleDateString()}
+                {card.rarity} • Created {new Date(card.created_at || '').toLocaleDateString()}
               </div>
             )}
           </div>
@@ -266,10 +266,10 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
           onDownload={onDownload}
           onShare={onShare}
           card={card}
-          selectedPresetId={presetState.selectedPresetId || ''}
-          onPresetSelect={presetState.setSelectedPresetId || (() => {})}
+          selectedPresetId={presetState?.selectedPresetId || ''}
+          onPresetSelect={presetState?.setSelectedPresetId || (() => {})}
           onApplyCombo={handleApplyCombo}
-          isApplyingPreset={presetState.isApplying || false}
+          isApplyingPreset={presetState?.isApplying || false}
           cardDetails={{
             id: card.id,
             title: card.title,
