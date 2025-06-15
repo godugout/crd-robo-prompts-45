@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Globe, Lock, Eye, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { setCardNavigationContext, createCardNavigationUrl } from '@/utils/cardNavigation';
 import type { UserCard } from '@/hooks/useUserCards';
 
 interface ProfileCardThumbnailProps {
@@ -13,7 +12,6 @@ interface ProfileCardThumbnailProps {
   isMultiSelectMode?: boolean;
   onSelect?: (cardId: string) => void;
   onEdit?: (cardId: string) => void;
-  allCards?: UserCard[];
 }
 
 export const ProfileCardThumbnail: React.FC<ProfileCardThumbnailProps> = ({
@@ -21,8 +19,7 @@ export const ProfileCardThumbnail: React.FC<ProfileCardThumbnailProps> = ({
   isSelected = false,
   isMultiSelectMode = false,
   onSelect,
-  onEdit,
-  allCards = []
+  onEdit
 }) => {
   const navigate = useNavigate();
 
@@ -30,19 +27,7 @@ export const ProfileCardThumbnail: React.FC<ProfileCardThumbnailProps> = ({
     if (isMultiSelectMode && onSelect) {
       onSelect(card.id);
     } else {
-      // Set navigation context for profile cards
-      if (allCards.length > 0) {
-        const navigationData = {
-          cards: allCards.map(c => ({ id: c.id, title: c.title })),
-          source: 'profile' as const
-        };
-        
-        setCardNavigationContext(navigationData);
-        const navigationUrl = createCardNavigationUrl(card.id, navigationData);
-        navigate(navigationUrl);
-      } else {
-        navigate(`/card/${card.id}`);
-      }
+      navigate(`/card/${card.id}`);
     }
   };
 
@@ -93,19 +78,7 @@ export const ProfileCardThumbnail: React.FC<ProfileCardThumbnailProps> = ({
             <Button
               onClick={(e) => {
                 e.stopPropagation();
-                // Set navigation context for view button too
-                if (allCards.length > 0) {
-                  const navigationData = {
-                    cards: allCards.map(c => ({ id: c.id, title: c.title })),
-                    source: 'profile' as const
-                  };
-                  
-                  setCardNavigationContext(navigationData);
-                  const navigationUrl = createCardNavigationUrl(card.id, navigationData);
-                  navigate(navigationUrl);
-                } else {
-                  navigate(`/card/${card.id}`);
-                }
+                navigate(`/card/${card.id}`);
               }}
               size="sm"
               variant="outline"
