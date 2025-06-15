@@ -52,12 +52,12 @@ export const FigmaCanvas: React.FC<FigmaCanvasProps> = ({ children }) => {
   }, []);
 
   const bind = useGesture({
-    onDrag: ({ offset: [x, y], pinching }) => {
+    onDrag: ({ offset: [x, y], pinching }: any) => {
       if (spacePressed && !pinching) {
         updateTransform({ ...transform, x, y });
       }
     },
-    onWheel: ({ delta: [, dy], ctrlKey, metaKey, event }) => {
+    onWheel: ({ delta: [, dy], ctrlKey, metaKey, event }: any) => {
       event?.preventDefault();
       
       if (ctrlKey || metaKey) {

@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useGesture } from '@use-gesture/react';
 
@@ -38,17 +39,17 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
   }, [onTransformChange]);
 
   const bind = useGesture({
-    onDrag: ({ offset: [x, y], pinching, event }) => {
+    onDrag: ({ offset: [x, y], pinching, event }: any) => {
       // Check if space key is held for panning (like Figma)
       const isSpacePanning = (event as any)?.spaceKey || !pinching;
       if (isSpacePanning) {
         updateTransform({ ...transform, x, y });
       }
     },
-    onPinch: ({ offset: [scale] }) => {
+    onPinch: ({ offset: [scale] }: any) => {
       updateTransform({ ...transform, scale });
     },
-    onWheel: ({ delta: [, dy], ctrlKey, metaKey, event }) => {
+    onWheel: ({ delta: [, dy], ctrlKey, metaKey, event }: any) => {
       event?.preventDefault();
       
       if (ctrlKey || metaKey) {
