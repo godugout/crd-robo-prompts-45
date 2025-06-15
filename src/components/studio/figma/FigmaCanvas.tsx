@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useCallback } from 'react';
 import { useGesture } from '@use-gesture/react';
 
@@ -75,15 +74,13 @@ export const FigmaCanvas: React.FC<FigmaCanvasProps> = ({ children }) => {
     }
   });
 
-  const gestureBinds = bind();
-
   return (
     <div
       ref={containerRef}
       className={`flex-1 bg-[#1a1a1a] relative overflow-hidden ${
         spacePressed ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
       }`}
-      {...gestureBinds}
+      {...bind()}
     >
       {/* Canvas Boundary - Visible working area */}
       <div 
