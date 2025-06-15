@@ -1,7 +1,8 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 
-const DEFAULT_AVATAR_URL = '/lovable-uploads/inverted-cfc6ba22-90e0-4ecc-98f6-f1d72272544c.png';
+const DEFAULT_AVATAR_URL = '/lovable-uploads/cfc6ba22-90e0-4ecc-98f6-f1d72272544c.png';
 
 export class ProfileService {
   async ensureProfile(user: User) {
@@ -42,6 +43,14 @@ export class ProfileService {
 
   static getDefaultAvatarUrl() {
     return DEFAULT_AVATAR_URL;
+  }
+
+  static getInvertedAvatarStyle() {
+    return {
+      filter: 'invert(1) brightness(0)',
+      backgroundColor: 'white',
+      borderRadius: '50%'
+    };
   }
 }
 

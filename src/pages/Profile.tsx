@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -66,6 +65,7 @@ const Profile = () => {
   const displayName = user.full_name || user.username || user.email || 'User';
   const bioText = profile?.bio_extended || '';
   const avatarUrl = profile?.avatar_url || ProfileService.getDefaultAvatarUrl();
+  const isDefaultAvatar = !profile?.avatar_url || profile.avatar_url === ProfileService.getDefaultAvatarUrl();
 
   // Convert cards to unified format
   const unifiedCards: UnifiedCard[] = userCards.map(card => ({
@@ -95,7 +95,11 @@ const Profile = () => {
           <CardHeader className="flex flex-row items-center space-y-0 pb-2">
             <div className="flex flex-1 space-x-4 items-center">
               <Avatar className="h-20 w-20 border-2 border-crd-blue">
-                <AvatarImage src={avatarUrl} alt={displayName} />
+                <AvatarImage 
+                  src={avatarUrl} 
+                  alt={displayName}
+                  style={isDefaultAvatar ? ProfileService.getInvertedAvatarStyle() : undefined}
+                />
                 <AvatarFallback className="text-2xl bg-crd-mediumGray text-crd-white">
                   {(displayName?.[0] || '').toUpperCase()}
                 </AvatarFallback>
