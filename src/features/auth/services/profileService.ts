@@ -47,9 +47,11 @@ export class ProfileService {
 
   static getInvertedAvatarStyle() {
     return {
-      filter: 'invert(1) brightness(0)',
+      filter: 'invert(1)',
       backgroundColor: 'white',
-      borderRadius: '50%'
+      borderRadius: '50%',
+      padding: '4px',
+      objectFit: 'contain' as const
     };
   }
 }
