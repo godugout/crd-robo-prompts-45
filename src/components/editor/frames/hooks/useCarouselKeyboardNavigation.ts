@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 interface UseCarouselKeyboardNavigationProps {
   currentIndex: number;
   totalFrames: number;
-  viewMode: 'carousel' | 'gallery';
+  viewMode: 'carousel' | 'gallery' | 'showcase';
   isMobile: boolean;
   onFrameSelect: (index: number) => void;
 }
@@ -18,7 +18,7 @@ export const useCarouselKeyboardNavigation = ({
 }: UseCarouselKeyboardNavigationProps) => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (viewMode !== 'carousel') return;
+      if (viewMode === 'gallery') return;
       
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
@@ -37,7 +37,7 @@ export const useCarouselKeyboardNavigation = ({
     };
 
     const handleWheel = (event: WheelEvent) => {
-      if (viewMode !== 'carousel' || isMobile) return;
+      if (viewMode === 'gallery' || isMobile) return;
       
       // Only handle wheel events when over the carousel
       const target = event.target as Element;
