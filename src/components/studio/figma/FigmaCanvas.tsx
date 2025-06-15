@@ -81,7 +81,7 @@ export const FigmaCanvas: React.FC<FigmaCanvasProps> = ({ children }) => {
       className={`flex-1 bg-[#1a1a1a] relative overflow-hidden ${
         spacePressed ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
       }`}
-      {...bind()}
+      {...bind}
     >
       {/* Canvas Boundary - Visible working area */}
       <div 

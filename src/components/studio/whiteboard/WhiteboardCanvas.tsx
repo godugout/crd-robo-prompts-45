@@ -71,7 +71,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
     <div
       ref={containerRef}
       className="relative w-full h-full overflow-hidden bg-[#1a1a1a] cursor-grab active:cursor-grabbing"
-      {...bind()}
+      {...bind}
     >
       {/* Canvas Boundary */}
       <div 
