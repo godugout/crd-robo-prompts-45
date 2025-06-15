@@ -1,10 +1,15 @@
-
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabase-client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import type { CardData, CardRarity } from '@/types/card';
+
+// Helper function to check if a string is a valid UUID
+const isValidUUID = (str: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
 
 export const useSimpleCardEditor = () => {
   const { user } = useAuth();
@@ -58,7 +63,8 @@ export const useSimpleCardEditor = () => {
         thumbnail_url: cardData.thumbnail_url || null,
         design_metadata: cardData.design_metadata,
         is_public: cardData.visibility === 'public',
-        template_id: cardData.template_id || null,
+        // Only set template_id if it's a valid UUID, otherwise store in design_metadata
+        template_id: (cardData.template_id && isValidUUID(cardData.template_id)) ? cardData.template_id : null,
         collection_id: cardData.collection_id || null,
         team_id: cardData.team_id || null,
         creator_attribution: cardData.creator_attribution,
@@ -71,6 +77,14 @@ export const useSimpleCardEditor = () => {
         crd_catalog_inclusion: cardData.publishing_options.crd_catalog_inclusion,
         print_available: cardData.publishing_options.print_available
       };
+
+      // If template_id is not a valid UUID, store it in design_metadata instead
+      if (cardData.template_id && !isValidUUID(cardData.template_id)) {
+        dbCard.design_metadata = {
+          ...dbCard.design_metadata,
+          template_reference: cardData.template_id
+        };
+      }
 
       const { error } = await supabase
         .from('cards')
