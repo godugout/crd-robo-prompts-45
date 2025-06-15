@@ -39,17 +39,16 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
   }, [onTransformChange]);
 
   const bind = useGesture({
-    onDrag: ({ offset: [x, y], pinching, event }: any) => {
-      // Check if space key is held for panning (like Figma)
-      const isSpacePanning = (event as any)?.spaceKey || !pinching;
-      if (isSpacePanning) {
+    onDrag: ({ offset: [x, y], pinching }) => {
+      // Pan on drag, but not while pinching
+      if (!pinching) {
         updateTransform({ ...transform, x, y });
       }
     },
-    onPinch: ({ offset: [scale] }: any) => {
+    onPinch: ({ offset: [scale] }) => {
       updateTransform({ ...transform, scale });
     },
-    onWheel: ({ delta: [, dy], ctrlKey, metaKey, event }: any) => {
+    onWheel: ({ delta: [, dy], ctrlKey, metaKey, event }) => {
       event?.preventDefault();
       
       if (ctrlKey || metaKey) {
