@@ -50,15 +50,27 @@ export const LogoPicker = () => {
             "hover:brightness-150 hover:drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]"
           )}
         >
-          <img
-            src={selectedLogo.src}
-            alt={selectedLogo.name}
-            className="h-10 w-auto object-contain"
-            onError={(e) => {
-              // Fallback to text if image fails to load
-              e.currentTarget.style.display = 'none';
-            }}
-          />
+          <div className="relative">
+            {/* White shadow layer for 3D effect */}
+            <img
+              src={selectedLogo.src}
+              alt=""
+              className="h-10 w-auto object-contain absolute top-0.5 left-0.5 opacity-60 brightness-0 invert z-0"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            {/* Main logo */}
+            <img
+              src={selectedLogo.src}
+              alt={selectedLogo.name}
+              className="h-10 w-auto object-contain relative z-10"
+              onError={(e) => {
+                // Fallback to text if image fails to load
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
           <ChevronDown className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" />
         </Link>
       </DropdownMenuTrigger>
@@ -82,14 +94,26 @@ export const LogoPicker = () => {
               )}
             >
               <div className="flex flex-col items-center gap-2">
-                <img
-                  src={logo.src}
-                  alt={logo.name}
-                  className="h-8 w-auto object-contain"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
+                <div className="relative">
+                  {/* White shadow layer for 3D effect */}
+                  <img
+                    src={logo.src}
+                    alt=""
+                    className="h-8 w-auto object-contain absolute top-0.5 left-0.5 opacity-40 brightness-0 invert z-0"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                  {/* Main logo */}
+                  <img
+                    src={logo.src}
+                    alt={logo.name}
+                    className="h-8 w-auto object-contain relative z-10"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
                 <div>
                   <div className="font-medium text-white text-xs">{logo.name}</div>
                   <div className="text-xs text-white/60">{logo.description}</div>
