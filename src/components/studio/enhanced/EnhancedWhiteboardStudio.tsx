@@ -2,14 +2,15 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Save, Download, Share2, Undo, Redo, Shuffle, Zap, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
-import { useDrag } from '@use-gesture/react';
 import { EnhancedDesignPanel } from './EnhancedDesignPanel';
 import { EnhancedFrameSelector } from './EnhancedFrameSelector';
 import { EnhancedPropertiesPanel } from './EnhancedPropertiesPanel';
-import { EnhancedCardRenderer } from './EnhancedCardRenderer';
-import { FloatingToolbar } from '../whiteboard/FloatingToolbar';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { EXTRACTED_FRAMES } from '../frames/ExtractedFrameConfigs';
+import { ThemedCardMenu } from './ThemedCardMenu';
+import { DraggableCardItem, CardElementType } from './DraggableCardItem';
+import { StudioAnalytics } from './StudioAnalytics';
+import { CardHistoryControls } from './CardHistoryControls';
 
 interface CardElement {
   id: string;
@@ -282,61 +283,6 @@ export const EnhancedWhiteboardStudio: React.FC = () => {
     setShowStyleSelector(true);
   }, []);
 
-  // More sophisticated card creation with workflow variations
-  const handleWorkflowCardCreation = useCallback((workflow: typeof WORKFLOW_VARIATIONS[0]) => {
-    const cardTypes = ['Warrior', 'Mage', 'Rogue', 'Paladin', 'Archer', 'Assassin', 'Monk', 'Druid'];
-    const themes = ['Fire', 'Ice', 'Lightning', 'Earth', 'Wind', 'Shadow', 'Light', 'Cosmic'];
-    
-    const randomType = cardTypes[Math.floor(Math.random() * cardTypes.length)];
-    const randomTheme = themes[Math.floor(Math.random() * themes.length)];
-    
-    let rarity = workflow.baseRarity;
-    if (rarity === 'random') {
-      const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
-      rarity = rarities[Math.floor(Math.random() * rarities.length)] as any;
-    }
-
-    let effects = workflow.effects;
-    if (effects === 'random') {
-      effects = {
-        holographic_intensity: Math.floor(Math.random() * 100),
-        glow_effect: Math.floor(Math.random() * 70),
-        border_thickness: 2 + Math.floor(Math.random() * 4),
-        shadow_depth: 10 + Math.floor(Math.random() * 30),
-        background_gradient: `linear-gradient(${45 + Math.random() * 270}deg, 
-          hsl(${Math.random() * 360}, 70%, 50%), 
-          hsl(${Math.random() * 360}, 60%, 40%), 
-          hsl(${Math.random() * 360}, 80%, 60%))`
-      };
-    }
-
-    const newCard: CardElement = {
-      id: `workflow-card-${Date.now()}`,
-      cardData: {
-        ...cardEditor.cardData,
-        title: `${randomTheme} ${randomType}`,
-        rarity: rarity as any,
-        tags: [randomTheme.toLowerCase(), randomType.toLowerCase(), workflow.name.toLowerCase().replace(' ', '-')],
-        description: `A ${workflow.description.toLowerCase()} featuring ${randomTheme.toLowerCase()} powers.`
-      },
-      position: { 
-        x: 300 + Math.random() * 400, 
-        y: 150 + Math.random() * 250 
-      },
-      effects: effects as any
-    };
-    
-    const newCards = [...cards, newCard];
-    setCards(newCards);
-    saveToHistory(newCards);
-    setSelectedCardId(newCard.id);
-    setShowWorkflowSelector(false);
-    
-    toast.success(`${workflow.name} card created!`, {
-      description: `Generated "${newCard.cardData.title}" with ${rarity} rarity`
-    });
-  }, [cards, cardEditor.cardData, saveToHistory]);
-
   const handleCardUpdate = useCallback((cardId: string, field: string, value: any) => {
     const newCards = cards.map(card => {
       if (card.id === cardId) {
@@ -424,56 +370,17 @@ export const EnhancedWhiteboardStudio: React.FC = () => {
 
       {/* Main Canvas Area */}
       <div className="flex-1 flex flex-col">
-        {/* Enhanced Top Toolbar */}
+        {/* Top Toolbar */}
         <div className="bg-gradient-to-r from-[#2c2c54] to-[#40407a] border-b border-[#4a4a4a] p-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={handleAddCard}
-              className="bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-600 hover:to-teal-500 text-white font-bold shadow-xl"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Forge Card
-            </Button>
-            
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleUndo}
-                disabled={historyIndex <= 0}
-                className="border-[#4a4a4a] text-white hover:bg-[#4a4a4a] disabled:opacity-50"
-              >
-                <Undo className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRedo}
-                disabled={historyIndex >= historyStack.length - 1}
-                className="border-[#4a4a4a] text-white hover:bg-[#4a4a4a] disabled:opacity-50"
-              >
-                <Redo className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="flex gap-2 ml-4">
-              {(['mystical', 'electric', 'chaos'] as const).map((mode) => (
-                <Button
-                  key={mode}
-                  variant={creationMode === mode ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setCreationMode(mode)}
-                  className={creationMode === mode 
-                    ? 'bg-purple-500 text-white' 
-                    : 'border-[#4a4a4a] text-white hover:bg-[#4a4a4a]'
-                  }
-                >
-                  {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                </Button>
-              ))}
-            </div>
-          </div>
-
+          <CardHistoryControls
+            onAdd={handleAddCard}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            creationMode={creationMode}
+            setCreationMode={setCreationMode}
+            canUndo={historyIndex > 0}
+            canRedo={historyIndex < historyStack.length - 1}
+          />
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="border-[#4a4a4a] text-white hover:bg-[#4a4a4a]">
               <Save className="w-4 h-4 mr-2" />
@@ -489,9 +396,7 @@ export const EnhancedWhiteboardStudio: React.FC = () => {
             </Button>
           </div>
         </div>
-
-        {/* Enhanced Canvas with Mystical Grid */}
-        <div 
+        <div
           className="flex-1 relative overflow-hidden"
           style={{
             background: `
@@ -500,14 +405,9 @@ export const EnhancedWhiteboardStudio: React.FC = () => {
               linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #2d1b69 100%)
             `
           }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setSelectedCardId(null);
-            }
-          }}
+          onClick={(e) => { if (e.target === e.currentTarget) setSelectedCardId(null); }}
         >
-          {/* Animated Mystical Grid */}
-          <div 
+          <div
             className="absolute inset-0 opacity-25"
             style={{
               backgroundImage: `
@@ -518,98 +418,22 @@ export const EnhancedWhiteboardStudio: React.FC = () => {
               animation: 'mystical-pulse 6s ease-in-out infinite'
             }}
           />
-
-          {/* Style Selector Modal */}
-          {showStyleSelector && (
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-lg flex items-center justify-center z-50">
-              <div className="bg-gradient-to-br from-[#2c2c54] to-[#40407a] rounded-3xl p-8 max-w-lg w-full mx-4 border-2 border-purple-500/30">
-                <h3 className="text-white text-2xl font-bold mb-6 text-center">Choose Your Creation Style</h3>
-                <div className="space-y-4">
-                  {CREATION_STYLES.map((style) => (
-                    <Button
-                      key={style.name}
-                      onClick={() => handleStyledCardCreation(style)}
-                      className="w-full bg-gradient-to-r from-[#4a4a4a] to-[#5a5a5a] hover:from-[#5a5a5a] hover:to-[#6a6a6a] text-white p-6 h-auto justify-start border border-purple-400/20"
-                    >
-                      <style.icon className="w-8 h-8 mr-4 text-purple-300" />
-                      <div className="text-left">
-                        <div className="font-bold text-lg">{style.name}</div>
-                        <div className="text-sm opacity-80">{style.description}</div>
-                      </div>
-                    </Button>
-                  ))}
-                </div>
-                <Button
-                  onClick={() => setShowStyleSelector(false)}
-                  variant="outline"
-                  className="w-full mt-6 border-purple-400/30 text-white hover:bg-purple-400/10"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
+          <ThemedCardMenu
+            show={showStyleSelector}
+            onCancel={() => setShowStyleSelector(false)}
+            onSelect={handleStyledCardCreation}
+          />
+          {cards.map(card =>
+            <DraggableCardItem
+              key={card.id}
+              card={card}
+              isSelected={selectedCardId === card.id}
+              onPositionChange={handleCardPositionChange}
+              onSelect={setSelectedCardId}
+            />
           )}
-
-          {/* Draggable Cards with Enhanced Effects */}
-          {cards.map(card => {
-            const bind = useDrag(
-              ({ offset: [x, y], dragging }) => {
-                handleCardPositionChange(card.id, { x, y });
-                if (dragging && selectedCardId !== card.id) {
-                  setSelectedCardId(card.id);
-                }
-              },
-              { from: [card.position.x, card.position.y] }
-            );
-
-            return (
-              <div
-                key={card.id}
-                {...bind()}
-                className={`absolute cursor-move transition-all duration-500 ${
-                  selectedCardId === card.id 
-                    ? 'ring-4 ring-purple-400 shadow-2xl scale-110 z-20' 
-                    : 'hover:shadow-2xl hover:scale-105 z-10'
-                }`}
-                style={{
-                  left: card.position.x,
-                  top: card.position.y,
-                  transform: 'translate(-50%, -50%)',
-                  filter: selectedCardId === card.id ? 'brightness(1.2) saturate(1.1)' : 'brightness(1)'
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedCardId(card.id);
-                }}
-              >
-                <EnhancedCardRenderer
-                  cardData={card.cardData}
-                  currentPhoto={card.currentPhoto}
-                  width={300}
-                  height={420}
-                  effects={card.effects}
-                />
-              </div>
-            );
-          })}
-
-          {/* Enhanced Floating Stats */}
-          <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md rounded-xl p-4 text-white border border-purple-400/20">
-            <div className="text-sm opacity-75 mb-2 text-purple-200">Studio Analytics</div>
-            <div className="space-y-1 text-xs">
-              <div>Cards Forged: <span className="text-emerald-400 font-bold">{cards.length}</span></div>
-              <div>Active: <span className="text-purple-400 font-bold">
-                {selectedCard ? selectedCard.cardData.title : 'None'}
-              </span></div>
-              <div>Style: <span className="text-cyan-400 font-bold">{creationMode}</span></div>
-              <div>Rarity Mix: <span className="text-yellow-400 font-bold">
-                {cards.filter(c => c.cardData.rarity === 'legendary').length}L, {cards.filter(c => c.cardData.rarity === 'epic').length}E
-              </span></div>
-            </div>
-          </div>
+          <StudioAnalytics cards={cards} selectedCard={selectedCard ?? null} creationMode={creationMode} />
         </div>
-
-        {/* Frame Selector */}
         <EnhancedFrameSelector
           onFrameSelect={handleFrameSelect}
           selectedFrame={selectedCard?.cardData.template_id}
@@ -623,7 +447,6 @@ export const EnhancedWhiteboardStudio: React.FC = () => {
         onSaveCard={handleSaveCard}
         onPublishCard={handlePublishCard}
       />
-
       <style>{`
         @keyframes mystical-pulse {
           0%, 100% { opacity: 0.25; }
