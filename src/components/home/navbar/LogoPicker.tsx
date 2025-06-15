@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -12,33 +13,27 @@ import {
 const LOGO_OPTIONS = [
   {
     id: 'cardshow-main',
-    name: 'Cardshow Main',
+    name: 'Main',
     src: '/lovable-uploads/5ac69e35-ecd1-4907-b089-318e7828606c.png',
-    description: 'Primary Cardshow Logo',
     has3D: false
-    // Removed customWidth since this is now a cropped version
   },
   {
     id: 'cardshow-vintage-green',
-    name: 'Cardshow Vintage Green',
+    name: 'Vintage',
     src: '/lovable-uploads/8aec29c2-2d7a-42a1-8fc8-4a27a7964d41.png',
-    description: 'Green vintage baseball style',
     has3D: false
   },
   {
     id: 'cardshow-modern-red',
-    name: 'Cardshow Modern Red',
+    name: 'Modern',
     src: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png',
-    description: 'Bold red modern design',
     has3D: true
-  },
+  },  
   {
     id: 'cardshow-script-coral',
-    name: 'Cardshow Script Coral',
+    name: 'Script',
     src: '/lovable-uploads/49b61ce3-8589-45b1-adb7-2594a81ab97b.png',
-    description: 'Coral script typography',
     has3D: true
-    // Removed customWidth since this is now a cropped version
   }
 ];
 
@@ -60,7 +55,7 @@ export const LogoPicker = () => {
               <img
                 src={selectedLogo.src}
                 alt=""
-                className={`h-10 object-contain absolute top-0.5 left-0.5 opacity-60 brightness-0 invert z-0 ${selectedLogo.customWidth || 'w-auto'}`}
+                className="h-10 object-contain absolute top-0.5 left-0.5 opacity-60 brightness-0 invert z-0 w-auto"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
@@ -69,7 +64,7 @@ export const LogoPicker = () => {
             <img
               src={selectedLogo.src}
               alt={selectedLogo.name}
-              className={`h-10 object-contain relative z-10 ${selectedLogo.customWidth || 'w-auto'}`}
+              className="h-10 object-contain relative z-10 w-auto"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
               }}
@@ -80,7 +75,7 @@ export const LogoPicker = () => {
       </DropdownMenuTrigger>
       
       <DropdownMenuContent 
-        className="w-80 p-4 bg-crd-darkest/95 backdrop-blur-sm border-crd-mediumGray/30"
+        className="w-64 p-4 bg-crd-darkest/95 backdrop-blur-sm border-crd-mediumGray/30"
         align="start"
       >
         <div className="text-sm font-medium text-white mb-3">Choose Logo</div>
@@ -103,7 +98,7 @@ export const LogoPicker = () => {
                     <img
                       src={logo.src}
                       alt=""
-                      className={`h-8 object-contain absolute top-0.5 left-0.5 opacity-40 brightness-0 invert z-0 ${logo.customWidth || 'w-auto'}`}
+                      className="h-8 object-contain absolute top-0.5 left-0.5 opacity-40 brightness-0 invert z-0 w-auto"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
                       }}
@@ -112,16 +107,13 @@ export const LogoPicker = () => {
                   <img
                     src={logo.src}
                     alt={logo.name}
-                    className={`h-8 object-contain relative z-10 ${logo.customWidth || 'w-auto'}`}
+                    className="h-8 object-contain relative z-10 w-auto"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                     }}
                   />
                 </div>
-                <div>
-                  <div className="font-medium text-white text-xs">{logo.name}</div>
-                  <div className="text-xs text-white/60">{logo.description}</div>
-                </div>
+                <div className="font-medium text-white text-sm">{logo.name}</div>
               </div>
             </button>
           ))}
