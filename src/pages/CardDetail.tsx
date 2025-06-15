@@ -1,14 +1,11 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase-client';
 import { LoadingState } from '@/components/common/LoadingState';
-import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
+import { EnhancedCardDetailPage } from '@/components/cards/EnhancedCardDetailPage';
 import { CardEditMode } from '@/components/card-detail/CardEditMode';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Edit, Eye, Globe, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
 const CardDetail = () => {
@@ -165,54 +162,15 @@ const CardDetail = () => {
   }
 
   return (
-    <div className="relative">
-      {/* Owner Controls */}
-      {isOwner && (
-        <div className="absolute top-4 left-4 z-50 flex gap-2">
-          <Button
-            onClick={() => setIsEditMode(true)}
-            className="bg-crd-green hover:bg-crd-green/90 text-black"
-            size="sm"
-          >
-            <Edit className="w-4 h-4 mr-2" />
-            Edit Card
-          </Button>
-          <Button
-            onClick={handleToggleVisibility}
-            variant="outline"
-            size="sm"
-            className={`border-white/20 ${
-              card.is_public 
-                ? 'text-crd-green hover:bg-crd-green/10' 
-                : 'text-yellow-400 hover:bg-yellow-400/10'
-            }`}
-          >
-            {card.is_public ? (
-              <>
-                <Globe className="w-4 h-4 mr-2" />
-                Public
-              </>
-            ) : (
-              <>
-                <Lock className="w-4 h-4 mr-2" />
-                Private
-              </>
-            )}
-          </Button>
-        </div>
-      )}
-
-      <ImmersiveCardViewer
-        card={card}
-        isOpen={true}
-        onClose={handleGoBack}
-        onShare={handleShare}
-        onDownload={handleDownload}
-        allowRotation={true}
-        showStats={true}
-        ambient={true}
-      />
-    </div>
+    <EnhancedCardDetailPage
+      card={card}
+      isOwner={isOwner}
+      onGoBack={handleGoBack}
+      onEdit={() => setIsEditMode(true)}
+      onToggleVisibility={handleToggleVisibility}
+      onShare={handleShare}
+      onDownload={handleDownload}
+    />
   );
 };
 
