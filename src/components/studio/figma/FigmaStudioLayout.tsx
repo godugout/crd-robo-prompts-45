@@ -25,7 +25,7 @@ export const FigmaStudioLayout: React.FC<FigmaStudioLayoutProps> = ({ children }
   };
 
   return (
-    <div className="h-screen bg-[#1e1e1e] flex flex-col overflow-hidden">
+    <div className="dark h-screen bg-[#1e1e1e] flex flex-col overflow-hidden">
       {/* Top Toolbar */}
       <FigmaToolbar 
         selectedTool={selectedTool}
