@@ -114,7 +114,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     is_public: card.is_public,
     creator_attribution: {
       creator_name: card.creator_name,
-      creator_id: card.creator_id,
+      creator_id: card.creator_id || '',
       collaboration_type: 'solo' as const
     },
     publishing_options: {
@@ -278,7 +278,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
             creator_name: card.creator_name,
             creator_verified: card.creator_verified,
             created_at: card.created_at,
-            tags: card.tags
+            tags: card.tags || []
           }}
         />
       )}

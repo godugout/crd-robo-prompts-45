@@ -64,7 +64,7 @@ export interface UniversalCardData {
   creator_verified?: boolean;
   creator_id: string; // Added missing property
   stock?: number;
-  tags?: string[];
+  tags: string[]; // Changed from optional to required to match UserCard
   design_metadata: Record<string, any>; // Added missing property
   created_at?: string;
 }
@@ -165,7 +165,7 @@ export const convertToUniversalCardData = (card: any): UniversalCardData => {
     creator_verified: card.creator_verified || false,
     creator_id: card.creator_id || card.creator_attribution?.creator_id || '',
     stock: card.stock || 0,
-    tags: card.tags || [],
+    tags: card.tags || [], // Ensure tags is always an array
     design_metadata: card.design_metadata || {},
     created_at: card.created_at
   };
