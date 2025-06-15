@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/utils';
 import { CachedImage } from '@/components/common/CachedImage';
 import { useCardOwnership } from '@/hooks/useCardOwnership';
+import { useNavigate } from 'react-router-dom';
 
 export type CardDisplayMode = 'grid' | 'row' | 'table';
 export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
@@ -37,6 +38,7 @@ interface UniversalCardDisplayProps {
   mode: CardDisplayMode;
   onView?: (card: UniversalCardData) => void;
   onEdit?: (card: UniversalCardData) => void;
+  onCardClick?: (card: UniversalCardData) => void;
   showActions?: boolean;
   loading?: boolean;
   className?: string;
@@ -62,12 +64,14 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
   mode = 'grid',
   onView,
   onEdit,
+  onCardClick,
   showActions = true,
   loading = false,
   className
 }) => {
   const [imageError, setImageError] = useState(false);
   const { isOwner } = useCardOwnership(card.creator_id);
+  const navigate = useNavigate();
 
   // Add safety checks for card and card.id
   if (!card || !card.id) {
@@ -84,15 +88,13 @@ export const UniversalCardDisplay: React.FC<UniversalCardDisplayProps> = ({
   };
 
   // Fix: Ensure card click always triggers onView and prevent button event bubbling
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Don't trigger card click if clicking on action buttons
-    const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('[data-action-button]')) {
-      return;
+  const handleCardClick = () => {
+    if (onCardClick) {
+      onCardClick(card);
+    } else {
+      // Navigate to card detail page
+      navigate(`/card/${card.id}`);
     }
-    
-    console.log('Card clicked:', card.id);
-    onView?.(card);
   };
 
   const handleViewClick = (e: React.MouseEvent) => {

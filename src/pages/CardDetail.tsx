@@ -1,17 +1,23 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase-client';
 import { LoadingState } from '@/components/common/LoadingState';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
+import { CardEditMode } from '@/components/card-detail/CardEditMode';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Edit, Eye, Globe, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
 const CardDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isEditMode, setIsEditMode] = useState(false);
 
-  const { data: card, isLoading } = useQuery({
+  const { data: card, isLoading, refetch } = useQuery({
     queryKey: ['card', id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -26,7 +32,11 @@ const CardDetail = () => {
           price,
           tags,
           creator_id,
-          created_at
+          created_at,
+          is_public,
+          design_metadata,
+          verification_status,
+          publishing_options
         `)
         .eq('id', id)
         .single();
@@ -60,6 +70,8 @@ const CardDetail = () => {
     },
     enabled: !!id
   });
+
+  const isOwner = user?.id === card?.creator_id;
 
   const handleGoBack = () => {
     navigate('/gallery');
@@ -95,6 +107,32 @@ const CardDetail = () => {
     }
   };
 
+  const handleToggleVisibility = async () => {
+    if (!card || !isOwner) return;
+
+    try {
+      const newVisibility = !card.is_public;
+      const { error } = await supabase
+        .from('cards')
+        .update({ is_public: newVisibility })
+        .eq('id', card.id);
+
+      if (error) throw error;
+
+      toast.success(`Card ${newVisibility ? 'published' : 'made private'} successfully!`);
+      refetch();
+    } catch (error) {
+      console.error('Error updating card visibility:', error);
+      toast.error('Failed to update card visibility');
+    }
+  };
+
+  const handleEditComplete = () => {
+    setIsEditMode(false);
+    refetch();
+    toast.success('Card updated successfully!');
+  };
+
   if (isLoading) {
     return <LoadingState message="Loading card..." />;
   }
@@ -116,17 +154,65 @@ const CardDetail = () => {
     );
   }
 
+  if (isEditMode && isOwner) {
+    return (
+      <CardEditMode
+        card={card}
+        onComplete={handleEditComplete}
+        onCancel={() => setIsEditMode(false)}
+      />
+    );
+  }
+
   return (
-    <ImmersiveCardViewer
-      card={card}
-      isOpen={true}
-      onClose={handleGoBack}
-      onShare={handleShare}
-      onDownload={handleDownload}
-      allowRotation={true}
-      showStats={true}
-      ambient={true}
-    />
+    <div className="relative">
+      {/* Owner Controls */}
+      {isOwner && (
+        <div className="absolute top-4 left-4 z-50 flex gap-2">
+          <Button
+            onClick={() => setIsEditMode(true)}
+            className="bg-crd-green hover:bg-crd-green/90 text-black"
+            size="sm"
+          >
+            <Edit className="w-4 h-4 mr-2" />
+            Edit Card
+          </Button>
+          <Button
+            onClick={handleToggleVisibility}
+            variant="outline"
+            size="sm"
+            className={`border-white/20 ${
+              card.is_public 
+                ? 'text-crd-green hover:bg-crd-green/10' 
+                : 'text-yellow-400 hover:bg-yellow-400/10'
+            }`}
+          >
+            {card.is_public ? (
+              <>
+                <Globe className="w-4 h-4 mr-2" />
+                Public
+              </>
+            ) : (
+              <>
+                <Lock className="w-4 h-4 mr-2" />
+                Private
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+
+      <ImmersiveCardViewer
+        card={card}
+        isOpen={true}
+        onClose={handleGoBack}
+        onShare={handleShare}
+        onDownload={handleDownload}
+        allowRotation={true}
+        showStats={true}
+        ambient={true}
+      />
+    </div>
   );
 };
 
