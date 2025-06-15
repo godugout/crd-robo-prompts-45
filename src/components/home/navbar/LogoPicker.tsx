@@ -16,7 +16,8 @@ const LOGO_OPTIONS = [
     name: 'Cardshow Main',
     src: '/Cardshow_logo.png',
     description: 'Primary Cardshow Logo',
-    has3D: false
+    has3D: false,
+    customWidth: 'w-12' // Wider than default
   },
   {
     id: 'cardshow-vintage-green',
@@ -37,7 +38,8 @@ const LOGO_OPTIONS = [
     name: 'Cardshow Script Coral',
     src: '/lovable-uploads/9a88282e-57be-466e-bc1d-9db4c00af565.png',
     description: 'Coral script typography',
-    has3D: true
+    has3D: true,
+    customWidth: 'w-12' // Wider than default
   }
 ];
 
@@ -59,7 +61,7 @@ export const LogoPicker = () => {
               <img
                 src={selectedLogo.src}
                 alt=""
-                className="h-10 w-auto object-contain absolute top-0.5 left-0.5 opacity-60 brightness-0 invert z-0"
+                className={`h-10 object-contain absolute top-0.5 left-0.5 opacity-60 brightness-0 invert z-0 ${selectedLogo.customWidth || 'w-auto'}`}
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
@@ -68,7 +70,7 @@ export const LogoPicker = () => {
             <img
               src={selectedLogo.src}
               alt={selectedLogo.name}
-              className="h-10 w-auto object-contain relative z-10"
+              className={`h-10 object-contain relative z-10 ${selectedLogo.customWidth || 'w-auto'}`}
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
               }}
@@ -102,7 +104,7 @@ export const LogoPicker = () => {
                     <img
                       src={logo.src}
                       alt=""
-                      className="h-8 w-auto object-contain absolute top-0.5 left-0.5 opacity-40 brightness-0 invert z-0"
+                      className={`h-8 object-contain absolute top-0.5 left-0.5 opacity-40 brightness-0 invert z-0 ${logo.customWidth || 'w-auto'}`}
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
                       }}
@@ -111,7 +113,7 @@ export const LogoPicker = () => {
                   <img
                     src={logo.src}
                     alt={logo.name}
-                    className="h-8 w-auto object-contain relative z-10"
+                    className={`h-8 object-contain relative z-10 ${logo.customWidth || 'w-auto'}`}
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                     }}
