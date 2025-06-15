@@ -14,14 +14,15 @@ interface FigmaStudioLayoutProps {
 export const FigmaStudioLayout: React.FC<FigmaStudioLayoutProps> = ({ children }) => {
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
-  const [bottomPanelOpen, setBottomPanelOpen] = useState(false);
+  const [bottomPanelOpen, setBottomPanelOpen] = useState(true); // Open by default now
   const [selectedTool, setSelectedTool] = useState('select');
   const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
 
   const handleFrameSelect = (frameId: string) => {
     setSelectedFrame(frameId);
     toast.success(`Applied ${frameId} frame to card`);
-    // Here you would apply the frame to the selected card
+    // Dispatch an event that the whiteboard can listen to
+    window.dispatchEvent(new CustomEvent('frameSelected', { detail: { frameId } }));
   };
 
   return (

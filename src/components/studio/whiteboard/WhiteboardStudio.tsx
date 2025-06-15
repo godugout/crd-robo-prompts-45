@@ -1,5 +1,4 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Save, Download, Share2, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +9,7 @@ import { FloatingToolbar } from './FloatingToolbar';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { useStudioState } from '@/hooks/useStudioState';
 import { DEFAULT_TEMPLATES } from '@/components/editor/wizard/wizardConfig';
+import { EXTRACTED_FRAMES } from '../frames/ExtractedFrameConfigs';
 
 interface CardElement {
   id: string;
@@ -18,10 +18,37 @@ interface CardElement {
   currentPhoto?: string;
 }
 
+const exampleCard: CardElement = {
+  id: 'example-card-1',
+  cardData: {
+    title: 'Galactic Guardian',
+    rarity: 'legendary',
+    tags: ['hero', 'space', 'fantasy'],
+    description: 'A valiant protector of the cosmos.',
+    image_url: '/lovable-uploads/3adf916a-0f96-4c37-a1bb-72235f0a299f.png',
+    thumbnail_url: '/lovable-uploads/3adf916a-0f96-4c37-a1bb-72235f0a299f.png',
+    template_id: EXTRACTED_FRAMES[0].id,
+    design_metadata: {
+      templateId: EXTRACTED_FRAMES[0].id,
+    },
+    visibility: 'public',
+    creator_attribution: { collaboration_type: 'solo' },
+    publishing_options: {
+      marketplace_listing: false,
+      crd_catalog_inclusion: false,
+      print_available: false,
+      pricing: { currency: 'USD' },
+      distribution: { limited_edition: true, total_supply: 100 }
+    }
+  } as any,
+  position: { x: 350, y: 150 },
+  currentPhoto: '/lovable-uploads/3adf916a-0f96-4c37-a1bb-72235f0a299f.png'
+};
+
 export const WhiteboardStudio: React.FC = () => {
   const navigate = useNavigate();
-  const [cards, setCards] = useState<CardElement[]>([]);
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [cards, setCards] = useState<CardElement[]>([exampleCard]);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(exampleCard.id);
   const [showGeneralToolbar, setShowGeneralToolbar] = useState(false);
   const [generalToolbarPosition, setGeneralToolbarPosition] = useState({ x: 0, y: 0 });
 
@@ -47,10 +74,45 @@ export const WhiteboardStudio: React.FC = () => {
     }
   });
 
+  useEffect(() => {
+    const handleFrameSelected = (event: CustomEvent) => {
+      const { frameId } = event.detail;
+      if (selectedCardId) {
+        setCards(prevCards => prevCards.map(card => {
+          if (card.id === selectedCardId) {
+            const newCardData = {
+              ...card.cardData,
+              template_id: frameId,
+              design_metadata: {
+                ...card.cardData.design_metadata,
+                templateId: frameId,
+              }
+            };
+            return { ...card, cardData: newCardData };
+          }
+          return card;
+        }));
+      }
+    };
+  
+    window.addEventListener('frameSelected', handleFrameSelected as EventListener);
+    return () => {
+      window.removeEventListener('frameSelected', handleFrameSelected as EventListener);
+    };
+  }, [selectedCardId]);
+
   const handleAddCard = useCallback(() => {
+    const newCardData = JSON.parse(JSON.stringify(cardEditor.cardData));
+    newCardData.title = 'Untitled Card';
+    newCardData.description = '';
+    newCardData.rarity = 'common';
+    newCardData.tags = [];
+    newCardData.image_url = undefined;
+    newCardData.thumbnail_url = undefined;
+
     const newCard: CardElement = {
       id: `card-${Date.now()}`,
-      cardData: cardEditor.cardData,
+      cardData: newCardData,
       position: { x: 400 + Math.random() * 200, y: 300 + Math.random() * 200 }
     };
     setCards(prev => [...prev, newCard]);
