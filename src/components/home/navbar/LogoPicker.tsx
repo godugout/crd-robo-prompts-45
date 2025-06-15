@@ -18,22 +18,22 @@ const LOGO_OPTIONS = [
     description: 'Primary Cardshow Logo'
   },
   {
-    id: 'gradient-purple',
-    name: 'Gradient Purple',
-    src: '/lovable-uploads/95a44939-2aae-4c52-94be-6e6d9a5d0853.png',
-    description: 'Purple gradient logo'
+    id: 'cardshow-vintage-green',
+    name: 'Cardshow Vintage Green',
+    src: '/lovable-uploads/8aec29c2-2d7a-42a1-8fc8-4a27a7964d41.png',
+    description: 'Green vintage baseball style'
   },
   {
-    id: 'crd-gradient',
-    name: 'CRD Gradient',
-    src: '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png',
-    description: 'CRD gradient design'
+    id: 'cardshow-modern-red',
+    name: 'Cardshow Modern Red',
+    src: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png',
+    description: 'Bold red modern design'
   },
   {
-    id: 'crd-classic',
-    name: 'CRD Classic',
-    src: '/crd-logo-gradient.png',
-    description: 'Classic CRD logo'
+    id: 'cardshow-script-coral',
+    name: 'Cardshow Script Coral',
+    src: '/lovable-uploads/9a88282e-57be-466e-bc1d-9db4c00af565.png',
+    description: 'Coral script typography'
   }
 ];
 
