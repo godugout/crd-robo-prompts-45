@@ -5,6 +5,7 @@ import { FigmaLeftPanel } from './FigmaLeftPanel';
 import { FigmaRightPanel } from './FigmaRightPanel';
 import { FigmaBottomPanel } from './FigmaBottomPanel';
 import { FigmaCanvas } from './FigmaCanvas';
+import { toast } from 'sonner';
 
 interface FigmaStudioLayoutProps {
   children: React.ReactNode;
@@ -15,6 +16,13 @@ export const FigmaStudioLayout: React.FC<FigmaStudioLayoutProps> = ({ children }
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [bottomPanelOpen, setBottomPanelOpen] = useState(false);
   const [selectedTool, setSelectedTool] = useState('select');
+  const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
+
+  const handleFrameSelect = (frameId: string) => {
+    setSelectedFrame(frameId);
+    toast.success(`Applied ${frameId} frame to card`);
+    // Here you would apply the frame to the selected card
+  };
 
   return (
     <div className="h-screen bg-[#1e1e1e] flex flex-col overflow-hidden">
@@ -47,6 +55,7 @@ export const FigmaStudioLayout: React.FC<FigmaStudioLayoutProps> = ({ children }
           <FigmaBottomPanel 
             isOpen={bottomPanelOpen}
             onClose={() => setBottomPanelOpen(false)}
+            onFrameSelect={handleFrameSelect}
           />
         </div>
 

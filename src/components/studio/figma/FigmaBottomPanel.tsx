@@ -2,23 +2,27 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { X } from 'lucide-react';
+import { EXTRACTED_FRAMES } from '../frames/ExtractedFrameConfigs';
 
 interface FigmaBottomPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  onFrameSelect?: (frameId: string) => void;
 }
 
-export const FigmaBottomPanel: React.FC<FigmaBottomPanelProps> = ({ isOpen, onClose }) => {
+export const FigmaBottomPanel: React.FC<FigmaBottomPanelProps> = ({ 
+  isOpen, 
+  onClose, 
+  onFrameSelect 
+}) => {
   if (!isOpen) return null;
 
-  const frames = [
-    { id: 1, name: 'Classic Sports', preview: '🏀' },
-    { id: 2, name: 'Holographic', preview: '✨' },
-    { id: 3, name: 'Vintage', preview: '🎭' },
-    { id: 4, name: 'Modern', preview: '🔮' },
-    { id: 5, name: 'Chrome', preview: '⚡' },
-    { id: 6, name: 'Neon', preview: '🌈' }
+  const basicFrames = [
+    { id: 'basic-1', name: 'Classic', preview: '📄' },
+    { id: 'basic-2', name: 'Modern', preview: '🔲' },
+    { id: 'basic-3', name: 'Rounded', preview: '⭕' },
   ];
 
   return (
@@ -35,23 +39,70 @@ export const FigmaBottomPanel: React.FC<FigmaBottomPanelProps> = ({ isOpen, onCl
         </Button>
       </div>
 
-      <ScrollArea className="flex-1 p-4">
-        <div className="flex gap-4">
-          {frames.map((frame) => (
-            <div
-              key={frame.id}
-              className="flex-shrink-0 w-24 cursor-pointer group"
-            >
-              <div className="w-24 h-16 bg-[#1e1e1e] rounded-lg border border-[#3c3c3c] flex items-center justify-center text-2xl group-hover:border-white/40 transition-colors">
-                {frame.preview}
+      <Tabs defaultValue="extracted" className="flex-1">
+        <TabsList className="grid w-full grid-cols-2 bg-[#1e1e1e] m-2">
+          <TabsTrigger value="extracted" className="text-white/70 data-[state=active]:text-white">
+            Card Frames
+          </TabsTrigger>
+          <TabsTrigger value="templates" className="text-white/70 data-[state=active]:text-white">
+            Templates
+          </TabsTrigger>
+        </TabsList>
+
+        <ScrollArea className="flex-1 p-4">
+          <TabsContent value="extracted" className="space-y-4">
+            <div>
+              <h3 className="text-white text-sm font-medium mb-3">Extracted Card Frames</h3>
+              <div className="flex gap-4">
+                {EXTRACTED_FRAMES.map((frame) => (
+                  <div
+                    key={frame.id}
+                    className="flex-shrink-0 w-32 cursor-pointer group"
+                    onClick={() => onFrameSelect?.(frame.id)}
+                  >
+                    <div 
+                      className="w-32 h-20 rounded-lg border border-[#3c3c3c] flex items-center justify-center text-2xl group-hover:border-white/40 transition-colors relative overflow-hidden"
+                      style={frame.style}
+                    >
+                      {frame.overlayElements?.map((element, index) => (
+                        <div key={index} style={element.style} />
+                      ))}
+                      <span className="relative z-10 text-white drop-shadow-lg">
+                        {frame.preview}
+                      </span>
+                    </div>
+                    <p className="text-white/70 text-xs text-center mt-2 group-hover:text-white transition-colors">
+                      {frame.name}
+                    </p>
+                  </div>
+                ))}
               </div>
-              <p className="text-white/70 text-xs text-center mt-2 group-hover:text-white transition-colors">
-                {frame.name}
-              </p>
             </div>
-          ))}
-        </div>
-      </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="templates" className="space-y-4">
+            <div>
+              <h3 className="text-white text-sm font-medium mb-3">Basic Templates</h3>
+              <div className="flex gap-4">
+                {basicFrames.map((frame) => (
+                  <div
+                    key={frame.id}
+                    className="flex-shrink-0 w-24 cursor-pointer group"
+                    onClick={() => onFrameSelect?.(frame.id)}
+                  >
+                    <div className="w-24 h-16 bg-[#1e1e1e] rounded-lg border border-[#3c3c3c] flex items-center justify-center text-2xl group-hover:border-white/40 transition-colors">
+                      {frame.preview}
+                    </div>
+                    <p className="text-white/70 text-xs text-center mt-2 group-hover:text-white transition-colors">
+                      {frame.name}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+        </ScrollArea>
+      </Tabs>
     </div>
   );
 };
