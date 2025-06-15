@@ -23,7 +23,8 @@ export const useSimpleCardEditor = () => {
     rarity: 'common' as CardRarity,
     tags: [],
     design_metadata: {},
-    visibility: 'private',
+    visibility: 'public', // Changed from 'private' to 'public'
+    is_public: true, // Added this to make cards public by default
     creator_attribution: { collaboration_type: 'solo' },
     publishing_options: {
       marketplace_listing: false,
@@ -62,7 +63,7 @@ export const useSimpleCardEditor = () => {
         image_url: cardData.image_url || null,
         thumbnail_url: cardData.thumbnail_url || null,
         design_metadata: cardData.design_metadata,
-        is_public: cardData.visibility === 'public',
+        is_public: cardData.visibility === 'public' || cardData.is_public, // Ensure cards are public
         // Only set template_id if it's a valid UUID, otherwise store in design_metadata
         template_id: (cardData.template_id && isValidUUID(cardData.template_id)) ? cardData.template_id : null,
         collection_id: cardData.collection_id || null,
@@ -97,7 +98,7 @@ export const useSimpleCardEditor = () => {
       }
 
       setLastSaved(new Date());
-      toast.success('Card saved successfully!');
+      toast.success('Card saved and published to gallery!');
       return true;
     } catch (error) {
       console.error('Save error:', error);
