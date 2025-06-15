@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Save, Download, Share2, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { WhiteboardCanvas } from './WhiteboardCanvas';
+import { FigmaStudioLayout } from '../figma/FigmaStudioLayout';
 import { DraggableCard } from './DraggableCard';
 import { FloatingToolbar } from './FloatingToolbar';
 import { useCardEditor } from '@/hooks/useCardEditor';
@@ -72,8 +72,6 @@ export const WhiteboardStudio: React.FC = () => {
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       setSelectedCardId(null);
-      
-      // Show general toolbar at click position
       setGeneralToolbarPosition({ x: e.clientX, y: e.clientY });
       setShowGeneralToolbar(true);
       setTimeout(() => setShowGeneralToolbar(false), 3000);
@@ -111,93 +109,49 @@ export const WhiteboardStudio: React.FC = () => {
   }, [selectedCardId]);
 
   return (
-    <div className="h-screen bg-[#1a1a1a] flex flex-col">
-      {/* Top Toolbar */}
-      <div className="h-16 bg-black/50 backdrop-blur-sm border-b border-white/10 flex items-center justify-between px-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/cards')}
-            className="text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <h1 className="text-white text-xl font-semibold">Whiteboard Studio</h1>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={handleAddCard}
-            className="bg-crd-green hover:bg-crd-green/90 text-black"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Card
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-white/20 text-white hover:bg-white/10"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Save
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-white/20 text-white hover:bg-white/10"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-white/20 text-white hover:bg-white/10"
-          >
-            <Share2 className="w-4 h-4 mr-2" />
-            Share
-          </Button>
-        </div>
+    <FigmaStudioLayout>
+      <div onClick={handleCanvasClick} className="relative w-full h-full">
+        {cards.map(card => (
+          <DraggableCard
+            key={card.id}
+            cardData={card.cardData}
+            currentPhoto={card.currentPhoto}
+            studioState={studioState}
+            template={selectedTemplate}
+            position={card.position}
+            onPositionChange={(position) => handleCardPositionChange(card.id, position)}
+            onSelect={() => handleCardSelect(card.id)}
+            selected={selectedCardId === card.id}
+            onToolAction={handleToolAction}
+          />
+        ))}
+
+        {/* Add Card Button - Floating */}
+        <Button
+          onClick={handleAddCard}
+          className="absolute top-4 left-4 bg-crd-green hover:bg-crd-green/90 text-black z-50"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Card
+        </Button>
+
+        {/* General Floating Toolbar */}
+        <FloatingToolbar
+          position={generalToolbarPosition}
+          type="general"
+          onAction={handleToolAction}
+          visible={showGeneralToolbar}
+        />
+
+        {/* Hidden file input */}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handlePhotoUpload}
+          className="hidden"
+          id="whiteboard-photo-upload"
+        />
       </div>
-
-      {/* Whiteboard Canvas */}
-      <div className="flex-1" onClick={handleCanvasClick}>
-        <WhiteboardCanvas>
-          {cards.map(card => (
-            <DraggableCard
-              key={card.id}
-              cardData={card.cardData}
-              currentPhoto={card.currentPhoto}
-              studioState={studioState}
-              template={selectedTemplate}
-              position={card.position}
-              onPositionChange={(position) => handleCardPositionChange(card.id, position)}
-              onSelect={() => handleCardSelect(card.id)}
-              selected={selectedCardId === card.id}
-              onToolAction={handleToolAction}
-            />
-          ))}
-        </WhiteboardCanvas>
-      </div>
-
-      {/* General Floating Toolbar */}
-      <FloatingToolbar
-        position={generalToolbarPosition}
-        type="general"
-        onAction={handleToolAction}
-        visible={showGeneralToolbar}
-      />
-
-      {/* Hidden file input */}
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handlePhotoUpload}
-        className="hidden"
-        id="whiteboard-photo-upload"
-      />
-    </div>
+    </FigmaStudioLayout>
   );
 };
