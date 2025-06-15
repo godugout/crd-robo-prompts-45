@@ -21,9 +21,19 @@ export const AutoHideCardNavigation: React.FC<AutoHideCardNavigationProps> = ({
     canNavigateNext
   } = useCardNavigation(cardId);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('AutoHideCardNavigation mounted with cardId:', cardId);
+    console.log('Navigation context:', navigationContext);
+    console.log('Is visible:', isVisible);
+  }, [cardId, navigationContext, isVisible]);
+
   // Show navigation on mouse movement or scroll
   useEffect(() => {
-    const handleMouseMove = () => showNavigation();
+    const handleMouseMove = () => {
+      console.log('Mouse move detected, showing navigation');
+      showNavigation();
+    };
     
     const handleScroll = () => {
       // Show on scroll up, hide on scroll down
@@ -31,6 +41,7 @@ export const AutoHideCardNavigation: React.FC<AutoHideCardNavigationProps> = ({
       const lastScrollY = parseInt(sessionStorage.getItem('lastScrollY') || '0');
       
       if (scrollY < lastScrollY) {
+        console.log('Scroll up detected, showing navigation');
         showNavigation();
       }
       
@@ -59,6 +70,7 @@ export const AutoHideCardNavigation: React.FC<AutoHideCardNavigationProps> = ({
 
   // Don't render if no navigation context
   if (!navigationContext) {
+    console.log('No navigation context, not rendering navigation');
     return null;
   }
 
@@ -72,13 +84,21 @@ export const AutoHideCardNavigation: React.FC<AutoHideCardNavigationProps> = ({
     }
   };
 
+  console.log('Rendering navigation with visible state:', isVisible);
+
   return (
     <div
       className={`fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300 ease-out ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
-      onMouseEnter={showNavigation}
-      onMouseLeave={hideNavigation}
+      onMouseEnter={() => {
+        console.log('Mouse entered navigation area');
+        showNavigation();
+      }}
+      onMouseLeave={() => {
+        console.log('Mouse left navigation area');
+        hideNavigation();
+      }}
     >
       {/* Glass morphism background */}
       <div className="mx-auto max-w-md px-4 pb-safe">

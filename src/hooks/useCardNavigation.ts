@@ -18,13 +18,18 @@ export const useCardNavigation = (currentCardId: string) => {
   const location = useLocation();
 
   useEffect(() => {
+    console.log('useCardNavigation hook initialized with cardId:', currentCardId);
+    console.log('Current location:', location.pathname, location.search);
+    
     // Try to get navigation context from URL params or session storage
     const urlParams = new URLSearchParams(location.search);
     const contextData = urlParams.get('context');
     
     if (contextData) {
+      console.log('Found context in URL params:', contextData);
       try {
         const context = JSON.parse(decodeURIComponent(contextData));
+        console.log('Parsed context from URL:', context);
         setNavigationContext(context);
       } catch (error) {
         console.warn('Failed to parse navigation context:', error);
@@ -32,36 +37,49 @@ export const useCardNavigation = (currentCardId: string) => {
     } else {
       // Try to get from session storage
       const storedContext = sessionStorage.getItem('cardNavigationContext');
+      console.log('Checking session storage for context:', storedContext);
+      
       if (storedContext) {
         try {
           const context = JSON.parse(storedContext);
+          console.log('Parsed context from session storage:', context);
+          
           // Find current card index
           const currentIndex = context.cards.findIndex((card: any) => card.id === currentCardId);
+          console.log('Found current card index:', currentIndex);
+          
           if (currentIndex !== -1) {
-            setNavigationContext({
+            const updatedContext = {
               ...context,
               currentIndex
-            });
+            };
+            console.log('Setting navigation context:', updatedContext);
+            setNavigationContext(updatedContext);
           }
         } catch (error) {
           console.warn('Failed to parse stored navigation context:', error);
         }
+      } else {
+        console.log('No navigation context found in session storage');
       }
     }
   }, [currentCardId, location.search]);
 
   const showNavigation = () => {
+    console.log('showNavigation called');
     setIsVisible(true);
     if (hideTimeout) {
       clearTimeout(hideTimeout);
     }
     const timeout = setTimeout(() => {
+      console.log('Auto-hiding navigation after timeout');
       setIsVisible(false);
     }, 3500);
     setHideTimeout(timeout);
   };
 
   const hideNavigation = () => {
+    console.log('hideNavigation called');
     setIsVisible(false);
     if (hideTimeout) {
       clearTimeout(hideTimeout);
@@ -69,16 +87,29 @@ export const useCardNavigation = (currentCardId: string) => {
   };
 
   const navigateToCard = (direction: 'prev' | 'next') => {
-    if (!navigationContext) return;
+    if (!navigationContext) {
+      console.log('No navigation context for navigation');
+      return;
+    }
 
     const newIndex = direction === 'prev' 
       ? navigationContext.currentIndex - 1 
       : navigationContext.currentIndex + 1;
 
-    if (newIndex < 0 || newIndex >= navigationContext.total) return;
+    console.log('Navigating to index:', newIndex);
+
+    if (newIndex < 0 || newIndex >= navigationContext.total) {
+      console.log('Navigation out of bounds');
+      return;
+    }
 
     const targetCard = navigationContext.cards[newIndex];
-    if (!targetCard) return;
+    if (!targetCard) {
+      console.log('Target card not found');
+      return;
+    }
+
+    console.log('Navigating to card:', targetCard);
 
     // Update navigation context
     const updatedContext = {
@@ -104,6 +135,13 @@ export const useCardNavigation = (currentCardId: string) => {
       }
     };
   }, [hideTimeout]);
+
+  console.log('useCardNavigation returning:', {
+    navigationContext,
+    isVisible,
+    canNavigatePrev,
+    canNavigateNext
+  });
 
   return {
     navigationContext,
