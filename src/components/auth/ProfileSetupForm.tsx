@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useCustomAuth } from '@/features/auth/hooks/useCustomAuth';
 import { toast } from '@/hooks/use-toast';
+import { ProfileService } from '@/features/auth/services/profileService';
 
 interface ProfileSetupFormProps {
   onComplete: () => void;
@@ -14,6 +15,7 @@ interface ProfileData {
   fullName: string;
   bio: string;
   username: string;
+  avatarUrl: string;
 }
 
 export const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ onComplete }) => {
@@ -52,7 +54,8 @@ export const ProfileSetupForm: React.FC<ProfileSetupFormProps> = ({ onComplete }
       const profileData: ProfileData = {
         fullName,
         bio,
-        username: user.username
+        username: user.username,
+        avatarUrl: ProfileService.getDefaultAvatarUrl()
       };
 
       // Save to localStorage for now

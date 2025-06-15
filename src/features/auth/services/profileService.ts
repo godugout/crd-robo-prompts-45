@@ -2,6 +2,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 
+const DEFAULT_AVATAR_URL = '/lovable-uploads/cfc6ba22-90e0-4ecc-98f6-f1d72272544c.png';
+
 export class ProfileService {
   async ensureProfile(user: User) {
     try {
@@ -18,7 +20,7 @@ export class ProfileService {
             id: user.id,
             username: user.user_metadata?.username || user.email?.split('@')[0],
             full_name: user.user_metadata?.full_name || '',
-            avatar_url: user.user_metadata?.avatar_url,
+            avatar_url: user.user_metadata?.avatar_url || DEFAULT_AVATAR_URL,
           });
 
         if (error) {
@@ -37,6 +39,10 @@ export class ProfileService {
       .eq('id', userId);
 
     return { error };
+  }
+
+  static getDefaultAvatarUrl() {
+    return DEFAULT_AVATAR_URL;
   }
 }
 

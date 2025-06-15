@@ -9,6 +9,7 @@ import { LoadingState } from '@/components/common/LoadingState';
 import { ProfileStats } from '@/components/profile/ProfileStats';
 import { ProfileTabs } from '@/components/profile/ProfileTabs';
 import { usePaginatedProfile } from '@/hooks/usePaginatedProfile';
+import { ProfileService } from '@/features/auth/services/profileService';
 import { Edit, Settings, Loader } from 'lucide-react';
 import type { Memory } from '@/types/memory';
 
@@ -64,7 +65,7 @@ const Profile = () => {
 
   const displayName = user.full_name || user.username || user.email || 'User';
   const bioText = profile?.bio_extended || '';
-  const avatarUrl = profile?.avatar_url || '';
+  const avatarUrl = profile?.avatar_url || ProfileService.getDefaultAvatarUrl();
 
   // Convert cards to unified format
   const unifiedCards: UnifiedCard[] = userCards.map(card => ({

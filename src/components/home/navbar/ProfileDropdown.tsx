@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, CreditCard, Bookmark, Settings, LogOut } from "lucide-react";
+import { ProfileService } from "@/features/auth/services/profileService";
 
 export const ProfileDropdown = () => {
   const { user, signOut } = useAuth();
@@ -22,7 +23,7 @@ export const ProfileDropdown = () => {
 
   // The auth user object has different properties than our custom User type
   const displayName = user.user_metadata?.full_name || user.email || 'User';
-  const avatarUrl = user.user_metadata?.avatar_url || '';
+  const avatarUrl = user.user_metadata?.avatar_url || ProfileService.getDefaultAvatarUrl();
   
   return (
     <DropdownMenu>
