@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Maximize2, Minimize2, Share2, Download, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -273,10 +272,10 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
           onDownload={onDownload}
           onShare={onShare}
           card={card}
-          selectedPresetId={presetState?.selectedPresetId || ''}
-          onPresetSelect={presetState?.setSelectedPresetId || (() => {})}
+          selectedPresetId={typeof presetState === 'string' ? presetState : ''}
+          onPresetSelect={() => {}}
           onApplyCombo={handleApplyCombo}
-          isApplyingPreset={presetState?.isApplying || false}
+          isApplyingPreset={false}
           cardDetails={{
             id: card.id,
             title: card.title,
