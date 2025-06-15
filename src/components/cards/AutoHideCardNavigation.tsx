@@ -1,7 +1,6 @@
-
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { useCardNavigation } from '@/hooks/useCardNavigation';
 
 interface AutoHideCardNavigationProps {
@@ -18,7 +17,8 @@ export const AutoHideCardNavigation: React.FC<AutoHideCardNavigationProps> = ({
     hideNavigation,
     navigateToCard,
     canNavigatePrev,
-    canNavigateNext
+    canNavigateNext,
+    isLoadingFallback
   } = useCardNavigation(cardId);
 
   // Debug logging
@@ -26,7 +26,8 @@ export const AutoHideCardNavigation: React.FC<AutoHideCardNavigationProps> = ({
     console.log('AutoHideCardNavigation mounted with cardId:', cardId);
     console.log('Navigation context:', navigationContext);
     console.log('Is visible:', isVisible);
-  }, [cardId, navigationContext, isVisible]);
+    console.log('Is loading fallback:', isLoadingFallback);
+  }, [cardId, navigationContext, isVisible, isLoadingFallback]);
 
   // Show navigation on mouse movement or scroll
   useEffect(() => {
@@ -68,6 +69,19 @@ export const AutoHideCardNavigation: React.FC<AutoHideCardNavigationProps> = ({
     };
   }, [showNavigation, canNavigatePrev, canNavigateNext, navigateToCard]);
 
+  // Show loading state while fetching fallback context
+  if (isLoadingFallback) {
+    console.log('Showing loading state for fallback context');
+    return (
+      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+        <div className="bg-black/60 backdrop-blur-lg border border-white/20 rounded-full px-4 py-2 flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin text-white" />
+          <span className="text-white text-sm">Loading navigation...</span>
+        </div>
+      </div>
+    );
+  }
+
   // Don't render if no navigation context
   if (!navigationContext) {
     console.log('No navigation context, not rendering navigation');
@@ -80,6 +94,7 @@ export const AutoHideCardNavigation: React.FC<AutoHideCardNavigationProps> = ({
       case 'profile': return 'Profile';
       case 'search': return 'Search';
       case 'collection': return 'Collection';
+      case 'similar': return 'Similar Cards';
       default: return 'Cards';
     }
   };
