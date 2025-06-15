@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { CachedImage } from '@/components/common/CachedImage';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
+import { AutoHideCardNavigation } from './AutoHideCardNavigation';
 import type { UserCard } from '@/hooks/useUserCards';
 
 interface EnhancedCardDetailPageProps {
@@ -307,6 +308,9 @@ export const EnhancedCardDetailPage: React.FC<EnhancedCardDetailPageProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Auto-hide navigation footer */}
+      <AutoHideCardNavigation cardId={card.id} />
     </div>
   );
 };
