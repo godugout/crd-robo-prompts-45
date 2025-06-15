@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -17,7 +16,7 @@ const LOGO_OPTIONS = [
     src: '/Cardshow_logo.png',
     description: 'Primary Cardshow Logo',
     has3D: false,
-    customWidth: 'w-12' // Wider than default
+    customWidth: 'w-16' // Larger to compensate for internal padding
   },
   {
     id: 'cardshow-vintage-green',
@@ -39,7 +38,7 @@ const LOGO_OPTIONS = [
     src: '/lovable-uploads/9a88282e-57be-466e-bc1d-9db4c00af565.png',
     description: 'Coral script typography',
     has3D: true,
-    customWidth: 'w-12' // Wider than default
+    customWidth: 'w-16' // Larger to compensate for internal padding
   }
 ];
 
