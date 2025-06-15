@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { StylesTab } from './mobile-studio/StylesTab';
-import { EnvironmentTab } from './mobile-studio/EnvironmentTab';
-import { PreviewTab } from './mobile-studio/PreviewTab';
-import { TabNavigation } from './mobile-studio/TabNavigation';
+import { ChevronUp, Settings, Palette, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { QuickComboPresets } from './QuickComboPresets';
+import { MobileStudioDrawer } from './MobileStudioDrawer';
 import type { EffectValues } from '../hooks/useEnhancedCardEffects';
 import type { EnvironmentScene, LightingPreset, MaterialSettings } from '../types';
 
@@ -38,62 +38,108 @@ export const MobileStudioPanel: React.FC<MobileStudioPanelProps> = ({
   isVisible,
   onClose,
   selectedScene,
+  selectedLighting,
   effectValues,
   overallBrightness,
+  interactiveLighting,
+  materialSettings,
+  isFullscreen,
   onSceneChange,
+  onLightingChange,
   onEffectChange,
   onResetAllEffects,
   onBrightnessChange,
+  onInteractiveLightingToggle,
+  onMaterialSettingsChange,
+  onToggleFullscreen,
   onDownload,
   onShare,
+  card,
   selectedPresetId,
   onPresetSelect,
   onApplyCombo,
   isApplyingPreset = false
 }) => {
-  const [activeTab, setActiveTab] = useState<'styles' | 'environment' | 'preview'>('styles');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur border-t border-white/10 z-30 max-h-[80vh] overflow-hidden">
-      {/* Header with Tabs */}
-      <TabNavigation
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onClose={onClose}
-      />
-
-      {/* Content */}
-      <div className="overflow-y-auto max-h-[60vh]">
-        {activeTab === 'styles' && (
-          <StylesTab
-            effectValues={effectValues}
-            onEffectChange={onEffectChange}
-            onResetAllEffects={onResetAllEffects}
+    <div className="absolute bottom-20 left-0 right-0 bg-black bg-opacity-95 backdrop-blur border-t border-white/10 z-30">
+      {/* Quick Styles Section - Always Visible */}
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-white font-medium text-sm flex items-center">
+            <Zap className="w-4 h-4 text-crd-green mr-2" />
+            Quick Styles
+          </h3>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <ChevronUp className="w-4 h-4 text-white" />
+          </Button>
+        </div>
+        
+        <div className="grid grid-cols-3 gap-2">
+          <QuickComboPresets
+            onApplyCombo={onApplyCombo}
+            currentEffects={effectValues}
             selectedPresetId={selectedPresetId}
             onPresetSelect={onPresetSelect}
-            onApplyCombo={onApplyCombo}
             isApplyingPreset={isApplyingPreset}
           />
-        )}
-
-        {activeTab === 'environment' && (
-          <EnvironmentTab
-            selectedScene={selectedScene}
-            overallBrightness={overallBrightness}
-            onSceneChange={onSceneChange}
-            onBrightnessChange={onBrightnessChange}
-          />
-        )}
-
-        {activeTab === 'preview' && (
-          <PreviewTab
-            onDownload={onDownload}
-            onShare={onShare}
-          />
-        )}
+        </div>
       </div>
+
+      {/* Advanced Controls Toggle */}
+      <div className="border-t border-white/10 px-4 py-2">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="text-white text-sm"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Advanced Studio
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white text-sm"
+          >
+            <Palette className="w-4 h-4 mr-2" />
+            Color Themes
+          </Button>
+        </div>
+      </div>
+
+      {/* Advanced Studio Drawer */}
+      <MobileStudioDrawer
+        selectedScene={selectedScene}
+        selectedLighting={selectedLighting}
+        effectValues={effectValues}
+        overallBrightness={overallBrightness}
+        interactiveLighting={interactiveLighting}
+        materialSettings={materialSettings}
+        isFullscreen={isFullscreen}
+        onSceneChange={onSceneChange}
+        onLightingChange={onLightingChange}
+        onEffectChange={onEffectChange}
+        onResetAllEffects={onResetAllEffects}
+        onBrightnessChange={onBrightnessChange}
+        onInteractiveLightingToggle={onInteractiveLightingToggle}
+        onMaterialSettingsChange={onMaterialSettingsChange}
+        onToggleFullscreen={onToggleFullscreen}
+        onDownload={onDownload}
+        onShare={onShare}
+        card={card}
+        selectedPresetId={selectedPresetId}
+        onPresetSelect={onPresetSelect}
+        onApplyCombo={onApplyCombo}
+        isApplyingPreset={isApplyingPreset}
+        isOpen={showAdvanced}
+        onOpenChange={setShowAdvanced}
+      />
     </div>
   );
 };
