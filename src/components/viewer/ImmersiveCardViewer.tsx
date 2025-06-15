@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Maximize2, Minimize2, Share2, Download, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -247,7 +248,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
           onDownload={onDownload}
           onShare={onShare}
           onClose={toggleStudioPanel}
-          card={card}
+          card={cardData}
         />
       )}
 
