@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -35,10 +36,10 @@ const LOGO_OPTIONS = [
   {
     id: 'cardshow-script-coral',
     name: 'Cardshow Script Coral',
-    src: '/lovable-uploads/9a88282e-57be-466e-bc1d-9db4c00af565.png',
+    src: '/lovable-uploads/49b61ce3-8589-45b1-adb7-2594a81ab97b.png',
     description: 'Coral script typography',
-    has3D: true,
-    customWidth: 'w-16' // Larger to compensate for internal padding
+    has3D: true
+    // Removed customWidth since this is now a cropped version
   }
 ];
 
