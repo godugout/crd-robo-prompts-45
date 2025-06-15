@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+// Import from the correct file and export
 import { CREATION_STYLES } from './EnhancedWhiteboardStudio';
 
 interface ThemedCardMenuProps {

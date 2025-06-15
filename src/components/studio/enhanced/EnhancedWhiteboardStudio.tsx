@@ -124,7 +124,8 @@ const FANTASY_CARDS: CardElement[] = [
   }
 ];
 
-const CREATION_STYLES = [
+// --- EXPORT CREATION_STYLES ---
+export const CREATION_STYLES = [
   {
     name: 'Ethereal Build',
     description: 'Mystical cards with otherworldly effects',
