@@ -15,25 +15,29 @@ const LOGO_OPTIONS = [
     id: 'cardshow-main',
     name: 'Cardshow Main',
     src: '/Cardshow_logo.png',
-    description: 'Primary Cardshow Logo'
+    description: 'Primary Cardshow Logo',
+    has3D: false
   },
   {
     id: 'cardshow-vintage-green',
     name: 'Cardshow Vintage Green',
     src: '/lovable-uploads/8aec29c2-2d7a-42a1-8fc8-4a27a7964d41.png',
-    description: 'Green vintage baseball style'
+    description: 'Green vintage baseball style',
+    has3D: false
   },
   {
     id: 'cardshow-modern-red',
     name: 'Cardshow Modern Red',
     src: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png',
-    description: 'Bold red modern design'
+    description: 'Bold red modern design',
+    has3D: true
   },
   {
     id: 'cardshow-script-coral',
     name: 'Cardshow Script Coral',
     src: '/lovable-uploads/9a88282e-57be-466e-bc1d-9db4c00af565.png',
-    description: 'Coral script typography'
+    description: 'Coral script typography',
+    has3D: true
   }
 ];
 
@@ -51,22 +55,21 @@ export const LogoPicker = () => {
           )}
         >
           <div className="relative">
-            {/* White shadow layer for 3D effect */}
-            <img
-              src={selectedLogo.src}
-              alt=""
-              className="h-10 w-auto object-contain absolute top-0.5 left-0.5 opacity-60 brightness-0 invert z-0"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-            {/* Main logo */}
+            {selectedLogo.has3D && (
+              <img
+                src={selectedLogo.src}
+                alt=""
+                className="h-10 w-auto object-contain absolute top-0.5 left-0.5 opacity-60 brightness-0 invert z-0"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            )}
             <img
               src={selectedLogo.src}
               alt={selectedLogo.name}
               className="h-10 w-auto object-contain relative z-10"
               onError={(e) => {
-                // Fallback to text if image fails to load
                 e.currentTarget.style.display = 'none';
               }}
             />
@@ -95,16 +98,16 @@ export const LogoPicker = () => {
             >
               <div className="flex flex-col items-center gap-2">
                 <div className="relative">
-                  {/* White shadow layer for 3D effect */}
-                  <img
-                    src={logo.src}
-                    alt=""
-                    className="h-8 w-auto object-contain absolute top-0.5 left-0.5 opacity-40 brightness-0 invert z-0"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                  {/* Main logo */}
+                  {logo.has3D && (
+                    <img
+                      src={logo.src}
+                      alt=""
+                      className="h-8 w-auto object-contain absolute top-0.5 left-0.5 opacity-40 brightness-0 invert z-0"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  )}
                   <img
                     src={logo.src}
                     alt={logo.name}
