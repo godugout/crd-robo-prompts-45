@@ -1,9 +1,10 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Maximize2, Minimize2, Share2, Download, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Enhanced3DCardMesh } from './components/Enhanced3DCardMesh';
 import { ComboStudioPanel } from './components/ComboStudioPanel';
-import { EnhancedMobileStudioPanel } from './components/EnhancedMobileStudioPanel';
+import { MobileStudioPanel } from './components/MobileStudioPanel';
 import { useMobileControl } from './context/MobileControlContext';
 import { useViewerEffects } from './hooks/useViewerEffects';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
@@ -251,9 +252,11 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
         />
       )}
 
-      {/* Mobile Studio Panel */}
+      {/* Mobile Studio Panel - Reverted to old design */}
       {isMobile && showStudioPanel && (
-        <EnhancedMobileStudioPanel
+        <MobileStudioPanel
+          isVisible={showStudioPanel}
+          onClose={toggleStudioPanel}
           selectedScene={selectedScene}
           selectedLighting={selectedLighting}
           effectValues={effectValues}
@@ -269,23 +272,13 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
           onInteractiveLightingToggle={setInteractiveLighting}
           onMaterialSettingsChange={handleMaterialSettingsChange}
           onToggleFullscreen={toggleFullscreen}
-          onDownload={onDownload}
+          onDownload={onDownload || (() => {})}
           onShare={onShare}
-          card={card}
+          card={cardData}
           selectedPresetId={typeof presetState === 'string' ? presetState : ''}
           onPresetSelect={() => {}}
           onApplyCombo={handleApplyCombo}
           isApplyingPreset={false}
-          cardDetails={{
-            id: card.id,
-            title: card.title,
-            description: card.description,
-            rarity: card.rarity,
-            creator_name: card.creator_name,
-            creator_verified: card.creator_verified,
-            created_at: card.created_at,
-            tags: card.tags || []
-          }}
         />
       )}
 
