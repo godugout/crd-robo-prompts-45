@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Maximize2, Minimize2, Share2, Download, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,9 +9,13 @@ import { useViewerEffects } from './hooks/useViewerEffects';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
 import { Canvas } from '@react-three/fiber';
 import type { UserCard } from '@/hooks/useUserCards';
+import type { UniversalCardData } from './types';
 
 interface ImmersiveCardViewerProps {
-  card: UserCard;
+  card: UniversalCardData;
+  cards?: UniversalCardData[];
+  currentCardIndex?: number;
+  onCardChange?: (newIndex: number) => void;
   isOpen: boolean;
   onClose: () => void;
   onShare?: () => void;  
@@ -24,6 +27,9 @@ interface ImmersiveCardViewerProps {
 
 export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   card,
+  cards = [],
+  currentCardIndex = 0,
+  onCardChange,
   isOpen,
   onClose,
   onShare,
@@ -100,7 +106,7 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
 
   if (!isOpen) return null;
 
-  // Convert UserCard to CardData format for 3D mesh
+  // Convert UniversalCardData to CardData format for 3D mesh
   const cardData = {
     id: card.id,
     title: card.title,
@@ -110,8 +116,8 @@ export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
     image_url: card.image_url,
     thumbnail_url: card.thumbnail_url,
     design_metadata: card.design_metadata || {},
-    visibility: card.is_public ? 'public' as const : 'private' as const,
-    is_public: card.is_public,
+    visibility: 'public' as const,
+    is_public: true,
     creator_attribution: {
       creator_name: card.creator_name,
       creator_id: card.creator_id || '',
