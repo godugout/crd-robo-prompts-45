@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Save, Download, Share2, ArrowLeft } from 'lucide-react';
@@ -8,8 +7,6 @@ import { FigmaStudioLayout } from '../figma/FigmaStudioLayout';
 import { DraggableCard } from './DraggableCard';
 import { FloatingToolbar } from './FloatingToolbar';
 import { useCardEditor } from '@/hooks/useCardEditor';
-import { useStudioState } from '@/hooks/useStudioState';
-import { DEFAULT_TEMPLATES } from '@/components/editor/wizard/wizardConfig';
 import { EXTRACTED_FRAMES } from '../frames/ExtractedFrameConfigs';
 
 interface CardElement {
@@ -53,16 +50,13 @@ export const WhiteboardStudio: React.FC = () => {
   const [showGeneralToolbar, setShowGeneralToolbar] = useState(false);
   const [generalToolbarPosition, setGeneralToolbarPosition] = useState({ x: 0, y: 0 });
 
-  const { studioState } = useStudioState();
-  const selectedTemplate = DEFAULT_TEMPLATES[0];
-
   const cardEditor = useCardEditor({
     initialData: {
       title: 'Untitled Card',
       rarity: 'common',
       tags: [],
       design_metadata: {},
-      template_id: selectedTemplate.id,
+      template_id: EXTRACTED_FRAMES[0].id,
       visibility: 'private',
       creator_attribution: { collaboration_type: 'solo' },
       publishing_options: {
@@ -89,14 +83,13 @@ export const WhiteboardStudio: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // When selected card changes, notify the properties panel
     if (selectedCardId) {
       const card = cards.find(c => c.id === selectedCardId);
       if (card) {
         window.dispatchEvent(new CustomEvent('cardSelectedForEditing', { detail: { card } }));
       }
     } else {
-       window.dispatchEvent(new CustomEvent('cardSelectedForEditing', { detail: null }));
+      window.dispatchEvent(new CustomEvent('cardSelectedForEditing', { detail: null }));
     }
   }, [selectedCardId, cards]);
 
@@ -204,8 +197,6 @@ export const WhiteboardStudio: React.FC = () => {
             key={card.id}
             cardData={card.cardData}
             currentPhoto={card.currentPhoto}
-            studioState={studioState}
-            template={selectedTemplate}
             position={card.position}
             onPositionChange={(position) => handleCardPositionChange(card.id, position)}
             onSelect={() => handleCardSelect(card.id)}

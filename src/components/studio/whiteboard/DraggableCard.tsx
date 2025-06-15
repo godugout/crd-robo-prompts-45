@@ -1,16 +1,13 @@
 
 import React, { useState, useRef } from 'react';
 import { useDrag } from '@use-gesture/react';
-import { StudioCardRenderer } from '../renderer/StudioCardRenderer';
+import { FrameRenderer } from '@/components/editor/frames/FrameRenderer';
 import { FloatingToolbar } from './FloatingToolbar';
 import type { CardData } from '@/hooks/useCardEditor';
-import type { StudioState } from '@/hooks/useStudioState';
 
 interface DraggableCardProps {
   cardData: CardData;
   currentPhoto?: string;
-  studioState: StudioState;
-  template: any;
   position: { x: number; y: number };
   onPositionChange: (position: { x: number; y: number }) => void;
   onSelect: () => void;
@@ -21,8 +18,6 @@ interface DraggableCardProps {
 export const DraggableCard: React.FC<DraggableCardProps> = ({
   cardData,
   currentPhoto,
-  studioState,
-  template,
   position,
   onPositionChange,
   onSelect,
@@ -78,12 +73,12 @@ export const DraggableCard: React.FC<DraggableCardProps> = ({
         }}
         onClick={handleCardClick}
       >
-        <StudioCardRenderer
-          template={template}
+        <FrameRenderer
+          frameId={cardData.template_id || 'classic-sports'}
           cardData={cardData}
-          currentPhoto={currentPhoto}
-          studioState={studioState}
-          dimensions={{ width: 300, height: 420 }}
+          imageUrl={currentPhoto}
+          width={300}
+          height={420}
         />
       </div>
 
