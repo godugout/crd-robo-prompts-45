@@ -3,6 +3,7 @@ import React from 'react';
 import { UniversalCardGrid } from '@/components/cards/UniversalCardGrid';
 import { UniversalCardData } from '@/components/cards/UniversalCardDisplay';
 import { useNavigate } from 'react-router-dom';
+import { setCardNavigationContext, createCardNavigationUrl } from '@/utils/cardNavigation';
 import { toast } from 'sonner';
 
 interface CardItem {
@@ -43,7 +44,7 @@ export const CardsGrid: React.FC<CardsGridProps> = ({
   const navigate = useNavigate();
 
   const handleView = (card: UniversalCardData) => {
-    console.log('Navigating to card detail:', card.id);
+    console.log('Navigating to card detail with context:', card.id);
     
     // Ensure we have a valid card ID before navigating
     if (!card.id) {
@@ -52,8 +53,15 @@ export const CardsGrid: React.FC<CardsGridProps> = ({
       return;
     }
     
-    // Navigate to card detail page which will show the immersive viewer
-    navigate(`/card/${card.id}`);
+    // Set navigation context for gallery cards
+    const navigationData = {
+      cards: cards.map(c => ({ id: c.id, title: c.title })),
+      source: 'gallery' as const
+    };
+    
+    setCardNavigationContext(navigationData);
+    const navigationUrl = createCardNavigationUrl(card.id, navigationData);
+    navigate(navigationUrl);
     
     // Also call the original callback for any additional logic
     const originalCard = cards.find(c => c.id === card.id);

@@ -3,6 +3,7 @@ import React from 'react';
 import { UniversalCardGrid } from './UniversalCardGrid';
 import { UniversalCardData } from './UniversalCardDisplay';
 import { useNavigate } from 'react-router-dom';
+import { setCardNavigationContext, createCardNavigationUrl } from '@/utils/cardNavigation';
 import { toast } from 'sonner';
 
 interface CardData {
@@ -26,6 +27,8 @@ interface CardGridProps {
   cards: CardData[];
   loading: boolean;
   viewMode?: 'grid' | 'masonry' | 'feed';
+  navigationSource?: 'gallery' | 'profile' | 'search' | 'collection';
+  navigationSourceId?: string;
 }
 
 // Convert old card format to universal format
@@ -49,13 +52,23 @@ const convertToUniversalCard = (card: CardData): UniversalCardData => ({
 export const CardGrid: React.FC<CardGridProps> = ({ 
   cards, 
   loading, 
-  viewMode = 'grid' 
+  viewMode = 'grid',
+  navigationSource = 'gallery',
+  navigationSourceId
 }) => {
   const navigate = useNavigate();
 
   const handleView = (card: UniversalCardData) => {
-    // Navigate to card detail page which will show the immersive viewer
-    navigate(`/card/${card.id}`);
+    // Set navigation context when viewing cards
+    const navigationData = {
+      cards: cards.map(c => ({ id: c.id, title: c.title })),
+      source: navigationSource,
+      sourceId: navigationSourceId
+    };
+    
+    setCardNavigationContext(navigationData);
+    const navigationUrl = createCardNavigationUrl(card.id, navigationData);
+    navigate(navigationUrl);
   };
 
   const handleEdit = (card: UniversalCardData) => {
