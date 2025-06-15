@@ -105,9 +105,9 @@ export const ProfileCardThumbnail: React.FC<ProfileCardThumbnailProps> = ({
           </h3>
           <div className="flex items-center gap-1">
             {card.is_public ? (
-              <Globe className="w-4 h-4 text-crd-green" title="Public" />
+              <Globe className="w-4 h-4 text-crd-green" />
             ) : (
-              <Lock className="w-4 h-4 text-yellow-400" title="Private" />
+              <Lock className="w-4 h-4 text-yellow-400" />
             )}
           </div>
         </div>
