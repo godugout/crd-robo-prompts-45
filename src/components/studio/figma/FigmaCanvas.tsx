@@ -51,7 +51,7 @@ export const FigmaCanvas: React.FC<FigmaCanvasProps> = ({ children }) => {
     });
   }, []);
 
-  const bind = useGesture({
+  const gestureHandlers = useGesture({
     onDrag: ({ offset: [x, y], pinching }) => {
       if (spacePressed && !pinching) {
         updateTransform({ ...transform, x, y });
@@ -62,11 +62,8 @@ export const FigmaCanvas: React.FC<FigmaCanvasProps> = ({ children }) => {
       
       if (ctrlKey || metaKey) {
         // Zoom at cursor position
-        const rect = containerRef.current?.getBoundingClientRect();
-        if (rect) {
-          const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, transform.scale - dy * 0.001));
-          updateTransform({ ...transform, scale: newScale });
-        }
+        const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, transform.scale - dy * 0.001));
+        updateTransform({ ...transform, scale: newScale });
       } else {
         // Pan with mouse wheel
         updateTransform({
@@ -84,7 +81,7 @@ export const FigmaCanvas: React.FC<FigmaCanvasProps> = ({ children }) => {
       className={`flex-1 bg-[#1a1a1a] relative overflow-hidden ${
         spacePressed ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
       }`}
-      {...bind()}
+      {...gestureHandlers}
     >
       {/* Canvas Boundary - Visible working area */}
       <div 

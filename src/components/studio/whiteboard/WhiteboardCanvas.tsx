@@ -38,7 +38,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
     onTransformChange?.(finalTransform);
   }, [onTransformChange]);
 
-  const bind = useGesture({
+  const gestureHandlers = useGesture({
     onDrag: ({ offset: [x, y], pinching, event }) => {
       // Check if space key is held for panning (like Figma)
       const isSpacePanning = (event as any)?.spaceKey || !pinching;
@@ -71,7 +71,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
     <div
       ref={containerRef}
       className="relative w-full h-full overflow-hidden bg-[#1a1a1a] cursor-grab active:cursor-grabbing"
-      {...bind()}
+      {...gestureHandlers}
     >
       {/* Canvas Boundary */}
       <div 
