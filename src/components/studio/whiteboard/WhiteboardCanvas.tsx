@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useGesture } from '@use-gesture/react';
 
@@ -38,7 +37,7 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
     onTransformChange?.(finalTransform);
   }, [onTransformChange]);
 
-  const gestureBinder = useGesture({
+  useGesture({
     onDrag: ({ offset: [x, y], pinching }) => {
       // Pan on drag, but not while pinching
       if (!pinching) {
@@ -64,13 +63,12 @@ export const WhiteboardCanvas: React.FC<WhiteboardCanvasProps> = ({
         });
       }
     }
-  });
+  }, { target: containerRef });
 
   return (
     <div
       ref={containerRef}
       className="relative w-full h-full overflow-hidden bg-[#1a1a1a] cursor-grab active:cursor-grabbing"
-      {...gestureBinder()}
     >
       {/* Canvas Boundary */}
       <div 
