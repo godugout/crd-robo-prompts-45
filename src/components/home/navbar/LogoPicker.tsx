@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -70,6 +71,18 @@ const LOGO_OPTIONS = [
 export const LogoPicker = () => {
   const [selectedLogo, setSelectedLogo] = useState(LOGO_OPTIONS[0]);
 
+  const getHeaderLogoStyles = (logoId: string) => {
+    switch (logoId) {
+      case 'cardshow-modern-red':
+        return 'bg-white rounded px-1 py-0.5';
+      case 'cardshow-red-blue-script':
+      case 'cardshow-blue-script':
+        return 'drop-shadow-[0_0_3px_rgba(255,255,255,0.8)] filter';
+      default:
+        return '';
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -94,7 +107,10 @@ export const LogoPicker = () => {
             <img
               src={selectedLogo.src}
               alt={selectedLogo.name}
-              className="h-10 object-contain relative z-10 w-auto"
+              className={cn(
+                "h-10 object-contain relative z-10 w-auto",
+                getHeaderLogoStyles(selectedLogo.id)
+              )}
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
               }}
@@ -158,3 +174,4 @@ export const LogoPicker = () => {
     </DropdownMenu>
   );
 };
+
