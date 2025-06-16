@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useDrag } from '@use-gesture/react';
 import { EnhancedCardRenderer } from './EnhancedCardRenderer';
 
@@ -11,6 +11,7 @@ interface EffectsType {
   background_gradient?: string;
   background_texture?: string;
 }
+
 interface CardDataType {
   title: string;
   rarity: string;
@@ -24,6 +25,7 @@ interface CardDataType {
   publishing_options?: any;
   edition_size?: number;
 }
+
 export interface CardElementType {
   id: string;
   cardData: CardDataType;
@@ -31,39 +33,104 @@ export interface CardElementType {
   currentPhoto?: string;
   effects?: EffectsType;
 }
+
 interface DraggableCardItemProps {
   card: CardElementType;
   isSelected: boolean;
   onPositionChange: (id: string, pos: { x: number; y: number }) => void;
   onSelect: (id: string) => void;
 }
-export const DraggableCardItem: React.FC<DraggableCardItemProps> = ({
+
+// Throttle function to limit position updates
+const throttle = (func: Function, delay: number) => {
+  let timeoutId: NodeJS.Timeout | null = null;
+  let lastExecTime = 0;
+  
+  return (...args: any[]) => {
+    const currentTime = Date.now();
+    
+    if (currentTime - lastExecTime > delay) {
+      func(...args);
+      lastExecTime = currentTime;
+    } else {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        func(...args);
+        lastExecTime = Date.now();
+      }, delay - (currentTime - lastExecTime));
+    }
+  };
+};
+
+export const DraggableCardItem: React.FC<DraggableCardItemProps> = React.memo(({
   card,
   isSelected,
   onPositionChange,
   onSelect
 }) => {
-  const bind = useDrag(
-    ({ offset: [x, y], dragging }) => {
-      onPositionChange(card.id, { x, y });
-      if (dragging && !isSelected) onSelect(card.id);
-    },
-    { from: [card.position.x, card.position.y] }
+  // Throttled position update to reduce re-renders during drag
+  const throttledPositionChange = useCallback(
+    throttle((id: string, pos: { x: number; y: number }) => {
+      onPositionChange(id, pos);
+    }, 16), // ~60fps
+    [onPositionChange]
   );
+
+  // Memoize drag configuration
+  const dragConfig = useMemo(() => ({
+    from: [card.position.x, card.position.y] as [number, number],
+    bounds: { left: -50, right: window.innerWidth - 250, top: -50, bottom: window.innerHeight - 370 },
+    rubberband: true
+  }), [card.position.x, card.position.y]);
+
+  const bind = useDrag(
+    ({ offset: [x, y], dragging, first, last }) => {
+      // Only update position during drag, not on every movement
+      if (dragging) {
+        // Use throttled update for smooth performance
+        throttledPositionChange(card.id, { x, y });
+        
+        // Select card on first drag if not already selected
+        if (first && !isSelected) {
+          onSelect(card.id);
+        }
+      }
+      
+      // Final position update when drag ends
+      if (last) {
+        onPositionChange(card.id, { x, y });
+      }
+    },
+    dragConfig
+  );
+
+  // Memoize styles to prevent unnecessary recalculations
+  const containerStyles = useMemo(() => ({
+    left: card.position.x,
+    top: card.position.y,
+    transform: 'translate(-50%, -50%)',
+    filter: isSelected ? 'brightness(1.2) saturate(1.1)' : 'brightness(1)',
+    willChange: 'transform', // Optimize for animations
+    touchAction: 'none' // Fix touch-action warning
+  }), [card.position.x, card.position.y, isSelected]);
+
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isSelected) {
+      onSelect(card.id);
+    }
+  }, [isSelected, onSelect, card.id]);
+
   return (
     <div
       {...bind()}
-      className={`absolute cursor-move transition-all duration-500 ${isSelected
-        ? 'ring-4 ring-purple-400 shadow-2xl scale-110 z-20'
-        : 'hover:shadow-2xl hover:scale-105 z-10'
+      className={`absolute cursor-move transition-all duration-200 ${
+        isSelected
+          ? 'ring-4 ring-purple-400 shadow-2xl scale-110 z-20'
+          : 'hover:shadow-2xl hover:scale-105 z-10'
       }`}
-      style={{
-        left: card.position.x,
-        top: card.position.y,
-        transform: 'translate(-50%, -50%)',
-        filter: isSelected ? 'brightness(1.2) saturate(1.1)' : 'brightness(1)'
-      }}
-      onClick={e => { e.stopPropagation(); onSelect(card.id); }}
+      style={containerStyles}
+      onClick={handleClick}
     >
       <EnhancedCardRenderer
         cardData={card.cardData}
@@ -74,4 +141,6 @@ export const DraggableCardItem: React.FC<DraggableCardItemProps> = ({
       />
     </div>
   );
-};
+});
+
+DraggableCardItem.displayName = 'DraggableCardItem';

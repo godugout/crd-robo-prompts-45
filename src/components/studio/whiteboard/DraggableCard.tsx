@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { useDrag } from '@use-gesture/react';
 import { FrameRenderer } from '@/components/editor/frames/FrameRenderer';
 import { FloatingToolbar } from './FloatingToolbar';
@@ -15,7 +15,22 @@ interface DraggableCardProps {
   onToolAction: (action: string) => void;
 }
 
-export const DraggableCard: React.FC<DraggableCardProps> = ({
+// Optimized throttle with RAF for smooth animations
+const throttleWithRAF = (func: Function) => {
+  let ticking = false;
+  
+  return (...args: any[]) => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        func(...args);
+        ticking = false;
+      });
+      ticking = true;
+    }
+  };
+};
+
+export const DraggableCard: React.FC<DraggableCardProps> = React.memo(({
   cardData,
   currentPhoto,
   position,
@@ -28,19 +43,43 @@ export const DraggableCard: React.FC<DraggableCardProps> = ({
   const [showToolbar, setShowToolbar] = useState(false);
   const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0 });
 
-  const bind = useDrag(
-    ({ offset: [x, y], dragging }) => {
-      onPositionChange({ x, y });
-      if (dragging && !selected) {
-        onSelect();
-      }
-    },
-    { from: [position.x, position.y] }
+  // Throttled position change for smooth dragging
+  const throttledPositionChange = useCallback(
+    throttleWithRAF(onPositionChange),
+    [onPositionChange]
   );
 
-  const handleCardClick = (e: React.MouseEvent) => {
+  // Memoize drag configuration
+  const dragConfig = useMemo(() => ({
+    from: [position.x, position.y] as [number, number],
+    bounds: { left: 0, right: window.innerWidth - 300, top: 0, bottom: window.innerHeight - 420 },
+    rubberband: true
+  }), [position.x, position.y]);
+
+  const bind = useDrag(
+    ({ offset: [x, y], dragging, first, last }) => {
+      if (dragging) {
+        // Use throttled update during drag for performance
+        throttledPositionChange({ x, y });
+        
+        if (first && !selected) {
+          onSelect();
+        }
+      }
+      
+      // Final accurate position when drag ends
+      if (last) {
+        onPositionChange({ x, y });
+      }
+    },
+    dragConfig
+  );
+
+  const handleCardClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    onSelect();
+    if (!selected) {
+      onSelect();
+    }
     
     // Update toolbar position
     const rect = cardRef.current?.getBoundingClientRect();
@@ -51,12 +90,21 @@ export const DraggableCard: React.FC<DraggableCardProps> = ({
       });
       setShowToolbar(true);
     }
-  };
+  }, [selected, onSelect]);
 
-  const handleToolAction = (action: string) => {
+  const handleToolAction = useCallback((action: string) => {
     onToolAction(action);
     setShowToolbar(false);
-  };
+  }, [onToolAction]);
+
+  // Memoize styles for performance
+  const containerStyles = useMemo(() => ({
+    left: position.x,
+    top: position.y,
+    transform: 'translate(-50%, -50%)',
+    willChange: 'transform',
+    touchAction: 'none'
+  }), [position.x, position.y]);
 
   return (
     <>
@@ -66,11 +114,7 @@ export const DraggableCard: React.FC<DraggableCardProps> = ({
         className={`absolute cursor-move transition-all duration-200 ${
           selected ? 'ring-2 ring-crd-green shadow-2xl' : 'hover:shadow-xl'
         }`}
-        style={{
-          left: position.x,
-          top: position.y,
-          transform: 'translate(-50%, -50%)'
-        }}
+        style={containerStyles}
         onClick={handleCardClick}
       >
         <FrameRenderer
@@ -90,4 +134,6 @@ export const DraggableCard: React.FC<DraggableCardProps> = ({
       />
     </>
   );
-};
+});
+
+DraggableCard.displayName = 'DraggableCard';

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Save, Download, Share2, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -139,16 +139,24 @@ export const WhiteboardStudio: React.FC = () => {
     toast.success('New card added to whiteboard');
   }, [cardEditor.cardData]);
 
+  // Optimized position change handler with batching
   const handleCardPositionChange = useCallback((cardId: string, position: { x: number; y: number }) => {
-    setCards(prev => prev.map(card => 
-      card.id === cardId ? { ...card, position } : card
-    ));
+    setCards(prev => {
+      const newCards = [...prev];
+      const cardIndex = newCards.findIndex(c => c.id === cardId);
+      if (cardIndex !== -1) {
+        newCards[cardIndex] = { ...newCards[cardIndex], position };
+      }
+      return newCards;
+    });
   }, []);
 
   const handleCardSelect = useCallback((cardId: string) => {
-    setSelectedCardId(cardId);
-    setShowGeneralToolbar(false);
-  }, []);
+    if (selectedCardId !== cardId) {
+      setSelectedCardId(cardId);
+      setShowGeneralToolbar(false);
+    }
+  }, [selectedCardId]);
 
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -189,21 +197,26 @@ export const WhiteboardStudio: React.FC = () => {
     }
   }, [selectedCardId]);
 
+  // Memoize card renderers to prevent unnecessary re-renders
+  const renderedCards = useMemo(() => {
+    return cards.map(card => (
+      <DraggableCard
+        key={card.id}
+        cardData={card.cardData}
+        currentPhoto={card.currentPhoto}
+        position={card.position}
+        onPositionChange={(position) => handleCardPositionChange(card.id, position)}
+        onSelect={() => handleCardSelect(card.id)}
+        selected={selectedCardId === card.id}
+        onToolAction={handleToolAction}
+      />
+    ));
+  }, [cards, selectedCardId, handleCardPositionChange, handleCardSelect, handleToolAction]);
+
   return (
     <FigmaStudioLayout>
       <div onClick={handleCanvasClick} className="relative w-full h-full">
-        {cards.map(card => (
-          <DraggableCard
-            key={card.id}
-            cardData={card.cardData}
-            currentPhoto={card.currentPhoto}
-            position={card.position}
-            onPositionChange={(position) => handleCardPositionChange(card.id, position)}
-            onSelect={() => handleCardSelect(card.id)}
-            selected={selectedCardId === card.id}
-            onToolAction={handleToolAction}
-          />
-        ))}
+        {renderedCards}
 
         {/* Add Card Button - Floating */}
         <Button
