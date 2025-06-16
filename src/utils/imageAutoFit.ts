@@ -1,9 +1,17 @@
+
 export interface ImageFitOptions {
   containerWidth: number;
   containerHeight: number;
   imageWidth: number;
   imageHeight: number;
   fitMode: 'cover' | 'contain' | 'fill' | 'center';
+}
+
+export interface ImageDimensions {
+  containerWidth: number;
+  containerHeight: number;
+  imageWidth: number;
+  imageHeight: number;
 }
 
 export interface FitResult {
@@ -68,8 +76,8 @@ export const calculateAutoFit = (options: ImageFitOptions): FitResult => {
   return { x, y, width, height, scale };
 };
 
-export const detectBestFitMode = (options: ImageFitOptions): 'cover' | 'contain' => {
-  const { containerWidth, containerHeight, imageWidth, imageHeight } = options;
+export const detectBestFitMode = (dimensions: ImageDimensions): 'cover' | 'contain' => {
+  const { containerWidth, containerHeight, imageWidth, imageHeight } = dimensions;
   
   const containerAspect = containerWidth / containerHeight;
   const imageAspect = imageWidth / imageHeight;
