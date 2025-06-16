@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { EnhancedWhiteboardStudio } from './enhanced/EnhancedWhiteboardStudio';
+import { SimplifiedStudio } from './simplified/SimplifiedStudio';
 
 export const CardStudio: React.FC = () => {
-  return <EnhancedWhiteboardStudio />;
+  return <SimplifiedStudio />;
 };
