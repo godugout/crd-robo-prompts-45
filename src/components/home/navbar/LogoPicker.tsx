@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -14,55 +15,64 @@ const LOGO_OPTIONS = [
     id: 'cardshow-main',
     name: 'Official',
     src: '/lovable-uploads/5ac69e35-ecd1-4907-b089-318e7828606c.png',
-    has3D: false
+    has3D: false,
+    needsWhiteBg: false
   },
   {
     id: 'cardshow-vintage-green',
     name: 'Vintage',
     src: '/lovable-uploads/8aec29c2-2d7a-42a1-8fc8-4a27a7964d41.png',
-    has3D: false
+    has3D: false,
+    needsWhiteBg: false
   },
   {
     id: 'cardshow-modern-red',
     name: 'Modern',
     src: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png',
-    has3D: true
+    has3D: true,
+    needsWhiteBg: false
   },  
   {
     id: 'cardshow-script-coral',
     name: 'Script',
     src: '/lovable-uploads/49b61ce3-8589-45b1-adb7-2594a81ab97b.png',
-    has3D: true
+    has3D: true,
+    needsWhiteBg: false
   },
   {
     id: 'cardshow-red-blue-script',
     name: 'Red & Blue',
     src: '/lovable-uploads/0dbff635-a494-4ce4-b6b7-cadd563ff383.png',
-    has3D: false
+    has3D: false,
+    needsWhiteBg: true
   },
   {
     id: 'cardshow-gradient-crd',
     name: 'Gradient',
     src: '/lovable-uploads/b4e234d6-d956-4a58-b701-5243e21a43da.png',
-    has3D: false
+    has3D: false,
+    needsWhiteBg: false
   },
   {
     id: 'cardshow-blue-script',
     name: 'Blue',
     src: '/lovable-uploads/113582de-fb26-49d8-9e53-15aedd6d36ae.png',
-    has3D: false
+    has3D: false,
+    needsWhiteBg: true
   },
   {
     id: 'cardshow-bold-black',
     name: 'Bold Black',
     src: '/lovable-uploads/50e48a4f-d7f6-46df-b6bb-93287588484d.png',
-    has3D: false
+    has3D: false,
+    needsWhiteBg: false
   },
   {
     id: 'cardshow-blue-gold',
     name: 'Blue & Gold',
     src: '/lovable-uploads/dedb3bf8-117e-4ae8-ab0d-1fe32f10eb39.png',
-    has3D: false
+    has3D: false,
+    needsWhiteBg: false
   }
 ];
 
@@ -90,14 +100,19 @@ export const LogoPicker = () => {
                 }}
               />
             )}
-            <img
-              src={selectedLogo.src}
-              alt={selectedLogo.name}
-              className="h-10 object-contain relative z-10 w-auto"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
+            <div className={cn(
+              "relative z-10",
+              selectedLogo.needsWhiteBg && "bg-white rounded px-2 py-1"
+            )}>
+              <img
+                src={selectedLogo.src}
+                alt={selectedLogo.name}
+                className="h-10 object-contain w-auto"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
           </div>
           <ChevronDown className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" />
         </Link>
@@ -133,14 +148,19 @@ export const LogoPicker = () => {
                       }}
                     />
                   )}
-                  <img
-                    src={logo.src}
-                    alt={logo.name}
-                    className="h-8 object-contain relative z-10 w-auto"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
+                  <div className={cn(
+                    "relative z-10",
+                    logo.needsWhiteBg && "bg-white rounded px-1.5 py-0.5"
+                  )}>
+                    <img
+                      src={logo.src}
+                      alt={logo.name}
+                      className="h-8 object-contain w-auto"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className="font-medium text-white text-xs">{logo.name}</div>
               </div>
