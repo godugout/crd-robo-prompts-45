@@ -76,13 +76,28 @@ export const CardsGrid: React.FC<CardsGridProps> = ({
   const universalCards = cards.map(convertToUniversalCard);
 
   return (
-    <UniversalCardGrid
-      cards={universalCards}
-      loading={loading}
-      title="Featured Cards"
-      subtitle="Discover amazing cards from our community"
-      onView={handleView}
-      onEdit={handleEdit}
-    />
+    <div className="space-y-6">
+      <UniversalCardGrid
+        cards={universalCards}
+        loading={loading}
+        title=""
+        subtitle=""
+        onView={handleView}
+        onEdit={handleEdit}
+        className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+      />
+      
+      {!loading && universalCards.length === 0 && (
+        <div className="text-center py-16">
+          <div className="w-16 h-16 bg-crd-darkGray rounded-xl mx-auto mb-4 flex items-center justify-center">
+            <svg className="w-8 h-8 text-crd-lightGray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-medium text-crd-white mb-2">No Cards Found</h3>
+          <p className="text-crd-lightGray">Discover amazing cards from our community</p>
+        </div>
+      )}
+    </div>
   );
 };
