@@ -1,20 +1,36 @@
 
-import React from "react";
-import { CRDButton } from "@/components/ui/design-system";
-import type { CRDButtonProps } from "@/components/ui/design-system/Button";
+import React from 'react';
 
-interface CardActionButtonProps extends Omit<CRDButtonProps, 'variant' | 'size'> {
+interface CardActionButtonProps {
   icon: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  className?: string;
 }
 
-export const CardActionButton = ({ icon, className, ...props }: CardActionButtonProps) => {
+export const CardActionButton: React.FC<CardActionButtonProps> = ({
+  icon,
+  onClick,
+  disabled = false,
+  className = ""
+}) => {
   return (
-    <CRDButton
-      variant="action"
-      size="action-icon"
-      icon={icon}
-      className={className}
-      {...props}
-    />
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`
+        w-12 h-12 
+        bg-white/10 backdrop-blur-sm 
+        rounded-full 
+        flex items-center justify-center 
+        transition-all duration-200 
+        hover:bg-white/20 hover:scale-110
+        active:scale-95
+        disabled:opacity-50 disabled:cursor-not-allowed
+        ${className}
+      `}
+    >
+      {icon}
+    </button>
   );
 };
