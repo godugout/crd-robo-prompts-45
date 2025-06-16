@@ -27,11 +27,11 @@ interface SimplifiedToolPanelProps {
 }
 
 const rarityColors = {
-  common: '#6b7280',
-  uncommon: '#10b981',
-  rare: '#3b82f6',
-  epic: '#8b5cf6',
-  legendary: '#f59e0b'
+  common: 'hsl(210, 40%, 98%)',
+  uncommon: 'hsl(142, 76%, 36%)',
+  rare: 'hsl(221, 83%, 53%)',
+  epic: 'hsl(262, 83%, 58%)',
+  legendary: 'hsl(45, 93%, 47%)'
 };
 
 export const SimplifiedToolPanel: React.FC<SimplifiedToolPanelProps> = ({
@@ -43,15 +43,15 @@ export const SimplifiedToolPanel: React.FC<SimplifiedToolPanelProps> = ({
 
   if (!selectedCard) {
     return (
-      <aside className="w-96 bg-[#1a1a1d]/90 backdrop-blur-sm border-l border-[#27272a] flex flex-col">
+      <aside className="w-96 bg-gradient-to-b from-slate-950 to-slate-900 border-l border-slate-800 flex flex-col">
         <div className="p-8 flex-1 flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 mx-auto bg-[#27272a] rounded-2xl flex items-center justify-center">
-              <Palette className="w-8 h-8 text-[#71717a]" />
+          <div className="text-center space-y-6">
+            <div className="w-20 h-20 mx-auto bg-slate-800 rounded-3xl flex items-center justify-center">
+              <Palette className="w-10 h-10 text-slate-400" />
             </div>
-            <div className="space-y-2">
-              <h3 className="text-white font-semibold text-lg">Design Tools</h3>
-              <p className="text-[#a1a1aa] text-sm leading-relaxed">
+            <div className="space-y-3">
+              <h3 className="text-slate-100 font-bold text-xl">Design Tools</h3>
+              <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
                 Select a card from the grid to start customizing its design, effects, and content.
               </p>
             </div>
@@ -78,51 +78,51 @@ export const SimplifiedToolPanel: React.FC<SimplifiedToolPanelProps> = ({
   };
 
   return (
-    <aside className="w-96 bg-[#1a1a1d]/90 backdrop-blur-sm border-l border-[#27272a] flex flex-col">
-      {/* Panel Header */}
-      <header className="p-6 border-b border-[#27272a]">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-crd-green rounded-lg flex items-center justify-center">
-              <Type className="w-4 h-4 text-black" />
+    <aside className="w-96 bg-gradient-to-b from-slate-950 to-slate-900 border-l border-slate-800 flex flex-col">
+      {/* Enhanced Panel Header */}
+      <header className="p-6 border-b border-slate-800 bg-gradient-to-r from-slate-900 to-slate-800">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
+              <Type className="w-5 h-5 text-slate-900" />
             </div>
-            <h2 className="text-white font-bold text-lg">Card Editor</h2>
+            <h2 className="text-slate-100 font-bold text-xl">Card Editor</h2>
           </div>
           <Badge 
-            className="text-xs font-bold px-2 py-1"
+            className="text-xs font-bold px-3 py-1.5 rounded-full"
             style={{ 
               backgroundColor: rarityColors[cardData.rarity as keyof typeof rarityColors],
-              color: 'white'
+              color: '#1e293b'
             }}
           >
             {cardData.rarity.toUpperCase()}
           </Badge>
         </div>
         
-        <div className="space-y-2">
-          <h3 className="text-white font-medium truncate text-sm">
+        <div className="space-y-3">
+          <h3 className="text-slate-100 font-semibold text-lg truncate">
             {cardData.title}
           </h3>
-          <div className="flex items-center gap-2 text-xs text-[#a1a1aa]">
-            <div className="w-2 h-2 bg-crd-green rounded-full animate-pulse" />
+          <div className="flex items-center gap-3 text-sm text-slate-400">
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
             <span>Currently editing</span>
           </div>
         </div>
       </header>
 
-      {/* Tool Tabs */}
+      {/* Enhanced Tool Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList className="grid w-full grid-cols-2 mx-6 mt-6 bg-[#27272a] p-1 rounded-lg">
+        <TabsList className="grid w-full grid-cols-2 mx-6 mt-6 bg-slate-800 p-1.5 rounded-xl shadow-inner">
           <TabsTrigger 
             value="design" 
-            className="data-[state=active]:bg-crd-green data-[state=active]:text-black text-[#a1a1aa] font-medium transition-all duration-200"
+            className="data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-900 text-slate-300 font-semibold transition-all duration-300 rounded-lg py-3"
           >
             <Palette className="w-4 h-4 mr-2" />
             Design
           </TabsTrigger>
           <TabsTrigger 
             value="effects" 
-            className="data-[state=active]:bg-crd-green data-[state=active]:text-black text-[#a1a1aa] font-medium transition-all duration-200"
+            className="data-[state=active]:bg-emerald-500 data-[state=active]:text-slate-900 text-slate-300 font-semibold transition-all duration-300 rounded-lg py-3"
           >
             <Sparkles className="w-4 h-4 mr-2" />
             Effects
@@ -131,46 +131,46 @@ export const SimplifiedToolPanel: React.FC<SimplifiedToolPanelProps> = ({
 
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           <TabsContent value="design" className="space-y-6 mt-6">
-            {/* Essential Card Details */}
-            <Card className="bg-[#27272a]/50 border-[#3f3f46] p-5 space-y-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Type className="w-4 h-4 text-crd-green" />
-                <h4 className="text-white font-semibold text-sm">Card Details</h4>
+            {/* Card Details Section */}
+            <Card className="bg-slate-800/50 border-slate-700 p-6 space-y-6 rounded-xl shadow-lg">
+              <div className="flex items-center gap-3 mb-4">
+                <Type className="w-5 h-5 text-emerald-400" />
+                <h4 className="text-slate-100 font-bold text-lg">Card Details</h4>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
-                  <label className="text-[#a1a1aa] text-xs font-medium mb-2 block">
-                    Title
+                  <label className="text-slate-300 text-sm font-semibold mb-3 block">
+                    Card Title
                   </label>
                   <Input
                     value={cardData.title}
                     onChange={(e) => handleFieldUpdate('title', e.target.value)}
-                    className="bg-[#1a1a1d] border-[#3f3f46] text-white placeholder:text-[#71717a] focus:border-crd-green focus:ring-1 focus:ring-crd-green/50 transition-all duration-200"
-                    placeholder="Enter card title..."
+                    className="bg-slate-900 border-slate-600 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition-all duration-200 rounded-lg h-12"
+                    placeholder="Enter your card title..."
                   />
                 </div>
                 
                 <div>
-                  <label className="text-[#a1a1aa] text-xs font-medium mb-2 block">
+                  <label className="text-slate-300 text-sm font-semibold mb-3 block">
                     Description
                   </label>
                   <Textarea
                     value={cardData.description || ''}
                     onChange={(e) => handleFieldUpdate('description', e.target.value)}
-                    className="bg-[#1a1a1d] border-[#3f3f46] text-white placeholder:text-[#71717a] focus:border-crd-green focus:ring-1 focus:ring-crd-green/50 transition-all duration-200 h-20 resize-none"
+                    className="bg-slate-900 border-slate-600 text-slate-100 placeholder:text-slate-500 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition-all duration-200 rounded-lg h-24 resize-none"
                     placeholder="Describe your card..."
                   />
                 </div>
                 
                 <div>
-                  <label className="text-[#a1a1aa] text-xs font-medium mb-2 block">
-                    Rarity
+                  <label className="text-slate-300 text-sm font-semibold mb-3 block">
+                    Rarity Level
                   </label>
                   <select
                     value={cardData.rarity}
                     onChange={(e) => handleFieldUpdate('rarity', e.target.value)}
-                    className="w-full bg-[#1a1a1d] border border-[#3f3f46] rounded-md px-3 py-2 text-white text-sm focus:border-crd-green focus:ring-1 focus:ring-crd-green/50 transition-all duration-200"
+                    className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-slate-100 text-sm focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 transition-all duration-200"
                   >
                     <option value="common">Common</option>
                     <option value="uncommon">Uncommon</option>
@@ -182,15 +182,15 @@ export const SimplifiedToolPanel: React.FC<SimplifiedToolPanelProps> = ({
               </div>
             </Card>
 
-            {/* Image Upload */}
-            <Card className="bg-[#27272a]/50 border-[#3f3f46] p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <ImageIcon className="w-4 h-4 text-crd-green" />
-                <h4 className="text-white font-semibold text-sm">Card Image</h4>
+            {/* Image Upload Section */}
+            <Card className="bg-slate-800/50 border-slate-700 p-6 rounded-xl shadow-lg">
+              <div className="flex items-center gap-3 mb-5">
+                <ImageIcon className="w-5 h-5 text-emerald-400" />
+                <h4 className="text-slate-100 font-bold text-lg">Card Image</h4>
               </div>
               
-              <div className="space-y-4">
-                <div className="border-2 border-dashed border-[#3f3f46] rounded-lg p-6 text-center hover:border-crd-green/50 transition-colors duration-200 group">
+              <div className="space-y-5">
+                <div className="border-2 border-dashed border-slate-600 rounded-xl p-8 text-center hover:border-emerald-400 hover:bg-emerald-400/5 transition-all duration-300 group">
                   <input
                     type="file"
                     accept="image/*"
@@ -199,14 +199,14 @@ export const SimplifiedToolPanel: React.FC<SimplifiedToolPanelProps> = ({
                     id="photo-upload"
                   />
                   <label htmlFor="photo-upload" className="cursor-pointer">
-                    <Upload className="w-8 h-8 mx-auto mb-3 text-[#71717a] group-hover:text-crd-green transition-colors duration-200" />
-                    <p className="text-white text-sm font-medium mb-1">Upload New Photo</p>
-                    <p className="text-[#71717a] text-xs">PNG, JPG up to 10MB</p>
+                    <Upload className="w-10 h-10 mx-auto mb-4 text-slate-500 group-hover:text-emerald-400 transition-colors duration-200" />
+                    <p className="text-slate-100 text-base font-semibold mb-2">Upload New Photo</p>
+                    <p className="text-slate-400 text-sm">PNG, JPG up to 10MB</p>
                   </label>
                 </div>
                 
                 {selectedCard.currentPhoto && (
-                  <div className="aspect-video rounded-lg overflow-hidden border border-[#3f3f46]">
+                  <div className="aspect-video rounded-lg overflow-hidden border-2 border-slate-700 shadow-lg">
                     <img 
                       src={selectedCard.currentPhoto} 
                       alt="Card preview" 
@@ -217,20 +217,20 @@ export const SimplifiedToolPanel: React.FC<SimplifiedToolPanelProps> = ({
               </div>
             </Card>
 
-            {/* Advanced Options Toggle */}
+            {/* Advanced Options */}
             <div className="pt-2">
               <Button
                 onClick={() => setShowAdvanced(!showAdvanced)}
                 variant="ghost"
-                className="w-full text-[#a1a1aa] hover:text-white hover:bg-[#27272a]/50 justify-between"
+                className="w-full text-slate-300 hover:text-slate-100 hover:bg-slate-800 justify-between py-4 rounded-lg"
               >
-                <span className="text-sm">Advanced Options</span>
+                <span className="text-sm font-semibold">Advanced Options</span>
                 {showAdvanced ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </Button>
               
               {showAdvanced && (
-                <Card className="bg-[#27272a]/30 border-[#3f3f46] p-4 mt-3">
-                  <p className="text-xs text-[#71717a] text-center">
+                <Card className="bg-slate-800/30 border-slate-700 p-5 mt-4 rounded-lg">
+                  <p className="text-xs text-slate-400 text-center">
                     Publishing settings, metadata, and other advanced options will appear here.
                   </p>
                 </Card>
@@ -240,26 +240,26 @@ export const SimplifiedToolPanel: React.FC<SimplifiedToolPanelProps> = ({
 
           <TabsContent value="effects" className="space-y-6 mt-6">
             {/* Frame Selection */}
-            <Card className="bg-[#27272a]/50 border-[#3f3f46] p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-4 h-4 text-crd-green" />
-                <h4 className="text-white font-semibold text-sm">Card Frames</h4>
+            <Card className="bg-slate-800/50 border-slate-700 p-6 rounded-xl shadow-lg">
+              <div className="flex items-center gap-3 mb-5">
+                <Sparkles className="w-5 h-5 text-emerald-400" />
+                <h4 className="text-slate-100 font-bold text-lg">Card Frames</h4>
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {EXTRACTED_FRAMES.slice(0, 6).map((frame) => (
                   <button
                     key={frame.id}
                     className={`
-                      aspect-video rounded-lg border-2 cursor-pointer transition-all duration-200 p-3 text-center group
+                      aspect-video rounded-lg border-2 cursor-pointer transition-all duration-200 p-4 text-center group
                       ${cardData.template_id === frame.id 
-                        ? 'border-crd-green bg-crd-green/10 shadow-lg shadow-crd-green/25' 
-                        : 'border-[#3f3f46] hover:border-crd-green/50 hover:bg-[#27272a]/50'
+                        ? 'border-emerald-400 bg-emerald-400/10 shadow-lg shadow-emerald-400/25' 
+                        : 'border-slate-600 hover:border-emerald-400/50 hover:bg-slate-800/50'
                       }
                     `}
                     onClick={() => handleFieldUpdate('template_id', frame.id)}
                   >
-                    <div className="text-white text-xs font-medium truncate group-hover:text-crd-green transition-colors duration-200">
+                    <div className="text-slate-100 text-sm font-semibold truncate group-hover:text-emerald-400 transition-colors duration-200">
                       {frame.name}
                     </div>
                   </button>
@@ -267,14 +267,14 @@ export const SimplifiedToolPanel: React.FC<SimplifiedToolPanelProps> = ({
               </div>
             </Card>
 
-            {/* Quick Effects */}
-            <Card className="bg-[#27272a]/50 border-[#3f3f46] p-5">
-              <div class="flex items-center gap-2 mb-4">
-                <Sparkles className="w-4 h-4 text-crd-green" />
-                <h4 className="text-white font-semibold text-sm">Visual Effects</h4>
+            {/* Visual Effects */}
+            <Card className="bg-slate-800/50 border-slate-700 p-6 rounded-xl shadow-lg">
+              <div className="flex items-center gap-3 mb-5">
+                <Sparkles className="w-5 h-5 text-emerald-400" />
+                <h4 className="text-slate-100 font-bold text-lg">Visual Effects</h4>
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {[
                   { name: 'Holographic', color: '#8b5cf6' },
                   { name: 'Glow', color: '#3b82f6' },
@@ -284,11 +284,11 @@ export const SimplifiedToolPanel: React.FC<SimplifiedToolPanelProps> = ({
                   <Button
                     key={effect.name}
                     variant="outline"
-                    className="border-[#3f3f46] text-[#a1a1aa] hover:text-white hover:bg-[#27272a]/50 hover:border-crd-green/50 text-xs h-10 transition-all duration-200"
+                    className="border-slate-600 text-slate-300 hover:text-slate-100 hover:bg-slate-800/50 hover:border-emerald-400/50 text-sm h-12 transition-all duration-200 rounded-lg"
                     onClick={() => toast.success(`${effect.name} effect applied`)}
                   >
                     <div 
-                      className="w-3 h-3 rounded-full mr-2 border border-white/20"
+                      className="w-3 h-3 rounded-full mr-3 border border-slate-400"
                       style={{ backgroundColor: effect.color }}
                     />
                     {effect.name}
@@ -300,10 +300,10 @@ export const SimplifiedToolPanel: React.FC<SimplifiedToolPanelProps> = ({
         </div>
       </Tabs>
 
-      {/* Action Footer */}
-      <footer className="p-6 border-t border-[#27272a] space-y-3">
+      {/* Enhanced Action Footer */}
+      <footer className="p-6 border-t border-slate-800 space-y-4 bg-gradient-to-r from-slate-900 to-slate-800">
         <Button
-          className="w-full bg-crd-green hover:bg-crd-green/90 text-black font-semibold h-11 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-crd-green/25"
+          className="w-full bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 text-slate-900 font-bold h-12 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-emerald-400/25 rounded-lg"
           onClick={() => toast.success(`"${cardData.title}" saved and published!`)}
         >
           <Save className="w-4 h-4 mr-2" />
@@ -312,7 +312,7 @@ export const SimplifiedToolPanel: React.FC<SimplifiedToolPanelProps> = ({
         
         <Button
           variant="outline"
-          className="w-full border-[#3f3f46] bg-transparent text-[#a1a1aa] hover:text-white hover:bg-[#27272a] hover:border-[#4a4a4a] h-10 transition-all duration-200"
+          className="w-full border-slate-600 bg-transparent text-slate-300 hover:text-slate-100 hover:bg-slate-800 hover:border-slate-500 h-11 transition-all duration-200 rounded-lg"
           onClick={() => toast.success('Share link copied to clipboard!')}
         >
           <Share2 className="w-4 h-4 mr-2" />
