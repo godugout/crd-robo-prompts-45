@@ -1,19 +1,27 @@
-
 import React, { useState } from 'react';
 import { useSimpleCardEditor } from '@/hooks/useSimpleCardEditor';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { Typography } from '@/components/ui/design-system';
+import { Typography, CRDButton } from '@/components/ui/design-system';
 import type { CardRarity } from '@/types/card';
 import { StepProgressIndicator } from '@/components/card-creator/components/StepProgressIndicator';
 import { StepNavigation } from '@/components/card-creator/components/StepNavigation';
 import { FrameAndImageStep } from '@/components/card-creator/steps/FrameAndImageStep';
 import { CustomizeStep } from '@/components/card-creator/steps/CustomizeStep';
 import { PolishStep } from '@/components/card-creator/steps/PolishStep';
-import { PreviewStep } from '@/components/card-creator/steps/PreviewStep';
+import { CardPreview } from '@/components/card/CardPreview';
+import { Sparkles } from 'lucide-react';
 
 type Step = 'frameAndImage' | 'customize' | 'polish' | 'preview';
+
+const RARITIES: { value: CardRarity; label: string; color: string }[] = [
+  { value: 'common', label: 'Common', color: 'text-gray-400' },
+  { value: 'uncommon', label: 'Uncommon', color: 'text-green-400' },
+  { value: 'rare', label: 'Rare', color: 'text-blue-400' },
+  { value: 'epic', label: 'Epic', color: 'text-purple-400' },
+  { value: 'legendary', label: 'Legendary', color: 'text-yellow-400' }
+];
 
 export const EmbeddedCardCreator: React.FC = () => {
   const { user } = useAuth();
@@ -29,6 +37,10 @@ export const EmbeddedCardCreator: React.FC = () => {
 
   const handleImageUpload = (imageUrl: string) => {
     updateField('image_url', imageUrl);
+  };
+
+  const handleImageUpdate = (newImageUrl: string) => {
+    updateField('image_url', newImageUrl);
   };
 
   const handleContinueInStudio = () => {
@@ -155,15 +167,59 @@ export const EmbeddedCardCreator: React.FC = () => {
 
       case 'preview':
         return (
-          <PreviewStep
-            cardTitle={cardData.title}
-            cardDescription={cardData.description || ''}
-            cardRarity={cardData.rarity}
-            imageUrl={cardData.image_url}
-            isSaving={isSaving}
-            onQuickPublish={handleQuickPublish}
-            onContinueInStudio={handleContinueInStudio}
-          />
+          <div className="text-center space-y-8">
+            <div>
+              <Typography variant="h3" className="mb-2">
+                Your Card is Ready!
+              </Typography>
+              <Typography variant="body" className="text-crd-lightGray">
+                Use the interactive controls below to preview your card, then publish when ready
+              </Typography>
+            </div>
+
+            {/* Interactive Card Preview */}
+            <div className="flex justify-center">
+              <CardPreview
+                cardData={{
+                  title: cardData.title,
+                  description: cardData.description,
+                  rarity: cardData.rarity,
+                  template_id: selectedFrame
+                }}
+                imageUrl={cardData.image_url}
+                onImageUpdate={handleImageUpdate}
+              />
+            </div>
+
+            {/* Card Details */}
+            <div className="bg-[#23262F] rounded-xl p-4 max-w-md mx-auto">
+              <h3 className="text-white font-bold text-xl mb-1">{cardData.title}</h3>
+              {cardData.description && (
+                <p className="text-gray-200 text-sm mb-2">{cardData.description}</p>
+              )}
+              <span className={`text-sm font-medium ${RARITIES.find(r => r.value === cardData.rarity)?.color}`}>
+                {RARITIES.find(r => r.value === cardData.rarity)?.label}
+              </span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-4 justify-center">
+              <CRDButton
+                onClick={handleQuickPublish}
+                disabled={isSaving}
+              >
+                {isSaving ? 'Publishing...' : 'Publish Now'}
+              </CRDButton>
+              <CRDButton
+                variant="secondary"
+                onClick={handleContinueInStudio}
+                className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Continue in Studio
+              </CRDButton>
+            </div>
+          </div>
         );
 
       default:
