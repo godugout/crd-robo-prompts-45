@@ -148,19 +148,14 @@ export const LogoPicker = () => {
                       }}
                     />
                   )}
-                  <div className={cn(
-                    "relative z-10",
-                    logo.needsWhiteBg && "bg-white rounded px-1.5 py-0.5"
-                  )}>
-                    <img
-                      src={logo.src}
-                      alt={logo.name}
-                      className="h-8 object-contain w-auto"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  </div>
+                  <img
+                    src={logo.src}
+                    alt={logo.name}
+                    className="h-8 object-contain relative z-10 w-auto"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
                 </div>
                 <div className="font-medium text-white text-xs">{logo.name}</div>
               </div>
