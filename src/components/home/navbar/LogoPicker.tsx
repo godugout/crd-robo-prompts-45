@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -13,7 +12,7 @@ import {
 const LOGO_OPTIONS = [
   {
     id: 'cardshow-main',
-    name: 'Main',
+    name: 'Official',
     src: '/lovable-uploads/5ac69e35-ecd1-4907-b089-318e7828606c.png',
     has3D: false
   },
@@ -36,6 +35,12 @@ const LOGO_OPTIONS = [
     has3D: true
   },
   {
+    id: 'cardshow-red-blue-script',
+    name: 'Red & Blue',
+    src: '/lovable-uploads/0dbff635-a494-4ce4-b6b7-cadd563ff383.png',
+    has3D: false
+  },
+  {
     id: 'cardshow-gradient-crd',
     name: 'Gradient',
     src: '/lovable-uploads/b4e234d6-d956-4a58-b701-5243e21a43da.png',
@@ -43,14 +48,8 @@ const LOGO_OPTIONS = [
   },
   {
     id: 'cardshow-blue-script',
-    name: 'Blue Script',
+    name: 'Blue',
     src: '/lovable-uploads/113582de-fb26-49d8-9e53-15aedd6d36ae.png',
-    has3D: false
-  },
-  {
-    id: 'cardshow-red-blue-script',
-    name: 'Red & Blue',
-    src: '/lovable-uploads/0dbff635-a494-4ce4-b6b7-cadd563ff383.png',
     has3D: false
   },
   {
