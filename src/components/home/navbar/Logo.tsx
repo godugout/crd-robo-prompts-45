@@ -1,11 +1,7 @@
 
 import React from "react";
-import { LogoPicker } from "./LogoPicker";
+import { LogoPicker, LogoPickerProps } from "./index";
 
-interface LogoProps {
-  onLogoChange?: (logoId: string, navBgColor: string) => void;
-}
-
-export const Logo = ({ onLogoChange }: LogoProps) => {
+export const Logo: React.FC<LogoPickerProps> = ({ onLogoChange }) => {
   return <LogoPicker onLogoChange={onLogoChange} />;
 };
