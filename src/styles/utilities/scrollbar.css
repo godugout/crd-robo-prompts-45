@@ -24,3 +24,32 @@
 .frame-gallery-scroll > * {
   scroll-snap-align: center;
 }
+
+/* Themed scrollbar for site consistency */
+.scrollbar-themed {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(74, 222, 128, 0.6) rgba(53, 57, 69, 0.3);
+}
+
+.scrollbar-themed::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-themed::-webkit-scrollbar-track {
+  background: rgba(53, 57, 69, 0.3);
+  border-radius: 4px;
+}
+
+.scrollbar-themed::-webkit-scrollbar-thumb {
+  background: rgba(74, 222, 128, 0.6);
+  border-radius: 4px;
+  border: 1px solid rgba(53, 57, 69, 0.2);
+}
+
+.scrollbar-themed::-webkit-scrollbar-thumb:hover {
+  background: rgba(74, 222, 128, 0.8);
+}
+
+.scrollbar-themed::-webkit-scrollbar-corner {
+  background: rgba(53, 57, 69, 0.3);
+}
