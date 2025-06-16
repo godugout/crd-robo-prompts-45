@@ -1,6 +1,5 @@
 
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CardshowLogo } from '@/assets/brand';
@@ -16,60 +15,82 @@ const LOGO_OPTIONS = [
     id: 'cardshow-main',
     name: 'Official',
     src: '/lovable-uploads/5ac69e35-ecd1-4907-b089-318e7828606c.png',
-    has3D: false
+    has3D: false,
+    navBgColor: 'bg-crd-darkest'
   },
   {
     id: 'cardshow-vintage-green',
     name: 'Vintage',
     src: '/lovable-uploads/8aec29c2-2d7a-42a1-8fc8-4a27a7964d41.png',
-    has3D: false
+    has3D: false,
+    navBgColor: 'bg-green-900'
   },
   {
     id: 'cardshow-modern-red',
     name: 'Modern',
     src: '/lovable-uploads/7546e555-f08f-4ee6-8337-7cc99ed1cfb7.png',
-    has3D: true
+    has3D: true,
+    navBgColor: 'bg-red-900'
   },  
   {
     id: 'cardshow-script-coral',
     name: 'Script',
     src: '/lovable-uploads/49b61ce3-8589-45b1-adb7-2594a81ab97b.png',
-    has3D: true
+    has3D: true,
+    navBgColor: 'bg-orange-900'
   },
   {
     id: 'cardshow-gradient-crd',
     name: 'Gradient',
     src: '/lovable-uploads/b4e234d6-d956-4a58-b701-5243e21a43da.png',
-    has3D: false
+    has3D: false,
+    navBgColor: 'bg-purple-900'
   },
   {
     id: 'cardshow-red-blue-script',
     name: 'Red & Blue',
     src: '/lovable-uploads/0dbff635-a494-4ce4-b6b7-cadd563ff383.png',
-    has3D: false
+    has3D: false,
+    navBgColor: 'bg-blue-900'
   },
   {
     id: 'cardshow-blue-script',
     name: 'Blue',
     src: '/lovable-uploads/113582de-fb26-49d8-9e53-15aedd6d36ae.png',
-    has3D: false
+    has3D: false,
+    navBgColor: 'bg-blue-800'
   },
   {
     id: 'cardshow-bold-black',
     name: 'Bold Black',
     src: '/lovable-uploads/50e48a4f-d7f6-46df-b6bb-93287588484d.png',
-    has3D: false
+    has3D: false,
+    navBgColor: 'bg-gray-900'
   },
   {
     id: 'cardshow-blue-gold',
     name: 'Blue & Gold',
     src: '/lovable-uploads/dedb3bf8-117e-4ae8-ab0d-1fe32f10eb39.png',
-    has3D: false
+    has3D: false,
+    navBgColor: 'bg-blue-900'
   }
 ];
 
-export const LogoPicker = () => {
+interface LogoPickerProps {
+  onLogoChange?: (logoId: string, navBgColor: string) => void;
+}
+
+export const LogoPicker = ({ onLogoChange }: LogoPickerProps) => {
   const [selectedLogo, setSelectedLogo] = useState(LOGO_OPTIONS[0]);
+
+  useEffect(() => {
+    onLogoChange?.(selectedLogo.id, selectedLogo.navBgColor);
+  }, [selectedLogo, onLogoChange]);
+
+  const handleLogoSelect = (logo: typeof LOGO_OPTIONS[0]) => {
+    setSelectedLogo(logo);
+    onLogoChange?.(logo.id, logo.navBgColor);
+  };
 
   const getHeaderLogoStyles = (logoId: string) => {
     switch (logoId) {
@@ -77,7 +98,7 @@ export const LogoPicker = () => {
         return 'bg-white rounded px-1 py-0.5';
       case 'cardshow-red-blue-script':
       case 'cardshow-blue-script':
-        return 'drop-shadow-[0_0_3px_rgba(255,255,255,0.8)] filter';
+        return 'drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] filter [text-shadow:_0_0_6px_rgba(255,255,255,0.8)]';
       default:
         return '';
     }
@@ -134,7 +155,7 @@ export const LogoPicker = () => {
             {LOGO_OPTIONS.map((logo) => (
               <button
                 key={logo.id}
-                onClick={() => setSelectedLogo(logo)}
+                onClick={() => handleLogoSelect(logo)}
                 className={cn(
                   "p-3 rounded-lg border-2 transition-all duration-200 text-left",
                   "hover:border-crd-green hover:bg-crd-green/10",
@@ -160,7 +181,6 @@ export const LogoPicker = () => {
                       alt={logo.name}
                       className={cn(
                         "object-contain relative z-10 w-auto",
-                        // Reduce size for Bold Black and Blue & Gold logos
                         logo.id === 'cardshow-bold-black' || logo.id === 'cardshow-blue-gold' 
                           ? "h-6" 
                           : "h-8"
@@ -180,4 +200,3 @@ export const LogoPicker = () => {
     </div>
   );
 };
-
