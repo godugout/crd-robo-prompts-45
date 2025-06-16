@@ -32,7 +32,9 @@ export const CardPreview: React.FC<CardPreviewProps> = ({
   };
 
   const handleAutoFit = () => {
-    if (!currentImageUrl) {
+    const imageToFit = currentImageUrl || displayImageUrl;
+    
+    if (!imageToFit) {
       toast.error("No image to auto-fit");
       return;
     }
@@ -58,16 +60,37 @@ export const CardPreview: React.FC<CardPreviewProps> = ({
       // Apply the auto-fit positioning
       toast.success(`Auto-fit applied: ${fitOptions.fitMode} mode`);
       
-      // You could dispatch an event or call a callback here to update the image positioning
+      // Dispatch event for auto-fit
       window.dispatchEvent(new CustomEvent('autoFitApplied', { 
         detail: { fitResult, fitOptions } 
       }));
     };
     
-    img.src = currentImageUrl;
+    img.onerror = () => {
+      toast.error("Failed to load image for auto-fit");
+    };
+    
+    img.src = imageToFit;
   };
 
-  const displayImageUrl = currentImageUrl || "https://cdn.builder.io/api/v1/image/assets/TEMP/2e3fccaef4a8c8a85ab1b25e96634ffea6707d7f";
+  const handleCropClick = () => {
+    const imageToEdit = currentImageUrl || displayImageUrl;
+    
+    if (!imageToEdit) {
+      toast.error("No image to crop");
+      return;
+    }
+    
+    console.log("Opening crop modal with image:", imageToEdit);
+    setShowCropModal(true);
+  };
+
+  const handle3DClick = () => {
+    console.log("Opening 3D modal");
+    setShow3DModal(true);
+  };
+
+  const displayImageUrl = currentImageUrl || imageUrl || "https://cdn.builder.io/api/v1/image/assets/TEMP/2e3fccaef4a8c8a85ab1b25e96634ffea6707d7f";
 
   return (
     <>
@@ -88,7 +111,7 @@ export const CardPreview: React.FC<CardPreviewProps> = ({
         />
         <div className="absolute bottom-8 left-[40px] flex gap-6">
           <CardActionButton
-            onClick={() => setShow3DModal(true)}
+            onClick={handle3DClick}
             icon={
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path
@@ -99,7 +122,7 @@ export const CardPreview: React.FC<CardPreviewProps> = ({
             }
           />
           <CardActionButton
-            onClick={() => currentImageUrl ? setShowCropModal(true) : toast.error("No image to crop")}
+            onClick={handleCropClick}
             icon={
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path
@@ -133,11 +156,11 @@ export const CardPreview: React.FC<CardPreviewProps> = ({
       </div>
 
       {/* Modals */}
-      {showCropModal && currentImageUrl && (
+      {showCropModal && (
         <ImageCropperModal
           isOpen={showCropModal}
           onClose={() => setShowCropModal(false)}
-          imageUrl={currentImageUrl}
+          imageUrl={currentImageUrl || displayImageUrl}
           onCropComplete={handleCropComplete}
         />
       )}
@@ -151,7 +174,7 @@ export const CardPreview: React.FC<CardPreviewProps> = ({
             description: "Preview Card",
             rarity: "common"
           }}
-          imageUrl={currentImageUrl}
+          imageUrl={currentImageUrl || displayImageUrl}
         />
       )}
     </>
