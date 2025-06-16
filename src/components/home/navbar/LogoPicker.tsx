@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -35,15 +36,15 @@ const LOGO_OPTIONS = [
     has3D: true
   },
   {
-    id: 'cardshow-red-blue-script',
-    name: 'Red & Blue',
-    src: '/lovable-uploads/0dbff635-a494-4ce4-b6b7-cadd563ff383.png',
-    has3D: false
-  },
-  {
     id: 'cardshow-gradient-crd',
     name: 'Gradient',
     src: '/lovable-uploads/b4e234d6-d956-4a58-b701-5243e21a43da.png',
+    has3D: false
+  },
+  {
+    id: 'cardshow-red-blue-script',
+    name: 'Red & Blue',
+    src: '/lovable-uploads/0dbff635-a494-4ce4-b6b7-cadd563ff383.png',
     has3D: false
   },
   {
@@ -136,7 +137,13 @@ export const LogoPicker = () => {
                   <img
                     src={logo.src}
                     alt={logo.name}
-                    className="h-8 object-contain relative z-10 w-auto"
+                    className={cn(
+                      "object-contain relative z-10 w-auto",
+                      // Reduce size for Bold Black and Blue & Gold logos
+                      logo.id === 'cardshow-bold-black' || logo.id === 'cardshow-blue-gold' 
+                        ? "h-6" 
+                        : "h-8"
+                    )}
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                     }}
