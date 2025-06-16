@@ -84,94 +84,100 @@ export const LogoPicker = () => {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Link 
-          to="/" 
-          className={cn(
-            "flex items-center gap-2 transition-all duration-300 group",
-            "hover:brightness-150 hover:drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]"
-          )}
-        >
-          <div className="relative">
-            {selectedLogo.has3D && (
+    <div className={cn(
+      selectedLogo.id === 'cardshow-red-blue-script' || selectedLogo.id === 'cardshow-blue-script' 
+        ? 'bg-gray-700' 
+        : 'bg-crd-darkest'
+    )}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Link 
+            to="/" 
+            className={cn(
+              "flex items-center gap-2 transition-all duration-300 group",
+              "hover:brightness-150 hover:drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]"
+            )}
+          >
+            <div className="relative">
+              {selectedLogo.has3D && (
+                <img
+                  src={selectedLogo.src}
+                  alt=""
+                  className="h-10 object-contain absolute top-0.5 left-0.5 opacity-60 brightness-0 invert z-0 w-auto"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              )}
               <img
                 src={selectedLogo.src}
-                alt=""
-                className="h-10 object-contain absolute top-0.5 left-0.5 opacity-60 brightness-0 invert z-0 w-auto"
+                alt={selectedLogo.name}
+                className={cn(
+                  "h-10 object-contain relative z-10 w-auto",
+                  getHeaderLogoStyles(selectedLogo.id)
+                )}
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
               />
-            )}
-            <img
-              src={selectedLogo.src}
-              alt={selectedLogo.name}
-              className={cn(
-                "h-10 object-contain relative z-10 w-auto",
-                getHeaderLogoStyles(selectedLogo.id)
-              )}
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          </div>
-          <ChevronDown className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" />
-        </Link>
-      </DropdownMenuTrigger>
-      
-      <DropdownMenuContent 
-        className="w-80 p-4 bg-crd-darkest/95 backdrop-blur-sm border-crd-mediumGray/30"
-        align="start"
-      >
-        <div className="text-sm font-medium text-white mb-3">Choose Logo</div>
-        <div className="grid grid-cols-3 gap-3">
-          {LOGO_OPTIONS.map((logo) => (
-            <button
-              key={logo.id}
-              onClick={() => setSelectedLogo(logo)}
-              className={cn(
-                "p-3 rounded-lg border-2 transition-all duration-200 text-left",
-                "hover:border-crd-green hover:bg-crd-green/10",
-                selectedLogo.id === logo.id 
-                  ? "border-crd-green bg-crd-green/20" 
-                  : "border-crd-mediumGray/30 bg-crd-mediumGray/10"
-              )}
-            >
-              <div className="flex flex-col items-center gap-2">
-                <div className="relative">
-                  {logo.has3D && (
+            </div>
+            <ChevronDown className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" />
+          </Link>
+        </DropdownMenuTrigger>
+        
+        <DropdownMenuContent 
+          className="w-80 p-4 bg-crd-darkest/95 backdrop-blur-sm border-crd-mediumGray/30"
+          align="start"
+        >
+          <div className="text-sm font-medium text-white mb-3">Choose Logo</div>
+          <div className="grid grid-cols-3 gap-3">
+            {LOGO_OPTIONS.map((logo) => (
+              <button
+                key={logo.id}
+                onClick={() => setSelectedLogo(logo)}
+                className={cn(
+                  "p-3 rounded-lg border-2 transition-all duration-200 text-left",
+                  "hover:border-crd-green hover:bg-crd-green/10",
+                  selectedLogo.id === logo.id 
+                    ? "border-crd-green bg-crd-green/20" 
+                    : "border-crd-mediumGray/30 bg-crd-mediumGray/10"
+                )}
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <div className="relative">
+                    {logo.has3D && (
+                      <img
+                        src={logo.src}
+                        alt=""
+                        className="h-8 object-contain absolute top-0.5 left-0.5 opacity-40 brightness-0 invert z-0 w-auto"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
                     <img
                       src={logo.src}
-                      alt=""
-                      className="h-8 object-contain absolute top-0.5 left-0.5 opacity-40 brightness-0 invert z-0 w-auto"
+                      alt={logo.name}
+                      className={cn(
+                        "object-contain relative z-10 w-auto",
+                        // Reduce size for Bold Black and Blue & Gold logos
+                        logo.id === 'cardshow-bold-black' || logo.id === 'cardshow-blue-gold' 
+                          ? "h-6" 
+                          : "h-8"
+                      )}
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
                       }}
                     />
-                  )}
-                  <img
-                    src={logo.src}
-                    alt={logo.name}
-                    className={cn(
-                      "object-contain relative z-10 w-auto",
-                      // Reduce size for Bold Black and Blue & Gold logos
-                      logo.id === 'cardshow-bold-black' || logo.id === 'cardshow-blue-gold' 
-                        ? "h-6" 
-                        : "h-8"
-                    )}
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
+                  </div>
+                  <div className="font-medium text-white text-xs">{logo.name}</div>
                 </div>
-                <div className="font-medium text-white text-xs">{logo.name}</div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+              </button>
+            ))}
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 };
 
