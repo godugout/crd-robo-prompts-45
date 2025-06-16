@@ -34,6 +34,36 @@ const LOGO_OPTIONS = [
     name: 'Script',
     src: '/lovable-uploads/49b61ce3-8589-45b1-adb7-2594a81ab97b.png',
     has3D: true
+  },
+  {
+    id: 'cardshow-gradient-crd',
+    name: 'Gradient',
+    src: '/lovable-uploads/b4e234d6-d956-4a58-b701-5243e21a43da.png',
+    has3D: false
+  },
+  {
+    id: 'cardshow-blue-script',
+    name: 'Blue Script',
+    src: '/lovable-uploads/113582de-fb26-49d8-9e53-15aedd6d36ae.png',
+    has3D: false
+  },
+  {
+    id: 'cardshow-red-blue-script',
+    name: 'Red & Blue',
+    src: '/lovable-uploads/0dbff635-a494-4ce4-b6b7-cadd563ff383.png',
+    has3D: false
+  },
+  {
+    id: 'cardshow-bold-black',
+    name: 'Bold Black',
+    src: '/lovable-uploads/50e48a4f-d7f6-46df-b6bb-93287588484d.png',
+    has3D: false
+  },
+  {
+    id: 'cardshow-blue-gold',
+    name: 'Blue & Gold',
+    src: '/lovable-uploads/dedb3bf8-117e-4ae8-ab0d-1fe32f10eb39.png',
+    has3D: false
   }
 ];
 
@@ -75,11 +105,11 @@ export const LogoPicker = () => {
       </DropdownMenuTrigger>
       
       <DropdownMenuContent 
-        className="w-64 p-4 bg-crd-darkest/95 backdrop-blur-sm border-crd-mediumGray/30"
+        className="w-80 p-4 bg-crd-darkest/95 backdrop-blur-sm border-crd-mediumGray/30"
         align="start"
       >
         <div className="text-sm font-medium text-white mb-3">Choose Logo</div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {LOGO_OPTIONS.map((logo) => (
             <button
               key={logo.id}
@@ -113,7 +143,7 @@ export const LogoPicker = () => {
                     }}
                   />
                 </div>
-                <div className="font-medium text-white text-sm">{logo.name}</div>
+                <div className="font-medium text-white text-xs">{logo.name}</div>
               </div>
             </button>
           ))}
