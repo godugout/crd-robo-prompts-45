@@ -42,10 +42,7 @@ const EFFECT_CATEGORIES = [
   }
 ];
 
-export const Effects
-
-
-: React.FC<EffectsPhaseProps> = ({
+export const EffectsPhase: React.FC<EffectsPhaseProps> = ({
   selectedFrame,
   onEffectChange
 }) => {
