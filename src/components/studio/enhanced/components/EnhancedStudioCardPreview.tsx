@@ -89,8 +89,7 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
 
     // Apply 3D transform if enabled
     if (show3DPreview) {
-      transforms.push('perspective(1000px) rot
-ateX(5deg) rotateY(-5deg)');
+      transforms.push('perspective(1000px) rotateX(5deg) rotateY(-5deg)');
       
       if (hasActiveEffects) {
         styles.boxShadow = '0 20px 40px rgba(16, 185, 129, 0.2), 0 0 20px rgba(16, 185, 129, 0.1)';
