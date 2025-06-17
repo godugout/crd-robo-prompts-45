@@ -33,7 +33,7 @@ export const CompactFrameSelector: React.FC<CompactFrameSelectorProps> = ({
   };
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-3 ${className}`}>
       <div className="text-white text-sm font-medium mb-3">Choose Frame</div>
       
       <div className="grid grid-cols-3 gap-3">
@@ -50,7 +50,7 @@ export const CompactFrameSelector: React.FC<CompactFrameSelectorProps> = ({
             onMouseLeave={() => setHoveredFrame(null)}
           >
             <div 
-              className="aspect-[3/4] rounded-lg border-2 border-editor-border group-hover:border-crd-green/50 transition-colors overflow-hidden"
+              className="aspect-[3/4] rounded-lg border-2 border-white/20 group-hover:border-crd-green/50 transition-colors overflow-hidden"
               style={{ background: frame.preview }}
             >
               <div className="absolute inset-2 bg-black/20 rounded flex items-center justify-center">
@@ -73,16 +73,18 @@ export const CompactFrameSelector: React.FC<CompactFrameSelectorProps> = ({
               )}
             </div>
             
-            {/* Compact frame info */}
-            <div className="mt-1 px-1">
+            {/* Frame info directly below preview */}
+            <div className="mt-2 px-1 text-center">
               <p className="text-white text-xs font-medium truncate">{frame.name}</p>
-              <p className="text-crd-lightGray text-xs truncate opacity-70">{frame.category}</p>
+              <p className="text-gray-400 text-xs truncate opacity-70 capitalize">{frame.category}</p>
             </div>
             
-            {/* Hover tooltip */}
+            {/* Enhanced hover tooltip */}
             {hoveredFrame === frame.id && (
-              <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/90 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10 pointer-events-none">
-                {frame.description}
+              <div className="absolute -top-14 left-1/2 transform -translate-x-1/2 bg-black/90 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap z-10 pointer-events-none border border-white/20">
+                <div className="font-medium">{frame.name}</div>
+                <div className="text-gray-300 mt-1 max-w-32 truncate">{frame.description}</div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black/90"></div>
               </div>
             )}
           </div>

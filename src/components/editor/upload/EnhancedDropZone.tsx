@@ -68,7 +68,7 @@ export const EnhancedDropZone: React.FC<EnhancedDropZoneProps> = ({
     },
     multiple: true,
     maxFiles,
-    noClick: false, // Enable click to upload
+    noClick: false,
     noKeyboard: false,
     disabled: isProcessing
   });
@@ -100,12 +100,12 @@ export const EnhancedDropZone: React.FC<EnhancedDropZoneProps> = ({
   return (
     <div
       {...getRootProps()}
-      className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer ${
+      className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 cursor-pointer ${
         isDragging
           ? 'border-crd-green bg-crd-green/20 scale-105'
           : isDragActive
           ? 'border-crd-green bg-crd-green/10'
-          : 'border-crd-mediumGray hover:border-crd-green/50 hover:bg-crd-darkGray/50'
+          : 'border-gray-600 hover:border-crd-green/50 hover:bg-gray-800/50'
       } ${isProcessing ? 'opacity-50 pointer-events-none' : ''}`}
       role="button"
       tabIndex={0}
@@ -115,18 +115,18 @@ export const EnhancedDropZone: React.FC<EnhancedDropZoneProps> = ({
       
       {/* Animated background effect when dragging */}
       {isDragging && (
-        <div className="absolute inset-0 bg-gradient-to-br from-crd-green/30 to-crd-blue/30 rounded-xl animate-pulse" />
+        <div className="absolute inset-0 bg-gradient-to-br from-crd-green/30 to-blue-500/30 rounded-xl animate-pulse" />
       )}
       
-      <div className="relative z-10 space-y-6">
-        <div className="w-20 h-20 rounded-full bg-crd-mediumGray flex items-center justify-center mx-auto">
-          <FileImage className={`w-10 h-10 transition-colors ${
-            isDragging ? 'text-crd-green animate-bounce' : 'text-crd-lightGray'
+      <div className="relative z-10 space-y-4">
+        <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center mx-auto">
+          <FileImage className={`w-8 h-8 transition-colors ${
+            isDragging ? 'text-crd-green animate-bounce' : 'text-gray-300'
           }`} aria-hidden="true" />
         </div>
         
         <div>
-          <h3 className="text-crd-white font-medium text-xl mb-2">
+          <h3 className="text-white font-medium text-lg mb-2">
             {isDragging 
               ? `Drop ${draggedFiles.length} file${draggedFiles.length !== 1 ? 's' : ''} here!`
               : isDragActive 
@@ -134,7 +134,7 @@ export const EnhancedDropZone: React.FC<EnhancedDropZoneProps> = ({
               : 'Enhanced Bulk Upload'
             }
           </h3>
-          <p className="text-crd-lightGray text-sm max-w-md mx-auto">
+          <p className="text-gray-300 text-sm max-w-md mx-auto">
             {isDragging 
               ? 'Release to add these files to your processing queue'
               : 'Drag multiple images, folders, or use the upload options below'
@@ -146,12 +146,12 @@ export const EnhancedDropZone: React.FC<EnhancedDropZoneProps> = ({
         {draggedFiles.length > 0 && (
           <div className="flex justify-center gap-2">
             {draggedFiles.slice(0, 3).map((file, index) => (
-              <div key={index} className="w-12 h-12 bg-crd-darkGray rounded border border-crd-green flex items-center justify-center">
+              <div key={index} className="w-12 h-12 bg-gray-700 rounded border border-crd-green flex items-center justify-center">
                 <FileImage className="w-6 h-6 text-crd-green" />
               </div>
             ))}
             {draggedFiles.length > 3 && (
-              <div className="w-12 h-12 bg-crd-darkGray rounded border border-crd-green flex items-center justify-center">
+              <div className="w-12 h-12 bg-gray-700 rounded border border-crd-green flex items-center justify-center">
                 <span className="text-xs text-crd-green">+{draggedFiles.length - 3}</span>
               </div>
             )}
@@ -181,7 +181,7 @@ export const EnhancedDropZone: React.FC<EnhancedDropZoneProps> = ({
               }}
               variant="secondary"
               disabled={isProcessing}
-              className="bg-crd-lightGray hover:bg-crd-lightGray/90 text-black font-medium"
+              className="bg-gray-600 hover:bg-gray-500 text-white font-medium border-gray-500"
               aria-label="Upload entire folder"
             >
               <FolderOpen className="w-4 h-4 mr-2" />
@@ -190,7 +190,7 @@ export const EnhancedDropZone: React.FC<EnhancedDropZoneProps> = ({
           </div>
         )}
         
-        <div className="text-xs text-crd-lightGray">
+        <div className="text-xs text-gray-400">
           Supports JPG, PNG, WebP • Max {maxFiles} images • Enhanced drag & drop
         </div>
       </div>

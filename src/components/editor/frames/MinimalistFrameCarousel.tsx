@@ -76,7 +76,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
     id: frame.id,
     name: frame.name,
     category: frame.category,
-    premium: false, // Set based on your frame data
+    premium: false,
     preview: `linear-gradient(135deg, ${frame.accentColor.replace('bg-', '')} 0%, ${frame.backgroundColor.replace('bg-', '')} 100%)`,
     description: frame.description
   }));
@@ -110,7 +110,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
     );
   }
 
-  // Enhanced desktop layout with InteractiveFrameBrowser
+  // Enhanced desktop layout with larger card preview and improved frame browser
   if (isDesktop && viewMode === 'carousel') {
     return (
       <div className="w-full h-full">
@@ -119,10 +119,10 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
           onViewModeChange={setViewMode} 
         />
         <div className="flex h-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-          {/* Left side - Main preview */}
-          <div className="flex-1 flex items-center justify-center p-8" {...getRootProps()}>
+          {/* Left side - Expanded main preview (now takes more space) */}
+          <div className="flex-1 flex items-center justify-center p-6" {...getRootProps()}>
             <input {...getInputProps()} />
-            <div className="w-full max-w-md aspect-[3/4]">
+            <div className="w-full max-w-lg aspect-[3/4] max-h-[80vh]">
               <FramePreview
                 frame={currentFrame}
                 imageUrl={uploadedImage}
@@ -133,8 +133,8 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
             </div>
           </div>
           
-          {/* Right side - Interactive frame browser */}
-          <div className="w-80 bg-black/20 backdrop-blur-sm p-4 overflow-y-auto">
+          {/* Right side - Enhanced frame browser with better layout */}
+          <div className="w-96 bg-black/20 backdrop-blur-sm border-l border-white/10 overflow-y-auto">
             <InteractiveFrameBrowser
               frames={browserFrames}
               selectedFrame={selectedFrame || ''}
