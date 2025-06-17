@@ -30,12 +30,21 @@ export const EmbeddedCardCreator: React.FC = () => {
   const [step, setStep] = useState<Step>('frameAndImage');
   const [selectedFrame, setSelectedFrame] = useState<string>('');
 
+  console.log('EmbeddedCardCreator rendering:', {
+    step,
+    selectedFrame,
+    cardDataImage: cardData.image_url,
+    cardTitle: cardData.title
+  });
+
   const handleFrameSelect = (frameId: string) => {
+    console.log('Frame selected:', frameId);
     setSelectedFrame(frameId);
     updateField('template_id', frameId);
   };
 
   const handleImageUpload = (imageUrl: string) => {
+    console.log('Image uploaded:', imageUrl);
     updateField('image_url', imageUrl);
   };
 
@@ -139,8 +148,11 @@ export const EmbeddedCardCreator: React.FC = () => {
   };
 
   const renderStepContent = () => {
+    console.log('Rendering step content for:', step);
+    
     switch (step) {
       case 'frameAndImage':
+        console.log('Rendering FrameAndImageStep with:', { selectedFrame, uploadedImage: cardData.image_url });
         return (
           <div className="h-full min-h-[700px]">
             <FrameAndImageStep

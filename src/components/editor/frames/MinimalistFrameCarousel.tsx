@@ -33,6 +33,16 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
   const isMobile = useIsMobile();
   const { isDesktop } = useResponsiveBreakpoints();
 
+  console.log('MinimalistFrameCarousel rendering:', {
+    selectedFrame,
+    uploadedImage,
+    currentIndex,
+    viewMode,
+    isMobile,
+    isDesktop,
+    framesCount: MINIMALIST_FRAMES.length
+  });
+
   const onDrop = async (acceptedFiles: File[]) => {
     if (!acceptedFiles.length) return;
     
@@ -51,6 +61,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
 
   const goToFrame = (index: number) => {
     if (index === currentIndex) return;
+    console.log('Switching to frame index:', index, 'frame:', MINIMALIST_FRAMES[index]);
     setCurrentIndex(index);
     onFrameSelect(MINIMALIST_FRAMES[index].id);
   };
@@ -65,6 +76,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
 
   useEffect(() => {
     if (!selectedFrame && MINIMALIST_FRAMES.length > 0) {
+      console.log('Auto-selecting first frame:', MINIMALIST_FRAMES[0]);
       onFrameSelect(MINIMALIST_FRAMES[0].id);
     }
   }, [selectedFrame, onFrameSelect]);
@@ -88,8 +100,9 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
     }
   };
 
-  // Professional showcase layout for desktop
+  // Professional showcase layout for desktop - THIS IS THE ENHANCED LAYOUT
   if (isDesktop && viewMode === 'showcase') {
+    console.log('Rendering ProfessionalShowcaseView (Enhanced Layout)');
     return (
       <div className="w-full h-full">
         <ViewModeToggle 
@@ -112,6 +125,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
 
   // Enhanced desktop layout with larger card preview and improved frame browser
   if (isDesktop && viewMode === 'carousel') {
+    console.log('Rendering Enhanced Desktop Layout with InteractiveFrameBrowser');
     return (
       <div className="w-full h-full">
         <ViewModeToggle 
@@ -147,6 +161,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
   }
 
   // Mobile layout or gallery view
+  console.log('Rendering Mobile/Gallery Layout');
   return (
     <div className="w-full max-w-none mx-auto relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-[600px]">
       <ViewModeToggle 

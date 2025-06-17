@@ -15,6 +15,13 @@ export const FrameAndImageStep: React.FC<FrameAndImageStepProps> = ({
   onFrameSelect,
   onImageUpload
 }) => {
+  console.log('FrameAndImageStep rendering:', {
+    selectedFrame,
+    uploadedImage,
+    hasOnFrameSelect: !!onFrameSelect,
+    hasOnImageUpload: !!onImageUpload
+  });
+
   return (
     <div className="w-full h-full min-h-[600px]">
       <MinimalistFrameCarousel
