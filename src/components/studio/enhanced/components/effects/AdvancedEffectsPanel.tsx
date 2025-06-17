@@ -106,7 +106,7 @@ export const AdvancedEffectsPanel: React.FC<AdvancedEffectsPanelProps> = ({
           <div className="flex items-center justify-between">
             <label className="text-sm text-gray-300">Particles</label>
             <Button
-              onClick={() => onAdvanced3DChange('particles', !advanced3DEffects.parties)}
+              onClick={() => onAdvanced3DChange('particles', !advanced3DEffects.particles)}
               variant={advanced3DEffects.particles ? "default" : "outline"}
               size="sm"
               className={advanced3DEffects.particles ? "bg-crd-green text-black" : "border-white/20 text-white"}
