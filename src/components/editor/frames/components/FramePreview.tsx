@@ -4,6 +4,7 @@ import { Upload } from 'lucide-react';
 import { CardActionButton } from '@/components/card/buttons/CardActionButton';
 import { ImageCropperModal } from '@/components/editor/modals/ImageCropperModal';
 import { Card3DPreviewModal } from '@/components/editor/modals/Card3DPreviewModal';
+import { CompactCardInfo } from './CompactCardInfo';
 import { toast } from 'sonner';
 import { calculateAutoFit, detectBestFitMode } from '@/utils/imageAutoFit';
 
@@ -40,29 +41,16 @@ export const FramePreview: React.FC<FramePreviewProps> = ({
   const [showCropModal, setShowCropModal] = useState(false);
   const [show3DModal, setShow3DModal] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(imageUrl);
+  const [cardMetadata, setCardMetadata] = useState({
+    title: "Your Card Title",
+    description: "Description",
+    rarity: "common"
+  });
 
   const iconSize = {
     small: 'w-4 h-4',
     medium: 'w-6 h-6',
     large: 'w-8 h-8'
-  };
-
-  const textSize = {
-    small: 'text-xs',
-    medium: 'text-sm',
-    large: 'text-base'
-  };
-
-  const subtextSize = {
-    small: 'text-xs',
-    medium: 'text-xs',
-    large: 'text-sm'
-  };
-
-  const padding = {
-    small: 'p-1',
-    medium: 'p-2',
-    large: 'p-3'
   };
 
   // Action button handlers
@@ -131,6 +119,11 @@ export const FramePreview: React.FC<FramePreviewProps> = ({
     setShow3DModal(true);
   };
 
+  const handleCardMetadataUpdate = (data: { title: string; description: string; rarity: string }) => {
+    setCardMetadata(data);
+    toast.success("Card details updated!");
+  };
+
   // Determine border radius based on frame border style
   const getFrameBorderRadius = () => {
     if (frame.borderStyle.includes('border-0') || 
@@ -151,8 +144,8 @@ export const FramePreview: React.FC<FramePreviewProps> = ({
           isDragActive ? 'ring-2 ring-crd-green ring-opacity-50' : ''
         }`}
       >
-        {/* Image Area - Takes up most of the card space */}
-        <div className={`w-full h-3/4 relative overflow-hidden ${getFrameBorderRadius()}`}>
+        {/* Image Area - Takes up 85% of the card space */}
+        <div className={`w-full h-[85%] relative overflow-hidden ${getFrameBorderRadius()}`}>
           {displayImageUrl ? (
             <>
               <img 
@@ -216,20 +209,32 @@ export const FramePreview: React.FC<FramePreviewProps> = ({
             <div className={`w-full h-full ${frame.accentColor} flex items-center justify-center`}>
               <div className="text-center">
                 <Upload className={`${iconSize[size]} mx-auto mb-1 ${frame.textColor} opacity-50`} />
-                <p className={`${subtextSize[size]} ${frame.textColor} opacity-50`}>Your Image</p>
+                <p className={`text-xs ${frame.textColor} opacity-50`}>Your Image</p>
               </div>
             </div>
           )}
         </div>
         
-        {/* Text Area - Compact bottom section */}
-        <div className={`w-full h-1/4 ${padding[size]} flex flex-col justify-center`}>
-          <h4 className={`${frame.textColor} font-semibold ${textSize[size]} text-center truncate leading-tight`}>
-            Your Card Title
-          </h4>
-          <p className={`${frame.textColor} opacity-70 ${subtextSize[size]} text-center truncate leading-tight`}>
-            Description
-          </p>
+        {/* Compact Card Info Area - 15% of card space */}
+        <div className={`w-full h-[15%] ${frame.backgroundColor}`}>
+          {size === 'large' ? (
+            <CompactCardInfo
+              title={cardMetadata.title}
+              description={cardMetadata.description}
+              rarity={cardMetadata.rarity}
+              onUpdate={handleCardMetadataUpdate}
+              className={`h-full ${frame.textColor}`}
+            />
+          ) : (
+            <div className="p-1 flex flex-col justify-center h-full">
+              <h4 className={`${frame.textColor} font-semibold text-xs text-center truncate leading-tight`}>
+                {cardMetadata.title}
+              </h4>
+              <p className={`${frame.textColor} opacity-70 text-xs text-center truncate leading-tight`}>
+                {cardMetadata.description}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -248,9 +253,9 @@ export const FramePreview: React.FC<FramePreviewProps> = ({
           isOpen={show3DModal}
           onClose={() => setShow3DModal(false)}
           cardData={{
-            title: "Your Card Title",
-            description: "Description",
-            rarity: "common"
+            title: cardMetadata.title,
+            description: cardMetadata.description,
+            rarity: cardMetadata.rarity
           }}
           imageUrl={displayImageUrl}
         />

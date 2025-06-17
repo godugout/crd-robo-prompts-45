@@ -55,8 +55,7 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
             <strong>Enhanced Crop Controls:</strong>
             <ul className="mt-2 space-y-1 text-xs">
               <li>• Drag corners to resize while maintaining 2.5:3.5 aspect ratio</li>
-              <li>• Use rotation handle above crop area or manual controls</li>
-              <li>• Precise positioning with numerical inputs</li>
+              <li>• Use rotation handle above crop area</li>
               <li>• Quick actions: Center, Fit, and Reset</li>
               <li>• Undo/Redo support for all changes</li>
             </ul>
@@ -67,6 +66,7 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
             onCropComplete={handleCropComplete}
             aspectRatio={2.5 / 3.5}
             className="max-h-[70vh] overflow-hidden"
+            compact={true}
           />
           
           <div className="flex justify-end gap-2">

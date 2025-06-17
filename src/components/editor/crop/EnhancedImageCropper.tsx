@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Canvas as FabricCanvas, Rect, FabricImage, Line } from 'fabric';
 import { Button } from '@/components/ui/button';
 import { CropControls } from './CropControls';
+import { CompactCropControls } from './CompactCropControls';
 import { useCropState } from './useCropState';
 import { exportCroppedImage } from '@/utils/cropUtils';
 import { toast } from 'sonner';
@@ -12,13 +13,15 @@ interface EnhancedImageCropperProps {
   onCropComplete: (croppedImageUrl: string) => void;
   aspectRatio?: number;
   className?: string;
+  compact?: boolean;
 }
 
 export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
   imageUrl,
   onCropComplete,
   aspectRatio = 2.5 / 3.5,
-  className = ""
+  className = "",
+  compact = false
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
@@ -294,20 +297,34 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
       </div>
 
       {isReady && (
-        <CropControls
-          cropState={cropState}
-          onPositionChange={updateCropPosition}
-          onSizeChange={updateCropSize}
-          onRotationChange={updateCropRotation}
-          onReset={resetCrop}
-          onCenter={handleCenterCrop}
-          onFit={handleFitCrop}
-          canUndo={canUndo}
-          canRedo={canRedo}
-          onUndo={undo}
-          onRedo={redo}
-          aspectRatio={aspectRatio}
-        />
+        compact ? (
+          <CompactCropControls
+            cropState={cropState}
+            onReset={resetCrop}
+            onCenter={handleCenterCrop}
+            onFit={handleFitCrop}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onUndo={undo}
+            onRedo={redo}
+            onRotationChange={updateCropRotation}
+          />
+        ) : (
+          <CropControls
+            cropState={cropState}
+            onPositionChange={updateCropPosition}
+            onSizeChange={updateCropSize}
+            onRotationChange={updateCropRotation}
+            onReset={resetCrop}
+            onCenter={handleCenterCrop}
+            onFit={handleFitCrop}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onUndo={undo}
+            onRedo={redo}
+            aspectRatio={aspectRatio}
+          />
+        )
       )}
 
       <div className="flex justify-center gap-4">
