@@ -1,3 +1,4 @@
+
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { OverlayProvider } from '@/components/overlay/OverlayProvider';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -19,7 +20,7 @@ import CollectionDetail from '@/pages/CollectionDetail';
 import OakMemoryCreator from '@/pages/OakMemoryCreator';
 import { AuthPage } from '@/components/auth/AuthPage';
 import { CardCreationFlow } from '@/components/editor/CardCreationFlow';
-import { EnhancedCardCreator } from '@/components/cards/EnhancedCardCreator';
+import { OrganizedCardStudio } from '@/components/studio/enhanced/OrganizedCardStudio';
 import { SimplifiedCardCreationHubBackup } from '@/components/cards/SimplifiedCardCreationHubBackup';
 import { TestingNavigation } from '@/components/cards/TestingNavigation';
 
@@ -42,7 +43,7 @@ function App() {
             <Route path="cards/create" element={<CardCreationFlow />} />
             
             {/* NEW ROUTES FOR TESTING */}
-            <Route path="cards/enhanced" element={<EnhancedCardCreator />} />
+            <Route path="cards/enhanced" element={<OrganizedCardStudio />} />
             <Route path="cards/backup" element={<SimplifiedCardCreationHubBackup />} />
             <Route path="cards/test" element={<TestingNavigation />} />
             

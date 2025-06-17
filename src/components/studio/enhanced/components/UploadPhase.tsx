@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Camera, Crop, RotateCw, Maximize2, Download, X, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { ImageCropper } from '@/components/editor/ImageCropper';
+import { ImageCropperModal } from '@/components/editor/modals/ImageCropperModal';
 
 interface UploadPhaseProps {
   uploadedImage?: string;
@@ -21,7 +21,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState('');
   const [progress, setProgress] = useState(0);
-  const [showCropper, setShowCropper] = useState(false);
+  const [showCropModal, setShowCropModal] = useState(false);
   const [originalImage, setOriginalImage] = useState<string>('');
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -67,14 +67,14 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
 
   const handleCropComplete = useCallback((croppedImageUrl: string) => {
     onImageUpload(croppedImageUrl);
-    setShowCropper(false);
+    setShowCropModal(false);
     toast.success('Image cropped successfully!');
   }, [onImageUpload]);
 
   const handleCropImage = () => {
     if (uploadedImage) {
       setOriginalImage(uploadedImage);
-      setShowCropper(true);
+      setShowCropModal(true);
     }
   };
 
@@ -90,36 +90,6 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
       fileInput.click();
     }
   };
-
-  if (showCropper && originalImage) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-white font-medium">Crop Your Image</h3>
-          <Button
-            onClick={() => setShowCropper(false)}
-            variant="outline"
-            size="sm"
-            className="border-white/20 text-white"
-          >
-            <X className="w-4 h-4 mr-2" />
-            Cancel
-          </Button>
-        </div>
-        
-        <Card className="bg-black/20 border-white/10">
-          <CardContent className="p-4">
-            <ImageCropper
-              imageUrl={originalImage}
-              onCropComplete={handleCropComplete}
-              aspectRatio={2.5 / 3.5} // Trading card ratio
-              className="w-full"
-            />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   if (isProcessing) {
     return (
@@ -219,6 +189,16 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
             </div>
           </CardContent>
         </Card>
+
+        {/* Crop Modal */}
+        {showCropModal && originalImage && (
+          <ImageCropperModal
+            isOpen={showCropModal}
+            onClose={() => setShowCropModal(false)}
+            imageUrl={originalImage}
+            onCropComplete={handleCropComplete}
+          />
+        )}
       </div>
     );
   }
