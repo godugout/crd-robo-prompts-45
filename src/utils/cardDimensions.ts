@@ -1,5 +1,5 @@
 
-// Standard card dimensions and utilities
+// Standard card dimensions and utilities with flexible scaling support
 export const CARD_DIMENSIONS = {
   // Standard trading card size in inches
   WIDTH_INCHES: 2.5,
@@ -21,6 +21,12 @@ export interface CardDimensions {
   aspectRatio: number;
 }
 
+export interface FlexibleCardDimensions extends CardDimensions {
+  scale: number;
+  actualWidth: number;
+  actualHeight: number;
+}
+
 export const getCardDimensions = (orientation: CardOrientation): CardDimensions => {
   if (orientation === 'portrait') {
     return {
@@ -37,6 +43,52 @@ export const getCardDimensions = (orientation: CardOrientation): CardDimensions 
   }
 };
 
+export const calculateFlexibleCardSize = (
+  containerWidth: number,
+  containerHeight: number,
+  orientation: CardOrientation,
+  maxScale: number = 3,
+  minScale: number = 0.5
+): FlexibleCardDimensions => {
+  const baseDimensions = getCardDimensions(orientation);
+  const { width: baseWidth, height: baseHeight, aspectRatio } = baseDimensions;
+  
+  // Calculate available space (with some padding)
+  const availableWidth = containerWidth * 0.9;
+  const availableHeight = containerHeight * 0.9;
+  
+  // Calculate scale factors for both dimensions
+  const scaleByWidth = availableWidth / baseWidth;
+  const scaleByHeight = availableHeight / baseHeight;
+  
+  // Use the smaller scale to ensure the card fits within bounds
+  let optimalScale = Math.min(scaleByWidth, scaleByHeight);
+  
+  // Apply constraints
+  optimalScale = Math.max(minScale, Math.min(maxScale, optimalScale));
+  
+  const scaledWidth = baseWidth * optimalScale;
+  const scaledHeight = baseHeight * optimalScale;
+  
+  return {
+    width: scaledWidth,
+    height: scaledHeight,
+    aspectRatio,
+    scale: optimalScale,
+    actualWidth: baseWidth,
+    actualHeight: baseHeight,
+  };
+};
+
 export const formatDimensions = (orientation: CardOrientation): string => {
   return orientation === 'portrait' ? '2.5" × 3.5"' : '3.5" × 2.5"';
+};
+
+export const formatScaledDimensions = (
+  dimensions: FlexibleCardDimensions,
+  orientation: CardOrientation
+): string => {
+  const actualSize = formatDimensions(orientation);
+  const scalePercent = Math.round(dimensions.scale * 100);
+  return `${actualSize} (${scalePercent}% scale)`;
 };

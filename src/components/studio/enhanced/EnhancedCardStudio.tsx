@@ -1,12 +1,17 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EnhancedFrameBrowser } from './EnhancedFrameBrowser';
 import { EnhancedUploadZone } from './EnhancedUploadZone';
-import { Sparkles, Download, Share2, Eye, Settings, RotateCcw } from 'lucide-react';
-import { getCardDimensions, formatDimensions, type CardOrientation } from '@/utils/cardDimensions';
+import { Sparkles, Download, Share2, Eye, Settings, RotateCcw, Maximize2 } from 'lucide-react';
+import { 
+  calculateFlexibleCardSize, 
+  formatScaledDimensions, 
+  type CardOrientation,
+  type FlexibleCardDimensions 
+} from '@/utils/cardDimensions';
 
 interface EnhancedCardStudioProps {
   selectedFrame?: string;
@@ -23,18 +28,50 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
 }) => {
   const [previewMode, setPreviewMode] = useState<'2d' | '3d'>('2d');
   const [orientation, setOrientation] = useState<CardOrientation>('portrait');
+  const [cardDimensions, setCardDimensions] = useState<FlexibleCardDimensions | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const cardDimensions = getCardDimensions(orientation);
+  // Calculate flexible card dimensions based on container size
+  const updateCardDimensions = useCallback(() => {
+    if (!containerRef.current) return;
+    
+    const container = containerRef.current;
+    const containerRect = container.getBoundingClientRect();
+    const containerWidth = containerRect.width;
+    const containerHeight = containerRect.height;
+    
+    if (containerWidth > 0 && containerHeight > 0) {
+      const flexibleDimensions = calculateFlexibleCardSize(
+        containerWidth,
+        containerHeight,
+        orientation,
+        4, // maxScale
+        0.3 // minScale
+      );
+      setCardDimensions(flexibleDimensions);
+    }
+  }, [orientation]);
+
+  // Update dimensions on mount, orientation change, and window resize
+  useEffect(() => {
+    updateCardDimensions();
+    
+    const handleResize = () => updateCardDimensions();
+    window.addEventListener('resize', handleResize);
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, [updateCardDimensions]);
 
   const renderCardPreview = () => {
+    if (!cardDimensions) return null;
+
     return (
       <div className="relative w-full h-full flex items-center justify-center">
         <Card 
-          className="bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 border-white/20 rounded-3xl overflow-hidden shadow-2xl"
+          className="bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 border-white/20 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300"
           style={{
             width: `${cardDimensions.width}px`,
             height: `${cardDimensions.height}px`,
-            aspectRatio: cardDimensions.aspectRatio,
           }}
         >
           {/* Card Content */}
@@ -74,10 +111,10 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
           )}
         </Card>
 
-        {/* Canvas Boundary Indicator */}
+        {/* Flexible Canvas Boundary Indicator */}
         <div className="absolute inset-0 pointer-events-none">
           <div 
-            className="absolute border-2 border-dashed border-crd-green/30 rounded-lg"
+            className="absolute border-2 border-dashed border-crd-green/40 rounded-lg transition-all duration-300"
             style={{
               width: `${cardDimensions.width + 20}px`,
               height: `${cardDimensions.height + 20}px`,
@@ -88,13 +125,17 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
           />
         </div>
 
-        {/* Dimension Display */}
-        <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-2">
-          <div className="text-white text-sm font-medium">
-            {formatDimensions(orientation)}
+        {/* Enhanced Dimension Display */}
+        <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg px-4 py-3 border border-white/10">
+          <div className="text-white text-sm font-bold">
+            {formatScaledDimensions(cardDimensions, orientation)}
           </div>
-          <div className="text-gray-300 text-xs">
-            {cardDimensions.width} × {cardDimensions.height} px
+          <div className="text-gray-300 text-xs mt-1">
+            Display: {Math.round(cardDimensions.width)} × {Math.round(cardDimensions.height)} px
+          </div>
+          <div className="text-crd-green text-xs mt-1 flex items-center">
+            <Maximize2 className="w-3 h-3 mr-1" />
+            Flexible scaling active
           </div>
         </div>
 
@@ -154,14 +195,14 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
                 ENHANCED STUDIO
               </Badge>
               <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
-                PREMIUM
+                FLEXIBLE CANVAS
               </Badge>
             </div>
             <h1 className="text-4xl font-black text-white mb-2">
               Professional Card Creator
             </h1>
             <p className="text-xl text-gray-300">
-              Create stunning cards with advanced 3D effects and premium templates
+              Create stunning cards with flexible scaling and premium templates
             </p>
           </div>
           
@@ -180,9 +221,9 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
 
       {/* Main Layout */}
       <div className="grid grid-cols-12 gap-8 h-[calc(100vh-200px)]">
-        {/* Left Side - Large Card Preview */}
+        {/* Left Side - Flexible Card Preview */}
         <div className="col-span-7">
-          <div className="h-full flex items-center justify-center">
+          <div ref={containerRef} className="h-full flex items-center justify-center">
             {renderCardPreview()}
           </div>
         </div>
@@ -207,6 +248,21 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
               orientation={orientation}
             />
           </div>
+
+          {/* Flexible Canvas Info */}
+          {cardDimensions && (
+            <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-lg p-4 border border-white/10">
+              <h3 className="text-white font-semibold mb-2 flex items-center">
+                <Maximize2 className="w-4 h-4 mr-2 text-crd-green" />
+                Flexible Canvas Active
+              </h3>
+              <div className="text-sm text-gray-300 space-y-1">
+                <div>Actual card size: {orientation === 'portrait' ? '2.5" × 3.5"' : '3.5" × 2.5"'}</div>
+                <div>Display scale: {Math.round(cardDimensions.scale * 100)}%</div>
+                <div>Canvas adapts to maximize viewability</div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
