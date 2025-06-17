@@ -142,12 +142,14 @@ export const EmbeddedCardCreator: React.FC = () => {
     switch (step) {
       case 'frameAndImage':
         return (
-          <FrameAndImageStep
-            selectedFrame={selectedFrame}
-            uploadedImage={cardData.image_url}
-            onFrameSelect={handleFrameSelect}
-            onImageUpload={handleImageUpload}
-          />
+          <div className="h-full min-h-[700px]">
+            <FrameAndImageStep
+              selectedFrame={selectedFrame}
+              uploadedImage={cardData.image_url}
+              onFrameSelect={handleFrameSelect}
+              onImageUpload={handleImageUpload}
+            />
+          </div>
         );
 
       case 'customize':
@@ -228,22 +230,24 @@ export const EmbeddedCardCreator: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#141416] py-12 px-4 md:px-6 lg:px-8">
+    <div className="bg-[#141416] py-8 px-4 md:px-6 lg:px-8">
       <div className="w-full max-w-none mx-auto">
         <StepProgressIndicator 
           currentStep={step}
           getStepDescription={getStepDescription}
         />
 
-        {/* Step Content */}
-        <div className="bg-[#23262F] rounded-2xl p-4 lg:p-6 min-h-[500px]">
-          <div className="mb-6 text-center">
+        {/* Enhanced Step Content Container */}
+        <div className="bg-[#23262F] rounded-2xl overflow-hidden">
+          <div className="p-4 lg:p-6 text-center border-b border-gray-700">
             <Typography variant="h2" className="mb-2">
               {getStepTitle()}
             </Typography>
           </div>
           
-          {renderStepContent()}
+          <div className="min-h-[700px]">
+            {renderStepContent()}
+          </div>
         </div>
 
         <StepNavigation
