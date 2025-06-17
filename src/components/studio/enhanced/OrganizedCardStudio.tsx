@@ -72,14 +72,27 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
     return Math.min(completed, 100);
   }, [uploadedImage, selectedFrame, cardName, effectValues, show3DPreview, projectSaved]);
 
+  // Fixed image upload handler with stable reference
   const handleImageUpload = useCallback((imageUrl: string) => {
-    console.log('handleImageUpload called with:', imageUrl);
+    console.log('OrganizedCardStudio - handleImageUpload called with:', imageUrl);
+    
+    if (!imageUrl || imageUrl.trim() === '') {
+      console.log('OrganizedCardStudio - Empty image URL, clearing state');
+      setUploadedImage('');
+      return;
+    }
+
+    console.log('OrganizedCardStudio - Setting uploaded image:', imageUrl);
     setUploadedImage(imageUrl);
+    
+    // Auto-advance to frame phase if we're on upload phase
     if (activePhase === 'upload') {
+      console.log('OrganizedCardStudio - Auto-advancing to frame phase');
       setActivePhase('frame');
     }
+    
     toast.success('Image uploaded successfully!');
-  }, [activePhase]);
+  }, []); // Removed activePhase dependency to make this stable
 
   const handleFrameSelect = useCallback((frameId: string) => {
     setSelectedFrame(frameId);
@@ -90,7 +103,7 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
   }, [activePhase]);
 
   const handleCropComplete = useCallback((croppedImageUrl: string) => {
-    console.log('handleCropComplete called with:', croppedImageUrl);
+    console.log('OrganizedCardStudio - handleCropComplete called with:', croppedImageUrl);
     setUploadedImage(croppedImageUrl);
     setShowCropModal(false);
     toast.success('Image cropped successfully!');
@@ -137,10 +150,13 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
 
   // Debug current state
   React.useEffect(() => {
-    console.log('Current uploadedImage state:', uploadedImage);
-  }, [uploadedImage]);
+    console.log('OrganizedCardStudio - Current uploadedImage state:', uploadedImage);
+    console.log('OrganizedCardStudio - Current activePhase:', activePhase);
+  }, [uploadedImage, activePhase]);
 
   const renderPhaseContent = () => {
+    console.log('OrganizedCardStudio - Rendering phase content for:', activePhase);
+    
     switch (activePhase) {
       case 'upload':
         return (
@@ -325,7 +341,6 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
                   show3DPreview={show3DPreview}
                   cardName={cardName}
                   effectValues={effectValues}
-                  onImageUpload={handleImageUpload}
                 />
               </CardContent>
             </Card>

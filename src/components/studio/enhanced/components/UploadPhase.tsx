@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Camera, Crop, RotateCw, Maximize2, Download, X, Wand2 } from 'lucide-react';
+import { Upload, Camera, Crop, X, Wand2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageCropperModal } from '@/components/editor/modals/ImageCropperModal';
 
@@ -24,33 +24,62 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   const [progress, setProgress] = useState(0);
   const [showCropModal, setShowCropModal] = useState(false);
   const [originalImage, setOriginalImage] = useState<string>('');
+  const [uploadError, setUploadError] = useState<string>('');
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[], rejectedFiles: any[]) => {
+    console.log('UploadPhase - onDrop called', { acceptedFiles, rejectedFiles });
+    
+    // Clear previous errors
+    setUploadError('');
+    
+    // Handle rejected files
+    if (rejectedFiles.length > 0) {
+      const error = rejectedFiles[0].errors[0];
+      const errorMessage = error.code === 'file-too-large' 
+        ? 'File is too large. Maximum size is 50MB.'
+        : error.code === 'file-invalid-type'
+        ? 'File type not supported. Please use JPG, PNG, WebP, or GIF.'
+        : 'File upload failed. Please try again.';
+      
+      setUploadError(errorMessage);
+      toast.error(errorMessage);
+      return;
+    }
+
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
-      console.log('File dropped:', file.name, file.size);
+      console.log('UploadPhase - Processing file:', file.name, file.size, file.type);
+      
       setIsProcessing(true);
       setProcessingStep('Uploading image...');
       setProgress(25);
 
       try {
+        // Create image URL from file
         const imageUrl = URL.createObjectURL(file);
-        console.log('Created image URL:', imageUrl);
+        console.log('UploadPhase - Created image URL:', imageUrl);
         setOriginalImage(imageUrl);
         
         setProcessingStep('Processing image...');
         setProgress(75);
         
-        // Simulate processing time
+        // Simulate processing time for better UX
         await new Promise(resolve => setTimeout(resolve, 500));
         
         setProgress(100);
-        console.log('Calling onImageUpload with:', imageUrl);
+        setProcessingStep('Upload complete!');
+        
+        // Call the parent handler
+        console.log('UploadPhase - Calling onImageUpload with:', imageUrl);
         onImageUpload(imageUrl);
+        
         toast.success('Image uploaded successfully!');
+        
       } catch (error) {
-        toast.error('Failed to upload image');
-        console.error('Upload error:', error);
+        console.error('UploadPhase - Upload error:', error);
+        const errorMessage = 'Failed to upload image. Please try again.';
+        setUploadError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setIsProcessing(false);
         setProgress(0);
@@ -59,18 +88,20 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
     }
   }, [onImageUpload]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
     onDrop,
     accept: {
       'image/*': ['.jpeg', '.jpg', '.png', '.webp', '.gif']
     },
     maxFiles: 1,
     maxSize: 50 * 1024 * 1024, // 50MB
-    multiple: false
+    multiple: false,
+    noClick: false,
+    noKeyboard: false
   });
 
   const handleCropComplete = useCallback((croppedImageUrl: string) => {
-    console.log('Crop completed:', croppedImageUrl);
+    console.log('UploadPhase - Crop completed:', croppedImageUrl);
     onImageUpload(croppedImageUrl);
     setShowCropModal(false);
     toast.success('Image cropped successfully!');
@@ -78,7 +109,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
 
   const handleCropImage = () => {
     if (uploadedImage) {
-      console.log('Opening crop modal for:', uploadedImage);
+      console.log('UploadPhase - Opening crop modal for:', uploadedImage);
       setOriginalImage(uploadedImage);
       setShowCropModal(true);
     } else {
@@ -87,9 +118,10 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   };
 
   const handleRemoveImage = () => {
-    console.log('Removing image');
+    console.log('UploadPhase - Removing image');
     onImageUpload('');
     setOriginalImage('');
+    setUploadError('');
     toast.success('Image removed');
   };
 
@@ -102,8 +134,12 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
 
   // Debug current state
   React.useEffect(() => {
-    console.log('UploadPhase - uploadedImage:', uploadedImage);
-  }, [uploadedImage]);
+    console.log('UploadPhase - Current state:', { 
+      uploadedImage, 
+      isProcessing, 
+      uploadError 
+    });
+  }, [uploadedImage, isProcessing, uploadError]);
 
   if (isProcessing) {
     return (
@@ -141,6 +177,10 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
                 src={uploadedImage}
                 alt="Uploaded card image"
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error('UploadPhase - Image failed to load:', uploadedImage);
+                  setUploadError('Failed to load image. Please try uploading again.');
+                }}
               />
               
               {/* Overlay controls */}
@@ -224,6 +264,18 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
         Upload your image to get started. Supports JPG, PNG, WebP, and GIF formats.
       </div>
 
+      {/* Error Display */}
+      {uploadError && (
+        <Card className="bg-red-900/20 border-red-500/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-red-400">
+              <AlertCircle className="w-4 h-4" />
+              <span className="text-sm">{uploadError}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Drop Zone */}
       <Card className="bg-black/20 border-white/10">
         <CardContent className="p-6">
@@ -232,6 +284,8 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
             className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
               isDragActive
                 ? 'border-crd-green bg-crd-green/10'
+                : uploadError
+                ? 'border-red-500/50 hover:border-red-400/50'
                 : 'border-white/30 hover:border-crd-green/50 hover:bg-white/5'
             }`}
           >
@@ -254,7 +308,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
 
               <Button 
                 className="bg-crd-green hover:bg-crd-green/90 text-black font-bold"
-                onClick={(e) => e.stopPropagation()}
+                type="button"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Choose File
