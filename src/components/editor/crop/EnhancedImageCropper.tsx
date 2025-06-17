@@ -112,10 +112,8 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
         mb: false, // middle bottom
         ml: false, // middle left
         mr: false, // middle right
+        mtr: true, // rotation control - this is the correct property in v6
       });
-
-      // Add rotation control
-      rect.hasRotatingPoint = true;
 
       // Event handlers for crop rectangle
       rect.on('moving', () => {
