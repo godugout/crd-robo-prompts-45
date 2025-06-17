@@ -121,9 +121,7 @@ export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
         <div className="space-y-3">
           {/* Icon */}
           <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-br from-crd-green/20 to-blue-500/20 flex items-center justify-center">
-            {isD
-
-Active ? (
+            {isDragActive ? (
               <Upload className="w-6 h-6 text-crd-green animate-bounce" />
             ) : isProcessing ? (
               <div className="w-6 h-6 border-2 border-crd-green border-t-transparent rounded-full animate-spin" />
