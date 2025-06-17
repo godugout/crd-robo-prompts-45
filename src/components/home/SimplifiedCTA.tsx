@@ -69,7 +69,7 @@ export const SimplifiedCTA: React.FC = () => {
         <div className="flex gap-6 flex-wrap justify-center">
           {user ? (
             <>
-              <Link to="/cards/create">
+              <Link to="/cards/enhanced">
                 <CRDButton 
                   variant="primary" 
                   size="lg"
@@ -78,7 +78,7 @@ export const SimplifiedCTA: React.FC = () => {
                   Create New Card
                 </CRDButton>
               </Link>
-              <Link to="/cards/create">
+              <Link to="/cards/enhanced">
                 <CRDButton 
                   variant="secondary" 
                   size="lg"
@@ -99,7 +99,7 @@ export const SimplifiedCTA: React.FC = () => {
                   Get Started Free
                 </CRDButton>
               </Link>
-              <Link to="/cards/create">
+              <Link to="/cards/enhanced">
                 <CRDButton 
                   variant="secondary" 
                   size="lg"

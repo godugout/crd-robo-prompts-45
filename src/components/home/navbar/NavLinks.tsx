@@ -25,8 +25,8 @@ export const NavLinks = () => {
         Gallery
       </Link>
       <Link 
-        to="/cards" 
-        className={`nav-item ${isActive('/cards') ? 'active' : ''} flex items-center gap-2`}
+        to="/cards/enhanced" 
+        className={`nav-item ${isActive('/cards/enhanced') ? 'active' : ''} flex items-center gap-2`}
       >
         <Plus className="w-4 h-4" />
         Create

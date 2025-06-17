@@ -34,7 +34,7 @@ export const Hero: React.FC = () => {
           </Typography>
         </div>
         <div className="flex gap-4 mt-6">
-          <Link to="/cards/create">
+          <Link to="/cards/enhanced">
             <CRDButton 
               variant="primary"
               size="lg"
