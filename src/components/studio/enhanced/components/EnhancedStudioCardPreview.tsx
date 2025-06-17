@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ImagePlus, Camera } from 'lucide-react';
 import { calculateFlexibleCardSize, type CardOrientation } from '@/utils/cardDimensions';
 import { GradingLabel } from './GradingLabel';
+import { GradedCardSlab3D } from './GradedCardSlab3D';
 
 interface EnhancedStudioCardPreviewProps {
   uploadedImage?: string;
@@ -86,8 +86,8 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
       filters.push(`brightness(${1 - intensity * 0.1})`);
     }
 
-    // Apply 3D transform if enabled
-    if (show3DPreview) {
+    // Apply 3D transform if enabled and not using WebGL 3D
+    if (show3DPreview && !uploadedImage) {
       transforms.push('perspective(1000px) rotateX(2deg) rotateY(-2deg)');
       
       if (hasActiveEffects) {
@@ -112,6 +112,52 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
 
   const cardDimensions = calculateFlexibleCardSize(320, 450, orientation, 2.5, 0.4);
 
+  // If 3D preview is enabled and we have an image, use the WebGL 3D slab
+  if (show3DPreview && uploadedImage) {
+    return (
+      <div className="relative flex flex-col items-center justify-center min-h-[600px] p-6">
+        <style>
+          {`
+          @keyframes holographic-shift {
+            0% { filter: hue-rotate(0deg) saturate(1.2); }
+            25% { filter: hue-rotate(90deg) saturate(1.4); }
+            50% { filter: hue-rotate(180deg) saturate(1.6); }
+            75% { filter: hue-rotate(270deg) saturate(1.4); }
+            100% { filter: hue-rotate(360deg) saturate(1.2); }
+          }
+          `}
+        </style>
+
+        {/* 3D WebGL Slab */}
+        <div className="w-full max-w-lg h-[500px] bg-gradient-to-br from-gray-900 to-black rounded-2xl overflow-hidden border border-white/10">
+          <GradedCardSlab3D
+            cardImage={uploadedImage}
+            cardName={cardName || 'Your Card'}
+            overallGrade={9.5}
+            centeringGrade={9}
+            cornersGrade={10}
+            edgesGrade={9}
+            surfaceGrade={10}
+          />
+        </div>
+
+        {/* Info Below 3D Slab */}
+        <div className="mt-4 text-center bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/10">
+          <div className="text-white text-sm font-medium">
+            Professional 3D Graded Slab • CRD Certified
+          </div>
+          <div className="text-gray-400 text-xs mt-1">
+            Interactive 3D View • Drag to rotate • Scroll to zoom
+            {Object.keys(effectValues).length > 0 && (
+              <span className="ml-2 text-crd-green">• Enhanced</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback to 2D preview for cases without image or when 3D is disabled
   return (
     <div className="relative flex flex-col items-center justify-center min-h-[600px] p-6">
       <style>
@@ -250,6 +296,9 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
           Dimensions: {Math.round(cardDimensions.width)}×{Math.round(cardDimensions.height)}
           {Object.keys(effectValues).length > 0 && (
             <span className="ml-2 text-crd-green">• Enhanced</span>
+          )}
+          {show3DPreview && (
+            <span className="ml-2 text-purple-400">• Enable 3D with image upload</span>
           )}
         </div>
       </div>
