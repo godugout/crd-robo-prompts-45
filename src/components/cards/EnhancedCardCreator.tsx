@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useSimpleCardEditor } from '@/hooks/useSimpleCardEditor';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,10 +7,10 @@ import { Typography, CRDButton } from '@/components/ui/design-system';
 import type { CardRarity } from '@/types/card';
 import { StepProgressIndicator } from '@/components/card-creator/components/StepProgressIndicator';
 import { StepNavigation } from '@/components/card-creator/components/StepNavigation';
-import { FrameAndImageStep } from '@/components/card-creator/steps/FrameAndImageStep';
 import { CustomizeStep } from '@/components/card-creator/steps/CustomizeStep';
 import { PolishStep } from '@/components/card-creator/steps/PolishStep';
 import { CardPreview } from '@/components/card/CardPreview';
+import { EnhancedCardStudio } from '@/components/studio/enhanced/EnhancedCardStudio';
 import { Sparkles } from 'lucide-react';
 
 type Step = 'frameAndImage' | 'customize' | 'polish' | 'preview';
@@ -31,7 +30,7 @@ export const EnhancedCardCreator: React.FC = () => {
   const [step, setStep] = useState<Step>('frameAndImage');
   const [selectedFrame, setSelectedFrame] = useState<string>('');
 
-  console.log('EnhancedCardCreator rendering - DIRECT COMPONENT:', {
+  console.log('EnhancedCardCreator rendering - ENHANCED STUDIO VERSION:', {
     step,
     selectedFrame,
     cardDataImage: cardData.image_url,
@@ -104,7 +103,7 @@ export const EnhancedCardCreator: React.FC = () => {
   const getStepTitle = () => {
     switch (step) {
       case 'frameAndImage':
-        return 'Choose Frame & Upload Image (Enhanced)';
+        return 'Enhanced Professional Studio';
       case 'customize':
         return 'Customize Your Card';
       case 'polish':
@@ -119,7 +118,7 @@ export const EnhancedCardCreator: React.FC = () => {
   const getStepDescription = () => {
     switch (step) {
       case 'frameAndImage':
-        return 'Enhanced layout with professional frame browser and large preview';
+        return 'Professional card creation with premium frames and advanced preview';
       case 'customize':
         return 'Add your card title, description, and set the rarity';
       case 'polish':
@@ -152,16 +151,14 @@ export const EnhancedCardCreator: React.FC = () => {
     
     switch (step) {
       case 'frameAndImage':
-        console.log('Enhanced FrameAndImageStep with:', { selectedFrame, uploadedImage: cardData.image_url });
+        console.log('Enhanced Studio with:', { selectedFrame, uploadedImage: cardData.image_url });
         return (
-          <div className="h-full min-h-[700px]">
-            <FrameAndImageStep
-              selectedFrame={selectedFrame}
-              uploadedImage={cardData.image_url}
-              onFrameSelect={handleFrameSelect}
-              onImageUpload={handleImageUpload}
-            />
-          </div>
+          <EnhancedCardStudio
+            selectedFrame={selectedFrame}
+            uploadedImage={cardData.image_url}
+            onFrameSelect={handleFrameSelect}
+            onImageUpload={handleImageUpload}
+          />
         );
 
       case 'customize':
@@ -187,7 +184,7 @@ export const EnhancedCardCreator: React.FC = () => {
                 Your Enhanced Card is Ready!
               </Typography>
               <Typography variant="body" className="text-crd-lightGray">
-                Created with the enhanced layout and professional tools
+                Created with the enhanced professional studio
               </Typography>
             </div>
 
@@ -238,12 +235,22 @@ export const EnhancedCardCreator: React.FC = () => {
     }
   };
 
+  // For the frameAndImage step, render full-screen studio
+  if (step === 'frameAndImage') {
+    return (
+      <div className="min-h-screen">
+        {renderStepContent()}
+      </div>
+    );
+  }
+
+  // For other steps, use the standard layout
   return (
     <div className="bg-[#141416] py-8 px-4 md:px-6 lg:px-8 min-h-screen">
       <div className="w-full max-w-none mx-auto">
         <div className="mb-6 text-center">
           <div className="inline-block bg-crd-green text-black px-4 py-2 rounded-full text-sm font-bold mb-4">
-            ENHANCED LAYOUT - DIRECT COMPONENT
+            ENHANCED PROFESSIONAL STUDIO
           </div>
         </div>
 
