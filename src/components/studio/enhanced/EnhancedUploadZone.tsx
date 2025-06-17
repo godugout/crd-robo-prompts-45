@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Upload, Camera, Image, Sparkles, X } from 'lucide-react';
+import { Upload, Camera, Image, Sparkles, X, Folder } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface EnhancedUploadZoneProps {
@@ -52,56 +52,52 @@ export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
     toast.info('Image removed');
   };
 
+  // Compact version for when image is uploaded
   if (uploadedImage) {
     return (
-      <Card className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-white/10 p-6 rounded-2xl">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-xl font-bold text-white">Your Image</h3>
-            <p className="text-gray-300 text-sm">Looking great! Ready to create your card.</p>
+      <Card className="bg-black/20 border-white/10 p-4 rounded-lg">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Image className="w-4 h-4 text-crd-green" />
+            <span className="text-white text-sm font-medium">Image Ready</span>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={clearImage}
-            className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+            className="border-red-500/50 text-red-400 hover:bg-red-500/10 h-6 px-2"
           >
-            <X className="w-4 h-4 mr-1" />
-            Remove
+            <X className="w-3 h-3" />
           </Button>
         </div>
         
-        <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-black/40">
+        <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-black/40 mb-3">
           <img 
             src={uploadedImage} 
             alt="Uploaded"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-          <div className="absolute bottom-4 left-4 right-4">
-            <div className="flex items-center gap-2 text-white">
-              <Image className="w-5 h-5 text-crd-green" />
-              <span className="text-sm font-medium">Ready for card creation</span>
-            </div>
-          </div>
         </div>
 
-        <div className="mt-4 flex gap-3">
+        <div className="flex gap-2">
           <Button
             {...getRootProps()}
             variant="outline"
-            className="flex-1 border-white/20 text-white hover:bg-white/10"
+            size="sm"
+            className="flex-1 border-white/20 text-white hover:bg-white/10 h-8 text-xs"
             disabled={isProcessing}
           >
             <input {...getInputProps()} />
-            <Upload className="w-4 h-4 mr-2" />
-            Replace Image
+            <Upload className="w-3 h-3 mr-1" />
+            Replace
           </Button>
           <Button
             variant="outline" 
-            className="border-crd-green/50 text-crd-green hover:bg-crd-green/10"
+            size="sm"
+            className="border-crd-green/50 text-crd-green hover:bg-crd-green/10 h-8 text-xs"
           >
-            <Sparkles className="w-4 h-4 mr-2" />
+            <Sparkles className="w-3 h-3 mr-1" />
             Enhance
           </Button>
         </div>
@@ -109,77 +105,57 @@ export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
     );
   }
 
+  // Compact upload zone for sidebar
   return (
-    <Card className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-white/10 rounded-2xl overflow-hidden">
+    <Card className="bg-black/20 border-white/10 rounded-lg overflow-hidden">
       <div
         {...getRootProps()}
-        className={`relative p-8 text-center cursor-pointer transition-all duration-300 ${
+        className={`relative p-6 text-center cursor-pointer transition-all duration-300 ${
           isDragActive || dragActive
-            ? 'bg-crd-green/20 border-crd-green scale-[1.02]'
+            ? 'bg-crd-green/20 border-crd-green'
             : 'hover:bg-white/5'
         } ${isProcessing ? 'opacity-50 pointer-events-none' : ''}`}
       >
         <input {...getInputProps()} />
         
-        {/* Background Animation */}
-        {(isDragActive || dragActive) && (
-          <div className="absolute inset-0 bg-gradient-to-r from-crd-green/30 to-blue-500/30 animate-pulse" />
-        )}
-        
-        <div className="relative z-10 space-y-6">
+        <div className="space-y-3">
           {/* Icon */}
-          <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-crd-green/20 to-blue-500/20 flex items-center justify-center">
-            {isDragActive ? (
-              <Upload className="w-10 h-10 text-crd-green animate-bounce" />
+          <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-br from-crd-green/20 to-blue-500/20 flex items-center justify-center">
+            {isD
+
+Active ? (
+              <Upload className="w-6 h-6 text-crd-green animate-bounce" />
+            ) : isProcessing ? (
+              <div className="w-6 h-6 border-2 border-crd-green border-t-transparent rounded-full animate-spin" />
             ) : (
-              <Camera className="w-10 h-10 text-gray-300" />
+              <Folder className="w-6 h-6 text-gray-300" />
             )}
           </div>
           
-          {/* Title and Description */}
+          {/* Text */}
           <div>
-            <h3 className="text-2xl font-bold text-white mb-2">
+            <p className="text-white font-medium text-sm">
               {isDragActive 
-                ? 'Drop your image here!' 
+                ? 'Drop here!' 
                 : isProcessing 
                 ? 'Processing...'
-                : 'Upload Your Image'
+                : 'Browse Files'
               }
-            </h3>
-            <p className="text-gray-300 text-lg max-w-md mx-auto">
-              {isDragActive 
-                ? 'Release to upload and start creating your premium card'
-                : 'Drag & drop your photo or click to browse from your device'
-              }
+            </p>
+            <p className="text-gray-400 text-xs mt-1">
+              JPG, PNG, WebP • Up to 50MB
             </p>
           </div>
 
-          {/* Upload Button */}
+          {/* Button */}
           {!isDragActive && !isProcessing && (
-            <div className="space-y-4">
-              <Button 
-                size="lg"
-                className="bg-crd-green hover:bg-crd-green/90 text-black font-bold px-8 py-4 text-lg rounded-xl"
-              >
-                <Upload className="w-5 h-5 mr-3" />
-                Choose Image
-              </Button>
-              
-              <div className="flex items-center gap-4 text-sm text-gray-400">
-                <span>Supports JPG, PNG, WebP</span>
-                <span>•</span>
-                <span>Up to 50MB</span>
-                <span>•</span>
-                <span>High Quality</span>
-              </div>
-            </div>
-          )}
-
-          {isProcessing && (
-            <div className="flex items-center justify-center gap-3">
-              <div className="w-6 h-6 border-2 border-crd-green border-t-transparent rounded-full animate-spin" />
-              <span className="text-crd-green font-medium">Processing your image...</span>
-            </div>
+            <Button 
+              size="sm"
+              className="bg-crd-green hover:bg-crd-green/90 text-black font-medium px-4 py-1 text-xs"
+            >
+              <Camera className="w-3 h-3 mr-1" />
+              Select Image
+            </Button>
           )}
         </div>
       </div>

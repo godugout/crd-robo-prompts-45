@@ -8,7 +8,7 @@ import { Search, Star, Grid, Filter, ChevronLeft, ChevronRight } from 'lucide-re
 import { toast } from 'sonner';
 import { getCardDimensions, type CardOrientation } from '@/utils/cardDimensions';
 
-interface Frame {
+interface VisualEffect {
   id: string;
   name: string;
   category: string;
@@ -23,22 +23,22 @@ interface EnhancedFrameBrowserProps {
   orientation: CardOrientation;
 }
 
-const ENHANCED_FRAMES: Frame[] = [
+const VISUAL_EFFECTS: VisualEffect[] = [
   {
     id: 'holographic-elite',
     name: 'Holographic Elite',
-    category: 'premium',
+    category: 'holographic',
     premium: true,
     preview: 'linear-gradient(45deg, #ff006e, #8338ec, #3a86ff)',
-    description: 'Shimmering holographic effect with premium styling'
+    description: 'Shimmering holographic finish with rainbow effects'
   },
   {
     id: 'chrome-professional',
     name: 'Chrome Professional',
-    category: 'modern',
+    category: 'metallic',
     premium: true,
     preview: 'linear-gradient(135deg, #6b7280 0%, #9ca3af 50%, #d1d5db 100%)',
-    description: 'Sleek chrome finish with metallic effects'
+    description: 'Sleek chrome finish with mirror-like reflections'
   },
   {
     id: 'vintage-gold',
@@ -46,15 +46,15 @@ const ENHANCED_FRAMES: Frame[] = [
     category: 'vintage',
     premium: false,
     preview: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
-    description: 'Classic gold design with vintage styling'
+    description: 'Classic gold treatment with aged styling'
   },
   {
     id: 'neon-cyber',
     name: 'Neon Cyber',
-    category: 'futuristic',
+    category: 'modern',
     premium: true,
     preview: 'linear-gradient(135deg, #10b981 0%, #06d6a0 50%, #00f5ff 100%)',
-    description: 'Futuristic neon glow with cyber aesthetics'
+    description: 'Futuristic neon glow with digital aesthetics'
   },
   {
     id: 'royal-purple',
@@ -62,7 +62,7 @@ const ENHANCED_FRAMES: Frame[] = [
     category: 'luxury',
     premium: false,
     preview: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%)',
-    description: 'Elegant royal purple with luxury styling'
+    description: 'Elegant royal treatment with luxury styling'
   },
   {
     id: 'sports-classic',
@@ -70,8 +70,18 @@ const ENHANCED_FRAMES: Frame[] = [
     category: 'sports',
     premium: false,
     preview: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%)',
-    description: 'Traditional sports card design'
+    description: 'Traditional sports card design with bold accents'
   }
+];
+
+const EFFECT_CATEGORIES = [
+  { id: 'all', name: 'All Effects', count: VISUAL_EFFECTS.length },
+  { id: 'holographic', name: 'Holographic', count: 1 },
+  { id: 'metallic', name: 'Metallic', count: 1 },
+  { id: 'vintage', name: 'Vintage', count: 1 },
+  { id: 'modern', name: 'Modern', count: 1 },
+  { id: 'luxury', name: 'Luxury', count: 1 },
+  { id: 'sports', name: 'Sports', count: 1 }
 ];
 
 export const EnhancedFrameBrowser: React.FC<EnhancedFrameBrowserProps> = ({
@@ -82,33 +92,27 @@ export const EnhancedFrameBrowser: React.FC<EnhancedFrameBrowserProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentPage, setCurrentPage] = useState(0);
+  const [hoveredEffect, setHoveredEffect] = useState<string | null>(null);
   const itemsPerPage = 4;
 
   const cardDimensions = getCardDimensions(orientation);
 
-  const categories = [
-    { id: 'all', name: 'All', count: ENHANCED_FRAMES.length },
-    { id: 'premium', name: 'Premium', count: 3 },
-    { id: 'sports', name: 'Sports', count: 1 },
-    { id: 'vintage', name: 'Vintage', count: 1 },
-    { id: 'modern', name: 'Modern', count: 1 }
-  ];
-
-  const filteredFrames = ENHANCED_FRAMES.filter(frame => {
-    const matchesSearch = frame.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || frame.category === selectedCategory;
+  const filteredEffects = VISUAL_EFFECTS.filter(effect => {
+    const matchesSearch = effect.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         effect.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || effect.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const totalPages = Math.ceil(filteredFrames.length / itemsPerPage);
-  const currentFrames = filteredFrames.slice(
+  const totalPages = Math.ceil(filteredEffects.length / itemsPerPage);
+  const currentEffects = filteredEffects.slice(
     currentPage * itemsPerPage,
     (currentPage + 1) * itemsPerPage
   );
 
-  const handleFrameClick = (frameId: string, frameName: string) => {
-    onFrameSelect(frameId);
-    toast.success(`Applied ${frameName} frame`, {
+  const handleEffectClick = (effectId: string, effectName: string) => {
+    onFrameSelect(effectId);
+    toast.success(`Applied ${effectName} effect`, {
       duration: 2000,
       className: 'bg-crd-green text-black'
     });
@@ -122,8 +126,8 @@ export const EnhancedFrameBrowser: React.FC<EnhancedFrameBrowserProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-2xl font-bold text-white mb-1">Professional Frames</h3>
-          <p className="text-gray-300 text-sm">Choose from our curated collection of premium card templates</p>
+          <h3 className="text-2xl font-bold text-white mb-1">Visual Effects Library</h3>
+          <p className="text-gray-300 text-sm">Professional finishes and treatments for your cards</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
@@ -142,7 +146,7 @@ export const EnhancedFrameBrowser: React.FC<EnhancedFrameBrowserProps> = ({
         <div className="relative">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <Input
-            placeholder="Search premium frames..."
+            placeholder="Search visual effects..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-12 bg-black/30 border-white/20 text-white placeholder:text-gray-400 h-12 text-lg"
@@ -150,7 +154,7 @@ export const EnhancedFrameBrowser: React.FC<EnhancedFrameBrowserProps> = ({
         </div>
 
         <div className="flex gap-3 overflow-x-auto pb-2">
-          {categories.map(category => (
+          {EFFECT_CATEGORIES.map(category => (
             <Button
               key={category.id}
               variant={selectedCategory === category.id ? "default" : "outline"}
@@ -174,16 +178,18 @@ export const EnhancedFrameBrowser: React.FC<EnhancedFrameBrowserProps> = ({
         </div>
       </div>
 
-      {/* Frame Grid - Horizontal Layout with proper aspect ratios */}
+      {/* Effects Grid */}
       <div className="space-y-4">
         <div className="grid grid-cols-4 gap-4">
-          {currentFrames.map(frame => (
+          {currentEffects.map(effect => (
             <Card
-              key={frame.id}
+              key={effect.id}
               className={`relative cursor-pointer group transition-all duration-300 overflow-hidden bg-black/20 border-white/10 hover:border-crd-green/50 hover:scale-105 ${
-                selectedFrame === frame.id ? 'ring-2 ring-crd-green border-crd-green' : ''
-              }`}
-              onClick={() => handleFrameClick(frame.id, frame.name)}
+                selectedFrame === effect.id ? 'ring-2 ring-crd-green border-crd-green' : ''
+              } ${hoveredEffect === effect.id ? 'shadow-2xl shadow-crd-green/20' : ''}`}
+              onClick={() => handleEffectClick(effect.id, effect.name)}
+              onMouseEnter={() => setHoveredEffect(effect.id)}
+              onMouseLeave={() => setHoveredEffect(null)}
             >
               <div 
                 className="relative"
@@ -192,10 +198,13 @@ export const EnhancedFrameBrowser: React.FC<EnhancedFrameBrowserProps> = ({
                 }}
               >
                 <div 
-                  className="absolute inset-0 rounded-lg"
-                  style={{ background: frame.preview }}
+                  className="absolute inset-0 rounded-lg transition-all duration-300"
+                  style={{ 
+                    background: effect.preview,
+                    filter: hoveredEffect === effect.id ? 'brightness(1.2) saturate(1.3)' : 'brightness(1)'
+                  }}
                 >
-                  {/* Frame Content Simulation */}
+                  {/* Effect Content Simulation */}
                   <div className="absolute inset-4 bg-black/30 rounded flex flex-col items-center justify-center text-white">
                     <div className="w-8 h-6 bg-white/40 rounded mb-2"></div>
                     <div className="w-12 h-1 bg-white/60 rounded mb-1"></div>
@@ -203,24 +212,34 @@ export const EnhancedFrameBrowser: React.FC<EnhancedFrameBrowserProps> = ({
                   </div>
                   
                   {/* Premium Badge */}
-                  {frame.premium && (
+                  {effect.premium && (
                     <div className="absolute top-2 right-2">
                       <Star className="w-4 h-4 text-yellow-400 fill-current drop-shadow-lg" />
                     </div>
                   )}
 
                   {/* Selection Indicator */}
-                  {selectedFrame === frame.id && (
+                  {selectedFrame === effect.id && (
                     <div className="absolute top-2 left-2 w-5 h-5 bg-crd-green rounded-full flex items-center justify-center">
                       <div className="w-2 h-2 bg-black rounded-full"></div>
                     </div>
+                  )}
+
+                  {/* Hover Effect Overlay */}
+                  {hoveredEffect === effect.id && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-crd-green/20 to-transparent rounded-lg" />
                   )}
                 </div>
               </div>
               
               <div className="p-3 bg-black/40 backdrop-blur-sm">
-                <h4 className="text-white font-semibold text-sm truncate">{frame.name}</h4>
-                <p className="text-gray-300 text-xs truncate mt-1">{frame.description}</p>
+                <h4 className="text-white font-semibold text-sm truncate">{effect.name}</h4>
+                <p className="text-gray-300 text-xs truncate mt-1">{effect.description}</p>
+                {hoveredEffect === effect.id && (
+                  <div className="mt-2 text-xs text-crd-green">
+                    Click to apply this effect
+                  </div>
+                )}
               </div>
             </Card>
           ))}
