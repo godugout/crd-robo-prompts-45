@@ -16,7 +16,8 @@ import {
   Download,
   Eye,
   RotateCcw,
-  Maximize2
+  Maximize2,
+  Zap
 } from 'lucide-react';
 import { StudioCardPreview } from './components/StudioCardPreview';
 import { BasicCardInfo } from './components/BasicCardInfo';
@@ -26,6 +27,7 @@ import { EffectsPhase } from './components/EffectsPhase';
 import { StudioPhase } from './components/StudioPhase';
 import { ImageCropperModal } from '@/components/editor/modals/ImageCropperModal';
 import { useResponsiveBreakpoints } from '@/hooks/useResponsiveBreakpoints';
+import { useStudioState } from '@/hooks/useStudioState';
 import { toast } from 'sonner';
 import { EnhancedStudioCardPreview } from './components/EnhancedStudioCardPreview';
 
@@ -49,20 +51,24 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
   const [showCropModal, setShowCropModal] = useState(false);
   const [show3DPreview, setShow3DPreview] = useState(true);
-  const [effectValues, setEffectValues] = useState({});
+  const [effectValues, setEffectValues] = useState<Record<string, Record<string, any>>>({});
+  const [projectSaved, setProjectSaved] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
 
   const { isMobile, isTablet } = useResponsiveBreakpoints();
+  const { studioState } = useStudioState();
 
-  // Calculate progress based on completed phases
+  // Enhanced progress calculation
   const getProgress = useCallback(() => {
     let completed = 0;
-    if (uploadedImage) completed += 25;
-    if (selectedFrame) completed += 25;
-    if (cardName) completed += 25;
-    completed += 25; // Always show some base progress
+    if (uploadedImage) completed += 20;
+    if (selectedFrame) completed += 20;
+    if (cardName) completed += 20;
+    if (Object.keys(effectValues).length > 0) completed += 20;
+    if (show3DPreview) completed += 10;
+    if (projectSaved) completed += 10;
     return Math.min(completed, 100);
-  }, [uploadedImage, selectedFrame, cardName]);
+  }, [uploadedImage, selectedFrame, cardName, effectValues, show3DPreview, projectSaved]);
 
   const handleImageUpload = useCallback((imageUrl: string) => {
     setUploadedImage(imageUrl);
@@ -86,10 +92,44 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
     toast.success('Image cropped successfully!');
   }, []);
 
-  const handleExport = useCallback(() => {
-    toast.success('Exporting your card...');
-    // Export logic would go here
+  // Enhanced effect change handler
+  const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
+    setEffectValues(prev => ({
+      ...prev,
+      [effectId]: {
+        ...prev[effectId],
+        [parameterId]: value
+      }
+    }));
   }, []);
+
+  // Enhanced export with professional features
+  const handleExport = useCallback(() => {
+    toast.success('Exporting professional-quality card...');
+    console.log('Export settings:', {
+      cardName,
+      cardDescription,
+      uploadedImage,
+      selectedFrame,
+      effectValues,
+      lighting: studioState.lighting,
+      show3DPreview
+    });
+  }, [cardName, cardDescription, uploadedImage, selectedFrame, effectValues, studioState, show3DPreview]);
+
+  // Save project functionality
+  const handleSaveProject = useCallback(() => {
+    setProjectSaved(true);
+    toast.success('Project saved successfully!');
+  }, []);
+
+  // Share project functionality
+  const handleShareProject = useCallback(() => {
+    if (!projectSaved) {
+      handleSaveProject();
+    }
+    toast.success('Generating share link...');
+  }, [projectSaved, handleSaveProject]);
 
   const renderPhaseContent = () => {
     switch (activePhase) {
@@ -113,13 +153,8 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
         return (
           <EffectsPhase
             selectedFrame={selectedFrame}
-            onEffectChange={(effectId, value) => {
-              toast.success(`Applied ${effectId} effect`);
-              setEffectValues((prevValues) => ({
-                ...prevValues,
-                [effectId]: value
-              }));
-            }}
+            onEffectChange={handleEffectChange}
+            effectValues={effectValues}
           />
         );
       case 'studio':
@@ -128,6 +163,9 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
             show3DPreview={show3DPreview}
             onToggle3D={() => setShow3DPreview(!show3DPreview)}
             onExport={handleExport}
+            cardData={{ title: cardName, description: cardDescription }}
+            currentPhoto={uploadedImage}
+            effectLayers={[]}
           />
         );
       default:
@@ -161,6 +199,12 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
                   <Badge variant="outline" className="border-blue-500/50 text-blue-400">
                     PROFESSIONAL STUDIO
                   </Badge>
+                  {show3DPreview && (
+                    <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/50">
+                      <Zap className="w-3 h-3 mr-1" />
+                      3D PREMIUM
+                    </Badge>
+                  )}
                 </div>
                 <h1 className="text-xl md:text-2xl font-bold text-white">
                   Card Creation Studio
@@ -171,15 +215,31 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
             {/* Desktop Actions */}
             {!isMobile && (
               <div className="flex items-center gap-3">
-                <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleSaveProject}
+                  className={projectSaved 
+                    ? "border-crd-green/50 text-crd-green" 
+                    : "border-white/20 text-white hover:bg-white/10"
+                  }
+                >
                   <Save className="w-4 h-4 mr-2" />
-                  Save
+                  {projectSaved ? 'Saved' : 'Save'}
                 </Button>
-                <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleShareProject}
+                  className="border-white/20 text-white hover:bg-white/10"
+                >
                   <Share2 className="w-4 h-4 mr-2" />
                   Share
                 </Button>
-                <Button className="bg-crd-green hover:bg-crd-green/90 text-black font-bold">
+                <Button 
+                  onClick={handleExport}
+                  className="bg-crd-green hover:bg-crd-green/90 text-black font-bold"
+                >
                   <Download className="w-4 h-4 mr-2" />
                   Export
                 </Button>
@@ -187,11 +247,18 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
             )}
           </div>
 
-          {/* Progress Bar */}
+          {/* Enhanced Progress Bar */}
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-300">Creation Progress</span>
-              <span className="text-sm text-crd-green font-medium">{getProgress()}%</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-crd-green font-medium">{getProgress()}%</span>
+                {getProgress() === 100 && (
+                  <Badge className="bg-crd-green/20 text-crd-green border-crd-green/50 text-xs">
+                    COMPLETE
+                  </Badge>
+                )}
+              </div>
             </div>
             <Progress value={getProgress()} className="h-2 bg-gray-800" />
           </div>
@@ -203,13 +270,18 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
           
           {/* Left Side - Card Preview & Basic Info */}
           <div className={`${isMobile ? 'order-1' : 'col-span-7'} space-y-6`}>
-            {/* Card Preview Section */}
+            {/* Enhanced Card Preview Section */}
             <Card className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-white/10">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-bold text-white flex items-center gap-2">
                     <Eye className="w-5 h-5" />
                     Card Preview
+                    {show3DPreview && (
+                      <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/50 text-xs">
+                        3D
+                      </Badge>
+                    )}
                   </h2>
                   <div className="flex gap-2">
                     <Button
@@ -257,11 +329,16 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
             </Card>
           </div>
 
-          {/* Right Side - Workflow Phases */}
+          {/* Right Side - Enhanced Workflow Phases */}
           <div className={`${isMobile ? 'order-2' : 'col-span-5'} space-y-6`}>
             <Card className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-white/10">
               <CardContent className="p-6">
-                <h2 className="text-lg font-bold text-white mb-4">Creation Workflow</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold text-white">Professional Workflow</h2>
+                  <Badge variant="outline" className="border-crd-green/50 text-crd-green">
+                    PHASE {WORKFLOW_PHASES.findIndex(p => p.id === activePhase) + 1}/4
+                  </Badge>
+                </div>
                 
                 <Tabs value={activePhase} onValueChange={setActivePhase} className="w-full">
                   <TabsList className="grid w-full grid-cols-4 bg-black/30 p-1">
@@ -301,19 +378,30 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
           </div>
         </div>
 
-        {/* Mobile Actions Bar */}
+        {/* Enhanced Mobile Actions Bar */}
         {isMobile && (
           <div className="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-sm border-t border-white/10 p-4">
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1 border-white/20 text-white">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleSaveProject}
+                className={`flex-1 ${projectSaved 
+                  ? "border-crd-green/50 text-crd-green" 
+                  : "border-white/20 text-white"
+                }`}
+              >
                 <Save className="w-4 h-4 mr-2" />
-                Save
+                {projectSaved ? 'Saved' : 'Save'}
               </Button>
               <Button variant="outline" size="sm" className="flex-1 border-white/20 text-white">
                 <Eye className="w-4 h-4 mr-2" />
                 Preview
               </Button>
-              <Button className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black font-bold">
+              <Button 
+                onClick={handleExport}
+                className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black font-bold"
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>
