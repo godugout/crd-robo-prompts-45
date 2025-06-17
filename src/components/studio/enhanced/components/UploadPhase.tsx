@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -83,6 +82,13 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
     onImageUpload('');
     setOriginalImage('');
     toast.success('Image removed');
+  };
+
+  const handleReplaceImage = () => {
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
   };
 
   if (showCropper && originalImage) {
@@ -187,7 +193,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
           </Button>
           
           <Button
-            onClick={() => document.querySelector('input[type="file"]')?.click()}
+            onClick={handleReplaceImage}
             variant="outline"
             className="border-white/20 text-white hover:bg-white/10"
           >

@@ -174,7 +174,8 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
 
   return (
     <div className="relative flex items-center justify-center min-h-[400px] p-4">
-      <style jsx>{`
+      <style>
+        {`
         @keyframes holographic-shift {
           0% { filter: hue-rotate(0deg) saturate(1.2); }
           25% { filter: hue-rotate(90deg) saturate(1.4); }
@@ -193,7 +194,8 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
           0% { opacity: 0.6; }
           100% { opacity: 1; }
         }
-      `}</style>
+        `}
+      </style>
       
       <Card 
         className="bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 border-white/20 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-crd-green/20 relative"

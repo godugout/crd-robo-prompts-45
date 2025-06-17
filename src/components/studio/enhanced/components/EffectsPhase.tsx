@@ -106,7 +106,7 @@ export const EffectsPhase: React.FC<EffectsPhaseProps> = ({
     toast.success('All effects reset');
   };
 
-  const getEffectValue = (effectId: string, parameterId: string) => {
+  const getEffectValue = (effectId: string, parameterId: string): string | number | boolean => {
     return effectValues[effectId]?.[parameterId] ?? 
            ENHANCED_VISUAL_EFFECTS.find(e => e.id === effectId)?.parameters.find(p => p.id === parameterId)?.defaultValue ?? 0;
   };
@@ -196,7 +196,7 @@ export const EffectsPhase: React.FC<EffectsPhaseProps> = ({
                               <div className="flex items-center justify-between mb-1">
                                 <label className="text-sm text-gray-300">{param.name}</label>
                                 <span className="text-xs text-crd-green">
-                                  {typeof currentValue === 'number' ? Math.round(currentValue) : currentValue}
+                                  {typeof currentValue === 'number' ? Math.round(currentValue) : String(currentValue)}
                                   {param.id === 'intensity' ? '%' : ''}
                                 </span>
                               </div>
