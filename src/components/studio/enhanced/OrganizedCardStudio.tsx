@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +27,7 @@ import { StudioPhase } from './components/StudioPhase';
 import { ImageCropperModal } from '@/components/editor/modals/ImageCropperModal';
 import { useResponsiveBreakpoints } from '@/hooks/useResponsiveBreakpoints';
 import { toast } from 'sonner';
+import { EnhancedStudioCardPreview } from './components/EnhancedStudioCardPreview';
 
 interface OrganizedCardStudioProps {
   onBack?: () => void;
@@ -49,6 +49,7 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
   const [showCropModal, setShowCropModal] = useState(false);
   const [show3DPreview, setShow3DPreview] = useState(true);
+  const [effectValues, setEffectValues] = useState({});
   const exportRef = useRef<HTMLDivElement>(null);
 
   const { isMobile, isTablet } = useResponsiveBreakpoints();
@@ -114,6 +115,10 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
             selectedFrame={selectedFrame}
             onEffectChange={(effectId, value) => {
               toast.success(`Applied ${effectId} effect`);
+              setEffectValues((prevValues) => ({
+                ...prevValues,
+                [effectId]: value
+              }));
             }}
           />
         );
@@ -228,12 +233,13 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
                   </div>
                 </div>
                 
-                <StudioCardPreview
+                <EnhancedStudioCardPreview
                   uploadedImage={uploadedImage}
                   selectedFrame={selectedFrame}
                   orientation={orientation}
                   show3DPreview={show3DPreview}
                   cardName={cardName}
+                  effectValues={effectValues}
                 />
               </CardContent>
             </Card>
