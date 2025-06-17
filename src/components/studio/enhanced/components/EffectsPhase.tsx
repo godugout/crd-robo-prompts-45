@@ -107,8 +107,22 @@ export const EffectsPhase: React.FC<EffectsPhaseProps> = ({
   };
 
   const getEffectValue = (effectId: string, parameterId: string): string | number | boolean => {
-    return effectValues[effectId]?.[parameterId] ?? 
-           ENHANCED_VISUAL_EFFECTS.find(e => e.id === effectId)?.parameters.find(p => p.id === parameterId)?.defaultValue ?? 0;
+    // Get current value from effectValues
+    const currentValue = effectValues[effectId]?.[parameterId];
+    if (currentValue !== undefined) {
+      return currentValue;
+    }
+    
+    // Get default value from effect configuration
+    const effect = ENHANCED_VISUAL_EFFECTS.find(e => e.id === effectId);
+    const parameter = effect?.parameters.find(p => p.id === parameterId);
+    
+    if (parameter && parameter.defaultValue !== undefined) {
+      return parameter.defaultValue;
+    }
+    
+    // Fallback to 0 for intensity, false for booleans, empty string for strings
+    return parameterId === 'intensity' ? 0 : false;
   };
 
   return (
