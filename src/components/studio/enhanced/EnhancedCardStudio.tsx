@@ -1,10 +1,13 @@
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { EnhancedFrameBrowser } from './EnhancedFrameBrowser';
 import { EnhancedUploadZone } from './EnhancedUploadZone';
-import { Sparkles, Download, Share2, Eye, Settings, RotateCcw, Maximize2, Upload, Camera } from 'lucide-react';
+import { ImageCropperModal } from '@/components/editor/modals/ImageCropperModal';
+import { Sparkles, Download, Share2, Eye, Settings, RotateCcw, Maximize2, Upload, Camera, Crop, Edit3 } from 'lucide-react';
 import { 
   calculateFlexibleCardSize, 
   formatScaledDimensions, 
@@ -29,6 +32,9 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
   const [orientation, setOrientation] = useState<CardOrientation>('portrait');
   const [cardDimensions, setCardDimensions] = useState<FlexibleCardDimensions | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
+  const [cardName, setCardName] = useState('');
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [isHoveringImage, setIsHoveringImage] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Calculate flexible card dimensions based on container size
@@ -94,6 +100,11 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
     }
   }, [onImageUpload]);
 
+  const handleCropComplete = useCallback((croppedImageUrl: string) => {
+    onImageUpload(croppedImageUrl);
+    setShowCropModal(false);
+  }, [onImageUpload]);
+
   const renderCardPreview = () => {
     if (!cardDimensions) return null;
 
@@ -115,16 +126,36 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
           {/* Card Content */}
           <div className="relative w-full h-full p-8">
             {uploadedImage ? (
-              <div className="relative w-full h-full rounded-2xl overflow-hidden">
+              <div 
+                className="relative w-full h-full rounded-2xl overflow-hidden group"
+                onMouseEnter={() => setIsHoveringImage(true)}
+                onMouseLeave={() => setIsHoveringImage(false)}
+              >
                 <img 
                   src={uploadedImage} 
                   alt="Card content"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
+                
+                {/* Crop Button Overlay */}
+                {isHoveringImage && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-all duration-300">
+                    <Button
+                      onClick={() => setShowCropModal(true)}
+                      className="bg-crd-green hover:bg-crd-green/90 text-black font-bold px-6 py-3 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
+                    >
+                      <Crop className="w-5 h-5 mr-2" />
+                      Crop Image
+                    </Button>
+                  </div>
+                )}
+                
                 {/* Effect Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
                 <div className="absolute bottom-6 left-6 right-6">
-                  <h3 className="text-white text-2xl font-bold mb-2">Your Card</h3>
+                  <h3 className="text-white text-2xl font-bold mb-2">
+                    {cardName || 'Your Card'}
+                  </h3>
                   <p className="text-gray-200 text-sm">
                     Effect: {selectedFrame || 'None selected'}
                   </p>
@@ -180,7 +211,7 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
           }}
         />
 
-        {/* Enhanced Dimension Display - moved to bottom corner */}
+        {/* Enhanced Dimension Display */}
         {cardDimensions && (
           <div className="absolute bottom-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/10">
             <div className="text-white text-sm font-medium">
@@ -239,78 +270,114 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Badge className="bg-crd-green text-black font-bold px-3 py-1">
-                ENHANCED STUDIO
-              </Badge>
-              <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
-                FLEXIBLE CANVAS
-              </Badge>
-            </div>
-            <h1 className="text-4xl font-black text-white mb-2">
-              Professional Card Creator
-            </h1>
-            <p className="text-xl text-gray-300">
-              Create stunning cards with flexible scaling and premium visual effects
-            </p>
-          </div>
-          
-          <div className="flex gap-3">
-            <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
-              <Share2 className="w-4 h-4 mr-2" />
-              Share
-            </Button>
-            <Button className="bg-crd-green hover:bg-crd-green/90 text-black font-bold">
-              <Download className="w-4 h-4 mr-2" />
-              Export HD
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Layout */}
-      <div className="grid grid-cols-12 gap-8 h-[calc(100vh-200px)]">
-        {/* Left Side - Flexible Card Preview */}
-        <div className="col-span-7">
-          <div ref={containerRef} className="h-full flex items-center justify-center">
-            {renderCardPreview()}
-          </div>
-        </div>
-
-        {/* Right Side - Controls */}
-        <div className="col-span-5 space-y-6 overflow-y-auto">
-          {/* Only show upload section if no image is uploaded */}
-          {!uploadedImage && (
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black p-6">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-white mb-4">Quick Upload</h2>
+              <div className="flex items-center gap-3 mb-2">
+                <Badge className="bg-crd-green text-black font-bold px-3 py-1">
+                  ENHANCED STUDIO
+                </Badge>
+                <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
+                  FLEXIBLE CANVAS
+                </Badge>
+              </div>
+              <h1 className="text-4xl font-black text-white mb-2">
+                Professional Card Creator
+              </h1>
+              <p className="text-xl text-gray-300">
+                Create stunning cards with flexible scaling and premium visual effects
+              </p>
+            </div>
+            
+            <div className="flex gap-3">
+              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
+              <Button className="bg-crd-green hover:bg-crd-green/90 text-black font-bold">
+                <Download className="w-4 h-4 mr-2" />
+                Export HD
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Layout */}
+        <div className="grid grid-cols-12 gap-8 h-[calc(100vh-200px)]">
+          {/* Left Side - Flexible Card Preview */}
+          <div className="col-span-7">
+            <div ref={containerRef} className="h-full flex items-center justify-center">
+              {renderCardPreview()}
+            </div>
+          </div>
+
+          {/* Right Side - Controls */}
+          <div className="col-span-5 space-y-6 overflow-y-auto">
+            {/* Card Name Input */}
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                <Edit3 className="w-6 h-6" />
+                Card Details
+              </h2>
               <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-lg p-4 border border-white/10">
-                <p className="text-gray-300 text-sm mb-3">
-                  You can also drag & drop directly onto the card preview above
-                </p>
-                <EnhancedUploadZone
-                  onImageUpload={onImageUpload}
-                  uploadedImage={uploadedImage}
+                <label htmlFor="card-name" className="block text-sm font-medium text-white mb-2">
+                  Card Name
+                </label>
+                <Input
+                  id="card-name"
+                  value={cardName}
+                  onChange={(e) => setCardName(e.target.value)}
+                  placeholder="Enter your card name..."
+                  className="bg-black/30 border-white/20 text-white placeholder:text-gray-400"
+                  maxLength={50}
                 />
+                <p className="text-xs text-gray-400 mt-1">
+                  {cardName.length}/50 characters
+                </p>
               </div>
             </div>
-          )}
 
-          {/* Effects Selection */}
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-4">Choose Visual Effects</h2>
-            <EnhancedFrameBrowser
-              onFrameSelect={onFrameSelect}
-              selectedFrame={selectedFrame}
-              orientation={orientation}
-            />
+            {/* Upload section - only show if no image is uploaded */}
+            {!uploadedImage && (
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-4">Quick Upload</h2>
+                <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-lg p-4 border border-white/10">
+                  <p className="text-gray-300 text-sm mb-3">
+                    You can also drag & drop directly onto the card preview above
+                  </p>
+                  <EnhancedUploadZone
+                    onImageUpload={onImageUpload}
+                    uploadedImage={uploadedImage}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Effects Selection */}
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-4">Choose Visual Effects</h2>
+              <EnhancedFrameBrowser
+                onFrameSelect={onFrameSelect}
+                selectedFrame={selectedFrame}
+                orientation={orientation}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Image Cropper Modal */}
+      {showCropModal && uploadedImage && (
+        <ImageCropperModal
+          isOpen={showCropModal}
+          onClose={() => setShowCropModal(false)}
+          imageUrl={uploadedImage}
+          onCropComplete={handleCropComplete}
+        />
+      )}
+    </>
   );
 };
