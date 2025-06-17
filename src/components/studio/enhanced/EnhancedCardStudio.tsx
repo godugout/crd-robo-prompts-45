@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EnhancedFrameBrowser } from './EnhancedFrameBrowser';
 import { EnhancedUploadZone } from './EnhancedUploadZone';
-import { Sparkles, Download, Share2, Eye, Settings } from 'lucide-react';
+import { Sparkles, Download, Share2, Eye, Settings, RotateCcw } from 'lucide-react';
+import { getCardDimensions, formatDimensions, type CardOrientation } from '@/utils/cardDimensions';
 
 interface EnhancedCardStudioProps {
   selectedFrame?: string;
@@ -21,11 +22,21 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
   onImageUpload
 }) => {
   const [previewMode, setPreviewMode] = useState<'2d' | '3d'>('2d');
+  const [orientation, setOrientation] = useState<CardOrientation>('portrait');
+
+  const cardDimensions = getCardDimensions(orientation);
 
   const renderCardPreview = () => {
     return (
-      <div className="relative w-full h-full">
-        <Card className="w-full h-full bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 border-white/20 rounded-3xl overflow-hidden shadow-2xl">
+      <div className="relative w-full h-full flex items-center justify-center">
+        <Card 
+          className="bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 border-white/20 rounded-3xl overflow-hidden shadow-2xl"
+          style={{
+            width: `${cardDimensions.width}px`,
+            height: `${cardDimensions.height}px`,
+            aspectRatio: cardDimensions.aspectRatio,
+          }}
+        >
           {/* Card Content */}
           <div className="relative w-full h-full p-8">
             {uploadedImage ? (
@@ -63,8 +74,44 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
           )}
         </Card>
 
-        {/* 3D/2D Toggle */}
+        {/* Canvas Boundary Indicator */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div 
+            className="absolute border-2 border-dashed border-crd-green/30 rounded-lg"
+            style={{
+              width: `${cardDimensions.width + 20}px`,
+              height: `${cardDimensions.height + 20}px`,
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+        </div>
+
+        {/* Dimension Display */}
+        <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-2">
+          <div className="text-white text-sm font-medium">
+            {formatDimensions(orientation)}
+          </div>
+          <div className="text-gray-300 text-xs">
+            {cardDimensions.width} × {cardDimensions.height} px
+          </div>
+        </div>
+
+        {/* Controls */}
         <div className="absolute top-4 right-4 flex gap-2">
+          {/* Orientation Toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setOrientation(orientation === 'portrait' ? 'landscape' : 'portrait')}
+            className="bg-black/50 text-white border-white/20 hover:bg-white/10"
+          >
+            <RotateCcw className="w-4 h-4 mr-2" />
+            {orientation === 'portrait' ? 'Portrait' : 'Landscape'}
+          </Button>
+          
+          {/* 2D/3D Toggle */}
           <Button
             variant={previewMode === '2d' ? 'default' : 'outline'}
             size="sm"
@@ -135,7 +182,7 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
       <div className="grid grid-cols-12 gap-8 h-[calc(100vh-200px)]">
         {/* Left Side - Large Card Preview */}
         <div className="col-span-7">
-          <div className="h-full max-w-lg mx-auto aspect-[3/4]">
+          <div className="h-full flex items-center justify-center">
             {renderCardPreview()}
           </div>
         </div>
@@ -157,6 +204,7 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
             <EnhancedFrameBrowser
               onFrameSelect={onFrameSelect}
               selectedFrame={selectedFrame}
+              orientation={orientation}
             />
           </div>
         </div>

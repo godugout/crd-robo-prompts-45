@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, Star, Grid, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { getCardDimensions, type CardOrientation } from '@/utils/cardDimensions';
 
 interface Frame {
   id: string;
@@ -19,6 +20,7 @@ interface Frame {
 interface EnhancedFrameBrowserProps {
   onFrameSelect: (frameId: string) => void;
   selectedFrame?: string;
+  orientation: CardOrientation;
 }
 
 const ENHANCED_FRAMES: Frame[] = [
@@ -74,12 +76,15 @@ const ENHANCED_FRAMES: Frame[] = [
 
 export const EnhancedFrameBrowser: React.FC<EnhancedFrameBrowserProps> = ({
   onFrameSelect,
-  selectedFrame
+  selectedFrame,
+  orientation
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 4;
+
+  const cardDimensions = getCardDimensions(orientation);
 
   const categories = [
     { id: 'all', name: 'All', count: ENHANCED_FRAMES.length },
@@ -169,7 +174,7 @@ export const EnhancedFrameBrowser: React.FC<EnhancedFrameBrowserProps> = ({
         </div>
       </div>
 
-      {/* Frame Grid - Horizontal Layout */}
+      {/* Frame Grid - Horizontal Layout with proper aspect ratios */}
       <div className="space-y-4">
         <div className="grid grid-cols-4 gap-4">
           {currentFrames.map(frame => (
@@ -180,7 +185,12 @@ export const EnhancedFrameBrowser: React.FC<EnhancedFrameBrowserProps> = ({
               }`}
               onClick={() => handleFrameClick(frame.id, frame.name)}
             >
-              <div className="aspect-[3/4] relative">
+              <div 
+                className="relative"
+                style={{ 
+                  aspectRatio: cardDimensions.aspectRatio,
+                }}
+              >
                 <div 
                   className="absolute inset-0 rounded-lg"
                   style={{ background: frame.preview }}
