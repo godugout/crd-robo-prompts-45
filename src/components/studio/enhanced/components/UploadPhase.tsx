@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,12 +28,14 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
+      console.log('File dropped:', file.name, file.size);
       setIsProcessing(true);
       setProcessingStep('Uploading image...');
       setProgress(25);
 
       try {
         const imageUrl = URL.createObjectURL(file);
+        console.log('Created image URL:', imageUrl);
         setOriginalImage(imageUrl);
         
         setProcessingStep('Processing image...');
@@ -42,6 +45,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
         await new Promise(resolve => setTimeout(resolve, 500));
         
         setProgress(100);
+        console.log('Calling onImageUpload with:', imageUrl);
         onImageUpload(imageUrl);
         toast.success('Image uploaded successfully!');
       } catch (error) {
@@ -66,6 +70,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   });
 
   const handleCropComplete = useCallback((croppedImageUrl: string) => {
+    console.log('Crop completed:', croppedImageUrl);
     onImageUpload(croppedImageUrl);
     setShowCropModal(false);
     toast.success('Image cropped successfully!');
@@ -73,12 +78,16 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
 
   const handleCropImage = () => {
     if (uploadedImage) {
+      console.log('Opening crop modal for:', uploadedImage);
       setOriginalImage(uploadedImage);
       setShowCropModal(true);
+    } else {
+      toast.error('No image to crop');
     }
   };
 
   const handleRemoveImage = () => {
+    console.log('Removing image');
     onImageUpload('');
     setOriginalImage('');
     toast.success('Image removed');
@@ -90,6 +99,11 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
       fileInput.click();
     }
   };
+
+  // Debug current state
+  React.useEffect(() => {
+    console.log('UploadPhase - uploadedImage:', uploadedImage);
+  }, [uploadedImage]);
 
   if (isProcessing) {
     return (

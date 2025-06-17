@@ -1,10 +1,10 @@
-import React, { useRef } from 'react';
+
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ImagePlus, Camera } from 'lucide-react';
 import { calculateFlexibleCardSize, type CardOrientation } from '@/utils/cardDimensions';
 import { GradingLabel } from './GradingLabel';
-import { toast } from 'sonner';
 
 interface EnhancedStudioCardPreviewProps {
   uploadedImage?: string;
@@ -25,21 +25,6 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
   effectValues,
   onImageUpload
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      onImageUpload?.(imageUrl);
-      toast.success('Image uploaded successfully!');
-    }
-  };
-
-  const triggerFileSelect = () => {
-    fileInputRef.current?.click();
-  };
-
   // Generate effect styles based on active effects
   const generateEffectStyles = (): React.CSSProperties => {
     const styles: React.CSSProperties = {};
@@ -223,28 +208,15 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
                   </div>
                 </div>
               ) : (
-                <div 
-                  className="w-full h-full rounded-lg border-2 border-dashed border-white/30 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:border-crd-green/50 hover:bg-crd-green/5"
-                  onClick={triggerFileSelect}
-                >
+                <div className="w-full h-full rounded-lg border-2 border-dashed border-white/30 flex flex-col items-center justify-center">
                   <div className="text-center text-white/80 max-w-xs px-4">
                     <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-br from-crd-green/20 to-blue-500/20 flex items-center justify-center">
                       <ImagePlus className="w-6 h-6 text-crd-green" />
                     </div>
-                    <h3 className="text-sm font-bold mb-2">Add Your Image</h3>
+                    <h3 className="text-sm font-bold mb-2">No Image Uploaded</h3>
                     <p className="text-xs mb-3 text-white/70">
-                      Upload to start creating
+                      Upload an image in the Upload phase to see your card preview
                     </p>
-                    <Button 
-                      className="bg-crd-green hover:bg-crd-green/90 text-black font-bold px-4 py-1 rounded-full text-xs"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        triggerFileSelect();
-                      }}
-                    >
-                      <Camera className="w-3 h-3 mr-1" />
-                      Browse
-                    </Button>
                   </div>
                 </div>
               )}
@@ -268,15 +240,6 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
         <div className="absolute bottom-2 left-2 w-3 h-3 border-l-2 border-b-2 border-crd-green/50 rounded-bl-lg" />
         <div className="absolute bottom-2 right-2 w-3 h-3 border-r-2 border-b-2 border-crd-green/50 rounded-br-lg" />
       </div>
-
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileSelect}
-        className="hidden"
-      />
 
       {/* Slab Info */}
       <div className="mt-4 text-center bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/10">

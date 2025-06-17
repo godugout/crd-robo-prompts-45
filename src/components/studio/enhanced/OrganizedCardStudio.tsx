@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,6 +73,7 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
   }, [uploadedImage, selectedFrame, cardName, effectValues, show3DPreview, projectSaved]);
 
   const handleImageUpload = useCallback((imageUrl: string) => {
+    console.log('handleImageUpload called with:', imageUrl);
     setUploadedImage(imageUrl);
     if (activePhase === 'upload') {
       setActivePhase('frame');
@@ -88,6 +90,7 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
   }, [activePhase]);
 
   const handleCropComplete = useCallback((croppedImageUrl: string) => {
+    console.log('handleCropComplete called with:', croppedImageUrl);
     setUploadedImage(croppedImageUrl);
     setShowCropModal(false);
     toast.success('Image cropped successfully!');
@@ -132,6 +135,11 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
     toast.success('Generating share link...');
   }, [projectSaved, handleSaveProject]);
 
+  // Debug current state
+  React.useEffect(() => {
+    console.log('Current uploadedImage state:', uploadedImage);
+  }, [uploadedImage]);
+
   const renderPhaseContent = () => {
     switch (activePhase) {
       case 'upload':
@@ -139,7 +147,11 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
           <UploadPhase
             uploadedImage={uploadedImage}
             onImageUpload={handleImageUpload}
-            onCropImage={() => setShowCropModal(true)}
+            onCropImage={() => {
+              if (uploadedImage) {
+                setShowCropModal(true);
+              }
+            }}
           />
         );
       case 'frame':
@@ -313,6 +325,7 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
                   show3DPreview={show3DPreview}
                   cardName={cardName}
                   effectValues={effectValues}
+                  onImageUpload={handleImageUpload}
                 />
               </CardContent>
             </Card>
