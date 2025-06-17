@@ -11,6 +11,7 @@ import { ProfessionalShowcaseView } from './components/ProfessionalShowcaseView'
 import { MobileCarouselContainer } from './components/MobileCarouselContainer';
 import { GalleryView } from './components/GalleryView';
 import { MinimalistFrameInfo } from './components/MinimalistFrameInfo';
+import { InteractiveFrameBrowser } from './components/InteractiveFrameBrowser';
 import { MINIMALIST_FRAMES, type MinimalistFrame } from './data/minimalistFrames';
 
 interface FrameCarouselProps {
@@ -69,6 +70,23 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
 
   const currentFrame = MINIMALIST_FRAMES[currentIndex];
 
+  // Convert frames to format expected by InteractiveFrameBrowser
+  const browserFrames = MINIMALIST_FRAMES.map(frame => ({
+    id: frame.id,
+    name: frame.name,
+    category: frame.category,
+    premium: false, // Set based on your frame data
+    preview: `linear-gradient(135deg, ${frame.accentColor.replace('bg-', '')} 0%, ${frame.backgroundColor.replace('bg-', '')} 100%)`,
+    description: frame.description
+  }));
+
+  const handleFrameSelectById = (frameId: string) => {
+    const frameIndex = MINIMALIST_FRAMES.findIndex(f => f.id === frameId);
+    if (frameIndex >= 0) {
+      goToFrame(frameIndex);
+    }
+  };
+
   // Professional showcase layout for desktop
   if (isDesktop && viewMode === 'showcase') {
     return (
@@ -91,7 +109,7 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
     );
   }
 
-  // Enhanced desktop layout
+  // Enhanced desktop layout with InteractiveFrameBrowser
   if (isDesktop && viewMode === 'carousel') {
     return (
       <div className="w-full h-full">
@@ -99,17 +117,30 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
           viewMode={viewMode} 
           onViewModeChange={setViewMode} 
         />
-        <EnhancedDesktopLayout
-          frames={MINIMALIST_FRAMES}
-          currentIndex={currentIndex}
-          currentFrame={currentFrame}
-          uploadedImage={uploadedImage}
-          isDragActive={isDragActive}
-          onFrameSelect={goToFrame}
-          onImageUpload={onImageUpload}
-          getRootProps={getRootProps}
-          getInputProps={getInputProps}
-        />
+        <div className="flex h-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+          {/* Left side - Main preview */}
+          <div className="flex-1 flex items-center justify-center p-8" {...getRootProps()}>
+            <input {...getInputProps()} />
+            <div className="w-full max-w-md aspect-[3/4]">
+              <FramePreview
+                frame={currentFrame}
+                imageUrl={uploadedImage}
+                size="large"
+                isDragActive={isDragActive}
+                onImageUpdate={onImageUpload}
+              />
+            </div>
+          </div>
+          
+          {/* Right side - Interactive frame browser */}
+          <div className="w-80 bg-black/20 backdrop-blur-sm p-4 overflow-y-auto">
+            <InteractiveFrameBrowser
+              frames={browserFrames}
+              selectedFrame={selectedFrame || ''}
+              onFrameSelect={handleFrameSelectById}
+            />
+          </div>
+        </div>
       </div>
     );
   }

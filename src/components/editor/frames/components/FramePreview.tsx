@@ -5,6 +5,7 @@ import { CardActionButton } from '@/components/card/buttons/CardActionButton';
 import { ImageCropperModal } from '@/components/editor/modals/ImageCropperModal';
 import { Card3DPreviewModal } from '@/components/editor/modals/Card3DPreviewModal';
 import { CompactCardInfo } from './CompactCardInfo';
+import { EnhancedDropZone } from '../../upload/EnhancedDropZone';
 import { toast } from 'sonner';
 import { calculateAutoFit, detectBestFitMode } from '@/utils/imageAutoFit';
 
@@ -51,6 +52,17 @@ export const FramePreview: React.FC<FramePreviewProps> = ({
     small: 'w-4 h-4',
     medium: 'w-6 h-6',
     large: 'w-8 h-8'
+  };
+
+  // Enhanced file upload handler
+  const handleFilesAdded = (files: File[]) => {
+    if (files.length > 0) {
+      const file = files[0];
+      const newImageUrl = URL.createObjectURL(file);
+      setCurrentImageUrl(newImageUrl);
+      onImageUpdate?.(newImageUrl);
+      toast.success("Image uploaded successfully!");
+    }
   };
 
   // Action button handlers
@@ -206,11 +218,22 @@ export const FramePreview: React.FC<FramePreviewProps> = ({
               )}
             </>
           ) : (
-            <div className={`w-full h-full ${frame.accentColor} flex items-center justify-center`}>
-              <div className="text-center">
-                <Upload className={`${iconSize[size]} mx-auto mb-1 ${frame.textColor} opacity-50`} />
-                <p className={`text-xs ${frame.textColor} opacity-50`}>Your Image</p>
-              </div>
+            <div className={`w-full h-full ${frame.accentColor} flex items-center justify-center relative`}>
+              {size === 'large' ? (
+                // Enhanced dropzone for large preview
+                <div className="absolute inset-4">
+                  <EnhancedDropZone 
+                    onFilesAdded={handleFilesAdded}
+                    maxFiles={1}
+                  />
+                </div>
+              ) : (
+                // Simple placeholder for small previews
+                <div className="text-center">
+                  <Upload className={`${iconSize[size]} mx-auto mb-1 ${frame.textColor} opacity-50`} />
+                  <p className={`text-xs ${frame.textColor} opacity-50`}>Your Image</p>
+                </div>
+              )}
             </div>
           )}
         </div>
