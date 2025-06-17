@@ -3,8 +3,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Edit3, Star, Zap } from 'lucide-react';
+import { Edit3 } from 'lucide-react';
 
 interface BasicCardInfoProps {
   cardName: string;
@@ -26,7 +25,7 @@ export const BasicCardInfo: React.FC<BasicCardInfoProps> = ({
         <h2 className="text-lg font-bold text-white">Card Information</h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="card-name" className="text-sm font-medium text-white">
             Card Name
@@ -45,35 +44,21 @@ export const BasicCardInfo: React.FC<BasicCardInfoProps> = ({
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-white">Quick Stats</Label>
-          <div className="flex gap-2">
-            <Badge variant="outline" className="border-blue-500/50 text-blue-400">
-              <Star className="w-3 h-3 mr-1" />
-              Premium
-            </Badge>
-            <Badge variant="outline" className="border-purple-500/50 text-purple-400">
-              <Zap className="w-3 h-3 mr-1" />
-              Enhanced
-            </Badge>
-          </div>
+          <Label htmlFor="card-description" className="text-sm font-medium text-white">
+            Description
+          </Label>
+          <Textarea
+            id="card-description"
+            value={cardDescription}
+            onChange={(e) => onDescriptionChange(e.target.value)}
+            placeholder="Describe your card..."
+            className="bg-black/30 border-white/20 text-white placeholder:text-gray-400 focus:border-crd-green min-h-[80px] resize-none"
+            maxLength={200}
+          />
+          <p className="text-xs text-gray-400">
+            {cardDescription.length}/200 characters
+          </p>
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="card-description" className="text-sm font-medium text-white">
-          Description
-        </Label>
-        <Textarea
-          id="card-description"
-          value={cardDescription}
-          onChange={(e) => onDescriptionChange(e.target.value)}
-          placeholder="Describe your card..."
-          className="bg-black/30 border-white/20 text-white placeholder:text-gray-400 focus:border-crd-green min-h-[80px] resize-none"
-          maxLength={200}
-        />
-        <p className="text-xs text-gray-400">
-          {cardDescription.length}/200 characters
-        </p>
       </div>
     </div>
   );

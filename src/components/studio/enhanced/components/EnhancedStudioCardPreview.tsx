@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ImagePlus, Camera, Upload } from 'lucide-react';
+import { ImagePlus, Camera } from 'lucide-react';
 import { calculateFlexibleCardSize, type CardOrientation } from '@/utils/cardDimensions';
+import { GradingLabel } from './GradingLabel';
 
 interface EnhancedStudioCardPreviewProps {
   uploadedImage?: string;
@@ -24,8 +24,6 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
   effectValues,
   onImageUpload
 }) => {
-  const cardDimensions = calculateFlexibleCardSize(400, 500, orientation, 3, 0.5);
-
   // Generate effect styles based on active effects
   const generateEffectStyles = (): React.CSSProperties => {
     const styles: React.CSSProperties = {};
@@ -89,10 +87,12 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
 
     // Apply 3D transform if enabled
     if (show3DPreview) {
-      transforms.push('perspective(1000px) rotateX(5deg) rotateY(-5deg)');
+      transforms.push('perspective(1000px) rotateX(2deg) rotateY(-2deg)');
       
       if (hasActiveEffects) {
-        styles.boxShadow = '0 20px 40px rgba(16, 185, 129, 0.2), 0 0 20px rgba(16, 185, 129, 0.1)';
+        styles.boxShadow = '0 25px 50px rgba(16, 185, 129, 0.3), 0 0 30px rgba(16, 185, 129, 0.1)';
+      } else {
+        styles.boxShadow = '0 25px 50px rgba(0, 0, 0, 0.4)';
       }
     }
 
@@ -109,71 +109,10 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
     return styles;
   };
 
-  const effectOverlays = () => {
-    const overlays: React.ReactNode[] = [];
-
-    // Holographic overlay
-    if (effectValues.holographic?.intensity > 0) {
-      const intensity = effectValues.holographic.intensity / 100;
-      overlays.push(
-        <div
-          key="holographic"
-          className="absolute inset-0 pointer-events-none opacity-30"
-          style={{
-            background: `linear-gradient(45deg, 
-              rgba(255, 0, 150, ${intensity * 0.3}) 0%, 
-              rgba(0, 255, 255, ${intensity * 0.3}) 25%, 
-              rgba(255, 255, 0, ${intensity * 0.3}) 50%, 
-              rgba(255, 0, 150, ${intensity * 0.3}) 75%, 
-              rgba(0, 255, 255, ${intensity * 0.3}) 100%)`,
-            backgroundSize: '400% 400%',
-            animation: effectValues.holographic.animated ? 'gradient-shift 3s ease infinite' : 'none'
-          }}
-        />
-      );
-    }
-
-    // Chrome reflection overlay
-    if (effectValues.chrome?.intensity > 0) {
-      const intensity = effectValues.chrome.intensity / 100;
-      overlays.push(
-        <div
-          key="chrome"
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `linear-gradient(135deg, 
-              rgba(255, 255, 255, ${intensity * 0.4}) 0%, 
-              transparent 30%, 
-              transparent 70%, 
-              rgba(255, 255, 255, ${intensity * 0.2}) 100%)`,
-            opacity: 0.6
-          }}
-        />
-      );
-    }
-
-    // Crystal facets overlay
-    if (effectValues.crystal?.intensity > 0 && effectValues.crystal.sparkle) {
-      const intensity = effectValues.crystal.intensity / 100;
-      overlays.push(
-        <div
-          key="crystal"
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `radial-gradient(circle at 30% 30%, rgba(255, 255, 255, ${intensity * 0.6}) 0%, transparent 50%),
-                        radial-gradient(circle at 70% 20%, rgba(255, 255, 255, ${intensity * 0.4}) 0%, transparent 40%),
-                        radial-gradient(circle at 50% 80%, rgba(255, 255, 255, ${intensity * 0.5}) 0%, transparent 30%)`,
-            animation: 'sparkle 2s ease-in-out infinite alternate'
-          }}
-        />
-      );
-    }
-
-    return overlays;
-  };
+  const cardDimensions = calculateFlexibleCardSize(320, 450, orientation, 2.5, 0.4);
 
   return (
-    <div className="relative flex items-center justify-center min-h-[400px] p-4">
+    <div className="relative flex flex-col items-center justify-center min-h-[600px] p-6">
       <style>
         {`
         @keyframes holographic-shift {
@@ -196,78 +135,133 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
         }
         `}
       </style>
-      
-      <Card 
-        className="bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 border-white/20 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-crd-green/20 relative"
+
+      {/* Professional Card Slab Container */}
+      <div 
+        className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-2 border-white/30 rounded-2xl p-6 shadow-2xl relative"
         style={{
-          width: cardDimensions.width,
-          height: cardDimensions.height,
+          width: Math.max(cardDimensions.width + 80, 400),
           ...generateEffectStyles()
         }}
       >
-        <div className="relative w-full h-full p-6">
-          {uploadedImage ? (
-            <div className="relative w-full h-full rounded-2xl overflow-hidden group">
-              <img 
-                src={uploadedImage} 
-                alt="Card content"
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              
-              {/* Effect overlays */}
-              {effectOverlays()}
-              
-              {/* Base gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
-              
-              {/* Card Info Overlay */}
-              <div className="absolute bottom-4 left-4 right-4 z-10">
-                <h3 className="text-white text-xl font-bold mb-1 truncate drop-shadow-lg">
-                  {cardName || 'Your Card'}
-                </h3>
-                <p className="text-gray-200 text-sm truncate drop-shadow-lg">
-                  Frame: {selectedFrame || 'Default'} • Effects: Active
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div 
-              className="w-full h-full rounded-2xl border-2 border-dashed border-white/30 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:border-crd-green/50 hover:bg-crd-green/5"
-              onClick={onImageUpload}
-            >
-              <div className="text-center text-white/80 max-w-xs px-4">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-crd-green/20 to-blue-500/20 flex items-center justify-center">
-                  <ImagePlus className="w-8 h-8 text-crd-green" />
-                </div>
-                <h3 className="text-lg font-bold mb-2">Add Your Image</h3>
-                <p className="text-sm mb-4 text-white/70">
-                  Upload your photo to start creating
-                </p>
-                <Button 
-                  className="bg-crd-green hover:bg-crd-green/90 text-black font-bold px-6 py-2 rounded-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onImageUpload?.();
-                  }}
-                >
-                  <Camera className="w-4 h-4 mr-2" />
-                  Browse Files
-                </Button>
-                <p className="text-xs text-white/50 mt-3">
-                  Supports JPG, PNG, WebP • Up to 50MB
-                </p>
-              </div>
-            </div>
-          )}
+        {/* Grading Label at Top */}
+        <div className="mb-6">
+          <GradingLabel 
+            cardName={cardName}
+            overallGrade={9.5}
+            centeringGrade={9}
+            cornersGrade={10}
+            edgesGrade={9}
+            surfaceGrade={10}
+          />
         </div>
-      </Card>
 
-      {/* Dimension Info */}
-      <div className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-sm rounded-lg px-3 py-1 border border-white/10">
-        <div className="text-white text-xs font-medium">
-          {Math.round(cardDimensions.width)}×{Math.round(cardDimensions.height)}
-          {Object.values(effectValues).some(effect => effect.intensity > 0) && (
-            <span className="ml-2 text-crd-green">• Effects Active</span>
+        {/* Card Area */}
+        <div className="flex justify-center">
+          <Card 
+            className="bg-gradient-to-br from-gray-800 via-gray-600 to-gray-800 border-white/20 rounded-xl overflow-hidden shadow-xl relative"
+            style={{
+              width: cardDimensions.width,
+              height: cardDimensions.height,
+            }}
+          >
+            <div className="relative w-full h-full p-4">
+              {uploadedImage ? (
+                <div className="relative w-full h-full rounded-lg overflow-hidden group">
+                  <img 
+                    src={uploadedImage} 
+                    alt="Card content"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  
+                  {/* Effect overlays */}
+                  {Object.keys(effectValues).length > 0 && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      {/* Dynamic effect overlays based on active effects */}
+                      {effectValues.holographic?.intensity > 0 && (
+                        <div
+                          className="absolute inset-0 opacity-30"
+                          style={{
+                            background: `linear-gradient(45deg, 
+                              rgba(255, 0, 150, ${effectValues.holographic.intensity / 300}) 0%, 
+                              rgba(0, 255, 255, ${effectValues.holographic.intensity / 300}) 25%, 
+                              rgba(255, 255, 0, ${effectValues.holographic.intensity / 300}) 50%, 
+                              rgba(255, 0, 150, ${effectValues.holographic.intensity / 300}) 75%, 
+                              rgba(0, 255, 255, ${effectValues.holographic.intensity / 300}) 100%)`,
+                            backgroundSize: '400% 400%',
+                            animation: effectValues.holographic.animated ? 'gradient-shift 3s ease infinite' : 'none'
+                          }}
+                        />
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Base gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+                  
+                  {/* Card Info Overlay */}
+                  <div className="absolute bottom-3 left-3 right-3 z-10">
+                    <p className="text-gray-200 text-xs truncate drop-shadow-lg">
+                      Frame: {selectedFrame || 'Default'} • Effects: {Object.keys(effectValues).length > 0 ? 'Active' : 'None'}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div 
+                  className="w-full h-full rounded-lg border-2 border-dashed border-white/30 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:border-crd-green/50 hover:bg-crd-green/5"
+                  onClick={onImageUpload}
+                >
+                  <div className="text-center text-white/80 max-w-xs px-4">
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-br from-crd-green/20 to-blue-500/20 flex items-center justify-center">
+                      <ImagePlus className="w-6 h-6 text-crd-green" />
+                    </div>
+                    <h3 className="text-sm font-bold mb-2">Add Your Image</h3>
+                    <p className="text-xs mb-3 text-white/70">
+                      Upload to start creating
+                    </p>
+                    <Button 
+                      className="bg-crd-green hover:bg-crd-green/90 text-black font-bold px-4 py-1 rounded-full text-xs"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onImageUpload?.();
+                      }}
+                    >
+                      <Camera className="w-3 h-3 mr-1" />
+                      Browse
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
+
+        {/* Protective Case Bottom */}
+        <div className="mt-4 text-center">
+          <div className="text-xs text-gray-400 mb-1">
+            Professional Card Grading Service
+          </div>
+          <div className="text-xs text-crd-green font-bold">
+            AUTHENTICATED • PROTECTED • PRESERVED
+          </div>
+        </div>
+
+        {/* Corner Security Elements */}
+        <div className="absolute top-2 left-2 w-3 h-3 border-l-2 border-t-2 border-crd-green/50 rounded-tl-lg" />
+        <div className="absolute top-2 right-2 w-3 h-3 border-r-2 border-t-2 border-crd-green/50 rounded-tr-lg" />
+        <div className="absolute bottom-2 left-2 w-3 h-3 border-l-2 border-b-2 border-crd-green/50 rounded-bl-lg" />
+        <div className="absolute bottom-2 right-2 w-3 h-3 border-r-2 border-b-2 border-crd-green/50 rounded-br-lg" />
+      </div>
+
+      {/* Slab Info */}
+      <div className="mt-4 text-center bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/10">
+        <div className="text-white text-sm font-medium">
+          Professional Graded Slab • CRD Certified
+        </div>
+        <div className="text-gray-400 text-xs mt-1">
+          Dimensions: {Math.round(cardDimensions.width)}×{Math.round(cardDimensions.height)}
+          {Object.keys(effectValues).length > 0 && (
+            <span className="ml-2 text-crd-green">• Enhanced</span>
           )}
         </div>
       </div>

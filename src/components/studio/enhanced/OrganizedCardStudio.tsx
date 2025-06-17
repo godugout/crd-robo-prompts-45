@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { StudioCardPreview } from './components/StudioCardPreview';
 import { BasicCardInfo } from './components/BasicCardInfo';
+import { CardStatsModule } from './components/CardStatsModule';
 import { UploadPhase } from './components/UploadPhase';
 import { FramePhase } from './components/FramePhase';
 import { EffectsPhase } from './components/EffectsPhase';
@@ -329,8 +330,16 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
             </Card>
           </div>
 
-          {/* Right Side - Enhanced Workflow Phases */}
+          {/* Right Side - Enhanced Workflow Phases & Stats */}
           <div className={`${isMobile ? 'order-2' : 'col-span-5'} space-y-6`}>
+            {/* Card Stats Module */}
+            <CardStatsModule
+              cardName={cardName}
+              uploadedImage={uploadedImage}
+              selectedFrame={selectedFrame}
+              effectValues={effectValues}
+            />
+
             <Card className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-white/10">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
