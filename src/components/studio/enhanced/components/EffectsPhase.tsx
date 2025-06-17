@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { ENHANCED_VISUAL_EFFECTS } from '@/components/viewer/hooks/useEnhancedCardEffects';
+import { ENHANCED_VISUAL_EFFECTS } from '@/components/viewer/hooks/useEffectConfigurations';
 import { toast } from 'sonner';
 import { EffectCategoryTabs } from './effects/EffectCategoryTabs';
 import { EffectPresetSelector } from './effects/EffectPresetSelector';

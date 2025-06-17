@@ -4,20 +4,23 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { EffectParameterControl } from './EffectParameterControl';
 
+interface EffectParameter {
+  id: string;
+  name: string;
+  type: 'slider' | 'toggle' | 'select' | 'color';
+  min?: number;
+  max?: number;
+  step?: number;
+  defaultValue: number | boolean | string;
+  options?: { value: string; label: string }[];
+}
+
 interface VisualEffect {
   id: string;
   name: string;
   description: string;
-  parameters: Array<{
-    id: string;
-    name: string;
-    type: 'slider' | 'toggle' | 'select';
-    min?: number;
-    max?: number;
-    step?: number;
-    defaultValue: number | boolean | string;
-    options?: { value: string; label: string }[];
-  }>;
+  category: string;
+  parameters: EffectParameter[];
 }
 
 interface EffectCardProps {

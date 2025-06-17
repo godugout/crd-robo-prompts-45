@@ -6,7 +6,7 @@ import { Slider } from '@/components/ui/slider';
 interface EffectParameter {
   id: string;
   name: string;
-  type: 'slider' | 'toggle' | 'select';
+  type: 'slider' | 'toggle' | 'select' | 'color';
   min?: number;
   max?: number;
   step?: number;
@@ -89,6 +89,25 @@ export const EffectParameterControl: React.FC<EffectParameterControlProps> = ({
               {option.label}
             </Button>
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (parameter.type === 'color') {
+    const colorValue = typeof currentValue === 'string' ? currentValue : String(parameter.defaultValue);
+    
+    return (
+      <div>
+        <label className="text-sm text-gray-300 mb-2 block">{parameter.name}</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            value={colorValue}
+            onChange={(e) => onValueChange(e.target.value)}
+            className="w-8 h-8 rounded border border-white/20 bg-transparent cursor-pointer"
+          />
+          <span className="text-xs text-gray-400">{colorValue}</span>
         </div>
       </div>
     );
