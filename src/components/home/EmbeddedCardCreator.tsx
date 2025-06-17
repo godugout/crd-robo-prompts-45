@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useSimpleCardEditor } from '@/hooks/useSimpleCardEditor';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -37,20 +37,20 @@ export const EmbeddedCardCreator: React.FC = () => {
     cardTitle: cardData.title
   });
 
-  const handleFrameSelect = (frameId: string) => {
+  const handleFrameSelect = useCallback((frameId: string) => {
     console.log('Frame selected:', frameId);
     setSelectedFrame(frameId);
     updateField('template_id', frameId);
-  };
+  }, [updateField]);
 
-  const handleImageUpload = (imageUrl: string) => {
+  const handleImageUpload = useCallback((imageUrl: string) => {
     console.log('Image uploaded:', imageUrl);
     updateField('image_url', imageUrl);
-  };
+  }, [updateField]);
 
-  const handleImageUpdate = (newImageUrl: string) => {
+  const handleImageUpdate = useCallback((newImageUrl: string) => {
     updateField('image_url', newImageUrl);
-  };
+  }, [updateField]);
 
   const handleContinueInStudio = () => {
     localStorage.setItem('draft-card', JSON.stringify({

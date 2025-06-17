@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -43,17 +43,15 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
     framesCount: MINIMALIST_FRAMES.length
   });
 
-  const onDrop = async (acceptedFiles: File[]) => {
-    if (!acceptedFiles.length) return;
-    
-    const file = acceptedFiles[0];
-    const imageUrl = URL.createObjectURL(file);
-    onImageUpload(imageUrl);
-    toast.success('Image uploaded!');
-  };
-
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
+    onDrop: async (acceptedFiles: File[]) => {
+      if (!acceptedFiles.length) return;
+      
+      const file = acceptedFiles[0];
+      const imageUrl = URL.createObjectURL(file);
+      onImageUpload(imageUrl);
+      toast.success('Image uploaded!');
+    },
     accept: { 'image/*': [] },
     maxFiles: 1,
     noClick: true
@@ -84,14 +82,14 @@ export const MinimalistFrameCarousel: React.FC<FrameCarouselProps> = ({
   const currentFrame = MINIMALIST_FRAMES[currentIndex];
 
   // Convert frames to format expected by InteractiveFrameBrowser
-  const browserFrames = MINIMALIST_FRAMES.map(frame => ({
+  const browserFrames = useMemo(() => MINIMALIST_FRAMES.map(frame => ({
     id: frame.id,
     name: frame.name,
     category: frame.category,
     premium: false,
     preview: `linear-gradient(135deg, ${frame.accentColor.replace('bg-', '')} 0%, ${frame.backgroundColor.replace('bg-', '')} 100%)`,
     description: frame.description
-  }));
+  })), []);
 
   const handleFrameSelectById = (frameId: string) => {
     const frameIndex = MINIMALIST_FRAMES.findIndex(f => f.id === frameId);

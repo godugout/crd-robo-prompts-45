@@ -14,22 +14,24 @@ export const CardCreationFlow = () => {
     fullUrl: location.pathname + location.search
   });
   
-  // Show hub for /cards, unified card creator for /cards/create with any mode
-  if (location.pathname === '/cards') {
-    console.log('Rendering SimplifiedCardCreationHub');
+  // Force the enhanced layout for /cards/create with any mode
+  if (location.pathname === '/cards/create') {
+    console.log('FORCING EmbeddedCardCreator for /cards/create - Enhanced Layout');
     return (
-      <FlowErrorBoundary flowName="Card Hub">
-        <SimplifiedCardCreationHub />
+      <FlowErrorBoundary flowName="Card Creator">
+        <div className="min-h-screen bg-crd-darkest">
+          <EmbeddedCardCreator />
+        </div>
       </FlowErrorBoundary>
     );
   }
   
-  if (location.pathname === '/cards/create') {
-    console.log('Rendering EmbeddedCardCreator for /cards/create');
-    // All modes now use the same unified flow
+  // Show hub for /cards only
+  if (location.pathname === '/cards') {
+    console.log('Rendering SimplifiedCardCreationHub for /cards');
     return (
-      <FlowErrorBoundary flowName="Card Creator">
-        <EmbeddedCardCreator />
+      <FlowErrorBoundary flowName="Card Hub">
+        <SimplifiedCardCreationHub />
       </FlowErrorBoundary>
     );
   }
