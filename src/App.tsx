@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { OverlayProvider } from '@/components/overlay/OverlayProvider';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -20,6 +19,9 @@ import CollectionDetail from '@/pages/CollectionDetail';
 import OakMemoryCreator from '@/pages/OakMemoryCreator';
 import { AuthPage } from '@/components/auth/AuthPage';
 import { CardCreationFlow } from '@/components/editor/CardCreationFlow';
+import { EnhancedCardCreator } from '@/components/cards/EnhancedCardCreator';
+import { SimplifiedCardCreationHubBackup } from '@/components/cards/SimplifiedCardCreationHubBackup';
+import { TestingNavigation } from '@/components/cards/TestingNavigation';
 
 function App() {
   const { isFeatureEnabled } = useFeatureFlags();
@@ -38,6 +40,12 @@ function App() {
             <Route index element={<Index />} />
             <Route path="cards" element={<CardCreationFlow />} />
             <Route path="cards/create" element={<CardCreationFlow />} />
+            
+            {/* NEW ROUTES FOR TESTING */}
+            <Route path="cards/enhanced" element={<EnhancedCardCreator />} />
+            <Route path="cards/backup" element={<SimplifiedCardCreationHubBackup />} />
+            <Route path="cards/test" element={<TestingNavigation />} />
+            
             <Route path="cards/extract-multiple" element={<CardsExtractMultiple />} />
             {/* Redirect old bulk upload route to labs */}
             <Route path="cards/bulk-upload" element={<Navigate to="/labs/bulk-upload" replace />} />
