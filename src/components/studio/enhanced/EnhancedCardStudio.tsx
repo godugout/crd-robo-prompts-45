@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { EnhancedFrameBrowser } from './EnhancedFrameBrowser';
 import { EnhancedUploadZone } from './EnhancedUploadZone';
 import { ImageCropperModal } from '@/components/editor/modals/ImageCropperModal';
-import { Sparkles, Download, Share2, Eye, Settings, RotateCcw, Maximize2, Upload, Camera, Crop, Edit3 } from 'lucide-react';
+import { Sparkles, Download, Share2, Eye, Settings, RotateCcw, Maximize2, Upload, Camera, Crop, Edit3, Plus, ImagePlus } from 'lucide-react';
 import { 
   calculateFlexibleCardSize, 
   formatScaledDimensions, 
@@ -163,24 +163,42 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
               </div>
             ) : (
               <div 
-                className={`w-full h-full rounded-2xl border-2 border-dashed flex items-center justify-center cursor-pointer transition-all duration-300 ${
+                className={`w-full h-full rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
                   isDragActive ? 'border-crd-green bg-crd-green/20' : 'border-white/30 hover:border-crd-green/50'
                 }`}
                 onClick={() => document.getElementById('image-upload')?.click()}
               >
-                <div className="text-center text-white/80">
+                <div className="text-center text-white/80 max-w-md">
                   {isDragActive ? (
                     <>
-                      <Upload className="w-20 h-20 mx-auto mb-4 text-crd-green animate-bounce" />
-                      <p className="text-2xl font-medium text-crd-green">Drop your image here!</p>
-                      <p className="text-lg mt-2">Release to upload</p>
+                      <Upload className="w-24 h-24 mx-auto mb-6 text-crd-green animate-bounce" />
+                      <p className="text-3xl font-bold text-crd-green mb-2">Drop your image here!</p>
+                      <p className="text-lg">Release to upload and start creating</p>
                     </>
                   ) : (
                     <>
-                      <Camera className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p className="text-xl font-medium">Upload Your Image</p>
-                      <p className="text-sm mt-2 opacity-75">Drag & drop or click to browse</p>
-                      <p className="text-sm mt-1 opacity-60">JPG, PNG, WebP up to 50MB</p>
+                      <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-crd-green/20 to-blue-500/20 flex items-center justify-center">
+                        <ImagePlus className="w-10 h-10 text-crd-green" />
+                      </div>
+                      <h3 className="text-2xl font-bold mb-3">Add Your Image</h3>
+                      <p className="text-lg mb-4 text-white/70">
+                        Drag & drop your image here or click to browse
+                      </p>
+                      <div className="flex items-center justify-center gap-4 mb-4">
+                        <Button 
+                          className="bg-crd-green hover:bg-crd-green/90 text-black font-bold px-6 py-3 rounded-full"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            document.getElementById('image-upload')?.click();
+                          }}
+                        >
+                          <Camera className="w-5 h-5 mr-2" />
+                          Browse Files
+                        </Button>
+                      </div>
+                      <p className="text-sm text-white/50">
+                        Supports JPG, PNG, WebP • Up to 50MB
+                      </p>
                     </>
                   )}
                 </div>
@@ -224,38 +242,6 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
           </div>
         )}
 
-        {/* Controls */}
-        <div className="absolute top-4 right-4 flex gap-2">
-          {/* Orientation Toggle */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setOrientation(orientation === 'portrait' ? 'landscape' : 'portrait')}
-            className="bg-black/50 text-white border-white/20 hover:bg-white/10"
-          >
-            <RotateCcw className="w-4 h-4 mr-2" />
-            {orientation === 'portrait' ? 'Portrait' : 'Landscape'}
-          </Button>
-          
-          {/* 2D/3D Toggle */}
-          <Button
-            variant={previewMode === '2d' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setPreviewMode('2d')}
-            className={previewMode === '2d' ? 'bg-crd-green text-black' : 'bg-black/50 text-white border-white/20'}
-          >
-            2D
-          </Button>
-          <Button
-            variant={previewMode === '3d' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setPreviewMode('3d')}
-            className={previewMode === '3d' ? 'bg-crd-green text-black' : 'bg-black/50 text-white border-white/20'}
-          >
-            3D
-          </Button>
-        </div>
-
         {/* Action Buttons */}
         <div className="absolute bottom-4 right-4 flex gap-2">
           <Button size="sm" variant="outline" className="bg-black/50 text-white border-white/20 hover:bg-white/10">
@@ -271,99 +257,119 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black p-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <Badge className="bg-crd-green text-black font-bold px-3 py-1">
-                  ENHANCED STUDIO
-                </Badge>
-                <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
-                  FLEXIBLE CANVAS
-                </Badge>
-              </div>
-              <h1 className="text-4xl font-black text-white mb-2">
-                Professional Card Creator
-              </h1>
-              <p className="text-xl text-gray-300">
-                Create stunning cards with flexible scaling and premium visual effects
-              </p>
-            </div>
-            
-            <div className="flex gap-3">
-              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                <Share2 className="w-4 h-4 mr-2" />
-                Share
-              </Button>
-              <Button className="bg-crd-green hover:bg-crd-green/90 text-black font-bold">
-                <Download className="w-4 h-4 mr-2" />
-                Export HD
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Layout */}
-        <div className="grid grid-cols-12 gap-8 h-[calc(100vh-200px)]">
-          {/* Left Side - Flexible Card Preview */}
-          <div className="col-span-7">
-            <div ref={containerRef} className="h-full flex items-center justify-center">
-              {renderCardPreview()}
-            </div>
-          </div>
-
-          {/* Right Side - Controls */}
-          <div className="col-span-5 space-y-6 overflow-y-auto">
-            {/* Card Name Input */}
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                <Edit3 className="w-6 h-6" />
-                Card Details
-              </h2>
-              <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-lg p-4 border border-white/10">
-                <label htmlFor="card-name" className="block text-sm font-medium text-white mb-2">
-                  Card Name
-                </label>
-                <Input
-                  id="card-name"
-                  value={cardName}
-                  onChange={(e) => setCardName(e.target.value)}
-                  placeholder="Enter your card name..."
-                  className="bg-black/30 border-white/20 text-white placeholder:text-gray-400"
-                  maxLength={50}
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  {cardName.length}/50 characters
+        <div className="px-8 py-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <Badge className="bg-crd-green text-black font-bold px-3 py-1">
+                    ENHANCED STUDIO
+                  </Badge>
+                  <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
+                    FLEXIBLE CANVAS
+                  </Badge>
+                </div>
+                <h1 className="text-4xl font-black text-white mb-2">
+                  Professional Card Creator
+                </h1>
+                <p className="text-xl text-gray-300">
+                  Create stunning cards with flexible scaling and premium visual effects
                 </p>
               </div>
+              
+              <div className="flex gap-3">
+                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share
+                </Button>
+                <Button className="bg-crd-green hover:bg-crd-green/90 text-black font-bold">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export HD
+                </Button>
+              </div>
             </div>
 
-            {/* Upload section - only show if no image is uploaded */}
-            {!uploadedImage && (
-              <div>
-                <h2 className="text-2xl font-bold text-white mb-4">Quick Upload</h2>
+            {/* Card Details and Controls Row */}
+            <div className="flex items-center justify-between mb-8">
+              {/* Left Side - Card Details */}
+              <div className="flex-1 max-w-md">
+                <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                  <Edit3 className="w-6 h-6" />
+                  Card Details
+                </h2>
                 <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-lg p-4 border border-white/10">
-                  <p className="text-gray-300 text-sm mb-3">
-                    You can also drag & drop directly onto the card preview above
+                  <label htmlFor="card-name" className="block text-sm font-medium text-white mb-2">
+                    Card Name
+                  </label>
+                  <Input
+                    id="card-name"
+                    value={cardName}
+                    onChange={(e) => setCardName(e.target.value)}
+                    placeholder="Enter your card name..."
+                    className="bg-black/30 border-white/20 text-white placeholder:text-gray-400"
+                    maxLength={50}
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    {cardName.length}/50 characters
                   </p>
-                  <EnhancedUploadZone
-                    onImageUpload={onImageUpload}
-                    uploadedImage={uploadedImage}
+                </div>
+              </div>
+
+              {/* Right Side - Controls */}
+              <div className="flex gap-3">
+                {/* Orientation Toggle */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setOrientation(orientation === 'portrait' ? 'landscape' : 'portrait')}
+                  className="bg-black/50 text-white border-white/20 hover:bg-white/10"
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  {orientation === 'portrait' ? 'Portrait' : 'Landscape'}
+                </Button>
+                
+                {/* 2D/3D Toggle */}
+                <Button
+                  variant={previewMode === '2d' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPreviewMode('2d')}
+                  className={previewMode === '2d' ? 'bg-crd-green text-black' : 'bg-black/50 text-white border-white/20'}
+                >
+                  2D
+                </Button>
+                <Button
+                  variant={previewMode === '3d' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPreviewMode('3d')}
+                  className={previewMode === '3d' ? 'bg-crd-green text-black' : 'bg-black/50 text-white border-white/20'}
+                >
+                  3D
+                </Button>
+              </div>
+            </div>
+
+            {/* Main Layout */}
+            <div className="grid grid-cols-12 gap-8 h-[calc(100vh-400px)]">
+              {/* Left Side - Flexible Card Preview */}
+              <div className="col-span-7">
+                <div ref={containerRef} className="h-full flex items-center justify-center">
+                  {renderCardPreview()}
+                </div>
+              </div>
+
+              {/* Right Side - Effects Selection */}
+              <div className="col-span-5 overflow-y-auto">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-4">Choose Visual Effects</h2>
+                  <EnhancedFrameBrowser
+                    onFrameSelect={onFrameSelect}
+                    selectedFrame={selectedFrame}
+                    orientation={orientation}
                   />
                 </div>
               </div>
-            )}
-
-            {/* Effects Selection */}
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-4">Choose Visual Effects</h2>
-              <EnhancedFrameBrowser
-                onFrameSelect={onFrameSelect}
-                selectedFrame={selectedFrame}
-                orientation={orientation}
-              />
             </div>
           </div>
         </div>
