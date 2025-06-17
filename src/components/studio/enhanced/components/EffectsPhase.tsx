@@ -91,7 +91,7 @@ export const EffectsPhase: React.FC<EffectsPhaseProps> = ({
   const applyPreset = (preset: typeof EFFECT_PRESETS[0]) => {
     Object.entries(preset.effects).forEach(([effectId, parameters]) => {
       Object.entries(parameters).forEach(([parameterId, value]) => {
-        handleEffectChange(effectId, parameterId, value);
+        handleEffectChange(effectId, parameterId, value as number | boolean | string);
       });
     });
     toast.success(`Applied ${preset.name} preset`);
@@ -184,95 +184,106 @@ export const EffectsPhase: React.FC<EffectsPhaseProps> = ({
 
             {/* Individual Effects */}
             <div className="space-y-3">
-              {categoryEffects.map((effect) => (
-                <Card key={effect.id} className="bg-black/20 border-white/10">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h4 className="text-white font-medium text-sm">{effect.name}</h4>
-                        <p className="text-gray-400 text-xs">{effect.description}</p>
+              {categoryEffects.map((effect) => {
+                const intensityValue = getEffectValue(effect.id, 'intensity');
+                const displayIntensity = typeof intensityValue === 'number' ? Math.round(intensityValue) : 0;
+                
+                return (
+                  <Card key={effect.id} className="bg-black/20 border-white/10">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h4 className="text-white font-medium text-sm">{effect.name}</h4>
+                          <p className="text-gray-400 text-xs">{effect.description}</p>
+                        </div>
+                        <Badge 
+                          variant="outline" 
+                          className="border-crd-green/50 text-crd-green text-xs"
+                        >
+                          {displayIntensity}%
+                        </Badge>
                       </div>
-                      <Badge 
-                        variant="outline" 
-                        className="border-crd-green/50 text-crd-green text-xs"
-                      >
-                        {Math.round((getEffectValue(effect.id, 'intensity') as number) || 0)}%
-                      </Badge>
-                    </div>
 
-                    <div className="space-y-3">
-                      {effect.parameters.map((param) => {
-                        const currentValue = getEffectValue(effect.id, param.id);
-                        
-                        if (param.type === 'slider') {
-                          return (
-                            <div key={param.id}>
-                              <div className="flex items-center justify-between mb-1">
+                      <div className="space-y-3">
+                        {effect.parameters.map((param) => {
+                          const currentValue = getEffectValue(effect.id, param.id);
+                          
+                          if (param.type === 'slider') {
+                            const sliderValue = typeof currentValue === 'number' ? currentValue : (param.defaultValue as number);
+                            
+                            return (
+                              <div key={param.id}>
+                                <div className="flex items-center justify-between mb-1">
+                                  <label className="text-sm text-gray-300">{param.name}</label>
+                                  <span className="text-xs text-crd-green">
+                                    {Math.round(sliderValue)}
+                                    {param.id === 'intensity' ? '%' : ''}
+                                  </span>
+                                </div>
+                                <Slider
+                                  value={[sliderValue]}
+                                  onValueChange={([value]) => handleEffectChange(effect.id, param.id, value)}
+                                  min={param.min || 0}
+                                  max={param.max || 100}
+                                  step={param.step || 1}
+                                  className="w-full"
+                                />
+                              </div>
+                            );
+                          }
+
+                          if (param.type === 'toggle') {
+                            const toggleValue = typeof currentValue === 'boolean' ? currentValue : Boolean(param.defaultValue);
+                            
+                            return (
+                              <div key={param.id} className="flex items-center justify-between">
                                 <label className="text-sm text-gray-300">{param.name}</label>
-                                <span className="text-xs text-crd-green">
-                                  {typeof currentValue === 'number' ? Math.round(currentValue) : String(currentValue)}
-                                  {param.id === 'intensity' ? '%' : ''}
-                                </span>
+                                <Button
+                                  onClick={() => handleEffectChange(effect.id, param.id, !toggleValue)}
+                                  variant={toggleValue ? "default" : "outline"}
+                                  size="sm"
+                                  className={toggleValue ? "bg-crd-green text-black" : "border-white/20 text-white"}
+                                >
+                                  {toggleValue ? 'ON' : 'OFF'}
+                                </Button>
                               </div>
-                              <Slider
-                                value={[typeof currentValue === 'number' ? currentValue : param.defaultValue as number]}
-                                onValueChange={([value]) => handleEffectChange(effect.id, param.id, value)}
-                                min={param.min || 0}
-                                max={param.max || 100}
-                                step={param.step || 1}
-                                className="w-full"
-                              />
-                            </div>
-                          );
-                        }
+                            );
+                          }
 
-                        if (param.type === 'toggle') {
-                          return (
-                            <div key={param.id} className="flex items-center justify-between">
-                              <label className="text-sm text-gray-300">{param.name}</label>
-                              <Button
-                                onClick={() => handleEffectChange(effect.id, param.id, !currentValue)}
-                                variant={currentValue ? "default" : "outline"}
-                                size="sm"
-                                className={currentValue ? "bg-crd-green text-black" : "border-white/20 text-white"}
-                              >
-                                {currentValue ? 'ON' : 'OFF'}
-                              </Button>
-                            </div>
-                          );
-                        }
-
-                        if (param.type === 'select' && param.options) {
-                          return (
-                            <div key={param.id}>
-                              <label className="text-sm text-gray-300 mb-2 block">{param.name}</label>
-                              <div className="grid grid-cols-2 gap-1">
-                                {param.options.map((option) => (
-                                  <Button
-                                    key={option.value}
-                                    onClick={() => handleEffectChange(effect.id, param.id, option.value)}
-                                    variant={currentValue === option.value ? "default" : "outline"}
-                                    size="sm"
-                                    className={
-                                      currentValue === option.value 
-                                        ? "bg-crd-green text-black text-xs" 
-                                        : "border-white/20 text-white hover:bg-white/10 text-xs"
-                                    }
-                                  >
-                                    {option.label}
-                                  </Button>
-                                ))}
+                          if (param.type === 'select' && param.options) {
+                            const selectValue = typeof currentValue === 'string' ? currentValue : String(param.defaultValue);
+                            
+                            return (
+                              <div key={param.id}>
+                                <label className="text-sm text-gray-300 mb-2 block">{param.name}</label>
+                                <div className="grid grid-cols-2 gap-1">
+                                  {param.options.map((option) => (
+                                    <Button
+                                      key={option.value}
+                                      onClick={() => handleEffectChange(effect.id, param.id, option.value)}
+                                      variant={selectValue === option.value ? "default" : "outline"}
+                                      size="sm"
+                                      className={
+                                        selectValue === option.value 
+                                          ? "bg-crd-green text-black text-xs" 
+                                          : "border-white/20 text-white hover:bg-white/10 text-xs"
+                                      }
+                                    >
+                                      {option.label}
+                                    </Button>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          );
-                        }
+                            );
+                          }
 
-                        return null;
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                          return null;
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </TabsContent>
         ))}
