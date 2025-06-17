@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ImageCropper } from '../ImageCropper';
+import { EnhancedImageCropper } from '../crop/EnhancedImageCropper';
 import { Crop, X } from 'lucide-react';
 
 interface ImageCropperModalProps {
@@ -34,11 +34,11 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl bg-editor-dark border-editor-border">
+      <DialogContent className="max-w-6xl max-h-[90vh] bg-editor-dark border-editor-border overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-white flex items-center gap-2">
             <Crop className="w-5 h-5" />
-            Crop Image
+            Enhanced Crop Image
           </DialogTitle>
           <Button
             variant="ghost"
@@ -51,11 +51,22 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
         </DialogHeader>
         
         <div className="space-y-4">
-          <ImageCropper
+          <div className="text-sm text-gray-300 bg-gray-800 p-3 rounded-lg">
+            <strong>Enhanced Crop Controls:</strong>
+            <ul className="mt-2 space-y-1 text-xs">
+              <li>• Drag corners to resize while maintaining 2.5:3.5 aspect ratio</li>
+              <li>• Use rotation handle above crop area or manual controls</li>
+              <li>• Precise positioning with numerical inputs</li>
+              <li>• Quick actions: Center, Fit, and Reset</li>
+              <li>• Undo/Redo support for all changes</li>
+            </ul>
+          </div>
+          
+          <EnhancedImageCropper
             imageUrl={imageUrl}
             onCropComplete={handleCropComplete}
             aspectRatio={2.5 / 3.5}
-            className="max-h-[60vh]"
+            className="max-h-[70vh] overflow-hidden"
           />
           
           <div className="flex justify-end gap-2">
