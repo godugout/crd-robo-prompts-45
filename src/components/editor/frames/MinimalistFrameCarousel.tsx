@@ -12,6 +12,7 @@ import { MobileCarouselContainer } from './components/MobileCarouselContainer';
 import { GalleryView } from './components/GalleryView';
 import { MinimalistFrameInfo } from './components/MinimalistFrameInfo';
 import { InteractiveFrameBrowser } from './components/InteractiveFrameBrowser';
+import { FramePreview } from './components/FramePreview';
 import { MINIMALIST_FRAMES, type MinimalistFrame } from './data/minimalistFrames';
 
 interface FrameCarouselProps {
