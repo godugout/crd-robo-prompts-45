@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ImagePlus, Camera } from 'lucide-react';
 import { calculateFlexibleCardSize, type CardOrientation } from '@/utils/cardDimensions';
 import { GradingLabel } from './GradingLabel';
-import { GradedCardSlab3D } from './GradedCardSlab3D';
+import { Advanced3DCardRenderer } from '@/components/studio/advanced/Advanced3DCardRenderer';
 
 interface EnhancedStudioCardPreviewProps {
   uploadedImage?: string;
@@ -112,10 +113,53 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
 
   const cardDimensions = calculateFlexibleCardSize(320, 450, orientation, 2.5, 0.4);
 
-  // If 3D preview is enabled and we have an image, use the WebGL 3D slab
+  // Create card data for the 3D renderer
+  const cardData = {
+    id: 'preview-card',
+    title: cardName || 'Your Card',
+    description: 'Professional graded card with enhanced effects',
+    image_url: uploadedImage,
+    template_id: selectedFrame || 'premium',
+    rarity: 'legendary',
+    edition_size: 1,
+    design_metadata: {
+      effects: Object.fromEntries(
+        Object.entries(effectValues).map(([key, value]) => [
+          key, 
+          typeof value === 'object' && value.intensity ? value.intensity / 100 : 0
+        ])
+      )
+    }
+  };
+
+  // Create effects configuration for the 3D renderer
+  const create3DEffects = () => {
+    const effects: any = {};
+    
+    // Map our effect values to the 3D renderer format
+    if (effectValues.holographic?.intensity > 0) {
+      effects.holographic = true;
+    }
+    if (effectValues.chrome?.intensity > 0) {
+      effects.metalness = effectValues.chrome.intensity / 100;
+    }
+    if (effectValues.crystal?.intensity > 0) {
+      effects.particles = true;
+      effects.glow = true;
+      effects.glowColor = '#ffffff';
+    }
+    if (effectValues.gold?.intensity > 0) {
+      effects.metalness = 0.8;
+      effects.roughness = 0.2;
+    }
+
+    return effects;
+  };
+
+  // If 3D preview is enabled and we have an image, use the Advanced3DCardRenderer
   if (show3DPreview && uploadedImage) {
     return (
-      <div className="relative flex flex-col items-center justify-center min-h-[600px] p-6">
+      <div className="relative flex flex-col items-center justify-center min-h-[700px] p-6">
         <style>
           {`
           @keyframes holographic-shift {
@@ -128,29 +172,39 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
           `}
         </style>
 
-        {/* 3D WebGL Slab */}
-        <div className="w-full max-w-lg h-[500px] bg-gradient-to-br from-gray-900 to-black rounded-2xl overflow-hidden border border-white/10">
-          <GradedCardSlab3D
-            cardImage={uploadedImage}
-            cardName={cardName || 'Your Card'}
-            overallGrade={9.5}
-            centeringGrade={9}
-            cornersGrade={10}
-            edgesGrade={9}
-            surfaceGrade={10}
+        {/* Large 3D WebGL Renderer */}
+        <div className="w-full max-w-4xl h-[600px] bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+          <Advanced3DCardRenderer
+            cardData={cardData}
+            imageUrl={uploadedImage}
+            effects={create3DEffects()}
+            onInteraction={(type, data) => {
+              console.log('3D Card Interaction:', type, data);
+            }}
           />
         </div>
 
-        {/* Info Below 3D Slab */}
-        <div className="mt-4 text-center bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/10">
-          <div className="text-white text-sm font-medium">
-            Professional 3D Graded Slab • CRD Certified
+        {/* Enhanced Info Below 3D Card */}
+        <div className="mt-6 text-center bg-black/40 backdrop-blur-lg rounded-xl px-6 py-4 border border-white/10 max-w-2xl">
+          <div className="text-white text-lg font-bold mb-2">
+            Professional 3D Card Experience • CRD Enhanced
           </div>
-          <div className="text-gray-400 text-xs mt-1">
-            Interactive 3D View • Drag to rotate • Scroll to zoom
-            {Object.keys(effectValues).length > 0 && (
-              <span className="ml-2 text-crd-green">• Enhanced</span>
-            )}
+          <div className="text-gray-300 text-sm mb-3">
+            Interactive 3D View • Drag to rotate • Scroll to zoom • Hover for effects
+          </div>
+          <div className="flex justify-center items-center space-x-4 text-xs text-gray-400">
+            <span className="flex items-center">
+              <div className="w-2 h-2 bg-crd-green rounded-full mr-2"></div>
+              Premium Materials
+            </span>
+            <span className="flex items-center">
+              <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
+              Holographic Effects
+            </span>
+            <span className="flex items-center">
+              <div className="w-2 h-2 bg-purple-400 rounded-full mr-2"></div>
+              Real-time Lighting
+            </span>
           </div>
         </div>
       </div>
