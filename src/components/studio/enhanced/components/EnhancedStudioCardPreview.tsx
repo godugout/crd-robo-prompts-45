@@ -30,6 +30,8 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
 }) => {
   const cardDimensions = calculateFlexibleCardSize(320, 450, orientation, 2.5, 0.4);
 
+  console.log('EnhancedStudioCardPreview - Rendering with frame:', selectedFrame, 'Effects:', effectValues);
+
   // Create card data for the 3D renderer
   const cardData = {
     id: 'preview-card',
@@ -211,32 +213,39 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
             <div className="relative w-full h-full p-4">
               {uploadedImage ? (
                 <div className="relative w-full h-full rounded-lg overflow-hidden group">
-                  {/* Card Effects Layer - ISOLATED TO CARD CONTENT ONLY */}
-                  <CardEffectsLayer effectValues={effectValues}>
-                    <img 
-                      src={uploadedImage} 
-                      alt="Card content"
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 relative z-10"
-                    />
-                  </CardEffectsLayer>
+                  {/* Layer 1: Base Image */}
+                  <div className="absolute inset-0" style={{ zIndex: 10 }}>
+                    <CardEffectsLayer effectValues={effectValues}>
+                      <img 
+                        src={uploadedImage} 
+                        alt="Card content"
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </CardEffectsLayer>
+                  </div>
                   
-                  {/* Card Effect Overlays - ISOLATED TO CARD CONTENT */}
-                  <CardEffectOverlays effectValues={effectValues} />
+                  {/* Layer 2: Card Effect Overlays */}
+                  <div className="absolute inset-0" style={{ zIndex: 15 }}>
+                    <CardEffectOverlays effectValues={effectValues} />
+                  </div>
                   
-                  {/* Frame Overlay - Applied over the card */}
-                  <FrameOverlay 
-                    frameId={selectedFrame || ''} 
-                    width={cardDimensions.width - 32} 
-                    height={cardDimensions.height - 32} 
-                  />
+                  {/* Layer 3: Frame Overlay */}
+                  {selectedFrame && (
+                    <div className="absolute inset-0" style={{ zIndex: 25 }}>
+                      <FrameOverlay 
+                        frameId={selectedFrame} 
+                        width={cardDimensions.width - 32} 
+                        height={cardDimensions.height - 32} 
+                      />
+                    </div>
+                  )}
                   
-                  {/* Base gradient overlay for text readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 z-30 rounded-lg" />
+                  {/* Layer 4: Text/UI Overlays */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 rounded-lg" style={{ zIndex: 30 }} />
                   
-                  {/* Card Info Overlay */}
-                  <div className="absolute bottom-3 left-3 right-3 z-40">
+                  <div className="absolute bottom-3 left-3 right-3" style={{ zIndex: 40 }}>
                     <p className="text-gray-200 text-xs truncate drop-shadow-lg">
-                      Frame: {selectedFrame || 'Default'} • Effects: {Object.keys(effectValues).filter(k => effectValues[k]?.intensity > 0).length} active
+                      Frame: {selectedFrame || 'None'} • Effects: {Object.keys(effectValues).filter(k => effectValues[k]?.intensity > 0).length} active
                     </p>
                   </div>
                 </div>
