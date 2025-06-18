@@ -38,8 +38,7 @@ export const GradedCardSlab3D: React.FC<GradedCardSlab3DProps> = ({
         gl={{ 
           antialias: true, 
           alpha: true,
-          powerPreference: "high-performance",
-          shadowMap: true
+          powerPreference: "high-performance"
         }}
         shadows
       >

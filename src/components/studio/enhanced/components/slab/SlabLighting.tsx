@@ -56,15 +56,6 @@ export const SlabLighting: React.FC = () => {
         preset="studio" 
         background={false}
         blur={0.8}
-        intensity={0.6}
-      />
-
-      {/* Additional HDRI Environment for Reflections */}
-      <Environment
-        files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_03_1k.hdr"
-        background={false}
-        blur={0.5}
-        intensity={0.4}
       />
     </>
   );
