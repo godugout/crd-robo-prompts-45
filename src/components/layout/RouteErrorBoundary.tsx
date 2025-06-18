@@ -21,7 +21,7 @@ export const RouteErrorBoundary = () => {
       title: 'Create a Card',
       description: 'Start creating cards',
       icon: Camera,
-      action: () => navigate('/cards'),
+      action: () => navigate('/cards/enhanced'),
       color: 'bg-blue-500'
     },
     {

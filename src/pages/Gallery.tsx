@@ -15,8 +15,10 @@ import { convertToUniversalCardData } from '@/components/viewer/types';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Plus, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const Gallery = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('featured');
   
   const { collections, loading: collectionsLoading } = useAllCollections(1, 6);
@@ -43,8 +45,7 @@ const Gallery = () => {
   };
 
   const handleCreateCard = () => {
-    // TODO: Navigate to card creation
-    console.log('Create card clicked');
+    navigate('/cards/enhanced');
   };
 
   return (
