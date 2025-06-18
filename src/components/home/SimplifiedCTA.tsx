@@ -78,7 +78,7 @@ export const SimplifiedCTA: React.FC = () => {
                   Create New Card
                 </CRDButton>
               </Link>
-              <Link to="/cards/enhanced">
+              <Link to="/profile">
                 <CRDButton 
                   variant="secondary" 
                   size="lg"
@@ -99,7 +99,7 @@ export const SimplifiedCTA: React.FC = () => {
                   Get Started Free
                 </CRDButton>
               </Link>
-              <Link to="/cards/enhanced">
+              <Link to="/gallery">
                 <CRDButton 
                   variant="secondary" 
                   size="lg"
