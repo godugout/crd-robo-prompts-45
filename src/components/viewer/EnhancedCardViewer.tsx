@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -32,6 +31,8 @@ interface EnhancedCardViewerProps {
   };
   onLike?: () => void;
   onBookmark?: () => void;
+  selectedFrame?: string;
+  frameConfig?: any;
 }
 
 // Error boundary component
@@ -86,12 +87,14 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
   onShare,
   cardDetails,
   onLike,
-  onBookmark
+  onBookmark,
+  selectedFrame,
+  frameConfig
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentCardData, setCurrentCardData] = useState(card);
   
-  console.log('EnhancedCardViewer: Starting render', { card: card?.id, hasCard: !!card });
+  console.log('EnhancedCardViewer: Starting render', { card: card?.id, hasCard: !!card, selectedFrame });
 
   // Initialize hooks with error handling
   let cardInteractionHook;
@@ -219,11 +222,13 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
               autoRotateSpeed={0.5}
             />
             
-            {/* Enhanced lighting setup for better card visibility */}
+            {/* Enhanced lighting setup for better metallic reflections */}
             <ambientLight intensity={0.6} />
             <directionalLight position={[10, 10, 5]} intensity={1.2} />
             <directionalLight position={[-10, -10, -5]} intensity={0.4} />
             <pointLight position={[0, 0, 10]} intensity={0.8} />
+            <pointLight position={[5, 5, 5]} intensity={0.6} color="#ffffff" />
+            <pointLight position={[-5, -5, 5]} intensity={0.6} color="#ffffff" />
             
             <EffectProvider value={effectContextValue}>
               <Enhanced3DCardMesh 
@@ -231,6 +236,8 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
                 rotation={rotation}
                 zoom={zoom}
                 materialSettings={materialSettings}
+                selectedFrame={selectedFrame}
+                frameConfig={frameConfig}
               />
             </EffectProvider>
           </Canvas>
