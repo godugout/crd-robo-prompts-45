@@ -5,16 +5,23 @@ import { OrbitControls } from '@react-three/drei';
 export const SlabControls: React.FC = () => {
   return (
     <OrbitControls
-      enablePan={false}
+      enablePan={true}
       enableZoom={true}
       enableRotate={true}
-      minDistance={4}
-      maxDistance={10}
-      minPolarAngle={Math.PI / 6}
-      maxPolarAngle={Math.PI - Math.PI / 6}
+      minDistance={5}
+      maxDistance={15}
+      minPolarAngle={Math.PI / 8}
+      maxPolarAngle={Math.PI - Math.PI / 8}
+      minAzimuthAngle={-Math.PI / 3}
+      maxAzimuthAngle={Math.PI / 3}
       autoRotate={false}
-      dampingFactor={0.05}
+      autoRotateSpeed={0.5}
+      dampingFactor={0.08}
       enableDamping
+      rotateSpeed={0.8}
+      zoomSpeed={0.6}
+      panSpeed={0.8}
+      target={[0, 0, 0]}
     />
   );
 };

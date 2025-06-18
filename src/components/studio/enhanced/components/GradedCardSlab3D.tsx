@@ -27,14 +27,21 @@ export const GradedCardSlab3D: React.FC<GradedCardSlab3DProps> = ({
   surfaceGrade = 10
 }) => {
   return (
-    <div className="w-full h-full min-h-[500px]">
+    <div className="w-full h-full min-h-[700px] bg-gradient-to-br from-gray-900 to-black rounded-xl overflow-hidden">
       <Canvas
-        camera={{ position: [0, 0, 6], fov: 45 }}
+        camera={{ 
+          position: [0, 0, 8], 
+          fov: 35,
+          near: 0.1,
+          far: 1000
+        }}
         gl={{ 
           antialias: true, 
           alpha: true,
-          powerPreference: "high-performance"
+          powerPreference: "high-performance",
+          shadowMap: true
         }}
+        shadows
       >
         <SlabLighting />
         
