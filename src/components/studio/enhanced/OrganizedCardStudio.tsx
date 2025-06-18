@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -69,34 +70,36 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
     return Math.min(completed, 100);
   }, [uploadedImage, selectedFrame, cardName, effectValues, show3DPreview, projectSaved]);
 
-  // Fixed image upload handler - REMOVED auto-advancing
+  // Fixed image upload handler
   const handleImageUpload = useCallback((imageUrl: string) => {
-    console.log('OrganizedCardStudio - handleImageUpload called with:', imageUrl);
+    console.log('🖼️ OrganizedCardStudio - handleImageUpload called with:', imageUrl);
     
     if (!imageUrl || imageUrl.trim() === '') {
-      console.log('OrganizedCardStudio - Empty image URL, clearing state');
+      console.log('🖼️ OrganizedCardStudio - Empty image URL, clearing state');
       setUploadedImage('');
       return;
     }
 
-    console.log('OrganizedCardStudio - Setting uploaded image:', imageUrl);
+    console.log('🖼️ OrganizedCardStudio - Setting uploaded image:', imageUrl);
     setUploadedImage(imageUrl);
-    
-    // REMOVED: Auto-advance to frame phase - let user control workflow
     toast.success('Image uploaded successfully!');
   }, []);
 
-  // REMOVED auto-advancing from frame selection
+  // Fixed frame selection handler with debugging
   const handleFrameSelect = useCallback((frameId: string) => {
-    console.log('OrganizedCardStudio - Frame selected:', frameId);
+    console.log('🖼️ OrganizedCardStudio - Frame selected:', frameId);
     setSelectedFrame(frameId);
-    // REMOVED: Auto-advance to effects phase - let user control workflow
-    toast.success('Frame applied successfully!');
+    toast.success(`Frame ${frameId || 'None'} applied successfully!`);
   }, []);
 
-  // Enhanced effect change handler with better debugging
+  // Enhanced effect change handler with comprehensive debugging
   const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
-    console.log('OrganizedCardStudio - Effect change:', { effectId, parameterId, value });
+    console.log('🎨 OrganizedCardStudio - Effect change received:', { 
+      effectId, 
+      parameterId, 
+      value,
+      type: typeof value
+    });
     
     setEffectValues(prev => {
       const newValues = {
@@ -106,7 +109,13 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
           [parameterId]: value
         }
       };
-      console.log('OrganizedCardStudio - New effect values:', newValues);
+      
+      console.log('🎨 OrganizedCardStudio - Previous effect values:', prev);
+      console.log('🎨 OrganizedCardStudio - New effect values:', newValues);
+      console.log('🎨 OrganizedCardStudio - Active effects count:', 
+        Object.keys(newValues).filter(k => newValues[k]?.intensity > 0).length
+      );
+      
       return newValues;
     });
   }, []);
@@ -139,18 +148,20 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
     toast.success('Generating share link...');
   }, [projectSaved, handleSaveProject]);
 
-  // Debug current state
+  // Debug current state with detailed logging
   React.useEffect(() => {
-    console.log('OrganizedCardStudio - Current state:', { 
-      uploadedImage, 
+    console.log('🔍 OrganizedCardStudio - Complete current state:', { 
+      uploadedImage: uploadedImage ? 'Present' : 'None', 
       activePhase,
-      selectedFrame,
-      effectValues
+      selectedFrame: selectedFrame || 'None',
+      effectValues,
+      effectsCount: Object.keys(effectValues).length,
+      activeEffectsCount: Object.keys(effectValues).filter(k => effectValues[k]?.intensity > 0).length
     });
   }, [uploadedImage, activePhase, selectedFrame, effectValues]);
 
   const renderPhaseContent = () => {
-    console.log('OrganizedCardStudio - Rendering phase content for:', activePhase);
+    console.log('🔄 OrganizedCardStudio - Rendering phase content for:', activePhase);
     
     switch (activePhase) {
       case 'upload':

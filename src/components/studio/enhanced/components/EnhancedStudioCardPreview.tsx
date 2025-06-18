@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Advanced3DCardRenderer } from '@/components/studio/advanced/Advanced3DC
 import { FrameOverlay } from './FrameOverlay';
 import { CardEffectsLayer } from './CardEffectsLayer';
 import { CardEffectOverlays } from './CardEffectOverlays';
+import { DebugEffectValues } from './DebugEffectValues';
 
 interface EnhancedStudioCardPreviewProps {
   uploadedImage?: string;
@@ -30,7 +32,12 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
 }) => {
   const cardDimensions = calculateFlexibleCardSize(320, 450, orientation, 2.5, 0.4);
 
-  console.log('EnhancedStudioCardPreview - Rendering with frame:', selectedFrame, 'Effects:', effectValues);
+  console.log('🎨 EnhancedStudioCardPreview - Rendering with:', {
+    uploadedImage: uploadedImage ? 'Present' : 'None',
+    selectedFrame: selectedFrame || 'None',
+    effectValues,
+    activeEffectsCount: Object.keys(effectValues).filter(k => effectValues[k]?.intensity > 0).length
+  });
 
   // Create card data for the 3D renderer
   const cardData = {
@@ -147,6 +154,15 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
             </span>
           </div>
         </div>
+
+        {/* Debug Component */}
+        <div className="mt-4 w-full max-w-2xl">
+          <DebugEffectValues 
+            effectValues={effectValues}
+            selectedFrame={selectedFrame}
+            uploadedImage={uploadedImage}
+          />
+        </div>
       </div>
     );
   }
@@ -213,7 +229,7 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
             <div className="relative w-full h-full p-4">
               {uploadedImage ? (
                 <div className="relative w-full h-full rounded-lg overflow-hidden group">
-                  {/* Layer 1: Base Image */}
+                  {/* Layer 1: Base Image with Effects (z-index: 10) */}
                   <div className="absolute inset-0" style={{ zIndex: 10 }}>
                     <CardEffectsLayer effectValues={effectValues}>
                       <img 
@@ -224,23 +240,23 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
                     </CardEffectsLayer>
                   </div>
                   
-                  {/* Layer 2: Card Effect Overlays */}
+                  {/* Layer 2: Additional Effect Overlays (z-index: 15) */}
                   <div className="absolute inset-0" style={{ zIndex: 15 }}>
                     <CardEffectOverlays effectValues={effectValues} />
                   </div>
                   
-                  {/* Layer 3: Frame Overlay */}
+                  {/* Layer 3: Frame Overlay (z-index: 25) */}
                   {selectedFrame && (
                     <div className="absolute inset-0" style={{ zIndex: 25 }}>
                       <FrameOverlay 
                         frameId={selectedFrame} 
-                        width={cardDimensions.width - 32} 
-                        height={cardDimensions.height - 32} 
+                        width={cardDimensions.width} 
+                        height={cardDimensions.height} 
                       />
                     </div>
                   )}
                   
-                  {/* Layer 4: Text/UI Overlays */}
+                  {/* Layer 4: Text/UI Overlays (z-index: 30+) */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 rounded-lg" style={{ zIndex: 30 }} />
                   
                   <div className="absolute bottom-3 left-3 right-3" style={{ zIndex: 40 }}>
@@ -281,6 +297,15 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
         <div className="absolute top-2 right-2 w-3 h-3 border-r-2 border-t-2 border-crd-green/50 rounded-tr-lg z-50" />
         <div className="absolute bottom-2 left-2 w-3 h-3 border-l-2 border-b-2 border-crd-green/50 rounded-bl-lg z-50" />
         <div className="absolute bottom-2 right-2 w-3 h-3 border-r-2 border-b-2 border-crd-green/50 rounded-br-lg z-50" />
+      </div>
+
+      {/* Debug Component */}
+      <div className="mt-6 w-full max-w-2xl">
+        <DebugEffectValues 
+          effectValues={effectValues}
+          selectedFrame={selectedFrame}
+          uploadedImage={uploadedImage}
+        />
       </div>
 
       {/* Slab Info - Outside main container */}
