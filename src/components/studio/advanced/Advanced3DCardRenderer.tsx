@@ -1,4 +1,5 @@
 
+
 import React, { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { 
@@ -351,14 +352,14 @@ export const Advanced3DCardRenderer: React.FC<Advanced3DCardRendererProps> = ({
         gl={{ 
           antialias: true, 
           alpha: true,
-          preserveDrawingBuffer: true,
-          shadowMap: {
-            enabled: true,
-            type: THREE.PCFSoftShadowMap
-          }
+          preserveDrawingBuffer: true
         }}
         dpr={[1, 2]}
         camera={{ position: [0, 0, 6], fov: 45 }}
+        onCreated={({ gl }) => {
+          gl.shadowMap.enabled = true;
+          gl.shadowMap.type = THREE.PCFSoftShadowMap;
+        }}
       >
         <PerspectiveCamera makeDefault position={[0, 0, 6]} />
         
@@ -438,3 +439,4 @@ export const Advanced3DCardRenderer: React.FC<Advanced3DCardRendererProps> = ({
     </div>
   );
 };
+
