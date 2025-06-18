@@ -266,30 +266,30 @@ const Card3D = ({
         {/* Use box geometry for thickness */}
         <boxGeometry args={[cardWidth, cardHeight, cardThickness]} />
         
-        {/* Create materials array for all 6 faces */}
+        {/* Materials for each face of the box */}
         {effects.holographic ? (
-          // Holographic front, professional back, and edge materials
-          <group>
+          <>
             <meshStandardMaterial attach="material-0" color="#2a2a3a" /> {/* Right edge */}
             <meshStandardMaterial attach="material-1" color="#2a2a3a" /> {/* Left edge */}
             <meshStandardMaterial attach="material-2" color="#2a2a3a" /> {/* Top edge */}
             <meshStandardMaterial attach="material-3" color="#2a2a3a" /> {/* Bottom edge */}
-            <HolographicMaterial texture={texture} /> {/* Front face */}
+            <HolographicMaterial texture={texture} /> {/* Front face - attach will be handled by the component */}
             <meshStandardMaterial attach="material-5" map={cardBackTexture} /> {/* Back face */}
-          </group>
+          </>
         ) : (
-          [
-            new THREE.MeshStandardMaterial({ color: '#2a2a3a' }), // Right edge
-            new THREE.MeshStandardMaterial({ color: '#2a2a3a' }), // Left edge  
-            new THREE.MeshStandardMaterial({ color: '#2a2a3a' }), // Top edge
-            new THREE.MeshStandardMaterial({ color: '#2a2a3a' }), // Bottom edge
-            new THREE.MeshStandardMaterial({ 
-              map: texture,
-              metalness: effects.metalness || 0.1,
-              roughness: effects.roughness || 0.4
-            }), // Front face
-            new THREE.MeshStandardMaterial({ map: cardBackTexture }) // Back face
-          ]
+          <>
+            <meshStandardMaterial attach="material-0" color="#2a2a3a" /> {/* Right edge */}
+            <meshStandardMaterial attach="material-1" color="#2a2a3a" /> {/* Left edge */}
+            <meshStandardMaterial attach="material-2" color="#2a2a3a" /> {/* Top edge */}
+            <meshStandardMaterial attach="material-3" color="#2a2a3a" /> {/* Bottom edge */}
+            <meshStandardMaterial 
+              attach="material-4"
+              map={texture}
+              metalness={effects.metalness || 0.1}
+              roughness={effects.roughness || 0.4}
+            /> {/* Front face */}
+            <meshStandardMaterial attach="material-5" map={cardBackTexture} /> {/* Back face */}
+          </>
         )}
       </mesh>
       
@@ -352,7 +352,10 @@ export const Advanced3DCardRenderer: React.FC<Advanced3DCardRendererProps> = ({
           antialias: true, 
           alpha: true,
           preserveDrawingBuffer: true,
-          shadowMap: true
+          shadowMap: {
+            enabled: true,
+            type: THREE.PCFSoftShadowMap
+          }
         }}
         dpr={[1, 2]}
         camera={{ position: [0, 0, 6], fov: 45 }}
