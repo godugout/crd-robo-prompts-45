@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,8 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { EnhancedFrameBrowser } from './EnhancedFrameBrowser';
 import { EnhancedUploadZone } from './EnhancedUploadZone';
+import { InlineCropInterface } from './components/InlineCropInterface';
 import { ImageCropperModal } from '@/components/editor/modals/ImageCropperModal';
-import { Sparkles, Download, Share2, Eye, Settings, RotateCcw, Maximize2, Upload, Camera, Crop, Edit3, Plus, ImagePlus, Menu, X } from 'lucide-react';
+import { Sparkles, Download, Share2, Eye, Settings, RotateCcw, Maximize2, Upload, Camera, Crop, Edit3, Plus, ImagePlus, Menu, X, Scissors } from 'lucide-react';
 import { 
   calculateFlexibleCardSize, 
   formatScaledDimensions, 
@@ -36,6 +38,7 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
   const [showCropModal, setShowCropModal] = useState(false);
   const [isHoveringImage, setIsHoveringImage] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [cropMode, setCropMode] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
   const { isMobile, isTablet, isDesktop, responsivePadding } = useResponsiveBreakpoints();
@@ -108,8 +111,18 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
 
   const handleCropComplete = useCallback((croppedImageUrl: string) => {
     onImageUpload(croppedImageUrl);
-    setShowCropModal(false);
+    setCropMode(false);
   }, [onImageUpload]);
+
+  const handleCropCancel = useCallback(() => {
+    setCropMode(false);
+  }, []);
+
+  const enterCropMode = useCallback(() => {
+    if (uploadedImage) {
+      setCropMode(true);
+    }
+  }, [uploadedImage]);
 
   const renderCardPreview = () => {
     if (!cardDimensions) return null;
@@ -133,39 +146,35 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
           {/* Card Content */}
           <div className="relative w-full h-full p-4 md:p-6 lg:p-8">
             {uploadedImage ? (
-              <div 
-                className="relative w-full h-full rounded-2xl overflow-hidden group"
-                onMouseEnter={() => setIsHoveringImage(true)}
-                onMouseLeave={() => setIsHoveringImage(false)}
-              >
+              <div className="relative w-full h-full rounded-2xl overflow-hidden group">
                 <img 
                   src={uploadedImage} 
                   alt="Card content"
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 
-                {/* Crop Button Overlay */}
-                {isHoveringImage && !isMobile && (
+                {/* Crop Button Overlay - Desktop */}
+                {!cropMode && isHoveringImage && !isMobile && (
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-all duration-300">
                     <Button
-                      onClick={() => setShowCropModal(true)}
+                      onClick={enterCropMode}
                       className="bg-crd-green hover:bg-crd-green/90 text-black font-bold px-4 py-2 md:px-6 md:py-3 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
                     >
-                      <Crop className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-                      {!isMobile && "Crop Image"}
+                      <Scissors className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                      Crop Image
                     </Button>
                   </div>
                 )}
                 
                 {/* Mobile Crop Button */}
-                {isMobile && (
+                {!cropMode && isMobile && (
                   <div className="absolute top-2 right-2">
                     <Button
                       size="sm"
-                      onClick={() => setShowCropModal(true)}
+                      onClick={enterCropMode}
                       className="bg-crd-green hover:bg-crd-green/90 text-black w-8 h-8 p-0 rounded-full"
                     >
-                      <Crop className="w-4 h-4" />
+                      <Scissors className="w-4 h-4" />
                     </Button>
                   </div>
                 )}
@@ -227,7 +236,7 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
           </div>
 
           {/* Premium Effects Overlay */}
-          {selectedFrame && uploadedImage && (
+          {selectedFrame && uploadedImage && !cropMode && (
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
             </div>
@@ -250,7 +259,7 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
         />
 
         {/* Enhanced Dimension Display */}
-        {cardDimensions && !isMobile && (
+        {cardDimensions && !isMobile && !cropMode && (
           <div className="absolute bottom-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/10">
             <div className="text-white text-sm font-medium">
               {formatScaledDimensions(cardDimensions, orientation)}
@@ -263,7 +272,7 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
         )}
 
         {/* Action Buttons - Desktop Only */}
-        {!isMobile && (
+        {!isMobile && !cropMode && (
           <div className="absolute bottom-4 right-4 flex gap-2">
             <Button size="sm" variant="outline" className="bg-black/50 text-white border-white/20 hover:bg-white/10">
               <Eye className="w-4 h-4" />
@@ -290,6 +299,11 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
                   <Badge className="bg-crd-green text-black font-bold px-2 py-1 text-xs">
                     ENHANCED STUDIO
                   </Badge>
+                  {cropMode && (
+                    <Badge className="bg-purple-500 text-white font-bold px-2 py-1 text-xs">
+                      CROP MODE
+                    </Badge>
+                  )}
                 </div>
                 <Button
                   variant="outline"
@@ -313,91 +327,100 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
                     <Badge variant="outline" className="border-yellow-500/50 text-yellow-400">
                       FLEXIBLE CANVAS
                     </Badge>
+                    {cropMode && (
+                      <Badge className="bg-purple-500 text-white font-bold px-3 py-1">
+                        CROP MODE ACTIVE
+                      </Badge>
+                    )}
                   </div>
                   <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-white mb-2">
                     Professional Card Creator
                   </h1>
                   <p className="text-lg md:text-xl text-gray-300">
-                    Create stunning cards with flexible scaling and premium visual effects
+                    {cropMode ? 'Crop and adjust your image with precision tools' : 'Create stunning cards with flexible scaling and premium visual effects'}
                   </p>
                 </div>
                 
-                <div className="flex gap-3">
-                  <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share
+                {!cropMode && (
+                  <div className="flex gap-3">
+                    <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Share
+                    </Button>
+                    <Button className="bg-crd-green hover:bg-crd-green/90 text-black font-bold">
+                      <Download className="w-4 h-4 mr-2" />
+                      Export HD
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Card Details and Controls Row - Hide in Crop Mode */}
+            {!cropMode && (
+              <div className={`flex ${isMobile ? 'flex-col gap-4' : 'items-center justify-between'} mb-6 md:mb-8`}>
+                {/* Left Side - Card Details */}
+                <div className={`${isMobile ? 'w-full' : 'flex-1 max-w-md'}`}>
+                  <h2 className="text-lg md:text-2xl font-bold text-white mb-3 md:mb-4 flex items-center gap-2">
+                    <Edit3 className="w-5 h-5 md:w-6 md:h-6" />
+                    Card Details
+                  </h2>
+                  <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-lg p-3 md:p-4 border border-white/10">
+                    <label htmlFor="card-name" className="block text-sm font-medium text-white mb-2">
+                      Card Name
+                    </label>
+                    <Input
+                      id="card-name"
+                      value={cardName}
+                      onChange={(e) => setCardName(e.target.value)}
+                      placeholder="Enter your card name..."
+                      className="bg-black/30 border-white/20 text-white placeholder:text-gray-400"
+                      maxLength={50}
+                    />
+                    <p className="text-xs text-gray-400 mt-1">
+                      {cardName.length}/50 characters
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right Side - Controls */}
+                <div className={`flex ${isMobile ? 'flex-wrap' : ''} gap-2 md:gap-3`}>
+                  {/* Orientation Toggle */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setOrientation(orientation === 'portrait' ? 'landscape' : 'portrait')}
+                    className="bg-black/50 text-white border-white/20 hover:bg-white/10 text-xs md:text-sm"
+                  >
+                    <RotateCcw className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                    {orientation === 'portrait' ? 'Portrait' : 'Landscape'}
                   </Button>
-                  <Button className="bg-crd-green hover:bg-crd-green/90 text-black font-bold">
-                    <Download className="w-4 h-4 mr-2" />
-                    Export HD
-                  </Button>
+                  
+                  {/* 2D/3D Toggle */}
+                  <div className="flex gap-1">
+                    <Button
+                      variant={previewMode === '2d' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setPreviewMode('2d')}
+                      className={`text-xs md:text-sm ${previewMode === '2d' ? 'bg-crd-green text-black' : 'bg-black/50 text-white border-white/20'}`}
+                    >
+                      2D
+                    </Button>
+                    <Button
+                      variant={previewMode === '3d' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setPreviewMode('3d')}
+                      className={`text-xs md:text-sm ${previewMode === '3d' ? 'bg-crd-green text-black' : 'bg-black/50 text-white border-white/20'}`}
+                    >
+                      3D
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Card Details and Controls Row */}
-            <div className={`flex ${isMobile ? 'flex-col gap-4' : 'items-center justify-between'} mb-6 md:mb-8`}>
-              {/* Left Side - Card Details */}
-              <div className={`${isMobile ? 'w-full' : 'flex-1 max-w-md'}`}>
-                <h2 className="text-lg md:text-2xl font-bold text-white mb-3 md:mb-4 flex items-center gap-2">
-                  <Edit3 className="w-5 h-5 md:w-6 md:h-6" />
-                  Card Details
-                </h2>
-                <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-lg p-3 md:p-4 border border-white/10">
-                  <label htmlFor="card-name" className="block text-sm font-medium text-white mb-2">
-                    Card Name
-                  </label>
-                  <Input
-                    id="card-name"
-                    value={cardName}
-                    onChange={(e) => setCardName(e.target.value)}
-                    placeholder="Enter your card name..."
-                    className="bg-black/30 border-white/20 text-white placeholder:text-gray-400"
-                    maxLength={50}
-                  />
-                  <p className="text-xs text-gray-400 mt-1">
-                    {cardName.length}/50 characters
-                  </p>
-                </div>
-              </div>
-
-              {/* Right Side - Controls */}
-              <div className={`flex ${isMobile ? 'flex-wrap' : ''} gap-2 md:gap-3`}>
-                {/* Orientation Toggle */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setOrientation(orientation === 'portrait' ? 'landscape' : 'portrait')}
-                  className="bg-black/50 text-white border-white/20 hover:bg-white/10 text-xs md:text-sm"
-                >
-                  <RotateCcw className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
-                  {orientation === 'portrait' ? 'Portrait' : 'Landscape'}
-                </Button>
-                
-                {/* 2D/3D Toggle */}
-                <div className="flex gap-1">
-                  <Button
-                    variant={previewMode === '2d' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setPreviewMode('2d')}
-                    className={`text-xs md:text-sm ${previewMode === '2d' ? 'bg-crd-green text-black' : 'bg-black/50 text-white border-white/20'}`}
-                  >
-                    2D
-                  </Button>
-                  <Button
-                    variant={previewMode === '3d' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setPreviewMode('3d')}
-                    className={`text-xs md:text-sm ${previewMode === '3d' ? 'bg-crd-green text-black' : 'bg-black/50 text-white border-white/20'}`}
-                  >
-                    3D
-                  </Button>
-                </div>
-              </div>
-            </div>
-
             {/* Mobile Menu */}
-            {isMobile && isMobileMenuOpen && (
+            {isMobile && isMobileMenuOpen && !cropMode && (
               <div className="mb-6 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-lg p-4 border border-white/10">
                 <div className="flex gap-2 mb-4">
                   <Button variant="outline" className="flex-1 border-white/20 text-white hover:bg-white/10 text-sm">
@@ -438,12 +461,14 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
                         ? 'h-[500px]'
                         : 'h-[calc(100vh-500px)] min-h-[500px]'
                   } flex items-center justify-center`}
+                  onMouseEnter={() => setIsHoveringImage(true)}
+                  onMouseLeave={() => setIsHoveringImage(false)}
                 >
                   {renderCardPreview()}
                 </div>
               </div>
 
-              {/* Effects Selection */}
+              {/* Right Sidebar */}
               <div className={`${
                 isMobile 
                   ? 'order-2' 
@@ -451,13 +476,55 @@ export const EnhancedCardStudio: React.FC<EnhancedCardStudioProps> = ({
                     ? 'order-2'
                     : 'col-span-5 order-2'
               } ${isMobile ? 'pb-6' : ''}`}>
-                <div className={`${isMobile ? 'max-h-[60vh] overflow-y-auto' : ''}`}>
-                  <h2 className="text-xl md:text-2xl font-bold text-white mb-4">Choose Visual Effects</h2>
-                  <EnhancedFrameBrowser
-                    onFrameSelect={onFrameSelect}
-                    selectedFrame={selectedFrame}
-                    orientation={orientation}
-                  />
+                <div className={`${isMobile ? 'max-h-[60vh] overflow-y-auto' : ''} space-y-6`}>
+                  
+                  {/* Crop Interface */}
+                  {cropMode && uploadedImage && (
+                    <InlineCropInterface
+                      imageUrl={uploadedImage}
+                      onCropComplete={handleCropComplete}
+                      onCancel={handleCropCancel}
+                      aspectRatio={2.5 / 3.5}
+                    />
+                  )}
+
+                  {/* Image Upload Section */}
+                  {!cropMode && (
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg md:text-xl font-bold text-white flex items-center gap-2">
+                          <Camera className="w-5 h-5 md:w-6 md:h-6" />
+                          Image Upload
+                        </h2>
+                        {uploadedImage && (
+                          <Button
+                            size="sm"
+                            onClick={enterCropMode}
+                            className="bg-crd-green hover:bg-crd-green/90 text-black font-medium px-3 py-1 text-xs"
+                          >
+                            <Scissors className="w-3 h-3 mr-1" />
+                            Crop
+                          </Button>
+                        )}
+                      </div>
+                      <EnhancedUploadZone
+                        onImageUpload={onImageUpload}
+                        uploadedImage={uploadedImage}
+                      />
+                    </div>
+                  )}
+
+                  {/* Effects Selection - Hidden in Crop Mode */}
+                  {!cropMode && (
+                    <div>
+                      <h2 className="text-xl md:text-2xl font-bold text-white mb-4">Choose Visual Effects</h2>
+                      <EnhancedFrameBrowser
+                        onFrameSelect={onFrameSelect}
+                        selectedFrame={selectedFrame}
+                        orientation={orientation}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
