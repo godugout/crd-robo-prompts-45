@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,9 @@ import { ImagePlus, Camera } from 'lucide-react';
 import { calculateFlexibleCardSize, type CardOrientation } from '@/utils/cardDimensions';
 import { GradingLabel } from './GradingLabel';
 import { Advanced3DCardRenderer } from '@/components/studio/advanced/Advanced3DCardRenderer';
+import { FrameOverlay } from './FrameOverlay';
+import { CardEffectsLayer } from './CardEffectsLayer';
+import { CardEffectOverlays } from './CardEffectOverlays';
 
 interface EnhancedStudioCardPreviewProps {
   uploadedImage?: string;
@@ -26,116 +28,6 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
   effectValues,
   onImageUpload
 }) => {
-  // Generate enhanced effect styles with proper stacking
-  const generateEffectStyles = (): React.CSSProperties => {
-    const styles: React.CSSProperties = {};
-    const filters: string[] = [];
-    const transforms: string[] = [];
-    let hasActiveEffects = false;
-
-    console.log('EnhancedStudioCardPreview - Generating effects for:', effectValues);
-
-    // Holographic effect
-    if (effectValues.holographic?.intensity > 0) {
-      hasActiveEffects = true;
-      const intensity = effectValues.holographic.intensity / 100;
-      console.log('Applying holographic effect with intensity:', intensity);
-      
-      filters.push(`hue-rotate(${(effectValues.holographic.shiftSpeed || 100) * 0.01 * 360}deg)`);
-      filters.push(`saturate(${1 + intensity * 0.8})`);
-      filters.push(`brightness(${1 + intensity * 0.2})`);
-      
-      if (effectValues.holographic.animated) {
-        styles.animation = `holographic-shift ${3 / (effectValues.holographic.shiftSpeed || 100) * 100}s linear infinite`;
-      }
-    }
-
-    // Foil Spray effect
-    if (effectValues.foilspray?.intensity > 0) {
-      hasActiveEffects = true;
-      const intensity = effectValues.foilspray.intensity / 100;
-      console.log('Applying foil spray effect with intensity:', intensity);
-      
-      filters.push(`contrast(${1 + intensity * 0.4})`);
-      filters.push(`saturate(${1 + intensity * 0.6})`);
-      styles.background = `linear-gradient(45deg, rgba(255,215,0,${intensity * 0.3}), rgba(255,165,0,${intensity * 0.2}))`;
-    }
-
-    // Prizm effect
-    if (effectValues.prizm?.intensity > 0) {
-      hasActiveEffects = true;
-      const intensity = effectValues.prizm.intensity / 100;
-      console.log('Applying prizm effect with intensity:', intensity);
-      
-      filters.push(`contrast(${1 + intensity * 0.5})`);
-      filters.push(`hue-rotate(${intensity * 180}deg)`);
-    }
-
-    // Chrome effect
-    if (effectValues.chrome?.intensity > 0) {
-      hasActiveEffects = true;
-      const intensity = effectValues.chrome.intensity / 100;
-      console.log('Applying chrome effect with intensity:', intensity);
-      
-      filters.push(`contrast(${1 + intensity * 0.3})`);
-      filters.push(`brightness(${1 + intensity * 0.2})`);
-      filters.push(`saturate(${0.5 + intensity * 0.5})`);
-    }
-
-    // Crystal effect
-    if (effectValues.crystal?.intensity > 0) {
-      hasActiveEffects = true;
-      const intensity = effectValues.crystal.intensity / 100;
-      console.log('Applying crystal effect with intensity:', intensity);
-      
-      filters.push(`brightness(${1 + intensity * 0.4})`);
-      filters.push(`contrast(${1 + intensity * 0.6})`);
-      
-      if (effectValues.crystal.sparkle) {
-        styles.boxShadow = `inset 0 0 ${30 * intensity}px rgba(255, 255, 255, ${0.4 * intensity}), 0 0 ${20 * intensity}px rgba(255, 255, 255, ${0.2 * intensity})`;
-      }
-    }
-
-    // Gold effect
-    if (effectValues.gold?.intensity > 0) {
-      hasActiveEffects = true;
-      const intensity = effectValues.gold.intensity / 100;
-      console.log('Applying gold effect with intensity:', intensity);
-      
-      filters.push(`sepia(${intensity * 0.9})`);
-      filters.push(`saturate(${1 + intensity * 0.7})`);
-      filters.push(`hue-rotate(${effectValues.gold.goldTone === 'rose' ? '30deg' : '45deg'})`);
-      
-      if (effectValues.gold.colorEnhancement) {
-        filters.push(`brightness(${1 + intensity * 0.15})`);
-      }
-    }
-
-    // Apply 3D transform if enabled and not using WebGL 3D
-    if (show3DPreview && !uploadedImage) {
-      transforms.push('perspective(1200px) rotateX(3deg) rotateY(-3deg)');
-      
-      if (hasActiveEffects) {
-        styles.boxShadow = styles.boxShadow || '0 30px 60px rgba(16, 185, 129, 0.4), 0 0 40px rgba(16, 185, 129, 0.15)';
-      } else {
-        styles.boxShadow = '0 30px 60px rgba(0, 0, 0, 0.5)';
-      }
-    }
-
-    if (filters.length > 0) {
-      styles.filter = filters.join(' ');
-      console.log('Applied filters:', styles.filter);
-    }
-    
-    if (transforms.length > 0) {
-      styles.transform = transforms.join(' ');
-    }
-
-    styles.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-    
-    return styles;
-  };
-
   const cardDimensions = calculateFlexibleCardSize(320, 450, orientation, 2.5, 0.4);
 
   // Create card data for the 3D renderer
@@ -293,7 +185,6 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
         className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-2 border-white/30 rounded-2xl p-6 shadow-2xl relative z-10"
         style={{
           width: Math.max(cardDimensions.width + 80, 400),
-          ...generateEffectStyles()
         }}
       >
         {/* Grading Label at Top - Layer 2 */}
@@ -320,86 +211,29 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
             <div className="relative w-full h-full p-4">
               {uploadedImage ? (
                 <div className="relative w-full h-full rounded-lg overflow-hidden group">
-                  {/* Base Image - Layer 1 */}
-                  <img 
-                    src={uploadedImage} 
-                    alt="Card content"
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 relative z-10"
+                  {/* Card Effects Layer - ISOLATED TO CARD CONTENT ONLY */}
+                  <CardEffectsLayer effectValues={effectValues}>
+                    <img 
+                      src={uploadedImage} 
+                      alt="Card content"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 relative z-10"
+                    />
+                  </CardEffectsLayer>
+                  
+                  {/* Card Effect Overlays - ISOLATED TO CARD CONTENT */}
+                  <CardEffectOverlays effectValues={effectValues} />
+                  
+                  {/* Frame Overlay - Applied over the card */}
+                  <FrameOverlay 
+                    frameId={selectedFrame || ''} 
+                    width={cardDimensions.width - 32} 
+                    height={cardDimensions.height - 32} 
                   />
                   
-                  {/* Dynamic Effect Overlays - Layer 2 */}
-                  {Object.keys(effectValues).some(k => effectValues[k]?.intensity > 0) && (
-                    <div className="absolute inset-0 pointer-events-none z-20">
-                      {/* Holographic overlay */}
-                      {effectValues.holographic?.intensity > 0 && (
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            background: `linear-gradient(45deg, 
-                              rgba(255, 0, 150, ${effectValues.holographic.intensity / 200}) 0%, 
-                              rgba(0, 255, 255, ${effectValues.holographic.intensity / 200}) 25%, 
-                              rgba(255, 255, 0, ${effectValues.holographic.intensity / 200}) 50%, 
-                              rgba(255, 0, 150, ${effectValues.holographic.intensity / 200}) 75%, 
-                              rgba(0, 255, 255, ${effectValues.holographic.intensity / 200}) 100%)`,
-                            backgroundSize: '400% 400%',
-                            animation: effectValues.holographic.animated ? 'gradient-shift 3s ease infinite' : 'none',
-                            mixBlendMode: 'overlay'
-                          }}
-                        />
-                      )}
-
-                      {/* Foil Spray overlay */}
-                      {effectValues.foilspray?.intensity > 0 && (
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            background: `radial-gradient(ellipse at 30% 70%, 
-                              rgba(255, 215, 0, ${effectValues.foilspray.intensity / 300}) 0%,
-                              rgba(255, 165, 0, ${effectValues.foilspray.intensity / 400}) 50%,
-                              transparent 70%)`,
-                            mixBlendMode: 'multiply'
-                          }}
-                        />
-                      )}
-
-                      {/* Crystal sparkle overlay */}
-                      {effectValues.crystal?.intensity > 0 && (
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            background: `repeating-linear-gradient(
-                              45deg,
-                              rgba(255, 255, 255, ${effectValues.crystal.intensity / 400}) 0px,
-                              transparent 2px,
-                              transparent 10px,
-                              rgba(255, 255, 255, ${effectValues.crystal.intensity / 500}) 12px
-                            )`,
-                            animation: 'sparkle 2s ease-in-out infinite',
-                            mixBlendMode: 'screen'
-                          }}
-                        />
-                      )}
-
-                      {/* Chrome reflection overlay */}
-                      {effectValues.chrome?.intensity > 0 && (
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            background: `linear-gradient(90deg, 
-                              transparent 0%,
-                              rgba(255, 255, 255, ${effectValues.chrome.intensity / 300}) 50%,
-                              transparent 100%)`,
-                            mixBlendMode: 'overlay'
-                          }}
-                        />
-                      )}
-                    </div>
-                  )}
+                  {/* Base gradient overlay for text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 z-30 rounded-lg" />
                   
-                  {/* Base gradient overlay - Layer 3 */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 z-30" />
-                  
-                  {/* Card Info Overlay - Top Layer */}
+                  {/* Card Info Overlay */}
                   <div className="absolute bottom-3 left-3 right-3 z-40">
                     <p className="text-gray-200 text-xs truncate drop-shadow-lg">
                       Frame: {selectedFrame || 'Default'} • Effects: {Object.keys(effectValues).filter(k => effectValues[k]?.intensity > 0).length} active
