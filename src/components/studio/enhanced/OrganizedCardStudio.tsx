@@ -27,7 +27,6 @@ import { UploadPhase } from './components/UploadPhase';
 import { FramePhase } from './components/FramePhase';
 import { EffectsPhase } from './components/EffectsPhase';
 import { StudioPhase } from './components/StudioPhase';
-import { ImageCropperModal } from '@/components/editor/modals/ImageCropperModal';
 import { useResponsiveBreakpoints } from '@/hooks/useResponsiveBreakpoints';
 import { useStudioState } from '@/hooks/useStudioState';
 import { toast } from 'sonner';
@@ -51,7 +50,6 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
   const [uploadedImage, setUploadedImage] = useState<string>('');
   const [selectedFrame, setSelectedFrame] = useState<string>('');
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
-  const [showCropModal, setShowCropModal] = useState(false);
   const [show3DPreview, setShow3DPreview] = useState(true);
   const [effectValues, setEffectValues] = useState<Record<string, Record<string, any>>>({});
   const [projectSaved, setProjectSaved] = useState(false);
@@ -101,13 +99,6 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
     }
     toast.success('Frame applied successfully!');
   }, [activePhase]);
-
-  const handleCropComplete = useCallback((croppedImageUrl: string) => {
-    console.log('OrganizedCardStudio - handleCropComplete called with:', croppedImageUrl);
-    setUploadedImage(croppedImageUrl);
-    setShowCropModal(false);
-    toast.success('Image cropped successfully!');
-  }, []);
 
   // Enhanced effect change handler
   const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
@@ -163,11 +154,6 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
           <UploadPhase
             uploadedImage={uploadedImage}
             onImageUpload={handleImageUpload}
-            onCropImage={() => {
-              if (uploadedImage) {
-                setShowCropModal(true);
-              }
-            }}
           />
         );
       case 'frame':
@@ -446,16 +432,6 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
           </div>
         )}
       </div>
-
-      {/* Image Cropper Modal */}
-      {showCropModal && uploadedImage && (
-        <ImageCropperModal
-          isOpen={showCropModal}
-          onClose={() => setShowCropModal(false)}
-          imageUrl={uploadedImage}
-          onCropComplete={handleCropComplete}
-        />
-      )}
     </div>
   );
 };

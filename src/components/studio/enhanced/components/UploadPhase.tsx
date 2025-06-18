@@ -4,9 +4,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Camera, Crop, X, Wand2, AlertCircle } from 'lucide-react';
+import { Upload, Camera, Crop, X, Wand2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { ImageCropperModal } from '@/components/editor/modals/ImageCropperModal';
+import { InlineCropInterface } from './InlineCropInterface';
 
 interface UploadPhaseProps {
   uploadedImage?: string;
@@ -22,8 +22,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState('');
   const [progress, setProgress] = useState(0);
-  const [showCropModal, setShowCropModal] = useState(false);
-  const [originalImage, setOriginalImage] = useState<string>('');
+  const [cropMode, setCropMode] = useState(false);
   const [uploadError, setUploadError] = useState<string>('');
 
   const onDrop = useCallback(async (acceptedFiles: File[], rejectedFiles: any[]) => {
@@ -58,7 +57,6 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
         // Create image URL from file
         const imageUrl = URL.createObjectURL(file);
         console.log('UploadPhase - Created image URL:', imageUrl);
-        setOriginalImage(imageUrl);
         
         setProcessingStep('Processing image...');
         setProgress(75);
@@ -103,15 +101,18 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   const handleCropComplete = useCallback((croppedImageUrl: string) => {
     console.log('UploadPhase - Crop completed:', croppedImageUrl);
     onImageUpload(croppedImageUrl);
-    setShowCropModal(false);
+    setCropMode(false);
     toast.success('Image cropped successfully!');
   }, [onImageUpload]);
 
+  const handleCropCancel = useCallback(() => {
+    setCropMode(false);
+  }, []);
+
   const handleCropImage = () => {
     if (uploadedImage) {
-      console.log('UploadPhase - Opening crop modal for:', uploadedImage);
-      setOriginalImage(uploadedImage);
-      setShowCropModal(true);
+      console.log('UploadPhase - Entering crop mode for:', uploadedImage);
+      setCropMode(true);
     } else {
       toast.error('No image to crop');
     }
@@ -120,7 +121,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   const handleRemoveImage = () => {
     console.log('UploadPhase - Removing image');
     onImageUpload('');
-    setOriginalImage('');
+    setCropMode(false);
     setUploadError('');
     toast.success('Image removed');
   };
@@ -137,9 +138,10 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
     console.log('UploadPhase - Current state:', { 
       uploadedImage, 
       isProcessing, 
+      cropMode,
       uploadError 
     });
-  }, [uploadedImage, isProcessing, uploadError]);
+  }, [uploadedImage, isProcessing, cropMode, uploadError]);
 
   if (isProcessing) {
     return (
@@ -158,6 +160,35 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
             </div>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  // Show crop interface when in crop mode
+  if (cropMode && uploadedImage) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCropCancel}
+            className="text-white hover:bg-white/10 p-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <div>
+            <h3 className="text-white font-semibold">Crop Your Image</h3>
+            <p className="text-gray-400 text-sm">Adjust the crop area and apply when ready</p>
+          </div>
+        </div>
+        
+        <InlineCropInterface
+          imageUrl={uploadedImage}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          aspectRatio={2.5 / 3.5}
+        />
       </div>
     );
   }
@@ -188,7 +219,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
                 <Button
                   size="sm"
                   onClick={handleCropImage}
-                  className="bg-black/70 text-white hover:bg-black/90"
+                  className="bg-crd-green/90 text-black hover:bg-crd-green"
                 >
                   <Crop className="w-4 h-4" />
                 </Button>
@@ -209,8 +240,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
         <div className="grid grid-cols-2 gap-3">
           <Button
             onClick={handleCropImage}
-            variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
+            className="bg-crd-green hover:bg-crd-green/90 text-black font-medium"
           >
             <Crop className="w-4 h-4 mr-2" />
             Crop Image
@@ -243,16 +273,6 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
             </div>
           </CardContent>
         </Card>
-
-        {/* Crop Modal */}
-        {showCropModal && originalImage && (
-          <ImageCropperModal
-            isOpen={showCropModal}
-            onClose={() => setShowCropModal(false)}
-            imageUrl={originalImage}
-            onCropComplete={handleCropComplete}
-          />
-        )}
       </div>
     );
   }
