@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -70,7 +69,7 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
     return Math.min(completed, 100);
   }, [uploadedImage, selectedFrame, cardName, effectValues, show3DPreview, projectSaved]);
 
-  // Fixed image upload handler with stable reference
+  // Fixed image upload handler - REMOVED auto-advancing
   const handleImageUpload = useCallback((imageUrl: string) => {
     console.log('OrganizedCardStudio - handleImageUpload called with:', imageUrl);
     
@@ -83,32 +82,33 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
     console.log('OrganizedCardStudio - Setting uploaded image:', imageUrl);
     setUploadedImage(imageUrl);
     
-    // Auto-advance to frame phase if we're on upload phase
-    if (activePhase === 'upload') {
-      console.log('OrganizedCardStudio - Auto-advancing to frame phase');
-      setActivePhase('frame');
-    }
-    
+    // REMOVED: Auto-advance to frame phase - let user control workflow
     toast.success('Image uploaded successfully!');
-  }, []); // Removed activePhase dependency to make this stable
+  }, []);
 
+  // REMOVED auto-advancing from frame selection
   const handleFrameSelect = useCallback((frameId: string) => {
+    console.log('OrganizedCardStudio - Frame selected:', frameId);
     setSelectedFrame(frameId);
-    if (activePhase === 'frame') {
-      setActivePhase('effects');
-    }
+    // REMOVED: Auto-advance to effects phase - let user control workflow
     toast.success('Frame applied successfully!');
-  }, [activePhase]);
+  }, []);
 
-  // Enhanced effect change handler
+  // Enhanced effect change handler with better debugging
   const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
-    setEffectValues(prev => ({
-      ...prev,
-      [effectId]: {
-        ...prev[effectId],
-        [parameterId]: value
-      }
-    }));
+    console.log('OrganizedCardStudio - Effect change:', { effectId, parameterId, value });
+    
+    setEffectValues(prev => {
+      const newValues = {
+        ...prev,
+        [effectId]: {
+          ...prev[effectId],
+          [parameterId]: value
+        }
+      };
+      console.log('OrganizedCardStudio - New effect values:', newValues);
+      return newValues;
+    });
   }, []);
 
   // Enhanced export with professional features
@@ -141,9 +141,13 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
 
   // Debug current state
   React.useEffect(() => {
-    console.log('OrganizedCardStudio - Current uploadedImage state:', uploadedImage);
-    console.log('OrganizedCardStudio - Current activePhase:', activePhase);
-  }, [uploadedImage, activePhase]);
+    console.log('OrganizedCardStudio - Current state:', { 
+      uploadedImage, 
+      activePhase,
+      selectedFrame,
+      effectValues
+    });
+  }, [uploadedImage, activePhase, selectedFrame, effectValues]);
 
   const renderPhaseContent = () => {
     console.log('OrganizedCardStudio - Rendering phase content for:', activePhase);
@@ -283,9 +287,8 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className={`grid ${isMobile ? 'grid-cols-1 gap-6' : 'grid-cols-12 gap-8'} h-full`}>
           
-          {/* Left Side - Card Preview & Basic Info */}
+          {/* Left Side - Enhanced Card Preview */}
           <div className={`${isMobile ? 'order-1' : 'col-span-7'} space-y-6`}>
-            {/* Enhanced Card Preview Section */}
             <Card className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-white/10">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -331,7 +334,6 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
               </CardContent>
             </Card>
 
-            {/* Basic Card Info */}
             <Card className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-white/10">
               <CardContent className="p-6">
                 <BasicCardInfo
@@ -344,9 +346,8 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
             </Card>
           </div>
 
-          {/* Right Side - Enhanced Workflow Phases & Stats */}
+          {/* Right Side - Workflow Phases */}
           <div className={`${isMobile ? 'order-2' : 'col-span-5'} space-y-6`}>
-            {/* Card Stats Module */}
             <CardStatsModule
               cardName={cardName}
               uploadedImage={uploadedImage}
