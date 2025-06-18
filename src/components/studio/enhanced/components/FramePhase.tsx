@@ -1,9 +1,8 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Circle } from 'lucide-react';
+import { CheckCircle, Circle, Frame } from 'lucide-react';
 import { calculateFlexibleCardSize, type CardOrientation } from '@/utils/cardDimensions';
 
 interface FramePhaseProps {
@@ -12,12 +11,13 @@ interface FramePhaseProps {
   orientation: CardOrientation;
 }
 
-const FRAME_TEMPLATES = [
+const LAYOUT_FRAMES = [
   {
-    id: 'template1',
+    id: 'classic-sports',
     name: 'Classic Sports',
-    description: 'Traditional sports card frame with gold accent',
+    description: 'Traditional trading card layout with balanced proportions',
     category: 'Sports',
+    layoutType: 'Standard',
     preview: {
       border: '4px solid #d4af37',
       borderRadius: '8px',
@@ -25,10 +25,11 @@ const FRAME_TEMPLATES = [
     }
   },
   {
-    id: 'template2',
+    id: 'vintage-ornate',
     name: 'Vintage Ornate',
-    description: 'Ornate vintage frame with brown wood finish',
+    description: 'Decorative frame with ornamental corner details',
     category: 'Vintage',
+    layoutType: 'Decorative',
     preview: {
       border: '6px solid #8b4513',
       borderRadius: '12px',
@@ -36,44 +37,47 @@ const FRAME_TEMPLATES = [
     }
   },
   {
-    id: 'template3',
-    name: 'Holographic Modern',
-    description: 'Modern holographic frame with rainbow effects',
+    id: 'modern-clean',
+    name: 'Modern Clean',
+    description: 'Minimalist layout with clean lines and subtle borders',
     category: 'Modern',
+    layoutType: 'Minimal',
     preview: {
-      border: '3px solid transparent',
-      borderRadius: '10px',
-      background: 'linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #ff006e)',
-      backgroundClip: 'padding-box'
+      border: '2px solid rgba(255, 255, 255, 0.3)',
+      borderRadius: '6px',
+      background: 'rgba(255, 255, 255, 0.02)'
     }
   },
   {
-    id: 'template4',
-    name: 'Donruss Special',
-    description: 'Special edition frame with orange accent',
-    category: 'Special',
+    id: 'premium-elite',
+    name: 'Premium Elite',
+    description: 'Luxury frame design with enhanced border styling',
+    category: 'Premium',
+    layoutType: 'Luxury',
     preview: {
       border: '5px solid #ff4500',
-      borderRadius: '6px',
+      borderRadius: '8px',
       background: 'linear-gradient(135deg, rgba(255, 69, 0, 0.1) 0%, transparent 25%, rgba(255, 69, 0, 0.1) 50%, transparent 75%, rgba(255, 69, 0, 0.1) 100%)'
     }
   },
   {
-    id: 'donruss-rookie',
-    name: 'Rookie Edition',
-    description: 'Special rookie card frame with green accent',
-    category: 'Rookie',
+    id: 'collector-edition',
+    name: 'Collector Edition',
+    description: 'Special edition frame for premium card collections',
+    category: 'Collector',
+    layoutType: 'Special',
     preview: {
       border: '4px solid #32cd32',
-      borderRadius: '8px',
+      borderRadius: '10px',
       background: 'linear-gradient(45deg, rgba(50, 205, 50, 0.1) 0%, transparent 50%, rgba(50, 205, 50, 0.1) 100%)'
     }
   },
   {
-    id: 'chrome-edition',
-    name: 'Chrome Edition',
-    description: 'Metallic chrome frame with silver finish',
-    category: 'Premium',
+    id: 'championship',
+    name: 'Championship',
+    description: 'Tournament-style frame with competitive aesthetics',
+    category: 'Tournament',
+    layoutType: 'Competitive',
     preview: {
       border: '3px solid #c0c0c0',
       borderRadius: '8px',
@@ -97,15 +101,18 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h3 className="text-white font-semibold text-lg mb-2">Choose Your Frame</h3>
+        <h3 className="text-white font-semibold text-lg mb-2 flex items-center justify-center">
+          <Frame className="w-5 h-5 mr-2 text-crd-green" />
+          Frame & Layout
+        </h3>
         <p className="text-gray-400 text-sm">
-          Select a frame style that complements your card design
+          Choose a frame style that defines your card's border and layout aesthetic
         </p>
       </div>
 
       {/* Frame Selection Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {FRAME_TEMPLATES.map((frame) => {
+        {LAYOUT_FRAMES.map((frame) => {
           const isSelected = selectedFrame === frame.id;
           
           return (
@@ -132,7 +139,7 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
                     >
                       <div className="absolute inset-2 bg-gradient-to-br from-blue-900/50 to-purple-900/50 rounded-sm flex items-center justify-center">
                         <div className="text-white text-xs font-bold text-center">
-                          PREVIEW
+                          LAYOUT<br/>PREVIEW
                         </div>
                       </div>
                     </div>
@@ -153,12 +160,14 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
                       </div>
                     </div>
                     
-                    <Badge 
-                      variant="outline" 
-                      className="text-xs mb-2 border-gray-500 text-gray-300"
-                    >
-                      {frame.category}
-                    </Badge>
+                    <div className="flex gap-2 mb-2">
+                      <Badge variant="outline" className="text-xs border-gray-500 text-gray-300">
+                        {frame.category}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs border-blue-500/50 text-blue-300">
+                        {frame.layoutType}
+                      </Badge>
+                    </div>
                     
                     <p className="text-gray-400 text-xs leading-relaxed">
                       {frame.description}
@@ -180,8 +189,8 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
               <span className="text-crd-green font-medium text-sm">Frame Applied</span>
             </div>
             <p className="text-gray-300 text-xs">
-              {FRAME_TEMPLATES.find(f => f.id === selectedFrame)?.name} is now applied to your card preview.
-              You can change frames at any time or proceed to add effects.
+              {LAYOUT_FRAMES.find(f => f.id === selectedFrame)?.name} frame is now applied to your card.
+              This affects the border style and layout structure, while effects control the surface materials and lighting.
             </p>
           </CardContent>
         </Card>
@@ -201,7 +210,7 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
             <div>
               <h4 className="text-white font-medium text-sm mb-1">No Frame</h4>
               <p className="text-gray-400 text-xs">
-                Use your card without any frame overlay
+                Clean layout without border styling - effects will still apply to the card surface
               </p>
             </div>
             {!selectedFrame ? (
