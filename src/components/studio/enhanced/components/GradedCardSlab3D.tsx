@@ -143,7 +143,7 @@ const GradedSlabMesh: React.FC<GradedCardSlab3DProps> = ({
           <meshPhysicalMaterial
             color="#374151"
             roughness={0.2}
-            metalness={0.1"
+            metalness={0.1}
           />
         </RoundedBox>
         
