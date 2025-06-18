@@ -113,15 +113,29 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
 
   const cardDimensions = calculateFlexibleCardSize(320, 450, orientation, 2.5, 0.4);
 
-  // Create card data for the 3D renderer
+  // Create card data for the 3D renderer with all required properties
   const cardData = {
     id: 'preview-card',
     title: cardName || 'Your Card',
     description: 'Professional graded card with enhanced effects',
     image_url: uploadedImage,
     template_id: selectedFrame || 'premium',
-    rarity: 'legendary',
+    rarity: 'legendary' as const,
+    tags: ['3d-preview', 'enhanced'],
     edition_size: 1,
+    visibility: 'private' as const,
+    creator_attribution: {
+      creator_name: 'CRD Studio User',
+      collaboration_type: 'solo' as const
+    },
+    publishing_options: {
+      marketplace_listing: false,
+      crd_catalog_inclusion: false,
+      print_available: false,
+      pricing: {
+        currency: 'USD'
+      }
+    },
     design_metadata: {
       effects: Object.fromEntries(
         Object.entries(effectValues).map(([key, value]) => [
@@ -159,7 +173,7 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
   // If 3D preview is enabled and we have an image, use the Advanced3DCardRenderer
   if (show3DPreview && uploadedImage) {
     return (
-      <div className="relative flex flex-col items-center justify-center min-h-[700px] p-6">
+      <div className="relative flex flex-col items-center justify-center min-h-[800px] p-6">
         <style>
           {`
           @keyframes holographic-shift {
@@ -172,8 +186,8 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
           `}
         </style>
 
-        {/* Large 3D WebGL Renderer */}
-        <div className="w-full max-w-4xl h-[600px] bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+        {/* Large 3D WebGL Renderer with card-like proportions */}
+        <div className="w-full max-w-5xl h-[700px] bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
           <Advanced3DCardRenderer
             cardData={cardData}
             imageUrl={uploadedImage}

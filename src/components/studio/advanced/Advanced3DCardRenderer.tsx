@@ -102,6 +102,50 @@ const HolographicMaterial = ({ texture }: { texture: THREE.Texture | null }) => 
   );
 };
 
+// Enhanced 3D environment background
+const EnvironmentBackground = () => {
+  const bgRef = useRef<THREE.Mesh>(null);
+  
+  useFrame((state) => {
+    if (bgRef.current) {
+      bgRef.current.rotation.z += 0.001;
+    }
+  });
+
+  return (
+    <>
+      {/* Animated gradient sphere background */}
+      <mesh ref={bgRef} position={[0, 0, -20]} scale={30}>
+        <sphereGeometry args={[1, 32, 32]} />
+        <meshBasicMaterial 
+          color={new THREE.Color(0x1a1a2e)}
+          transparent
+          opacity={0.3}
+        />
+      </mesh>
+      
+      {/* Dynamic lighting elements */}
+      <mesh position={[-15, 10, -10]} scale={2}>
+        <sphereGeometry args={[1, 16, 16]} />
+        <meshBasicMaterial 
+          color={new THREE.Color(0x4a9eff)}
+          transparent
+          opacity={0.1}
+        />
+      </mesh>
+      
+      <mesh position={[15, -8, -10]} scale={2.5}>
+        <sphereGeometry args={[1, 16, 16]} />
+        <meshBasicMaterial 
+          color={new THREE.Color(0xff6b9d)}
+          transparent
+          opacity={0.08}
+        />
+      </mesh>
+    </>
+  );
+};
+
 // Simple fallback texture component
 const SimpleFallbackTexture = () => {
   return useMemo(() => {
@@ -115,14 +159,14 @@ const SimpleFallbackTexture = () => {
       ctx.fillStyle = '#ffd700';
       ctx.font = '32px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('A', 128, 140);
+      ctx.fillText('CRD', 128, 140);
     }
     const texture = new THREE.CanvasTexture(canvas);
     return texture;
   }, []);
 };
 
-// 3D Card component with advanced effects
+// 3D Card component with realistic thickness and back
 const Card3D = ({ 
   cardData, 
   imageUrl, 
@@ -144,58 +188,130 @@ const Card3D = ({
   // Use loaded texture if we have a valid imageUrl, otherwise use fallback
   const texture = imageUrl ? loadedTexture : fallbackTexture;
   
+  // Fix texture orientation and aspect ratio
+  useEffect(() => {
+    if (texture) {
+      // Correct orientation - flip Y to show image upright
+      texture.flipY = true;
+      texture.wrapS = THREE.ClampToEdgeWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+    }
+  }, [texture]);
+
+  // Create card back texture
+  const cardBackTexture = useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      // Professional card back design
+      const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+      gradient.addColorStop(0, '#1a1a2e');
+      gradient.addColorStop(0.6, '#16213e');
+      gradient.addColorStop(1, '#0f1419');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 512, 512);
+      
+      // Add subtle pattern
+      ctx.strokeStyle = '#16213e';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 20; i++) {
+        ctx.beginPath();
+        ctx.arc(256, 256, i * 12, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      
+      // CRD logo
+      ctx.fillStyle = '#10b981';
+      ctx.font = 'bold 48px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('CRD', 256, 280);
+    }
+    const backTexture = new THREE.CanvasTexture(canvas);
+    backTexture.flipY = true;
+    return backTexture;
+  }, []);
+  
   useFrame((state) => {
     if (meshRef.current) {
       // Gentle floating animation
-      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
+      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.05;
       
       // Auto-rotate when not hovered
       if (!hovered) {
-        meshRef.current.rotation.y += 0.005;
+        meshRef.current.rotation.y += 0.003;
       }
     }
   });
 
+  // Card dimensions in 3D space (trading card proportions: 2.5" x 3.5")
+  const cardWidth = 2.5;
+  const cardHeight = 3.5;
+  const cardThickness = 0.05; // 12pt cardstock thickness
+
   return (
     <group>
-      {/* Main card mesh */}
+      {/* Main card mesh with thickness */}
       <mesh
         ref={meshRef}
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
-        scale={hovered ? 1.05 : 1}
+        scale={hovered ? 1.02 : 1}
+        castShadow
+        receiveShadow
       >
-        <planeGeometry args={[2.5, 3.5, 32, 32]} />
+        {/* Use box geometry for thickness */}
+        <boxGeometry args={[cardWidth, cardHeight, cardThickness]} />
+        
+        {/* Create materials array for all 6 faces */}
         {effects.holographic ? (
-          <HolographicMaterial texture={texture} />
+          // Holographic front, professional back, and edge materials
+          <group>
+            <meshStandardMaterial attach="material-0" color="#2a2a3a" /> {/* Right edge */}
+            <meshStandardMaterial attach="material-1" color="#2a2a3a" /> {/* Left edge */}
+            <meshStandardMaterial attach="material-2" color="#2a2a3a" /> {/* Top edge */}
+            <meshStandardMaterial attach="material-3" color="#2a2a3a" /> {/* Bottom edge */}
+            <HolographicMaterial texture={texture} /> {/* Front face */}
+            <meshStandardMaterial attach="material-5" map={cardBackTexture} /> {/* Back face */}
+          </group>
         ) : (
-          <meshStandardMaterial 
-            map={texture}
-            metalness={effects.metalness || 0.1}
-            roughness={effects.roughness || 0.4}
-          />
+          [
+            new THREE.MeshStandardMaterial({ color: '#2a2a3a' }), // Right edge
+            new THREE.MeshStandardMaterial({ color: '#2a2a3a' }), // Left edge  
+            new THREE.MeshStandardMaterial({ color: '#2a2a3a' }), // Top edge
+            new THREE.MeshStandardMaterial({ color: '#2a2a3a' }), // Bottom edge
+            new THREE.MeshStandardMaterial({ 
+              map: texture,
+              metalness: effects.metalness || 0.1,
+              roughness: effects.roughness || 0.4
+            }), // Front face
+            new THREE.MeshStandardMaterial({ map: cardBackTexture }) // Back face
+          ]
         )}
       </mesh>
       
       {/* Particle effects */}
       {effects.particles && (
         <Sparkles
-          count={50}
-          scale={3}
-          size={2}
-          speed={0.5}
+          count={30}
+          scale={4}
+          size={3}
+          speed={0.3}
           color="gold"
         />
       )}
       
       {/* Glow effect */}
       {effects.glow && (
-        <mesh position={[0, 0, -0.01]}>
-          <planeGeometry args={[3, 4]} />
+        <mesh position={[0, 0, -0.05]}>
+          <boxGeometry args={[cardWidth + 0.2, cardHeight + 0.2, 0.01]} />
           <meshBasicMaterial 
             color={effects.glowColor || '#00ffff'}
             transparent
-            opacity={0.3}
+            opacity={0.2}
           />
         </mesh>
       )}
@@ -224,7 +340,7 @@ export const Advanced3DCardRenderer: React.FC<Advanced3DCardRendererProps> = ({
   onInteraction
 }) => {
   return (
-    <div className="w-full h-full relative overflow-hidden">
+    <div className="w-full h-full relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <Canvas 
         shadows 
         style={{ 
@@ -235,52 +351,85 @@ export const Advanced3DCardRenderer: React.FC<Advanced3DCardRendererProps> = ({
         gl={{ 
           antialias: true, 
           alpha: true,
-          preserveDrawingBuffer: true 
+          preserveDrawingBuffer: true,
+          shadowMap: true
         }}
         dpr={[1, 2]}
-        camera={{ position: [0, 0, 5], fov: 50 }}
+        camera={{ position: [0, 0, 6], fov: 45 }}
       >
-        <PerspectiveCamera makeDefault position={[0, 0, 5]} />
+        <PerspectiveCamera makeDefault position={[0, 0, 6]} />
         
-        {/* Advanced lighting setup */}
-        <ambientLight intensity={0.4} />
+        {/* Enhanced lighting setup for professional card showcase */}
+        <ambientLight intensity={0.3} />
         <directionalLight 
-          position={[10, 10, 5]} 
-          intensity={1} 
+          position={[5, 5, 3]} 
+          intensity={1.2} 
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
+          shadow-camera-far={50}
+          shadow-camera-left={-10}
+          shadow-camera-right={10}
+          shadow-camera-top={10}
+          shadow-camera-bottom={-10}
         />
-        <pointLight position={[-10, -10, -5]} color="#ff00ff" intensity={0.5} />
-        <pointLight position={[10, -10, -5]} color="#00ffff" intensity={0.5} />
+        <directionalLight 
+          position={[-5, 3, 2]} 
+          intensity={0.8} 
+          color="#4a9eff"
+        />
+        <pointLight position={[0, -3, 2]} color="#ff6b9d" intensity={0.6} />
+        <spotLight 
+          position={[0, 0, 5]} 
+          intensity={0.5} 
+          angle={0.3} 
+          penumbra={0.2}
+          castShadow
+        />
         
-        {/* Environment for reflections */}
+        {/* Professional environment for reflections */}
         <Environment preset="studio" />
         
-        {/* 3D Card */}
+        {/* Enhanced 3D background */}
+        <EnvironmentBackground />
+        
+        {/* 3D Card with thickness and back */}
         <Card3D 
           cardData={cardData}
           imageUrl={imageUrl}
           effects={effects}
         />
         
-        {/* Camera controls */}
+        {/* Camera controls optimized for card viewing */}
         <OrbitControls
           enablePan={false}
           enableZoom={true}
           enableRotate={true}
-          minDistance={3}
-          maxDistance={8}
+          minDistance={4}
+          maxDistance={12}
           autoRotate={false}
+          autoRotateSpeed={0.5}
+          minPolarAngle={Math.PI / 6}
+          maxPolarAngle={Math.PI - Math.PI / 6}
         />
       </Canvas>
       
-      {/* Overlay UI for 3D controls */}
-      <div className="absolute top-4 right-4 bg-black/80 p-3 rounded-lg text-white z-10">
-        <div className="text-xs space-y-1">
-          <div>Drag to rotate</div>
-          <div>Scroll to zoom</div>
-          <div>Hover for effects</div>
+      {/* Enhanced overlay UI for 3D controls */}
+      <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-md p-4 rounded-xl text-white z-10 border border-white/10">
+        <div className="text-sm space-y-2">
+          <div className="font-semibold text-crd-green">3D Controls</div>
+          <div className="text-xs opacity-80">🖱️ Drag to rotate</div>
+          <div className="text-xs opacity-80">🔍 Scroll to zoom</div>
+          <div className="text-xs opacity-80">✨ Hover for effects</div>
+          <div className="text-xs opacity-80">🔄 Auto-rotation</div>
+        </div>
+      </div>
+      
+      {/* Card info overlay */}
+      <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-md p-3 rounded-xl text-white z-10 border border-white/10">
+        <div className="text-sm font-medium">{cardData.title}</div>
+        <div className="text-xs text-gray-300 mt-1">
+          Premium 3D • {effects.holographic ? 'Holographic' : 'Standard'} • Interactive
         </div>
       </div>
     </div>
