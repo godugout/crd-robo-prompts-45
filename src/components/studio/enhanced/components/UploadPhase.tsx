@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -24,12 +24,25 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   const [progress, setProgress] = useState(0);
   const [cropMode, setCropMode] = useState(false);
   const [uploadError, setUploadError] = useState<string>('');
+  const [blobUrl, setBlobUrl] = useState<string>('');
+
+  // Cleanup blob URLs when component unmounts or URL changes
+  useEffect(() => {
+    return () => {
+      if (blobUrl && blobUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(blobUrl);
+      }
+    };
+  }, [blobUrl]);
 
   const onDrop = useCallback(async (acceptedFiles: File[], rejectedFiles: any[]) => {
     console.log('UploadPhase - onDrop called', { acceptedFiles, rejectedFiles });
     
-    // Clear previous errors
+    // Clear previous errors and cleanup old blob URL
     setUploadError('');
+    if (blobUrl && blobUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(blobUrl);
+    }
     
     // Handle rejected files
     if (rejectedFiles.length > 0) {
@@ -56,13 +69,19 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
       try {
         // Create image URL from file
         const imageUrl = URL.createObjectURL(file);
+        setBlobUrl(imageUrl); // Track for cleanup
         console.log('UploadPhase - Created image URL:', imageUrl);
         
         setProcessingStep('Processing image...');
         setProgress(75);
         
-        // Simulate processing time for better UX
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Validate the blob URL by creating a test image
+        const testImg = new Image();
+        await new Promise((resolve, reject) => {
+          testImg.onload = resolve;
+          testImg.onerror = () => reject(new Error('Invalid image file'));
+          testImg.src = imageUrl;
+        });
         
         setProgress(100);
         setProcessingStep('Upload complete!');
@@ -78,13 +97,19 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
         const errorMessage = 'Failed to upload image. Please try again.';
         setUploadError(errorMessage);
         toast.error(errorMessage);
+        
+        // Cleanup blob URL on error
+        if (blobUrl && blobUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(blobUrl);
+          setBlobUrl('');
+        }
       } finally {
         setIsProcessing(false);
         setProgress(0);
         setProcessingStep('');
       }
     }
-  }, [onImageUpload]);
+  }, [onImageUpload, blobUrl]);
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
     onDrop,
@@ -100,10 +125,15 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
 
   const handleCropComplete = useCallback((croppedImageUrl: string) => {
     console.log('UploadPhase - Crop completed:', croppedImageUrl);
+    // Cleanup old blob URL before setting new one
+    if (blobUrl && blobUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(blobUrl);
+    }
+    setBlobUrl(croppedImageUrl);
     onImageUpload(croppedImageUrl);
     setCropMode(false);
     toast.success('Image cropped successfully!');
-  }, [onImageUpload]);
+  }, [onImageUpload, blobUrl]);
 
   const handleCropCancel = useCallback(() => {
     setCropMode(false);
@@ -120,6 +150,11 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
 
   const handleRemoveImage = () => {
     console.log('UploadPhase - Removing image');
+    // Cleanup blob URL
+    if (blobUrl && blobUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(blobUrl);
+    }
+    setBlobUrl('');
     onImageUpload('');
     setCropMode(false);
     setUploadError('');
@@ -211,6 +246,10 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
                 onError={(e) => {
                   console.error('UploadPhase - Image failed to load:', uploadedImage);
                   setUploadError('Failed to load image. Please try uploading again.');
+                }}
+                onLoad={() => {
+                  console.log('UploadPhase - Image loaded successfully');
+                  setUploadError(''); // Clear any previous errors
                 }}
               />
               

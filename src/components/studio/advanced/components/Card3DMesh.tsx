@@ -31,6 +31,7 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
+  const [textureError, setTextureError] = useState(false);
   
   // Card dimensions (trading card standard: 2.5" x 3.5")
   const cardWidth = 2.5;
@@ -60,31 +61,73 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
     return texture;
   }, []);
   
-  // Load front texture
-  const frontTexture = useLoader(
-    TextureLoader, 
-    imageUrl || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png'
-  );
-  
-  // Configure front texture with aspect ratio preservation
-  useEffect(() => {
-    if (frontTexture && imageUrl) {
-      // Create a temporary image to get dimensions
-      const img = new Image();
-      img.onload = () => {
-        const aspectData = calculateAspectRatioPreservation(
-          img.naturalWidth,
-          img.naturalHeight,
-          cardWidth,
-          cardHeight
-        );
-        configureTextureForCard(frontTexture, aspectData);
-      };
-      img.src = imageUrl;
-    } else {
-      configureTextureForCard(frontTexture);
+  // Safe texture loading with error handling
+  const safeImageUrl = useMemo(() => {
+    // If imageUrl is a blob URL that might be invalid, validate it first
+    if (imageUrl && imageUrl.startsWith('blob:')) {
+      // For blob URLs, we'll handle errors in the useEffect below
+      return imageUrl;
     }
-  }, [frontTexture, imageUrl, cardWidth, cardHeight]);
+    // For regular URLs, use them directly or fallback
+    return imageUrl || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
+  }, [imageUrl]);
+  
+  // Load texture with proper error handling
+  const [frontTexture, setFrontTexture] = useState<THREE.Texture>(fallbackTexture);
+  
+  useEffect(() => {
+    if (!safeImageUrl || textureError) {
+      setFrontTexture(fallbackTexture);
+      return;
+    }
+
+    const loader = new TextureLoader();
+    
+    // For blob URLs, validate first
+    if (safeImageUrl.startsWith('blob:')) {
+      // Test if blob URL is still valid by creating an image
+      const testImg = new Image();
+      testImg.onload = () => {
+        // Blob is valid, proceed with texture loading
+        loader.load(
+          safeImageUrl,
+          (texture) => {
+            configureTextureForCard(texture);
+            setFrontTexture(texture);
+            setTextureError(false);
+          },
+          undefined,
+          (error) => {
+            console.warn('Failed to load texture, using fallback:', error);
+            setTextureError(true);
+            setFrontTexture(fallbackTexture);
+          }
+        );
+      };
+      testImg.onerror = () => {
+        console.warn('Blob URL is invalid, using fallback texture');
+        setTextureError(true);
+        setFrontTexture(fallbackTexture);
+      };
+      testImg.src = safeImageUrl;
+    } else {
+      // Regular URL loading
+      loader.load(
+        safeImageUrl,
+        (texture) => {
+          configureTextureForCard(texture);
+          setFrontTexture(texture);
+          setTextureError(false);
+        },
+        undefined,
+        (error) => {
+          console.warn('Failed to load texture, using fallback:', error);
+          setTextureError(true);
+          setFrontTexture(fallbackTexture);
+        }
+      );
+    }
+  }, [safeImageUrl, fallbackTexture, textureError]);
   
   // Create card back texture
   const cardBackTexture = useMemo(() => {
@@ -137,8 +180,6 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
     }
   });
   
-  const textureToUse = imageUrl ? frontTexture : fallbackTexture;
-  
   return (
     <group>
       {/* Main card mesh with proper thickness */}
@@ -161,13 +202,13 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
         {/* Front face with effects */}
         {effects.holographic || effects.chrome || effects.crystal || effects.vintage ? (
           <EnhancedHolographicMaterial 
-            texture={textureToUse}
+            texture={frontTexture}
             effects={effects}
           />
         ) : (
           <meshStandardMaterial 
             attach="material-4"
-            map={textureToUse}
+            map={frontTexture}
             metalness={effects.metalness || 0.1}
             roughness={effects.roughness || 0.4}
           />
