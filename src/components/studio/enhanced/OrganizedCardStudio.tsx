@@ -1,169 +1,188 @@
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Upload, 
-  Layout, 
-  Sparkles, 
-  Settings, 
-  ArrowLeft,
-  Save,
-  Share2,
-  Download,
-  Eye,
-  RotateCcw,
-  Maximize2,
-  Zap
-} from 'lucide-react';
-import { StudioCardPreview } from './components/StudioCardPreview';
-import { BasicCardInfo } from './components/BasicCardInfo';
-import { CardStatsModule } from './components/CardStatsModule';
+import { Upload, Image, Sparkles, Layers, Settings, Eye, Download, Save, Wand2 } from 'lucide-react';
 import { UploadPhase } from './components/UploadPhase';
-import { FramePhase } from './components/FramePhase';
-import { EffectsPhase } from './components/EffectsPhase';
-import { StudioPhase } from './components/StudioPhase';
-import { useResponsiveBreakpoints } from '@/hooks/useResponsiveBreakpoints';
-import { useStudioState } from '@/hooks/useStudioState';
-import { toast } from 'sonner';
+import { FrameSelectionPhase } from './components/FrameSelectionPhase';
+import { EffectControlsPhase } from './components/EffectControlsPhase';
 import { EnhancedStudioCardPreview } from './components/EnhancedStudioCardPreview';
+import { StudioHeader } from './components/StudioHeader';
+import { QuickActions } from './components/QuickActions';
+import { LayerManager } from './components/LayerManager';
+import { ExportDialog } from './components/ExportDialog';
+import { toast } from 'sonner';
 
-interface OrganizedCardStudioProps {
-  onBack?: () => void;
+type StudioPhase = 'upload' | 'frames' | 'effects' | 'layers' | 'export';
+
+interface BlobUrlManager {
+  url: string;
+  isValid: boolean;
+  lastValidated: number;
+  originalFile?: { name: string; size: number; type: string };
 }
 
-const WORKFLOW_PHASES = [
-  { id: 'upload', label: 'Upload', icon: Upload, color: 'bg-blue-500' },
-  { id: 'frame', label: 'Frame', icon: Layout, color: 'bg-purple-500' },
-  { id: 'effects', label: 'Effects', icon: Sparkles, color: 'bg-pink-500' },
-  { id: 'studio', label: 'Studio', icon: Settings, color: 'bg-orange-500' }
-];
-
-export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack }) => {
-  const [activePhase, setActivePhase] = useState('upload');
-  const [cardName, setCardName] = useState('');
-  const [cardDescription, setCardDescription] = useState('');
+export const OrganizedCardStudio: React.FC = () => {
+  // Core state
+  const [currentPhase, setCurrentPhase] = useState<StudioPhase>('upload');
   const [uploadedImage, setUploadedImage] = useState<string>('');
   const [selectedFrame, setSelectedFrame] = useState<string>('');
-  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('portrait');
-  const [show3DPreview, setShow3DPreview] = useState(true);
-  const [effectValues, setEffectValues] = useState<Record<string, Record<string, any>>>({});
-  const [projectSaved, setProjectSaved] = useState(false);
-  const exportRef = useRef<HTMLDivElement>(null);
-
-  const { isMobile, isTablet } = useResponsiveBreakpoints();
-  const { studioState } = useStudioState();
-
-  // Enhanced progress calculation
-  const getProgress = useCallback(() => {
-    let completed = 0;
-    if (uploadedImage) completed += 20;
-    if (selectedFrame) completed += 20;
-    if (cardName) completed += 20;
-    if (Object.keys(effectValues).length > 0) completed += 20;
-    if (show3DPreview) completed += 10;
-    if (projectSaved) completed += 10;
-    return Math.min(completed, 100);
-  }, [uploadedImage, selectedFrame, cardName, effectValues, show3DPreview, projectSaved]);
-
-  // Fixed image upload handler
-  const handleImageUpload = useCallback((imageUrl: string) => {
-    console.log('🖼️ OrganizedCardStudio - handleImageUpload called with:', imageUrl);
-    
-    if (!imageUrl || imageUrl.trim() === '') {
-      console.log('🖼️ OrganizedCardStudio - Empty image URL, clearing state');
-      setUploadedImage('');
-      return;
-    }
-
-    console.log('🖼️ OrganizedCardStudio - Setting uploaded image:', imageUrl);
-    setUploadedImage(imageUrl);
-    toast.success('Image uploaded successfully!');
-  }, []);
-
-  // Fixed frame selection handler with debugging
-  const handleFrameSelect = useCallback((frameId: string) => {
-    console.log('🖼️ OrganizedCardStudio - Frame selected:', frameId);
-    setSelectedFrame(frameId);
-    toast.success(`Frame ${frameId || 'None'} applied successfully!`);
-  }, []);
-
-  // Enhanced effect change handler with comprehensive debugging
-  const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
-    console.log('🎨 OrganizedCardStudio - Effect change received:', { 
-      effectId, 
-      parameterId, 
-      value,
-      type: typeof value
+  const [effectValues, setEffectValues] = useState<Record<string, any>>({});
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  
+  // Blob URL management
+  const [blobManager, setBlobManager] = useState<BlobUrlManager | null>(null);
+  const blobValidationTimeoutRef = useRef<NodeJS.Timeout>();
+  
+  // Debug logging
+  const logImageState = useCallback((context: string, imageUrl: string) => {
+    console.log(`🔍 OrganizedCardStudio - ${context}:`, {
+      imageUrl: imageUrl ? `${imageUrl.substring(0, 50)}...` : 'None',
+      isBlobUrl: imageUrl.startsWith('blob:'),
+      blobManagerExists: !!blobManager,
+      blobManagerValid: blobManager?.isValid,
+      currentPhase,
+      timestamp: new Date().toISOString()
     });
+  }, [blobManager, currentPhase]);
+
+  // Validate blob URL health
+  const validateBlobUrl = useCallback(async (url: string): Promise<boolean> => {
+    if (!url.startsWith('blob:')) return true;
     
-    setEffectValues(prev => {
-      const newValues = {
-        ...prev,
-        [effectId]: {
-          ...prev[effectId],
-          [parameterId]: value
-        }
+    return new Promise((resolve) => {
+      const img = new Image();
+      const timeout = setTimeout(() => {
+        img.onload = null;
+        img.onerror = null;
+        console.warn('🚨 Blob URL validation timeout:', url);
+        resolve(false);
+      }, 3000);
+      
+      img.onload = () => {
+        clearTimeout(timeout);
+        console.log('✅ Blob URL is valid:', url);
+        resolve(true);
       };
       
-      console.log('🎨 OrganizedCardStudio - Previous effect values:', prev);
-      console.log('🎨 OrganizedCardStudio - New effect values:', newValues);
-      console.log('🎨 OrganizedCardStudio - Active effects count:', 
-        Object.keys(newValues).filter(k => newValues[k]?.intensity > 0).length
-      );
+      img.onerror = () => {
+        clearTimeout(timeout);
+        console.warn('❌ Blob URL is invalid:', url);
+        resolve(false);
+      };
       
-      return newValues;
+      img.src = url;
     });
   }, []);
 
-  // Enhanced export with professional features
-  const handleExport = useCallback(() => {
-    toast.success('Exporting professional-quality card...');
-    console.log('Export settings:', {
-      cardName,
-      cardDescription,
-      uploadedImage,
-      selectedFrame,
-      effectValues,
-      lighting: studioState.lighting,
-      show3DPreview
-    });
-  }, [cardName, cardDescription, uploadedImage, selectedFrame, effectValues, studioState, show3DPreview]);
-
-  // Save project functionality
-  const handleSaveProject = useCallback(() => {
-    setProjectSaved(true);
-    toast.success('Project saved successfully!');
-  }, []);
-
-  // Share project functionality
-  const handleShareProject = useCallback(() => {
-    if (!projectSaved) {
-      handleSaveProject();
+  // Enhanced image upload handler with blob management
+  const handleImageUpload = useCallback(async (imageUrl: string) => {
+    console.log('🔄 OrganizedCardStudio - handleImageUpload called with:', imageUrl);
+    logImageState('Before image upload', imageUrl);
+    
+    // Cleanup previous blob URL
+    if (blobManager?.url && blobManager.url.startsWith('blob:')) {
+      URL.revokeObjectURL(blobManager.url);
+      console.log('🗑️ Cleaned up previous blob URL');
     }
-    toast.success('Generating share link...');
-  }, [projectSaved, handleSaveProject]);
-
-  // Debug current state with detailed logging
-  React.useEffect(() => {
-    console.log('🔍 OrganizedCardStudio - Complete current state:', { 
-      uploadedImage: uploadedImage ? 'Present' : 'None', 
-      activePhase,
-      selectedFrame: selectedFrame || 'None',
-      effectValues,
-      effectsCount: Object.keys(effectValues).length,
-      activeEffectsCount: Object.keys(effectValues).filter(k => effectValues[k]?.intensity > 0).length
+    
+    // Validate new blob URL if it's a blob
+    let isValid = true;
+    if (imageUrl.startsWith('blob:')) {
+      isValid = await validateBlobUrl(imageUrl);
+      if (!isValid) {
+        console.error('🚨 Invalid blob URL provided:', imageUrl);
+        toast.error('Image file is corrupted or invalid');
+        return;
+      }
+    }
+    
+    // Update state
+    setUploadedImage(imageUrl);
+    setBlobManager({
+      url: imageUrl,
+      isValid,
+      lastValidated: Date.now()
     });
-  }, [uploadedImage, activePhase, selectedFrame, effectValues]);
+    
+    logImageState('After image upload', imageUrl);
+    
+    // Auto-advance to frames phase
+    if (currentPhase === 'upload') {
+      setCurrentPhase('frames');
+      console.log('🎯 Auto-advanced to frames phase');
+    }
+    
+    toast.success('Image uploaded successfully!');
+  }, [blobManager, currentPhase, logImageState, validateBlobUrl]);
+
+  // Periodic blob URL health check
+  useEffect(() => {
+    if (blobManager?.url.startsWith('blob:')) {
+      blobValidationTimeoutRef.current = setTimeout(async () => {
+        const isValid = await validateBlobUrl(blobManager.url);
+        if (!isValid && blobManager.isValid) {
+          console.warn('🚨 Blob URL became invalid, notifying user');
+          setBlobManager(prev => prev ? { ...prev, isValid: false } : null);
+          toast.error('Image became unavailable. Please re-upload.');
+        }
+      }, 10000); // Check every 10 seconds
+    }
+    
+    return () => {
+      if (blobValidationTimeoutRef.current) {
+        clearTimeout(blobValidationTimeoutRef.current);
+      }
+    };
+  }, [blobManager, validateBlobUrl]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (blobManager?.url.startsWith('blob:')) {
+        URL.revokeObjectURL(blobManager.url);
+        console.log('🗑️ Cleaned up blob URL on unmount');
+      }
+    };
+  }, [blobManager]);
+
+  const handleFrameSelect = useCallback((frameId: string) => {
+    console.log('🖼️ Frame selected:', frameId);
+    setSelectedFrame(frameId);
+    toast.success('Frame applied!');
+  }, []);
+
+  const handleEffectChange = useCallback((effectId: string, value: any) => {
+    console.log('✨ Effect changed:', effectId, value);
+    setEffectValues(prev => ({
+      ...prev,
+      [effectId]: value
+    }));
+  }, []);
+
+  const handlePhaseChange = useCallback((phase: StudioPhase) => {
+    console.log('🔄 Phase change:', currentPhase, '->', phase);
+    
+    // Validate phase change requirements
+    if (phase === 'frames' && !uploadedImage) {
+      toast.error('Please upload an image first');
+      return;
+    }
+    
+    if (phase === 'effects' && (!uploadedImage || !selectedFrame)) {
+      toast.error('Please upload an image and select a frame first');
+      return;
+    }
+    
+    setCurrentPhase(phase);
+    logImageState('Phase changed', uploadedImage);
+  }, [currentPhase, uploadedImage, selectedFrame, logImageState]);
 
   const renderPhaseContent = () => {
-    console.log('🔄 OrganizedCardStudio - Rendering phase content for:', activePhase);
+    console.log('🔄 OrganizedCardStudio - Rendering phase content for:', currentPhase);
     
-    switch (activePhase) {
+    switch (currentPhase) {
       case 'upload':
         return (
           <UploadPhase
@@ -171,279 +190,171 @@ export const OrganizedCardStudio: React.FC<OrganizedCardStudioProps> = ({ onBack
             onImageUpload={handleImageUpload}
           />
         );
-      case 'frame':
+        
+      case 'frames':
         return (
-          <FramePhase
+          <FrameSelectionPhase
             selectedFrame={selectedFrame}
             onFrameSelect={handleFrameSelect}
-            orientation={orientation}
+            uploadedImage={uploadedImage}
           />
         );
+        
       case 'effects':
         return (
-          <EffectsPhase
-            selectedFrame={selectedFrame}
+          <EffectControlsPhase
+            effectValues={effectValues}
             onEffectChange={handleEffectChange}
+            uploadedImage={uploadedImage}
+            selectedFrame={selectedFrame}
+          />
+        );
+        
+      case 'layers':
+        return (
+          <LayerManager
+            uploadedImage={uploadedImage}
+            selectedFrame={selectedFrame}
             effectValues={effectValues}
           />
         );
-      case 'studio':
+        
+      case 'export':
         return (
-          <StudioPhase
-            show3DPreview={show3DPreview}
-            onToggle3D={() => setShow3DPreview(!show3DPreview)}
-            onExport={handleExport}
-            cardData={{ title: cardName, description: cardDescription }}
-            currentPhoto={uploadedImage}
-            effectLayers={[]}
-          />
+          <div className="p-6 text-center">
+            <h3 className="text-white text-xl mb-4">Ready to Export</h3>
+            <Button
+              onClick={() => setShowExportDialog(true)}
+              className="bg-crd-green hover:bg-crd-green/90 text-black"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export Card
+            </Button>
+          </div>
         );
+        
       default:
         return null;
     }
   };
 
+  // Image state debugging panel (only in development)
+  const renderDebugPanel = () => {
+    if (process.env.NODE_ENV !== 'development') return null;
+    
+    return (
+      <Card className="bg-red-900/20 border-red-500/50 mb-4">
+        <CardContent className="p-3">
+          <div className="text-red-400 text-xs space-y-1">
+            <div>🔍 Debug - Image State:</div>
+            <div>• URL: {uploadedImage ? `${uploadedImage.substring(0, 30)}...` : 'None'}</div>
+            <div>• Is Blob: {uploadedImage.startsWith('blob:') ? 'Yes' : 'No'}</div>
+            <div>• Blob Valid: {blobManager?.isValid ? 'Yes' : 'No'}</div>
+            <div>• Last Validated: {blobManager?.lastValidated ? new Date(blobManager.lastValidated).toLocaleTimeString() : 'Never'}</div>
+            <div>• Phase: {currentPhase}</div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black">
-      {/* Header */}
-      <div className="border-b border-white/10 bg-black/20 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {onBack && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onBack}
-                  className="text-white hover:bg-white/10"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-                </Button>
-              )}
-              <div>
-                <div className="flex items-center gap-3 mb-1">
-                  <Badge className="bg-crd-green text-black font-bold px-3 py-1">
-                    CRD CREATOR
-                  </Badge>
-                  <Badge variant="outline" className="border-blue-500/50 text-blue-400">
-                    PROFESSIONAL STUDIO
-                  </Badge>
-                  {show3DPreview && (
-                    <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/50">
-                      <Zap className="w-3 h-3 mr-1" />
-                      3D PREMIUM
-                    </Badge>
-                  )}
-                </div>
-                <h1 className="text-xl md:text-2xl font-bold text-white">
-                  Card Creation Studio
-                </h1>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-editor-dark via-black to-editor-dark">
+      <StudioHeader />
+      
+      {renderDebugPanel()}
 
-            {/* Desktop Actions */}
-            {!isMobile && (
-              <div className="flex items-center gap-3">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleSaveProject}
-                  className={projectSaved 
-                    ? "border-crd-green/50 text-crd-green" 
-                    : "border-white/20 text-white hover:bg-white/10"
-                  }
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {projectSaved ? 'Saved' : 'Save'}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleShareProject}
-                  className="border-white/20 text-white hover:bg-white/10"
-                >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Share
-                </Button>
-                <Button 
-                  onClick={handleExport}
-                  className="bg-crd-green hover:bg-crd-green/90 text-black font-bold"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* Enhanced Progress Bar */}
-          <div className="mt-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-300">Creation Progress</span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-crd-green font-medium">{getProgress()}%</span>
-                {getProgress() === 100 && (
-                  <Badge className="bg-crd-green/20 text-crd-green border-crd-green/50 text-xs">
-                    COMPLETE
-                  </Badge>
-                )}
-              </div>
-            </div>
-            <Progress value={getProgress()} className="h-2 bg-gray-800" />
-          </div>
+      <div className="flex h-[calc(100vh-80px)]">
+        {/* Left Sidebar - Phase Navigation */}
+        <div className="w-16 bg-editor-dark border-r border-editor-border flex flex-col items-center py-4 space-y-4">
+          {[
+            { phase: 'upload' as StudioPhase, icon: Upload, label: 'Upload' },
+            { phase: 'frames' as StudioPhase, icon: Image, label: 'Frames' },
+            { phase: 'effects' as StudioPhase, icon: Sparkles, label: 'Effects' },
+            { phase: 'layers' as StudioPhase, icon: Layers, label: 'Layers' },
+            { phase: 'export' as StudioPhase, icon: Download, label: 'Export' }
+          ].map(({ phase, icon: Icon, label }) => (
+            <Button
+              key={phase}
+              variant="ghost"
+              size="sm"
+              onClick={() => handlePhaseChange(phase)}
+              className={`w-12 h-12 p-0 rounded-lg transition-all ${
+                currentPhase === phase
+                  ? 'bg-crd-green text-black'
+                  : 'text-white hover:bg-white/10'
+              } ${
+                (phase === 'frames' && !uploadedImage) ||
+                (phase === 'effects' && (!uploadedImage || !selectedFrame))
+                  ? 'opacity-50 cursor-not-allowed'
+                  : ''
+              }`}
+              title={label}
+            >
+              <Icon className="w-5 h-5" />
+            </Button>
+          ))}
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className={`grid ${isMobile ? 'grid-cols-1 gap-6' : 'grid-cols-12 gap-8'} h-full`}>
-          
-          {/* Left Side - Enhanced Card Preview */}
-          <div className={`${isMobile ? 'order-1' : 'col-span-7'} space-y-6`}>
-            <Card className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-white/10">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                    <Eye className="w-5 h-5" />
-                    Card Preview
-                    {show3DPreview && (
-                      <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/50 text-xs">
-                        3D
-                      </Badge>
-                    )}
-                  </h2>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setOrientation(orientation === 'portrait' ? 'landscape' : 'portrait')}
-                      className="border-white/20 text-white hover:bg-white/10"
-                    >
-                      <RotateCcw className="w-4 h-4 mr-1" />
-                      {orientation}
-                    </Button>
-                    <Button
-                      variant={show3DPreview ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setShow3DPreview(!show3DPreview)}
-                      className={show3DPreview ? 'bg-crd-green text-black' : 'border-white/20 text-white'}
-                    >
-                      <Maximize2 className="w-4 h-4 mr-1" />
-                      3D
-                    </Button>
-                  </div>
-                </div>
-                
-                <EnhancedStudioCardPreview
-                  uploadedImage={uploadedImage}
-                  selectedFrame={selectedFrame}
-                  orientation={orientation}
-                  show3DPreview={show3DPreview}
-                  cardName={cardName}
-                  effectValues={effectValues}
-                />
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-white/10">
-              <CardContent className="p-6">
-                <BasicCardInfo
-                  cardName={cardName}
-                  cardDescription={cardDescription}
-                  onNameChange={setCardName}
-                  onDescriptionChange={setCardDescription}
-                />
-              </CardContent>
-            </Card>
+        {/* Main Content Area */}
+        <div className="flex-1 flex">
+          {/* Controls Panel */}
+          <div className="w-96 bg-editor-tool border-r border-editor-border overflow-y-auto">
+            {renderPhaseContent()}
           </div>
 
-          {/* Right Side - Workflow Phases */}
-          <div className={`${isMobile ? 'order-2' : 'col-span-5'} space-y-6`}>
-            <CardStatsModule
-              cardName={cardName}
+          {/* 3D Preview */}
+          <div className="flex-1 bg-black relative">
+            <EnhancedStudioCardPreview
               uploadedImage={uploadedImage}
               selectedFrame={selectedFrame}
               effectValues={effectValues}
+              blobManager={blobManager}
             />
-
-            <Card className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-white/10">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold text-white">Professional Workflow</h2>
-                  <Badge variant="outline" className="border-crd-green/50 text-crd-green">
-                    PHASE {WORKFLOW_PHASES.findIndex(p => p.id === activePhase) + 1}/4
-                  </Badge>
-                </div>
-                
-                <Tabs value={activePhase} onValueChange={setActivePhase} className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 bg-black/30 p-1">
-                    {WORKFLOW_PHASES.map((phase, index) => (
-                      <TabsTrigger
-                        key={phase.id}
-                        value={phase.id}
-                        className="data-[state=active]:bg-crd-green data-[state=active]:text-black text-white relative"
-                      >
-                        <div className="flex items-center gap-1 md:gap-2">
-                          <div className={`w-2 h-2 rounded-full ${phase.color} ${activePhase === phase.id ? 'opacity-100' : 'opacity-50'}`} />
-                          <phase.icon className="w-3 h-3 md:w-4 md:h-4" />
-                          <span className="hidden sm:inline text-xs md:text-sm">{phase.label}</span>
-                        </div>
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-
-                  <Separator className="my-4 bg-white/10" />
-
-                  <div className="min-h-[400px] md:min-h-[500px]">
-                    {WORKFLOW_PHASES.map((phase) => (
-                      <TabsContent key={phase.id} value={phase.id} className="mt-0 h-full">
-                        <div className="space-y-4 h-full">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full ${phase.color}`} />
-                            <h3 className="font-semibold text-white">{phase.label} Phase</h3>
-                          </div>
-                          {renderPhaseContent()}
-                        </div>
-                      </TabsContent>
-                    ))}
-                  </div>
-                </Tabs>
-              </CardContent>
-            </Card>
+            
+            {/* Invalid blob warning overlay */}
+            {blobManager && !blobManager.isValid && (
+              <div className="absolute inset-0 bg-black/75 flex items-center justify-center">
+                <Card className="bg-red-900/90 border-red-500">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-red-400 mb-4">
+                      <Wand2 className="w-8 h-8 mx-auto mb-2" />
+                      <h3 className="text-lg font-semibold">Image Unavailable</h3>
+                      <p className="text-sm">The uploaded image is no longer accessible.</p>
+                    </div>
+                    <Button
+                      onClick={() => handlePhaseChange('upload')}
+                      className="bg-crd-green hover:bg-crd-green/90 text-black"
+                    >
+                      Upload New Image
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Enhanced Mobile Actions Bar */}
-        {isMobile && (
-          <div className="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-sm border-t border-white/10 p-4">
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleSaveProject}
-                className={`flex-1 ${projectSaved 
-                  ? "border-crd-green/50 text-crd-green" 
-                  : "border-white/20 text-white"
-                }`}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {projectSaved ? 'Saved' : 'Save'}
-              </Button>
-              <Button variant="outline" size="sm" className="flex-1 border-white/20 text-white">
-                <Eye className="w-4 h-4 mr-2" />
-                Preview
-              </Button>
-              <Button 
-                onClick={handleExport}
-                className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black font-bold"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-            </div>
-          </div>
-        )}
+        {/* Right Sidebar - Quick Actions */}
+        <div className="w-64 bg-editor-tool border-l border-editor-border">
+          <QuickActions
+            uploadedImage={uploadedImage}
+            selectedFrame={selectedFrame}
+            effectValues={effectValues}
+            onExport={() => setShowExportDialog(true)}
+          />
+        </div>
       </div>
+
+      <ExportDialog
+        isOpen={showExportDialog}
+        onClose={() => setShowExportDialog(false)}
+        cardData={{
+          uploadedImage,
+          selectedFrame,
+          effectValues
+        }}
+      />
     </div>
   );
 };

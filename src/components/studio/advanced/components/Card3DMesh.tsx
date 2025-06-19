@@ -32,11 +32,23 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   const [textureError, setTextureError] = useState(false);
+  const [textureLoading, setTextureLoading] = useState(false);
   
   // Card dimensions (trading card standard: 2.5" x 3.5")
   const cardWidth = 2.5;
   const cardHeight = 3.5;
   const cardThickness = 0.05;
+  
+  // Enhanced debug logging
+  const logTextureState = useCallback((context: string, url: string, error?: any) => {
+    console.log(`🖼️ Card3DMesh - ${context}:`, {
+      url: url ? `${url.substring(0, 50)}...` : 'None',
+      isBlobUrl: url?.startsWith('blob:'),
+      cardId: cardData.id,
+      error: error?.message,
+      timestamp: new Date().toISOString()
+    });
+  }, [cardData.id]);
   
   // Create fallback texture
   const fallbackTexture = useMemo(() => {
@@ -61,73 +73,93 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
     return texture;
   }, []);
   
-  // Safe texture loading with error handling
-  const safeImageUrl = useMemo(() => {
-    // If imageUrl is a blob URL that might be invalid, validate it first
-    if (imageUrl && imageUrl.startsWith('blob:')) {
-      // For blob URLs, we'll handle errors in the useEffect below
-      return imageUrl;
-    }
-    // For regular URLs, use them directly or fallback
-    return imageUrl || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
-  }, [imageUrl]);
-  
-  // Load texture with proper error handling
+  // Enhanced texture loading with comprehensive error handling
   const [frontTexture, setFrontTexture] = useState<THREE.Texture>(fallbackTexture);
   
   useEffect(() => {
-    if (!safeImageUrl || textureError) {
+    if (!imageUrl) {
+      logTextureState('No image URL provided', '');
       setFrontTexture(fallbackTexture);
+      setTextureError(false);
+      setTextureLoading(false);
       return;
     }
 
+    setTextureLoading(true);
+    setTextureError(false);
+    logTextureState('Starting texture load', imageUrl);
+
     const loader = new TextureLoader();
     
-    // For blob URLs, validate first
-    if (safeImageUrl.startsWith('blob:')) {
-      // Test if blob URL is still valid by creating an image
+    // Enhanced blob URL validation
+    if (imageUrl.startsWith('blob:')) {
+      // Test blob URL validity first
       const testImg = new Image();
+      const validationTimeout = setTimeout(() => {
+        logTextureState('Blob validation timeout', imageUrl);
+        setTextureError(true);
+        setTextureLoading(false);
+        setFrontTexture(fallbackTexture);
+      }, 3000);
+      
       testImg.onload = () => {
-        // Blob is valid, proceed with texture loading
+        clearTimeout(validationTimeout);
+        logTextureState('Blob URL validated successfully', imageUrl);
+        
+        // Proceed with Three.js texture loading
         loader.load(
-          safeImageUrl,
+          imageUrl,
           (texture) => {
+            logTextureState('Texture loaded successfully', imageUrl);
             configureTextureForCard(texture);
             setFrontTexture(texture);
             setTextureError(false);
+            setTextureLoading(false);
           },
-          undefined,
+          (progress) => {
+            console.log('📊 Texture loading progress:', progress);
+          },
           (error) => {
-            console.warn('Failed to load texture, using fallback:', error);
+            logTextureState('Texture loading failed', imageUrl, error);
             setTextureError(true);
+            setTextureLoading(false);
             setFrontTexture(fallbackTexture);
           }
         );
       };
-      testImg.onerror = () => {
-        console.warn('Blob URL is invalid, using fallback texture');
+      
+      testImg.onerror = (error) => {
+        clearTimeout(validationTimeout);
+        logTextureState('Blob URL validation failed', imageUrl, error);
         setTextureError(true);
+        setTextureLoading(false);
         setFrontTexture(fallbackTexture);
       };
-      testImg.src = safeImageUrl;
+      
+      testImg.src = imageUrl;
     } else {
-      // Regular URL loading
+      // Regular URL loading with enhanced error handling
       loader.load(
-        safeImageUrl,
+        imageUrl,
         (texture) => {
+          logTextureState('Regular texture loaded successfully', imageUrl);
           configureTextureForCard(texture);
           setFrontTexture(texture);
           setTextureError(false);
+          setTextureLoading(false);
         },
-        undefined,
+        (progress) => {
+          console.log('📊 Texture loading progress:', progress);
+        },
         (error) => {
-          console.warn('Failed to load texture, using fallback:', error);
+          logTextureState('Regular texture loading failed', imageUrl, error);
           setTextureError(true);
+          setTextureLoading(false);
           setFrontTexture(fallbackTexture);
         }
       );
     }
-  }, [safeImageUrl, fallbackTexture, textureError]);
+  }, [imageUrl, fallbackTexture, logTextureState]);
   
   // Create card back texture
   const cardBackTexture = useMemo(() => {
@@ -167,18 +199,33 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
     return backTexture;
   }, []);
   
-  // Animation
+  // Animation with error resilience
   useFrame((state) => {
-    if (meshRef.current) {
-      // Gentle floating animation
-      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.03;
-      
-      // Auto-rotate when not hovered
-      if (!hovered) {
-        meshRef.current.rotation.y += 0.002;
+    try {
+      if (meshRef.current) {
+        // Gentle floating animation
+        meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.03;
+        
+        // Auto-rotate when not hovered
+        if (!hovered) {
+          meshRef.current.rotation.y += 0.002;
+        }
       }
+    } catch (error) {
+      console.warn('🚨 Card3DMesh animation error:', error);
     }
   });
+  
+  // Log current state for debugging
+  useEffect(() => {
+    console.log('🎯 Card3DMesh state update:', {
+      hasImageUrl: !!imageUrl,
+      textureLoading,
+      textureError,
+      isUsingFallback: frontTexture === fallbackTexture,
+      cardTitle: cardData.title
+    });
+  }, [imageUrl, textureLoading, textureError, frontTexture, fallbackTexture, cardData.title]);
   
   return (
     <group>
@@ -211,6 +258,7 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
             map={frontTexture}
             metalness={effects.metalness || 0.1}
             roughness={effects.roughness || 0.4}
+            transparent={false}
           />
         )}
         
@@ -238,6 +286,18 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
             color={effects.glowColor || '#00ffff'}
             transparent
             opacity={0.3}
+          />
+        </mesh>
+      )}
+      
+      {/* Loading indicator overlay */}
+      {textureLoading && (
+        <mesh position={[0, 0, 0.1]}>
+          <planeGeometry args={[cardWidth * 0.8, cardHeight * 0.8]} />
+          <meshBasicMaterial 
+            color="#ffffff"
+            transparent
+            opacity={0.1}
           />
         </mesh>
       )}
