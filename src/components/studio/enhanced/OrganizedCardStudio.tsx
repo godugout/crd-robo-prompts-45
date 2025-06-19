@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,7 +51,7 @@ export const OrganizedCardStudio: React.FC = () => {
     if (!url.startsWith('blob:')) return true;
     
     return new Promise((resolve) => {
-      const img = new Image();
+      const img = document.createElement('img');
       const timeout = setTimeout(() => {
         img.onload = null;
         img.onerror = null;
