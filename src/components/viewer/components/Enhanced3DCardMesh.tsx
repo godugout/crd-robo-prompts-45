@@ -1,7 +1,5 @@
 
-import React, { useMemo, useEffect, useState, Suspense } from 'react';
-import { useLoader } from '@react-three/fiber';
-import { TextureLoader } from 'three';
+import React, { useMemo, Suspense } from 'react';
 import type { CardData } from '@/types/card';
 import { Advanced3DCardRenderer } from './Advanced3DCardRenderer';
 import { useEffectContext } from '../contexts/EffectContext';
@@ -21,7 +19,7 @@ interface Enhanced3DCardMeshProps {
   frameConfig?: any;
 }
 
-// Fallback component when textures fail to load
+// Simplified fallback component
 const FallbackCard: React.FC<{ materialSettings: any }> = ({ materialSettings }) => {
   return (
     <group>
@@ -29,14 +27,6 @@ const FallbackCard: React.FC<{ materialSettings: any }> = ({ materialSettings })
         <planeGeometry args={[4, 5.6]} />
         <meshStandardMaterial 
           color="#1a1a1a"
-          metalness={materialSettings.metalness}
-          roughness={materialSettings.roughness}
-        />
-      </mesh>
-      <mesh position={[0, 0, -0.05]} rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[4, 5.6]} />
-        <meshStandardMaterial 
-          color="#2a2a2a"
           metalness={materialSettings.metalness}
           roughness={materialSettings.roughness}
         />
@@ -63,23 +53,15 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
   const effectContext = useEffectContext();
   const effectValues = effectContext?.effectValues || {};
 
-  // Validate card data
-  if (!card || typeof card !== 'object') {
-    console.warn('Invalid card data provided to Enhanced3DCardMesh:', card);
-    return <FallbackCard materialSettings={materialSettings} />;
-  }
-
-  // Validate rotation data
-  const safeRotation = useMemo(() => ({
-    x: typeof rotation?.x === 'number' && !isNaN(rotation.x) ? rotation.x : 0,
-    y: typeof rotation?.y === 'number' && !isNaN(rotation.y) ? rotation.y : 0
-  }), [rotation]);
-
-  // Validate zoom
-  const safeZoom = useMemo(() => {
-    const zoomValue = typeof zoom === 'number' && !isNaN(zoom) && zoom > 0 ? zoom : 1;
-    return Math.max(0.1, Math.min(5, zoomValue)); // Clamp between 0.1 and 5
-  }, [zoom]);
+  // Validate and sanitize inputs once
+  const safeInputs = useMemo(() => ({
+    rotation: {
+      x: typeof rotation?.x === 'number' && !isNaN(rotation.x) ? rotation.x : 0,
+      y: typeof rotation?.y === 'number' && !isNaN(rotation.y) ? rotation.y : 0
+    },
+    zoom: Math.max(0.1, Math.min(5, typeof zoom === 'number' && !isNaN(zoom) && zoom > 0 ? zoom : 1)),
+    card: card && typeof card === 'object' ? card : null
+  }), [rotation, zoom, card]);
 
   // Enhanced material settings for metallic effects
   const enhancedMaterialSettings = useMemo(() => {
@@ -95,12 +77,16 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
     return baseSettings;
   }, [materialSettings, effectValues]);
 
+  if (!safeInputs.card) {
+    return <FallbackCard materialSettings={materialSettings} />;
+  }
+
   return (
     <Suspense fallback={<FallbackCard materialSettings={materialSettings} />}>
       <Advanced3DCardRenderer 
-        card={card}
-        rotation={safeRotation}
-        zoom={safeZoom}
+        card={safeInputs.card}
+        rotation={safeInputs.rotation}
+        zoom={safeInputs.zoom}
         materialSettings={enhancedMaterialSettings}
         effectValues={effectValues}
         selectedFrame={selectedFrame}
