@@ -7,19 +7,14 @@ import { Loader2, AlertTriangle, Image as ImageIcon, Wand2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-
-interface BlobUrlManager {
-  url: string;
-  isValid: boolean;
-  lastValidated: number;
-  originalFile?: { name: string; size: number; type: string };
-}
+import { ProcessedImage } from '@/services/imageProcessing/ImageProcessingService';
 
 interface EnhancedStudioCardPreviewProps {
   uploadedImage?: string;
   selectedFrame?: string;
   effectValues?: Record<string, any>;
-  blobManager?: BlobUrlManager | null;
+  processedImage?: ProcessedImage | null;
+  isProcessing?: boolean;
 }
 
 const FallbackCard: React.FC = () => {
@@ -77,7 +72,8 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
   uploadedImage,
   selectedFrame,
   effectValues = {},
-  blobManager
+  processedImage,
+  isProcessing = false
 }) => {
   const [renderError, setRenderError] = useState<string>('');
   const [isImageLoading, setIsImageLoading] = useState(false);
@@ -88,7 +84,7 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
     selectedFrame: selectedFrame || 'None',
     effectValues,
     activeEffectsCount: Object.keys(effectValues).length,
-    blobManagerValid: blobManager?.isValid,
+    processedImageValid: processedImage ? 'Present' : 'None',
     imageLoadError,
     renderError: !!renderError
   });
@@ -129,16 +125,6 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
     });
   }, []);
 
-  // Monitor blob URL health
-  useEffect(() => {
-    if (uploadedImage && blobManager && !blobManager.isValid) {
-      setRenderError('Image file is no longer accessible');
-      toast.error('Image became unavailable during editing');
-    } else {
-      setRenderError('');
-    }
-  }, [uploadedImage, blobManager]);
-
   // Validate image when it changes
   useEffect(() => {
     if (uploadedImage) {
@@ -173,13 +159,15 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
   });
 
   // Show loading state
-  if (isImageLoading) {
+  if (isProcessing || isImageLoading) {
     return (
       <div className="flex items-center justify-center h-full bg-black">
         <Card className="bg-black/20 border-white/10">
           <CardContent className="p-6 text-center">
             <Loader2 className="w-8 h-8 text-crd-green mx-auto mb-2 animate-spin" />
-            <p className="text-white text-sm">Validating image...</p>
+            <p className="text-white text-sm">
+              {isProcessing ? 'Processing image...' : 'Validating image...'}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -306,7 +294,7 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
           <div>Image: {uploadedImage ? '✓' : '✗'}</div>
           <div>Frame: {selectedFrame ? '✓' : '✗'}</div>
           <div>Effects: {Object.keys(effectValues).length}</div>
-          <div>Valid: {blobManager?.isValid ? '✓' : '✗'}</div>
+          <div>Processed: {processedImage ? '✓' : '✗'}</div>
         </div>
       )}
     </div>
