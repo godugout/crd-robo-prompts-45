@@ -19,6 +19,8 @@ export interface AutoSaveStats {
   saveCount: number;
   lastAction: string;
   lastSaveTime: string;
+  draftAge: number;
+  historySize: number;
 }
 
 class AutoSaveService {
@@ -74,7 +76,9 @@ class AutoSaveService {
       const newStats: AutoSaveStats = {
         saveCount: stats.saveCount + 1,
         lastAction: action,
-        lastSaveTime: new Date().toISOString()
+        lastSaveTime: new Date().toISOString(),
+        draftAge: this.currentDraft ? Date.now() - new Date(this.currentDraft.created_at).getTime() : 0,
+        historySize: this.history.length
       };
       localStorage.setItem(this.statsKey, JSON.stringify(newStats));
     } catch (error) {
@@ -180,7 +184,9 @@ class AutoSaveService {
     return {
       saveCount: 0,
       lastAction: '',
-      lastSaveTime: ''
+      lastSaveTime: '',
+      draftAge: 0,
+      historySize: 0
     };
   }
 

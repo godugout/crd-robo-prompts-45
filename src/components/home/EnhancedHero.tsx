@@ -68,7 +68,7 @@ export const EnhancedHero: React.FC = () => {
           )}
         </div>
         <div className="mt-4 text-center">
-          <Typography variant="body2" className="text-crd-lightGray">
+          <Typography variant="body" className="text-crd-lightGray">
             New Enhanced Studio features premium 3D effects and AI-powered tools
           </Typography>
         </div>

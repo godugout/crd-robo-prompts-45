@@ -1,7 +1,7 @@
 
 import React, { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, Image, Toggle, Loader2 } from 'lucide-react';
+import { Upload, Image, ToggleLeft, Loader2 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
 
@@ -65,7 +65,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
           onClick={onToggleBackgroundRemoval}
           className={`${showBackgroundRemoval ? 'bg-crd-green text-black' : ''}`}
         >
-          <Toggle className="w-4 h-4 mr-2" />
+          <ToggleLeft className="w-4 h-4 mr-2" />
           {showBackgroundRemoval ? 'Enabled' : 'Disabled'}
         </Button>
       </div>
