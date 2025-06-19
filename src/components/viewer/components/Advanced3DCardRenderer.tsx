@@ -22,6 +22,11 @@ interface Advanced3DCardRendererProps {
   frameConfig?: any;
 }
 
+interface EffectMaterialData {
+  material: THREE.Material;
+  offset: number;
+}
+
 export const Advanced3DCardRenderer: React.FC<Advanced3DCardRendererProps> = ({
   card,
   rotation,
@@ -74,9 +79,9 @@ export const Advanced3DCardRenderer: React.FC<Advanced3DCardRendererProps> = ({
   const frontTexture = useLoader(TextureLoader, frontImageUrl);
   const backTexture = useLoader(TextureLoader, backImageUrl);
 
-  // Create effect materials
+  // Create effect materials with proper typing
   const effectMaterials = useMemo(() => {
-    const materials: THREE.Material[] = [];
+    const materials: EffectMaterialData[] = [];
     let layerOffset = 0.001; // Very small offset between layers
 
     // Holographic effect
