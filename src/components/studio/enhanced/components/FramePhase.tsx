@@ -115,15 +115,15 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
       <div className="text-center">
         <h3 className="text-white font-semibold text-lg mb-2 flex items-center justify-center">
           <Frame className="w-5 h-5 mr-2 text-crd-green" />
-          Frame & Layout
+          Frame & Layout Selection
         </h3>
         <p className="text-gray-400 text-sm">
           Choose a frame style that defines your card's border and layout aesthetic
         </p>
       </div>
 
-      {/* Frame Selection Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Frame Selection Grid with Enhanced Previews */}
+      <div className="grid grid-cols-1 gap-4">
         {LAYOUT_FRAMES.map((frame) => {
           const isSelected = selectedFrame === frame.id;
           
@@ -138,8 +138,8 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
               onClick={() => handleFrameSelect(frame.id)}
             >
               <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  {/* Enhanced Frame Preview with Thumbnail */}
+                <div className="flex items-start gap-4">
+                  {/* Enhanced Frame Preview with Actual Thumbnail */}
                   <div className="flex-shrink-0">
                     <div
                       className="relative bg-gradient-to-br from-gray-700 to-gray-800 overflow-hidden shadow-lg"
@@ -153,21 +153,26 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
                       <div className="absolute inset-2 bg-gradient-to-br from-blue-900/50 to-purple-900/50 rounded-sm overflow-hidden">
                         <img 
                           src={frame.thumbnail}
-                          alt="Frame preview"
-                          className="w-full h-full object-cover opacity-60"
+                          alt={`${frame.name} preview`}
+                          className="w-full h-full object-cover opacity-70"
+                          onError={(e) => {
+                            // Fallback to gradient if image fails to load
+                            e.currentTarget.style.display = 'none';
+                          }}
                         />
                         {/* Frame overlay to show effect */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                         
                         {/* Sample card title area */}
                         <div className="absolute bottom-1 left-1 right-1">
-                          <div className="bg-black/60 rounded text-white text-xs px-1 py-0.5 text-center">
+                          <div className="bg-black/70 backdrop-blur-sm rounded text-white text-xs px-1 py-0.5 text-center">
                             <div className="font-bold text-xs truncate">SAMPLE CARD</div>
+                            <div className="text-xs opacity-75">{frame.category}</div>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Frame corners/decorations preview */}
+                      {/* Frame-specific decorative elements */}
                       {frame.id === 'championship' && (
                         <>
                           <div className="absolute top-1 left-1 w-2 h-2 bg-white rounded-full opacity-80" />
@@ -184,6 +189,10 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
                           <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-yellow-400 opacity-90" />
                           <div className="absolute bottom-1 right-1 w-1.5 h-1.5 bg-yellow-400 opacity-90" />
                         </>
+                      )}
+                      
+                      {frame.id === 'premium-elite' && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-500/10 to-transparent animate-pulse" />
                       )}
                     </div>
                   </div>
@@ -215,6 +224,12 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
                     <p className="text-gray-400 text-xs leading-relaxed">
                       {frame.description}
                     </p>
+                    
+                    {isSelected && (
+                      <div className="mt-2 text-xs text-crd-green font-medium">
+                        ✓ Currently Applied
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -223,17 +238,17 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
         })}
       </div>
 
-      {/* Selected Frame Info */}
+      {/* Selected Frame Confirmation */}
       {selectedFrame && (
         <Card className="bg-crd-green/10 border-crd-green/30">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle className="w-4 h-4 text-crd-green" />
-              <span className="text-crd-green font-medium text-sm">Frame Applied</span>
+              <span className="text-crd-green font-medium text-sm">Frame Applied Successfully</span>
             </div>
             <p className="text-gray-300 text-xs">
               {LAYOUT_FRAMES.find(f => f.id === selectedFrame)?.name} frame is now applied to your card.
-              You should see the border styling in the 3D preview on the right.
+              You can see the frame styling in the 3D preview on the right.
             </p>
           </CardContent>
         </Card>
@@ -243,7 +258,7 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
       <Card 
         className={`cursor-pointer transition-all duration-300 ${
           !selectedFrame 
-            ? 'bg-crd-green/10 border-crd-green/50' 
+            ? 'bg-crd-green/10 border-crd-green/50 ring-2 ring-crd-green/20' 
             : 'bg-black/20 border-white/10 hover:border-white/20'
         }`}
         onClick={() => handleFrameSelect('')}

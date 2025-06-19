@@ -111,7 +111,7 @@ export const OrganizedCardStudio: React.FC = () => {
         setCurrentPhase('frames');
       }
       
-      toast.success('Image processed and saved as draft!');
+      toast.success('Image processed successfully! Now select a frame.');
     } catch (error) {
       console.error('❌ Image processing failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to process image';
@@ -134,7 +134,7 @@ export const OrganizedCardStudio: React.FC = () => {
       }
     });
     
-    toast.success('Frame applied and saved!');
+    toast.success(`Frame "${frameId}" applied successfully!`);
   }, [currentDraft, triggerAutoSave]);
 
   const handleEffectChange = useCallback((effectId: string, value: any) => {
@@ -163,7 +163,7 @@ export const OrganizedCardStudio: React.FC = () => {
     }
     
     setCurrentPhase(phase);
-    triggerAutoSave('phase_change', { metadata: { ...currentDraft?.metadata } });
+    triggerAutoSave('phase_change', { metadata: { ...currentDraft?.metadata, currentPhase: phase } });
   }, [currentPhase, uploadedImage, selectedFrame, currentDraft, triggerAutoSave]);
 
   const handleUndo = useCallback(() => {
@@ -254,35 +254,37 @@ export const OrganizedCardStudio: React.FC = () => {
   // Auto-save status indicator
   const autoSaveStats = autoSaveService.getStats();
 
-  // Debug panel (development only)
-  const renderDebugPanel = () => {
-    if (process.env.NODE_ENV !== 'development') return null;
-    
-    return (
-      <Card className="bg-blue-900/20 border-blue-500/50 mb-4">
-        <CardContent className="p-3">
-          <div className="text-blue-400 text-xs space-y-1">
-            <div>🔍 Debug - Enhanced Studio:</div>
-            <div>• Image: {uploadedImage ? '✓' : '✗'} | Processed: {processedImage ? '✓' : '✗'}</div>
-            <div>• Draft: {currentDraft?.id || 'None'}</div>
-            <div>• Saves: {autoSaveStats.saveCount} | History: {autoSaveStats.historySize}</div>
-            <div>• Background Removal: {showBackgroundRemoval ? 'On' : 'Off'}</div>
-            <div>• Phase: {currentPhase}</div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-editor-dark via-black to-editor-dark">
-      <StudioHeader 
-        onUndo={handleUndo}
-        canUndo={autoSaveService.canUndo()}
-        autoSaveStats={autoSaveStats}
-      />
-      
-      {renderDebugPanel()}
+      {/* Enhanced Studio Header */}
+      <div className="border-b border-editor-border bg-editor-dark/50 backdrop-blur-sm">
+        <div className="px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-white text-xl font-bold">Enhanced Card Studio</h1>
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <span>Phase: {currentPhase}</span>
+              {autoSaveStats.saveCount > 0 && (
+                <>
+                  <span>•</span>
+                  <span>Saves: {autoSaveStats.saveCount}</span>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleUndo}
+              disabled={!autoSaveService.canUndo()}
+              className="text-white border-white/20 hover:bg-white/10"
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Undo
+            </Button>
+          </div>
+        </div>
+      </div>
 
       <div className="flex h-[calc(100vh-80px)]">
         {/* Left Sidebar - Phase Navigation */}
@@ -293,41 +295,28 @@ export const OrganizedCardStudio: React.FC = () => {
             { phase: 'effects' as StudioPhase, icon: Sparkles, label: 'Effects' },
             { phase: 'layers' as StudioPhase, icon: Layers, label: 'Layers' },
             { phase: 'export' as StudioPhase, icon: Download, label: 'Export' }
-          ].map(({ phase, icon: Icon, label }) => (
-            <Button
-              key={phase}
-              variant="ghost"
-              size="sm"
-              onClick={() => handlePhaseChange(phase)}
-              className={`w-12 h-12 p-0 rounded-lg transition-all ${
-                currentPhase === phase
-                  ? 'bg-crd-green text-black'
-                  : 'text-white hover:bg-white/10'
-              } ${
-                (phase === 'frames' && !uploadedImage) ||
-                (phase === 'effects' && (!uploadedImage || !selectedFrame))
-                  ? 'opacity-50 cursor-not-allowed'
-                  : ''
-              }`}
-              title={label}
-            >
-              <Icon className="w-5 h-5" />
-            </Button>
-          ))}
-          
-          {/* Undo button */}
-          <div className="border-t border-editor-border pt-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleUndo}
-              disabled={!autoSaveService.canUndo()}
-              className="w-12 h-12 p-0 rounded-lg text-white hover:bg-white/10 disabled:opacity-30"
-              title="Undo last action"
-            >
-              <RotateCcw className="w-5 h-5" />
-            </Button>
-          </div>
+          ].map(({ phase, icon: Icon, label }) => {
+            const isDisabled = (phase === 'frames' && !uploadedImage) ||
+                              (phase === 'effects' && (!uploadedImage || !selectedFrame));
+            
+            return (
+              <Button
+                key={phase}
+                variant="ghost"
+                size="sm"
+                onClick={() => !isDisabled && handlePhaseChange(phase)}
+                disabled={isDisabled}
+                className={`w-12 h-12 p-0 rounded-lg transition-all ${
+                  currentPhase === phase
+                    ? 'bg-crd-green text-black'
+                    : 'text-white hover:bg-white/10'
+                } ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
+                title={label}
+              >
+                <Icon className="w-5 h-5" />
+              </Button>
+            );
+          })}
         </div>
 
         {/* Main Content Area */}
