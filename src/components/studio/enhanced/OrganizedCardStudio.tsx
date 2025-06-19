@@ -43,7 +43,7 @@ export const OrganizedCardStudio: React.FC = () => {
       blobManagerExists: !!blobManager,
       blobManagerValid: blobManager?.isValid,
       currentPhase,
-      timestamp: new Date().toISOString()
+      timestamp: Date.now()
     });
   }, [blobManager, currentPhase]);
 
