@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { TextureLoader } from 'three';
@@ -10,6 +11,7 @@ import type { CardData } from '@/hooks/useCardEditor';
 interface Card3DMeshProps {
   cardData: CardData;
   imageUrl?: string;
+  selectedFrame?: string;
   effects: {
     holographic?: boolean;
     metalness?: number;
@@ -26,6 +28,7 @@ interface Card3DMeshProps {
 export const Card3DMesh: React.FC<Card3DMeshProps> = ({
   cardData,
   imageUrl,
+  selectedFrame,
   effects
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -44,10 +47,11 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
       url: url ? `${url.substring(0, 50)}...` : 'None',
       isBlobUrl: url?.startsWith('blob:'),
       cardId: cardData.id,
+      selectedFrame,
       error: error?.message,
       timestamp: new Date().toISOString()
     });
-  }, [cardData.id]);
+  }, [cardData.id, selectedFrame]);
   
   // Create fallback texture
   const fallbackTexture = useMemo(() => {
@@ -71,6 +75,67 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
     configureTextureForCard(texture);
     return texture;
   }, []);
+
+  // Create frame overlay texture
+  const frameTexture = useMemo(() => {
+    if (!selectedFrame) return null;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 716;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    // Create frame based on selectedFrame
+    ctx.clearRect(0, 0, 512, 716);
+    
+    switch (selectedFrame) {
+      case 'classic-sports':
+        // Gold border frame
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(20, 20, 472, 676);
+        ctx.strokeStyle = '#b8941f';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(24, 24, 464, 668);
+        break;
+      case 'championship':
+        // Silver championship frame
+        ctx.strokeStyle = '#c0c0c0';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(15, 15, 482, 686);
+        // Add corner decorations
+        ctx.fillStyle = '#c0c0c0';
+        ctx.fillRect(10, 10, 30, 30);
+        ctx.fillRect(472, 10, 30, 30);
+        ctx.fillRect(10, 676, 30, 30);
+        ctx.fillRect(472, 676, 30, 30);
+        break;
+      case 'vintage-ornate':
+        // Ornate brown frame
+        ctx.strokeStyle = '#8b4513';
+        ctx.lineWidth = 12;
+        ctx.strokeRect(25, 25, 462, 666);
+        // Add decorative pattern
+        ctx.strokeStyle = '#a0522d';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 8; i++) {
+          ctx.strokeRect(30 + i * 56, 30, 50, 50);
+          ctx.strokeRect(30 + i * 56, 636, 50, 50);
+        }
+        break;
+      default:
+        // Default frame
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(10, 10, 492, 696);
+        break;
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    configureTextureForCard(texture);
+    return texture;
+  }, [selectedFrame]);
   
   // Enhanced texture loading with comprehensive error handling
   const [frontTexture, setFrontTexture] = useState<THREE.Texture>(fallbackTexture);
@@ -219,12 +284,14 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
   useEffect(() => {
     console.log('🎯 Card3DMesh state update:', {
       hasImageUrl: !!imageUrl,
+      selectedFrame,
       textureLoading,
       textureError,
       isUsingFallback: frontTexture === fallbackTexture,
-      cardTitle: cardData.title
+      cardTitle: cardData.title,
+      effects
     });
-  }, [imageUrl, textureLoading, textureError, frontTexture, fallbackTexture, cardData.title]);
+  }, [imageUrl, selectedFrame, textureLoading, textureError, frontTexture, fallbackTexture, cardData.title, effects]);
   
   return (
     <group>
@@ -264,6 +331,19 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
         {/* Back face */}
         <meshStandardMaterial attach="material-5" map={cardBackTexture} />
       </mesh>
+
+      {/* Frame overlay */}
+      {frameTexture && (
+        <mesh position={[0, 0, cardThickness / 2 + 0.001]}>
+          <planeGeometry args={[cardWidth, cardHeight]} />
+          <meshStandardMaterial 
+            map={frameTexture}
+            transparent={true}
+            opacity={0.9}
+            alphaTest={0.1}
+          />
+        </mesh>
+      )}
       
       {/* Particle effects */}
       {effects.particles && (

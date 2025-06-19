@@ -89,6 +89,59 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
     renderError: !!renderError
   });
 
+  // Convert effectValues to the format expected by Card3DMesh
+  const convertEffectsForCard3D = useCallback((effects: Record<string, any>) => {
+    const converted = {
+      holographic: false,
+      metalness: 0.1,
+      roughness: 0.4,
+      particles: false,
+      glow: false,
+      glowColor: '#00ffff',
+      chrome: false,
+      crystal: false,
+      vintage: false
+    };
+
+    // Convert effect values to boolean/number format expected by 3D component
+    Object.entries(effects).forEach(([effectId, effectData]) => {
+      if (effectData && typeof effectData === 'object') {
+        const intensity = effectData.intensity || 0;
+        
+        switch (effectId) {
+          case 'holographic':
+            converted.holographic = intensity > 0;
+            break;
+          case 'chrome':
+            converted.chrome = intensity > 0;
+            converted.metalness = Math.max(converted.metalness, intensity / 100);
+            converted.roughness = Math.min(converted.roughness, 1 - (intensity / 100));
+            break;
+          case 'crystal':
+            converted.crystal = intensity > 0;
+            break;
+          case 'gold':
+            if (intensity > 0) {
+              converted.chrome = true; // Use chrome effect for gold
+              converted.metalness = Math.max(converted.metalness, 0.8);
+              converted.roughness = Math.min(converted.roughness, 0.2);
+            }
+            break;
+          case 'foilspray':
+          case 'prizm':
+            if (intensity > 0) {
+              converted.holographic = true;
+              converted.particles = intensity > 50;
+            }
+            break;
+        }
+      }
+    });
+
+    console.log('🔄 Converted effects for 3D:', { original: effects, converted });
+    return converted;
+  }, []);
+
   // Validate image before rendering
   const validateImage = useCallback(async (imageUrl: string): Promise<boolean> => {
     if (!imageUrl) return false;
@@ -237,6 +290,8 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
     );
   }
 
+  const convertedEffects = convertEffectsForCard3D(effectValues);
+
   return (
     <div className="w-full h-full bg-black relative">
       <ErrorBoundary onError={handleRenderError}>
@@ -262,17 +317,8 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
               <Card3DMesh
                 cardData={createCardData()}
                 imageUrl={uploadedImage}
-                effects={{
-                  holographic: effectValues.holographic?.intensity > 0,
-                  metalness: (effectValues.metallic?.intensity || 0) / 100,
-                  roughness: 1 - ((effectValues.glossy?.intensity || 0) / 100),
-                  particles: effectValues.particles?.intensity > 0,
-                  glow: effectValues.glow?.intensity > 0,
-                  glowColor: effectValues.glow?.color || '#00ffff',
-                  chrome: effectValues.chrome?.intensity > 0,
-                  crystal: effectValues.crystal?.intensity > 0,
-                  vintage: effectValues.vintage?.intensity > 0
-                }}
+                selectedFrame={selectedFrame}
+                effects={convertedEffects}
               />
             </Stage>
             
