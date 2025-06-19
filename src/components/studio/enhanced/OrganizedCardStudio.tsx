@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload, Image, Sparkles, Layers, Settings, Eye, Download, Wand2, History, RotateCcw } from 'lucide-react';
 import { UploadPhase } from './components/UploadPhase';
 import { FrameSelectionPhase } from './components/FrameSelectionPhase';
+import { FramePhase } from './components/FramePhase';
 import { EffectControlsPhase } from './components/EffectControlsPhase';
 import { EnhancedStudioCardPreview } from './components/EnhancedStudioCardPreview';
 import { StudioHeader } from './components/StudioHeader';
@@ -15,6 +16,7 @@ import { ExportDialog } from './components/ExportDialog';
 import { imageProcessingService, ProcessedImage } from '@/services/imageProcessing/ImageProcessingService';
 import { autoSaveService, CardDraft } from '@/services/autosave/AutoSaveService';
 import { toast } from 'sonner';
+import { calculateFlexibleCardSize, type CardOrientation } from '@/utils/cardDimensions';
 
 type StudioPhase = 'upload' | 'frames' | 'effects' | 'layers' | 'export';
 
@@ -163,8 +165,9 @@ export const OrganizedCardStudio: React.FC = () => {
     }
     
     setCurrentPhase(phase);
-    triggerAutoSave('phase_change', { metadata: { ...currentDraft?.metadata, currentPhase: phase } });
-  }, [currentPhase, uploadedImage, selectedFrame, currentDraft, triggerAutoSave]);
+    // Remove the invalid currentPhase property from metadata
+    triggerAutoSave('phase_change', {});
+  }, [currentPhase, uploadedImage, selectedFrame, triggerAutoSave]);
 
   const handleUndo = useCallback(() => {
     if (autoSaveService.canUndo()) {
@@ -205,11 +208,10 @@ export const OrganizedCardStudio: React.FC = () => {
         
       case 'frames':
         return (
-          <FrameSelectionPhase
+          <FramePhase
             selectedFrame={selectedFrame}
             onFrameSelect={handleFrameSelect}
-            uploadedImage={uploadedImage}
-            processedImage={processedImage}
+            orientation="portrait"
           />
         );
         
