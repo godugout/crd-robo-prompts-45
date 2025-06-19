@@ -27,6 +27,17 @@ export interface SavedCard {
       limited_edition: boolean;
     };
   };
+  created_at?: string;
+  updated_at?: string;
+  sync_status?: 'pending' | 'synced' | 'failed';
+}
+
+export interface LocalCard extends SavedCard {
+  is_public?: boolean;
+  description?: string;
+  thumbnail_url?: string;
+  verification_status?: string;
+  print_metadata?: any;
 }
 
 export class CardStorageAdapter {
@@ -45,7 +56,12 @@ export class CardStorageAdapter {
   public saveCard(card: SavedCard): void {
     try {
       const key = `${this.keyPrefix}${card.id}`;
-      localStorageManager.setItem(key, card, 'cards', 'high');
+      const cardWithTimestamp = {
+        ...card,
+        updated_at: new Date().toISOString(),
+        sync_status: 'pending' as const
+      };
+      localStorageManager.setItem(key, cardWithTimestamp, 'cards', 'high');
       console.log('💾 Card saved:', card.id);
     } catch (error) {
       console.error('❌ Failed to save card:', error);
@@ -72,6 +88,10 @@ export class CardStorageAdapter {
     }
   }
 
+  public deleteCard(id: string): void {
+    this.removeCard(id);
+  }
+
   public getAllCards(): SavedCard[] {
     const cards: SavedCard[] = [];
     
@@ -90,6 +110,44 @@ export class CardStorageAdapter {
     }
     
     return cards;
+  }
+
+  public getCardsNeedingSync(): SavedCard[] {
+    return this.getAllCards().filter(card => 
+      card.sync_status === 'pending' || card.sync_status === 'failed'
+    );
+  }
+
+  public markAsSynced(cardId: string): void {
+    try {
+      const card = this.getCard(cardId);
+      if (card) {
+        const updatedCard = {
+          ...card,
+          sync_status: 'synced' as const,
+          updated_at: new Date().toISOString()
+        };
+        this.saveCard(updatedCard);
+        console.log('✅ Card marked as synced:', cardId);
+      }
+    } catch (error) {
+      console.error('❌ Failed to mark card as synced:', error);
+    }
+  }
+
+  public isRecentlyModified(cardId: string, thresholdMinutes: number = 30): boolean {
+    try {
+      const card = this.getCard(cardId);
+      if (!card || !card.updated_at) return false;
+      
+      const updatedAt = new Date(card.updated_at);
+      const threshold = new Date(Date.now() - thresholdMinutes * 60 * 1000);
+      
+      return updatedAt > threshold;
+    } catch (error) {
+      console.error('❌ Failed to check if card is recently modified:', error);
+      return false;
+    }
   }
 }
 
