@@ -1,8 +1,7 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import localforage from 'localforage';
 
-export type StorageDataType = 'cards' | 'drafts' | 'uploads' | 'memories' | 'settings' | 'sessions' | 'cache';
+export type StorageDataType = 'cards' | 'drafts' | 'uploads' | 'memories' | 'settings' | 'sessions' | 'cache' | 'studio-state' | 'recovery-data';
 export type SyncPriority = 'critical' | 'high' | 'medium' | 'low';
 export type SyncStatus = 'pending' | 'syncing' | 'synced' | 'failed' | 'local-only';
 

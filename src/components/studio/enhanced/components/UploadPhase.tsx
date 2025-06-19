@@ -162,7 +162,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
 
         // Save session and add to recent
         saveSession(session);
-        addToRecent('uploads', { url: imageUrl, name: file.name });
+        addToRecent('uploads', { url: imageUrl, name: file.name, timestamp: Date.now() });
         
         // Call the parent handler
         console.log('UploadPhase - Calling onImageUpload with:', imageUrl);

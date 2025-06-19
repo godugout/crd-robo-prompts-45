@@ -21,11 +21,17 @@ export interface UIState {
   zoomLevel: number;
 }
 
+export interface UploadItem {
+  url: string;
+  timestamp: number;
+  name: string;
+}
+
 export interface RecentItems {
   frames: string[];
   effects: string[];
   templates: string[];
-  uploads: Array<{ url: string; timestamp: number; name: string }>;
+  uploads: UploadItem[];
 }
 
 export interface CreatorSettings {
@@ -123,7 +129,7 @@ export const useCreatorSettings = () => {
   }, [settings, saveSettings]);
 
   // Add to recent items
-  const addToRecent = useCallback((type: keyof RecentItems, item: string | { url: string; name: string }) => {
+  const addToRecent = useCallback((type: keyof RecentItems, item: string | UploadItem) => {
     const newRecent = { ...settings.recentItems };
     
     if (type === 'uploads' && typeof item === 'object') {
@@ -131,11 +137,12 @@ export const useCreatorSettings = () => {
         { ...item, timestamp: Date.now() },
         ...newRecent.uploads.filter(u => u.url !== item.url)
       ].slice(0, 10);
-    } else if (typeof item === 'string') {
+    } else if (type !== 'uploads' && typeof item === 'string') {
+      const targetArray = newRecent[type] as string[];
       newRecent[type] = [
         item,
-        ...newRecent[type].filter(i => i !== item)
-      ].slice(0, 10);
+        ...targetArray.filter(i => i !== item)
+      ].slice(0, 10) as any;
     }
 
     const newSettings = {
