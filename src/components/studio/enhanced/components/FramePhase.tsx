@@ -15,26 +15,30 @@ const LAYOUT_FRAMES = [
   {
     id: 'classic-sports',
     name: 'Classic Sports',
-    description: 'Traditional trading card layout with balanced proportions',
+    description: 'Traditional gold border with championship styling',
     category: 'Sports',
     layoutType: 'Standard',
     preview: {
       border: '4px solid #d4af37',
       borderRadius: '8px',
-      background: 'linear-gradient(45deg, rgba(212, 175, 55, 0.1) 0%, transparent 50%, rgba(212, 175, 55, 0.1) 100%)'
-    }
+      background: 'linear-gradient(45deg, rgba(212, 175, 55, 0.1) 0%, transparent 50%, rgba(212, 175, 55, 0.1) 100%)',
+      boxShadow: 'inset 0 0 20px rgba(212, 175, 55, 0.3)'
+    },
+    thumbnail: '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png'
   },
   {
     id: 'vintage-ornate',
     name: 'Vintage Ornate',
-    description: 'Decorative frame with ornamental corner details',
+    description: 'Decorative brown frame with ornamental corner details',
     category: 'Vintage',
     layoutType: 'Decorative',
     preview: {
       border: '6px solid #8b4513',
       borderRadius: '12px',
-      background: 'repeating-linear-gradient(45deg, rgba(139, 69, 19, 0.1) 0px, transparent 2px, transparent 8px, rgba(139, 69, 19, 0.1) 10px)'
-    }
+      background: 'repeating-linear-gradient(45deg, rgba(139, 69, 19, 0.1) 0px, transparent 2px, transparent 8px, rgba(139, 69, 19, 0.1) 10px)',
+      boxShadow: 'inset 0 0 15px rgba(139, 69, 19, 0.4)'
+    },
+    thumbnail: '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png'
   },
   {
     id: 'modern-clean',
@@ -45,44 +49,52 @@ const LAYOUT_FRAMES = [
     preview: {
       border: '2px solid rgba(255, 255, 255, 0.3)',
       borderRadius: '6px',
-      background: 'rgba(255, 255, 255, 0.02)'
-    }
+      background: 'rgba(255, 255, 255, 0.02)',
+      boxShadow: 'inset 0 0 10px rgba(255, 255, 255, 0.1)'
+    },
+    thumbnail: '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png'
   },
   {
     id: 'premium-elite',
     name: 'Premium Elite',
-    description: 'Luxury frame design with enhanced border styling',
+    description: 'Luxury orange frame with enhanced border styling',
     category: 'Premium',
     layoutType: 'Luxury',
     preview: {
       border: '5px solid #ff4500',
       borderRadius: '8px',
-      background: 'linear-gradient(135deg, rgba(255, 69, 0, 0.1) 0%, transparent 25%, rgba(255, 69, 0, 0.1) 50%, transparent 75%, rgba(255, 69, 0, 0.1) 100%)'
-    }
+      background: 'linear-gradient(135deg, rgba(255, 69, 0, 0.1) 0%, transparent 25%, rgba(255, 69, 0, 0.1) 50%, transparent 75%, rgba(255, 69, 0, 0.1) 100%)',
+      boxShadow: 'inset 0 0 20px rgba(255, 69, 0, 0.3), 0 0 15px rgba(255, 69, 0, 0.2)'
+    },
+    thumbnail: '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png'
   },
   {
     id: 'collector-edition',
     name: 'Collector Edition',
-    description: 'Special edition frame for premium card collections',
+    description: 'Special edition green frame for premium collections',
     category: 'Collector',
     layoutType: 'Special',
     preview: {
       border: '4px solid #32cd32',
       borderRadius: '10px',
-      background: 'linear-gradient(45deg, rgba(50, 205, 50, 0.1) 0%, transparent 50%, rgba(50, 205, 50, 0.1) 100%)'
-    }
+      background: 'linear-gradient(45deg, rgba(50, 205, 50, 0.1) 0%, transparent 50%, rgba(50, 205, 50, 0.1) 100%)',
+      boxShadow: 'inset 0 0 18px rgba(50, 205, 50, 0.3)'
+    },
+    thumbnail: '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png'
   },
   {
     id: 'championship',
     name: 'Championship',
-    description: 'Tournament-style frame with competitive aesthetics',
+    description: 'Tournament-style silver frame with star emblems',
     category: 'Tournament',
     layoutType: 'Competitive',
     preview: {
-      border: '3px solid #c0c0c0',
+      border: '4px solid #c0c0c0',
       borderRadius: '8px',
-      background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(192, 192, 192, 0.2) 50%, rgba(255, 255, 255, 0.1) 100%)'
-    }
+      background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(192, 192, 192, 0.2) 50%, rgba(255, 255, 255, 0.1) 100%)',
+      boxShadow: 'inset 0 0 15px rgba(192, 192, 192, 0.4)'
+    },
+    thumbnail: '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png'
   }
 ];
 
@@ -127,7 +139,7 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
             >
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  {/* Frame Preview */}
+                  {/* Enhanced Frame Preview with Thumbnail */}
                   <div className="flex-shrink-0">
                     <div
                       className="relative bg-gradient-to-br from-gray-700 to-gray-800 overflow-hidden shadow-lg"
@@ -137,11 +149,42 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
                         ...frame.preview
                       }}
                     >
-                      <div className="absolute inset-2 bg-gradient-to-br from-blue-900/50 to-purple-900/50 rounded-sm flex items-center justify-center">
-                        <div className="text-white text-xs font-bold text-center">
-                          LAYOUT<br/>PREVIEW
+                      {/* Sample thumbnail image */}
+                      <div className="absolute inset-2 bg-gradient-to-br from-blue-900/50 to-purple-900/50 rounded-sm overflow-hidden">
+                        <img 
+                          src={frame.thumbnail}
+                          alt="Frame preview"
+                          className="w-full h-full object-cover opacity-60"
+                        />
+                        {/* Frame overlay to show effect */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                        
+                        {/* Sample card title area */}
+                        <div className="absolute bottom-1 left-1 right-1">
+                          <div className="bg-black/60 rounded text-white text-xs px-1 py-0.5 text-center">
+                            <div className="font-bold text-xs truncate">SAMPLE CARD</div>
+                          </div>
                         </div>
                       </div>
+                      
+                      {/* Frame corners/decorations preview */}
+                      {frame.id === 'championship' && (
+                        <>
+                          <div className="absolute top-1 left-1 w-2 h-2 bg-white rounded-full opacity-80" />
+                          <div className="absolute top-1 right-1 w-2 h-2 bg-white rounded-full opacity-80" />
+                          <div className="absolute bottom-1 left-1 w-2 h-2 bg-white rounded-full opacity-80" />
+                          <div className="absolute bottom-1 right-1 w-2 h-2 bg-white rounded-full opacity-80" />
+                        </>
+                      )}
+                      
+                      {frame.id === 'classic-sports' && (
+                        <>
+                          <div className="absolute top-1 left-1 w-1.5 h-1.5 bg-yellow-400 opacity-90" />
+                          <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-yellow-400 opacity-90" />
+                          <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-yellow-400 opacity-90" />
+                          <div className="absolute bottom-1 right-1 w-1.5 h-1.5 bg-yellow-400 opacity-90" />
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -190,7 +233,7 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
             </div>
             <p className="text-gray-300 text-xs">
               {LAYOUT_FRAMES.find(f => f.id === selectedFrame)?.name} frame is now applied to your card.
-              This affects the border style and layout structure, while effects control the surface materials and lighting.
+              You should see the border styling in the 3D preview on the right.
             </p>
           </CardContent>
         </Card>

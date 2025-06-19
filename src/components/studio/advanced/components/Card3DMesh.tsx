@@ -23,13 +23,150 @@ interface Card3DMeshProps {
     crystal?: boolean;
     vintage?: boolean;
   };
+  rotationEnabled?: boolean;
 }
+
+// Enhanced frame texture generator
+const createFrameTexture = (frameId: string): THREE.Texture => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 716;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  // Clear canvas
+  ctx.clearRect(0, 0, 512, 716);
+
+  switch (frameId) {
+    case 'classic-sports':
+      // Gold metallic border with inner shadow
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 12;
+      ctx.strokeRect(8, 8, 496, 700);
+      
+      // Inner gold detail
+      ctx.strokeStyle = '#b8941f';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(16, 16, 480, 684);
+      
+      // Corner decorations
+      ctx.fillStyle = '#d4af37';
+      [
+        [20, 20], [472, 20], [20, 676], [472, 676]
+      ].forEach(([x, y]) => {
+        ctx.fillRect(x, y, 20, 20);
+      });
+      break;
+
+    case 'vintage-ornate':
+      // Brown ornate frame with decorative pattern
+      ctx.strokeStyle = '#8b4513';
+      ctx.lineWidth = 16;
+      ctx.strokeRect(12, 12, 488, 692);
+      
+      // Ornate inner border
+      ctx.strokeStyle = '#a0522d';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(20, 20, 472, 676);
+      
+      // Decorative corners
+      ctx.fillStyle = '#8b4513';
+      for (let i = 0; i < 4; i++) {
+        const x = i % 2 === 0 ? 25 : 462;
+        const y = i < 2 ? 25 : 666;
+        ctx.fillRect(x, y, 25, 25);
+        // Add corner detail
+        ctx.strokeStyle = '#654321';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x + 5, y + 5, 15, 15);
+      }
+      break;
+
+    case 'modern-clean':
+      // Minimalist white border
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(10, 10, 492, 696);
+      
+      // Subtle inner glow
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(14, 14, 484, 688);
+      break;
+
+    case 'premium-elite':
+      // Orange gradient border with glow effect
+      const gradient = ctx.createLinearGradient(0, 0, 512, 716);
+      gradient.addColorStop(0, '#ff4500');
+      gradient.addColorStop(0.5, '#ff6347');
+      gradient.addColorStop(1, '#ff4500');
+      
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 10;
+      ctx.strokeRect(8, 8, 496, 700);
+      
+      // Inner shadow effect
+      ctx.strokeStyle = 'rgba(255, 69, 0, 0.5)';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(16, 16, 480, 684);
+      break;
+
+    case 'collector-edition':
+      // Green collector frame with premium styling
+      ctx.strokeStyle = '#32cd32';
+      ctx.lineWidth = 8;
+      ctx.strokeRect(10, 10, 492, 696);
+      
+      // Premium accents
+      ctx.strokeStyle = '#228b22';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(6, 6, 500, 704);
+      ctx.strokeRect(18, 18, 476, 680);
+      break;
+
+    case 'championship':
+      // Silver championship frame
+      ctx.strokeStyle = '#c0c0c0';
+      ctx.lineWidth = 12;
+      ctx.strokeRect(8, 8, 496, 700);
+      
+      // Championship emblems in corners
+      ctx.fillStyle = '#c0c0c0';
+      [
+        [15, 15], [467, 15], [15, 671], [467, 671]
+      ].forEach(([x, y]) => {
+        ctx.beginPath();
+        ctx.arc(x + 15, y + 15, 15, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Star in center
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('★', x + 15, y + 20);
+        ctx.fillStyle = '#c0c0c0';
+      });
+      break;
+
+    default:
+      // Default minimal frame
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(8, 8, 496, 700);
+      break;
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  configureTextureForCard(texture);
+  return texture;
+};
 
 export const Card3DMesh: React.FC<Card3DMeshProps> = ({
   cardData,
   imageUrl,
   selectedFrame,
-  effects
+  effects,
+  rotationEnabled = true
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
@@ -79,62 +216,7 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
   // Create frame overlay texture
   const frameTexture = useMemo(() => {
     if (!selectedFrame) return null;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 716;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-
-    // Create frame based on selectedFrame
-    ctx.clearRect(0, 0, 512, 716);
-    
-    switch (selectedFrame) {
-      case 'classic-sports':
-        // Gold border frame
-        ctx.strokeStyle = '#d4af37';
-        ctx.lineWidth = 8;
-        ctx.strokeRect(20, 20, 472, 676);
-        ctx.strokeStyle = '#b8941f';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(24, 24, 464, 668);
-        break;
-      case 'championship':
-        // Silver championship frame
-        ctx.strokeStyle = '#c0c0c0';
-        ctx.lineWidth = 10;
-        ctx.strokeRect(15, 15, 482, 686);
-        // Add corner decorations
-        ctx.fillStyle = '#c0c0c0';
-        ctx.fillRect(10, 10, 30, 30);
-        ctx.fillRect(472, 10, 30, 30);
-        ctx.fillRect(10, 676, 30, 30);
-        ctx.fillRect(472, 676, 30, 30);
-        break;
-      case 'vintage-ornate':
-        // Ornate brown frame
-        ctx.strokeStyle = '#8b4513';
-        ctx.lineWidth = 12;
-        ctx.strokeRect(25, 25, 462, 666);
-        // Add decorative pattern
-        ctx.strokeStyle = '#a0522d';
-        ctx.lineWidth = 2;
-        for (let i = 0; i < 8; i++) {
-          ctx.strokeRect(30 + i * 56, 30, 50, 50);
-          ctx.strokeRect(30 + i * 56, 636, 50, 50);
-        }
-        break;
-      default:
-        // Default frame
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(10, 10, 492, 696);
-        break;
-    }
-
-    const texture = new THREE.CanvasTexture(canvas);
-    configureTextureForCard(texture);
-    return texture;
+    return createFrameTexture(selectedFrame);
   }, [selectedFrame]);
   
   // Enhanced texture loading with comprehensive error handling
@@ -263,15 +345,15 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
     return backTexture;
   }, []);
   
-  // Animation with error resilience
+  // Animation with rotation control
   useFrame((state) => {
     try {
       if (meshRef.current) {
         // Gentle floating animation
         meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.03;
         
-        // Auto-rotate when not hovered
-        if (!hovered) {
+        // Auto-rotate only when enabled and not hovered
+        if (rotationEnabled && !hovered) {
           meshRef.current.rotation.y += 0.002;
         }
       }
@@ -289,9 +371,10 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
       textureError,
       isUsingFallback: frontTexture === fallbackTexture,
       cardTitle: cardData.title,
-      effects
+      effects,
+      rotationEnabled
     });
-  }, [imageUrl, selectedFrame, textureLoading, textureError, frontTexture, fallbackTexture, cardData.title, effects]);
+  }, [imageUrl, selectedFrame, textureLoading, textureError, frontTexture, fallbackTexture, cardData.title, effects, rotationEnabled]);
   
   return (
     <group>
@@ -332,15 +415,16 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
         <meshStandardMaterial attach="material-5" map={cardBackTexture} />
       </mesh>
 
-      {/* Frame overlay */}
+      {/* Frame overlay - positioned slightly in front */}
       {frameTexture && (
-        <mesh position={[0, 0, cardThickness / 2 + 0.001]}>
+        <mesh position={[0, 0, cardThickness / 2 + 0.002]}>
           <planeGeometry args={[cardWidth, cardHeight]} />
           <meshStandardMaterial 
             map={frameTexture}
             transparent={true}
-            opacity={0.9}
+            opacity={0.95}
             alphaTest={0.1}
+            side={THREE.FrontSide}
           />
         </mesh>
       )}

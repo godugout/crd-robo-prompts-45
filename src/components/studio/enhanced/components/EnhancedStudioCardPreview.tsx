@@ -3,7 +3,7 @@ import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, Stage } from '@react-three/drei';
 import { Card3DMesh } from '../../advanced/components/Card3DMesh';
-import { Loader2, AlertTriangle, Image as ImageIcon, Wand2 } from 'lucide-react';
+import { Loader2, AlertTriangle, Image as ImageIcon, Wand2, RotateCcw, Pause, Play } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -78,6 +78,8 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
   const [renderError, setRenderError] = useState<string>('');
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [imageLoadError, setImageLoadError] = useState(false);
+  const [rotationEnabled, setRotationEnabled] = useState(true);
+  const [orbitControlsRef, setOrbitControlsRef] = useState<any>(null);
 
   console.log('🎨 EnhancedStudioCardPreview - Rendering with:', {
     uploadedImage: uploadedImage ? 'Present' : 'None',
@@ -86,7 +88,8 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
     activeEffectsCount: Object.keys(effectValues).length,
     processedImageValid: processedImage ? 'Present' : 'None',
     imageLoadError,
-    renderError: !!renderError
+    renderError: !!renderError,
+    rotationEnabled
   });
 
   // Convert effectValues to the format expected by Card3DMesh
@@ -191,6 +194,18 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
     toast.error('3D preview error occurred');
   }, []);
 
+  const handleToggleRotation = () => {
+    setRotationEnabled(!rotationEnabled);
+    toast.info(`Auto-rotation ${!rotationEnabled ? 'enabled' : 'disabled'}`);
+  };
+
+  const handleResetView = () => {
+    if (orbitControlsRef) {
+      orbitControlsRef.reset();
+      toast.success('View reset to front');
+    }
+  };
+
   const createCardData = () => ({
     id: 'preview-card',
     title: 'Preview Card',
@@ -294,6 +309,33 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
 
   return (
     <div className="w-full h-full bg-black relative">
+      {/* 3D Controls Overlay */}
+      <div className="absolute top-4 left-4 z-10 flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleToggleRotation}
+          className="bg-black/80 border-white/20 text-white hover:bg-white/10"
+        >
+          {rotationEnabled ? (
+            <Pause className="w-4 h-4 mr-2" />
+          ) : (
+            <Play className="w-4 h-4 mr-2" />
+          )}
+          {rotationEnabled ? 'Pause' : 'Rotate'}
+        </Button>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleResetView}
+          className="bg-black/80 border-white/20 text-white hover:bg-white/10"
+        >
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Reset
+        </Button>
+      </div>
+
       <ErrorBoundary onError={handleRenderError}>
         <Suspense fallback={
           <div className="flex items-center justify-center h-full">
@@ -319,10 +361,12 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
                 imageUrl={uploadedImage}
                 selectedFrame={selectedFrame}
                 effects={convertedEffects}
+                rotationEnabled={rotationEnabled}
               />
             </Stage>
             
             <OrbitControls
+              ref={setOrbitControlsRef}
               enablePan={false}
               enableZoom={true}
               enableRotate={true}
@@ -341,6 +385,7 @@ export const EnhancedStudioCardPreview: React.FC<EnhancedStudioCardPreviewProps>
           <div>Frame: {selectedFrame ? '✓' : '✗'}</div>
           <div>Effects: {Object.keys(effectValues).length}</div>
           <div>Processed: {processedImage ? '✓' : '✗'}</div>
+          <div>Rotation: {rotationEnabled ? 'On' : 'Off'}</div>
         </div>
       )}
     </div>
