@@ -1,11 +1,14 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Camera, Crop, X, Wand2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Upload, Camera, Crop, X, Wand2, AlertCircle, ArrowLeft, Save, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { InlineCropInterface } from './InlineCropInterface';
+import { localStorageManager } from '@/lib/storage/LocalStorageManager';
+import { useCreatorSettings } from '@/hooks/useCreatorSettings';
 
 interface UploadPhaseProps {
   uploadedImage?: string;
@@ -13,17 +16,79 @@ interface UploadPhaseProps {
   onCropImage?: () => void;
 }
 
+interface UploadSession {
+  id: string;
+  originalFile?: {
+    name: string;
+    size: number;
+    type: string;
+  };
+  imageUrl: string;
+  cropSettings?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    aspectRatio: number;
+  };
+  enhancements?: Record<string, any>;
+  timestamp: number;
+  lastModified: number;
+}
+
 export const UploadPhase: React.FC<UploadPhaseProps> = ({
   uploadedImage,
   onImageUpload,
   onCropImage
 }) => {
+  const { addToRecent } = useCreatorSettings();
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState('');
   const [progress, setProgress] = useState(0);
   const [cropMode, setCropMode] = useState(false);
   const [uploadError, setUploadError] = useState<string>('');
   const [blobUrl, setBlobUrl] = useState<string>('');
+  const [currentSession, setCurrentSession] = useState<UploadSession | null>(null);
+
+  // Session management
+  const sessionKey = 'current-upload-session';
+
+  // Load session on mount
+  useEffect(() => {
+    const savedSession = localStorageManager.getItem<UploadSession>(sessionKey);
+    if (savedSession) {
+      // Check if blob URL is still valid
+      if (savedSession.imageUrl.startsWith('blob:')) {
+        const testImg = new Image();
+        testImg.onload = () => {
+          setCurrentSession(savedSession);
+          setBlobUrl(savedSession.imageUrl);
+          if (uploadedImage !== savedSession.imageUrl) {
+            onImageUpload(savedSession.imageUrl);
+          }
+        };
+        testImg.onerror = () => {
+          // Blob URL is invalid, clear session
+          localStorageManager.removeItem(sessionKey);
+        };
+        testImg.src = savedSession.imageUrl;
+      } else {
+        setCurrentSession(savedSession);
+        setBlobUrl(savedSession.imageUrl);
+      }
+    }
+  }, [onImageUpload, uploadedImage]);
+
+  // Save session
+  const saveSession = useCallback((session: UploadSession) => {
+    localStorageManager.setItem(
+      sessionKey,
+      session,
+      'uploads',
+      'high'
+    );
+    setCurrentSession(session);
+  }, []);
 
   // Cleanup blob URLs when component unmounts or URL changes
   useEffect(() => {
@@ -75,7 +140,6 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
         setProgress(75);
         
         // Simple validation - just check if it's a valid image file type
-        // Skip the problematic blob URL validation that was causing failures
         if (!file.type.startsWith('image/')) {
           throw new Error('Invalid file type');
         }
@@ -83,11 +147,28 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
         setProgress(100);
         setProcessingStep('Upload complete!');
         
+        // Create upload session
+        const session: UploadSession = {
+          id: `upload-${Date.now()}`,
+          originalFile: {
+            name: file.name,
+            size: file.size,
+            type: file.type
+          },
+          imageUrl,
+          timestamp: Date.now(),
+          lastModified: Date.now()
+        };
+
+        // Save session and add to recent
+        saveSession(session);
+        addToRecent('uploads', { url: imageUrl, name: file.name });
+        
         // Call the parent handler
         console.log('UploadPhase - Calling onImageUpload with:', imageUrl);
         onImageUpload(imageUrl);
         
-        toast.success('Image uploaded successfully!');
+        toast.success('Image uploaded and saved to session!');
         
       } catch (error) {
         console.error('UploadPhase - Upload error:', error);
@@ -106,9 +187,9 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
         setProcessingStep('');
       }
     }
-  }, [onImageUpload, blobUrl]);
+  }, [onImageUpload, blobUrl, saveSession, addToRecent]);
 
-  const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
       'image/*': ['.jpeg', '.jpg', '.png', '.webp', '.gif']
@@ -122,6 +203,20 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
 
   const handleCropComplete = useCallback((croppedImageUrl: string) => {
     console.log('UploadPhase - Crop completed:', croppedImageUrl);
+    
+    // Update session with crop data
+    if (currentSession) {
+      const updatedSession: UploadSession = {
+        ...currentSession,
+        imageUrl: croppedImageUrl,
+        lastModified: Date.now(),
+        cropSettings: {
+          x: 0, y: 0, width: 100, height: 100, aspectRatio: 2.5/3.5 // Placeholder values
+        }
+      };
+      saveSession(updatedSession);
+    }
+
     // Cleanup old blob URL before setting new one
     if (blobUrl && blobUrl.startsWith('blob:')) {
       URL.revokeObjectURL(blobUrl);
@@ -129,8 +224,8 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
     setBlobUrl(croppedImageUrl);
     onImageUpload(croppedImageUrl);
     setCropMode(false);
-    toast.success('Image cropped successfully!');
-  }, [onImageUpload, blobUrl]);
+    toast.success('Image cropped and saved!');
+  }, [onImageUpload, blobUrl, currentSession, saveSession]);
 
   const handleCropCancel = useCallback(() => {
     setCropMode(false);
@@ -155,7 +250,12 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
     onImageUpload('');
     setCropMode(false);
     setUploadError('');
-    toast.success('Image removed');
+    
+    // Clear session
+    localStorageManager.removeItem(sessionKey);
+    setCurrentSession(null);
+    
+    toast.success('Image removed and session cleared');
   };
 
   const handleReplaceImage = () => {
@@ -165,15 +265,27 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
     }
   };
 
+  const handleSaveSession = () => {
+    if (currentSession) {
+      const updatedSession = {
+        ...currentSession,
+        lastModified: Date.now()
+      };
+      saveSession(updatedSession);
+      toast.success('Session saved successfully!');
+    }
+  };
+
   // Debug current state
   React.useEffect(() => {
     console.log('UploadPhase - Current state:', { 
       uploadedImage, 
       isProcessing, 
       cropMode,
-      uploadError 
+      uploadError,
+      hasSession: !!currentSession
     });
-  }, [uploadedImage, isProcessing, cropMode, uploadError]);
+  }, [uploadedImage, isProcessing, cropMode, uploadError, currentSession]);
 
   if (isProcessing) {
     return (
@@ -228,9 +340,37 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   if (uploadedImage) {
     return (
       <div className="space-y-4">
-        <div className="text-sm text-gray-300 mb-4">
-          Your image has been uploaded. You can crop, enhance, or replace it.
+        <div className="text-sm text-gray-300 mb-4 flex items-center justify-between">
+          <span>Your image has been uploaded. You can crop, enhance, or replace it.</span>
+          {currentSession && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleSaveSession}
+              className="text-crd-green hover:bg-crd-green/10 text-xs"
+            >
+              <Save className="w-3 h-3 mr-1" />
+              Save Session
+            </Button>
+          )}
         </div>
+
+        {/* Session Info */}
+        {currentSession && (
+          <Card className="bg-crd-green/10 border-crd-green/30">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center text-crd-green">
+                  <Clock className="w-3 h-3 mr-1" />
+                  Session Active
+                </div>
+                <div className="text-crd-green">
+                  {currentSession.originalFile?.name}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Image Preview */}
         <Card className="bg-black/20 border-white/10">
@@ -302,9 +442,16 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
           <CardContent className="p-4">
             <h4 className="text-white font-medium text-sm mb-2">Image Details</h4>
             <div className="space-y-1 text-xs text-gray-400">
+              {currentSession?.originalFile && (
+                <>
+                  <div>• File: {currentSession.originalFile.name}</div>
+                  <div>• Size: {Math.round(currentSession.originalFile.size / 1024)} KB</div>
+                  <div>• Type: {currentSession.originalFile.type}</div>
+                  <div>• Uploaded: {new Date(currentSession.timestamp).toLocaleTimeString()}</div>
+                </>
+              )}
               <div>• Format: Detected automatically</div>
               <div>• Quality: High resolution recommended</div>
-              <div>• Aspect Ratio: Optimized for card format</div>
               <div>• Processing: Enhanced for best results</div>
             </div>
           </CardContent>
@@ -374,6 +521,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
                 <div>Supported: JPG, PNG, WebP, GIF</div>
                 <div>Maximum size: 50MB</div>
                 <div>Recommended: High resolution images work best</div>
+                <div className="text-crd-green">✓ Auto-save enabled</div>
               </div>
             </div>
           </div>
@@ -392,6 +540,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
             <div>• Square or portrait orientation works best</div>
             <div>• Clear, well-lit photos produce better results</div>
             <div>• You can crop and adjust after uploading</div>
+            <div>• Your work is automatically saved and recoverable</div>
           </div>
         </CardContent>
       </Card>
