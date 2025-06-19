@@ -31,7 +31,8 @@ export const OrganizedCardStudio: React.FC = () => {
     handleEffectChange,
     handlePhaseChange,
     handleUndo,
-    handleToggleBackgroundRemoval
+    handleToggleBackgroundRemoval,
+    handleReset
   } = useStudioActions();
 
   const autoSaveStats = autoSaveService.getStats();
@@ -51,6 +52,7 @@ export const OrganizedCardStudio: React.FC = () => {
           uploadedImage={uploadedImage}
           selectedFrame={selectedFrame}
           onPhaseChange={handlePhaseChange}
+          onReset={handleReset}
         />
 
         {/* Main Content Area */}

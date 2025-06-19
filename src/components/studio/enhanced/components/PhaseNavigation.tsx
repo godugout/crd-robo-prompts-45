@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, Image, Sparkles, Layers, Download } from 'lucide-react';
+import { Upload, Image, Sparkles, Layers, Download, RotateCcw } from 'lucide-react';
 
 type StudioPhase = 'upload' | 'frames' | 'effects' | 'layers' | 'export';
 
@@ -10,13 +10,15 @@ interface PhaseNavigationProps {
   uploadedImage: string;
   selectedFrame: string;
   onPhaseChange: (phase: StudioPhase) => void;
+  onReset?: () => void;
 }
 
 export const PhaseNavigation: React.FC<PhaseNavigationProps> = ({
   currentPhase,
   uploadedImage,
   selectedFrame,
-  onPhaseChange
+  onPhaseChange,
+  onReset
 }) => {
   const phases = [
     { phase: 'upload' as StudioPhase, icon: Upload, label: 'Upload' },
@@ -28,16 +30,30 @@ export const PhaseNavigation: React.FC<PhaseNavigationProps> = ({
 
   return (
     <div className="w-16 bg-editor-dark border-r border-editor-border flex flex-col items-center py-4 space-y-4">
+      {/* Emergency Reset Button */}
+      {onReset && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onReset}
+          className="w-12 h-12 p-0 rounded-lg transition-all text-red-400 hover:bg-red-500/10 hover:text-red-300"
+          title="Start Over"
+        >
+          <RotateCcw className="w-5 h-5" />
+        </Button>
+      )}
+
+      {/* Phase Navigation */}
       {phases.map(({ phase, icon: Icon, label }) => {
-        const isDisabled = (phase === 'frames' && !uploadedImage) ||
-                          (phase === 'effects' && (!uploadedImage || !selectedFrame));
+        // Make navigation more flexible - only disable if we're clearly missing critical data
+        const isDisabled = false; // Remove restrictive validation for now
         
         return (
           <Button
             key={phase}
             variant="ghost"
             size="sm"
-            onClick={() => !isDisabled && onPhaseChange(phase)}
+            onClick={() => onPhaseChange(phase)}
             disabled={isDisabled}
             className={`w-12 h-12 p-0 rounded-lg transition-all ${
               currentPhase === phase

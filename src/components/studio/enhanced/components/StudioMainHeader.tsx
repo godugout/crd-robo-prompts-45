@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, AlertCircle, CheckCircle } from 'lucide-react';
 import { autoSaveService } from '@/services/autosave/AutoSaveService';
 
 interface StudioMainHeaderProps {
@@ -14,6 +14,7 @@ export const StudioMainHeader: React.FC<StudioMainHeaderProps> = ({
   onUndo
 }) => {
   const autoSaveStats = autoSaveService.getStats();
+  const canUndo = autoSaveService.canUndo();
 
   return (
     <div className="border-b border-editor-border bg-editor-dark/50 backdrop-blur-sm">
@@ -21,11 +22,18 @@ export const StudioMainHeader: React.FC<StudioMainHeaderProps> = ({
         <div className="flex items-center gap-4">
           <h1 className="text-white text-xl font-bold">Enhanced Card Studio</h1>
           <div className="flex items-center gap-2 text-sm text-gray-400">
-            <span>Phase: {currentPhase}</span>
+            <span>Phase: <span className="text-crd-green capitalize">{currentPhase}</span></span>
             {autoSaveStats.saveCount > 0 && (
               <>
                 <span>•</span>
-                <span>Saves: {autoSaveStats.saveCount}</span>
+                <CheckCircle className="w-3 h-3 text-green-500" />
+                <span>Auto-saved: {autoSaveStats.saveCount} times</span>
+              </>
+            )}
+            {autoSaveStats.lastAction && (
+              <>
+                <span>•</span>
+                <span>Last: {autoSaveStats.lastAction}</span>
               </>
             )}
           </div>
@@ -35,8 +43,8 @@ export const StudioMainHeader: React.FC<StudioMainHeaderProps> = ({
             variant="outline"
             size="sm"
             onClick={onUndo}
-            disabled={!autoSaveService.canUndo()}
-            className="text-white border-white/20 hover:bg-white/10"
+            disabled={!canUndo}
+            className="text-white border-white/20 hover:bg-white/10 disabled:opacity-50"
           >
             <RotateCcw className="w-4 h-4 mr-2" />
             Undo

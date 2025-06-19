@@ -48,19 +48,23 @@ export const useStudioActions = () => {
       setProcessedImage(processed);
       setUploadedImage(processed.processedUrl);
 
-      // Create or update draft
-      if (!currentDraft) {
-        const newDraft = autoSaveService.createDraft(processed.processedUrl);
-        setCurrentDraft(newDraft);
-      } else {
-        autoSaveService.updateDraft({
-          uploadedImage: processed.processedUrl,
-          processing: {
-            ...currentDraft.processing,
-            imageValidated: true,
-            backgroundRemoved: !processed.hasBackground
-          }
-        }, 'image_upload');
+      // Create or update draft with error handling
+      try {
+        if (!currentDraft) {
+          const newDraft = autoSaveService.createDraft(processed.processedUrl);
+          setCurrentDraft(newDraft);
+        } else {
+          autoSaveService.updateDraft({
+            uploadedImage: processed.processedUrl,
+            processing: {
+              ...currentDraft.processing,
+              imageValidated: true,
+              backgroundRemoved: !processed.hasBackground
+            }
+          }, 'image_upload');
+        }
+      } catch (autoSaveError) {
+        console.warn('⚠️ Auto-save failed, continuing anyway:', autoSaveError);
       }
 
       // Auto-advance to frames phase
@@ -83,13 +87,17 @@ export const useStudioActions = () => {
     console.log('🖼️ Frame selected:', frameId);
     setSelectedFrame(frameId);
     
-    triggerAutoSave('frame_select', {
-      selectedFrame: frameId,
-      processing: {
-        ...currentDraft?.processing,
-        frameApplied: true
-      }
-    });
+    try {
+      triggerAutoSave('frame_select', {
+        selectedFrame: frameId,
+        processing: {
+          ...currentDraft?.processing,
+          frameApplied: true
+        }
+      });
+    } catch (error) {
+      console.warn('⚠️ Auto-save failed for frame selection:', error);
+    }
     
     toast.success(`Frame "${frameId}" applied successfully!`);
   }, [currentDraft, triggerAutoSave, setSelectedFrame]);
@@ -102,42 +110,55 @@ export const useStudioActions = () => {
     };
     
     setEffectValues(newEffectValues);
-    triggerAutoSave('effect_change', { effectValues: newEffectValues });
+    
+    try {
+      triggerAutoSave('effect_change', { effectValues: newEffectValues });
+    } catch (error) {
+      console.warn('⚠️ Auto-save failed for effect change:', error);
+    }
   }, [effectValues, triggerAutoSave, setEffectValues]);
 
   const handlePhaseChange = useCallback((phase: StudioPhase) => {
     console.log('🔄 Phase change:', currentPhase, '->', phase);
     
-    // Validate phase change requirements
+    // More permissive phase validation - just warn instead of blocking
     if (phase === 'frames' && !uploadedImage) {
-      toast.error('Please upload an image first');
-      return;
+      toast.warning('Consider uploading an image first, but you can browse frames');
     }
     
     if (phase === 'effects' && (!uploadedImage || !selectedFrame)) {
-      toast.error('Please upload an image and select a frame first');
-      return;
+      toast.warning('For best results, upload an image and select a frame first');
     }
     
     setCurrentPhase(phase);
-    triggerAutoSave('phase_change', {});
+    
+    try {
+      triggerAutoSave('phase_change', {});
+    } catch (error) {
+      console.warn('⚠️ Auto-save failed for phase change:', error);
+    }
   }, [currentPhase, uploadedImage, selectedFrame, triggerAutoSave, setCurrentPhase]);
 
   const handleUndo = useCallback(() => {
-    if (autoSaveService.canUndo()) {
-      const success = autoSaveService.undo();
-      if (success) {
-        const updatedDraft = autoSaveService.getCurrentDraft();
-        if (updatedDraft) {
-          setCurrentDraft(updatedDraft);
-          setUploadedImage(updatedDraft.uploadedImage || '');
-          setSelectedFrame(updatedDraft.selectedFrame || '');
-          setEffectValues(updatedDraft.effectValues || {});
-          toast.success('Action undone');
+    try {
+      if (autoSaveService.canUndo()) {
+        const success = autoSaveService.undo();
+        if (success) {
+          const updatedDraft = autoSaveService.getCurrentDraft();
+          if (updatedDraft) {
+            setCurrentDraft(updatedDraft);
+            setUploadedImage(updatedDraft.uploadedImage || '');
+            setSelectedFrame(updatedDraft.selectedFrame || '');
+            setEffectValues(updatedDraft.effectValues || {});
+            toast.success('Action undone');
+          }
         }
+      } else {
+        toast.info('Nothing to undo');
       }
-    } else {
-      toast.info('Nothing to undo');
+    } catch (error) {
+      console.error('❌ Undo failed:', error);
+      toast.error('Failed to undo action');
     }
   }, [setCurrentDraft, setUploadedImage, setSelectedFrame, setEffectValues]);
 
@@ -146,12 +167,49 @@ export const useStudioActions = () => {
     toast.info(`Background removal ${!showBackgroundRemoval ? 'enabled' : 'disabled'}`);
   }, [showBackgroundRemoval, setShowBackgroundRemoval]);
 
+  // Emergency reset function
+  const handleReset = useCallback(() => {
+    console.log('🔄 Emergency reset triggered');
+    
+    try {
+      // Clear auto-save state
+      autoSaveService.clearDraft();
+    } catch (error) {
+      console.warn('⚠️ Failed to clear auto-save:', error);
+    }
+    
+    try {
+      // Clear image processing cache
+      imageProcessingService.clearCache();
+    } catch (error) {
+      console.warn('⚠️ Failed to clear image cache:', error);
+    }
+    
+    // Reset all state
+    setCurrentPhase('upload');
+    setUploadedImage('');
+    setSelectedFrame('');
+    setEffectValues({});
+    setCurrentDraft(null);
+    setProcessedImage(null);
+    setIsProcessingImage(false);
+    setImageLoadError('');
+    setShowBackgroundRemoval(false);
+    
+    toast.success('Studio reset successfully');
+  }, [
+    setCurrentPhase, setUploadedImage, setSelectedFrame, setEffectValues,
+    setCurrentDraft, setProcessedImage, setIsProcessingImage, 
+    setImageLoadError, setShowBackgroundRemoval
+  ]);
+
   return {
     handleImageUpload,
     handleFrameSelect,
     handleEffectChange,
     handlePhaseChange,
     handleUndo,
-    handleToggleBackgroundRemoval
+    handleToggleBackgroundRemoval,
+    handleReset
   };
 };
