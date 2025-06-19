@@ -1,8 +1,9 @@
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, Image, Sparkles, Layers, Settings, Eye, Download, Save, Wand2 } from 'lucide-react';
+import { Upload, Image, Sparkles, Layers, Settings, Eye, Download, Wand2, History, RotateCcw } from 'lucide-react';
 import { UploadPhase } from './components/UploadPhase';
 import { FrameSelectionPhase } from './components/FrameSelectionPhase';
 import { EffectControlsPhase } from './components/EffectControlsPhase';
@@ -11,16 +12,11 @@ import { StudioHeader } from './components/StudioHeader';
 import { QuickActions } from './components/QuickActions';
 import { LayerManager } from './components/LayerManager';
 import { ExportDialog } from './components/ExportDialog';
+import { imageProcessingService, ProcessedImage } from '@/services/imageProcessing/ImageProcessingService';
+import { autoSaveService, CardDraft } from '@/services/autosave/AutoSaveService';
 import { toast } from 'sonner';
 
 type StudioPhase = 'upload' | 'frames' | 'effects' | 'layers' | 'export';
-
-interface BlobUrlManager {
-  url: string;
-  isValid: boolean;
-  lastValidated: number;
-  originalFile?: { name: string; size: number; type: string };
-}
 
 export const OrganizedCardStudio: React.FC = () => {
   // Core state
@@ -30,135 +26,127 @@ export const OrganizedCardStudio: React.FC = () => {
   const [effectValues, setEffectValues] = useState<Record<string, any>>({});
   const [showExportDialog, setShowExportDialog] = useState(false);
   
-  // Blob URL management
-  const [blobManager, setBlobManager] = useState<BlobUrlManager | null>(null);
-  const blobValidationTimeoutRef = useRef<NodeJS.Timeout>();
+  // Enhanced state for new features
+  const [processedImage, setProcessedImage] = useState<ProcessedImage | null>(null);
+  const [currentDraft, setCurrentDraft] = useState<CardDraft | null>(null);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState<string>('');
+  const [showBackgroundRemoval, setShowBackgroundRemoval] = useState(false);
   
-  // Debug logging
-  const logImageState = useCallback((context: string, imageUrl: string) => {
-    console.log(`🔍 OrganizedCardStudio - ${context}:`, {
-      imageUrl: imageUrl ? `${imageUrl.substring(0, 50)}...` : 'None',
-      isBlobUrl: imageUrl.startsWith('blob:'),
-      blobManagerExists: !!blobManager,
-      blobManagerValid: blobManager?.isValid,
-      currentPhase,
-      timestamp: Date.now()
-    });
-  }, [blobManager, currentPhase]);
+  // Auto-save tracking
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
+  const lastSaveTimeRef = useRef<number>(0);
 
-  // Validate blob URL health
-  const validateBlobUrl = useCallback(async (url: string): Promise<boolean> => {
-    if (!url.startsWith('blob:')) return true;
-    
-    return new Promise((resolve) => {
-      const img = document.createElement('img');
-      const timeout = setTimeout(() => {
-        img.onload = null;
-        img.onerror = null;
-        console.warn('🚨 Blob URL validation timeout:', url);
-        resolve(false);
-      }, 3000);
+  // Initialize from existing draft
+  useEffect(() => {
+    const existingDraft = autoSaveService.getCurrentDraft();
+    if (existingDraft) {
+      console.log('📋 Loading existing draft:', existingDraft.id);
+      setCurrentDraft(existingDraft);
+      setUploadedImage(existingDraft.uploadedImage || '');
+      setSelectedFrame(existingDraft.selectedFrame || '');
+      setEffectValues(existingDraft.effectValues || {});
       
-      img.onload = () => {
-        clearTimeout(timeout);
-        console.log('✅ Blob URL is valid:', url);
-        resolve(true);
-      };
+      if (existingDraft.uploadedImage) {
+        setCurrentPhase('frames');
+      }
       
-      img.onerror = () => {
-        clearTimeout(timeout);
-        console.warn('❌ Blob URL is invalid:', url);
-        resolve(false);
-      };
-      
-      img.src = url;
-    });
+      toast.success('Resumed previous session');
+    }
   }, []);
 
-  // Enhanced image upload handler with blob management
+  // Auto-save functionality
+  const triggerAutoSave = useCallback((action: string, updates: Partial<CardDraft>) => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      if (currentDraft) {
+        autoSaveService.updateDraft(updates, action);
+        lastSaveTimeRef.current = Date.now();
+        console.log('💾 Auto-saved:', action);
+      }
+    }, 300); // Auto-save after 300ms of inactivity
+  }, [currentDraft]);
+
+  // Enhanced image upload handler with processing
   const handleImageUpload = useCallback(async (imageUrl: string) => {
-    console.log('🔄 OrganizedCardStudio - handleImageUpload called with:', imageUrl);
-    logImageState('Before image upload', imageUrl);
+    console.log('🔄 Processing uploaded image:', imageUrl);
+    setIsProcessingImage(true);
+    setImageLoadError('');
     
-    // Cleanup previous blob URL
-    if (blobManager?.url && blobManager.url.startsWith('blob:')) {
-      URL.revokeObjectURL(blobManager.url);
-      console.log('🗑️ Cleaned up previous blob URL');
-    }
-    
-    // Validate new blob URL if it's a blob
-    let isValid = true;
-    if (imageUrl.startsWith('blob:')) {
-      isValid = await validateBlobUrl(imageUrl);
+    try {
+      // Validate the image first
+      const isValid = await imageProcessingService.isImageValid(imageUrl);
       if (!isValid) {
-        console.error('🚨 Invalid blob URL provided:', imageUrl);
-        toast.error('Image file is corrupted or invalid');
-        return;
+        throw new Error('Invalid or corrupted image file');
       }
-    }
-    
-    // Update state
-    setUploadedImage(imageUrl);
-    setBlobManager({
-      url: imageUrl,
-      isValid,
-      lastValidated: Date.now()
-    });
-    
-    logImageState('After image upload', imageUrl);
-    
-    // Auto-advance to frames phase
-    if (currentPhase === 'upload') {
-      setCurrentPhase('frames');
-      console.log('🎯 Auto-advanced to frames phase');
-    }
-    
-    toast.success('Image uploaded successfully!');
-  }, [blobManager, currentPhase, logImageState, validateBlobUrl]);
 
-  // Periodic blob URL health check
-  useEffect(() => {
-    if (blobManager?.url.startsWith('blob:')) {
-      blobValidationTimeoutRef.current = setTimeout(async () => {
-        const isValid = await validateBlobUrl(blobManager.url);
-        if (!isValid && blobManager.isValid) {
-          console.warn('🚨 Blob URL became invalid, notifying user');
-          setBlobManager(prev => prev ? { ...prev, isValid: false } : null);
-          toast.error('Image became unavailable. Please re-upload.');
-        }
-      }, 10000); // Check every 10 seconds
-    }
-    
-    return () => {
-      if (blobValidationTimeoutRef.current) {
-        clearTimeout(blobValidationTimeoutRef.current);
-      }
-    };
-  }, [blobManager, validateBlobUrl]);
+      // Process the image (with optional background removal)
+      const processed = await imageProcessingService.processImage(imageUrl, {
+        removeBackground: showBackgroundRemoval
+      });
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (blobManager?.url.startsWith('blob:')) {
-        URL.revokeObjectURL(blobManager.url);
-        console.log('🗑️ Cleaned up blob URL on unmount');
+      setProcessedImage(processed);
+      setUploadedImage(processed.processedUrl);
+
+      // Create or update draft
+      if (!currentDraft) {
+        const newDraft = autoSaveService.createDraft(processed.processedUrl);
+        setCurrentDraft(newDraft);
+      } else {
+        autoSaveService.updateDraft({
+          uploadedImage: processed.processedUrl,
+          processing: {
+            ...currentDraft.processing,
+            imageValidated: true,
+            backgroundRemoved: !processed.hasBackground
+          }
+        }, 'image_upload');
       }
-    };
-  }, [blobManager]);
+
+      // Auto-advance to frames phase
+      if (currentPhase === 'upload') {
+        setCurrentPhase('frames');
+      }
+      
+      toast.success('Image processed and saved as draft!');
+    } catch (error) {
+      console.error('❌ Image processing failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process image';
+      setImageLoadError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsProcessingImage(false);
+    }
+  }, [currentPhase, currentDraft, showBackgroundRemoval]);
 
   const handleFrameSelect = useCallback((frameId: string) => {
     console.log('🖼️ Frame selected:', frameId);
     setSelectedFrame(frameId);
-    toast.success('Frame applied!');
-  }, []);
+    
+    triggerAutoSave('frame_select', {
+      selectedFrame: frameId,
+      processing: {
+        ...currentDraft?.processing,
+        frameApplied: true
+      }
+    });
+    
+    toast.success('Frame applied and saved!');
+  }, [currentDraft, triggerAutoSave]);
 
   const handleEffectChange = useCallback((effectId: string, value: any) => {
     console.log('✨ Effect changed:', effectId, value);
-    setEffectValues(prev => ({
-      ...prev,
+    const newEffectValues = {
+      ...effectValues,
       [effectId]: value
-    }));
-  }, []);
+    };
+    
+    setEffectValues(newEffectValues);
+    triggerAutoSave('effect_change', { effectValues: newEffectValues });
+  }, [effectValues, triggerAutoSave]);
 
   const handlePhaseChange = useCallback((phase: StudioPhase) => {
     console.log('🔄 Phase change:', currentPhase, '->', phase);
@@ -175,18 +163,43 @@ export const OrganizedCardStudio: React.FC = () => {
     }
     
     setCurrentPhase(phase);
-    logImageState('Phase changed', uploadedImage);
-  }, [currentPhase, uploadedImage, selectedFrame, logImageState]);
+    triggerAutoSave('phase_change', { metadata: { ...currentDraft?.metadata } });
+  }, [currentPhase, uploadedImage, selectedFrame, currentDraft, triggerAutoSave]);
+
+  const handleUndo = useCallback(() => {
+    if (autoSaveService.canUndo()) {
+      const success = autoSaveService.undo();
+      if (success) {
+        const updatedDraft = autoSaveService.getCurrentDraft();
+        if (updatedDraft) {
+          setCurrentDraft(updatedDraft);
+          setUploadedImage(updatedDraft.uploadedImage || '');
+          setSelectedFrame(updatedDraft.selectedFrame || '');
+          setEffectValues(updatedDraft.effectValues || {});
+          toast.success('Action undone');
+        }
+      }
+    } else {
+      toast.info('Nothing to undo');
+    }
+  }, []);
+
+  const handleToggleBackgroundRemoval = useCallback(() => {
+    setShowBackgroundRemoval(!showBackgroundRemoval);
+    toast.info(`Background removal ${!showBackgroundRemoval ? 'enabled' : 'disabled'}`);
+  }, [showBackgroundRemoval]);
 
   const renderPhaseContent = () => {
-    console.log('🔄 OrganizedCardStudio - Rendering phase content for:', currentPhase);
-    
     switch (currentPhase) {
       case 'upload':
         return (
           <UploadPhase
             uploadedImage={uploadedImage}
             onImageUpload={handleImageUpload}
+            isProcessing={isProcessingImage}
+            error={imageLoadError}
+            showBackgroundRemoval={showBackgroundRemoval}
+            onToggleBackgroundRemoval={handleToggleBackgroundRemoval}
           />
         );
         
@@ -196,6 +209,7 @@ export const OrganizedCardStudio: React.FC = () => {
             selectedFrame={selectedFrame}
             onFrameSelect={handleFrameSelect}
             uploadedImage={uploadedImage}
+            processedImage={processedImage}
           />
         );
         
@@ -237,19 +251,22 @@ export const OrganizedCardStudio: React.FC = () => {
     }
   };
 
-  // Image state debugging panel (only in development)
+  // Auto-save status indicator
+  const autoSaveStats = autoSaveService.getStats();
+
+  // Debug panel (development only)
   const renderDebugPanel = () => {
     if (process.env.NODE_ENV !== 'development') return null;
     
     return (
-      <Card className="bg-red-900/20 border-red-500/50 mb-4">
+      <Card className="bg-blue-900/20 border-blue-500/50 mb-4">
         <CardContent className="p-3">
-          <div className="text-red-400 text-xs space-y-1">
-            <div>🔍 Debug - Image State:</div>
-            <div>• URL: {uploadedImage ? `${uploadedImage.substring(0, 30)}...` : 'None'}</div>
-            <div>• Is Blob: {uploadedImage.startsWith('blob:') ? 'Yes' : 'No'}</div>
-            <div>• Blob Valid: {blobManager?.isValid ? 'Yes' : 'No'}</div>
-            <div>• Last Validated: {blobManager?.lastValidated ? new Date(blobManager.lastValidated).toLocaleTimeString() : 'Never'}</div>
+          <div className="text-blue-400 text-xs space-y-1">
+            <div>🔍 Debug - Enhanced Studio:</div>
+            <div>• Image: {uploadedImage ? '✓' : '✗'} | Processed: {processedImage ? '✓' : '✗'}</div>
+            <div>• Draft: {currentDraft?.id || 'None'}</div>
+            <div>• Saves: {autoSaveStats.saveCount} | History: {autoSaveStats.historySize}</div>
+            <div>• Background Removal: {showBackgroundRemoval ? 'On' : 'Off'}</div>
             <div>• Phase: {currentPhase}</div>
           </div>
         </CardContent>
@@ -259,7 +276,11 @@ export const OrganizedCardStudio: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-editor-dark via-black to-editor-dark">
-      <StudioHeader />
+      <StudioHeader 
+        onUndo={handleUndo}
+        canUndo={autoSaveService.canUndo()}
+        autoSaveStats={autoSaveStats}
+      />
       
       {renderDebugPanel()}
 
@@ -293,6 +314,20 @@ export const OrganizedCardStudio: React.FC = () => {
               <Icon className="w-5 h-5" />
             </Button>
           ))}
+          
+          {/* Undo button */}
+          <div className="border-t border-editor-border pt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleUndo}
+              disabled={!autoSaveService.canUndo()}
+              className="w-12 h-12 p-0 rounded-lg text-white hover:bg-white/10 disabled:opacity-30"
+              title="Undo last action"
+            >
+              <RotateCcw className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Main Content Area */}
@@ -308,29 +343,9 @@ export const OrganizedCardStudio: React.FC = () => {
               uploadedImage={uploadedImage}
               selectedFrame={selectedFrame}
               effectValues={effectValues}
-              blobManager={blobManager}
+              processedImage={processedImage}
+              isProcessing={isProcessingImage}
             />
-            
-            {/* Invalid blob warning overlay */}
-            {blobManager && !blobManager.isValid && (
-              <div className="absolute inset-0 bg-black/75 flex items-center justify-center">
-                <Card className="bg-red-900/90 border-red-500">
-                  <CardContent className="p-6 text-center">
-                    <div className="text-red-400 mb-4">
-                      <Wand2 className="w-8 h-8 mx-auto mb-2" />
-                      <h3 className="text-lg font-semibold">Image Unavailable</h3>
-                      <p className="text-sm">The uploaded image is no longer accessible.</p>
-                    </div>
-                    <Button
-                      onClick={() => handlePhaseChange('upload')}
-                      className="bg-crd-green hover:bg-crd-green/90 text-black"
-                    >
-                      Upload New Image
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
           </div>
         </div>
 
@@ -341,6 +356,8 @@ export const OrganizedCardStudio: React.FC = () => {
             selectedFrame={selectedFrame}
             effectValues={effectValues}
             onExport={() => setShowExportDialog(true)}
+            currentDraft={currentDraft}
+            autoSaveStats={autoSaveStats}
           />
         </div>
       </div>
