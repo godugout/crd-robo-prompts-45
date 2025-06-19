@@ -21,12 +21,31 @@ export const PhaseNavigation: React.FC<PhaseNavigationProps> = ({
   onReset
 }) => {
   const phases = [
-    { phase: 'upload' as StudioPhase, icon: Upload, label: 'Upload' },
-    { phase: 'frames' as StudioPhase, icon: Image, label: 'Frames' },
-    { phase: 'effects' as StudioPhase, icon: Sparkles, label: 'Effects' },
-    { phase: 'layers' as StudioPhase, icon: Layers, label: 'Layers' },
-    { phase: 'export' as StudioPhase, icon: Download, label: 'Export' }
+    { phase: 'upload' as StudioPhase, icon: Upload, label: 'Upload', description: 'Upload your image' },
+    { phase: 'frames' as StudioPhase, icon: Image, label: 'Frames', description: 'Choose a frame style' },
+    { phase: 'effects' as StudioPhase, icon: Sparkles, label: 'Effects', description: 'Add premium effects' },
+    { phase: 'layers' as StudioPhase, icon: Layers, label: 'Layers', description: 'Manage card layers' },
+    { phase: 'export' as StudioPhase, icon: Download, label: 'Export', description: 'Download your card' }
   ];
+
+  const getPhaseStatus = (phase: StudioPhase) => {
+    if (phase === currentPhase) return 'current';
+    
+    switch (phase) {
+      case 'upload':
+        return uploadedImage ? 'completed' : 'available';
+      case 'frames':
+        return selectedFrame ? 'completed' : uploadedImage ? 'available' : 'pending';
+      case 'effects':
+        return uploadedImage ? 'available' : 'pending';
+      case 'layers':
+        return uploadedImage ? 'available' : 'pending';
+      case 'export':
+        return uploadedImage ? 'available' : 'pending';
+      default:
+        return 'available';
+    }
+  };
 
   return (
     <div className="w-16 bg-editor-dark border-r border-editor-border flex flex-col items-center py-4 space-y-4">
@@ -44,25 +63,37 @@ export const PhaseNavigation: React.FC<PhaseNavigationProps> = ({
       )}
 
       {/* Phase Navigation */}
-      {phases.map(({ phase, icon: Icon, label }) => {
-        // Make navigation more flexible - only disable if we're clearly missing critical data
-        const isDisabled = false; // Remove restrictive validation for now
+      {phases.map(({ phase, icon: Icon, label, description }) => {
+        const status = getPhaseStatus(phase);
+        const isDisabled = status === 'pending';
         
         return (
           <Button
             key={phase}
             variant="ghost"
             size="sm"
-            onClick={() => onPhaseChange(phase)}
+            onClick={() => !isDisabled && onPhaseChange(phase)}
             disabled={isDisabled}
-            className={`w-12 h-12 p-0 rounded-lg transition-all ${
-              currentPhase === phase
+            className={`w-12 h-12 p-0 rounded-lg transition-all relative ${
+              status === 'current'
                 ? 'bg-crd-green text-black'
-                : 'text-white hover:bg-white/10'
-            } ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}`}
-            title={label}
+                : status === 'completed'
+                ? 'text-crd-green hover:bg-crd-green/10'
+                : status === 'available'
+                ? 'text-white hover:bg-white/10'
+                : 'text-gray-600 cursor-not-allowed opacity-30'
+            }`}
+            title={`${label}: ${description}`}
           >
             <Icon className="w-5 h-5" />
+            
+            {/* Status indicator */}
+            {status === 'completed' && (
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-crd-green rounded-full border border-editor-dark" />
+            )}
+            {status === 'pending' && (
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gray-600 rounded-full border border-editor-dark" />
+            )}
           </Button>
         );
       })}

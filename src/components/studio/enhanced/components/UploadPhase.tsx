@@ -1,7 +1,7 @@
 
 import React, { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, Image, ToggleLeft, Loader2 } from 'lucide-react';
+import { Upload, Image, ToggleLeft, Loader2, CheckCircle2 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
 
@@ -89,12 +89,18 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
           </div>
         ) : uploadedImage ? (
           <div className="flex flex-col items-center space-y-4">
-            <img 
-              src={uploadedImage} 
-              alt="Uploaded" 
-              className="max-w-48 max-h-48 rounded-lg object-cover"
-            />
-            <p className="text-crd-green">Image uploaded successfully!</p>
+            <div className="relative">
+              <img 
+                src={uploadedImage} 
+                alt="Uploaded" 
+                className="max-w-48 max-h-48 rounded-lg object-cover"
+              />
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-crd-green rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-4 h-4 text-black" />
+              </div>
+            </div>
+            <p className="text-crd-green font-medium">Image uploaded successfully!</p>
+            <p className="text-crd-lightGray text-sm">You can now proceed to select a frame</p>
             <Button variant="outline" size="sm">
               <Upload className="w-4 h-4 mr-2" />
               Choose Different Image
@@ -120,6 +126,14 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
       {error && (
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
           <p className="text-red-400 text-sm">{error}</p>
+        </div>
+      )}
+
+      {/* Progress Indicator */}
+      {uploadedImage && !isProcessing && (
+        <div className="p-4 bg-crd-green/10 border border-crd-green/20 rounded-lg">
+          <p className="text-crd-green text-sm font-medium">✓ Ready for next step</p>
+          <p className="text-crd-lightGray text-sm">Click on "Frames" in the sidebar to continue</p>
         </div>
       )}
 

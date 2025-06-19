@@ -24,50 +24,94 @@ export const useStudioState = () => {
   // Auto-save tracking
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
   const lastSaveTimeRef = useRef<number>(0);
+  const isInitializedRef = useRef(false);
 
   // Initialize from existing draft
   useEffect(() => {
+    if (isInitializedRef.current) return;
+    
     const existingDraft = autoSaveService.getCurrentDraft();
     if (existingDraft) {
       console.log('📋 Loading existing draft:', existingDraft.id);
       setCurrentDraft(existingDraft);
-      setUploadedImage(existingDraft.uploadedImage || '');
-      setSelectedFrame(existingDraft.selectedFrame || '');
-      setEffectValues(existingDraft.effectValues || {});
       
-      if (existingDraft.uploadedImage) {
+      // Only load if we don't have current state
+      if (!uploadedImage && existingDraft.uploadedImage) {
+        setUploadedImage(existingDraft.uploadedImage);
+      }
+      if (!selectedFrame && existingDraft.selectedFrame) {
+        setSelectedFrame(existingDraft.selectedFrame);
+      }
+      if (Object.keys(effectValues).length === 0 && existingDraft.effectValues) {
+        setEffectValues(existingDraft.effectValues);
+      }
+      
+      if (existingDraft.uploadedImage && currentPhase === 'upload') {
         setCurrentPhase('frames');
       }
       
       toast.success('Resumed previous session');
     }
+    
+    isInitializedRef.current = true;
   }, []);
 
-  // Auto-save functionality
+  // Auto-save functionality with debouncing
   const triggerAutoSave = useCallback((action: string, updates: Partial<CardDraft>) => {
     if (autoSaveTimeoutRef.current) {
       clearTimeout(autoSaveTimeoutRef.current);
     }
 
     autoSaveTimeoutRef.current = setTimeout(() => {
-      if (currentDraft) {
-        autoSaveService.updateDraft(updates, action);
-        lastSaveTimeRef.current = Date.now();
-        console.log('💾 Auto-saved:', action);
+      try {
+        if (currentDraft) {
+          autoSaveService.updateDraft(updates, action);
+          lastSaveTimeRef.current = Date.now();
+          console.log('💾 Auto-saved:', action);
+        }
+      } catch (error) {
+        console.warn('⚠️ Auto-save failed:', error);
       }
-    }, 300); // Auto-save after 300ms of inactivity
+    }, 300);
   }, [currentDraft]);
+
+  // Enhanced setters that immediately update state
+  const setUploadedImageWithSync = useCallback((imageUrl: string) => {
+    console.log('🖼️ Setting uploaded image:', imageUrl);
+    setUploadedImage(imageUrl);
+    setImageLoadError(''); // Clear any previous errors
+    
+    // Trigger auto-save after state update
+    if (imageUrl) {
+      triggerAutoSave('image_upload', { uploadedImage: imageUrl });
+    }
+  }, [triggerAutoSave]);
+
+  const setSelectedFrameWithSync = useCallback((frameId: string) => {
+    console.log('🖼️ Setting selected frame:', frameId);
+    setSelectedFrame(frameId);
+    
+    if (frameId) {
+      triggerAutoSave('frame_select', { selectedFrame: frameId });
+    }
+  }, [triggerAutoSave]);
+
+  const setEffectValuesWithSync = useCallback((newEffectValues: Record<string, any>) => {
+    console.log('✨ Setting effect values:', newEffectValues);
+    setEffectValues(newEffectValues);
+    triggerAutoSave('effect_change', { effectValues: newEffectValues });
+  }, [triggerAutoSave]);
 
   return {
     // State
     currentPhase,
     setCurrentPhase,
     uploadedImage,
-    setUploadedImage,
+    setUploadedImage: setUploadedImageWithSync,
     selectedFrame,
-    setSelectedFrame,
+    setSelectedFrame: setSelectedFrameWithSync,
     effectValues,
-    setEffectValues,
+    setEffectValues: setEffectValuesWithSync,
     showExportDialog,
     setShowExportDialog,
     processedImage,

@@ -27,28 +27,36 @@ export const useStudioActions = () => {
     triggerAutoSave
   } = useStudioState();
 
-  // Enhanced image upload handler with processing
+  // Enhanced image upload handler with immediate state updates
   const handleImageUpload = useCallback(async (imageUrl: string) => {
     console.log('🔄 Processing uploaded image:', imageUrl);
     setIsProcessingImage(true);
     setImageLoadError('');
     
     try {
-      // Validate the image first
+      // Immediately update the uploaded image state for instant feedback
+      setUploadedImage(imageUrl);
+      
+      // Validate the image
       const isValid = await imageProcessingService.isImageValid(imageUrl);
       if (!isValid) {
         throw new Error('Invalid or corrupted image file');
       }
 
-      // Process the image (with optional background removal)
+      // Process the image
       const processed = await imageProcessingService.processImage(imageUrl, {
         removeBackground: showBackgroundRemoval
       });
 
+      // Update processed image
       setProcessedImage(processed);
-      setUploadedImage(processed.processedUrl);
+      
+      // If background was removed, update the uploaded image URL
+      if (processed.processedUrl !== imageUrl) {
+        setUploadedImage(processed.processedUrl);
+      }
 
-      // Create or update draft with error handling
+      // Create or update draft
       try {
         if (!currentDraft) {
           const newDraft = autoSaveService.createDraft(processed.processedUrl);
@@ -67,17 +75,20 @@ export const useStudioActions = () => {
         console.warn('⚠️ Auto-save failed, continuing anyway:', autoSaveError);
       }
 
-      // Auto-advance to frames phase
+      // Auto-advance to frames phase for better UX
       if (currentPhase === 'upload') {
-        setCurrentPhase('frames');
+        setTimeout(() => setCurrentPhase('frames'), 500);
       }
       
-      toast.success('Image processed successfully! Now select a frame.');
+      toast.success('Image uploaded successfully! Select a frame next.');
     } catch (error) {
       console.error('❌ Image processing failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to process image';
       setImageLoadError(errorMessage);
       toast.error(errorMessage);
+      
+      // Clear the uploaded image on error
+      setUploadedImage('');
     } finally {
       setIsProcessingImage(false);
     }
@@ -86,21 +97,8 @@ export const useStudioActions = () => {
   const handleFrameSelect = useCallback((frameId: string) => {
     console.log('🖼️ Frame selected:', frameId);
     setSelectedFrame(frameId);
-    
-    try {
-      triggerAutoSave('frame_select', {
-        selectedFrame: frameId,
-        processing: {
-          ...currentDraft?.processing,
-          frameApplied: true
-        }
-      });
-    } catch (error) {
-      console.warn('⚠️ Auto-save failed for frame selection:', error);
-    }
-    
     toast.success(`Frame "${frameId}" applied successfully!`);
-  }, [currentDraft, triggerAutoSave, setSelectedFrame]);
+  }, [setSelectedFrame]);
 
   const handleEffectChange = useCallback((effectId: string, value: any) => {
     console.log('✨ Effect changed:', effectId, value);
@@ -108,26 +106,19 @@ export const useStudioActions = () => {
       ...effectValues,
       [effectId]: value
     };
-    
     setEffectValues(newEffectValues);
-    
-    try {
-      triggerAutoSave('effect_change', { effectValues: newEffectValues });
-    } catch (error) {
-      console.warn('⚠️ Auto-save failed for effect change:', error);
-    }
-  }, [effectValues, triggerAutoSave, setEffectValues]);
+  }, [effectValues, setEffectValues]);
 
   const handlePhaseChange = useCallback((phase: StudioPhase) => {
     console.log('🔄 Phase change:', currentPhase, '->', phase);
     
-    // More permissive phase validation - just warn instead of blocking
-    if (phase === 'frames' && !uploadedImage) {
-      toast.warning('Consider uploading an image first, but you can browse frames');
+    // Less restrictive validation - just warn if missing critical components
+    if (phase === 'effects' && !uploadedImage) {
+      toast.warning('Upload an image first for the best experience');
     }
     
-    if (phase === 'effects' && (!uploadedImage || !selectedFrame)) {
-      toast.warning('For best results, upload an image and select a frame first');
+    if (phase === 'export' && (!uploadedImage || !selectedFrame)) {
+      toast.warning('Complete previous steps for the best export results');
     }
     
     setCurrentPhase(phase);
@@ -167,19 +158,16 @@ export const useStudioActions = () => {
     toast.info(`Background removal ${!showBackgroundRemoval ? 'enabled' : 'disabled'}`);
   }, [showBackgroundRemoval, setShowBackgroundRemoval]);
 
-  // Emergency reset function
   const handleReset = useCallback(() => {
     console.log('🔄 Emergency reset triggered');
     
     try {
-      // Clear auto-save state
       autoSaveService.clearDraft();
     } catch (error) {
       console.warn('⚠️ Failed to clear auto-save:', error);
     }
     
     try {
-      // Clear image processing cache
       imageProcessingService.clearCache();
     } catch (error) {
       console.warn('⚠️ Failed to clear image cache:', error);
