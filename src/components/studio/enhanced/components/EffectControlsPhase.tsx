@@ -1,99 +1,72 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
-import { Sparkles, Chrome, Gem, Star, Zap, RotateCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { RotateCcw, Sparkles } from 'lucide-react';
 
 interface EffectControlsPhaseProps {
   effectValues: Record<string, any>;
   onEffectChange: (effectId: string, value: any) => void;
-  uploadedImage?: string;
-  selectedFrame?: string;
+  uploadedImage: string;
+  selectedFrame: string;
 }
 
-const EFFECT_PRESETS = [
+const EFFECT_CONTROLS = [
   {
-    id: 'prism-burst',
-    name: 'Prism Burst',
-    icon: Gem,
-    effects: {
-      prizm: { intensity: 90, geometryType: 'sharp', dispersion: 95 },
-      holographic: { intensity: 30, animated: false }
-    }
+    id: 'holographic_intensity',
+    name: 'Holographic Effect',
+    min: 0,
+    max: 100,
+    step: 1,
+    default: 50
   },
   {
-    id: 'spectral-wave',
-    name: 'Spectral Wave',
-    icon: Zap,
-    effects: {
-      holographic: { intensity: 65, shiftSpeed: 80, wavePattern: 'smooth' },
-      foilspray: { intensity: 25, pattern: 'wave' }
-    }
+    id: 'glow_effect',
+    name: 'Glow Intensity',
+    min: 0,
+    max: 100,
+    step: 1,
+    default: 30
   },
   {
-    id: 'chrome-elite',
-    name: 'Chrome Elite',
-    icon: Chrome,
-    effects: {
-      chrome: { intensity: 85, reflection: 90 },
-      crystal: { intensity: 20, facets: 'fine' }
-    }
+    id: 'border_thickness',
+    name: 'Border Thickness',
+    min: 0,
+    max: 10,
+    step: 1,
+    default: 2
   },
   {
-    id: 'golden-legend',
-    name: 'Golden Legend',
-    icon: Star,
-    effects: {
-      gold: { intensity: 80, shimmer: 70 },
-      foilspray: { intensity: 40, pattern: 'radial' }
-    }
-  }
-];
-
-const INDIVIDUAL_EFFECTS = [
-  {
-    id: 'holographic',
-    name: 'Holographic',
-    description: 'Dynamic rainbow shifting with prismatic effects',
-    icon: Sparkles,
-    color: 'from-pink-500 to-cyan-500'
+    id: 'shadow_depth',
+    name: 'Shadow Depth',
+    min: 0,
+    max: 50,
+    step: 1,
+    default: 15
   },
   {
-    id: 'chrome',
-    name: 'Chrome',
-    description: 'Metallic chrome finish with mirror-like reflections',
-    icon: Chrome,
-    color: 'from-gray-400 to-gray-600'
+    id: 'brightness',
+    name: 'Brightness',
+    min: -50,
+    max: 50,
+    step: 1,
+    default: 0
   },
   {
-    id: 'crystal',
-    name: 'Crystal',
-    description: 'Crystalline faceted surface with light dispersion',
-    icon: Gem,
-    color: 'from-blue-400 to-purple-600'
+    id: 'contrast',
+    name: 'Contrast',
+    min: -50,
+    max: 50,
+    step: 1,
+    default: 0
   },
   {
-    id: 'gold',
-    name: 'Gold',
-    description: 'Luxurious gold plating with authentic shimmer',
-    icon: Star,
-    color: 'from-yellow-400 to-yellow-600'
-  },
-  {
-    id: 'foilspray',
-    name: 'Foil Spray',
-    description: 'Metallic spray pattern with directional flow',
-    icon: Zap,
-    color: 'from-purple-400 to-pink-500'
-  },
-  {
-    id: 'prizm',
-    name: 'Prizm',
-    description: 'Geometric prismatic patterns with color separation',
-    icon: Gem,
-    color: 'from-rainbow-start to-rainbow-end'
+    id: 'saturation',
+    name: 'Saturation',
+    min: -50,
+    max: 50,
+    step: 1,
+    default: 0
   }
 ];
 
@@ -103,146 +76,138 @@ export const EffectControlsPhase: React.FC<EffectControlsPhaseProps> = ({
   uploadedImage,
   selectedFrame
 }) => {
-  const applyPreset = (preset: typeof EFFECT_PRESETS[0]) => {
-    console.log('Applying preset:', preset.name, preset.effects);
-    
-    // Reset all effects first
-    INDIVIDUAL_EFFECTS.forEach(effect => {
-      onEffectChange(effect.id, { intensity: 0 });
-    });
-    
-    // Apply preset effects
-    Object.entries(preset.effects).forEach(([effectId, effectData]) => {
-      Object.entries(effectData).forEach(([paramId, value]) => {
-        onEffectChange(effectId, { ...effectValues[effectId], [paramId]: value });
-      });
-    });
+  const resetEffect = (effectId: string) => {
+    const effect = EFFECT_CONTROLS.find(e => e.id === effectId);
+    if (effect) {
+      onEffectChange(effectId, effect.default);
+    }
   };
 
   const resetAllEffects = () => {
-    INDIVIDUAL_EFFECTS.forEach(effect => {
-      onEffectChange(effect.id, { intensity: 0 });
+    EFFECT_CONTROLS.forEach(effect => {
+      onEffectChange(effect.id, effect.default);
     });
   };
-
-  const getEffectIntensity = (effectId: string): number => {
-    return effectValues[effectId]?.intensity || 0;
-  };
-
-  const updateEffectIntensity = (effectId: string, intensity: number) => {
-    onEffectChange(effectId, { ...effectValues[effectId], intensity });
-  };
-
-  const activeEffectsCount = INDIVIDUAL_EFFECTS.filter(effect => getEffectIntensity(effect.id) > 0).length;
 
   return (
     <div className="p-6 space-y-6">
       <div className="text-center">
-        <h2 className="text-white text-xl font-bold mb-2">Visual Effects</h2>
+        <h3 className="text-white text-xl font-semibold mb-2">Enhance Your Card</h3>
         <p className="text-crd-lightGray text-sm">
-          Add stunning visual effects to your card
+          Apply premium effects to make your card truly unique
         </p>
-        {activeEffectsCount > 0 && (
-          <Badge variant="secondary" className="mt-2 bg-crd-green/20 text-crd-green">
-            {activeEffectsCount} effects active
-          </Badge>
-        )}
       </div>
 
-      {/* Quick Reset */}
-      {activeEffectsCount > 0 && (
+      {/* Quick Actions */}
+      <div className="flex gap-2">
         <Button
           variant="outline"
+          size="sm"
           onClick={resetAllEffects}
-          className="w-full border-editor-border text-white hover:bg-white/10"
+          className="flex-1"
         >
           <RotateCcw className="w-4 h-4 mr-2" />
-          Reset All Effects
+          Reset All
         </Button>
-      )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            // Apply random premium preset
+            onEffectChange('holographic_intensity', Math.floor(Math.random() * 50) + 50);
+            onEffectChange('glow_effect', Math.floor(Math.random() * 30) + 20);
+            onEffectChange('shadow_depth', Math.floor(Math.random() * 20) + 10);
+          }}
+          className="flex-1"
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          Randomize
+        </Button>
+      </div>
 
-      {/* Preset Effects */}
-      <Card className="bg-editor-tool border-editor-border">
-        <CardHeader>
-          <CardTitle className="text-white text-lg">Effect Presets</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {EFFECT_PRESETS.map((preset) => {
-            const Icon = preset.icon;
-            return (
-              <Button
-                key={preset.id}
-                variant="outline"
-                onClick={() => applyPreset(preset)}
-                className="w-full justify-start border-editor-border text-white hover:bg-crd-green/10 hover:border-crd-green/50"
-              >
-                <Icon className="w-5 h-5 mr-3 text-crd-green" />
-                <div className="text-left">
-                  <div className="font-medium">{preset.name}</div>
-                  <div className="text-xs text-crd-lightGray">
-                    Premium effect combination
-                  </div>
+      {/* Effect Controls */}
+      <div className="space-y-6">
+        {EFFECT_CONTROLS.map((effect) => {
+          const currentValue = effectValues[effect.id] ?? effect.default;
+          
+          return (
+            <div key={effect.id} className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-white font-medium">{effect.name}</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-crd-lightGray text-sm min-w-[2rem] text-right">
+                    {currentValue}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetEffect(effect.id)}
+                    className="w-6 h-6 p-0"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                  </Button>
                 </div>
-              </Button>
-            );
-          })}
-        </CardContent>
-      </Card>
-
-      {/* Individual Effects */}
-      <Card className="bg-editor-tool border-editor-border">
-        <CardHeader>
-          <CardTitle className="text-white text-lg">Individual Effects</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {INDIVIDUAL_EFFECTS.map((effect) => {
-            const Icon = effect.icon;
-            const intensity = getEffectIntensity(effect.id);
-            const isActive = intensity > 0;
-
-            return (
-              <div key={effect.id} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Icon className={`w-5 h-5 ${isActive ? 'text-crd-green' : 'text-crd-lightGray'}`} />
-                    <div>
-                      <h4 className="text-white font-medium">{effect.name}</h4>
-                      <p className="text-crd-lightGray text-xs">{effect.description}</p>
-                    </div>
-                  </div>
-                  <div className="text-white text-sm font-medium">
-                    {intensity}%
-                  </div>
-                </div>
-                
-                <Slider
-                  value={[intensity]}
-                  onValueChange={(value) => updateEffectIntensity(effect.id, value[0])}
-                  min={0}
-                  max={100}
-                  step={1}
-                  className="w-full"
-                />
               </div>
-            );
-          })}
-        </CardContent>
-      </Card>
-
-      {/* Requirements Check */}
-      {(!uploadedImage || !selectedFrame) && (
-        <Card className="bg-yellow-900/20 border-yellow-500/50">
-          <CardContent className="p-4">
-            <div className="text-yellow-400 text-sm">
-              <div className="font-semibold mb-2">Complete previous steps first:</div>
-              <div className="space-y-1">
-                {!uploadedImage && <div>• Upload an image</div>}
-                {!selectedFrame && <div>• Select a frame</div>}
+              
+              <Slider
+                value={[currentValue]}
+                onValueChange={(values) => onEffectChange(effect.id, values[0])}
+                min={effect.min}
+                max={effect.max}
+                step={effect.step}
+                className="w-full"
+              />
+              
+              <div className="flex justify-between text-xs text-crd-lightGray">
+                <span>{effect.min}</span>
+                <span>{effect.max}</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          );
+        })}
+      </div>
+
+      {/* Effect Presets */}
+      <div className="space-y-3">
+        <h4 className="text-white font-medium">Quick Presets</h4>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { name: 'Subtle', preset: { holographic_intensity: 20, glow_effect: 10, shadow_depth: 5 } },
+            { name: 'Premium', preset: { holographic_intensity: 75, glow_effect: 45, shadow_depth: 25 } },
+            { name: 'Legendary', preset: { holographic_intensity: 95, glow_effect: 70, shadow_depth: 40 } },
+            { name: 'Minimal', preset: { holographic_intensity: 0, glow_effect: 0, shadow_depth: 2 } }
+          ].map((preset) => (
+            <Button
+              key={preset.name}
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                Object.entries(preset.preset).forEach(([key, value]) => {
+                  onEffectChange(key, value);
+                });
+              }}
+              className="text-xs"
+            >
+              {preset.name}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Current Status */}
+      <div className="p-4 bg-editor-tool rounded-lg border border-editor-border">
+        <h4 className="text-white font-medium mb-2">Enhancement Status</h4>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div>
+            <span className="text-crd-lightGray">Image:</span>
+            <span className="text-white ml-2">{uploadedImage ? '✓ Loaded' : '⚠ Missing'}</span>
+          </div>
+          <div>
+            <span className="text-crd-lightGray">Frame:</span>
+            <span className="text-white ml-2">{selectedFrame ? '✓ Selected' : '⚠ Missing'}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

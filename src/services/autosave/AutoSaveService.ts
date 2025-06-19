@@ -1,52 +1,37 @@
 
-import { localStorageManager } from '@/lib/storage/LocalStorageManager';
-import { cardStorageAdapter } from '@/lib/storage/adapters/CardStorageAdapter';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface CardDraft {
   id: string;
   uploadedImage?: string;
   selectedFrame?: string;
-  effectValues: Record<string, any>;
-  cropSettings?: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    rotation: number;
+  effectValues?: Record<string, any>;
+  processing?: {
+    imageValidated?: boolean;
+    backgroundRemoved?: boolean;
+    frameApplied?: boolean;
   };
-  metadata: {
-    created: number;
-    lastModified: number;
-    autoSaveCount: number;
-    version: number;
-  };
-  processing: {
-    backgroundRemoved: boolean;
-    imageValidated: boolean;
-    frameApplied: boolean;
-  };
+  created_at: string;
+  updated_at: string;
 }
 
-export interface AutoSaveHistory {
-  action: string;
-  timestamp: number;
-  data: Partial<CardDraft>;
-  version: number;
+export interface AutoSaveStats {
+  saveCount: number;
+  lastAction: string;
+  lastSaveTime: string;
 }
 
-export class AutoSaveService {
+class AutoSaveService {
   private static instance: AutoSaveService;
   private currentDraft: CardDraft | null = null;
-  private saveTimeout: NodeJS.Timeout | null = null;
-  private history: AutoSaveHistory[] = [];
-  private maxHistorySize = 20;
-  private draftKey = 'current-card-draft';
-  private historyKey = 'draft-history';
+  private history: CardDraft[] = [];
+  private maxHistorySize = 10;
+  private saveKey = 'crd-autosave-draft';
+  private historyKey = 'crd-autosave-history';
+  private statsKey = 'crd-autosave-stats';
 
   private constructor() {
-    this.loadDraft();
-    this.loadHistory();
+    this.loadFromStorage();
   }
 
   public static getInstance(): AutoSaveService {
@@ -56,177 +41,96 @@ export class AutoSaveService {
     return AutoSaveService.instance;
   }
 
-  public createDraft(uploadedImage: string): CardDraft {
-    console.log('💾 Creating new card draft');
-    
+  private loadFromStorage(): void {
+    try {
+      const savedDraft = localStorage.getItem(this.saveKey);
+      if (savedDraft) {
+        this.currentDraft = JSON.parse(savedDraft);
+      }
+
+      const savedHistory = localStorage.getItem(this.historyKey);
+      if (savedHistory) {
+        this.history = JSON.parse(savedHistory);
+      }
+    } catch (error) {
+      console.warn('Failed to load auto-save data:', error);
+    }
+  }
+
+  private saveToStorage(): void {
+    try {
+      if (this.currentDraft) {
+        localStorage.setItem(this.saveKey, JSON.stringify(this.currentDraft));
+      }
+      localStorage.setItem(this.historyKey, JSON.stringify(this.history));
+    } catch (error) {
+      console.warn('Failed to save auto-save data:', error);
+    }
+  }
+
+  private updateStats(action: string): void {
+    try {
+      const stats = this.getStats();
+      const newStats: AutoSaveStats = {
+        saveCount: stats.saveCount + 1,
+        lastAction: action,
+        lastSaveTime: new Date().toISOString()
+      };
+      localStorage.setItem(this.statsKey, JSON.stringify(newStats));
+    } catch (error) {
+      console.warn('Failed to update auto-save stats:', error);
+    }
+  }
+
+  public createDraft(uploadedImage?: string): CardDraft {
     const draft: CardDraft = {
       id: uuidv4(),
       uploadedImage,
-      selectedFrame: '',
-      effectValues: {},
-      metadata: {
-        created: Date.now(),
-        lastModified: Date.now(),
-        autoSaveCount: 0,
-        version: 1
-      },
-      processing: {
-        backgroundRemoved: false,
-        imageValidated: false,
-        frameApplied: false
-      }
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     this.currentDraft = draft;
-    this.addToHistory('create_draft', { uploadedImage });
-    this.scheduleSave();
-    
+    this.addToHistory(draft);
+    this.saveToStorage();
+    this.updateStats('create_draft');
+
     return draft;
   }
 
-  public updateDraft(updates: Partial<CardDraft>, action?: string): void {
+  public updateDraft(updates: Partial<CardDraft>, action: string = 'update'): void {
     if (!this.currentDraft) {
-      console.warn('⚠️ No current draft to update');
-      return;
+      this.createDraft();
     }
 
-    console.log('💾 Updating draft:', action || 'unknown_action');
-    
-    this.currentDraft = {
-      ...this.currentDraft,
-      ...updates,
-      metadata: {
-        ...this.currentDraft.metadata,
-        lastModified: Date.now(),
-        autoSaveCount: this.currentDraft.metadata.autoSaveCount + 1,
-        version: this.currentDraft.metadata.version + 1
-      }
-    };
+    if (this.currentDraft) {
+      this.currentDraft = {
+        ...this.currentDraft,
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
 
-    if (action) {
-      this.addToHistory(action, updates);
+      this.addToHistory(this.currentDraft);
+      this.saveToStorage();
+      this.updateStats(action);
     }
-
-    this.scheduleSave();
   }
 
   public getCurrentDraft(): CardDraft | null {
     return this.currentDraft;
   }
 
-  public hasDraft(): boolean {
-    return this.currentDraft !== null;
-  }
-
-  private scheduleSave(): void {
-    // Clear existing timeout
-    if (this.saveTimeout) {
-      clearTimeout(this.saveTimeout);
-    }
-
-    // Schedule save after 500ms of inactivity
-    this.saveTimeout = setTimeout(() => {
-      this.saveDraft();
-    }, 500);
-  }
-
-  private saveDraft(): void {
-    if (!this.currentDraft) return;
-
-    try {
-      localStorageManager.setItem(
-        this.draftKey,
-        this.currentDraft,
-        'drafts',
-        'high'
-      );
-
-      // Also save as a card entry
-      cardStorageAdapter.saveCard({
-        id: this.currentDraft.id,
-        title: `Draft Card ${new Date().toLocaleTimeString()}`,
-        image_url: this.currentDraft.uploadedImage,
-        template_id: this.currentDraft.selectedFrame,
-        design_metadata: {
-          effects: this.currentDraft.effectValues,
-          crop: this.currentDraft.cropSettings,
-          processing: this.currentDraft.processing
-        },
-        rarity: 'common',
-        tags: ['draft', 'auto-saved'],
-        creator_attribution: { collaboration_type: 'solo' },
-        publishing_options: {
-          marketplace_listing: false,
-          crd_catalog_inclusion: false,
-          print_available: false,
-          pricing: { currency: 'USD' },
-          distribution: { limited_edition: false }
-        }
-      });
-
-      console.log('💾 Draft auto-saved successfully');
-    } catch (error) {
-      console.error('❌ Failed to save draft:', error);
-    }
-  }
-
-  private loadDraft(): void {
-    try {
-      const savedDraft = localStorageManager.getItem<CardDraft>(this.draftKey);
-      if (savedDraft) {
-        this.currentDraft = savedDraft;
-        console.log('📋 Loaded existing draft:', savedDraft.id);
-      }
-    } catch (error) {
-      console.error('❌ Failed to load draft:', error);
-    }
-  }
-
-  private addToHistory(action: string, data: Partial<CardDraft>): void {
-    const historyEntry: AutoSaveHistory = {
-      action,
-      timestamp: Date.now(),
-      data,
-      version: this.currentDraft?.metadata.version || 1
-    };
-
-    this.history.unshift(historyEntry);
-
+  private addToHistory(draft: CardDraft): void {
+    // Create a deep copy of the draft
+    const draftCopy = JSON.parse(JSON.stringify(draft));
+    
+    // Add to history
+    this.history.unshift(draftCopy);
+    
     // Limit history size
     if (this.history.length > this.maxHistorySize) {
       this.history = this.history.slice(0, this.maxHistorySize);
     }
-
-    this.saveHistory();
-  }
-
-  private saveHistory(): void {
-    try {
-      localStorageManager.setItem(
-        this.historyKey,
-        this.history,
-        'drafts',
-        'medium'
-      );
-    } catch (error) {
-      console.error('❌ Failed to save history:', error);
-    }
-  }
-
-  private loadHistory(): void {
-    try {
-      const savedHistory = localStorageManager.getItem<AutoSaveHistory[]>(this.historyKey);
-      if (savedHistory) {
-        this.history = savedHistory;
-        console.log('📋 Loaded draft history:', this.history.length, 'entries');
-      }
-    } catch (error) {
-      console.error('❌ Failed to load history:', error);
-    }
-  }
-
-  public getHistory(): AutoSaveHistory[] {
-    return [...this.history];
   }
 
   public canUndo(): boolean {
@@ -234,53 +138,58 @@ export class AutoSaveService {
   }
 
   public undo(): boolean {
-    if (!this.canUndo() || !this.currentDraft) return false;
-
-    // Find the previous state
-    const currentVersion = this.currentDraft.metadata.version;
-    const previousEntry = this.history.find(entry => entry.version < currentVersion);
-
-    if (!previousEntry) return false;
-
-    console.log('↶ Undoing to version:', previousEntry.version);
-    
-    // Apply previous state
-    this.updateDraft(previousEntry.data, 'undo');
-    return true;
+    if (this.history.length > 1) {
+      // Remove current state and restore previous
+      this.history.shift();
+      const previousDraft = this.history[0];
+      
+      if (previousDraft) {
+        this.currentDraft = JSON.parse(JSON.stringify(previousDraft));
+        this.saveToStorage();
+        this.updateStats('undo');
+        return true;
+      }
+    }
+    return false;
   }
 
   public clearDraft(): void {
-    console.log('🗑️ Clearing current draft');
-    
-    // Cleanup blob URLs
-    if (this.currentDraft?.uploadedImage?.startsWith('blob:')) {
-      URL.revokeObjectURL(this.currentDraft.uploadedImage);
-    }
-
     this.currentDraft = null;
-    localStorageManager.removeItem(this.draftKey);
-    
-    // Clear history
     this.history = [];
-    localStorageManager.removeItem(this.historyKey);
+    
+    try {
+      localStorage.removeItem(this.saveKey);
+      localStorage.removeItem(this.historyKey);
+    } catch (error) {
+      console.warn('Failed to clear auto-save data:', error);
+    }
+    
+    this.updateStats('clear_draft');
   }
 
-  public getStats(): { 
-    draftAge: number; 
-    saveCount: number; 
-    historySize: number; 
-    lastAction: string | null;
-  } {
-    if (!this.currentDraft) {
-      return { draftAge: 0, saveCount: 0, historySize: 0, lastAction: null };
+  public getStats(): AutoSaveStats {
+    try {
+      const saved = localStorage.getItem(this.statsKey);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.warn('Failed to load auto-save stats:', error);
     }
-
+    
     return {
-      draftAge: Date.now() - this.currentDraft.metadata.created,
-      saveCount: this.currentDraft.metadata.autoSaveCount,
-      historySize: this.history.length,
-      lastAction: this.history[0]?.action || null
+      saveCount: 0,
+      lastAction: '',
+      lastSaveTime: ''
     };
+  }
+
+  public getHistory(): CardDraft[] {
+    return [...this.history];
+  }
+
+  public hasDraft(): boolean {
+    return this.currentDraft !== null;
   }
 }
 

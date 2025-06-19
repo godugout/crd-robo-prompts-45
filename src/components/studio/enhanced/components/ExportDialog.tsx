@@ -2,17 +2,16 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Image as ImageIcon, File } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Download, Share2, Save, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ExportDialogProps {
   isOpen: boolean;
   onClose: () => void;
   cardData: {
-    uploadedImage?: string;
-    selectedFrame?: string;
+    uploadedImage: string;
+    selectedFrame: string;
     effectValues: Record<string, any>;
   };
 }
@@ -22,88 +21,158 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
   onClose,
   cardData
 }) => {
-  const [exportFormat, setExportFormat] = useState('png');
-  const [exportQuality, setExportQuality] = useState('high');
   const [isExporting, setIsExporting] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'png' | 'jpg' | 'pdf'>('png');
+  const [exportQuality, setExportQuality] = useState<'low' | 'medium' | 'high' | 'ultra'>('high');
 
-  const handleExport = async () => {
+  const handleExport = async (type: 'download' | 'share' | 'save') => {
     setIsExporting(true);
     
-    // Simulate export process
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsExporting(false);
-    onClose();
+    try {
+      // Simulate export process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      switch (type) {
+        case 'download':
+          toast.success('Card downloaded successfully!');
+          break;
+        case 'share':
+          toast.success('Card shared to gallery!');
+          break;
+        case 'save':
+          toast.success('Card saved to collection!');
+          break;
+      }
+      
+      onClose();
+    } catch (error) {
+      toast.error('Export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const getExportSize = () => {
+    switch (exportQuality) {
+      case 'low': return '512x512';
+      case 'medium': return '1024x1024';
+      case 'high': return '2048x2048';
+      case 'ultra': return '4096x4096';
+      default: return '2048x2048';
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-editor-dark border-editor-border max-w-md">
+      <DialogContent className="sm:max-w-md bg-editor-dark border-editor-border">
         <DialogHeader>
-          <DialogTitle className="text-white flex items-center">
-            <Download className="w-5 h-5 mr-2" />
-            Export Card
-          </DialogTitle>
+          <DialogTitle className="text-white">Export Your Card</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          <Card className="bg-black/20 border-white/10">
-            <CardContent className="p-4">
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-white">Export Format</Label>
-                  <Select value={exportFormat} onValueChange={setExportFormat}>
-                    <SelectTrigger className="bg-editor-tool border-editor-border text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-editor-tool border-editor-border">
-                      <SelectItem value="png">PNG (Recommended)</SelectItem>
-                      <SelectItem value="jpg">JPG</SelectItem>
-                      <SelectItem value="webp">WebP</SelectItem>
-                      <SelectItem value="pdf">PDF</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+        <Tabs defaultValue="quick" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 bg-editor-tool">
+            <TabsTrigger value="quick">Quick Export</TabsTrigger>
+            <TabsTrigger value="advanced">Advanced</TabsTrigger>
+          </TabsList>
 
-                <div>
-                  <Label className="text-white">Quality</Label>
-                  <Select value={exportQuality} onValueChange={setExportQuality}>
-                    <SelectTrigger className="bg-editor-tool border-editor-border text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-editor-tool border-editor-border">
-                      <SelectItem value="high">High (300 DPI)</SelectItem>
-                      <SelectItem value="medium">Medium (150 DPI)</SelectItem>
-                      <SelectItem value="low">Low (72 DPI)</SelectItem>
-                    </SelectContent>
-                  </Select>
+          <TabsContent value="quick" className="space-y-4">
+            <div className="text-center space-y-4">
+              <div className="w-32 h-40 mx-auto bg-gradient-to-br from-gray-600 to-gray-800 rounded border-2 border-gray-500 flex items-center justify-center">
+                <span className="text-gray-300 text-sm">Preview</span>
+              </div>
+              
+              <div className="space-y-2">
+                <Button
+                  onClick={() => handleExport('download')}
+                  disabled={isExporting}
+                  className="w-full bg-crd-green hover:bg-crd-green/90 text-black"
+                >
+                  {isExporting ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4 mr-2" />
+                  )}
+                  Download (PNG, High Quality)
+                </Button>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleExport('save')}
+                    disabled={isExporting}
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleExport('share')}
+                    disabled={isExporting}
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share
+                  </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </TabsContent>
 
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="flex-1 border-editor-border text-white hover:bg-editor-border"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleExport}
-              disabled={isExporting}
-              className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black"
-            >
-              {isExporting ? (
-                <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
-              ) : (
-                <Download className="w-4 h-4 mr-2" />
-              )}
-              {isExporting ? 'Exporting...' : 'Export'}
-            </Button>
-          </div>
-        </div>
+          <TabsContent value="advanced" className="space-y-4">
+            <div className="space-y-4">
+              {/* Format Selection */}
+              <div>
+                <label className="text-white font-medium mb-2 block">Format</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['png', 'jpg', 'pdf'] as const).map((format) => (
+                    <Button
+                      key={format}
+                      variant={exportFormat === format ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setExportFormat(format)}
+                    >
+                      {format.toUpperCase()}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quality Selection */}
+              <div>
+                <label className="text-white font-medium mb-2 block">Quality</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['low', 'medium', 'high', 'ultra'] as const).map((quality) => (
+                    <Button
+                      key={quality}
+                      variant={exportQuality === quality ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setExportQuality(quality)}
+                      className="flex flex-col p-2 h-auto"
+                    >
+                      <span className="capitalize">{quality}</span>
+                      <span className="text-xs opacity-70">{getExportSize()}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Export Actions */}
+              <div className="pt-2">
+                <Button
+                  onClick={() => handleExport('download')}
+                  disabled={isExporting}
+                  className="w-full bg-crd-green hover:bg-crd-green/90 text-black"
+                >
+                  {isExporting ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4 mr-2" />
+                  )}
+                  Export as {exportFormat.toUpperCase()} ({exportQuality})
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
