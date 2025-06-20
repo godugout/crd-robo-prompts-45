@@ -1,4 +1,5 @@
 
+
 export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type CardVisibility = 'private' | 'public' | 'shared';
 
@@ -71,4 +72,6 @@ export interface CardData {
   collection_id?: string;
   team_id?: string;
   print_metadata?: Record<string, any>;
+  edition_size?: number;
 }
+
