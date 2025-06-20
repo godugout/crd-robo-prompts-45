@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { ModularFrameBuilder } from '@/components/editor/frames/ModularFrameBuilder';
-import { getFrameById } from '../frames/CardFrameConfigs';
+import { getStudioFrameById } from '../frames/CardFrameConfigs';
 import { calculateFlexibleCardSize, type CardOrientation } from '@/utils/cardDimensions';
 
 interface CardPreviewRendererProps {
@@ -23,7 +23,7 @@ export const CardPreviewRenderer: React.FC<CardPreviewRendererProps> = ({
   showImageControls
 }) => {
   const cardDimensions = calculateFlexibleCardSize(400, 500, orientation, 3, 0.5);
-  const frameConfig = selectedFrame ? getFrameById(selectedFrame) : null;
+  const frameConfig = selectedFrame ? getStudioFrameById(selectedFrame) : null;
 
   if (uploadedImage && frameConfig) {
     return (
