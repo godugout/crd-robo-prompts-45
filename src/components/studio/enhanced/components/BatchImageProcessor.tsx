@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -72,7 +71,7 @@ export const BatchImageProcessor: React.FC<BatchImageProcessorProps> = ({
   };
 
   const processImage = async (item: BatchProcessingItem): Promise<string> => {
-    const img = new Image();
+    const img = document.createElement('img');
     img.crossOrigin = 'anonymous';
     
     await new Promise((resolve, reject) => {
