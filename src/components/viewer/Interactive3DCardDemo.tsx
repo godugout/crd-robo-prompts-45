@@ -2,13 +2,13 @@
 import React, { useState } from 'react';
 import { Interactive3DCard, type InteractionMode } from './Interactive3DCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Card as CardType } from '@/types/card';
+import type { CardData } from '@/types/card';
 
 export const Interactive3DCardDemo = () => {
   const [selectedMode, setSelectedMode] = useState<InteractionMode>('tilt');
 
   // Sample card data for demonstration
-  const sampleCard: CardType = {
+  const sampleCard: CardData = {
     id: 'demo-card',
     title: 'Sample CRD Card',
     description: 'Experience different 3D interaction modes with this demo card. Try switching between modes to see how each one feels!',
@@ -26,9 +26,7 @@ export const Interactive3DCardDemo = () => {
       print_available: false,
       pricing: { currency: 'USD' },
       distribution: { limited_edition: false }
-    },
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    }
   };
 
   return (

@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Image, Plus, FolderOpen, Palette, Sparkles } from "lucide-react";
+import { Home, Image, Plus, FolderOpen, Palette } from "lucide-react";
 
 export const NavLinks = () => {
   const location = useLocation();
@@ -26,20 +26,10 @@ export const NavLinks = () => {
       </Link>
       <Link 
         to="/cards/enhanced" 
-        className={`nav-item premium-nav-item ${isActive('/cards/enhanced') ? 'active' : ''} flex items-center gap-2 relative`}
-      >
-        <Sparkles className="w-4 h-4" />
-        Enhanced Studio
-        <span className="absolute -top-1 -right-1 bg-crd-green text-black text-xs px-1 rounded text-[10px] font-bold">
-          NEW
-        </span>
-      </Link>
-      <Link 
-        to="/cards/create" 
-        className={`nav-item ${isActive('/cards/create') ? 'active' : ''} flex items-center gap-2`}
+        className={`nav-item ${isActive('/cards/enhanced') ? 'active' : ''} flex items-center gap-2`}
       >
         <Plus className="w-4 h-4" />
-        Quick Create
+        Create
       </Link>
       <Link 
         to="/collections" 

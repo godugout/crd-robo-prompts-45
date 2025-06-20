@@ -1,48 +1,10 @@
 
 import { localStorageManager } from '../LocalStorageManager';
-
-export interface SavedCard {
-  id: string;
-  title: string;
-  image_url?: string;
-  template_id?: string;
-  design_metadata?: {
-    effects?: Record<string, any>;
-    crop?: any;
-    processing?: any;
-  };
-  rarity: string;
-  tags: string[];
-  creator_attribution: {
-    collaboration_type: string;
-  };
-  publishing_options: {
-    marketplace_listing: boolean;
-    crd_catalog_inclusion: boolean;
-    print_available: boolean;
-    pricing: {
-      currency: string;
-    };
-    distribution: {
-      limited_edition: boolean;
-    };
-  };
-  created_at?: string;
-  updated_at?: string;
-  sync_status?: 'pending' | 'synced' | 'failed';
-}
-
-export interface LocalCard extends SavedCard {
-  is_public?: boolean;
-  description?: string;
-  thumbnail_url?: string;
-  verification_status?: string;
-  print_metadata?: any;
-}
+import { LocalCard } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
 export class CardStorageAdapter {
   private static instance: CardStorageAdapter;
-  private keyPrefix = 'card-';
 
   private constructor() {}
 
@@ -53,101 +15,88 @@ export class CardStorageAdapter {
     return CardStorageAdapter.instance;
   }
 
-  public saveCard(card: SavedCard): void {
-    try {
-      const key = `${this.keyPrefix}${card.id}`;
-      const cardWithTimestamp = {
-        ...card,
-        updated_at: new Date().toISOString(),
-        sync_status: 'pending' as const
-      };
-      localStorageManager.setItem(key, cardWithTimestamp, 'cards', 'high');
-      console.log('💾 Card saved:', card.id);
-    } catch (error) {
-      console.error('❌ Failed to save card:', error);
-    }
-  }
-
-  public getCard(id: string): SavedCard | null {
-    try {
-      const key = `${this.keyPrefix}${id}`;
-      return localStorageManager.getItem<SavedCard>(key);
-    } catch (error) {
-      console.error('❌ Failed to retrieve card:', error);
-      return null;
-    }
-  }
-
-  public removeCard(id: string): void {
-    try {
-      const key = `${this.keyPrefix}${id}`;
-      localStorageManager.removeItem(key);
-      console.log('🗑️ Card removed:', id);
-    } catch (error) {
-      console.error('❌ Failed to remove card:', error);
-    }
-  }
-
-  public deleteCard(id: string): void {
-    this.removeCard(id);
-  }
-
-  public getAllCards(): SavedCard[] {
-    const cards: SavedCard[] = [];
+  public saveCard(cardData: Partial<LocalCard>): string {
+    const cardId = cardData.id || uuidv4();
     
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key?.startsWith(this.keyPrefix)) {
-          const card = localStorageManager.getItem<SavedCard>(key);
-          if (card) {
-            cards.push(card);
-          }
-        }
+    const card: LocalCard = {
+      id: cardId,
+      title: cardData.title || 'Untitled Card',
+      description: cardData.description,
+      image_url: cardData.image_url,
+      thumbnail_url: cardData.thumbnail_url,
+      design_metadata: cardData.design_metadata || {},
+      rarity: cardData.rarity || 'common',
+      tags: cardData.tags || [],
+      template_id: cardData.template_id,
+      creator_attribution: cardData.creator_attribution || { collaboration_type: 'solo' },
+      publishing_options: cardData.publishing_options || {
+        marketplace_listing: false,
+        crd_catalog_inclusion: true,
+        print_available: false,
+        pricing: { currency: 'USD' },
+        distribution: { limited_edition: false }
+      },
+      print_metadata: cardData.print_metadata || {},
+      is_public: cardData.is_public || false,
+      lastModified: Date.now(),
+      needsSync: true,
+      isLocal: true
+    };
+
+    const key = `crd_card_${cardId}`;
+    localStorageManager.setItem(key, card, 'cards', 'high');
+    
+    console.log('Card saved via unified storage:', cardId);
+    return cardId;
+  }
+
+  public getCard(id: string): LocalCard | null {
+    const key = `crd_card_${id}`;
+    return localStorageManager.getItem<LocalCard>(key);
+  }
+
+  public getAllCards(): Record<string, LocalCard> {
+    const cardItems = localStorageManager.getItemsByType('cards');
+    const cards: Record<string, LocalCard> = {};
+    
+    cardItems.forEach(item => {
+      const card = localStorageManager.getItem<LocalCard>(item.key);
+      if (card) {
+        cards[card.id] = card;
       }
-    } catch (error) {
-      console.error('❌ Failed to retrieve all cards:', error);
-    }
+    });
     
     return cards;
   }
 
-  public getCardsNeedingSync(): SavedCard[] {
-    return this.getAllCards().filter(card => 
-      card.sync_status === 'pending' || card.sync_status === 'failed'
-    );
+  public getCardsNeedingSync(): LocalCard[] {
+    const cards = this.getAllCards();
+    return Object.values(cards).filter(card => card.needsSync);
   }
 
-  public markAsSynced(cardId: string): void {
-    try {
-      const card = this.getCard(cardId);
-      if (card) {
-        const updatedCard = {
-          ...card,
-          sync_status: 'synced' as const,
-          updated_at: new Date().toISOString()
-        };
-        this.saveCard(updatedCard);
-        console.log('✅ Card marked as synced:', cardId);
-      }
-    } catch (error) {
-      console.error('❌ Failed to mark card as synced:', error);
+  public markAsSynced(id: string): void {
+    const card = this.getCard(id);
+    if (card) {
+      card.needsSync = false;
+      card.isLocal = false;
+      const key = `crd_card_${id}`;
+      localStorageManager.setItem(key, card, 'cards', 'high');
+      console.log('Card marked as synced:', id);
     }
   }
 
-  public isRecentlyModified(cardId: string, thresholdMinutes: number = 30): boolean {
-    try {
-      const card = this.getCard(cardId);
-      if (!card || !card.updated_at) return false;
-      
-      const updatedAt = new Date(card.updated_at);
-      const threshold = new Date(Date.now() - thresholdMinutes * 60 * 1000);
-      
-      return updatedAt > threshold;
-    } catch (error) {
-      console.error('❌ Failed to check if card is recently modified:', error);
-      return false;
-    }
+  public deleteCard(id: string): void {
+    const key = `crd_card_${id}`;
+    localStorageManager.removeItem(key);
+    console.log('Card deleted from unified storage:', id);
+  }
+
+  public isRecentlyModified(id: string, thresholdSeconds: number = 30): boolean {
+    const card = this.getCard(id);
+    if (!card) return false;
+    
+    const timeDiff = (Date.now() - card.lastModified) / 1000;
+    return timeDiff < thresholdSeconds;
   }
 }
 

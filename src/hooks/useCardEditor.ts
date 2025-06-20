@@ -4,10 +4,34 @@ import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import type { CardData, CardRarity, CardVisibility, CreatorAttribution, PublishingOptions } from '@/types/card';
 
-// Re-export types for backwards compatibility
-export type { CardData, CardRarity, CardVisibility, CreatorAttribution, PublishingOptions } from '@/types/card';
+export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type CardVisibility = 'private' | 'public' | 'shared';
+
+export interface CreatorAttribution {
+  creator_name?: string;
+  creator_id?: string;
+  collaboration_type?: 'solo' | 'collaboration' | 'commission';
+  additional_credits?: Array<{
+    name: string;
+    role: string;
+  }>;
+}
+
+export interface PublishingOptions {
+  marketplace_listing: boolean;
+  crd_catalog_inclusion: boolean;
+  print_available: boolean;
+  pricing?: {
+    base_price?: number;
+    print_price?: number;
+    currency: string;
+  };
+  distribution?: {
+    limited_edition: boolean;
+    edition_size?: number;
+  };
+}
 
 export interface DesignTemplate {
   id: string;
@@ -19,6 +43,33 @@ export interface DesignTemplate {
   is_premium: boolean;
   usage_count: number;
   tags: string[];
+}
+
+export interface CardData {
+  id?: string;
+  title: string;
+  description?: string;
+  rarity: CardRarity;
+  tags: string[];
+  image_url?: string;
+  thumbnail_url?: string;
+  design_metadata: Record<string, any>;
+  visibility: CardVisibility;
+  is_public?: boolean;
+  shop_id?: string;
+  template_id?: string;
+  collection_id?: string;
+  team_id?: string;
+  creator_attribution: CreatorAttribution;
+  publishing_options: PublishingOptions;
+  verification_status?: 'pending' | 'verified' | 'rejected';
+  print_metadata?: Record<string, any>;
+  creator_id?: string;
+  price?: number;
+  edition_size?: number;
+  marketplace_listing?: boolean;
+  crd_catalog_inclusion?: boolean;
+  print_available?: boolean;
 }
 
 export interface UseCardEditorOptions {
@@ -63,15 +114,12 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
         limited_edition: false
       }
     },
-    user_id: user?.id,
-    creator_id: initialData.creator_id || user?.id,
+    creator_id: user?.id,
     price: initialData.price,
-    created_at: initialData.created_at,
-    updated_at: initialData.updated_at,
-    shop_id: initialData.shop_id,
-    collection_id: initialData.collection_id,
-    team_id: initialData.team_id,
-    print_metadata: initialData.print_metadata || {}
+    edition_size: initialData.edition_size || 1,
+    marketplace_listing: initialData.marketplace_listing || false,
+    crd_catalog_inclusion: initialData.crd_catalog_inclusion !== false,
+    print_available: initialData.print_available || false
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -79,10 +127,10 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
-    if (user?.id && !cardData.user_id) {
-      setCardData(prev => ({ ...prev, user_id: user.id, creator_id: user.id }));
+    if (user?.id && !cardData.creator_id) {
+      setCardData(prev => ({ ...prev, creator_id: user.id }));
     }
-  }, [user?.id, cardData.user_id]);
+  }, [user?.id, cardData.creator_id]);
 
   const updateCardField = <K extends keyof CardData>(field: K, value: CardData[K]) => {
     setCardData(prev => ({ ...prev, [field]: value }));
@@ -129,8 +177,7 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     const finalCardData = {
       ...cardData,
       title: cardData.title?.trim() || 'My New Card',
-      user_id: user.id,
-      creator_id: user.id // Ensure creator_id is set
+      creator_id: user.id
     };
 
     setIsSaving(true);
@@ -146,25 +193,21 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
         thumbnail_url: finalCardData.thumbnail_url || null,
         design_metadata: finalCardData.design_metadata as any,
         is_public: finalCardData.visibility === 'public',
+        shop_id: finalCardData.shop_id || null,
         // Only set template_id if it's a valid UUID, otherwise store in design_metadata
         template_id: (finalCardData.template_id && isValidUUID(finalCardData.template_id)) ? finalCardData.template_id : null,
+        collection_id: finalCardData.collection_id || null,
+        team_id: finalCardData.team_id || null,
         creator_attribution: finalCardData.creator_attribution as any,
         publishing_options: finalCardData.publishing_options as any,
-        user_id: user.id,
-        creator_id: user.id, // Add creator_id for database
+        verification_status: finalCardData.verification_status || 'pending',
+        print_metadata: finalCardData.print_metadata as any,
+        creator_id: user.id,
         price: finalCardData.price || null,
-        created_at: finalCardData.created_at,
-        updated_at: finalCardData.updated_at,
-        // Only include optional fields if they have valid values
-        shop_id: (finalCardData.shop_id && isValidUUID(finalCardData.shop_id)) ? finalCardData.shop_id : null,
-        collection_id: (finalCardData.collection_id && isValidUUID(finalCardData.collection_id)) ? finalCardData.collection_id : null,
-        team_id: (finalCardData.team_id && isValidUUID(finalCardData.team_id)) ? finalCardData.team_id : null,
-        print_metadata: finalCardData.print_metadata || {},
-        edition_size: 1,
-        marketplace_listing: false,
-        print_available: false,
-        crd_catalog_inclusion: true,
-        verification_status: 'pending'
+        edition_size: finalCardData.edition_size || 1,
+        marketplace_listing: finalCardData.marketplace_listing || false,
+        crd_catalog_inclusion: finalCardData.crd_catalog_inclusion !== false,
+        print_available: finalCardData.print_available || false
       };
 
       // If template_id is not a valid UUID, store it in design_metadata instead

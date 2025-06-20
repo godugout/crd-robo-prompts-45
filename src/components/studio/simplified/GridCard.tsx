@@ -76,7 +76,6 @@ export const GridCard: React.FC<GridCardProps> = ({
       <div className="w-full h-full rounded-xl overflow-hidden bg-[#1a1a1d] border border-[#27272a] transition-all duration-300 group-hover:border-[#3f3f46]">
         <FrameRenderer
           frameId={card.cardData.template_id || 'classic-sports'}
-          title={card.cardData.title || 'Untitled Card'}
           cardData={card.cardData}
           imageUrl={card.currentPhoto}
           width={280}

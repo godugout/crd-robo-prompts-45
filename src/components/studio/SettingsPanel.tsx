@@ -1,14 +1,26 @@
 
-import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Settings, 
+  Download, 
+  Upload, 
+  RotateCcw, 
+  Save, 
+  Clock,
+  Palette,
+  Monitor,
+  Smartphone,
+  HardDrive
+} from 'lucide-react';
 import { useCreatorSettings } from '@/hooks/useCreatorSettings';
-import { Settings, Download, Upload, RotateCcw } from 'lucide-react';
-import { toast } from 'sonner';
+import { localStorageManager } from '@/lib/storage/LocalStorageManager';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -24,190 +36,288 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     updatePreferences,
     updateUIState,
     exportSettings,
+    importSettings,
     resetSettings
   } = useCreatorSettings();
+  
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const debugInfo = localStorageManager.getDebugInfo();
 
-  const handleAutoSaveIntervalChange = (value: number[]) => {
-    updatePreferences({ autoSaveInterval: value[0] * 1000 });
-  };
+  if (!isOpen) return null;
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const imported = JSON.parse(e.target?.result as string);
-          // This would be handled by importSettings if we implement it
-          toast.success('Settings imported successfully');
-        } catch (error) {
-          toast.error('Failed to import settings');
-        }
-      };
-      reader.readAsText(file);
+      setImportFile(file);
+      importSettings(file);
     }
   };
 
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-editor-dark border-editor-border max-w-md max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-white flex items-center">
-            <Settings className="w-5 h-5 mr-2" />
-            Creator Settings
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Auto-save Settings */}
-          <div className="space-y-4">
-            <h3 className="text-white font-medium">Auto-save</h3>
-            
-            <div className="flex items-center justify-between">
-              <Label htmlFor="auto-save" className="text-crd-lightGray">
-                Enable auto-save
-              </Label>
-              <Switch
-                id="auto-save"
-                checked={settings.preferences.autoSave}
-                onCheckedChange={(checked) => updatePreferences({ autoSave: checked })}
-              />
-            </div>
-
-            {settings.preferences.autoSave && (
-              <div className="space-y-2">
-                <Label className="text-crd-lightGray">
-                  Auto-save interval: {settings.preferences.autoSaveInterval / 1000}s
-                </Label>
-                <Slider
-                  value={[settings.preferences.autoSaveInterval / 1000]}
-                  onValueChange={handleAutoSaveIntervalChange}
-                  max={120}
-                  min={10}
-                  step={5}
-                  className="w-full"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* UI Preferences */}
-          <div className="space-y-4">
-            <h3 className="text-white font-medium">Interface</h3>
-            
-            <div className="space-y-2">
-              <Label className="text-crd-lightGray">Preferred Layout</Label>
-              <Select
-                value={settings.preferences.preferredLayout}
-                onValueChange={(value: 'grid' | 'list') => 
-                  updatePreferences({ preferredLayout: value })
-                }
-              >
-                <SelectTrigger className="bg-editor-tool border-editor-border text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-editor-tool border-editor-border">
-                  <SelectItem value="grid">Grid</SelectItem>
-                  <SelectItem value="list">List</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-crd-lightGray">View Mode</Label>
-              <Select
-                value={settings.uiState.viewMode}
-                onValueChange={(value: '2d' | '3d') => 
-                  updateUIState({ viewMode: value })
-                }
-              >
-                <SelectTrigger className="bg-editor-tool border-editor-border text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-editor-tool border-editor-border">
-                  <SelectItem value="2d">2D Preview</SelectItem>
-                  <SelectItem value="3d">3D Preview</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="show-tips" className="text-crd-lightGray">
-                Show helpful tips
-              </Label>
-              <Switch
-                id="show-tips"
-                checked={settings.preferences.showTips}
-                onCheckedChange={(checked) => updatePreferences({ showTips: checked })}
-              />
-            </div>
-          </div>
-
-          {/* Data Management */}
-          <div className="space-y-4">
-            <h3 className="text-white font-medium">Data Management</h3>
-            
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                onClick={exportSettings}
-                variant="outline"
-                size="sm"
-                className="border-editor-border text-white hover:bg-editor-border"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-              
-              <Button
-                onClick={() => document.getElementById('import-settings')?.click()}
-                variant="outline"
-                size="sm"
-                className="border-editor-border text-white hover:bg-editor-border"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Import
-              </Button>
-            </div>
-            
-            <input
-              id="import-settings"
-              type="file"
-              accept=".json"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <Card className="bg-editor-dark border-editor-border w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <CardHeader className="border-b border-editor-border">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-white flex items-center">
+              <Settings className="w-5 h-5 mr-2" />
+              Creator Settings
+            </CardTitle>
             <Button
-              onClick={resetSettings}
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="w-full border-red-500/50 text-red-400 hover:bg-red-500/10"
+              onClick={onClose}
+              className="text-white hover:bg-editor-border"
             >
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Reset to Defaults
+              ✕
             </Button>
           </div>
+        </CardHeader>
 
-          {/* Session Info */}
-          <div className="space-y-2 p-3 bg-editor-tool rounded-lg">
-            <h4 className="text-white font-medium text-sm">Session Info</h4>
-            <div className="text-xs text-crd-lightGray space-y-1">
-              <div>Recent Items: {
-                settings.recentItems.frames.length +
-                settings.recentItems.effects.length +
-                settings.recentItems.templates.length +
-                settings.recentItems.uploads.length
-              }</div>
-              <div>Favorites: {
-                settings.favorites.frames.length +
-                settings.favorites.effects.length +
-                settings.favorites.templates.length
-              }</div>
-              <div>Last Saved: {new Date(settings.lastSaved).toLocaleString()}</div>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        <CardContent className="p-0 overflow-y-auto max-h-[calc(90vh-80px)]">
+          <Tabs defaultValue="preferences" className="w-full">
+            <TabsList className="grid w-full grid-cols-4 bg-editor-tool">
+              <TabsTrigger value="preferences" className="data-[state=active]:bg-crd-green data-[state=active]:text-black">
+                <Palette className="w-4 h-4 mr-2" />
+                Preferences
+              </TabsTrigger>
+              <TabsTrigger value="ui" className="data-[state=active]:bg-crd-green data-[state=active]:text-black">
+                <Monitor className="w-4 h-4 mr-2" />
+                Interface
+              </TabsTrigger>
+              <TabsTrigger value="storage" className="data-[state=active]:bg-crd-green data-[state=active]:text-black">
+                <HardDrive className="w-4 h-4 mr-2" />
+                Storage
+              </TabsTrigger>
+              <TabsTrigger value="backup" className="data-[state=active]:bg-crd-green data-[state=active]:text-black">
+                <Save className="w-4 h-4 mr-2" />
+                Backup
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="preferences" className="p-6 space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-white">Auto-save</Label>
+                    <p className="text-crd-lightGray text-sm">Automatically save your work</p>
+                  </div>
+                  <Switch
+                    checked={settings.preferences.autoSave}
+                    onCheckedChange={(checked) => updatePreferences({ autoSave: checked })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Auto-save Interval (seconds)</Label>
+                  <Slider
+                    value={[settings.preferences.autoSaveInterval / 1000]}
+                    onValueChange={(value) => updatePreferences({ autoSaveInterval: value[0] * 1000 })}
+                    min={10}
+                    max={300}
+                    step={10}
+                    className="w-full"
+                  />
+                  <div className="text-crd-lightGray text-sm">
+                    {settings.preferences.autoSaveInterval / 1000} seconds
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-white">Show Tips</Label>
+                    <p className="text-crd-lightGray text-sm">Display helpful tips and tutorials</p>
+                  </div>
+                  <Switch
+                    checked={settings.preferences.showTips}
+                    onCheckedChange={(checked) => updatePreferences({ showTips: checked })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Default Layout</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={settings.preferences.preferredLayout === 'grid' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => updatePreferences({ preferredLayout: 'grid' })}
+                      className={settings.preferences.preferredLayout === 'grid' ? 'bg-crd-green text-black' : ''}
+                    >
+                      Grid
+                    </Button>
+                    <Button
+                      variant={settings.preferences.preferredLayout === 'list' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => updatePreferences({ preferredLayout: 'list' })}
+                      className={settings.preferences.preferredLayout === 'list' ? 'bg-crd-green text-black' : ''}
+                    >
+                      List
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="ui" className="p-6 space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-white">Collapse Sidebar</Label>
+                    <p className="text-crd-lightGray text-sm">Start with sidebar collapsed</p>
+                  </div>
+                  <Switch
+                    checked={settings.uiState.sidebarCollapsed}
+                    onCheckedChange={(checked) => updateUIState({ sidebarCollapsed: checked })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Default View Mode</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={settings.uiState.viewMode === '2d' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => updateUIState({ viewMode: '2d' })}
+                      className={settings.uiState.viewMode === '2d' ? 'bg-crd-green text-black' : ''}
+                    >
+                      <Smartphone className="w-4 h-4 mr-2" />
+                      2D
+                    </Button>
+                    <Button
+                      variant={settings.uiState.viewMode === '3d' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => updateUIState({ viewMode: '3d' })}
+                      className={settings.uiState.viewMode === '3d' ? 'bg-crd-green text-black' : ''}
+                    >
+                      <Monitor className="w-4 h-4 mr-2" />
+                      3D
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Default Zoom Level</Label>
+                  <Slider
+                    value={[settings.uiState.zoomLevel]}
+                    onValueChange={(value) => updateUIState({ zoomLevel: value[0] })}
+                    min={0.5}
+                    max={3}
+                    step={0.1}
+                    className="w-full"
+                  />
+                  <div className="text-crd-lightGray text-sm">
+                    {Math.round(settings.uiState.zoomLevel * 100)}%
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="storage" className="p-6 space-y-6">
+              <div className="space-y-4">
+                <div className="bg-editor-tool rounded-lg p-4">
+                  <h3 className="text-white font-medium mb-3">Storage Overview</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <div className="text-crd-lightGray">Total Items</div>
+                      <div className="text-white font-medium">{debugInfo.totalItems}</div>
+                    </div>
+                    <div>
+                      <div className="text-crd-lightGray">Pending Sync</div>
+                      <div className="text-white font-medium">{debugInfo.pendingSync}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-editor-tool rounded-lg p-4">
+                  <h3 className="text-white font-medium mb-3">Recent Items</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-crd-lightGray">Recent Frames</span>
+                      <span className="text-white">{settings.recentItems.frames.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-crd-lightGray">Recent Effects</span>
+                      <span className="text-white">{settings.recentItems.effects.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-crd-lightGray">Recent Uploads</span>
+                      <span className="text-white">{settings.recentItems.uploads.length}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-editor-tool rounded-lg p-4">
+                  <h3 className="text-white font-medium mb-3">Favorites</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-crd-lightGray">Favorite Frames</span>
+                      <span className="text-white">{settings.favorites.frames.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-crd-lightGray">Favorite Effects</span>
+                      <span className="text-white">{settings.favorites.effects.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-crd-lightGray">Favorite Templates</span>
+                      <span className="text-white">{settings.favorites.templates.length}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="backup" className="p-6 space-y-6">
+              <div className="space-y-4">
+                <div className="bg-editor-tool rounded-lg p-4">
+                  <h3 className="text-white font-medium mb-3 flex items-center">
+                    <Clock className="w-4 h-4 mr-2" />
+                    Last Saved
+                  </h3>
+                  <div className="text-crd-lightGray text-sm">
+                    {new Date(settings.lastSaved).toLocaleString()}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    onClick={exportSettings}
+                    className="w-full bg-crd-green hover:bg-crd-green/90 text-black"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export Settings
+                  </Button>
+
+                  <div className="space-y-2">
+                    <Label className="text-white">Import Settings</Label>
+                    <Input
+                      type="file"
+                      accept=".json"
+                      onChange={handleImportFile}
+                      className="bg-editor-tool border-editor-border text-white file:bg-crd-green file:text-black file:border-none file:rounded file:px-3 file:py-1"
+                    />
+                  </div>
+
+                  <Button
+                    onClick={resetSettings}
+                    variant="outline"
+                    className="w-full border-red-500 text-red-400 hover:bg-red-500/10"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Reset to Defaults
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   );
 };

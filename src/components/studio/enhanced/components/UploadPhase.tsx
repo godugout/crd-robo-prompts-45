@@ -1,422 +1,549 @@
 
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, Image, ToggleLeft, Loader2, CheckCircle2, RotateCcw, Smartphone, Monitor, Wand2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { useDropzone } from 'react-dropzone';
+import { Upload, Camera, Crop, X, Wand2, AlertCircle, ArrowLeft, Save, Clock } from 'lucide-react';
 import { toast } from 'sonner';
-import { MediaManager } from '@/lib/storage/MediaManager';
-import { ImageProcessingPanel } from './ImageProcessingPanel';
-import { BatchImageProcessor } from './BatchImageProcessor';
-
-type CardOrientation = 'portrait' | 'landscape';
+import { InlineCropInterface } from './InlineCropInterface';
+import { localStorageManager } from '@/lib/storage/LocalStorageManager';
+import { useCreatorSettings } from '@/hooks/useCreatorSettings';
 
 interface UploadPhaseProps {
-  uploadedImage: string;
-  onImageUpload: (imageUrl: string) => Promise<void>;
-  isProcessing: boolean;
-  error: string;
-  showBackgroundRemoval: boolean;
-  onToggleBackgroundRemoval: () => void;
-  cardOrientation?: CardOrientation;
-  onOrientationChange?: (orientation: CardOrientation) => void;
+  uploadedImage?: string;
+  onImageUpload: (imageUrl: string) => void;
+  onCropImage?: () => void;
+}
+
+interface UploadSession {
+  id: string;
+  originalFile?: {
+    name: string;
+    size: number;
+    type: string;
+  };
+  imageUrl: string;
+  cropSettings?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    aspectRatio: number;
+  };
+  enhancements?: Record<string, any>;
+  timestamp: number;
+  lastModified: number;
 }
 
 export const UploadPhase: React.FC<UploadPhaseProps> = ({
   uploadedImage,
   onImageUpload,
-  isProcessing,
-  error,
-  showBackgroundRemoval,
-  onToggleBackgroundRemoval,
-  cardOrientation = 'portrait',
-  onOrientationChange
+  onCropImage
 }) => {
-  const [selectedOrientation, setSelectedOrientation] = useState<CardOrientation>(cardOrientation);
-  const [detectedOrientation, setDetectedOrientation] = useState<CardOrientation | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [showAdvancedProcessing, setShowAdvancedProcessing] = useState(false);
-  const [showBatchProcessor, setShowBatchProcessor] = useState(false);
+  const { addToRecent } = useCreatorSettings();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStep, setProcessingStep] = useState('');
+  const [progress, setProgress] = useState(0);
+  const [cropMode, setCropMode] = useState(false);
   const [uploadError, setUploadError] = useState<string>('');
+  const [blobUrl, setBlobUrl] = useState<string>('');
+  const [currentSession, setCurrentSession] = useState<UploadSession | null>(null);
 
-  const analyzeImageOrientation = (file: File): Promise<CardOrientation> => {
-    return new Promise((resolve) => {
-      const img = document.createElement('img');
-      img.onload = () => {
-        const aspectRatio = img.naturalWidth / img.naturalHeight;
-        const suggestedOrientation: CardOrientation = aspectRatio > 1 ? 'landscape' : 'portrait';
-        setDetectedOrientation(suggestedOrientation);
-        setSelectedOrientation(suggestedOrientation);
-        onOrientationChange?.(suggestedOrientation);
-        resolve(suggestedOrientation);
-        URL.revokeObjectURL(img.src);
-      };
-      img.src = URL.createObjectURL(file);
-    });
-  };
+  // Session management
+  const sessionKey = 'current-upload-session';
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (!file) return;
+  // Load session on mount
+  useEffect(() => {
+    const savedSession = localStorageManager.getItem<UploadSession>(sessionKey);
+    if (savedSession) {
+      // Check if blob URL is still valid
+      if (savedSession.imageUrl.startsWith('blob:')) {
+        const testImg = new Image();
+        testImg.onload = () => {
+          setCurrentSession(savedSession);
+          setBlobUrl(savedSession.imageUrl);
+          if (uploadedImage !== savedSession.imageUrl) {
+            onImageUpload(savedSession.imageUrl);
+          }
+        };
+        testImg.onerror = () => {
+          // Blob URL is invalid, clear session
+          localStorageManager.removeItem(sessionKey);
+        };
+        testImg.src = savedSession.imageUrl;
+      } else {
+        setCurrentSession(savedSession);
+        setBlobUrl(savedSession.imageUrl);
+      }
+    }
+  }, [onImageUpload, uploadedImage]);
 
-    // Clear any previous errors
+  // Save session
+  const saveSession = useCallback((session: UploadSession) => {
+    localStorageManager.setItem(
+      sessionKey,
+      session,
+      'uploads',
+      'high'
+    );
+    setCurrentSession(session);
+  }, []);
+
+  // Cleanup blob URLs when component unmounts or URL changes
+  useEffect(() => {
+    return () => {
+      if (blobUrl && blobUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(blobUrl);
+      }
+    };
+  }, [blobUrl]);
+
+  const onDrop = useCallback(async (acceptedFiles: File[], rejectedFiles: any[]) => {
+    console.log('UploadPhase - onDrop called', { acceptedFiles, rejectedFiles });
+    
+    // Clear previous errors and cleanup old blob URL
     setUploadError('');
-    setUploadProgress(0);
-
-    // Validate file size
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-      const errorMsg = 'File too large. Please choose an image under 10MB.';
-      setUploadError(errorMsg);
-      toast.error(errorMsg);
+    if (blobUrl && blobUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(blobUrl);
+    }
+    
+    // Handle rejected files
+    if (rejectedFiles.length > 0) {
+      const error = rejectedFiles[0].errors[0];
+      const errorMessage = error.code === 'file-too-large' 
+        ? 'File is too large. Maximum size is 50MB.'
+        : error.code === 'file-invalid-type'
+        ? 'File type not supported. Please use JPG, PNG, WebP, or GIF.'
+        : 'File upload failed. Please try again.';
+      
+      setUploadError(errorMessage);
+      toast.error(errorMessage);
       return;
     }
 
-    console.log('🔄 Starting MediaManager upload process:', file.name, file.size);
-    
-    try {
-      // Analyze orientation first
-      await analyzeImageOrientation(file);
+    if (acceptedFiles.length > 0) {
+      const file = acceptedFiles[0];
+      console.log('UploadPhase - Processing file:', file.name, file.size, file.type);
       
-      // Upload using MediaManager with proper progress tracking
-      const mediaFile = await MediaManager.uploadFile(file, {
-        bucket: 'card-assets',
-        folder: 'studio-cards',
-        generateThumbnail: true,
-        optimize: true,
-        tags: ['studio-upload', 'card-image'],
-        metadata: {
-          originalName: file.name,
-          cardOrientation: selectedOrientation,
-          source: 'studio',
-          uploadTimestamp: Date.now()
-        },
-        onProgress: (progress) => {
-          console.log('📊 Upload progress:', progress);
-          setUploadProgress(progress);
+      setIsProcessing(true);
+      setProcessingStep('Uploading image...');
+      setProgress(25);
+
+      try {
+        // Create image URL from file
+        const imageUrl = URL.createObjectURL(file);
+        setBlobUrl(imageUrl); // Track for cleanup
+        console.log('UploadPhase - Created image URL:', imageUrl);
+        
+        setProcessingStep('Processing image...');
+        setProgress(75);
+        
+        // Simple validation - just check if it's a valid image file type
+        if (!file.type.startsWith('image/')) {
+          throw new Error('Invalid file type');
         }
-      });
+        
+        setProgress(100);
+        setProcessingStep('Upload complete!');
+        
+        // Create upload session
+        const session: UploadSession = {
+          id: `upload-${Date.now()}`,
+          originalFile: {
+            name: file.name,
+            size: file.size,
+            type: file.type
+          },
+          imageUrl,
+          timestamp: Date.now(),
+          lastModified: Date.now()
+        };
 
-      if (!mediaFile) {
-        throw new Error('MediaManager returned null - upload failed');
+        // Save session and add to recent
+        saveSession(session);
+        addToRecent('uploads', { url: imageUrl, name: file.name, timestamp: Date.now() });
+        
+        // Call the parent handler
+        console.log('UploadPhase - Calling onImageUpload with:', imageUrl);
+        onImageUpload(imageUrl);
+        
+        toast.success('Image uploaded and saved to session!');
+        
+      } catch (error) {
+        console.error('UploadPhase - Upload error:', error);
+        const errorMessage = 'Failed to upload image. Please try again.';
+        setUploadError(errorMessage);
+        toast.error(errorMessage);
+        
+        // Cleanup blob URL on error
+        if (blobUrl && blobUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(blobUrl);
+          setBlobUrl('');
+        }
+      } finally {
+        setIsProcessing(false);
+        setProgress(0);
+        setProcessingStep('');
       }
-
-      // Get the public URL from metadata first, then fallback to MediaManager
-      let publicUrl = mediaFile.metadata?.publicUrl;
-      if (!publicUrl) {
-        publicUrl = MediaManager.getPublicUrl(mediaFile.bucket_id, mediaFile.file_path);
-      }
-
-      console.log('✅ MediaManager upload completed successfully:', {
-        fileId: mediaFile.id,
-        publicUrl,
-        filePath: mediaFile.file_path,
-        bucket: mediaFile.bucket_id
-      });
-
-      // Call the upload handler with the public URL
-      await onImageUpload(publicUrl);
-      
-      setUploadProgress(100);
-      toast.success('Image uploaded successfully!', {
-        description: 'Ready for frame selection'
-      });
-
-    } catch (error) {
-      console.error('❌ MediaManager upload failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Upload failed - please try again';
-      setUploadError(errorMessage);
-      setUploadProgress(0);
-      toast.error(errorMessage, {
-        description: 'Please check your connection and try again'
-      });
     }
-  }, [onImageUpload, onOrientationChange, selectedOrientation]);
+  }, [onImageUpload, blobUrl, saveSession, addToRecent]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp']
+      'image/*': ['.jpeg', '.jpg', '.png', '.webp', '.gif']
     },
+    maxFiles: 1,
+    maxSize: 50 * 1024 * 1024, // 50MB
     multiple: false,
-    disabled: isProcessing
+    noClick: false,
+    noKeyboard: false
   });
 
-  const clearImage = () => {
-    console.log('🗑️ Clearing uploaded image');
-    onImageUpload('');
-    setDetectedOrientation(null);
-    setSelectedOrientation('portrait');
-    setUploadProgress(0);
-    setUploadError('');
-  };
+  const handleCropComplete = useCallback((croppedImageUrl: string) => {
+    console.log('UploadPhase - Crop completed:', croppedImageUrl);
+    
+    // Update session with crop data
+    if (currentSession) {
+      const updatedSession: UploadSession = {
+        ...currentSession,
+        imageUrl: croppedImageUrl,
+        lastModified: Date.now(),
+        cropSettings: {
+          x: 0, y: 0, width: 100, height: 100, aspectRatio: 2.5/3.5 // Placeholder values
+        }
+      };
+      saveSession(updatedSession);
+    }
 
-  const handleOrientationChange = (orientation: CardOrientation) => {
-    setSelectedOrientation(orientation);
-    onOrientationChange?.(orientation);
-  };
+    // Cleanup old blob URL before setting new one
+    if (blobUrl && blobUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(blobUrl);
+    }
+    setBlobUrl(croppedImageUrl);
+    onImageUpload(croppedImageUrl);
+    setCropMode(false);
+    toast.success('Image cropped and saved!');
+  }, [onImageUpload, blobUrl, currentSession, saveSession]);
 
-  const handleProcessingComplete = async (processedImageUrl: string) => {
-    await onImageUpload(processedImageUrl);
-    toast.success('Advanced processing complete!');
-  };
+  const handleCropCancel = useCallback(() => {
+    setCropMode(false);
+  }, []);
 
-  const handleBatchComplete = (processedImages: { original: File; processed: string }[]) => {
-    if (processedImages.length > 0) {
-      // Use the first processed image for now
-      handleProcessingComplete(processedImages[0].processed);
+  const handleCropImage = () => {
+    if (uploadedImage) {
+      console.log('UploadPhase - Entering crop mode for:', uploadedImage);
+      setCropMode(true);
+    } else {
+      toast.error('No image to crop');
     }
   };
 
-  // Trading card dimensions (2.5" x 3.5" ratio)
-  const dropzoneWidth = selectedOrientation === 'portrait' ? 300 : 420;
-  const dropzoneHeight = selectedOrientation === 'portrait' ? 420 : 300;
+  const handleRemoveImage = () => {
+    console.log('UploadPhase - Removing image');
+    // Cleanup blob URL
+    if (blobUrl && blobUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(blobUrl);
+    }
+    setBlobUrl('');
+    onImageUpload('');
+    setCropMode(false);
+    setUploadError('');
+    
+    // Clear session
+    localStorageManager.removeItem(sessionKey);
+    setCurrentSession(null);
+    
+    toast.success('Image removed and session cleared');
+  };
 
-  // Determine current error to display (prioritize upload errors)
-  const displayError = uploadError || error;
+  const handleReplaceImage = () => {
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  };
 
-  return (
-    <div className="p-6 space-y-6">
-      <div className="text-center">
-        <h3 className="text-white text-xl font-semibold mb-2">Upload Your Image</h3>
-        <p className="text-crd-lightGray text-sm">
-          Choose a high-quality image to create your trading card
-        </p>
-      </div>
+  const handleSaveSession = () => {
+    if (currentSession) {
+      const updatedSession = {
+        ...currentSession,
+        lastModified: Date.now()
+      };
+      saveSession(updatedSession);
+      toast.success('Session saved successfully!');
+    }
+  };
 
-      {/* Advanced Processing Toggle */}
-      <div className="flex items-center justify-center gap-4">
-        <Button
-          variant={showAdvancedProcessing ? "default" : "outline"}
-          size="sm"
-          onClick={() => setShowAdvancedProcessing(!showAdvancedProcessing)}
-          className={showAdvancedProcessing ? 'bg-crd-green text-black' : ''}
-        >
-          <Wand2 className="w-4 h-4 mr-2" />
-          Advanced Processing
-        </Button>
-        <Button
-          variant={showBatchProcessor ? "default" : "outline"}
-          size="sm"
-          onClick={() => setShowBatchProcessor(!showBatchProcessor)}
-          className={showBatchProcessor ? 'bg-crd-green text-black' : ''}
-        >
-          Batch Processor
-        </Button>
-      </div>
+  // Debug current state
+  React.useEffect(() => {
+    console.log('UploadPhase - Current state:', { 
+      uploadedImage, 
+      isProcessing, 
+      cropMode,
+      uploadError,
+      hasSession: !!currentSession
+    });
+  }, [uploadedImage, isProcessing, cropMode, uploadError, currentSession]);
 
-      {/* Advanced Processing Panel */}
-      {showAdvancedProcessing && uploadedImage && (
-        <ImageProcessingPanel
-          imageUrl={uploadedImage}
-          onProcessingComplete={handleProcessingComplete}
-        />
-      )}
-
-      {/* Batch Processor */}
-      {showBatchProcessor && (
-        <BatchImageProcessor
-          onBatchComplete={handleBatchComplete}
-        />
-      )}
-
-      {/* Background Removal Toggle */}
-      <div className="flex items-center justify-between p-4 bg-editor-tool rounded-lg border border-editor-border">
-        <div>
-          <p className="text-white font-medium">AI Background Removal</p>
-          <p className="text-crd-lightGray text-sm">Automatically remove image background</p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onToggleBackgroundRemoval}
-          className={`${showBackgroundRemoval ? 'bg-crd-green text-black' : ''}`}
-        >
-          <ToggleLeft className="w-4 h-4 mr-2" />
-          {showBackgroundRemoval ? 'Enabled' : 'Disabled'}
-        </Button>
-      </div>
-
-      {/* Orientation Selection */}
-      {(uploadedImage || detectedOrientation) && (
-        <div className="space-y-3">
-          <p className="text-white font-medium text-sm">Card Orientation</p>
-          <div className="flex gap-2">
-            <Button
-              variant={selectedOrientation === 'portrait' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleOrientationChange('portrait')}
-              className={selectedOrientation === 'portrait' ? 'bg-crd-green text-black' : ''}
-            >
-              <Smartphone className="w-4 h-4 mr-2" />
-              Portrait (2.5" × 3.5")
-            </Button>
-            <Button
-              variant={selectedOrientation === 'landscape' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => handleOrientationChange('landscape')}
-              className={selectedOrientation === 'landscape' ? 'bg-crd-green text-black' : ''}
-            >
-              <Monitor className="w-4 h-4 mr-2" />
-              Landscape (3.5" × 2.5")
-            </Button>
-          </div>
-          {detectedOrientation && (
-            <p className="text-crd-lightGray text-xs">
-              Suggested: {detectedOrientation === 'portrait' ? 'Portrait' : 'Landscape'} 
-              (based on image dimensions)
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Trading Card Dropzone */}
-      <div className="flex justify-center">
-        <div
-          {...getRootProps()}
-          className={`
-            relative border-2 border-dashed rounded-lg cursor-pointer transition-all
-            ${isDragActive ? 'border-crd-green bg-crd-green/10' : 'border-editor-border hover:border-crd-green/50'}
-            ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
-          `}
-          style={{ 
-            width: `${dropzoneWidth}px`, 
-            height: `${dropzoneHeight}px`,
-            minWidth: `${dropzoneWidth}px`,
-            minHeight: `${dropzoneHeight}px`
-          }}
-        >
-          <input {...getInputProps()} />
-          
-          {/* Trading card frame border */}
-          <div className="absolute inset-2 border border-white/20 rounded-md pointer-events-none" />
-          <div className="absolute inset-4 border border-white/10 rounded-sm pointer-events-none" />
-          
-          {isProcessing ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 p-6">
-              <Loader2 className="w-12 h-12 text-crd-green animate-spin" />
-              <p className="text-white text-center">Uploading via MediaManager...</p>
-              {uploadProgress > 0 && (
-                <div className="w-full bg-gray-700 rounded-full h-2">
-                  <div 
-                    className="bg-crd-green h-2 rounded-full transition-all"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
-                </div>
-              )}
-              <p className="text-crd-lightGray text-sm text-center">
-                {uploadProgress > 0 ? `${uploadProgress}% complete` : 'Processing...'}
-              </p>
-            </div>
-          ) : uploadedImage ? (
-            <div className="relative w-full h-full rounded-lg overflow-hidden">
-              <img 
-                src={uploadedImage} 
-                alt="Uploaded card image" 
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
-              
-              {/* Success indicator */}
-              <div className="absolute top-3 right-3 w-8 h-8 bg-crd-green rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-black" />
-              </div>
-              
-              {/* Replace button */}
-              <div className="absolute bottom-3 left-3 right-3 flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    clearImage();
-                  }}
-                  className="flex-1 bg-black/80 border-white/20 text-white hover:bg-black/90"
-                >
-                  <RotateCcw className="w-3 h-3 mr-1" />
-                  Replace
-                </Button>
-              </div>
-              
-              {/* Card info overlay */}
-              <div className="absolute bottom-12 left-3 right-3">
-                <p className="text-white text-sm font-medium">
-                  {selectedOrientation === 'portrait' ? '2.5" × 3.5"' : '3.5" × 2.5"'} Trading Card
-                </p>
-                <p className="text-crd-lightGray text-xs">
-                  Stored in MediaManager • Ready for frames
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 p-6 text-center">
-              <div className="w-16 h-16 rounded-full bg-crd-green/20 flex items-center justify-center">
-                <Image className="w-8 h-8 text-crd-green" />
+  if (isProcessing) {
+    return (
+      <div className="space-y-4">
+        <Card className="bg-black/20 border-white/10">
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-crd-green/20 to-blue-500/20 flex items-center justify-center">
+                <Upload className="w-8 h-8 text-crd-green animate-pulse" />
               </div>
               <div>
-                <p className="text-white font-medium mb-2">
-                  {isDragActive ? 'Drop your image here...' : 'Upload Card Image'}
-                </p>
-                <p className="text-crd-lightGray text-sm">
-                  {isDragActive 
-                    ? 'Release to upload via MediaManager'
-                    : 'Drag & drop or click to browse'
-                  }
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-crd-lightGray mb-2">
-                  Trading Card Format: {selectedOrientation === 'portrait' ? '2.5" × 3.5"' : '3.5" × 2.5"'}
-                </p>
-                <p className="text-xs text-crd-lightGray">
-                  Supports PNG, JPG, JPEG, GIF, WebP (max 10MB)
-                </p>
+                <h3 className="text-white font-medium mb-2">{processingStep}</h3>
+                <Progress value={progress} className="w-full mb-2" />
+                <p className="text-gray-400 text-sm">{progress}% complete</p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show crop interface when in crop mode
+  if (cropMode && uploadedImage) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCropCancel}
+            className="text-white hover:bg-white/10 p-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <div>
+            <h3 className="text-white font-semibold">Crop Your Image</h3>
+            <p className="text-gray-400 text-sm">Adjust the crop area and apply when ready</p>
+          </div>
+        </div>
+        
+        <InlineCropInterface
+          imageUrl={uploadedImage}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          aspectRatio={2.5 / 3.5}
+        />
+      </div>
+    );
+  }
+
+  if (uploadedImage) {
+    return (
+      <div className="space-y-4">
+        <div className="text-sm text-gray-300 mb-4 flex items-center justify-between">
+          <span>Your image has been uploaded. You can crop, enhance, or replace it.</span>
+          {currentSession && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleSaveSession}
+              className="text-crd-green hover:bg-crd-green/10 text-xs"
+            >
+              <Save className="w-3 h-3 mr-1" />
+              Save Session
+            </Button>
           )}
         </div>
+
+        {/* Session Info */}
+        {currentSession && (
+          <Card className="bg-crd-green/10 border-crd-green/30">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center text-crd-green">
+                  <Clock className="w-3 h-3 mr-1" />
+                  Session Active
+                </div>
+                <div className="text-crd-green">
+                  {currentSession.originalFile?.name}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Image Preview */}
+        <Card className="bg-black/20 border-white/10">
+          <CardContent className="p-4">
+            <div className="relative aspect-[2.5/3.5] w-full max-w-xs mx-auto rounded-lg overflow-hidden">
+              <img
+                src={uploadedImage}
+                alt="Uploaded card image"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error('UploadPhase - Image failed to load:', uploadedImage);
+                  setUploadError('Failed to load image. Please try uploading again.');
+                }}
+                onLoad={() => {
+                  console.log('UploadPhase - Image loaded successfully');
+                  setUploadError(''); // Clear any previous errors
+                }}
+              />
+              
+              {/* Overlay controls */}
+              <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={handleCropImage}
+                  className="bg-crd-green/90 text-black hover:bg-crd-green"
+                >
+                  <Crop className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleRemoveImage}
+                  variant="destructive"
+                  className="bg-red-500/80 hover:bg-red-500"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Image Actions */}
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            onClick={handleCropImage}
+            className="bg-crd-green hover:bg-crd-green/90 text-black font-medium"
+          >
+            <Crop className="w-4 h-4 mr-2" />
+            Crop Image
+          </Button>
+          
+          <Button
+            onClick={handleReplaceImage}
+            variant="outline"
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Replace
+          </Button>
+        </div>
+
+        {/* Hidden file input for replace functionality */}
+        <div style={{ display: 'none' }}>
+          <input {...getInputProps()} />
+        </div>
+
+        {/* Image Info */}
+        <Card className="bg-black/20 border-white/10">
+          <CardContent className="p-4">
+            <h4 className="text-white font-medium text-sm mb-2">Image Details</h4>
+            <div className="space-y-1 text-xs text-gray-400">
+              {currentSession?.originalFile && (
+                <>
+                  <div>• File: {currentSession.originalFile.name}</div>
+                  <div>• Size: {Math.round(currentSession.originalFile.size / 1024)} KB</div>
+                  <div>• Type: {currentSession.originalFile.type}</div>
+                  <div>• Uploaded: {new Date(currentSession.timestamp).toLocaleTimeString()}</div>
+                </>
+              )}
+              <div>• Format: Detected automatically</div>
+              <div>• Quality: High resolution recommended</div>
+              <div>• Processing: Enhanced for best results</div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Upload interface
+  return (
+    <div className="space-y-4">
+      <div className="text-sm text-gray-300 mb-4">
+        Upload your image to get started. Supports JPG, PNG, WebP, and GIF formats.
       </div>
 
       {/* Error Display */}
-      {displayError && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-          <p className="text-red-400 text-sm font-medium">Upload Error</p>
-          <p className="text-red-300 text-sm">{displayError}</p>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => {
-              setUploadError('');
-              setUploadProgress(0);
-            }}
-            className="mt-2 text-red-400 border-red-400 hover:bg-red-400/10"
+      {uploadError && (
+        <Card className="bg-red-900/20 border-red-500/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-red-400">
+              <AlertCircle className="w-4 h-4" />
+              <span className="text-sm">{uploadError}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Drop Zone */}
+      <Card className="bg-black/20 border-white/10">
+        <CardContent className="p-6">
+          <div
+            {...getRootProps()}
+            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
+              isDragActive
+                ? 'border-crd-green bg-crd-green/10'
+                : uploadError
+                ? 'border-red-500/50 hover:border-red-400/50'
+                : 'border-white/30 hover:border-crd-green/50 hover:bg-white/5'
+            }`}
           >
-            Clear Error
-          </Button>
-        </div>
-      )}
+            <input {...getInputProps()} />
+            <div className="space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-crd-green/20 to-blue-500/20 flex items-center justify-center">
+                <Camera className="w-8 h-8 text-crd-green" />
+              </div>
+              
+              <div>
+                <h3 className="text-white text-lg font-medium mb-2">
+                  {isDragActive ? 'Drop your image here' : 'Upload Your Image'}
+                </h3>
+                <p className="text-gray-400 text-sm mb-4">
+                  {isDragActive
+                    ? 'Release to upload your image'
+                    : 'Drag and drop an image here, or click to browse'}
+                </p>
+              </div>
 
-      {/* Success Indicator */}
-      {uploadedImage && !isProcessing && !displayError && (
-        <div className="p-4 bg-crd-green/10 border border-crd-green/20 rounded-lg">
-          <p className="text-crd-green text-sm font-medium">✓ Image uploaded successfully!</p>
-          <p className="text-crd-lightGray text-sm">
-            File stored securely with MediaManager - ready for frame selection
-          </p>
-        </div>
-      )}
+              <Button 
+                className="bg-crd-green hover:bg-crd-green/90 text-black font-bold"
+                type="button"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Choose File
+              </Button>
 
-      {/* Tips */}
-      <div className="space-y-2">
-        <h4 className="text-white font-medium">Tips for best results:</h4>
-        <ul className="text-crd-lightGray text-sm space-y-1">
-          <li>• Use high-resolution images (1024x1024 or larger)</li>
-          <li>• Ensure good lighting and contrast</li>
-          <li>• Choose images with clear subjects</li>
-          <li>• Portrait orientation works best for player cards</li>
-          <li>• Landscape orientation works well for action shots</li>
-          <li>• Images are automatically optimized for web and storage</li>
-          <li>• Use Advanced Processing for AI-powered enhancements</li>
-        </ul>
-      </div>
+              <div className="text-xs text-gray-500 space-y-1">
+                <div>Supported: JPG, PNG, WebP, GIF</div>
+                <div>Maximum size: 50MB</div>
+                <div>Recommended: High resolution images work best</div>
+                <div className="text-crd-green">✓ Auto-save enabled</div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Upload Tips */}
+      <Card className="bg-black/20 border-white/10">
+        <CardContent className="p-4">
+          <h4 className="text-white font-medium text-sm mb-2 flex items-center">
+            <Wand2 className="w-4 h-4 mr-2 text-crd-green" />
+            Pro Tips
+          </h4>
+          <div className="space-y-1 text-xs text-gray-400">
+            <div>• Use high-resolution images for best quality</div>
+            <div>• Square or portrait orientation works best</div>
+            <div>• Clear, well-lit photos produce better results</div>
+            <div>• You can crop and adjust after uploading</div>
+            <div>• Your work is automatically saved and recoverable</div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

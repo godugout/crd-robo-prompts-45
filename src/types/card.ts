@@ -1,5 +1,4 @@
 
-
 export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type CardVisibility = 'private' | 'public' | 'shared';
 
@@ -28,50 +27,28 @@ export interface PublishingOptions {
   };
 }
 
-export interface Card {
-  id: string;
-  title: string;
-  description?: string;
-  image_url?: string;
-  thumbnail_url?: string;
-  template_id?: string;
-  rarity: CardRarity;
-  tags: string[];
-  visibility?: CardVisibility;
-  is_public?: boolean;
-  design_metadata?: Record<string, any>;
-  creator_attribution?: CreatorAttribution;
-  publishing_options?: PublishingOptions;
-  price?: number;
-  created_at: string;
-  updated_at: string;
-  user_id?: string;
-}
-
-// Enhanced CardData interface with all properties needed by the editor
 export interface CardData {
   id?: string;
   title: string;
   description?: string;
-  image_url?: string;
-  thumbnail_url?: string;
-  template_id?: string;
   rarity: CardRarity;
   tags: string[];
-  visibility?: CardVisibility;
+  image_url?: string;
+  thumbnail_url?: string;
+  design_metadata: Record<string, any>;
+  visibility: CardVisibility;
   is_public?: boolean;
-  design_metadata?: Record<string, any>;
-  creator_attribution?: CreatorAttribution;
-  publishing_options?: PublishingOptions;
-  price?: number;
-  created_at?: string;
-  updated_at?: string;
-  user_id?: string;
-  creator_id?: string;
-  shop_id?: string;
+  template_id?: string;
   collection_id?: string;
   team_id?: string;
+  creator_attribution: CreatorAttribution;
+  publishing_options: PublishingOptions;
+  verification_status?: 'pending' | 'verified' | 'rejected';
   print_metadata?: Record<string, any>;
+  creator_id?: string;
+  price?: number;
   edition_size?: number;
+  marketplace_listing?: boolean;
+  crd_catalog_inclusion?: boolean;
+  print_available?: boolean;
 }
-

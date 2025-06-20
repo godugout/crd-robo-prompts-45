@@ -1,5 +1,5 @@
 
-import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { TextureLoader } from 'three';
 import * as THREE from 'three';
@@ -11,7 +11,6 @@ import type { CardData } from '@/hooks/useCardEditor';
 interface Card3DMeshProps {
   cardData: CardData;
   imageUrl?: string;
-  selectedFrame?: string;
   effects: {
     holographic?: boolean;
     metalness?: number;
@@ -23,172 +22,21 @@ interface Card3DMeshProps {
     crystal?: boolean;
     vintage?: boolean;
   };
-  rotationEnabled?: boolean;
 }
-
-// Enhanced frame texture generator
-const createFrameTexture = (frameId: string): THREE.Texture => {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 716;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return new THREE.CanvasTexture(canvas);
-
-  // Clear canvas
-  ctx.clearRect(0, 0, 512, 716);
-
-  switch (frameId) {
-    case 'classic-sports':
-      // Gold metallic border with inner shadow
-      ctx.strokeStyle = '#d4af37';
-      ctx.lineWidth = 12;
-      ctx.strokeRect(8, 8, 496, 700);
-      
-      // Inner gold detail
-      ctx.strokeStyle = '#b8941f';
-      ctx.lineWidth = 4;
-      ctx.strokeRect(16, 16, 480, 684);
-      
-      // Corner decorations
-      ctx.fillStyle = '#d4af37';
-      [
-        [20, 20], [472, 20], [20, 676], [472, 676]
-      ].forEach(([x, y]) => {
-        ctx.fillRect(x, y, 20, 20);
-      });
-      break;
-
-    case 'vintage-ornate':
-      // Brown ornate frame with decorative pattern
-      ctx.strokeStyle = '#8b4513';
-      ctx.lineWidth = 16;
-      ctx.strokeRect(12, 12, 488, 692);
-      
-      // Ornate inner border
-      ctx.strokeStyle = '#a0522d';
-      ctx.lineWidth = 6;
-      ctx.strokeRect(20, 20, 472, 676);
-      
-      // Decorative corners
-      ctx.fillStyle = '#8b4513';
-      for (let i = 0; i < 4; i++) {
-        const x = i % 2 === 0 ? 25 : 462;
-        const y = i < 2 ? 25 : 666;
-        ctx.fillRect(x, y, 25, 25);
-        // Add corner detail
-        ctx.strokeStyle = '#654321';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x + 5, y + 5, 15, 15);
-      }
-      break;
-
-    case 'modern-clean':
-      // Minimalist white border
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.lineWidth = 6;
-      ctx.strokeRect(10, 10, 492, 696);
-      
-      // Subtle inner glow
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(14, 14, 484, 688);
-      break;
-
-    case 'premium-elite':
-      // Orange gradient border with glow effect
-      const gradient = ctx.createLinearGradient(0, 0, 512, 716);
-      gradient.addColorStop(0, '#ff4500');
-      gradient.addColorStop(0.5, '#ff6347');
-      gradient.addColorStop(1, '#ff4500');
-      
-      ctx.strokeStyle = gradient;
-      ctx.lineWidth = 10;
-      ctx.strokeRect(8, 8, 496, 700);
-      
-      // Inner shadow effect
-      ctx.strokeStyle = 'rgba(255, 69, 0, 0.5)';
-      ctx.lineWidth = 4;
-      ctx.strokeRect(16, 16, 480, 684);
-      break;
-
-    case 'collector-edition':
-      // Green collector frame with premium styling
-      ctx.strokeStyle = '#32cd32';
-      ctx.lineWidth = 8;
-      ctx.strokeRect(10, 10, 492, 696);
-      
-      // Premium accents
-      ctx.strokeStyle = '#228b22';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(6, 6, 500, 704);
-      ctx.strokeRect(18, 18, 476, 680);
-      break;
-
-    case 'championship':
-      // Silver championship frame
-      ctx.strokeStyle = '#c0c0c0';
-      ctx.lineWidth = 12;
-      ctx.strokeRect(8, 8, 496, 700);
-      
-      // Championship emblems in corners
-      ctx.fillStyle = '#c0c0c0';
-      [
-        [15, 15], [467, 15], [15, 671], [467, 671]
-      ].forEach(([x, y]) => {
-        ctx.beginPath();
-        ctx.arc(x + 15, y + 15, 15, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Star in center
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('★', x + 15, y + 20);
-        ctx.fillStyle = '#c0c0c0';
-      });
-      break;
-
-    default:
-      // Default minimal frame
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.lineWidth = 4;
-      ctx.strokeRect(8, 8, 496, 700);
-      break;
-  }
-
-  const texture = new THREE.CanvasTexture(canvas);
-  configureTextureForCard(texture);
-  return texture;
-};
 
 export const Card3DMesh: React.FC<Card3DMeshProps> = ({
   cardData,
   imageUrl,
-  selectedFrame,
-  effects,
-  rotationEnabled = true
+  effects
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   const [textureError, setTextureError] = useState(false);
-  const [textureLoading, setTextureLoading] = useState(false);
   
   // Card dimensions (trading card standard: 2.5" x 3.5")
   const cardWidth = 2.5;
   const cardHeight = 3.5;
   const cardThickness = 0.05;
-  
-  // Enhanced debug logging
-  const logTextureState = useCallback((context: string, url: string, error?: any) => {
-    console.log(`🖼️ Card3DMesh - ${context}:`, {
-      url: url ? `${url.substring(0, 50)}...` : 'None',
-      isBlobUrl: url?.startsWith('blob:'),
-      cardId: cardData.id,
-      selectedFrame,
-      error: error?.message,
-      timestamp: new Date().toISOString()
-    });
-  }, [cardData.id, selectedFrame]);
   
   // Create fallback texture
   const fallbackTexture = useMemo(() => {
@@ -212,100 +60,74 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
     configureTextureForCard(texture);
     return texture;
   }, []);
-
-  // Create frame overlay texture
-  const frameTexture = useMemo(() => {
-    if (!selectedFrame) return null;
-    return createFrameTexture(selectedFrame);
-  }, [selectedFrame]);
   
-  // Enhanced texture loading with comprehensive error handling
+  // Safe texture loading with error handling
+  const safeImageUrl = useMemo(() => {
+    // If imageUrl is a blob URL that might be invalid, validate it first
+    if (imageUrl && imageUrl.startsWith('blob:')) {
+      // For blob URLs, we'll handle errors in the useEffect below
+      return imageUrl;
+    }
+    // For regular URLs, use them directly or fallback
+    return imageUrl || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
+  }, [imageUrl]);
+  
+  // Load texture with proper error handling
   const [frontTexture, setFrontTexture] = useState<THREE.Texture>(fallbackTexture);
   
   useEffect(() => {
-    if (!imageUrl) {
-      logTextureState('No image URL provided', '');
+    if (!safeImageUrl || textureError) {
       setFrontTexture(fallbackTexture);
-      setTextureError(false);
-      setTextureLoading(false);
       return;
     }
 
-    setTextureLoading(true);
-    setTextureError(false);
-    logTextureState('Starting texture load', imageUrl);
-
     const loader = new TextureLoader();
     
-    // Enhanced blob URL validation
-    if (imageUrl.startsWith('blob:')) {
-      // Test blob URL validity first
+    // For blob URLs, validate first
+    if (safeImageUrl.startsWith('blob:')) {
+      // Test if blob URL is still valid by creating an image
       const testImg = new Image();
-      const validationTimeout = setTimeout(() => {
-        logTextureState('Blob validation timeout', imageUrl);
-        setTextureError(true);
-        setTextureLoading(false);
-        setFrontTexture(fallbackTexture);
-      }, 3000);
-      
       testImg.onload = () => {
-        clearTimeout(validationTimeout);
-        logTextureState('Blob URL validated successfully', imageUrl);
-        
-        // Proceed with Three.js texture loading
+        // Blob is valid, proceed with texture loading
         loader.load(
-          imageUrl,
+          safeImageUrl,
           (texture) => {
-            logTextureState('Texture loaded successfully', imageUrl);
             configureTextureForCard(texture);
             setFrontTexture(texture);
             setTextureError(false);
-            setTextureLoading(false);
           },
-          (progress) => {
-            console.log('📊 Texture loading progress:', progress);
-          },
+          undefined,
           (error) => {
-            logTextureState('Texture loading failed', imageUrl, error);
+            console.warn('Failed to load texture, using fallback:', error);
             setTextureError(true);
-            setTextureLoading(false);
             setFrontTexture(fallbackTexture);
           }
         );
       };
-      
-      testImg.onerror = (error) => {
-        clearTimeout(validationTimeout);
-        logTextureState('Blob URL validation failed', imageUrl, error);
+      testImg.onerror = () => {
+        console.warn('Blob URL is invalid, using fallback texture');
         setTextureError(true);
-        setTextureLoading(false);
         setFrontTexture(fallbackTexture);
       };
-      
-      testImg.src = imageUrl;
+      testImg.src = safeImageUrl;
     } else {
-      // Regular URL loading with enhanced error handling
+      // Regular URL loading
       loader.load(
-        imageUrl,
+        safeImageUrl,
         (texture) => {
-          logTextureState('Regular texture loaded successfully', imageUrl);
           configureTextureForCard(texture);
           setFrontTexture(texture);
           setTextureError(false);
-          setTextureLoading(false);
         },
-        (progress) => {
-          console.log('📊 Texture loading progress:', progress);
-        },
+        undefined,
         (error) => {
-          logTextureState('Regular texture loading failed', imageUrl, error);
+          console.warn('Failed to load texture, using fallback:', error);
           setTextureError(true);
-          setTextureLoading(false);
           setFrontTexture(fallbackTexture);
         }
       );
     }
-  }, [imageUrl, fallbackTexture, logTextureState]);
+  }, [safeImageUrl, fallbackTexture, textureError]);
   
   // Create card back texture
   const cardBackTexture = useMemo(() => {
@@ -345,36 +167,18 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
     return backTexture;
   }, []);
   
-  // Animation with rotation control
+  // Animation
   useFrame((state) => {
-    try {
-      if (meshRef.current) {
-        // Gentle floating animation
-        meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.03;
-        
-        // Auto-rotate only when enabled and not hovered
-        if (rotationEnabled && !hovered) {
-          meshRef.current.rotation.y += 0.002;
-        }
+    if (meshRef.current) {
+      // Gentle floating animation
+      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.03;
+      
+      // Auto-rotate when not hovered
+      if (!hovered) {
+        meshRef.current.rotation.y += 0.002;
       }
-    } catch (error) {
-      console.warn('🚨 Card3DMesh animation error:', error);
     }
   });
-  
-  // Log current state for debugging
-  useEffect(() => {
-    console.log('🎯 Card3DMesh state update:', {
-      hasImageUrl: !!imageUrl,
-      selectedFrame,
-      textureLoading,
-      textureError,
-      isUsingFallback: frontTexture === fallbackTexture,
-      cardTitle: cardData.title,
-      effects,
-      rotationEnabled
-    });
-  }, [imageUrl, selectedFrame, textureLoading, textureError, frontTexture, fallbackTexture, cardData.title, effects, rotationEnabled]);
   
   return (
     <group>
@@ -407,27 +211,12 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
             map={frontTexture}
             metalness={effects.metalness || 0.1}
             roughness={effects.roughness || 0.4}
-            transparent={false}
           />
         )}
         
         {/* Back face */}
         <meshStandardMaterial attach="material-5" map={cardBackTexture} />
       </mesh>
-
-      {/* Frame overlay - positioned slightly in front */}
-      {frameTexture && (
-        <mesh position={[0, 0, cardThickness / 2 + 0.002]}>
-          <planeGeometry args={[cardWidth, cardHeight]} />
-          <meshStandardMaterial 
-            map={frameTexture}
-            transparent={true}
-            opacity={0.95}
-            alphaTest={0.1}
-            side={THREE.FrontSide}
-          />
-        </mesh>
-      )}
       
       {/* Particle effects */}
       {effects.particles && (
@@ -449,18 +238,6 @@ export const Card3DMesh: React.FC<Card3DMeshProps> = ({
             color={effects.glowColor || '#00ffff'}
             transparent
             opacity={0.3}
-          />
-        </mesh>
-      )}
-      
-      {/* Loading indicator overlay */}
-      {textureLoading && (
-        <mesh position={[0, 0, 0.1]}>
-          <planeGeometry args={[cardWidth * 0.8, cardHeight * 0.8]} />
-          <meshBasicMaterial 
-            color="#ffffff"
-            transparent
-            opacity={0.1}
           />
         </mesh>
       )}

@@ -1,24 +1,7 @@
 
-import type { Card, CardRarity, PublishingOptions, CreatorAttribution } from '@/types/card';
+import type { CardData, CardRarity, PublishingOptions, CreatorAttribution } from '@/types/card';
 
-interface CardData {
-  id?: string;
-  title: string;
-  description?: string;
-  image_url?: string;
-  thumbnail_url?: string;
-  rarity: CardRarity;
-  tags: string[];
-  design_metadata?: Record<string, any>;
-  visibility?: 'private' | 'public';
-  is_public?: boolean;
-  creator_attribution?: CreatorAttribution;
-  publishing_options?: PublishingOptions;
-  created_at?: string;
-  updated_at?: string;
-}
-
-interface DatabaseCard {
+interface Card {
   id: string;
   title: string;
   description?: string;
@@ -27,16 +10,14 @@ interface DatabaseCard {
   creator_id: string;
   rarity: string;
   tags: string[];
-  design_metadata?: Record<string, any>;
+  design_metadata: Record<string, any>;
   is_public?: boolean;
   creator_attribution?: Record<string, any>;
   publishing_options?: Record<string, any>;
-  created_at?: string;
-  updated_at?: string;
 }
 
 export const useCardConversion = () => {
-  const convertCardsToCardData = (cards: DatabaseCard[]): CardData[] => {
+  const convertCardsToCardData = (cards: Card[]): CardData[] => {
     return cards.map(card => ({
       id: card.id,
       title: card.title,
@@ -59,9 +40,7 @@ export const useCardConversion = () => {
         print_available: false,
         pricing: { currency: 'USD' },
         distribution: { limited_edition: false }
-      }) as PublishingOptions,
-      created_at: card.created_at,
-      updated_at: card.updated_at
+      }) as PublishingOptions
     }));
   };
 
