@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import type { Collection, CollectionActivity, CollectionComment } from '@/types/collections';
 
 export const useCollectionRealtime = (collectionId?: string) => {
   const queryClient = useQueryClient();
@@ -10,6 +9,8 @@ export const useCollectionRealtime = (collectionId?: string) => {
 
   useEffect(() => {
     if (!collectionId) return;
+
+    console.log('Setting up realtime for collection:', collectionId);
 
     const channel = supabase
       .channel(`collection-${collectionId}`)
@@ -53,16 +54,13 @@ export const useCollectionRealtime = (collectionId?: string) => {
           console.log('Collection activity:', payload);
           queryClient.invalidateQueries({ queryKey: ['collection-activity', collectionId] });
           
-          // Update activity cache optimistically
-          queryClient.setQueryData(
-            ['collection-activity', collectionId],
-            (old: CollectionActivity[] = []) => {
-              if (payload.eventType === 'INSERT') {
-                return [payload.new as CollectionActivity, ...old];
-              }
-              return old;
-            }
-          );
+          // Optimistically update activity cache
+          if (payload.eventType === 'INSERT') {
+            queryClient.setQueryData(
+              ['collection-activity', collectionId],
+              (old: any[] = []) => [payload.new, ...old]
+            );
+          }
         }
       )
       .on(
@@ -76,25 +74,6 @@ export const useCollectionRealtime = (collectionId?: string) => {
         (payload) => {
           console.log('Collection comments updated:', payload);
           queryClient.invalidateQueries({ queryKey: ['collection-comments', collectionId] });
-          
-          // Update comments cache optimistically
-          queryClient.setQueryData(
-            ['collection-comments', collectionId],
-            (old: CollectionComment[] = []) => {
-              if (payload.eventType === 'INSERT') {
-                return [...old, payload.new as CollectionComment];
-              } else if (payload.eventType === 'DELETE') {
-                return old.filter(comment => comment.id !== (payload.old as CollectionComment).id);
-              } else if (payload.eventType === 'UPDATE') {
-                return old.map(comment => 
-                  comment.id === (payload.new as CollectionComment).id 
-                    ? payload.new as CollectionComment 
-                    : comment
-                );
-              }
-              return old;
-            }
-          );
         }
       )
       .on(
@@ -117,6 +96,7 @@ export const useCollectionRealtime = (collectionId?: string) => {
       });
 
     return () => {
+      console.log('Cleaning up realtime subscription');
       supabase.removeChannel(channel);
     };
   }, [collectionId, queryClient]);
@@ -129,6 +109,8 @@ export const useCollectionsRealtime = () => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
+    console.log('Setting up global collections realtime');
+
     const channel = supabase
       .channel('collections-global')
       .on(
@@ -139,14 +121,15 @@ export const useCollectionsRealtime = () => {
           table: 'collections'
         },
         (payload) => {
-          console.log('Collections updated:', payload);
+          console.log('Global collections updated:', payload);
           queryClient.invalidateQueries({ queryKey: ['collections'] });
           queryClient.invalidateQueries({ queryKey: ['user-collections'] });
           queryClient.invalidateQueries({ queryKey: ['public-collections'] });
+          queryClient.invalidateQueries({ queryKey: ['featured-collections'] });
           
           // Update specific collection cache if it exists
-          if (payload.eventType === 'UPDATE') {
-            const collection = payload.new as Collection;
+          if (payload.eventType === 'UPDATE' && payload.new) {
+            const collection = payload.new;
             queryClient.setQueryData(['collection', collection.id], collection);
           }
         }
@@ -157,6 +140,7 @@ export const useCollectionsRealtime = () => {
       });
 
     return () => {
+      console.log('Cleaning up global collections subscription');
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
