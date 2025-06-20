@@ -38,7 +38,7 @@ export interface Card {
   tags: string[];
   visibility?: CardVisibility;
   is_public?: boolean;
-  design_metadata?: Record<string, any>; // Made optional to match usage
+  design_metadata?: Record<string, any>;
   creator_attribution?: CreatorAttribution;
   publishing_options?: PublishingOptions;
   price?: number;
@@ -47,7 +47,7 @@ export interface Card {
   user_id?: string;
 }
 
-// CardData interface with required timestamps and optional design_metadata
+// Enhanced CardData interface with all properties needed by the editor
 export interface CardData {
   id?: string;
   title: string;
@@ -59,11 +59,16 @@ export interface CardData {
   tags: string[];
   visibility?: CardVisibility;
   is_public?: boolean;
-  design_metadata?: Record<string, any>; // Made optional
+  design_metadata?: Record<string, any>;
   creator_attribution?: CreatorAttribution;
   publishing_options?: PublishingOptions;
   price?: number;
-  created_at?: string; // Made optional for creation
-  updated_at?: string; // Made optional for creation
+  created_at?: string;
+  updated_at?: string;
   user_id?: string;
+  creator_id?: string;
+  shop_id?: string;
+  collection_id?: string;
+  team_id?: string;
+  print_metadata?: Record<string, any>;
 }

@@ -6,6 +6,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { CardData, CardRarity, CardVisibility, CreatorAttribution, PublishingOptions } from '@/types/card';
 
+// Re-export types for backwards compatibility
+export type { CardData, CardRarity, CardVisibility, CreatorAttribution, PublishingOptions } from '@/types/card';
+
 export interface DesignTemplate {
   id: string;
   name: string;
@@ -61,9 +64,14 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
       }
     },
     user_id: user?.id,
+    creator_id: initialData.creator_id || user?.id,
     price: initialData.price,
     created_at: initialData.created_at,
-    updated_at: initialData.updated_at
+    updated_at: initialData.updated_at,
+    shop_id: initialData.shop_id,
+    collection_id: initialData.collection_id,
+    team_id: initialData.team_id,
+    print_metadata: initialData.print_metadata || {}
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -72,7 +80,7 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
 
   useEffect(() => {
     if (user?.id && !cardData.user_id) {
-      setCardData(prev => ({ ...prev, user_id: user.id }));
+      setCardData(prev => ({ ...prev, user_id: user.id, creator_id: user.id }));
     }
   }, [user?.id, cardData.user_id]);
 
@@ -121,7 +129,8 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
     const finalCardData = {
       ...cardData,
       title: cardData.title?.trim() || 'My New Card',
-      user_id: user.id
+      user_id: user.id,
+      creator_id: user.id // Ensure creator_id is set
     };
 
     setIsSaving(true);
@@ -142,9 +151,20 @@ export const useCardEditor = (options: UseCardEditorOptions = {}) => {
         creator_attribution: finalCardData.creator_attribution as any,
         publishing_options: finalCardData.publishing_options as any,
         user_id: user.id,
+        creator_id: user.id, // Add creator_id for database
         price: finalCardData.price || null,
         created_at: finalCardData.created_at,
-        updated_at: finalCardData.updated_at
+        updated_at: finalCardData.updated_at,
+        // Only include optional fields if they have valid values
+        shop_id: (finalCardData.shop_id && isValidUUID(finalCardData.shop_id)) ? finalCardData.shop_id : null,
+        collection_id: (finalCardData.collection_id && isValidUUID(finalCardData.collection_id)) ? finalCardData.collection_id : null,
+        team_id: (finalCardData.team_id && isValidUUID(finalCardData.team_id)) ? finalCardData.team_id : null,
+        print_metadata: finalCardData.print_metadata || {},
+        edition_size: 1,
+        marketplace_listing: false,
+        print_available: false,
+        crd_catalog_inclusion: true,
+        verification_status: 'pending'
       };
 
       // If template_id is not a valid UUID, store it in design_metadata instead

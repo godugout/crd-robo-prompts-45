@@ -30,7 +30,7 @@ export const CardEditMode: React.FC<CardEditModeProps> = ({
       design_metadata: card.design_metadata,
       visibility: card.is_public ? 'public' : 'private',
       is_public: card.is_public,
-      creator_id: card.creator_id,
+      user_id: card.creator_id,
     },
     autoSave: false
   });

@@ -32,7 +32,7 @@ export interface Shop {
 }
 
 export interface UseCardEditorOptions {
-  initialData?: Partial<CardData>;
+  initialData?: Partial<import('@/types/card').CardData>;
   autoSave?: boolean;
   autoSaveInterval?: number;
 }
