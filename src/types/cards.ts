@@ -2,85 +2,51 @@
 export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
 export type CardType = 'athlete' | 'fantasy' | 'sci_fi' | 'vehicle' | 'spell' | 'artifact';
 
-export interface CardStats {
-  power?: number;
-  toughness?: number;
-  mana_cost?: Record<string, number>;
-  abilities: string[];
-}
-
 export interface Card {
   id: string;
-  name: string;
+  title: string; // Changed from 'name' to match database
   description?: string;
   image_url?: string;
-  card_type: CardType;
-  
-  // Game mechanics
-  power?: number;
-  toughness?: number;
-  mana_cost?: Record<string, number>;
-  abilities: string[];
-  
-  // Metadata
-  rarity: CardRarity;
-  set_id?: string;
-  serial_number?: number;
-  total_supply: number;
-  
-  // Creator info
-  creator_id?: string;
-  royalty_percentage: number;
-  
-  // Market data
-  base_price: number;
-  current_market_value: number;
-  
-  // Additional metadata
+  thumbnail_url?: string;
+  rarity: string; // Simplified to string to match database
   tags: string[];
-  is_public: boolean;
-  is_featured: boolean;
   
-  // Timestamps
+  // Database fields
+  creator_id: string;
   created_at: string;
   updated_at: string;
+  collection_id?: string;
+  team_id?: string;
+  user_id?: string;
+  price?: number;
+  edition_size: number;
+  verification_status?: string;
+  print_metadata?: Record<string, any>;
+  template_id?: string;
+  creator_attribution?: Record<string, any>;
+  publishing_options?: Record<string, any>;
+  print_available?: boolean;
+  crd_catalog_inclusion?: boolean;
+  marketplace_listing?: boolean;
+  shop_id?: string;
+  design_metadata?: Record<string, any>;
+  is_public?: boolean;
   
-  // Computed fields
-  is_favorited?: boolean;
+  // Computed fields for display
   creator_name?: string;
   set_name?: string;
-}
-
-export interface CardSet {
-  id: string;
-  name: string;
-  description?: string;
-  release_date?: string;
-  total_cards: number;
-  is_active: boolean;
-  created_at: string;
-}
-
-export interface CardFavorite {
-  id: string;
-  user_id: string;
-  card_id: string;
-  created_at: string;
+  is_favorited?: boolean;
 }
 
 export interface CardFilters {
   search?: string;
-  rarity?: CardRarity[];
-  card_type?: CardType[];
+  rarity?: string[];
   creator_id?: string;
-  set_id?: string;
   price_min?: number;
   price_max?: number;
-  power_min?: number;
-  power_max?: number;
   is_featured?: boolean;
   tags?: string[];
-  sort_by?: 'name' | 'created_at' | 'current_market_value' | 'rarity';
+  sort_by?: 'title' | 'created_at' | 'price';
   sort_order?: 'asc' | 'desc';
   limit?: number;
   offset?: number;
@@ -92,8 +58,8 @@ export interface PaginatedCards {
   hasMore: boolean;
 }
 
-// Rarity color mappings
-export const RARITY_COLORS: Record<CardRarity, { bg: string; text: string; border: string; glow: string }> = {
+// Simplified rarity colors for the basic rarities
+export const RARITY_COLORS: Record<string, { bg: string; text: string; border: string; glow: string }> = {
   common: {
     bg: 'bg-gray-500/20',
     text: 'text-gray-300',
@@ -130,13 +96,4 @@ export const RARITY_COLORS: Record<CardRarity, { bg: string; text: string; borde
     border: 'border-red-500',
     glow: 'shadow-red-500/50'
   }
-};
-
-export const CARD_TYPE_LABELS: Record<CardType, string> = {
-  athlete: 'Athlete',
-  fantasy: 'Fantasy',
-  sci_fi: 'Sci-Fi',
-  vehicle: 'Vehicle',
-  spell: 'Spell',
-  artifact: 'Artifact'
 };

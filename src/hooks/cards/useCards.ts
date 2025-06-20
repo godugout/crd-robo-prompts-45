@@ -16,43 +16,23 @@ export const useCards = (filters: CardFilters = {}) => {
 
       // Apply filters
       if (filters.search) {
-        query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
 
       if (filters.rarity?.length) {
         query = query.in('rarity', filters.rarity);
       }
 
-      if (filters.card_type?.length) {
-        query = query.in('card_type', filters.card_type);
-      }
-
       if (filters.creator_id) {
         query = query.eq('creator_id', filters.creator_id);
       }
 
-      if (filters.set_id) {
-        query = query.eq('set_id', filters.set_id);
-      }
-
       if (filters.price_min !== undefined) {
-        query = query.gte('current_market_value', filters.price_min);
+        query = query.gte('price', filters.price_min);
       }
 
       if (filters.price_max !== undefined) {
-        query = query.lte('current_market_value', filters.price_max);
-      }
-
-      if (filters.power_min !== undefined) {
-        query = query.gte('power', filters.power_min);
-      }
-
-      if (filters.power_max !== undefined) {
-        query = query.lte('power', filters.power_max);
-      }
-
-      if (filters.is_featured !== undefined) {
-        query = query.eq('is_featured', filters.is_featured);
+        query = query.lte('price', filters.price_max);
       }
 
       if (filters.tags?.length) {
@@ -136,10 +116,19 @@ export const useCreateCard = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (cardData: Omit<Card, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (cardData: Partial<Card>) => {
       const { data, error } = await supabase
         .from('cards')
-        .insert(cardData)
+        .insert({
+          title: cardData.title || '',
+          description: cardData.description,
+          image_url: cardData.image_url,
+          rarity: cardData.rarity || 'common',
+          tags: cardData.tags || [],
+          creator_id: cardData.creator_id || '',
+          edition_size: cardData.edition_size || 1,
+          is_public: cardData.is_public || false
+        })
         .select()
         .single();
 
@@ -164,9 +153,8 @@ export const useFeaturedCards = (limit = 6) => {
       const { data, error } = await supabase
         .from('cards')
         .select('*')
-        .eq('is_featured', true)
         .eq('is_public', true)
-        .order('current_market_value', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(limit);
 
       if (error) throw error;
