@@ -32,6 +32,15 @@ export interface CollectionCard {
   added_by?: string;
   notes?: string;
   display_order: number;
+  // Joined card data when fetched with cards
+  card?: {
+    id: string;
+    title: string;
+    image_url?: string;
+    thumbnail_url?: string;
+    rarity?: string;
+    description?: string;
+  };
 }
 
 export interface CollectionFollower {
@@ -49,6 +58,12 @@ export interface CollectionActivity {
   activity_type: 'card_added' | 'card_removed' | 'shared' | 'updated' | 'created' | 'renamed';
   activity_data: Record<string, any>;
   created_at: string;
+  // User profile data when joined
+  user?: {
+    id: string;
+    username: string;
+    avatar_url?: string;
+  };
 }
 
 export interface CollectionComment {
@@ -125,4 +140,5 @@ export interface CollectionFilters {
   sortOrder?: 'asc' | 'desc';
   limit?: number;
   offset?: number;
+  owner_id?: string;
 }

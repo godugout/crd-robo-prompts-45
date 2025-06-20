@@ -48,10 +48,10 @@ export const CollectionCardsGrid: React.FC<CollectionCardsGridProps> = ({
   const filteredCards = cards
     .filter(card => {
       const matchesSearch = searchTerm === '' || 
-        (card.cards?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (card.card?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
          card.notes?.toLowerCase().includes(searchTerm.toLowerCase()));
       
-      const matchesRarity = rarityFilter === 'all' || card.cards?.rarity === rarityFilter;
+      const matchesRarity = rarityFilter === 'all' || card.card?.rarity === rarityFilter;
       
       return matchesSearch && matchesRarity;
     })
@@ -60,9 +60,9 @@ export const CollectionCardsGrid: React.FC<CollectionCardsGridProps> = ({
         case 'display_order':
           return a.display_order - b.display_order;
         case 'name':
-          return (a.cards?.title || '').localeCompare(b.cards?.title || '');
+          return (a.card?.title || '').localeCompare(b.card?.title || '');
         case 'rarity':
-          return (a.cards?.rarity || '').localeCompare(b.cards?.rarity || '');
+          return (a.card?.rarity || '').localeCompare(b.card?.rarity || '');
         case 'date_added':
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         default:
@@ -216,7 +216,7 @@ const CardItem: React.FC<CardItemProps> = ({
   onRemove,
   rarityColors
 }) => {
-  const card = collectionCard.cards;
+  const card = collectionCard.card;
   const isGrid = viewMode === 'grid';
 
   return (

@@ -95,7 +95,7 @@ export const CollectionActivity: React.FC<CollectionActivityProps> = ({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-medium text-crd-white">
-                    {activity.crd_profiles?.username || 'Unknown User'}
+                    {activity.user?.username || 'Unknown User'}
                   </span>
                   <Badge variant="secondary" className="text-xs">
                     {activity.activity_type.replace('_', ' ')}
@@ -122,10 +122,10 @@ export const CollectionActivity: React.FC<CollectionActivityProps> = ({
 
               {/* User Avatar */}
               <div className="flex-shrink-0">
-                {activity.crd_profiles?.avatar_url ? (
+                {activity.user?.avatar_url ? (
                   <img 
-                    src={activity.crd_profiles.avatar_url} 
-                    alt={activity.crd_profiles.username}
+                    src={activity.user.avatar_url} 
+                    alt={activity.user.username}
                     className="w-8 h-8 rounded-full"
                   />
                 ) : (

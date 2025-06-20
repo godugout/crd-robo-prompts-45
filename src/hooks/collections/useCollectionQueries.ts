@@ -26,7 +26,7 @@ export const useCollection = (id: string) => {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Collection;
     },
     enabled: !!id
   });
@@ -46,6 +46,10 @@ export const useCollections = (filters: CollectionFilters = {}) => {
 
       if (filters.visibility) {
         query = query.eq('visibility', filters.visibility);
+      }
+
+      if (filters.owner_id) {
+        query = query.eq('owner_id', filters.owner_id);
       }
 
       if (filters.category) {
@@ -71,7 +75,7 @@ export const useCollections = (filters: CollectionFilters = {}) => {
       const { data, error, count } = await query;
 
       if (error) throw error;
-      return { collections: data || [], total: count || 0 };
+      return { collections: data as Collection[] || [], total: count || 0 };
     }
   });
 };
@@ -87,7 +91,7 @@ export const useUserCollections = (userId: string) => {
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return data as Collection[] || [];
     },
     enabled: !!userId
   });
@@ -105,7 +109,7 @@ export const usePublicCollections = (limit = 20) => {
         .limit(limit);
 
       if (error) throw error;
-      return data || [];
+      return data as Collection[] || [];
     }
   });
 };
@@ -124,7 +128,7 @@ export const useFeaturedCollections = () => {
         .limit(10);
 
       if (error) throw error;
-      return data || [];
+      return data as Collection[] || [];
     }
   });
 };
@@ -138,7 +142,7 @@ export const useCollectionCards = (collectionId: string) => {
         .from('collection_cards')
         .select(`
           *,
-          cards (
+          card:cards (
             id,
             title,
             image_url,
@@ -151,7 +155,7 @@ export const useCollectionCards = (collectionId: string) => {
         .order('display_order', { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      return data as CollectionCard[] || [];
     },
     enabled: !!collectionId
   });
@@ -189,7 +193,7 @@ export const useCollectionActivity = (collectionId: string, limit = 50) => {
         .from('collection_activity')
         .select(`
           *,
-          crd_profiles!collection_activity_user_id_fkey (
+          user:crd_profiles!collection_activity_user_id_fkey (
             username,
             avatar_url
           )
@@ -199,7 +203,7 @@ export const useCollectionActivity = (collectionId: string, limit = 50) => {
         .limit(limit);
 
       if (error) throw error;
-      return data || [];
+      return data as CollectionActivity[] || [];
     },
     enabled: !!collectionId
   });
@@ -214,7 +218,7 @@ export const useCollectionComments = (collectionId: string) => {
         .from('collection_comments')
         .select(`
           *,
-          crd_profiles!collection_comments_user_id_fkey (
+          user:crd_profiles!collection_comments_user_id_fkey (
             username,
             avatar_url
           )
@@ -224,7 +228,7 @@ export const useCollectionComments = (collectionId: string) => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      return data as CollectionComment[] || [];
     },
     enabled: !!collectionId
   });
@@ -247,7 +251,12 @@ export const useCollectionTemplates = (category?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data || [];
+      return data?.map(item => ({
+        ...item,
+        template_data: typeof item.template_data === 'string' 
+          ? JSON.parse(item.template_data) 
+          : item.template_data
+      })) as CollectionTemplate[] || [];
     }
   });
 };
@@ -490,3 +499,6 @@ export const useUnfollowCollection = () => {
     }
   });
 };
+
+// Export the realtime hook
+export { useCollectionsRealtime } from './useCollectionRealtime';

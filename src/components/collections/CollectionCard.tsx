@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Eye, Edit, Trash2, User } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import type { Collection } from '@/repositories/collection/types';
+import type { Collection } from '@/types/collections';
 
 interface CollectionCardProps {
   collection: Collection;
@@ -28,8 +28,8 @@ export const CollectionCard: React.FC<CollectionCardProps> = ({
       <div 
         className="h-32 bg-cover bg-center bg-crd-mediumGray"
         style={{ 
-          backgroundImage: collection.coverImageUrl 
-            ? `url(${collection.coverImageUrl})` 
+          backgroundImage: collection.cover_image_url 
+            ? `url(${collection.cover_image_url})` 
             : undefined
         }}
       />
@@ -87,8 +87,8 @@ export const CollectionCard: React.FC<CollectionCardProps> = ({
         )}
         
         <div className="flex items-center justify-between text-xs text-crd-lightGray">
-          <span>{collection.cardCount || 0} cards</span>
-          <span>{new Date(collection.createdAt).toLocaleDateString()}</span>
+          <span>0 cards</span>
+          <span>{new Date(collection.created_at).toLocaleDateString()}</span>
         </div>
       </CardContent>
       
