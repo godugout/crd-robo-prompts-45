@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { EnhancedStudioCardPreview } from './components/EnhancedStudioCardPreview';
+import { AdaptiveCardPreview } from './components/AdaptiveCardPreview';
 import { QuickActions } from './components/QuickActions';
 import { ExportDialog } from './components/ExportDialog';
 import { StudioMainHeader } from './components/StudioMainHeader';
@@ -36,6 +36,22 @@ export const OrganizedCardStudio: React.FC = () => {
   } = useStudioActions();
 
   const autoSaveStats = autoSaveService.getStats();
+
+  // Create a simplified image upload handler for the preview component
+  const handlePreviewImageUpload = () => {
+    // Trigger the file input or upload modal
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const imageUrl = URL.createObjectURL(file);
+        await handleImageUpload(imageUrl);
+      }
+    };
+    fileInput.click();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-editor-dark via-black to-editor-dark">
@@ -76,14 +92,16 @@ export const OrganizedCardStudio: React.FC = () => {
             />
           </div>
 
-          {/* 3D Preview */}
+          {/* Adaptive Preview */}
           <div className="flex-1 bg-black relative">
-            <EnhancedStudioCardPreview
+            <AdaptiveCardPreview
+              currentPhase={currentPhase}
               uploadedImage={uploadedImage}
               selectedFrame={selectedFrame}
               effectValues={effectValues}
               processedImage={processedImage}
               isProcessing={isProcessingImage}
+              onImageUpload={handlePreviewImageUpload}
             />
           </div>
         </div>

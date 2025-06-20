@@ -37,14 +37,19 @@ export const PhaseNavigation: React.FC<PhaseNavigationProps> = ({
       case 'frames':
         return selectedFrame ? 'completed' : uploadedImage ? 'available' : 'pending';
       case 'effects':
-        return uploadedImage ? 'available' : 'pending';
+        return (uploadedImage && selectedFrame) ? 'available' : 'pending';
       case 'layers':
-        return uploadedImage ? 'available' : 'pending';
+        return (uploadedImage && selectedFrame) ? 'available' : 'pending';
       case 'export':
-        return uploadedImage ? 'available' : 'pending';
+        return (uploadedImage && selectedFrame) ? 'available' : 'pending';
       default:
         return 'available';
     }
+  };
+
+  const canNavigateToPhase = (phase: StudioPhase) => {
+    const status = getPhaseStatus(phase);
+    return status !== 'pending';
   };
 
   return (
@@ -65,36 +70,51 @@ export const PhaseNavigation: React.FC<PhaseNavigationProps> = ({
       {/* Phase Navigation */}
       {phases.map(({ phase, icon: Icon, label, description }) => {
         const status = getPhaseStatus(phase);
-        const isDisabled = status === 'pending';
+        const canNavigate = canNavigateToPhase(phase);
         
         return (
-          <Button
-            key={phase}
-            variant="ghost"
-            size="sm"
-            onClick={() => !isDisabled && onPhaseChange(phase)}
-            disabled={isDisabled}
-            className={`w-12 h-12 p-0 rounded-lg transition-all relative ${
-              status === 'current'
-                ? 'bg-crd-green text-black'
-                : status === 'completed'
-                ? 'text-crd-green hover:bg-crd-green/10'
-                : status === 'available'
-                ? 'text-white hover:bg-white/10'
-                : 'text-gray-600 cursor-not-allowed opacity-30'
-            }`}
-            title={`${label}: ${description}`}
-          >
-            <Icon className="w-5 h-5" />
-            
-            {/* Status indicator */}
-            {status === 'completed' && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-crd-green rounded-full border border-editor-dark" />
+          <div key={phase} className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => canNavigate && onPhaseChange(phase)}
+              disabled={!canNavigate}
+              className={`w-12 h-12 p-0 rounded-lg transition-all relative ${
+                status === 'current'
+                  ? 'bg-crd-green text-black shadow-lg'
+                  : status === 'completed'
+                  ? 'text-crd-green hover:bg-crd-green/10 border border-crd-green/30'
+                  : status === 'available'
+                  ? 'text-white hover:bg-white/10 border border-white/20'
+                  : 'text-gray-600 cursor-not-allowed opacity-30 border border-gray-700'
+              }`}
+              title={`${label}: ${description}${!canNavigate ? ' (Complete previous steps first)' : ''}`}
+            >
+              <Icon className="w-5 h-5" />
+              
+              {/* Enhanced status indicators */}
+              {status === 'completed' && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-crd-green rounded-full border-2 border-editor-dark">
+                  <div className="w-full h-full bg-crd-green rounded-full animate-pulse" />
+                </div>
+              )}
+              {status === 'current' && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full border-2 border-black animate-pulse" />
+              )}
+              {status === 'pending' && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gray-600 rounded-full border-2 border-editor-dark opacity-50" />
+              )}
+            </Button>
+
+            {/* Progress connector */}
+            {phase !== 'export' && (
+              <div className={`absolute top-14 left-1/2 transform -translate-x-1/2 w-0.5 h-4 transition-all ${
+                status === 'completed' || getPhaseStatus(phases[phases.findIndex(p => p.phase === phase) + 1]?.phase) === 'current'
+                  ? 'bg-crd-green' 
+                  : 'bg-gray-700'
+              }`} />
             )}
-            {status === 'pending' && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gray-600 rounded-full border border-editor-dark" />
-            )}
-          </Button>
+          </div>
         );
       })}
     </div>
