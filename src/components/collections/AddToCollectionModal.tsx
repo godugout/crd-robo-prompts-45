@@ -57,7 +57,11 @@ export const AddToCollectionModal: React.FC<AddToCollectionModalProps> = ({
         title: newCollectionTitle.trim(),
         description: newCollectionDescription.trim() || undefined,
         owner_id: user.id,
-        visibility: 'private'
+        visibility: 'private',
+        design_metadata: {},
+        tags: [],
+        allow_comments: true,
+        is_template: false
       });
 
       // Add to selected collections

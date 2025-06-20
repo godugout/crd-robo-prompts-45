@@ -1,17 +1,9 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  TrendingUp, 
-  Eye, 
-  Heart, 
-  Users, 
-  Star,
-  Activity,
-  Calendar,
-  Target
-} from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { TrendingUp, Eye, Heart, Users, Star, Calendar } from 'lucide-react';
 import type { CollectionAnalytics } from '@/types/collections';
 
 interface CollectionStatsProps {
@@ -23,73 +15,114 @@ export const CollectionStats: React.FC<CollectionStatsProps> = ({
   collectionId,
   analytics
 }) => {
-  // Mock data for charts - in a real app, this would come from the API
-  const viewsData = [
-    { date: '2024-01-01', views: 45 },
-    { date: '2024-01-02', views: 52 },
-    { date: '2024-01-03', views: 48 },
-    { date: '2024-01-04', views: 61 },
-    { date: '2024-01-05', views: 55 },
-    { date: '2024-01-06', views: 67 },
-    { date: '2024-01-07', views: 72 },
-  ];
-
-  const rarityData = [
-    { name: 'Common', value: 40, color: '#6b7280' },
-    { name: 'Uncommon', value: 25, color: '#10b981' },
-    { name: 'Rare', value: 20, color: '#3b82f6' },
-    { name: 'Epic', value: 10, color: '#8b5cf6' },
-    { name: 'Legendary', value: 5, color: '#f59e0b' },
-  ];
+  if (!analytics) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(6)].map((_, i) => (
+          <Card key={i} className="bg-crd-dark border-crd-mediumGray">
+            <CardContent className="p-6">
+              <div className="animate-pulse">
+                <div className="h-4 bg-crd-mediumGray rounded w-1/2 mb-2"></div>
+                <div className="h-8 bg-crd-mediumGray rounded w-3/4"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   const stats = [
     {
+      title: 'Total Cards',
+      value: analytics.total_cards,
+      icon: Star,
+      color: 'text-crd-green',
+      bgColor: 'bg-crd-green/20'
+    },
+    {
+      title: 'Unique Rarities',
+      value: analytics.unique_rarities,
+      icon: TrendingUp,
+      color: 'text-crd-blue',
+      bgColor: 'bg-crd-blue/20'
+    },
+    {
       title: 'Total Views',
-      value: analytics?.total_views || 0,
-      icon: <Eye className="w-5 h-5" />,
-      change: '+12%',
-      changeColor: 'text-green-400'
+      value: analytics.total_views,
+      icon: Eye,
+      color: 'text-crd-orange',
+      bgColor: 'bg-crd-orange/20'
     },
     {
       title: 'Likes',
-      value: analytics?.total_likes || 0,
-      icon: <Heart className="w-5 h-5" />,
-      change: '+8%',
-      changeColor: 'text-green-400'
+      value: analytics.total_likes,
+      icon: Heart,
+      color: 'text-red-400',
+      bgColor: 'bg-red-400/20'
     },
     {
       title: 'Followers',
-      value: analytics?.total_followers || 0,
-      icon: <Users className="w-5 h-5" />,
-      change: '+15%',
-      changeColor: 'text-green-400'
+      value: analytics.total_followers,
+      icon: Users,
+      color: 'text-purple-400',
+      bgColor: 'bg-purple-400/20'
     },
     {
-      title: 'Completion',
-      value: `${Math.round(analytics?.completion_rate || 0)}%`,
-      icon: <Target className="w-5 h-5" />,
-      change: '+3%',
-      changeColor: 'text-green-400'
+      title: 'Recent Activity',
+      value: analytics.recent_activity,
+      icon: Calendar,
+      color: 'text-yellow-400',
+      bgColor: 'bg-yellow-400/20',
+      subtitle: 'Last 7 days'
     }
   ];
 
   return (
     <div className="space-y-6">
-      {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <Card key={index} className="bg-editor-dark border-crd-mediumGray/20">
+      {/* Completion Rate Highlight */}
+      <Card className="bg-gradient-to-r from-crd-green/20 to-crd-blue/20 border-crd-green/50">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-crd-green" />
+            Collection Completion
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-2xl font-bold text-white">
+              {Math.round(analytics.completion_rate)}%
+            </span>
+            <Badge className="bg-crd-green text-black">
+              {analytics.completion_rate >= 90 ? 'Nearly Complete!' : 
+               analytics.completion_rate >= 50 ? 'Good Progress' : 'Getting Started'}
+            </Badge>
+          </div>
+          <Progress 
+            value={analytics.completion_rate} 
+            className="h-3"
+          />
+          <p className="text-sm text-crd-lightGray mt-2">
+            You've collected {analytics.total_cards} cards so far
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {stats.map((stat) => (
+          <Card key={stat.title} className="bg-crd-dark border-crd-mediumGray hover:border-crd-green/50 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-crd-lightGray mb-1">{stat.title}</p>
-                  <p className="text-2xl font-bold text-crd-white">{stat.value}</p>
-                  <p className={`text-sm ${stat.changeColor}`}>
-                    {stat.change} from last week
-                  </p>
+                  <p className="text-2xl font-bold text-white">{stat.value.toLocaleString()}</p>
+                  {stat.subtitle && (
+                    <p className="text-xs text-crd-lightGray mt-1">{stat.subtitle}</p>
+                  )}
                 </div>
-                <div className="text-crd-green">
-                  {stat.icon}
+                <div className={`p-3 rounded-lg ${stat.bgColor}`}>
+                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
                 </div>
               </div>
             </CardContent>
@@ -97,133 +130,38 @@ export const CollectionStats: React.FC<CollectionStatsProps> = ({
         ))}
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Views Over Time */}
-        <Card className="bg-editor-dark border-crd-mediumGray/20">
-          <CardHeader>
-            <CardTitle className="text-crd-white flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
-              Views Over Time
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={viewsData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis 
-                  dataKey="date" 
-                  stroke="#9ca3af"
-                  fontSize={12}
-                />
-                <YAxis 
-                  stroke="#9ca3af"
-                  fontSize={12}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: '#1f2937',
-                    border: '1px solid #374151',
-                    borderRadius: '8px',
-                    color: '#f3f4f6'
-                  }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="views" 
-                  stroke="#22c55e" 
-                  strokeWidth={2}
-                  dot={{ fill: '#22c55e', strokeWidth: 2, r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Rarity Distribution */}
-        <Card className="bg-editor-dark border-crd-mediumGray/20">
-          <CardHeader>
-            <CardTitle className="text-crd-white flex items-center gap-2">
-              <Star className="w-5 h-5" />
-              Card Rarity Distribution
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={rarityData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {rarityData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: '#1f2937',
-                    border: '1px solid #374151',
-                    borderRadius: '8px',
-                    color: '#f3f4f6'
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            
-            {/* Legend */}
-            <div className="grid grid-cols-2 gap-2 mt-4">
-              {rarityData.map((item) => (
-                <div key={item.name} className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span className="text-sm text-crd-lightGray">
-                    {item.name} ({item.value}%)
-                  </span>
-                </div>
-              ))}
+      {/* Insights */}
+      <Card className="bg-crd-dark border-crd-mediumGray">
+        <CardHeader>
+          <CardTitle className="text-white">Collection Insights</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-crd-mediumGray/20 rounded-lg">
+              <h4 className="font-medium text-white mb-2">Rarity Diversity</h4>
+              <p className="text-sm text-crd-lightGray">
+                Your collection spans <span className="text-crd-green font-medium">{analytics.unique_rarities}</span> different rarities
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            
+            <div className="p-4 bg-crd-mediumGray/20 rounded-lg">
+              <h4 className="font-medium text-white mb-2">Community Engagement</h4>
+              <p className="text-sm text-crd-lightGray">
+                <span className="text-crd-blue font-medium">{analytics.total_likes + analytics.total_followers}</span> total interactions
+              </p>
+            </div>
+          </div>
 
-      {/* Additional Insights */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-editor-dark border-crd-mediumGray/20">
-          <CardContent className="p-6 text-center">
-            <Activity className="w-8 h-8 text-crd-green mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-crd-white mb-2">Recent Activity</h3>
-            <p className="text-2xl font-bold text-crd-green mb-1">
-              {analytics?.recent_activity || 0}
-            </p>
-            <p className="text-sm text-crd-lightGray">actions this week</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-editor-dark border-crd-mediumGray/20">
-          <CardContent className="p-6 text-center">
-            <Calendar className="w-8 h-8 text-blue-400 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-crd-white mb-2">Collection Age</h3>
-            <p className="text-2xl font-bold text-blue-400 mb-1">45</p>
-            <p className="text-sm text-crd-lightGray">days old</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-editor-dark border-crd-mediumGray/20">
-          <CardContent className="p-6 text-center">
-            <Star className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-crd-white mb-2">Average Rating</h3>
-            <p className="text-2xl font-bold text-yellow-400 mb-1">4.8</p>
-            <p className="text-sm text-crd-lightGray">out of 5 stars</p>
-          </CardContent>
-        </Card>
-      </div>
+          {analytics.recent_activity > 0 && (
+            <div className="p-4 bg-crd-green/10 border border-crd-green/20 rounded-lg">
+              <h4 className="font-medium text-crd-green mb-2">Recent Activity</h4>
+              <p className="text-sm text-crd-lightGray">
+                {analytics.recent_activity} activities in the last 7 days - your collection is active!
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

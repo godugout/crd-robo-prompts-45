@@ -166,7 +166,7 @@ export const useCollectionActivity = (collectionId: string, limit = 50) => {
         collection_id: item.collection_id,
         user_id: item.user_id,
         activity_type: item.activity_type as CollectionActivity['activity_type'],
-        activity_data: item.activity_data || {},
+        activity_data: (item.activity_data as any) || {},
         created_at: item.created_at,
         user: {
           id: item.user_id,
@@ -312,3 +312,99 @@ export const useAddCardToCollection = () => {
     }
   });
 };
+
+export const useRemoveCardFromCollection = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ collectionId, cardId }: { collectionId: string; cardId: string }) => {
+      const { error } = await supabase
+        .from('collection_cards')
+        .delete()
+        .eq('collection_id', collectionId)
+        .eq('card_id', cardId);
+
+      if (error) throw error;
+
+      // Log activity
+      const user = await supabase.auth.getUser();
+      if (user.data.user) {
+        await supabase
+          .from('collection_activity')
+          .insert({
+            collection_id: collectionId,
+            user_id: user.data.user.id,
+            activity_type: 'card_removed',
+            activity_data: { card_id: cardId }
+          });
+      }
+    },
+    onSuccess: (_, { collectionId }) => {
+      queryClient.invalidateQueries({ queryKey: ['collection-cards', collectionId] });
+      queryClient.invalidateQueries({ queryKey: ['collection-analytics', collectionId] });
+      toast.success('Card removed from collection!');
+    },
+    onError: (error) => {
+      console.error('Failed to remove card from collection:', error);
+      toast.error('Failed to remove card from collection');
+    }
+  });
+};
+
+export const useFollowCollection = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (collectionId: string) => {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('collection_followers')
+        .insert({
+          collection_id: collectionId,
+          follower_id: user.data.user.id
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: (_, collectionId) => {
+      queryClient.invalidateQueries({ queryKey: ['collection-analytics', collectionId] });
+      toast.success('Following collection!');
+    },
+    onError: (error) => {
+      console.error('Failed to follow collection:', error);
+      toast.error('Failed to follow collection');
+    }
+  });
+};
+
+export const useUnfollowCollection = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (collectionId: string) => {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('collection_followers')
+        .delete()
+        .eq('collection_id', collectionId)
+        .eq('follower_id', user.data.user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, collectionId) => {
+      queryClient.invalidateQueries({ queryKey: ['collection-analytics', collectionId] });
+      toast.success('Unfollowed collection!');
+    },
+    onError: (error) => {
+      console.error('Failed to unfollow collection:', error);
+      toast.error('Failed to unfollow collection');
+    }
+  });
+};
+
+// Export collections realtime hook
+export { useCollectionsRealtime } from './useCollectionRealtime';

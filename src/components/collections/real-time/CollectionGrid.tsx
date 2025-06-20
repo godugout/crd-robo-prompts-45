@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -91,13 +91,13 @@ export const CollectionGrid: React.FC<CollectionGridProps> = ({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-crd-lightGray w-4 h-4" />
             <Input
               placeholder="Search collections..."
-              className="pl-10 bg-editor-dark border-crd-mediumGray text-crd-white"
+              className="pl-10 bg-crd-mediumGray border-crd-mediumGray text-crd-white"
               onChange={(e) => handleSearch(e.target.value)}
             />
           </div>
           
           <Select value={filters.sortBy} onValueChange={(value) => handleFilterChange('sortBy', value)}>
-            <SelectTrigger className="w-48 bg-editor-dark border-crd-mediumGray">
+            <SelectTrigger className="w-48 bg-crd-mediumGray border-crd-mediumGray">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -197,7 +197,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
 
   return (
     <Card 
-      className={`bg-editor-dark border-crd-mediumGray/20 hover:border-crd-green/50 transition-all cursor-pointer group ${
+      className={`bg-crd-dark border-crd-mediumGray/20 hover:border-crd-green/50 transition-all cursor-pointer group ${
         isGrid ? 'aspect-[4/3]' : 'h-32'
       }`}
       onClick={onClick}

@@ -31,7 +31,7 @@ import { CollectionCardsGrid } from './CollectionCardsGrid';
 import { CollectionActivity } from './CollectionActivity';
 import { CollectionComments } from './CollectionComments';
 import { CollectionStats } from './CollectionStats';
-import { useUser } from '@/hooks/use-user';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CollectionDetailProps {
   collectionId: string;
@@ -42,7 +42,7 @@ export const CollectionDetail: React.FC<CollectionDetailProps> = ({
   collectionId,
   onBack
 }) => {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('cards');
   const [isFollowing, setIsFollowing] = useState(false);
 
@@ -233,7 +233,7 @@ export const CollectionDetail: React.FC<CollectionDetailProps> = ({
 
         {/* Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 mb-8 bg-editor-dark">
+          <TabsList className="grid w-full grid-cols-4 mb-8 bg-crd-mediumGray">
             <TabsTrigger value="cards" className="data-[state=active]:bg-crd-green data-[state=active]:text-black">
               Cards ({analytics?.total_cards || 0})
             </TabsTrigger>

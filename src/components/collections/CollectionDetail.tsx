@@ -168,13 +168,45 @@ export const CollectionDetail: React.FC<CollectionDetailProps> = ({
         <TabsContent value="cards" className="mt-6">
           {cards && cards.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {cards.map((collectionCard) => (
-                <CardDisplay
-                  key={collectionCard.id}
-                  card={collectionCard.card!}
-                  variant="grid"
-                />
-              ))}
+              {cards.map((collectionCard) => {
+                // Create a full Card object from the collection card data
+                const fullCard = {
+                  id: collectionCard.card?.id || '',
+                  title: collectionCard.card?.title || 'Unknown Card',
+                  image_url: collectionCard.card?.image_url,
+                  thumbnail_url: collectionCard.card?.thumbnail_url,
+                  rarity: collectionCard.card?.rarity || 'common',
+                  description: collectionCard.card?.description,
+                  tags: [],
+                  creator_id: '',
+                  created_at: '',
+                  updated_at: '',
+                  edition_size: 1,
+                  price: null,
+                  verification_status: 'verified',
+                  collection_id: null,
+                  team_id: null,
+                  user_id: null,
+                  print_metadata: {},
+                  template_id: null,
+                  creator_attribution: {},
+                  publishing_options: {},
+                  print_available: false,
+                  crd_catalog_inclusion: true,
+                  marketplace_listing: false,
+                  shop_id: null,
+                  design_metadata: {},
+                  is_public: false
+                };
+
+                return (
+                  <CardDisplay
+                    key={collectionCard.id}
+                    card={fullCard}
+                    variant="grid"
+                  />
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-12">
