@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import Home from './pages/Index';
-import Cards from './pages/Cards';
 import CardDetail from './pages/CardDetail';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
@@ -25,7 +24,6 @@ function App() {
           <div className="min-h-screen bg-crd-darkest">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/cards" element={<Cards />} />
               <Route path="/cards/:cardId" element={<CardDetail />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
@@ -36,6 +34,7 @@ function App() {
               
               {/* Redirect enhanced to streamlined */}
               <Route path="/cards/enhanced" element={<Navigate to="/cards/streamlined" replace />} />
+              <Route path="/cards" element={<Navigate to="/cards/streamlined" replace />} />
               
               {/* New streamlined creator */}
               <Route path="/cards/streamlined" element={<StreamlinedStudio />} />

@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { ModularFrameBuilder } from '@/components/editor/frames/ModularFrameBuilder';
 import { getStudioFrameById } from '../frames/CardFrameConfigs';
 import { calculateFlexibleCardSize, type CardOrientation } from '@/utils/cardDimensions';
 
@@ -28,15 +27,59 @@ export const CardPreviewRenderer: React.FC<CardPreviewRendererProps> = ({
   if (uploadedImage && frameConfig) {
     return (
       <div className="relative w-full h-full">
-        {/* Frame with integrated image */}
-        <ModularFrameBuilder
-          config={frameConfig}
-          imageUrl={uploadedImage}
-          title={cardName || 'PLAYER NAME'}
-          subtitle="ROOKIE CARD • 2024"
-          width={cardDimensions.width}
-          height={cardDimensions.height}
-        />
+        {/* Simple frame preview with the studio frame config */}
+        <div 
+          className="w-full h-full rounded-lg border-2 overflow-hidden"
+          style={{
+            background: frameConfig.background.type === 'gradient' 
+              ? `linear-gradient(135deg, ${frameConfig.background.colors.join(', ')})`
+              : frameConfig.background.colors[0],
+            borderColor: frameConfig.borders.outer?.color || '#ccc',
+            borderWidth: frameConfig.borders.outer?.width || 2
+          }}
+        >
+          <div className="relative w-full h-full p-4">
+            {/* Image area */}
+            <div className="relative w-full h-3/4 rounded overflow-hidden">
+              <img 
+                src={uploadedImage} 
+                alt="Card content"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            
+            {/* Text area */}
+            <div className="absolute bottom-4 left-4 right-4">
+              <h3 
+                className="font-bold text-lg truncate"
+                style={{ color: frameConfig.textStyles.title.color }}
+              >
+                {cardName || 'PLAYER NAME'}
+              </h3>
+              <p 
+                className="text-sm truncate"
+                style={{ color: frameConfig.textStyles.subtitle.color }}
+              >
+                ROOKIE CARD • 2024
+              </p>
+            </div>
+            
+            {/* Emblem */}
+            {frameConfig.emblem && (
+              <div className="absolute top-4 right-4">
+                <div 
+                  className="text-xs font-bold px-2 py-1 rounded"
+                  style={{ 
+                    color: frameConfig.emblem.color,
+                    backgroundColor: 'rgba(0,0,0,0.3)'
+                  }}
+                >
+                  {frameConfig.emblem.text}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
         
         {/* Image adjustment overlay */}
         {showImageControls && (
