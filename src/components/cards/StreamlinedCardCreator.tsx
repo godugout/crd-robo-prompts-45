@@ -10,7 +10,6 @@ import { ArrowLeft, Upload, Sparkles, Share2 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { MediaManager } from '@/lib/storage/MediaManager';
 import { useSimpleCardEditor } from '@/hooks/useSimpleCardEditor';
 import { getFrameConfigs } from '../studio/enhanced/frames/CardFrameConfigs';
 import { FrameRenderer } from '../editor/frames/FrameRenderer';
@@ -21,10 +20,17 @@ export const StreamlinedCardCreator: React.FC = () => {
   const { user } = useAuth();
   const { cardData, updateField, saveCard, isSaving } = useSimpleCardEditor();
   
-  // Simple state management
+  // Simple state management with debugging
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
   const [selectedFrameId, setSelectedFrameId] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
+
+  console.log('🎨 StreamlinedCardCreator render:', {
+    uploadedImageUrl: uploadedImageUrl ? 'Present' : 'Empty',
+    selectedFrameId,
+    cardDataImageUrl: cardData.image_url,
+    user: user ? 'Authenticated' : 'Not authenticated'
+  });
 
   // Load saved draft on mount
   React.useEffect(() => {
@@ -32,6 +38,7 @@ export const StreamlinedCardCreator: React.FC = () => {
     if (savedDraft) {
       try {
         const draft = JSON.parse(savedDraft);
+        console.log('📋 Loading draft:', draft);
         setUploadedImageUrl(draft.imageUrl || '');
         setSelectedFrameId(draft.frameId || '');
         updateField('title', draft.title || '');
@@ -53,6 +60,7 @@ export const StreamlinedCardCreator: React.FC = () => {
       rarity: cardData.rarity
     };
     localStorage.setItem('streamlined-card-draft', JSON.stringify(draft));
+    console.log('💾 Draft saved:', draft);
   }, [uploadedImageUrl, selectedFrameId, cardData]);
 
   React.useEffect(() => {
@@ -60,31 +68,40 @@ export const StreamlinedCardCreator: React.FC = () => {
   }, [saveDraft]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (!acceptedFiles.length || !user) {
-      if (!user) toast.error('Please sign in to upload images');
+    if (!acceptedFiles.length) {
+      console.warn('No files accepted');
+      return;
+    }
+
+    if (!user) {
+      toast.error('Please sign in to upload images');
       return;
     }
 
     const file = acceptedFiles[0];
+    console.log('📁 File dropped:', {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+
     setIsUploading(true);
 
     try {
-      const result = await MediaManager.uploadFile(file, {
-        bucket: 'card-assets',
-        folder: 'card-images',
-        generateThumbnail: true,
-        optimize: true,
-        tags: ['card-image']
-      });
-
-      if (result && result.metadata.publicUrl) {
-        setUploadedImageUrl(result.metadata.publicUrl);
-        updateField('image_url', result.metadata.publicUrl);
-        toast.success('Image uploaded successfully!');
-      }
+      // Create a blob URL for immediate preview
+      const blobUrl = URL.createObjectURL(file);
+      console.log('🔗 Created blob URL:', blobUrl);
+      
+      // Set the image URL immediately for preview
+      setUploadedImageUrl(blobUrl);
+      updateField('image_url', blobUrl);
+      
+      toast.success('Image uploaded successfully!');
+      console.log('✅ Image upload completed, URL set to:', blobUrl);
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error('❌ Upload failed:', error);
       toast.error('Upload failed. Please try again.');
+      setUploadedImageUrl('');
     } finally {
       setIsUploading(false);
     }
@@ -98,6 +115,7 @@ export const StreamlinedCardCreator: React.FC = () => {
   });
 
   const handleFrameSelect = useCallback((frameId: string) => {
+    console.log('🖼️ Frame selected:', frameId);
     setSelectedFrameId(frameId);
     updateField('template_id', frameId);
     toast.success('Frame applied!');
@@ -119,6 +137,12 @@ export const StreamlinedCardCreator: React.FC = () => {
       toast.error('Please upload an image');
       return;
     }
+
+    console.log('🚀 Publishing card with data:', {
+      title: cardData.title,
+      imageUrl: uploadedImageUrl,
+      frameId: selectedFrameId
+    });
 
     const success = await saveCard();
     if (success) {
@@ -191,6 +215,14 @@ export const StreamlinedCardCreator: React.FC = () => {
                   {isUploading ? 'Uploading...' : isDragActive ? 'Drop it here!' : 'Drag & drop your photo'}
                 </p>
                 <p className="text-crd-lightGray text-sm">or click to browse</p>
+                
+                {/* Debug info */}
+                {uploadedImageUrl && (
+                  <div className="mt-4 p-3 bg-crd-green/10 rounded-lg">
+                    <p className="text-crd-green text-sm font-medium">✓ Image loaded</p>
+                    <p className="text-xs text-crd-lightGray truncate">URL: {uploadedImageUrl}</p>
+                  </div>
+                )}
               </div>
             </Card>
 
@@ -245,22 +277,45 @@ export const StreamlinedCardCreator: React.FC = () => {
               <h3 className="text-white font-semibold mb-4">Live Preview</h3>
               <div className="flex justify-center">
                 <div className="w-80 h-96 relative">
-                  {uploadedImageUrl && selectedFrameId ? (
-                    <FrameRenderer
-                      frameId={selectedFrameId}
-                      imageUrl={uploadedImageUrl}
-                      title={cardData.title || 'Your Card'}
-                      subtitle={cardData.description || cardData.rarity}
-                      width={320}
-                      height={384}
-                      cardData={cardData}
-                    />
+                  {uploadedImageUrl ? (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl border border-gray-600 overflow-hidden">
+                      {selectedFrameId ? (
+                        <FrameRenderer
+                          frameId={selectedFrameId}
+                          imageUrl={uploadedImageUrl}
+                          title={cardData.title || 'Your Card'}
+                          subtitle={cardData.description || cardData.rarity}
+                          width={320}
+                          height={384}
+                          cardData={cardData}
+                        />
+                      ) : (
+                        <div className="relative w-full h-full">
+                          <img 
+                            src={uploadedImageUrl} 
+                            alt="Card preview" 
+                            className="w-full h-full object-cover"
+                            onLoad={() => console.log('✅ Image loaded successfully in preview')}
+                            onError={(e) => console.error('❌ Image failed to load in preview:', e)}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
+                          <div className="absolute bottom-4 left-4 right-4 text-center">
+                            <h3 className="text-white text-lg font-bold mb-1">
+                              {cardData.title || 'Your Card'}
+                            </h3>
+                            <p className="text-gray-200 text-sm">
+                              Select a frame below
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl border-2 border-dashed border-gray-600 flex items-center justify-center">
                       <div className="text-center text-gray-400">
                         <Sparkles className="w-12 h-12 mx-auto mb-4" />
                         <p className="text-lg font-medium mb-2">Your Card Preview</p>
-                        <p className="text-sm">Upload an image and select a frame</p>
+                        <p className="text-sm">Upload an image to get started</p>
                       </div>
                     </div>
                   )}
