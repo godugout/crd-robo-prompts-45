@@ -119,6 +119,7 @@ export const DraggableCard: React.FC<DraggableCardProps> = React.memo(({
       >
         <FrameRenderer
           frameId={cardData.template_id || 'classic-sports'}
+          title={cardData.title || 'Untitled Card'}
           cardData={cardData}
           imageUrl={currentPhoto}
           width={300}

@@ -3,7 +3,7 @@ import React from 'react';
 
 interface FrameRendererProps {
   frameId: string;
-  imageUrl: string;
+  imageUrl?: string;
   title: string;
   subtitle?: string;
   width?: number;
@@ -84,16 +84,22 @@ export const FrameRenderer: React.FC<FrameRendererProps> = ({
       {/* Image area - takes up most of the card */}
       <div className="relative w-full h-3/4 p-4">
         <div className="w-full h-full rounded-lg overflow-hidden bg-black/20">
-          <img 
-            src={imageUrl} 
-            alt={title}
-            className="w-full h-full object-cover"
-            onLoad={() => console.log('✅ FrameRenderer: Image loaded successfully')}
-            onError={(e) => {
-              console.error('❌ FrameRenderer: Image failed to load:', e);
-              console.error('Image URL:', imageUrl);
-            }}
-          />
+          {imageUrl ? (
+            <img 
+              src={imageUrl} 
+              alt={title}
+              className="w-full h-full object-cover"
+              onLoad={() => console.log('✅ FrameRenderer: Image loaded successfully')}
+              onError={(e) => {
+                console.error('❌ FrameRenderer: Image failed to load:', e);
+                console.error('Image URL:', imageUrl);
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white/50 text-sm">
+              No Image
+            </div>
+          )}
         </div>
       </div>
       

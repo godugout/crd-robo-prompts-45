@@ -8,8 +8,10 @@ interface CardData {
   title: string;
   description?: string;
   image_url?: string;
+  thumbnail_url?: string;
   template_id?: string;
   rarity: CardRarity;
+  tags: string[];
 }
 
 export const useSimpleCardEditor = () => {
@@ -17,8 +19,10 @@ export const useSimpleCardEditor = () => {
     title: '',
     description: '',
     image_url: '',
+    thumbnail_url: '',
     template_id: '',
-    rarity: 'common'
+    rarity: 'common',
+    tags: []
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -47,6 +51,7 @@ export const useSimpleCardEditor = () => {
       };
       
       console.log('✅ Card saved successfully:', savedCard);
+      toast.success('Card saved successfully!');
       return true;
     } catch (error) {
       console.error('❌ Failed to save card:', error);
@@ -57,10 +62,40 @@ export const useSimpleCardEditor = () => {
     }
   }, [cardData]);
 
+  const publishCard = useCallback(async (): Promise<boolean> => {
+    setIsSaving(true);
+    
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('🚀 Publishing card:', cardData);
+      
+      // In a real app, this would save and publish to database
+      const publishedCard = {
+        ...cardData,
+        id: Math.random().toString(36).substr(2, 9),
+        created_at: new Date().toISOString(),
+        is_public: true
+      };
+      
+      console.log('✅ Card published successfully:', publishedCard);
+      toast.success('Card published successfully!');
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to publish card:', error);
+      toast.error('Failed to publish card');
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  }, [cardData]);
+
   return {
     cardData,
     updateField,
     saveCard,
+    publishCard,
     isSaving
   };
 };
