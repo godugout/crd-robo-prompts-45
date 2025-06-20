@@ -56,7 +56,11 @@ export const useCards = (filters: CardFilters = {}) => {
       const cards: Card[] = (data || []).map(item => ({
         ...item,
         creator_name: 'Unknown Creator',
-        set_name: 'Unknown Set'
+        set_name: 'Unknown Set',
+        print_metadata: item.print_metadata || {},
+        creator_attribution: item.creator_attribution || {},
+        publishing_options: item.publishing_options || {},
+        design_metadata: item.design_metadata || {}
       }));
 
       return {
@@ -86,7 +90,11 @@ export const useCard = (id: string) => {
       return {
         ...data,
         creator_name: 'Unknown Creator',
-        set_name: 'Unknown Set'
+        set_name: 'Unknown Set',
+        print_metadata: data.print_metadata || {},
+        creator_attribution: data.creator_attribution || {},
+        publishing_options: data.publishing_options || {},
+        design_metadata: data.design_metadata || {}
       };
     },
     enabled: !!id
@@ -162,7 +170,11 @@ export const useFeaturedCards = (limit = 6) => {
       return (data || []).map(item => ({
         ...item,
         creator_name: 'Unknown Creator',
-        set_name: 'Unknown Set'
+        set_name: 'Unknown Set',
+        print_metadata: item.print_metadata || {},
+        creator_attribution: item.creator_attribution || {},
+        publishing_options: item.publishing_options || {},
+        design_metadata: item.design_metadata || {}
       }));
     }
   });

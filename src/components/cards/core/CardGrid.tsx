@@ -71,8 +71,8 @@ export const CardGrid: React.FC<CardGridProps> = ({
   const handleShare = async (card: Card) => {
     try {
       await navigator.share({
-        title: card.name,
-        text: card.description || `Check out this ${card.rarity} ${card.card_type} card!`,
+        title: card.title,
+        text: card.description || `Check out this ${card.rarity} card!`,
         url: window.location.origin + `/cards/${card.id}`
       });
     } catch (error) {

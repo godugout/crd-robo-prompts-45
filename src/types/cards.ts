@@ -1,6 +1,5 @@
 
 export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
-export type CardType = 'athlete' | 'fantasy' | 'sci_fi' | 'vehicle' | 'spell' | 'artifact';
 
 export interface Card {
   id: string;
@@ -21,15 +20,15 @@ export interface Card {
   price?: number;
   edition_size: number;
   verification_status?: string;
-  print_metadata?: Record<string, any>;
+  print_metadata?: any; // Changed from Record<string, any> to any to match Json type
   template_id?: string;
-  creator_attribution?: Record<string, any>;
-  publishing_options?: Record<string, any>;
+  creator_attribution?: any; // Changed from Record<string, any> to any
+  publishing_options?: any; // Changed from Record<string, any> to any
   print_available?: boolean;
   crd_catalog_inclusion?: boolean;
   marketplace_listing?: boolean;
   shop_id?: string;
-  design_metadata?: Record<string, any>;
+  design_metadata?: any; // Changed from Record<string, any> to any
   is_public?: boolean;
   
   // Computed fields for display

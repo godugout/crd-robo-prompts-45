@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CardFilters, CardRarity, CardType, CARD_TYPE_LABELS } from '@/types/cards';
+import { CardFilters, CardRarity } from '@/types/cards';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,14 +35,6 @@ export const CardFiltersComponent: React.FC<CardFiltersComponentProps> = ({
       ? currentRarities.filter(r => r !== rarity)
       : [...currentRarities, rarity];
     updateFilter('rarity', newRarities.length > 0 ? newRarities : undefined);
-  };
-
-  const toggleCardType = (cardType: CardType) => {
-    const currentTypes = filters.card_type || [];
-    const newTypes = currentTypes.includes(cardType)
-      ? currentTypes.filter(t => t !== cardType)
-      : [...currentTypes, cardType];
-    updateFilter('card_type', newTypes.length > 0 ? newTypes : undefined);
   };
 
   const hasActiveFilters = Object.values(filters).some(value => 
@@ -107,31 +99,6 @@ export const CardFiltersComponent: React.FC<CardFiltersComponentProps> = ({
 
         <Separator className="bg-crd-mediumGray" />
 
-        {/* Card Type */}
-        <div className="space-y-3">
-          <Label className="text-crd-lightGray">Card Type</Label>
-          <div className="grid grid-cols-1 gap-2">
-            {Object.entries(CARD_TYPE_LABELS).map(([type, label]) => (
-              <div key={type} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`type-${type}`}
-                  checked={filters.card_type?.includes(type as CardType) || false}
-                  onCheckedChange={() => toggleCardType(type as CardType)}
-                  className="border-crd-mediumGray"
-                />
-                <Label
-                  htmlFor={`type-${type}`}
-                  className="text-sm text-crd-lightGray cursor-pointer"
-                >
-                  {label}
-                </Label>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <Separator className="bg-crd-mediumGray" />
-
         {/* Price Range */}
         <div className="space-y-3">
           <Label className="text-crd-lightGray">Price Range</Label>
@@ -151,33 +118,6 @@ export const CardFiltersComponent: React.FC<CardFiltersComponentProps> = ({
                 type="number"
                 value={filters.price_max || ''}
                 onChange={(e) => updateFilter('price_max', e.target.value ? Number(e.target.value) : undefined)}
-                className="bg-crd-mediumGray border-crd-mediumGray text-white"
-              />
-            </div>
-          </div>
-        </div>
-
-        <Separator className="bg-crd-mediumGray" />
-
-        {/* Power Range */}
-        <div className="space-y-3">
-          <Label className="text-crd-lightGray">Power Range</Label>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Input
-                placeholder="Min"
-                type="number"
-                value={filters.power_min || ''}
-                onChange={(e) => updateFilter('power_min', e.target.value ? Number(e.target.value) : undefined)}
-                className="bg-crd-mediumGray border-crd-mediumGray text-white"
-              />
-            </div>
-            <div>
-              <Input
-                placeholder="Max"
-                type="number"
-                value={filters.power_max || ''}
-                onChange={(e) => updateFilter('power_max', e.target.value ? Number(e.target.value) : undefined)}
                 className="bg-crd-mediumGray border-crd-mediumGray text-white"
               />
             </div>
