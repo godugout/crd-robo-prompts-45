@@ -415,24 +415,71 @@ export type Database = {
           },
         ]
       }
+      collection_activity: {
+        Row: {
+          activity_data: Json | null
+          activity_type: string
+          collection_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          activity_data?: Json | null
+          activity_type: string
+          collection_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          activity_data?: Json | null
+          activity_type?: string
+          collection_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_activity_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_cards: {
         Row: {
+          added_by: string | null
           card_id: string
           collection_id: string
           created_at: string
+          display_order: number | null
           id: string
+          notes: string | null
+          quantity: number | null
         }
         Insert: {
+          added_by?: string | null
           card_id: string
           collection_id: string
           created_at?: string
+          display_order?: number | null
           id?: string
+          notes?: string | null
+          quantity?: number | null
         }
         Update: {
+          added_by?: string | null
           card_id?: string
           collection_id?: string
           created_at?: string
+          display_order?: number | null
           id?: string
+          notes?: string | null
+          quantity?: number | null
         }
         Relationships: [
           {
@@ -451,47 +498,269 @@ export type Database = {
           },
         ]
       }
+      collection_comments: {
+        Row: {
+          collection_id: string
+          content: string
+          created_at: string | null
+          id: string
+          parent_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          collection_id: string
+          content: string
+          created_at?: string | null
+          id?: string
+          parent_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          collection_id?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          parent_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_comments_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "collection_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collection_followers: {
+        Row: {
+          collection_id: string
+          followed_at: string | null
+          follower_id: string
+          id: string
+          notifications_enabled: boolean | null
+        }
+        Insert: {
+          collection_id: string
+          followed_at?: string | null
+          follower_id: string
+          id?: string
+          notifications_enabled?: boolean | null
+        }
+        Update: {
+          collection_id?: string
+          followed_at?: string | null
+          follower_id?: string
+          id?: string
+          notifications_enabled?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_followers_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collection_permissions: {
+        Row: {
+          collection_id: string
+          expires_at: string | null
+          granted_at: string | null
+          granted_by: string
+          id: string
+          permission_type: string
+          user_id: string
+        }
+        Insert: {
+          collection_id: string
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by: string
+          id?: string
+          permission_type: string
+          user_id: string
+        }
+        Update: {
+          collection_id?: string
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string
+          id?: string
+          permission_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_permissions_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collection_ratings: {
+        Row: {
+          collection_id: string
+          created_at: string | null
+          id: string
+          rating: number
+          review: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string | null
+          id?: string
+          rating: number
+          review?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string | null
+          id?: string
+          rating?: number
+          review?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_ratings_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collection_templates: {
+        Row: {
+          category: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_official: boolean | null
+          name: string
+          preview_image_url: string | null
+          template_data: Json
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_official?: boolean | null
+          name: string
+          preview_image_url?: string | null
+          template_data?: Json
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_official?: boolean | null
+          name?: string
+          preview_image_url?: string | null
+          template_data?: Json
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       collections: {
         Row: {
           allow_comments: boolean | null
           app_id: string | null
+          completion_rate: number | null
           cover_image_url: string | null
           created_at: string
           description: string | null
           design_metadata: Json | null
+          featured_until: string | null
           id: string
+          is_template: boolean | null
+          last_activity_at: string | null
+          likes_count: number | null
           owner_id: string
+          shares_count: number | null
+          tags: string[] | null
           team_id: string | null
+          template_category: string | null
           title: string
           updated_at: string
+          views_count: number | null
           visibility: string | null
         }
         Insert: {
           allow_comments?: boolean | null
           app_id?: string | null
+          completion_rate?: number | null
           cover_image_url?: string | null
           created_at?: string
           description?: string | null
           design_metadata?: Json | null
+          featured_until?: string | null
           id?: string
+          is_template?: boolean | null
+          last_activity_at?: string | null
+          likes_count?: number | null
           owner_id: string
+          shares_count?: number | null
+          tags?: string[] | null
           team_id?: string | null
+          template_category?: string | null
           title: string
           updated_at?: string
+          views_count?: number | null
           visibility?: string | null
         }
         Update: {
           allow_comments?: boolean | null
           app_id?: string | null
+          completion_rate?: number | null
           cover_image_url?: string | null
           created_at?: string
           description?: string | null
           design_metadata?: Json | null
+          featured_until?: string | null
           id?: string
+          is_template?: boolean | null
+          last_activity_at?: string | null
+          likes_count?: number | null
           owner_id?: string
+          shares_count?: number | null
+          tags?: string[] | null
           team_id?: string | null
+          template_category?: string | null
           title?: string
           updated_at?: string
+          views_count?: number | null
           visibility?: string | null
         }
         Relationships: [
@@ -3591,6 +3860,18 @@ export type Database = {
         Returns: {
           like_count: number
           view_count: number
+        }[]
+      }
+      get_collection_analytics: {
+        Args: { collection_uuid: string }
+        Returns: {
+          total_cards: number
+          unique_rarities: number
+          completion_rate: number
+          total_views: number
+          total_likes: number
+          total_followers: number
+          recent_activity: number
         }[]
       }
       get_column_exists: {
