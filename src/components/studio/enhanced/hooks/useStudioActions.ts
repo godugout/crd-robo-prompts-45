@@ -63,12 +63,7 @@ export const useStudioActions = () => {
           setCurrentDraft(newDraft);
         } else {
           autoSaveService.updateDraft({
-            uploadedImage: processed.processedUrl,
-            processing: {
-              ...currentDraft.processing,
-              imageValidated: true,
-              backgroundRemoved: !processed.hasBackground
-            }
+            uploadedImage: processed.processedUrl
           }, 'image_upload');
         }
       } catch (autoSaveError) {
@@ -143,6 +138,8 @@ export const useStudioActions = () => {
             setEffectValues(updatedDraft.effectValues || {});
             toast.success('Action undone');
           }
+        } else {
+          toast.info('Nothing to undo');
         }
       } else {
         toast.info('Nothing to undo');

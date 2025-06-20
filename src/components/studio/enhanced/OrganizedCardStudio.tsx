@@ -23,7 +23,8 @@ export const OrganizedCardStudio: React.FC = () => {
     isProcessingImage,
     imageLoadError,
     showBackgroundRemoval,
-    cardOrientation
+    cardOrientation,
+    setCardOrientation
   } = useStudioState();
 
   const {
@@ -85,10 +86,12 @@ export const OrganizedCardStudio: React.FC = () => {
               isProcessingImage={isProcessingImage}
               imageLoadError={imageLoadError}
               showBackgroundRemoval={showBackgroundRemoval}
+              cardOrientation={cardOrientation}
               onImageUpload={handleImageUpload}
               onFrameSelect={handleFrameSelect}
               onEffectChange={handleEffectChange}
               onToggleBackgroundRemoval={handleToggleBackgroundRemoval}
+              onOrientationChange={setCardOrientation}
               onExportDialogOpen={() => setShowExportDialog(true)}
             />
           </div>

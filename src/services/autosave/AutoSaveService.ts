@@ -10,12 +10,20 @@ export interface CardDraft {
   cardOrientation?: 'portrait' | 'landscape';
   lastModified: string;
   createdAt: string;
+  processing?: {
+    imageValidated?: boolean;
+    backgroundRemoved?: boolean;
+  };
 }
 
 export interface AutoSaveStats {
   lastSaveTime: string | null;
   totalSaves: number;
   currentDraftId: string | null;
+  draftAge: number;
+  saveCount: number;
+  historySize: number;
+  lastAction: string | null;
 }
 
 class AutoSaveService {
@@ -23,6 +31,7 @@ class AutoSaveService {
   private saveCount = 0;
   private readonly STORAGE_KEY = 'crd_studio_draft';
   private readonly STATS_KEY = 'crd_studio_stats';
+  private lastAction: string | null = null;
 
   getCurrentDraft(): CardDraft | null {
     try {
@@ -63,6 +72,7 @@ class AutoSaveService {
       lastModified: new Date().toISOString()
     };
 
+    this.lastAction = action;
     this.saveDraft();
     this.updateStats();
     
@@ -85,7 +95,11 @@ class AutoSaveService {
     const stats: AutoSaveStats = {
       lastSaveTime: new Date().toISOString(),
       totalSaves: this.saveCount,
-      currentDraftId: this.currentDraft?.id || null
+      currentDraftId: this.currentDraft?.id || null,
+      draftAge: this.currentDraft ? Date.now() - new Date(this.currentDraft.createdAt).getTime() : 0,
+      saveCount: this.saveCount,
+      historySize: 1, // Simple implementation
+      lastAction: this.lastAction
     };
 
     try {
@@ -108,12 +122,28 @@ class AutoSaveService {
     return {
       lastSaveTime: null,
       totalSaves: 0,
-      currentDraftId: null
+      currentDraftId: null,
+      draftAge: 0,
+      saveCount: 0,
+      historySize: 0,
+      lastAction: null
     };
+  }
+
+  canUndo(): boolean {
+    // Simple implementation - check if there's a draft
+    return this.currentDraft !== null;
+  }
+
+  undo(): boolean {
+    // Simple implementation - just show a message
+    console.log('Undo functionality - simplified implementation');
+    return false;
   }
 
   clearDraft(): void {
     this.currentDraft = null;
+    this.lastAction = null;
     try {
       localStorage.removeItem(this.STORAGE_KEY);
       console.log('🗑️ Cleared current draft');

@@ -1,3 +1,4 @@
+
 import React, { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, Image, ToggleLeft, Loader2, CheckCircle2, RotateCcw, Smartphone, Monitor } from 'lucide-react';
@@ -13,6 +14,8 @@ interface UploadPhaseProps {
   error: string;
   showBackgroundRemoval: boolean;
   onToggleBackgroundRemoval: () => void;
+  cardOrientation?: CardOrientation;
+  onOrientationChange?: (orientation: CardOrientation) => void;
 }
 
 export const UploadPhase: React.FC<UploadPhaseProps> = ({
@@ -21,19 +24,22 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   isProcessing,
   error,
   showBackgroundRemoval,
-  onToggleBackgroundRemoval
+  onToggleBackgroundRemoval,
+  cardOrientation = 'portrait',
+  onOrientationChange
 }) => {
-  const [selectedOrientation, setSelectedOrientation] = useState<CardOrientation>('portrait');
+  const [selectedOrientation, setSelectedOrientation] = useState<CardOrientation>(cardOrientation);
   const [detectedOrientation, setDetectedOrientation] = useState<CardOrientation | null>(null);
 
   const analyzeImageOrientation = (file: File): Promise<CardOrientation> => {
     return new Promise((resolve) => {
-      const img = new Image();
+      const img = document.createElement('img');
       img.onload = () => {
         const aspectRatio = img.naturalWidth / img.naturalHeight;
         const suggestedOrientation: CardOrientation = aspectRatio > 1 ? 'landscape' : 'portrait';
         setDetectedOrientation(suggestedOrientation);
         setSelectedOrientation(suggestedOrientation);
+        onOrientationChange?.(suggestedOrientation);
         resolve(suggestedOrientation);
       };
       img.src = URL.createObjectURL(file);
@@ -59,7 +65,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
       await onImageUpload(imageUrl);
       console.log('✅ Image upload completed');
     }
-  }, [onImageUpload]);
+  }, [onImageUpload, onOrientationChange]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -75,6 +81,11 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
     onImageUpload('');
     setDetectedOrientation(null);
     setSelectedOrientation('portrait');
+  };
+
+  const handleOrientationChange = (orientation: CardOrientation) => {
+    setSelectedOrientation(orientation);
+    onOrientationChange?.(orientation);
   };
 
   // Trading card dimensions (2.5" x 3.5" ratio)
@@ -116,7 +127,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
             <Button
               variant={selectedOrientation === 'portrait' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setSelectedOrientation('portrait')}
+              onClick={() => handleOrientationChange('portrait')}
               className={selectedOrientation === 'portrait' ? 'bg-crd-green text-black' : ''}
             >
               <Smartphone className="w-4 h-4 mr-2" />
@@ -125,7 +136,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
             <Button
               variant={selectedOrientation === 'landscape' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setSelectedOrientation('landscape')}
+              onClick={() => handleOrientationChange('landscape')}
               className={selectedOrientation === 'landscape' ? 'bg-crd-green text-black' : ''}
             >
               <Monitor className="w-4 h-4 mr-2" />
