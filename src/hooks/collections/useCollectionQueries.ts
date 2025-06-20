@@ -75,7 +75,7 @@ export const useCollections = (filters: CollectionFilters = {}) => {
       const { data, error, count } = await query;
 
       if (error) throw error;
-      return { collections: data as Collection[] || [], total: count || 0 };
+      return { collections: (data || []) as Collection[], total: count || 0 };
     }
   });
 };
@@ -91,7 +91,7 @@ export const useUserCollections = (userId: string) => {
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      return data as Collection[] || [];
+      return (data || []) as Collection[];
     },
     enabled: !!userId
   });
@@ -109,7 +109,7 @@ export const usePublicCollections = (limit = 20) => {
         .limit(limit);
 
       if (error) throw error;
-      return data as Collection[] || [];
+      return (data || []) as Collection[];
     }
   });
 };
@@ -128,7 +128,7 @@ export const useFeaturedCollections = () => {
         .limit(10);
 
       if (error) throw error;
-      return data as Collection[] || [];
+      return (data || []) as Collection[];
     }
   });
 };
@@ -155,7 +155,7 @@ export const useCollectionCards = (collectionId: string) => {
         .order('display_order', { ascending: true });
 
       if (error) throw error;
-      return data as CollectionCard[] || [];
+      return (data || []) as CollectionCard[];
     },
     enabled: !!collectionId
   });
@@ -184,51 +184,75 @@ export const useCollectionAnalytics = (collectionId: string) => {
   });
 };
 
-// Collection activity
+// Collection activity - simplified without user join for now
 export const useCollectionActivity = (collectionId: string, limit = 50) => {
   return useQuery({
     queryKey: ['collection-activity', collectionId, limit],
     queryFn: async (): Promise<CollectionActivity[]> => {
       const { data, error } = await supabase
         .from('collection_activity')
-        .select(`
-          *,
-          user:crd_profiles!collection_activity_user_id_fkey (
-            username,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('collection_id', collectionId)
         .order('created_at', { ascending: false })
         .limit(limit);
 
       if (error) throw error;
-      return data as CollectionActivity[] || [];
+      
+      // Transform the data to match our interface
+      const activities: CollectionActivity[] = (data || []).map(item => ({
+        id: item.id,
+        collection_id: item.collection_id,
+        user_id: item.user_id,
+        activity_type: item.activity_type as CollectionActivity['activity_type'],
+        activity_data: typeof item.activity_data === 'string' 
+          ? JSON.parse(item.activity_data) 
+          : (item.activity_data || {}),
+        created_at: item.created_at,
+        user: {
+          id: item.user_id,
+          username: 'Unknown User', // Default value until we get user profiles
+          avatar_url: undefined
+        }
+      }));
+
+      return activities;
     },
     enabled: !!collectionId
   });
 };
 
-// Collection comments
+// Collection comments - simplified without user join for now
 export const useCollectionComments = (collectionId: string) => {
   return useQuery({
     queryKey: ['collection-comments', collectionId],
     queryFn: async (): Promise<CollectionComment[]> => {
       const { data, error } = await supabase
         .from('collection_comments')
-        .select(`
-          *,
-          user:crd_profiles!collection_comments_user_id_fkey (
-            username,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('collection_id', collectionId)
         .is('parent_id', null)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return data as CollectionComment[] || [];
+      
+      // Transform the data to match our interface
+      const comments: CollectionComment[] = (data || []).map(item => ({
+        id: item.id,
+        collection_id: item.collection_id,
+        user_id: item.user_id,
+        parent_id: item.parent_id,
+        content: item.content,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        user: {
+          id: item.user_id,
+          username: 'Unknown User', // Default value until we get user profiles
+          avatar_url: undefined
+        },
+        replies: []
+      }));
+
+      return comments;
     },
     enabled: !!collectionId
   });
@@ -251,12 +275,24 @@ export const useCollectionTemplates = (category?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data?.map(item => ({
-        ...item,
+      
+      const templates: CollectionTemplate[] = (data || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        category: item.category,
         template_data: typeof item.template_data === 'string' 
           ? JSON.parse(item.template_data) 
-          : item.template_data
-      })) as CollectionTemplate[] || [];
+          : (item.template_data || {}),
+        preview_image_url: item.preview_image_url,
+        created_by: item.created_by,
+        is_official: item.is_official,
+        usage_count: item.usage_count,
+        created_at: item.created_at,
+        updated_at: item.updated_at
+      }));
+
+      return templates;
     }
   });
 };
