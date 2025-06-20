@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,6 +23,10 @@ export const SimplifiedCardCreationHub = () => {
     } catch (error) {
       console.error('Navigation failed:', error);
     }
+  };
+
+  const handleCreateCard = () => {
+    navigate('/cards/streamlined');
   };
 
   const creationOptions = [
@@ -134,3 +137,5 @@ export const SimplifiedCardCreationHub = () => {
     </div>
   );
 };
+
+export default SimplifiedCardCreationHub;
