@@ -1,10 +1,12 @@
 
 import React, { useCallback, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, Image, ToggleLeft, Loader2, CheckCircle2, RotateCcw, Smartphone, Monitor } from 'lucide-react';
+import { Upload, Image, ToggleLeft, Loader2, CheckCircle2, RotateCcw, Smartphone, Monitor, Wand2 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
 import { MediaManager } from '@/lib/storage/MediaManager';
+import { ImageProcessingPanel } from './ImageProcessingPanel';
+import { BatchImageProcessor } from './BatchImageProcessor';
 
 type CardOrientation = 'portrait' | 'landscape';
 
@@ -32,6 +34,8 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   const [selectedOrientation, setSelectedOrientation] = useState<CardOrientation>(cardOrientation);
   const [detectedOrientation, setDetectedOrientation] = useState<CardOrientation | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showAdvancedProcessing, setShowAdvancedProcessing] = useState(false);
+  const [showBatchProcessor, setShowBatchProcessor] = useState(false);
 
   const analyzeImageOrientation = (file: File): Promise<CardOrientation> => {
     return new Promise((resolve) => {
@@ -118,6 +122,18 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
     onOrientationChange?.(orientation);
   };
 
+  const handleProcessingComplete = async (processedImageUrl: string) => {
+    await onImageUpload(processedImageUrl);
+    toast.success('Advanced processing complete!');
+  };
+
+  const handleBatchComplete = (processedImages: { original: File; processed: string }[]) => {
+    if (processedImages.length > 0) {
+      // Use the first processed image for now
+      handleProcessingComplete(processedImages[0].processed);
+    }
+  };
+
   // Trading card dimensions (2.5" x 3.5" ratio)
   const dropzoneWidth = selectedOrientation === 'portrait' ? 300 : 420;
   const dropzoneHeight = selectedOrientation === 'portrait' ? 420 : 300;
@@ -130,6 +146,42 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
           Choose a high-quality image to create your trading card
         </p>
       </div>
+
+      {/* Advanced Processing Toggle */}
+      <div className="flex items-center justify-center gap-4">
+        <Button
+          variant={showAdvancedProcessing ? "default" : "outline"}
+          size="sm"
+          onClick={() => setShowAdvancedProcessing(!showAdvancedProcessing)}
+          className={showAdvancedProcessing ? 'bg-crd-green text-black' : ''}
+        >
+          <Wand2 className="w-4 h-4 mr-2" />
+          Advanced Processing
+        </Button>
+        <Button
+          variant={showBatchProcessor ? "default" : "outline"}
+          size="sm"
+          onClick={() => setShowBatchProcessor(!showBatchProcessor)}
+          className={showBatchProcessor ? 'bg-crd-green text-black' : ''}
+        >
+          Batch Processor
+        </Button>
+      </div>
+
+      {/* Advanced Processing Panel */}
+      {showAdvancedProcessing && uploadedImage && (
+        <ImageProcessingPanel
+          imageUrl={uploadedImage}
+          onProcessingComplete={handleProcessingComplete}
+        />
+      )}
+
+      {/* Batch Processor */}
+      {showBatchProcessor && (
+        <BatchImageProcessor
+          onBatchComplete={handleBatchComplete}
+        />
+      )}
 
       {/* Background Removal Toggle */}
       <div className="flex items-center justify-between p-4 bg-editor-tool rounded-lg border border-editor-border">
@@ -315,6 +367,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
           <li>• Portrait orientation works best for player cards</li>
           <li>• Landscape orientation works well for action shots</li>
           <li>• Images are automatically optimized for web and storage</li>
+          <li>• Use Advanced Processing for AI-powered enhancements</li>
         </ul>
       </div>
     </div>
