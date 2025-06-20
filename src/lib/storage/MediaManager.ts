@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -31,12 +32,6 @@ export interface UploadOptions {
   onProgress?: (progress: number) => void;
 }
 
-export interface OptimizationOptions {
-  formats: ('webp' | 'jpeg' | 'png')[];
-  sizes: { width: number; height: number; suffix: string }[];
-  quality: number;
-}
-
 // Helper function to convert Json to Record<string, any>
 const parseJsonMetadata = (metadata: any): Record<string, any> => {
   if (typeof metadata === 'string') {
@@ -58,6 +53,13 @@ class MediaManagerClass {
 
   async uploadFile(file: File, options: UploadOptions): Promise<MediaFile | null> {
     try {
+      console.log('📁 MediaManager uploadFile starting:', {
+        fileName: file.name,
+        fileSize: file.size,
+        bucket: options.bucket,
+        folder: options.folder
+      });
+
       // Validate file
       if (!this.validateFile(file, options.bucket)) {
         return null;
@@ -69,9 +71,16 @@ class MediaManagerClass {
         return null;
       }
 
-      // Generate file path
+      // Generate file path with proper unique naming
       const fileName = this.generateFileName(file.name);
       const filePath = this.generateFilePath(options.bucket, fileName, options.folder, userId);
+
+      console.log('📂 Generated file path:', filePath);
+
+      // Initialize progress
+      if (options.onProgress) {
+        options.onProgress(0);
+      }
 
       // Upload to storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -82,18 +91,33 @@ class MediaManagerClass {
         });
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
+        console.error('❌ Storage upload error:', uploadError);
         toast.error(`Upload failed: ${uploadError.message}`);
         return null;
+      }
+
+      console.log('✅ Storage upload successful:', uploadData);
+
+      // Update progress
+      if (options.onProgress) {
+        options.onProgress(50);
       }
 
       // Get file dimensions if it's an image
       const dimensions = await this.getImageDimensions(file);
 
-      // Get public URL
+      // Get public URL immediately after upload
       const { data: urlData } = supabase.storage
         .from(options.bucket)
         .getPublicUrl(filePath);
+
+      const publicUrl = urlData.publicUrl;
+      console.log('🔗 Generated public URL:', publicUrl);
+
+      // Update progress
+      if (options.onProgress) {
+        options.onProgress(75);
+      }
 
       // Create media file record
       const mediaFileData = {
@@ -107,7 +131,8 @@ class MediaManagerClass {
         height: dimensions?.height,
         metadata: {
           originalName: file.name,
-          publicUrl: urlData.publicUrl,
+          publicUrl: publicUrl, // Store the public URL in metadata
+          uploadedAt: new Date().toISOString(),
           ...options.metadata
         },
         tags: options.tags || [],
@@ -122,12 +147,14 @@ class MediaManagerClass {
         .single();
 
       if (dbError) {
-        console.error('Database error:', dbError);
+        console.error('❌ Database insert error:', dbError);
         // Clean up uploaded file
         await supabase.storage.from(options.bucket).remove([filePath]);
         toast.error('Failed to save file information');
         return null;
       }
+
+      console.log('✅ Database record created:', mediaFile);
 
       // Convert the database result to our MediaFile type
       const result: MediaFile = {
@@ -136,22 +163,32 @@ class MediaManagerClass {
         optimization_variants: parseJsonMetadata(mediaFile.optimization_variants)
       };
 
+      // Update progress
+      if (options.onProgress) {
+        options.onProgress(90);
+      }
+
       // Generate thumbnail if requested
       if (options.generateThumbnail && file.type.startsWith('image/')) {
         await this.generateThumbnail(result, file);
       }
 
-      // Optimize if requested
+      // Optimize if requested (background task)
       if (options.optimize && file.type.startsWith('image/')) {
         this.optimizeImageInBackground(result, file);
       }
 
-      toast.success('File uploaded successfully');
+      // Final progress update
+      if (options.onProgress) {
+        options.onProgress(100);
+      }
+
+      console.log('🎉 MediaManager upload completed successfully');
       return result;
 
     } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Upload failed');
+      console.error('❌ MediaManager upload error:', error);
+      toast.error('Upload failed - please try again');
       return null;
     }
   }
@@ -314,7 +351,7 @@ class MediaManagerClass {
     const allowedTypes = {
       'static-assets': ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'],
       'user-content': ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'video/mp4', 'video/webm'],
-      'card-assets': ['image/png', 'image/jpeg', 'image/webp']
+      'card-assets': ['image/png', 'image/jpeg', 'image/webp', 'image/gif']
     };
 
     if (!allowedTypes[bucket].includes(file.type)) {
@@ -358,6 +395,7 @@ class MediaManagerClass {
       const img = new Image();
       img.onload = () => {
         resolve({ width: img.width, height: img.height });
+        URL.revokeObjectURL(img.src);
       };
       img.onerror = () => resolve(null);
       img.src = URL.createObjectURL(file);

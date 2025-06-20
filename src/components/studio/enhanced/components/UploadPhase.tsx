@@ -36,6 +36,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showAdvancedProcessing, setShowAdvancedProcessing] = useState(false);
   const [showBatchProcessor, setShowBatchProcessor] = useState(false);
+  const [uploadError, setUploadError] = useState<string>('');
 
   const analyzeImageOrientation = (file: File): Promise<CardOrientation> => {
     return new Promise((resolve) => {
@@ -55,48 +56,78 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
-        toast.error('File too large. Please choose an image under 10MB.');
-        return;
-      }
-      
-      console.log('🔄 Starting MediaManager upload process:', file.name);
-      
-      try {
-        // Analyze orientation
-        await analyzeImageOrientation(file);
-        
-        // Upload using MediaManager for proper storage
-        const mediaFile = await MediaManager.uploadFile(file, {
-          bucket: 'card-assets',
-          folder: 'studio-cards',
-          generateThumbnail: true,
-          optimize: true,
-          tags: ['studio-upload', 'card-image'],
-          metadata: {
-            originalName: file.name,
-            cardOrientation: selectedOrientation,
-            source: 'studio'
-          },
-          onProgress: setUploadProgress
-        });
+    if (!file) return;
 
-        if (mediaFile) {
-          // Get the public URL from MediaManager
-          const publicUrl = MediaManager.getPublicUrl(mediaFile.bucket_id, mediaFile.file_path);
-          console.log('✅ MediaManager upload completed:', publicUrl);
-          
-          await onImageUpload(publicUrl);
-          setUploadProgress(0);
-        } else {
-          throw new Error('Upload failed - no media file returned');
+    // Clear any previous errors
+    setUploadError('');
+    setUploadProgress(0);
+
+    // Validate file size
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      const errorMsg = 'File too large. Please choose an image under 10MB.';
+      setUploadError(errorMsg);
+      toast.error(errorMsg);
+      return;
+    }
+
+    console.log('🔄 Starting MediaManager upload process:', file.name, file.size);
+    
+    try {
+      // Analyze orientation first
+      await analyzeImageOrientation(file);
+      
+      // Upload using MediaManager with proper progress tracking
+      const mediaFile = await MediaManager.uploadFile(file, {
+        bucket: 'card-assets',
+        folder: 'studio-cards',
+        generateThumbnail: true,
+        optimize: true,
+        tags: ['studio-upload', 'card-image'],
+        metadata: {
+          originalName: file.name,
+          cardOrientation: selectedOrientation,
+          source: 'studio',
+          uploadTimestamp: Date.now()
+        },
+        onProgress: (progress) => {
+          console.log('📊 Upload progress:', progress);
+          setUploadProgress(progress);
         }
-      } catch (error) {
-        console.error('❌ MediaManager upload failed:', error);
-        setUploadProgress(0);
-        toast.error('Upload failed. Please try again.');
+      });
+
+      if (!mediaFile) {
+        throw new Error('MediaManager returned null - upload failed');
       }
+
+      // Get the public URL from metadata first, then fallback to MediaManager
+      let publicUrl = mediaFile.metadata?.publicUrl;
+      if (!publicUrl) {
+        publicUrl = MediaManager.getPublicUrl(mediaFile.bucket_id, mediaFile.file_path);
+      }
+
+      console.log('✅ MediaManager upload completed successfully:', {
+        fileId: mediaFile.id,
+        publicUrl,
+        filePath: mediaFile.file_path,
+        bucket: mediaFile.bucket_id
+      });
+
+      // Call the upload handler with the public URL
+      await onImageUpload(publicUrl);
+      
+      setUploadProgress(100);
+      toast.success('Image uploaded successfully!', {
+        description: 'Ready for frame selection'
+      });
+
+    } catch (error) {
+      console.error('❌ MediaManager upload failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Upload failed - please try again';
+      setUploadError(errorMessage);
+      setUploadProgress(0);
+      toast.error(errorMessage, {
+        description: 'Please check your connection and try again'
+      });
     }
   }, [onImageUpload, onOrientationChange, selectedOrientation]);
 
@@ -115,6 +146,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
     setDetectedOrientation(null);
     setSelectedOrientation('portrait');
     setUploadProgress(0);
+    setUploadError('');
   };
 
   const handleOrientationChange = (orientation: CardOrientation) => {
@@ -137,6 +169,9 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   // Trading card dimensions (2.5" x 3.5" ratio)
   const dropzoneWidth = selectedOrientation === 'portrait' ? 300 : 420;
   const dropzoneHeight = selectedOrientation === 'portrait' ? 420 : 300;
+
+  // Determine current error to display (prioritize upload errors)
+  const displayError = uploadError || error;
 
   return (
     <div className="p-6 space-y-6">
@@ -258,7 +293,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
           {isProcessing ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 p-6">
               <Loader2 className="w-12 h-12 text-crd-green animate-spin" />
-              <p className="text-white text-center">Uploading to MediaManager...</p>
+              <p className="text-white text-center">Uploading via MediaManager...</p>
               {uploadProgress > 0 && (
                 <div className="w-full bg-gray-700 rounded-full h-2">
                   <div 
@@ -307,7 +342,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
                   {selectedOrientation === 'portrait' ? '2.5" × 3.5"' : '3.5" × 2.5"'} Trading Card
                 </p>
                 <p className="text-crd-lightGray text-xs">
-                  Stored in MediaManager • Public URL ready
+                  Stored in MediaManager • Ready for frames
                 </p>
               </div>
             </div>
@@ -341,18 +376,30 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
       </div>
 
       {/* Error Display */}
-      {error && (
+      {displayError && (
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-          <p className="text-red-400 text-sm">{error}</p>
+          <p className="text-red-400 text-sm font-medium">Upload Error</p>
+          <p className="text-red-300 text-sm">{displayError}</p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              setUploadError('');
+              setUploadProgress(0);
+            }}
+            className="mt-2 text-red-400 border-red-400 hover:bg-red-400/10"
+          >
+            Clear Error
+          </Button>
         </div>
       )}
 
       {/* Success Indicator */}
-      {uploadedImage && !isProcessing && (
+      {uploadedImage && !isProcessing && !displayError && (
         <div className="p-4 bg-crd-green/10 border border-crd-green/20 rounded-lg">
-          <p className="text-crd-green text-sm font-medium">✓ Image uploaded via MediaManager!</p>
+          <p className="text-crd-green text-sm font-medium">✓ Image uploaded successfully!</p>
           <p className="text-crd-lightGray text-sm">
-            File stored securely with public URL - ready for frame selection
+            File stored securely with MediaManager - ready for frame selection
           </p>
         </div>
       )}

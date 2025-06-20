@@ -35,9 +35,24 @@ export const useStudioActions = () => {
     setImageLoadError('');
     
     try {
-      // Check if this is already a proper MediaManager URL
-      if (imageUrl.includes('supabase') && imageUrl.includes('card-assets')) {
-        console.log('✅ Already a MediaManager URL, using directly:', imageUrl);
+      // Handle empty/clear requests
+      if (!imageUrl) {
+        console.log('🗑️ Clearing uploaded image');
+        setUploadedImage('');
+        setProcessedImage(null);
+        if (currentDraft) {
+          autoSaveService.updateDraft({ uploadedImage: '' }, 'image_clear');
+        }
+        setIsProcessingImage(false);
+        return;
+      }
+
+      // Check if this is already a proper MediaManager/Supabase URL
+      const isMediaManagerUrl = imageUrl.includes('supabase') && 
+                               (imageUrl.includes('card-assets') || imageUrl.includes('wxlwhqlbxyuyujhqeyur'));
+      
+      if (isMediaManagerUrl) {
+        console.log('✅ MediaManager URL detected, using directly:', imageUrl);
         setUploadedImage(imageUrl);
         
         // Create or update draft with the MediaManager URL
@@ -60,6 +75,7 @@ export const useStudioActions = () => {
         }
         
         toast.success('Image ready! Select a frame next.');
+        setIsProcessingImage(false);
         return;
       }
 
@@ -69,16 +85,17 @@ export const useStudioActions = () => {
         throw new Error('Invalid or corrupted image file');
       }
 
-      // Process the image if needed
-      const processed = await imageProcessingService.processImage(imageUrl, {
-        removeBackground: showBackgroundRemoval
-      });
+      // Process the image if needed (background removal, etc.)
+      let finalUrl = imageUrl;
+      if (showBackgroundRemoval) {
+        const processed = await imageProcessingService.processImage(imageUrl, {
+          removeBackground: true
+        });
+        setProcessedImage(processed);
+        finalUrl = processed.processedUrl || imageUrl;
+      }
 
-      // Update processed image
-      setProcessedImage(processed);
-      
-      // Use the processed URL
-      const finalUrl = processed.processedUrl || imageUrl;
+      // Update uploaded image
       setUploadedImage(finalUrl);
 
       // Create or update draft
