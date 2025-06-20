@@ -61,7 +61,15 @@ export const EnhancedStudioPreview: React.FC<EnhancedStudioPreviewProps> = ({
       frameConfigId: frameConfig?.id,
       frameConfigName: frameConfig?.name
     });
-  }, [selectedFrame, frameConfig]);
+    
+    // Log ModularFrameBuilder rendering when both image and frame are present
+    if (uploadedImage && frameConfig) {
+      console.log('🖼️ Rendering ModularFrameBuilder with:', { 
+        frameConfig: frameConfig.name, 
+        uploadedImage: 'present' 
+      });
+    }
+  }, [selectedFrame, frameConfig, uploadedImage]);
 
   const handleImageTransform = (updates: Partial<ImageTransform>) => {
     setImageTransform(prev => ({ ...prev, ...updates }));
@@ -89,7 +97,6 @@ export const EnhancedStudioPreview: React.FC<EnhancedStudioPreviewProps> = ({
       >
         {uploadedImage && frameConfig ? (
           <div className="relative w-full h-full">
-            {console.log('🖼️ Rendering ModularFrameBuilder with:', { frameConfig: frameConfig.name, uploadedImage: 'present' })}
             {/* Frame with integrated image */}
             <ModularFrameBuilder
               config={frameConfig}
