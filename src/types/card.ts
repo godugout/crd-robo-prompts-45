@@ -38,7 +38,7 @@ export interface Card {
   tags: string[];
   visibility?: CardVisibility;
   is_public?: boolean;
-  design_metadata?: Record<string, any>;
+  design_metadata?: Record<string, any>; // Made optional to match usage
   creator_attribution?: CreatorAttribution;
   publishing_options?: PublishingOptions;
   price?: number;
@@ -47,5 +47,23 @@ export interface Card {
   user_id?: string;
 }
 
-// Export CardData as an alias for Card to maintain compatibility
-export type CardData = Card;
+// CardData interface with required timestamps and optional design_metadata
+export interface CardData {
+  id?: string;
+  title: string;
+  description?: string;
+  image_url?: string;
+  thumbnail_url?: string;
+  template_id?: string;
+  rarity: CardRarity;
+  tags: string[];
+  visibility?: CardVisibility;
+  is_public?: boolean;
+  design_metadata?: Record<string, any>; // Made optional
+  creator_attribution?: CreatorAttribution;
+  publishing_options?: PublishingOptions;
+  price?: number;
+  created_at?: string; // Made optional for creation
+  updated_at?: string; // Made optional for creation
+  user_id?: string;
+}
