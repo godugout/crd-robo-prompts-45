@@ -8,6 +8,7 @@ import { FrameRenderer } from '@/components/editor/frames/FrameRenderer';
 import { ProcessedImage } from '@/services/imageProcessing/ImageProcessingService';
 
 type StudioPhase = 'upload' | 'frames' | 'effects' | 'layers' | 'export';
+type CardOrientation = 'portrait' | 'landscape';
 
 interface AdaptiveCardPreviewProps {
   currentPhase: StudioPhase;
@@ -16,6 +17,7 @@ interface AdaptiveCardPreviewProps {
   effectValues?: Record<string, any>;
   processedImage?: ProcessedImage | null;
   isProcessing?: boolean;
+  cardOrientation?: CardOrientation;
   onImageUpload?: () => void;
 }
 
@@ -24,8 +26,18 @@ const Simple2DPreview: React.FC<{
   uploadedImage?: string;
   selectedFrame?: string;
   effectValues?: Record<string, any>;
+  cardOrientation?: CardOrientation;
   onImageUpload?: () => void;
-}> = ({ phase, uploadedImage, selectedFrame, effectValues, onImageUpload }) => {
+}> = ({ phase, uploadedImage, selectedFrame, effectValues, cardOrientation = 'portrait', onImageUpload }) => {
+  // Calculate card dimensions based on orientation
+  const cardDimensions = useMemo(() => {
+    const baseWidth = 300;
+    const baseHeight = 420;
+    return cardOrientation === 'portrait' 
+      ? { width: baseWidth, height: baseHeight }
+      : { width: baseHeight, height: baseWidth };
+  }, [cardOrientation]);
+
   const getPreviewContent = () => {
     switch (phase) {
       case 'upload':
@@ -39,7 +51,10 @@ const Simple2DPreview: React.FC<{
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30" />
             <div className="absolute bottom-4 left-4 right-4">
               <h3 className="text-white text-lg font-bold">Image Uploaded</h3>
-              <p className="text-white/80 text-sm">Ready for frame selection</p>
+              <p className="text-white/80 text-sm">
+                {cardOrientation === 'portrait' ? 'Portrait' : 'Landscape'} Trading Card
+              </p>
+              <p className="text-white/60 text-xs">Ready for frame selection</p>
             </div>
           </div>
         ) : (
@@ -50,7 +65,7 @@ const Simple2DPreview: React.FC<{
             <Upload className="w-12 h-12 text-white/60 mb-4" />
             <h3 className="text-white text-lg font-semibold mb-2">Upload Your Image</h3>
             <p className="text-white/70 text-sm text-center max-w-xs">
-              Choose a high-quality image to start creating your card
+              Choose a high-quality image for your {cardOrientation} trading card
             </p>
           </div>
         );
@@ -58,21 +73,34 @@ const Simple2DPreview: React.FC<{
       case 'frames':
         return (
           <div className="w-full h-full relative">
-            {selectedFrame ? (
+            {selectedFrame && uploadedImage ? (
               <FrameRenderer
                 frameId={selectedFrame}
                 imageUrl={uploadedImage}
                 title="Preview Card"
                 subtitle="Frame Applied"
-                width={300}
-                height={420}
+                width={cardDimensions.width}
+                height={cardDimensions.height}
               />
+            ) : uploadedImage ? (
+              <div className="relative w-full h-full rounded-2xl overflow-hidden">
+                <img 
+                  src={uploadedImage} 
+                  alt="Card preview" 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+                <div className="absolute bottom-4 left-4 right-4">
+                  <h3 className="text-white text-lg font-bold">Select a Frame</h3>
+                  <p className="text-white/80 text-sm">Choose from the sidebar</p>
+                </div>
+              </div>
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl flex flex-col items-center justify-center">
                 <ImageIcon className="w-12 h-12 text-white/60 mb-4" />
-                <h3 className="text-white text-lg font-semibold mb-2">Select a Frame</h3>
+                <h3 className="text-white text-lg font-semibold mb-2">Upload Image First</h3>
                 <p className="text-white/70 text-sm text-center">
-                  Choose a frame style from the sidebar
+                  Go back to upload phase to add your image
                 </p>
               </div>
             )}
@@ -89,8 +117,8 @@ const Simple2DPreview: React.FC<{
               imageUrl={uploadedImage}
               title="Enhanced Card"
               subtitle="Effects Applied"
-              width={300}
-              height={420}
+              width={cardDimensions.width}
+              height={cardDimensions.height}
             />
             {/* CSS-based effect overlays */}
             {effectValues && Object.keys(effectValues).length > 0 && (
@@ -138,6 +166,9 @@ const Simple2DPreview: React.FC<{
             <div className="text-center">
               <Wand2 className="w-12 h-12 text-white/60 mx-auto mb-4" />
               <h3 className="text-white text-lg font-semibold">Card Preview</h3>
+              <p className="text-white/60 text-sm mt-2">
+                {cardOrientation === 'portrait' ? 'Portrait' : 'Landscape'} Format
+              </p>
             </div>
           </div>
         );
@@ -145,12 +176,14 @@ const Simple2DPreview: React.FC<{
   };
 
   return (
-    <div className="w-full h-full max-w-sm mx-auto">
-      <Card className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-white/20 rounded-3xl overflow-hidden shadow-2xl h-full">
-        <CardContent className="p-6 h-full">
-          {getPreviewContent()}
-        </CardContent>
-      </Card>
+    <div className="w-full h-full flex items-center justify-center">
+      <div style={{ width: cardDimensions.width, height: cardDimensions.height }}>
+        <Card className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-white/20 rounded-3xl overflow-hidden shadow-2xl h-full">
+          <CardContent className="p-6 h-full">
+            {getPreviewContent()}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
@@ -162,6 +195,7 @@ export const AdaptiveCardPreview: React.FC<AdaptiveCardPreviewProps> = ({
   effectValues = {},
   processedImage,
   isProcessing = false,
+  cardOrientation = 'portrait',
   onImageUpload
 }) => {
   const [previewMode, setPreviewMode] = useState<'2d' | '3d'>('2d');
@@ -222,6 +256,9 @@ export const AdaptiveCardPreview: React.FC<AdaptiveCardPreviewProps> = ({
         <span className="text-white text-sm font-medium capitalize">
           {currentPhase} Phase
         </span>
+        <span className="text-white/60 text-xs ml-2">
+          ({cardOrientation})
+        </span>
       </div>
 
       {/* Preview Content */}
@@ -242,6 +279,7 @@ export const AdaptiveCardPreview: React.FC<AdaptiveCardPreviewProps> = ({
             uploadedImage={uploadedImage}
             selectedFrame={selectedFrame}
             effectValues={effectValues}
+            cardOrientation={cardOrientation}
             onImageUpload={onImageUpload}
           />
         )}

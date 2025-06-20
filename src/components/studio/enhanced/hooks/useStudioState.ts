@@ -5,6 +5,7 @@ import { autoSaveService, CardDraft } from '@/services/autosave/AutoSaveService'
 import { toast } from 'sonner';
 
 type StudioPhase = 'upload' | 'frames' | 'effects' | 'layers' | 'export';
+type CardOrientation = 'portrait' | 'landscape';
 
 export const useStudioState = () => {
   // Core state
@@ -13,6 +14,7 @@ export const useStudioState = () => {
   const [selectedFrame, setSelectedFrame] = useState<string>('');
   const [effectValues, setEffectValues] = useState<Record<string, any>>({});
   const [showExportDialog, setShowExportDialog] = useState(false);
+  const [cardOrientation, setCardOrientation] = useState<CardOrientation>('portrait');
   
   // Enhanced state for new features
   const [processedImage, setProcessedImage] = useState<ProcessedImage | null>(null);
@@ -81,8 +83,12 @@ export const useStudioState = () => {
     setUploadedImage(imageUrl);
     setImageLoadError(''); // Clear any previous errors
     
-    // Trigger auto-save after state update
+    // Show immediate UI feedback
     if (imageUrl) {
+      toast.success('Image uploaded successfully!', {
+        duration: 2000,
+        className: 'bg-crd-green text-black'
+      });
       triggerAutoSave('image_upload', { uploadedImage: imageUrl });
     }
   }, [triggerAutoSave]);
@@ -102,6 +108,12 @@ export const useStudioState = () => {
     triggerAutoSave('effect_change', { effectValues: newEffectValues });
   }, [triggerAutoSave]);
 
+  const setCardOrientationWithSync = useCallback((orientation: CardOrientation) => {
+    console.log('📱 Setting card orientation:', orientation);
+    setCardOrientation(orientation);
+    triggerAutoSave('orientation_change', { cardOrientation: orientation });
+  }, [triggerAutoSave]);
+
   return {
     // State
     currentPhase,
@@ -114,6 +126,8 @@ export const useStudioState = () => {
     setEffectValues: setEffectValuesWithSync,
     showExportDialog,
     setShowExportDialog,
+    cardOrientation,
+    setCardOrientation: setCardOrientationWithSync,
     processedImage,
     setProcessedImage,
     currentDraft,

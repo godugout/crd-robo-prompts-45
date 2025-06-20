@@ -22,7 +22,8 @@ export const OrganizedCardStudio: React.FC = () => {
     currentDraft,
     isProcessingImage,
     imageLoadError,
-    showBackgroundRemoval
+    showBackgroundRemoval,
+    cardOrientation
   } = useStudioState();
 
   const {
@@ -101,6 +102,7 @@ export const OrganizedCardStudio: React.FC = () => {
               effectValues={effectValues}
               processedImage={processedImage}
               isProcessing={isProcessingImage}
+              cardOrientation={cardOrientation}
               onImageUpload={handlePreviewImageUpload}
             />
           </div>
