@@ -65,7 +65,7 @@ export const PhaseContentRenderer: React.FC<PhaseContentRendererProps> = ({
         <FramePhase
           selectedFrame={selectedFrame}
           onFrameSelect={onFrameSelect}
-          uploadedImage={uploadedImage}
+          orientation={cardOrientation || 'portrait'}
         />
       );
 
@@ -74,8 +74,6 @@ export const PhaseContentRenderer: React.FC<PhaseContentRendererProps> = ({
         <EffectsPhase
           effectValues={effectValues}
           onEffectChange={onEffectChange}
-          uploadedImage={uploadedImage}
-          selectedFrame={selectedFrame}
         />
       );
 

@@ -5,16 +5,14 @@ import { NinePresetEffectsPhase } from './NinePresetEffectsPhase';
 import { AdvancedEffectsPanel } from './effects/AdvancedEffectsPanel';
 import { useStudioEffects } from '@/components/studio/hooks/useStudioEffects';
 import { toast } from 'sonner';
-import { Settings, Layers, Palette } from 'lucide-react';
+import { Settings, Layers } from 'lucide-react';
 
 interface EffectsPhaseProps {
-  selectedFrame?: string;
   onEffectChange: (effectId: string, parameterId: string, value: number | boolean | string) => void;
   effectValues?: Record<string, Record<string, any>>;
 }
 
 export const EffectsPhase: React.FC<EffectsPhaseProps> = ({
-  selectedFrame,
   onEffectChange,
   effectValues = {}
 }) => {
