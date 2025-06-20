@@ -133,9 +133,25 @@ export const useStudioActions = () => {
 
   const handleFrameSelect = useCallback((frameId: string) => {
     console.log('🖼️ Frame selected:', frameId);
+    console.log('📊 Current state before frame selection:', {
+      uploadedImage: uploadedImage ? 'Present' : 'None',
+      selectedFrame,
+      currentPhase
+    });
+    
+    // Use the synchronized version to ensure proper state propagation
     setSelectedFrame(frameId);
+    
+    // Trigger auto-save with frame selection
+    try {
+      triggerAutoSave('frame_select', { selectedFrame: frameId });
+    } catch (error) {
+      console.warn('⚠️ Auto-save failed for frame selection:', error);
+    }
+    
+    console.log('🎯 Frame selection complete, state should update preview');
     toast.success(`Frame "${frameId}" applied successfully!`);
-  }, [setSelectedFrame]);
+  }, [selectedFrame, uploadedImage, currentPhase, setSelectedFrame, triggerAutoSave]);
 
   const handleEffectChange = useCallback((effectId: string, value: any) => {
     console.log('✨ Effect changed:', effectId, value);

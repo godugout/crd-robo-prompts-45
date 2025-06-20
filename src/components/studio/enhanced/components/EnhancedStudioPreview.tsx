@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ImagePlus, Move, RotateCw, Crop, ZoomIn, ZoomOut } from 'lucide-react';
@@ -39,8 +39,29 @@ export const EnhancedStudioPreview: React.FC<EnhancedStudioPreviewProps> = ({
   });
   const [showImageControls, setShowImageControls] = useState(false);
 
+  // Debug logging for prop changes
+  useEffect(() => {
+    console.log('🎨 EnhancedStudioPreview - Props updated:', {
+      uploadedImage: uploadedImage ? 'Present' : 'None',
+      selectedFrame: selectedFrame || 'None',
+      orientation,
+      show3DPreview,
+      cardName
+    });
+  }, [uploadedImage, selectedFrame, orientation, show3DPreview, cardName]);
+
   const cardDimensions = calculateFlexibleCardSize(400, 500, orientation, 3, 0.5);
   const frameConfig = selectedFrame ? getFrameById(selectedFrame) : null;
+
+  // Debug frame config resolution
+  useEffect(() => {
+    console.log('🔧 Frame config resolution:', {
+      selectedFrame,
+      frameConfig: frameConfig ? 'Found' : 'Not found',
+      frameConfigId: frameConfig?.id,
+      frameConfigName: frameConfig?.name
+    });
+  }, [selectedFrame, frameConfig]);
 
   const handleImageTransform = (updates: Partial<ImageTransform>) => {
     setImageTransform(prev => ({ ...prev, ...updates }));
@@ -68,6 +89,7 @@ export const EnhancedStudioPreview: React.FC<EnhancedStudioPreviewProps> = ({
       >
         {uploadedImage && frameConfig ? (
           <div className="relative w-full h-full">
+            {console.log('🖼️ Rendering ModularFrameBuilder with:', { frameConfig: frameConfig.name, uploadedImage: 'present' })}
             {/* Frame with integrated image */}
             <ModularFrameBuilder
               config={frameConfig}
@@ -233,6 +255,16 @@ export const EnhancedStudioPreview: React.FC<EnhancedStudioPreviewProps> = ({
           {Math.round(cardDimensions.width)}×{Math.round(cardDimensions.height)}
         </div>
       </div>
+
+      {/* Debug Info (development only) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="absolute top-2 right-2 bg-black/80 text-white text-xs p-2 rounded max-w-xs">
+          <div>Image: {uploadedImage ? '✓' : '✗'}</div>
+          <div>Frame: {selectedFrame || 'None'}</div>
+          <div>Config: {frameConfig ? frameConfig.name : 'None'}</div>
+          <div>Orientation: {orientation}</div>
+        </div>
+      )}
     </div>
   );
 };
