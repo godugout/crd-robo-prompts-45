@@ -1,9 +1,10 @@
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, Image, ToggleLeft, Loader2, CheckCircle2, RotateCcw, Smartphone, Monitor } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
+import { MediaManager } from '@/lib/storage/MediaManager';
 
 type CardOrientation = 'portrait' | 'landscape';
 
@@ -30,6 +31,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
 }) => {
   const [selectedOrientation, setSelectedOrientation] = useState<CardOrientation>(cardOrientation);
   const [detectedOrientation, setDetectedOrientation] = useState<CardOrientation | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const analyzeImageOrientation = (file: File): Promise<CardOrientation> => {
     return new Promise((resolve) => {
@@ -41,6 +43,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
         setSelectedOrientation(suggestedOrientation);
         onOrientationChange?.(suggestedOrientation);
         resolve(suggestedOrientation);
+        URL.revokeObjectURL(img.src);
       };
       img.src = URL.createObjectURL(file);
     });
@@ -54,18 +57,44 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
         return;
       }
       
-      console.log('🔄 Starting image upload process:', file.name);
+      console.log('🔄 Starting MediaManager upload process:', file.name);
       
-      // Analyze orientation
-      await analyzeImageOrientation(file);
-      
-      const imageUrl = URL.createObjectURL(file);
-      console.log('📸 Created image URL:', imageUrl);
-      
-      await onImageUpload(imageUrl);
-      console.log('✅ Image upload completed');
+      try {
+        // Analyze orientation
+        await analyzeImageOrientation(file);
+        
+        // Upload using MediaManager for proper storage
+        const mediaFile = await MediaManager.uploadFile(file, {
+          bucket: 'card-assets',
+          folder: 'studio-cards',
+          generateThumbnail: true,
+          optimize: true,
+          tags: ['studio-upload', 'card-image'],
+          metadata: {
+            originalName: file.name,
+            cardOrientation: selectedOrientation,
+            source: 'studio'
+          },
+          onProgress: setUploadProgress
+        });
+
+        if (mediaFile) {
+          // Get the public URL from MediaManager
+          const publicUrl = MediaManager.getPublicUrl(mediaFile.bucket_id, mediaFile.file_path);
+          console.log('✅ MediaManager upload completed:', publicUrl);
+          
+          await onImageUpload(publicUrl);
+          setUploadProgress(0);
+        } else {
+          throw new Error('Upload failed - no media file returned');
+        }
+      } catch (error) {
+        console.error('❌ MediaManager upload failed:', error);
+        setUploadProgress(0);
+        toast.error('Upload failed. Please try again.');
+      }
     }
-  }, [onImageUpload, onOrientationChange]);
+  }, [onImageUpload, onOrientationChange, selectedOrientation]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -81,6 +110,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
     onImageUpload('');
     setDetectedOrientation(null);
     setSelectedOrientation('portrait');
+    setUploadProgress(0);
   };
 
   const handleOrientationChange = (orientation: CardOrientation) => {
@@ -89,7 +119,6 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   };
 
   // Trading card dimensions (2.5" x 3.5" ratio)
-  const cardAspectRatio = 2.5 / 3.5; // 0.714
   const dropzoneWidth = selectedOrientation === 'portrait' ? 300 : 420;
   const dropzoneHeight = selectedOrientation === 'portrait' ? 420 : 300;
 
@@ -177,8 +206,18 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
           {isProcessing ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 p-6">
               <Loader2 className="w-12 h-12 text-crd-green animate-spin" />
-              <p className="text-white text-center">Processing your image...</p>
-              <p className="text-crd-lightGray text-sm text-center">This may take a few moments</p>
+              <p className="text-white text-center">Uploading to MediaManager...</p>
+              {uploadProgress > 0 && (
+                <div className="w-full bg-gray-700 rounded-full h-2">
+                  <div 
+                    className="bg-crd-green h-2 rounded-full transition-all"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              )}
+              <p className="text-crd-lightGray text-sm text-center">
+                {uploadProgress > 0 ? `${uploadProgress}% complete` : 'Processing...'}
+              </p>
             </div>
           ) : uploadedImage ? (
             <div className="relative w-full h-full rounded-lg overflow-hidden">
@@ -211,9 +250,12 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
               </div>
               
               {/* Card info overlay */}
-              <div className="absolute bottom-3 left-3 right-3">
+              <div className="absolute bottom-12 left-3 right-3">
                 <p className="text-white text-sm font-medium">
                   {selectedOrientation === 'portrait' ? '2.5" × 3.5"' : '3.5" × 2.5"'} Trading Card
+                </p>
+                <p className="text-crd-lightGray text-xs">
+                  Stored in MediaManager • Public URL ready
                 </p>
               </div>
             </div>
@@ -228,7 +270,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
                 </p>
                 <p className="text-crd-lightGray text-sm">
                   {isDragActive 
-                    ? 'Release to create your trading card'
+                    ? 'Release to upload via MediaManager'
                     : 'Drag & drop or click to browse'
                   }
                 </p>
@@ -256,9 +298,9 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
       {/* Success Indicator */}
       {uploadedImage && !isProcessing && (
         <div className="p-4 bg-crd-green/10 border border-crd-green/20 rounded-lg">
-          <p className="text-crd-green text-sm font-medium">✓ Image uploaded successfully!</p>
+          <p className="text-crd-green text-sm font-medium">✓ Image uploaded via MediaManager!</p>
           <p className="text-crd-lightGray text-sm">
-            Ready for frame selection - click "Frames" in the sidebar to continue
+            File stored securely with public URL - ready for frame selection
           </p>
         </div>
       )}
@@ -272,6 +314,7 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
           <li>• Choose images with clear subjects</li>
           <li>• Portrait orientation works best for player cards</li>
           <li>• Landscape orientation works well for action shots</li>
+          <li>• Images are automatically optimized for web and storage</li>
         </ul>
       </div>
     </div>

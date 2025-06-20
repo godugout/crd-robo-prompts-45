@@ -2,6 +2,7 @@
 import { useCallback } from 'react';
 import { imageProcessingService } from '@/services/imageProcessing/ImageProcessingService';
 import { autoSaveService } from '@/services/autosave/AutoSaveService';
+import { MediaManager } from '@/lib/storage/MediaManager';
 import { toast } from 'sonner';
 import { useStudioState } from './useStudioState';
 
@@ -27,23 +28,48 @@ export const useStudioActions = () => {
     triggerAutoSave
   } = useStudioState();
 
-  // Enhanced image upload handler with immediate state updates
+  // Enhanced image upload handler with MediaManager integration
   const handleImageUpload = useCallback(async (imageUrl: string) => {
     console.log('🔄 Processing uploaded image:', imageUrl);
     setIsProcessingImage(true);
     setImageLoadError('');
     
     try {
-      // Immediately update the uploaded image state for instant feedback
-      setUploadedImage(imageUrl);
-      
-      // Validate the image
+      // Check if this is already a proper MediaManager URL
+      if (imageUrl.includes('supabase') && imageUrl.includes('card-assets')) {
+        console.log('✅ Already a MediaManager URL, using directly:', imageUrl);
+        setUploadedImage(imageUrl);
+        
+        // Create or update draft with the MediaManager URL
+        try {
+          if (!currentDraft) {
+            const newDraft = autoSaveService.createDraft(imageUrl);
+            setCurrentDraft(newDraft);
+          } else {
+            autoSaveService.updateDraft({
+              uploadedImage: imageUrl
+            }, 'image_upload');
+          }
+        } catch (autoSaveError) {
+          console.warn('⚠️ Auto-save failed, continuing anyway:', autoSaveError);
+        }
+
+        // Auto-advance to frames phase for better UX
+        if (currentPhase === 'upload') {
+          setTimeout(() => setCurrentPhase('frames'), 500);
+        }
+        
+        toast.success('Image ready! Select a frame next.');
+        return;
+      }
+
+      // For blob URLs or other formats, validate first
       const isValid = await imageProcessingService.isImageValid(imageUrl);
       if (!isValid) {
         throw new Error('Invalid or corrupted image file');
       }
 
-      // Process the image
+      // Process the image if needed
       const processed = await imageProcessingService.processImage(imageUrl, {
         removeBackground: showBackgroundRemoval
       });
@@ -51,19 +77,18 @@ export const useStudioActions = () => {
       // Update processed image
       setProcessedImage(processed);
       
-      // If background was removed, update the uploaded image URL
-      if (processed.processedUrl !== imageUrl) {
-        setUploadedImage(processed.processedUrl);
-      }
+      // Use the processed URL
+      const finalUrl = processed.processedUrl || imageUrl;
+      setUploadedImage(finalUrl);
 
       // Create or update draft
       try {
         if (!currentDraft) {
-          const newDraft = autoSaveService.createDraft(processed.processedUrl);
+          const newDraft = autoSaveService.createDraft(finalUrl);
           setCurrentDraft(newDraft);
         } else {
           autoSaveService.updateDraft({
-            uploadedImage: processed.processedUrl
+            uploadedImage: finalUrl
           }, 'image_upload');
         }
       } catch (autoSaveError) {
