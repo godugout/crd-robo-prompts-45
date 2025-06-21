@@ -6,7 +6,7 @@ import { Plus, Minus, Share2, Edit, Palette, Star } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { CollectionActivity } from '@/types/collections';
 
-interface CollectionActivityProps {
+interface CollectionActivityViewProps {
   collectionId: string;
   activities: CollectionActivity[];
 }
@@ -29,7 +29,7 @@ const activityColors = {
   renamed: 'text-yellow-400'
 };
 
-export const CollectionActivity: React.FC<CollectionActivityProps> = ({
+export const CollectionActivityView: React.FC<CollectionActivityViewProps> = ({
   collectionId,
   activities
 }) => {

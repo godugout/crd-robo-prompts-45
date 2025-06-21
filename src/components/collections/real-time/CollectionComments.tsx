@@ -7,13 +7,13 @@ import { MessageCircle, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { CollectionComment } from '@/types/collections';
 
-interface CollectionCommentsProps {
+interface CollectionCommentsViewProps {
   collectionId: string;
   comments: CollectionComment[];
   canComment: boolean;
 }
 
-export const CollectionComments: React.FC<CollectionCommentsProps> = ({
+export const CollectionCommentsView: React.FC<CollectionCommentsViewProps> = ({
   collectionId,
   comments,
   canComment
