@@ -2,6 +2,7 @@
 import React from 'react';
 import { Camera, Users, VolumeX, Volume2, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import * as THREE from 'three';
 
 interface GalleryControlsProps {
   onNavigateToPosition: (position: THREE.Vector3, target?: THREE.Vector3) => void;
@@ -18,8 +19,8 @@ export const GalleryControls: React.FC<GalleryControlsProps> = ({
 }) => {
   const handleCenterView = () => {
     onNavigateToPosition(
-      new (window as any).THREE.Vector3(0, 5, 10),
-      new (window as any).THREE.Vector3(0, 0, 0)
+      new THREE.Vector3(0, 5, 10),
+      new THREE.Vector3(0, 0, 0)
     );
   };
   

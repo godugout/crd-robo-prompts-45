@@ -5,7 +5,8 @@ import { GalleryEffects } from './GalleryEffects';
 import { FloatingInfoPanel } from './FloatingInfoPanel';
 import { SearchSpotlight } from './SearchSpotlight';
 import { NavigationCompass } from './NavigationCompass';
-import type { Card } from '@/types/collections';
+import * as THREE from 'three';
+import type { Card } from '@/types/cards';
 
 interface GallerySceneProps {
   cards: Card[];

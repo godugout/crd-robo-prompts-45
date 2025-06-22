@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import { SpotLight } from '@react-three/drei';
 import * as THREE from 'three';
-import type { Card } from '@/types/collections';
+import type { Card } from '@/types/cards';
 
 interface SearchSpotlightProps {
   cards: Card[];

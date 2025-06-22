@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
-import type { Card } from '@/types/collections';
+import type { Card } from '@/types/cards';
 
 interface NavigationCompassProps {
   position: [number, number, number];

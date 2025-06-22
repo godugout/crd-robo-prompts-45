@@ -1,7 +1,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
-import type { Card } from '@/types/collections';
+import type { Card } from '@/types/cards';
 
 export type LayoutType = 'grid' | 'circle' | 'spiral' | 'wall' | 'scatter';
 

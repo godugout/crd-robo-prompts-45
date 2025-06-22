@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
-import { Search, Grid, Circle, Spiral, MoreHorizontal, Settings } from 'lucide-react';
+import { Search, Grid, Circle, MoreHorizontal, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Collection, Card } from '@/types/collections';
+import type { Collection } from '@/types/collections';
+import type { Card } from '@/types/cards';
 
 interface GalleryUIProps {
   collection: Collection;
@@ -35,7 +36,7 @@ export const GalleryUI: React.FC<GalleryUIProps> = ({
   const layoutOptions = [
     { value: 'grid', label: 'Grid', icon: Grid },
     { value: 'circle', label: 'Circle', icon: Circle },
-    { value: 'spiral', label: 'Spiral', icon: Spiral },
+    { value: 'spiral', label: 'Spiral', icon: MoreHorizontal },
     { value: 'wall', label: 'Gallery Wall', icon: MoreHorizontal },
     { value: 'scatter', label: 'Scatter', icon: MoreHorizontal }
   ];

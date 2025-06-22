@@ -2,7 +2,8 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Html } from '@react-three/drei';
-import type { Card } from '@/types/collections';
+import * as THREE from 'three';
+import type { Card } from '@/types/cards';
 
 interface FloatingInfoPanelProps {
   card: Card;

@@ -7,10 +7,11 @@ import * as THREE from 'three';
 import { GalleryScene } from './GalleryScene';
 import { GalleryControls } from './GalleryControls';
 import { GalleryUI } from './GalleryUI';
-import { useGalleryNavigation } from '../hooks/useGalleryNavigation';
-import { useGalleryLayout } from '../hooks/useGalleryLayout';
-import { useGalleryPreferences } from '../hooks/useGalleryPreferences';
-import type { Collection, Card } from '@/types/collections';
+import { useGalleryNavigation } from '@/hooks/useGalleryNavigation';
+import { useGalleryLayout } from '@/hooks/useGalleryLayout';
+import { useGalleryPreferences } from '@/hooks/useGalleryPreferences';
+import type { Collection } from '@/types/collections';
+import type { Card } from '@/types/cards';
 
 export interface Gallery3DProps {
   collection: Collection;
@@ -144,7 +145,7 @@ export const Gallery3D: React.FC<Gallery3DProps> = ({
         <Environment preset={environmentSettings.preset as any} />
         <ambientLight intensity={environmentSettings.lighting.ambient} />
         <directionalLight 
-          position={environmentSettings.lighting.directional.position}
+          position={environmentSettings.lighting.directional.position as [number, number, number]}
           intensity={environmentSettings.lighting.directional.intensity}
           castShadow={quality !== 'low'}
         />
