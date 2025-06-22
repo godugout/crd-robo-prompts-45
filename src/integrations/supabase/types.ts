@@ -168,6 +168,38 @@ export type Database = {
           },
         ]
       }
+      auction_bids: {
+        Row: {
+          amount: number
+          bidder_id: string | null
+          created_at: string | null
+          id: string
+          listing_id: string | null
+        }
+        Insert: {
+          amount: number
+          bidder_id?: string | null
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+        }
+        Update: {
+          amount?: number
+          bidder_id?: string | null
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_bids_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bbs_posts: {
         Row: {
           author_id: string
@@ -1996,6 +2028,35 @@ export type Database = {
           },
         ]
       }
+      listing_watchers: {
+        Row: {
+          created_at: string | null
+          id: string
+          listing_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_watchers_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lyric_annotations: {
         Row: {
           ai_analysis: string | null
@@ -2045,6 +2106,128 @@ export type Database = {
             columns: ["song_id"]
             isOneToOne: false
             referencedRelation: "songs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_fees: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          fee_type: string
+          fixed_amount: number | null
+          id: string
+          max_amount: number | null
+          min_amount: number | null
+          percentage: number | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          fee_type: string
+          fixed_amount?: number | null
+          id?: string
+          max_amount?: number | null
+          min_amount?: number | null
+          percentage?: number | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          fee_type?: string
+          fixed_amount?: number | null
+          id?: string
+          max_amount?: number | null
+          min_amount?: number | null
+          percentage?: number | null
+        }
+        Relationships: []
+      }
+      marketplace_listings: {
+        Row: {
+          auction_end_time: string | null
+          card_id: string
+          condition: Database["public"]["Enums"]["card_condition"]
+          created_at: string | null
+          current_bid: number | null
+          description: string | null
+          estimated_delivery_days: number | null
+          expires_at: string | null
+          featured: boolean | null
+          id: string
+          images: string[] | null
+          listing_type: Database["public"]["Enums"]["listing_type"]
+          location: string | null
+          price: number
+          quantity: number
+          reserve_price: number | null
+          seller_id: string
+          shipping_cost: number | null
+          starting_bid: number | null
+          status: Database["public"]["Enums"]["listing_status"]
+          title: string
+          updated_at: string | null
+          views_count: number | null
+          watchers_count: number | null
+        }
+        Insert: {
+          auction_end_time?: string | null
+          card_id: string
+          condition?: Database["public"]["Enums"]["card_condition"]
+          created_at?: string | null
+          current_bid?: number | null
+          description?: string | null
+          estimated_delivery_days?: number | null
+          expires_at?: string | null
+          featured?: boolean | null
+          id?: string
+          images?: string[] | null
+          listing_type?: Database["public"]["Enums"]["listing_type"]
+          location?: string | null
+          price: number
+          quantity?: number
+          reserve_price?: number | null
+          seller_id: string
+          shipping_cost?: number | null
+          starting_bid?: number | null
+          status?: Database["public"]["Enums"]["listing_status"]
+          title: string
+          updated_at?: string | null
+          views_count?: number | null
+          watchers_count?: number | null
+        }
+        Update: {
+          auction_end_time?: string | null
+          card_id?: string
+          condition?: Database["public"]["Enums"]["card_condition"]
+          created_at?: string | null
+          current_bid?: number | null
+          description?: string | null
+          estimated_delivery_days?: number | null
+          expires_at?: string | null
+          featured?: boolean | null
+          id?: string
+          images?: string[] | null
+          listing_type?: Database["public"]["Enums"]["listing_type"]
+          location?: string | null
+          price?: number
+          quantity?: number
+          reserve_price?: number | null
+          seller_id?: string
+          shipping_cost?: number | null
+          starting_bid?: number | null
+          status?: Database["public"]["Enums"]["listing_status"]
+          title?: string
+          updated_at?: string | null
+          views_count?: number | null
+          watchers_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_listings_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
             referencedColumns: ["id"]
           },
         ]
@@ -2922,6 +3105,60 @@ export type Database = {
           },
         ]
       }
+      seller_profiles: {
+        Row: {
+          address: Json | null
+          bank_account_verified: boolean | null
+          business_name: string | null
+          business_type: string | null
+          created_at: string | null
+          id: string
+          identity_verified: boolean | null
+          payouts_enabled: boolean | null
+          phone: string | null
+          stripe_account_id: string | null
+          tax_id: string | null
+          updated_at: string | null
+          user_id: string
+          verification_status: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: Json | null
+          bank_account_verified?: boolean | null
+          business_name?: string | null
+          business_type?: string | null
+          created_at?: string | null
+          id?: string
+          identity_verified?: boolean | null
+          payouts_enabled?: boolean | null
+          phone?: string | null
+          stripe_account_id?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+          user_id: string
+          verification_status?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: Json | null
+          bank_account_verified?: boolean | null
+          business_name?: string | null
+          business_type?: string | null
+          created_at?: string | null
+          id?: string
+          identity_verified?: boolean | null
+          payouts_enabled?: boolean | null
+          phone?: string | null
+          stripe_account_id?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+          verification_status?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       shop_teams: {
         Row: {
           id: string
@@ -3601,6 +3838,74 @@ export type Database = {
           },
         ]
       }
+      transactions: {
+        Row: {
+          amount: number
+          buyer_id: string | null
+          cancelled_at: string | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          listing_id: string | null
+          notes: string | null
+          platform_fee: number
+          seller_id: string | null
+          shipping_address: Json | null
+          shipping_cost: number | null
+          status: Database["public"]["Enums"]["transaction_status"]
+          stripe_payment_intent_id: string | null
+          stripe_transfer_id: string | null
+          total_amount: number
+          tracking_number: string | null
+        }
+        Insert: {
+          amount: number
+          buyer_id?: string | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          notes?: string | null
+          platform_fee: number
+          seller_id?: string | null
+          shipping_address?: Json | null
+          shipping_cost?: number | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+          stripe_payment_intent_id?: string | null
+          stripe_transfer_id?: string | null
+          total_amount: number
+          tracking_number?: string | null
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          listing_id?: string | null
+          notes?: string | null
+          platform_fee?: number
+          seller_id?: string | null
+          shipping_address?: Json | null
+          shipping_cost?: number | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+          stripe_payment_intent_id?: string | null
+          stripe_transfer_id?: string | null
+          total_amount?: number
+          tracking_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ui_preferences: {
         Row: {
           blog_style: string | null
@@ -3916,8 +4221,23 @@ export type Database = {
       }
     }
     Enums: {
+      card_condition:
+        | "mint"
+        | "near_mint"
+        | "excellent"
+        | "good"
+        | "fair"
+        | "poor"
       fan_feed_theme: "music" | "sports" | "entertainment"
       feed_theme: "music" | "sports" | "entertainment"
+      listing_status: "active" | "sold" | "cancelled" | "expired"
+      listing_type: "fixed_price" | "auction" | "make_offer"
+      transaction_status:
+        | "pending"
+        | "processing"
+        | "completed"
+        | "cancelled"
+        | "refunded"
       visibility_type: "public" | "friends" | "private"
     }
     CompositeTypes: {
@@ -4034,8 +4354,25 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      card_condition: [
+        "mint",
+        "near_mint",
+        "excellent",
+        "good",
+        "fair",
+        "poor",
+      ],
       fan_feed_theme: ["music", "sports", "entertainment"],
       feed_theme: ["music", "sports", "entertainment"],
+      listing_status: ["active", "sold", "cancelled", "expired"],
+      listing_type: ["fixed_price", "auction", "make_offer"],
+      transaction_status: [
+        "pending",
+        "processing",
+        "completed",
+        "cancelled",
+        "refunded",
+      ],
       visibility_type: ["public", "friends", "private"],
     },
   },

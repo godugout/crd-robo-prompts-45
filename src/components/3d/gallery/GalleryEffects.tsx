@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { useFrame } from '@react-three/fiber';
+import React, { useMemo } from 'react';
+import { Stars, Sparkles } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface GalleryEffectsProps {
@@ -16,137 +16,74 @@ export const GalleryEffects: React.FC<GalleryEffectsProps> = ({
   cardCount,
   quality
 }) => {
-  // Particle system for atmospheric effects
-  const particleCount = quality === 'low' ? 50 : quality === 'medium' ? 100 : 200;
-  
-  const particles = React.useMemo(() => {
-    const positions = new Float32Array(particleCount * 3);
-    const colors = new Float32Array(particleCount * 3);
-    
-    for (let i = 0; i < particleCount; i++) {
-      const i3 = i * 3;
-      
-      // Distribute particles throughout the gallery space
-      positions[i3] = (Math.random() - 0.5) * 50;
-      positions[i3 + 1] = (Math.random() - 0.5) * 30;
-      positions[i3 + 2] = (Math.random() - 0.5) * 50;
-      
-      // Use environment colors for particles
-      const color = new THREE.Color(environmentSettings.background);
-      colors[i3] = color.r * 0.5;
-      colors[i3 + 1] = color.g * 0.5;
-      colors[i3 + 2] = color.b * 0.5;
+  const particleCount = useMemo(() => {
+    switch (quality) {
+      case 'ultra':
+        return Math.min(cardCount * 20, 1000);
+      case 'high':
+        return Math.min(cardCount * 10, 500);
+      case 'medium':
+        return Math.min(cardCount * 5, 250);
+      default:
+        return Math.min(cardCount * 2, 100);
     }
-    
-    return { positions, colors };
-  }, [particleCount, environmentSettings.background]);
-  
-  const pointsRef = React.useRef<THREE.Points>(null);
-  
-  useFrame(({ clock }) => {
-    if (pointsRef.current) {
-      const time = clock.getElapsedTime();
-      const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
-      
-      // Animate particles with gentle floating motion
-      for (let i = 0; i < positions.length; i += 3) {
-        positions[i + 1] += Math.sin(time * 0.5 + i * 0.01) * 0.001;
-      }
-      
-      pointsRef.current.geometry.attributes.position.needsUpdate = true;
-    }
-  });
-  
-  if (quality === 'low') return null;
-  
+  }, [cardCount, quality]);
+
+  const showAdvancedEffects = quality === 'high' || quality === 'ultra';
+  const showBasicEffects = quality !== 'low';
+
   return (
     <group>
-      {/* Atmospheric particles */}
-      <points ref={pointsRef}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            count={particles.positions.length / 3}
-            array={particles.positions}
-            itemSize={3}
-          />
-          <bufferAttribute
-            attach="attributes-color"
-            count={particles.colors.length / 3}
-            array={particles.colors}
-            itemSize={3}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          size={0.02}
-          sizeAttenuation
-          vertexColors
-          transparent
-          opacity={0.3}
-          blending={THREE.AdditiveBlending}
-        />
-      </points>
+      {/* Environment lighting */}
+      <ambientLight intensity={0.4} />
+      <directionalLight 
+        position={[10, 10, 5]} 
+        intensity={0.8}
+        castShadow={showAdvancedEffects}
+      />
       
-      {/* Layout-specific effects */}
-      {layoutType === 'spiral' && quality !== 'low' && (
-        <SpiralTrail cardCount={cardCount} />
+      {/* Background effects based on layout */}
+      {layoutType === 'spiral' && showBasicEffects && (
+        <Sparkles
+          count={particleCount}
+          scale={[20, 20, 20]}
+          size={2}
+          speed={0.5}
+          color="#gold"
+        />
       )}
       
-      {layoutType === 'circle' && quality !== 'low' && (
-        <CircleGlow cardCount={cardCount} />
+      {layoutType === 'circle' && showBasicEffects && (
+        <Stars
+          radius={50}
+          depth={10}
+          count={Math.min(particleCount / 2, 200)}
+          factor={2}
+          saturation={0.5}
+        />
+      )}
+      
+      {/* Advanced lighting for high quality */}
+      {showAdvancedEffects && (
+        <>
+          <pointLight position={[-10, -10, -10]} color="#blue" intensity={0.3} />
+          <pointLight position={[10, 10, 10]} color="#orange" intensity={0.3} />
+          <fog attach="fog" args={['#202040', 10, 100]} />
+        </>
+      )}
+      
+      {/* Atmospheric effects */}
+      {quality === 'ultra' && (
+        <mesh>
+          <sphereGeometry args={[100, 32, 32]} />
+          <meshBasicMaterial 
+            color="#000011" 
+            transparent 
+            opacity={0.1} 
+            side={THREE.BackSide}
+          />
+        </mesh>
       )}
     </group>
-  );
-};
-
-// Layout-specific effect components
-const SpiralTrail: React.FC<{ cardCount: number }> = ({ cardCount }) => {
-  const points = React.useMemo(() => {
-    const trailPoints = [];
-    const spiralRadius = 10;
-    const spiralHeight = cardCount * 0.5;
-    
-    for (let i = 0; i <= cardCount; i++) {
-      const angle = (i / cardCount) * Math.PI * 4;
-      const height = (i / cardCount) * spiralHeight;
-      
-      trailPoints.push(
-        spiralRadius * Math.cos(angle),
-        height,
-        spiralRadius * Math.sin(angle)
-      );
-    }
-    
-    return new Float32Array(trailPoints);
-  }, [cardCount]);
-  
-  return (
-    <line>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={points.length / 3}
-          array={points}
-          itemSize={3}
-        />
-      </bufferGeometry>
-      <lineBasicMaterial color="#4a90e2" transparent opacity={0.3} />
-    </line>
-  );
-};
-
-const CircleGlow: React.FC<{ cardCount: number }> = ({ cardCount }) => {
-  const radius = Math.max(5, cardCount * 0.3);
-  
-  return (
-    <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <ringGeometry args={[radius - 0.5, radius + 0.5, 64]} />
-      <meshBasicMaterial 
-        color="#4a90e2" 
-        transparent 
-        opacity={0.1}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
   );
 };
