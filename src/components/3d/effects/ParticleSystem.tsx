@@ -1,7 +1,7 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Points, PointsMaterial } from '@react-three/drei';
+import { Points } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface ParticleSystemProps {
@@ -105,7 +105,7 @@ export const ParticleSystem: React.FC<ParticleSystemProps> = ({
           itemSize={1}
         />
       </bufferGeometry>
-      <PointsMaterial
+      <pointsMaterial
         size={0.05}
         sizeAttenuation
         vertexColors

@@ -1,7 +1,7 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
-import { TextureLoader, CubeTextureLoader } from 'three';
+import { TextureLoader } from 'three';
 import * as THREE from 'three';
 import { HolographicShader } from '../shaders/HolographicShader';
 import { MetallicShader } from '../shaders/MetallicShader';
@@ -20,12 +20,35 @@ export const PremiumCardMaterial: React.FC<PremiumCardMaterialProps> = ({
 }) => {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   
-  // Load environment map for metallic reflections
-  const envMap = useLoader(CubeTextureLoader, [
-    '/textures/env/px.jpg', '/textures/env/nx.jpg',
-    '/textures/env/py.jpg', '/textures/env/ny.jpg',
-    '/textures/env/pz.jpg', '/textures/env/nz.jpg'
-  ]);
+  // Create a simple environment map instead of loading external files
+  const envMap = useMemo(() => {
+    const loader = new THREE.CubeTextureLoader();
+    // Create a simple procedural environment map
+    const size = 64;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    
+    if (ctx) {
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#4a9eff');
+      gradient.addColorStop(1, '#1a1a2e');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+    }
+    
+    const cubeTexture = new THREE.CubeTexture();
+    const canvasTexture = new THREE.CanvasTexture(canvas);
+    
+    // Use the same texture for all 6 faces
+    cubeTexture.images = [
+      canvas, canvas, canvas, canvas, canvas, canvas
+    ];
+    cubeTexture.needsUpdate = true;
+    
+    return cubeTexture;
+  }, []);
   
   // Choose shader based on rarity and quality
   const shader = React.useMemo(() => {

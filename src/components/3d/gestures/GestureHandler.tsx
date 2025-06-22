@@ -2,6 +2,7 @@
 import React, { useRef, useCallback } from 'react';
 import { useGesture } from '@use-gesture/react';
 import { useSpring, animated } from '@react-spring/three';
+import * as THREE from 'three';
 
 interface GestureHandlerProps {
   children: React.ReactNode;
