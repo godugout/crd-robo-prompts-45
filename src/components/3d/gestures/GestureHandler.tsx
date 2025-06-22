@@ -1,6 +1,5 @@
 
 import React, { useRef, useCallback } from 'react';
-import { useGesture } from '@use-gesture/react';
 import { useSpring, animated } from '@react-spring/three';
 import * as THREE from 'three';
 
@@ -20,6 +19,8 @@ export const GestureHandler: React.FC<GestureHandlerProps> = ({
   enableHaptic = true
 }) => {
   const meshRef = useRef<THREE.Group>(null);
+  const isDragging = useRef(false);
+  const previousMouse = useRef({ x: 0, y: 0 });
   
   const [{ rotation, scale }, api] = useSpring(() => ({
     rotation: [0, 0, 0],
@@ -33,58 +34,68 @@ export const GestureHandler: React.FC<GestureHandlerProps> = ({
     }
   }, [enableHaptic]);
   
-  const bind = useGesture(
-    {
-      onDrag: ({ offset: [x, y], tap }) => {
-        if (tap) {
-          onFlip?.();
-          triggerHaptic(0.3);
-          return;
-        }
-        
-        const rotationX = y * 0.01;
-        const rotationY = x * 0.01;
-        
-        api.start({
-          rotation: [rotationX, rotationY, 0]
-        });
-        
-        onRotate?.({ x: rotationX, y: rotationY });
-      },
-      
-      onPinch: ({ offset: [scale] }) => {
-        const normalizedScale = Math.max(0.5, Math.min(2, scale));
-        
-        api.start({
-          scale: [normalizedScale, normalizedScale, normalizedScale]
-        });
-        
-        onZoom?.(normalizedScale);
-      },
-      
-      onWheel: ({ delta: [, dy] }) => {
-        const currentScale = scale.get()[0];
-        const newScale = Math.max(0.5, Math.min(3, currentScale - dy * 0.001));
-        
-        api.start({
-          scale: [newScale, newScale, newScale]
-        });
-        
-        onZoom?.(newScale);
-      }
-    },
-    {
-      drag: { from: () => [rotation.get()[1], rotation.get()[0]] },
-      pinch: { scaleBounds: { min: 0.5, max: 2 }, rubberband: true }
+  const handlePointerDown = useCallback((event: any) => {
+    isDragging.current = true;
+    previousMouse.current = { x: event.clientX, y: event.clientY };
+    event.stopPropagation();
+  }, []);
+  
+  const handlePointerMove = useCallback((event: any) => {
+    if (!isDragging.current) return;
+    
+    const deltaX = event.clientX - previousMouse.current.x;
+    const deltaY = event.clientY - previousMouse.current.y;
+    
+    const rotationX = deltaY * 0.01;
+    const rotationY = deltaX * 0.01;
+    
+    api.start({
+      rotation: [rotationX, rotationY, 0]
+    });
+    
+    onRotate?.({ x: rotationX, y: rotationY });
+    
+    previousMouse.current = { x: event.clientX, y: event.clientY };
+    event.stopPropagation();
+  }, [api, onRotate]);
+  
+  const handlePointerUp = useCallback((event: any) => {
+    if (isDragging.current) {
+      isDragging.current = false;
+      event.stopPropagation();
     }
-  );
+  }, []);
+  
+  const handleClick = useCallback((event: any) => {
+    if (!isDragging.current) {
+      onFlip?.();
+      triggerHaptic(0.3);
+    }
+    event.stopPropagation();
+  }, [onFlip, triggerHaptic]);
+  
+  const handleWheel = useCallback((event: any) => {
+    const currentScale = scale.get()[0];
+    const newScale = Math.max(0.5, Math.min(3, currentScale - event.delta * 0.001));
+    
+    api.start({
+      scale: [newScale, newScale, newScale]
+    });
+    
+    onZoom?.(newScale);
+    event.stopPropagation();
+  }, [api, onZoom, scale]);
   
   return (
     <animated.group
       ref={meshRef}
       rotation={rotation as any}
       scale={scale as any}
-      {...bind()}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onClick={handleClick}
+      onWheel={handleWheel}
     >
       {children}
     </animated.group>
