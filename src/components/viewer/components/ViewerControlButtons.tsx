@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Maximize2, Minimize2, RotateCcw, Cube, Square } from 'lucide-react';
+import { Maximize2, Minimize2, RotateCcw, Box, Square } from 'lucide-react';
 
 interface ViewerControlButtonsProps {
   isFullscreen: boolean;
@@ -34,7 +34,7 @@ export const ViewerControlButtons: React.FC<ViewerControlButtonsProps> = ({
               : 'bg-black/50 text-white hover:bg-black/70 border-white/20'
           }`}
         >
-          {is3DEnabled ? <Cube className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+          {is3DEnabled ? <Box className="w-4 h-4" /> : <Square className="w-4 h-4" />}
           <span className="ml-1">{is3DEnabled ? '3D' : '2D'}</span>
         </Button>
       )}

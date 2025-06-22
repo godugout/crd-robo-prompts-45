@@ -45,11 +45,8 @@ class TextureCache {
           tex.wrapS = THREE.ClampToEdgeWrapping;
           tex.wrapT = THREE.ClampToEdgeWrapping;
           
-          // Compress texture if supported
-          const gl = loader.manager.getHandler('')?.getContext?.();
-          if (gl && gl.getExtension('WEBGL_compressed_texture_s3tc')) {
-            tex.format = THREE.RGBAFormat;
-          }
+          // Set texture format for better compression
+          tex.format = THREE.RGBAFormat;
           
           resolve(tex);
         },

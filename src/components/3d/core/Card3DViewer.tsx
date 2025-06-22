@@ -87,8 +87,8 @@ export const Card3DViewer: React.FC<Card3DViewerProps> = ({
   }, [metrics.fps, onPerformanceIssue]);
 
   // Error boundary for Canvas
-  const handleCanvasError = (error: Error) => {
-    console.error('3D Canvas error:', error);
+  const handleCanvasError = (event: React.SyntheticEvent<HTMLCanvasElement, Event>) => {
+    console.error('3D Canvas error:', event);
     setHasError(true);
     onFallback?.();
   };
