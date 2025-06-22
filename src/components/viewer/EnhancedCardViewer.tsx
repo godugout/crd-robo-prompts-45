@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { FlexibleMobilePanel } from './components/FlexibleMobilePanel';
 import { MobileControlProvider, useMobileControl } from './context/MobileControlContext';
 import { EffectProvider } from './contexts/EffectContext';
 import { ViewerControlButtons } from './components/ViewerControlButtons';
+import { Enhanced3DCardViewer } from '../3d/enhanced/Enhanced3DCardViewer';
 import { Enhanced3DCardMesh } from './components/Enhanced3DCardMesh';
 import { useCardInteraction } from './hooks/useCardInteraction';
 import { useViewerEffects } from './hooks/useViewerEffects';
+import { detectWebGLCapabilities } from '../3d/utils/webglDetection';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { CardData } from '@/types/card';
@@ -93,8 +96,23 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentCardData, setCurrentCardData] = useState(card);
+  const [is3DEnabled, setIs3DEnabled] = useState(false);
+  const [webgl3DSupported, setWebgl3DSupported] = useState(false);
   
   console.log('EnhancedCardViewer: Starting render', { card: card?.id, hasCard: !!card, selectedFrame });
+
+  // Check 3D support on mount
+  useEffect(() => {
+    const capabilities = detectWebGLCapabilities();
+    const supported = capabilities.supported && capabilities.performanceScore > 30;
+    setWebgl3DSupported(supported);
+    
+    // Load user preference
+    const saved = localStorage.getItem('crd-3d-enabled');
+    if (saved && supported) {
+      setIs3DEnabled(JSON.parse(saved));
+    }
+  }, []);
 
   // Initialize hooks with error handling
   let cardInteractionHook;
@@ -153,13 +171,26 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
     setIsFullscreen(!isFullscreen);
   };
 
+  const handleToggle3D = () => {
+    const newState = !is3DEnabled;
+    setIs3DEnabled(newState);
+    localStorage.setItem('crd-3d-enabled', JSON.stringify(newState));
+    toast.success(`Switched to ${newState ? '3D' : '2D'} view`);
+  };
+
+  const handleReset = () => {
+    // Reset camera and interactions
+    resetAllEffects();
+    toast.success('View reset');
+  };
+
   const handleCardImageUpdate = (imageBlob: Blob) => {
     const imageUrl = URL.createObjectURL(imageBlob);
     setCurrentCardData(prev => ({
       ...prev,
       image_url: imageUrl
     }));
-    toast.success('Card image updated! The new image is now displayed in the 3D viewer.');
+    toast.success('Card image updated! The new image is now displayed in the viewer.');
   };
 
   if (!card) {
@@ -192,55 +223,86 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
         "relative w-full h-full bg-gradient-to-br from-gray-900 via-black to-gray-800 flex",
         isFullscreen && "fixed inset-0 z-50"
       )}>
-        {/* 3D Viewer - Full Canvas */}
+        {/* Main Viewer Area */}
         <div className="flex-1 relative">
           <ViewerControlButtons 
             isFullscreen={isFullscreen}
             onToggleFullscreen={handleToggleFullscreen}
+            is3DEnabled={is3DEnabled}
+            onToggle3D={webgl3DSupported ? handleToggle3D : undefined}
+            onReset={handleReset}
+            webgl3DSupported={webgl3DSupported}
           />
 
-          <Canvas
-            camera={{ position: [0, 0, 6], fov: 50 }}
-            className="w-full h-full"
-            gl={{ 
-              antialias: true, 
-              alpha: true,
-              powerPreference: "high-performance"
-            }}
-            onCreated={({ gl, scene, camera }) => {
-              gl.setClearColor('#000000', 0);
-              console.log('Canvas created successfully');
-            }}
-          >
-            <OrbitControls
-              enablePan={true}
-              enableZoom={true}
-              enableRotate={true}
-              minDistance={2}
-              maxDistance={12}
-              autoRotate={false}
-              autoRotateSpeed={0.5}
+          {/* 3D Enhanced Viewer */}
+          {is3DEnabled && webgl3DSupported ? (
+            <Enhanced3DCardViewer
+              card={currentCardData}
+              className="w-full h-full"
+              autoEnable={false}
+              onModeChange={(enabled) => {
+                if (!enabled) {
+                  setIs3DEnabled(false);
+                  toast.info('Switched to 2D view due to performance');
+                }
+              }}
+              fallbackComponent={
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="relative max-w-md">
+                    <img
+                      src={currentCardData.image_url || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png'}
+                      alt={currentCardData.title}
+                      className="w-full h-auto rounded-lg shadow-2xl"
+                    />
+                  </div>
+                </div>
+              }
             />
-            
-            {/* Enhanced lighting setup for better metallic reflections */}
-            <ambientLight intensity={0.6} />
-            <directionalLight position={[10, 10, 5]} intensity={1.2} />
-            <directionalLight position={[-10, -10, -5]} intensity={0.4} />
-            <pointLight position={[0, 0, 10]} intensity={0.8} />
-            <pointLight position={[5, 5, 5]} intensity={0.6} color="#ffffff" />
-            <pointLight position={[-5, -5, 5]} intensity={0.6} color="#ffffff" />
-            
-            <EffectProvider value={effectContextValue}>
-              <Enhanced3DCardMesh 
-                card={currentCardData}
-                rotation={rotation}
-                zoom={zoom}
-                materialSettings={materialSettings}
-                selectedFrame={selectedFrame}
-                frameConfig={frameConfig}
+          ) : (
+            /* Original 2D Canvas Viewer */
+            <Canvas
+              camera={{ position: [0, 0, 6], fov: 50 }}
+              className="w-full h-full"
+              gl={{ 
+                antialias: true, 
+                alpha: true,
+                powerPreference: "high-performance"
+              }}
+              onCreated={({ gl, scene, camera }) => {
+                gl.setClearColor('#000000', 0);
+                console.log('Canvas created successfully');
+              }}
+            >
+              <OrbitControls
+                enablePan={true}
+                enableZoom={true}
+                enableRotate={true}
+                minDistance={2}
+                maxDistance={12}
+                autoRotate={false}
+                autoRotateSpeed={0.5}
               />
-            </EffectProvider>
-          </Canvas>
+              
+              {/* Enhanced lighting setup for better metallic reflections */}
+              <ambientLight intensity={0.6} />
+              <directionalLight position={[10, 10, 5]} intensity={1.2} />
+              <directionalLight position={[-10, -10, -5]} intensity={0.4} />
+              <pointLight position={[0, 0, 10]} intensity={0.8} />
+              <pointLight position={[5, 5, 5]} intensity={0.6} color="#ffffff" />
+              <pointLight position={[-5, -5, 5]} intensity={0.6} color="#ffffff" />
+              
+              <EffectProvider value={effectContextValue}>
+                <Enhanced3DCardMesh 
+                  card={currentCardData}
+                  rotation={rotation}
+                  zoom={zoom}
+                  materialSettings={materialSettings}
+                  selectedFrame={selectedFrame}
+                  frameConfig={frameConfig}
+                />
+              </EffectProvider>
+            </Canvas>
+          )}
         </div>
 
         {/* Flexible Panel */}

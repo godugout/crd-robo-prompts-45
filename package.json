@@ -65,6 +65,7 @@
     "lucide-react": "^0.462.0",
     "msw": "^2.7.5",
     "next-themes": "^0.3.0",
+    "r3f-perf": "^7.2.3",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
