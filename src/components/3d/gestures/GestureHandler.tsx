@@ -76,9 +76,9 @@ export const GestureHandler: React.FC<GestureHandlerProps> = ({
   return (
     <animated.group
       ref={meshRef}
-      {...bind()}
       rotation={rotation as any}
       scale={scale as any}
+      {...bind()}
     >
       {children}
     </animated.group>
