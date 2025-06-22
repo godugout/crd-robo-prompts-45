@@ -33,45 +33,51 @@ export const GestureHandler: React.FC<GestureHandlerProps> = ({
     }
   }, [enableHaptic]);
   
-  const bind = useGesture({
-    onDrag: ({ offset: [x, y], tap }) => {
-      if (tap) {
-        onFlip?.();
-        triggerHaptic(0.3);
-        return;
+  const bind = useGesture(
+    {
+      onDrag: ({ offset: [x, y], tap }) => {
+        if (tap) {
+          onFlip?.();
+          triggerHaptic(0.3);
+          return;
+        }
+        
+        const rotationX = y * 0.01;
+        const rotationY = x * 0.01;
+        
+        api.start({
+          rotation: [rotationX, rotationY, 0]
+        });
+        
+        onRotate?.({ x: rotationX, y: rotationY });
+      },
+      
+      onPinch: ({ offset: [scale] }) => {
+        const normalizedScale = Math.max(0.5, Math.min(2, scale));
+        
+        api.start({
+          scale: [normalizedScale, normalizedScale, normalizedScale]
+        });
+        
+        onZoom?.(normalizedScale);
+      },
+      
+      onWheel: ({ delta: [, dy] }) => {
+        const currentScale = scale.get()[0];
+        const newScale = Math.max(0.5, Math.min(3, currentScale - dy * 0.001));
+        
+        api.start({
+          scale: [newScale, newScale, newScale]
+        });
+        
+        onZoom?.(newScale);
       }
-      
-      const rotationX = y * 0.01;
-      const rotationY = x * 0.01;
-      
-      api.start({
-        rotation: [rotationX, rotationY, 0]
-      });
-      
-      onRotate?.({ x: rotationX, y: rotationY });
     },
-    
-    onPinch: ({ offset: [scale] }) => {
-      const normalizedScale = Math.max(0.5, Math.min(2, scale));
-      
-      api.start({
-        scale: [normalizedScale, normalizedScale, normalizedScale]
-      });
-      
-      onZoom?.(normalizedScale);
-    },
-    
-    onWheel: ({ delta: [, dy] }) => {
-      const currentScale = scale.get()[0];
-      const newScale = Math.max(0.5, Math.min(3, currentScale - dy * 0.001));
-      
-      api.start({
-        scale: [newScale, newScale, newScale]
-      });
-      
-      onZoom?.(newScale);
+    {
+      drag: { from: () => [rotation.get()[1], rotation.get()[0]] },
+      pinch: { scaleBounds: { min: 0.5, max: 2 }, rubberband: true }
     }
-  });
+  );
   
   return (
     <animated.group
