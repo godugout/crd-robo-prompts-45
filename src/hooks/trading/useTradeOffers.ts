@@ -57,8 +57,8 @@ export const useTradeOffers = () => {
       const insertData = {
         initiator_id: user.id,
         recipient_id: recipientId,
-        offered_cards: offeredCards,
-        requested_cards: requestedCards,
+        offered_cards: offeredCards as any, // Cast to any to satisfy Json type
+        requested_cards: requestedCards as any, // Cast to any to satisfy Json type
         trade_value_difference: valueDifference,
         messages_channel_id: channelId,
         notes,
