@@ -183,21 +183,26 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                   created_at: '',
                   updated_at: '',
                   edition_size: 1,
-                  price: null,
-                  verification_status: 'verified',
+                  price: 0,
+                  verification_status: 'verified' as const,
                   collection_id: null,
                   team_id: null,
                   user_id: null,
                   print_metadata: {},
                   template_id: null,
                   creator_attribution: {},
-                  publishing_options: {},
+                  publishing_options: {
+                    marketplace_listing: false,
+                    crd_catalog_inclusion: true,
+                    print_available: false
+                  },
                   print_available: false,
                   crd_catalog_inclusion: true,
                   marketplace_listing: false,
                   shop_id: null,
                   design_metadata: {},
-                  is_public: false
+                  is_public: false,
+                  visibility: 'private' as const
                 };
 
                 return (

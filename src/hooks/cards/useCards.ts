@@ -61,7 +61,8 @@ export const useCards = (filters: CardFilters = {}) => {
         creator_attribution: (item.creator_attribution && typeof item.creator_attribution === 'object') ? item.creator_attribution as any : {},
         publishing_options: (item.publishing_options && typeof item.publishing_options === 'object') ? item.publishing_options as any : {},
         design_metadata: (item.design_metadata && typeof item.design_metadata === 'object') ? item.design_metadata as Record<string, any> : {},
-        visibility: (item.visibility as any) || (item.is_public ? 'public' : 'private')
+        verification_status: (item.verification_status as 'pending' | 'verified' | 'rejected') || 'pending',
+        visibility: item.is_public ? 'public' : 'private'
       }));
 
       return {
@@ -96,7 +97,8 @@ export const useCard = (id: string) => {
         creator_attribution: (data.creator_attribution && typeof data.creator_attribution === 'object') ? data.creator_attribution as any : {},
         publishing_options: (data.publishing_options && typeof data.publishing_options === 'object') ? data.publishing_options as any : {},
         design_metadata: (data.design_metadata && typeof data.design_metadata === 'object') ? data.design_metadata as Record<string, any> : {},
-        visibility: (data.visibility as any) || (data.is_public ? 'public' : 'private')
+        verification_status: (data.verification_status as 'pending' | 'verified' | 'rejected') || 'pending',
+        visibility: data.is_public ? 'public' : 'private'
       };
     },
     enabled: !!id
@@ -177,7 +179,8 @@ export const useFeaturedCards = (limit = 6) => {
         creator_attribution: (item.creator_attribution && typeof item.creator_attribution === 'object') ? item.creator_attribution as any : {},
         publishing_options: (item.publishing_options && typeof item.publishing_options === 'object') ? item.publishing_options as any : {},
         design_metadata: (item.design_metadata && typeof item.design_metadata === 'object') ? item.design_metadata as Record<string, any> : {},
-        visibility: (item.visibility as any) || (item.is_public ? 'public' : 'private')
+        verification_status: (item.verification_status as 'pending' | 'verified' | 'rejected') || 'pending',
+        visibility: item.is_public ? 'public' : 'private'
       }));
     }
   });
