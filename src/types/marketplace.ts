@@ -1,100 +1,116 @@
 
-export type ListingType = 'fixed_price' | 'auction' | 'make_offer';
-export type ListingStatus = 'active' | 'sold' | 'cancelled' | 'expired';
-export type TransactionStatus = 'pending' | 'processing' | 'completed' | 'cancelled' | 'refunded';
-export type CardCondition = 'mint' | 'near_mint' | 'excellent' | 'good' | 'fair' | 'poor';
-
-export interface MarketplaceListing {
-  id: string;
-  seller_id: string;
-  card_id: string;
-  price: number;
-  condition: CardCondition;
-  quantity: number;
-  listing_type: ListingType;
-  status: ListingStatus;
-  featured: boolean;
-  views_count: number;
-  watchers_count: number;
-  shipping_cost?: number;
-  location?: string;
-  estimated_delivery_days?: number;
-  title: string;
-  description?: string;
-  images?: string[];
-  auction_end_time?: string;
-  starting_bid?: number;
-  current_bid?: number;
-  reserve_price?: number;
-  created_at: string;
-  updated_at: string;
-  expires_at?: string;
-  card?: any; // Card data when joined
-  seller?: any; // Seller profile when joined
-}
-
-export interface Transaction {
-  id: string;
-  buyer_id?: string;
-  seller_id?: string;
-  listing_id?: string;
-  amount: number;
-  platform_fee: number;
-  shipping_cost?: number;
-  total_amount: number;
-  stripe_payment_intent_id?: string;
-  stripe_transfer_id?: string;
-  status: TransactionStatus;
-  shipping_address?: any;
-  tracking_number?: string;
-  notes?: string;
-  created_at: string;
-  completed_at?: string;
-  cancelled_at?: string;
-  listing?: MarketplaceListing;
-}
-
-export interface SellerProfile {
-  id: string;
-  user_id: string;
-  stripe_account_id?: string;
-  verification_status: string;
-  business_name?: string;
-  business_type?: string;
-  tax_id?: string;
-  address?: any;
-  phone?: string;
-  website?: string;
-  bank_account_verified: boolean;
-  identity_verified: boolean;
-  payouts_enabled: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface AuctionBid {
   id: string;
   listing_id: string;
   bidder_id: string;
   amount: number;
+  proxy_max_amount?: number;
+  bid_type: 'manual' | 'proxy' | 'auto_increment';
+  is_winning_bid: boolean;
   created_at: string;
-  bidder?: any; // User profile when joined
+  metadata: Record<string, any>;
 }
 
-export interface ListingWatcher {
+export interface MarketAnalytics {
+  id: string;
+  card_id: string;
+  date: string;
+  avg_price?: number;
+  volume: number;
+  transactions: number;
+  price_change_24h?: number;
+  market_cap?: number;
+  liquidity_score?: number;
+  trending_score?: number;
+  metadata: Record<string, any>;
+  created_at: string;
+}
+
+export interface MarketTrend {
+  id: string;
+  trend_type: 'card' | 'category' | 'global';
+  entity_id?: string;
+  trend_name: string;
+  trend_data: Record<string, any>;
+  strength?: number;
+  duration_days?: number;
+  created_at: string;
+  expires_at?: string;
+}
+
+export interface UserPortfolio {
+  id: string;
+  user_id: string;
+  card_id: string;
+  quantity: number;
+  avg_purchase_price?: number;
+  total_invested?: number;
+  current_value?: number;
+  unrealized_pnl?: number;
+  realized_pnl?: number;
+  last_updated: string;
+  metadata: Record<string, any>;
+}
+
+export interface MarketAlert {
+  id: string;
+  user_id: string;
+  alert_type: 'price_drop' | 'new_listing' | 'auction_ending' | 'trend_alert';
+  entity_id?: string;
+  condition_data: Record<string, any>;
+  is_active: boolean;
+  triggered_count: number;
+  last_triggered?: string;
+  created_at: string;
+}
+
+export interface SellerAnalytics {
+  id: string;
+  seller_id: string;
+  date: string;
+  total_sales: number;
+  total_listings: number;
+  avg_sale_price?: number;
+  conversion_rate?: number;
+  total_views: number;
+  total_watchers: number;
+  rating_average?: number;
+  rating_count: number;
+  metadata: Record<string, any>;
+  created_at: string;
+}
+
+export interface CardRecommendation {
+  id: string;
+  user_id: string;
+  card_id: string;
+  recommendation_type: 'trending' | 'similar' | 'investment' | 'collection_complete';
+  score: number;
+  reasoning: Record<string, any>;
+  created_at: string;
+  expires_at?: string;
+}
+
+export interface AuctionExtension {
   id: string;
   listing_id: string;
-  user_id: string;
+  original_end_time: string;
+  new_end_time: string;
+  extension_minutes: number;
+  trigger_bid_id?: string;
   created_at: string;
 }
 
-export interface MarketplaceFee {
-  id: string;
-  fee_type: string;
-  percentage?: number;
-  fixed_amount?: number;
-  min_amount?: number;
-  max_amount?: number;
-  active: boolean;
-  created_at: string;
+export interface MarketplaceMetrics {
+  totalVolume: number;
+  totalTransactions: number;
+  averagePrice: number;
+  priceChange24h: number;
+  topTrendingCards: Array<{
+    card_id: string;
+    title: string;
+    trending_score: number;
+    price_change: number;
+  }>;
+  marketCap: number;
 }

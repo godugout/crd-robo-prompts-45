@@ -171,24 +171,36 @@ export type Database = {
       auction_bids: {
         Row: {
           amount: number
+          bid_type: string
           bidder_id: string | null
           created_at: string | null
           id: string
+          is_winning_bid: boolean | null
           listing_id: string | null
+          metadata: Json | null
+          proxy_max_amount: number | null
         }
         Insert: {
           amount: number
+          bid_type?: string
           bidder_id?: string | null
           created_at?: string | null
           id?: string
+          is_winning_bid?: boolean | null
           listing_id?: string | null
+          metadata?: Json | null
+          proxy_max_amount?: number | null
         }
         Update: {
           amount?: number
+          bid_type?: string
           bidder_id?: string | null
           created_at?: string | null
           id?: string
+          is_winning_bid?: boolean | null
           listing_id?: string | null
+          metadata?: Json | null
+          proxy_max_amount?: number | null
         }
         Relationships: [
           {
@@ -196,6 +208,51 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auction_extensions: {
+        Row: {
+          created_at: string | null
+          extension_minutes: number
+          id: string
+          listing_id: string | null
+          new_end_time: string
+          original_end_time: string
+          trigger_bid_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          extension_minutes: number
+          id?: string
+          listing_id?: string | null
+          new_end_time: string
+          original_end_time: string
+          trigger_bid_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          extension_minutes?: number
+          id?: string
+          listing_id?: string | null
+          new_end_time?: string
+          original_end_time?: string
+          trigger_bid_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_extensions_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_extensions_trigger_bid_id_fkey"
+            columns: ["trigger_bid_id"]
+            isOneToOne: false
+            referencedRelation: "auction_bids"
             referencedColumns: ["id"]
           },
         ]
@@ -331,6 +388,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "card_downloads_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_recommendations: {
+        Row: {
+          card_id: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          reasoning: Json | null
+          recommendation_type: string
+          score: number
+          user_id: string | null
+        }
+        Insert: {
+          card_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          reasoning?: Json | null
+          recommendation_type: string
+          score: number
+          user_id?: string | null
+        }
+        Update: {
+          card_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          reasoning?: Json | null
+          recommendation_type?: string
+          score?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_recommendations_card_id_fkey"
             columns: ["card_id"]
             isOneToOne: false
             referencedRelation: "cards"
@@ -2110,6 +2208,131 @@ export type Database = {
           },
         ]
       }
+      market_alerts: {
+        Row: {
+          alert_type: string
+          condition_data: Json
+          created_at: string | null
+          entity_id: string | null
+          id: string
+          is_active: boolean | null
+          last_triggered: string | null
+          triggered_count: number | null
+          user_id: string | null
+        }
+        Insert: {
+          alert_type: string
+          condition_data?: Json
+          created_at?: string | null
+          entity_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered?: string | null
+          triggered_count?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          alert_type?: string
+          condition_data?: Json
+          created_at?: string | null
+          entity_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered?: string | null
+          triggered_count?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      market_analytics: {
+        Row: {
+          avg_price: number | null
+          card_id: string | null
+          created_at: string | null
+          date: string
+          id: string
+          liquidity_score: number | null
+          market_cap: number | null
+          metadata: Json | null
+          price_change_24h: number | null
+          transactions: number | null
+          trending_score: number | null
+          volume: number | null
+        }
+        Insert: {
+          avg_price?: number | null
+          card_id?: string | null
+          created_at?: string | null
+          date: string
+          id?: string
+          liquidity_score?: number | null
+          market_cap?: number | null
+          metadata?: Json | null
+          price_change_24h?: number | null
+          transactions?: number | null
+          trending_score?: number | null
+          volume?: number | null
+        }
+        Update: {
+          avg_price?: number | null
+          card_id?: string | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          liquidity_score?: number | null
+          market_cap?: number | null
+          metadata?: Json | null
+          price_change_24h?: number | null
+          transactions?: number | null
+          trending_score?: number | null
+          volume?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_analytics_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_trends: {
+        Row: {
+          created_at: string | null
+          duration_days: number | null
+          entity_id: string | null
+          expires_at: string | null
+          id: string
+          strength: number | null
+          trend_data: Json
+          trend_name: string
+          trend_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          duration_days?: number | null
+          entity_id?: string | null
+          expires_at?: string | null
+          id?: string
+          strength?: number | null
+          trend_data?: Json
+          trend_name: string
+          trend_type: string
+        }
+        Update: {
+          created_at?: string | null
+          duration_days?: number | null
+          entity_id?: string | null
+          expires_at?: string | null
+          id?: string
+          strength?: number | null
+          trend_data?: Json
+          trend_name?: string
+          trend_type?: string
+        }
+        Relationships: []
+      }
       marketplace_fees: {
         Row: {
           active: boolean | null
@@ -3104,6 +3327,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      seller_analytics: {
+        Row: {
+          avg_sale_price: number | null
+          conversion_rate: number | null
+          created_at: string | null
+          date: string
+          id: string
+          metadata: Json | null
+          rating_average: number | null
+          rating_count: number | null
+          seller_id: string | null
+          total_listings: number | null
+          total_sales: number | null
+          total_views: number | null
+          total_watchers: number | null
+        }
+        Insert: {
+          avg_sale_price?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          date: string
+          id?: string
+          metadata?: Json | null
+          rating_average?: number | null
+          rating_count?: number | null
+          seller_id?: string | null
+          total_listings?: number | null
+          total_sales?: number | null
+          total_views?: number | null
+          total_watchers?: number | null
+        }
+        Update: {
+          avg_sale_price?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          metadata?: Json | null
+          rating_average?: number | null
+          rating_count?: number | null
+          seller_id?: string | null
+          total_listings?: number | null
+          total_sales?: number | null
+          total_views?: number | null
+          total_watchers?: number | null
+        }
+        Relationships: []
       }
       seller_profiles: {
         Row: {
@@ -4253,6 +4524,56 @@ export type Database = {
         }
         Relationships: []
       }
+      user_portfolios: {
+        Row: {
+          avg_purchase_price: number | null
+          card_id: string | null
+          current_value: number | null
+          id: string
+          last_updated: string | null
+          metadata: Json | null
+          quantity: number | null
+          realized_pnl: number | null
+          total_invested: number | null
+          unrealized_pnl: number | null
+          user_id: string | null
+        }
+        Insert: {
+          avg_purchase_price?: number | null
+          card_id?: string | null
+          current_value?: number | null
+          id?: string
+          last_updated?: string | null
+          metadata?: Json | null
+          quantity?: number | null
+          realized_pnl?: number | null
+          total_invested?: number | null
+          unrealized_pnl?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          avg_purchase_price?: number | null
+          card_id?: string | null
+          current_value?: number | null
+          id?: string
+          last_updated?: string | null
+          metadata?: Json | null
+          quantity?: number | null
+          realized_pnl?: number | null
+          total_invested?: number | null
+          unrealized_pnl?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_portfolios_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_story_progress: {
         Row: {
           created_at: string
@@ -4367,6 +4688,10 @@ export type Database = {
           success: boolean
         }[]
       }
+      calculate_trending_score: {
+        Args: { p_card_id: string }
+        Returns: number
+      }
       cleanup_orphaned_files: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -4441,6 +4766,10 @@ export type Database = {
           success: boolean
           error_message: string
         }[]
+      }
+      update_portfolio_value: {
+        Args: { p_user_id: string; p_card_id: string }
+        Returns: undefined
       }
     }
     Enums: {
