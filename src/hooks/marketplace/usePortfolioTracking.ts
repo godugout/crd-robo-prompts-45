@@ -30,7 +30,12 @@ export const usePortfolioTracking = () => {
         .order('current_value', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Type assertion to handle the database type conversion
+      return (data || []).map(item => ({
+        ...item,
+        metadata: item.metadata as Record<string, any>
+      }));
     },
     enabled: !!user?.id
   });
@@ -122,8 +127,9 @@ export const usePortfolioTracking = () => {
       if (!user?.id) throw new Error('User not authenticated');
 
       // Call the database function to update portfolio values
-      const { error } = await supabase.rpc('update_all_portfolio_values', {
-        p_user_id: user.id
+      const { error } = await supabase.rpc('update_portfolio_value', {
+        p_user_id: user.id,
+        p_card_id: null // Update all cards for this user
       });
 
       if (error) throw error;

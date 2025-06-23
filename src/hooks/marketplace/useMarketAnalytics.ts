@@ -88,7 +88,13 @@ export const useMarketAnalytics = () => {
         .limit(50);
 
       if (error) throw error;
-      return data || [];
+      
+      // Type assertion to handle the database type conversion
+      return (data || []).map(trend => ({
+        ...trend,
+        trend_type: trend.trend_type as 'card' | 'category' | 'global',
+        trend_data: trend.trend_data as Record<string, any>
+      }));
     },
     refetchInterval: 600000 // Update every 10 minutes
   });

@@ -23,7 +23,13 @@ export const useAuctionSystem = (listingId?: string) => {
         .order('amount', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Type assertion to handle the database type conversion
+      return (data || []).map(bid => ({
+        ...bid,
+        bid_type: bid.bid_type as 'manual' | 'proxy' | 'auto_increment',
+        metadata: bid.metadata as Record<string, any>
+      }));
     },
     enabled: !!listingId,
     refetchInterval: 2000 // Real-time updates every 2 seconds
@@ -149,14 +155,14 @@ export const useAuctionSystem = (listingId?: string) => {
         const incrementAmount = 1.00; // $1 increment
         const newBidAmount = Math.min(
           newBid.amount + incrementAmount,
-          highestProxy.proxy_max_amount
+          highestProxy.proxy_max_amount || 0
         );
 
-        if (newBidAmount <= highestProxy.proxy_max_amount) {
+        if (newBidAmount <= (highestProxy.proxy_max_amount || 0)) {
           // Place automatic counter-bid
           await placeBid.mutateAsync({
             amount: newBidAmount,
-            proxyMaxAmount: highestProxy.proxy_max_amount,
+            proxyMaxAmount: highestProxy.proxy_max_amount || undefined,
             bidType: 'auto_increment'
           });
         }
@@ -181,7 +187,12 @@ export const useAuctionSystem = (listingId?: string) => {
           filter: `listing_id=eq.${listingId}`
         },
         (payload) => {
-          const newBid = payload.new as AuctionBid;
+          const newBid = {
+            ...payload.new,
+            bid_type: payload.new.bid_type as 'manual' | 'proxy' | 'auto_increment',
+            metadata: payload.new.metadata as Record<string, any>
+          } as AuctionBid;
+          
           queryClient.invalidateQueries({ queryKey: ['auction-bids', listingId] });
 
           // Process proxy bids if this is a manual bid

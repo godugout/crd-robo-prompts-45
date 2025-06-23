@@ -1,4 +1,45 @@
 
+export interface MarketplaceListing {
+  id: string;
+  seller_id: string;
+  card_id: string;
+  title: string;
+  description?: string;
+  price: number;
+  listing_type: 'fixed_price' | 'auction' | 'best_offer';
+  condition: 'mint' | 'near_mint' | 'excellent' | 'good' | 'fair' | 'poor';
+  quantity: number;
+  images?: string[];
+  location?: string;
+  shipping_cost?: number;
+  estimated_delivery_days?: number;
+  status: 'active' | 'sold' | 'cancelled' | 'expired';
+  views_count: number;
+  watchers_count: number;
+  featured: boolean;
+  created_at: string;
+  updated_at: string;
+  expires_at?: string;
+  
+  // Auction specific fields
+  starting_bid?: number;
+  current_bid?: number;
+  reserve_price?: number;
+  auction_end_time?: string;
+  
+  // Related data
+  card?: {
+    id: string;
+    title: string;
+    image_url?: string;
+    rarity: string;
+  };
+  seller?: {
+    username: string;
+    avatar_url?: string;
+  };
+}
+
 export interface AuctionBid {
   id: string;
   listing_id: string;
