@@ -1,85 +1,89 @@
 
 import React, { useMemo } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
 import { Card3D } from '../core/Card3D';
 import { GalleryEffects } from './GalleryEffects';
-import { FloatingInfoPanel } from './FloatingInfoPanel';
-import { SearchSpotlight } from './SearchSpotlight';
-import { NavigationCompass } from './NavigationCompass';
-import * as THREE from 'three';
+import { GalleryControls } from './GalleryControls';
 import type { Card } from '@/types/cards';
+import type { Collection } from '@/types/collections';
 
 interface GallerySceneProps {
   cards: Card[];
-  cardPositions: Map<string, THREE.Vector3>;
-  selectedCard: Card | null;
+  collection: Collection;
   layoutType: string;
-  quality: 'low' | 'medium' | 'high' | 'ultra';
-  navigationState: any;
-  onCardSelect: (card: Card) => void;
-  onCardInteraction: (type: string, card: Card, data?: any) => void;
   environmentSettings: any;
+  onCardSelect?: (card: Card) => void;
+  onCardInteraction?: (type: string, card: Card, data?: any) => void;
+  quality: 'low' | 'medium' | 'high' | 'ultra';
 }
 
 export const GalleryScene: React.FC<GallerySceneProps> = ({
   cards,
-  cardPositions,
-  selectedCard,
+  collection,
   layoutType,
-  quality,
-  navigationState,
+  environmentSettings,
   onCardSelect,
   onCardInteraction,
-  environmentSettings
+  quality
 }) => {
-  // Calculate visible cards based on camera position for performance
-  const visibleCards = useMemo(() => {
-    // Implement occlusion culling here
-    return cards.filter((card, index) => {
-      // For now, show all cards - implement distance culling in production
-      return true;
-    });
-  }, [cards, navigationState.cameraPosition]);
+  const { camera } = useThree();
 
-  // Generate card meshes with positions
-  const cardMeshes = useMemo(() => {
-    return visibleCards.map((card) => {
-      const position = cardPositions.get(card.id);
-      if (!position) return null;
+  // Calculate positions based on layout type
+  const cardPositions = useMemo(() => {
+    const positions: Array<[number, number, number]> = [];
+    const radius = Math.max(cards.length * 0.5, 5);
+    
+    switch (layoutType) {
+      case 'circle':
+        cards.forEach((_, index) => {
+          const angle = (index / cards.length) * Math.PI * 2;
+          positions.push([
+            Math.cos(angle) * radius,
+            0,
+            Math.sin(angle) * radius
+          ]);
+        });
+        break;
+      case 'spiral':
+        cards.forEach((_, index) => {
+          const angle = index * 0.5;
+          const spiralRadius = index * 0.3 + 2;
+          positions.push([
+            Math.cos(angle) * spiralRadius,
+            index * 0.2,
+            Math.sin(angle) * spiralRadius
+          ]);
+        });
+        break;
+      case 'grid':
+      default:
+        const cols = Math.ceil(Math.sqrt(cards.length));
+        cards.forEach((_, index) => {
+          const row = Math.floor(index / cols);
+          const col = index % cols;
+          positions.push([
+            (col - cols / 2) * 3,
+            0,
+            (row - Math.ceil(cards.length / cols) / 2) * 4
+          ]);
+        });
+        break;
+    }
+    
+    return positions;
+  }, [cards.length, layoutType]);
 
-      return (
-        <group key={card.id} position={[position.x, position.y, position.z]}>
-          <Card3D
-            card={card}
-            quality={quality}
-            interactive={true}
-            onClick={() => onCardSelect(card)}
-            onHover={(hovered) => {
-              if (hovered) {
-                onCardInteraction('hover', card);
-              }
-            }}
-            scale={selectedCard?.id === card.id ? 1.2 : 1}
-          />
-          
-          {/* Floating info panel for selected card */}
-          {selectedCard?.id === card.id && (
-            <FloatingInfoPanel
-              card={card}
-              position={[0, 2, 0]}
-              visible={true}
-            />
-          )}
-        </group>
-      );
-    }).filter(Boolean);
-  }, [visibleCards, cardPositions, selectedCard, quality, onCardSelect, onCardInteraction]);
+  // Animate camera for dynamic views
+  useFrame((state) => {
+    if (layoutType === 'spiral') {
+      camera.position.x = Math.cos(state.clock.elapsedTime * 0.1) * 10;
+      camera.position.z = Math.sin(state.clock.elapsedTime * 0.1) * 10;
+      camera.lookAt(0, 0, 0);
+    }
+  });
 
   return (
-    <group>
-      {/* Card meshes */}
-      {cardMeshes}
-      
-      {/* Gallery effects */}
+    <>
       <GalleryEffects
         layoutType={layoutType}
         environmentSettings={environmentSettings}
@@ -87,22 +91,31 @@ export const GalleryScene: React.FC<GallerySceneProps> = ({
         quality={quality}
       />
       
-      {/* Search spotlight */}
-      {navigationState.searchQuery && (
-        <SearchSpotlight
-          cards={cards}
-          cardPositions={cardPositions}
-          searchQuery={navigationState.searchQuery}
-        />
-      )}
+      {cards.map((card, index) => {
+        const position = cardPositions[index] || [0, 0, 0];
+        
+        return (
+          <Card3D
+            key={card.id}
+            card={card}
+            position={position}
+            onSelect={() => {
+              onCardSelect?.(card);
+              onCardInteraction?.('select', card);
+            }}
+            onHover={(hovered) => {
+              onCardInteraction?.('hover', card, { hovered });
+            }}
+            quality={quality}
+          />
+        );
+      })}
       
-      {/* Navigation compass */}
-      <NavigationCompass
-        position={[8, 8, 8]}
-        selectedCard={selectedCard}
+      <GalleryControls
         cards={cards}
-        cardPositions={cardPositions}
+        onLayoutChange={() => {}}
+        onQualityChange={() => {}}
       />
-    </group>
+    </>
   );
 };

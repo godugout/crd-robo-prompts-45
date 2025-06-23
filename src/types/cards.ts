@@ -1,5 +1,5 @@
 
-export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
 export type CardVisibility = 'private' | 'public' | 'shared';
 
 export interface CreatorAttribution {
@@ -36,6 +36,7 @@ export interface Card {
   rarity: CardRarity;
   tags: string[];
   creator_id: string;
+  creator_name?: string;
   created_at: string;
   updated_at: string;
   collection_id?: string;
@@ -56,3 +57,56 @@ export interface Card {
   is_public?: boolean;
   visibility: CardVisibility;
 }
+
+export interface CardFilters {
+  search?: string;
+  rarity?: CardRarity[];
+  price_min?: number;
+  price_max?: number;
+  creator_id?: string;
+  tags?: string[];
+  is_featured?: boolean;
+  collection_id?: string;
+  visibility?: CardVisibility;
+  created_after?: string;
+  created_before?: string;
+}
+
+export const RARITY_COLORS = {
+  common: {
+    bg: 'bg-gray-100',
+    text: 'text-gray-800',
+    border: 'border-gray-300',
+    glow: '#6b7280'
+  },
+  uncommon: {
+    bg: 'bg-green-100',
+    text: 'text-green-800',
+    border: 'border-green-300',
+    glow: '#10b981'
+  },
+  rare: {
+    bg: 'bg-blue-100',
+    text: 'text-blue-800',
+    border: 'border-blue-300',
+    glow: '#3b82f6'
+  },
+  epic: {
+    bg: 'bg-purple-100',
+    text: 'text-purple-800',
+    border: 'border-purple-300',
+    glow: '#8b5cf6'
+  },
+  legendary: {
+    bg: 'bg-yellow-100',
+    text: 'text-yellow-800',
+    border: 'border-yellow-300',
+    glow: '#f59e0b'
+  },
+  mythic: {
+    bg: 'bg-red-100',
+    text: 'text-red-800',
+    border: 'border-red-300',
+    glow: '#ef4444'
+  }
+};
