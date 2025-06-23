@@ -1,5 +1,5 @@
 
-export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
 export type CardVisibility = 'private' | 'public' | 'shared';
 
 export interface CreatorAttribution {
@@ -46,9 +46,14 @@ export interface CardData {
   verification_status?: 'pending' | 'verified' | 'rejected';
   print_metadata?: Record<string, any>;
   creator_id?: string;
+  creator_name?: string;
   price?: number;
   edition_size?: number;
   marketplace_listing?: boolean;
   crd_catalog_inclusion?: boolean;
   print_available?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  user_id?: string;
+  shop_id?: string;
 }

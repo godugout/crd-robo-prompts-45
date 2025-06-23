@@ -1,156 +1,69 @@
 
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase-client';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface QualitySettings {
   renderQuality: 'low' | 'medium' | 'high' | 'ultra';
-  enableParticles: boolean;
-  enableShaders: boolean;
-  enableHaptics: boolean;
-  autoAdjustQuality: boolean;
-  batteryOptimization: boolean;
-  accessibilityMode: boolean;
+  enableShadows: boolean;
+  antialias: boolean;
+  particleCount: number;
 }
 
-const DEFAULT_SETTINGS: QualitySettings = {
-  renderQuality: 'high',
-  enableParticles: true,
-  enableShaders: true,
-  enableHaptics: true,
-  autoAdjustQuality: true,
-  batteryOptimization: true,
-  accessibilityMode: false
-};
-
 export const use3DQualitySettings = () => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [localSettings, setLocalSettings] = useState<QualitySettings | null>(null);
+  const [settings, setSettings] = useState<QualitySettings>({
+    renderQuality: 'high',
+    enableShadows: true,
+    antialias: true,
+    particleCount: 500
+  });
 
-  // Detect device capabilities and adjust default settings
+  // Auto-detect device capabilities and adjust quality
   useEffect(() => {
-    const detectOptimalSettings = () => {
+    const detectQuality = () => {
       const canvas = document.createElement('canvas');
-      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
       
       if (!gl) {
-        return { ...DEFAULT_SETTINGS, renderQuality: 'low' as const };
+        setSettings(prev => ({ ...prev, renderQuality: 'low' }));
+        return;
       }
+
+      const renderer = gl.getParameter(gl.RENDERER);
+      const vendor = gl.getParameter(gl.VENDOR);
       
-      const isMobile = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent);
-      const hasHighPerformance = gl.getParameter(gl.MAX_TEXTURE_SIZE) >= 4096;
-      
-      let quality: QualitySettings['renderQuality'] = 'medium';
+      // Check for mobile devices
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       
       if (isMobile) {
-        quality = hasHighPerformance ? 'medium' : 'low';
+        setSettings(prev => ({ 
+          ...prev, 
+          renderQuality: 'medium',
+          enableShadows: false,
+          particleCount: 100
+        }));
       } else {
-        quality = hasHighPerformance ? 'high' : 'medium';
+        // Desktop - check GPU capabilities
+        const isHighEnd = renderer && (
+          renderer.includes('GTX') || 
+          renderer.includes('RTX') || 
+          renderer.includes('Radeon RX')
+        );
+        
+        setSettings(prev => ({ 
+          ...prev, 
+          renderQuality: isHighEnd ? 'ultra' : 'high'
+        }));
       }
-      
-      canvas.remove();
-      
-      return {
-        ...DEFAULT_SETTINGS,
-        renderQuality: quality,
-        enableParticles: !isMobile || hasHighPerformance,
-        enableShaders: quality !== 'low'
-      };
     };
-    
-    if (!user?.id && !localSettings) {
-      const optimal = detectOptimalSettings();
-      setLocalSettings(optimal);
-    }
-  }, [user?.id, localSettings]);
 
-  // Load settings from Supabase for authenticated users
-  const { data: settings, isLoading } = useQuery({
-    queryKey: ['3d-quality-settings', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      
-      const { data, error } = await supabase
-        .from('crd_profiles')
-        .select('preferences_3d')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) {
-        console.warn('Failed to load 3D quality settings:', error);
-        return null;
-      }
-      
-      const prefs = data?.preferences_3d as any;
-      return prefs?.qualitySettings || DEFAULT_SETTINGS;
-    },
-    enabled: !!user?.id
-  });
+    detectQuality();
+  }, []);
 
-  // Save settings to Supabase
-  const saveSettingsMutation = useMutation({
-    mutationFn: async (newSettings: QualitySettings) => {
-      if (!user?.id) throw new Error('User not authenticated');
-      
-      const { data: currentData } = await supabase
-        .from('crd_profiles')
-        .select('preferences_3d')
-        .eq('id', user.id)
-        .single();
-      
-      const updatedPrefs = {
-        ...currentData?.preferences_3d,
-        qualitySettings: newSettings
-      };
-      
-      const { error } = await supabase
-        .from('crd_profiles')
-        .update({ preferences_3d: updatedPrefs })
-        .eq('id', user.id);
-      
-      if (error) throw error;
-      return newSettings;
-    },
-    onSuccess: (newSettings) => {
-      queryClient.setQueryData(['3d-quality-settings', user?.id], newSettings);
-    }
-  });
-
-  const currentSettings = user?.id ? settings : localSettings;
-
-  const updateSettings = async (updates: Partial<QualitySettings>) => {
-    const newSettings = { ...currentSettings, ...updates } as QualitySettings;
-    
-    if (user?.id) {
-      await saveSettingsMutation.mutateAsync(newSettings);
-    } else {
-      localStorage.setItem('crd-3d-quality-settings', JSON.stringify(newSettings));
-      setLocalSettings(newSettings);
-    }
-  };
-
-  // Auto-adjust quality based on performance
-  const adjustQualityForPerformance = (fps: number) => {
-    if (!currentSettings?.autoAdjustQuality) return;
-    
-    if (fps < 30 && currentSettings.renderQuality !== 'low') {
-      const newQuality = currentSettings.renderQuality === 'ultra' ? 'high' :
-                        currentSettings.renderQuality === 'high' ? 'medium' : 'low';
-      updateSettings({ renderQuality: newQuality });
-    } else if (fps > 55 && currentSettings.renderQuality !== 'ultra') {
-      const newQuality = currentSettings.renderQuality === 'low' ? 'medium' :
-                        currentSettings.renderQuality === 'medium' ? 'high' : 'ultra';
-      updateSettings({ renderQuality: newQuality });
-    }
+  const updateSettings = (newSettings: Partial<QualitySettings>) => {
+    setSettings(prev => ({ ...prev, ...newSettings }));
   };
 
   return {
-    settings: currentSettings || DEFAULT_SETTINGS,
-    isLoading: user?.id ? isLoading : false,
-    updateSettings,
-    adjustQualityForPerformance,
-    isUpdating: saveSettingsMutation.isPending
+    settings,
+    updateSettings
   };
 };

@@ -23,7 +23,7 @@ export const CollectionGallery3D: React.FC<CollectionGallery3DProps> = ({
   // Extract cards from collection cards and properly map to Card type
   const cards: Card[] = collectionCards?.map(cc => {
     // Handle both direct card objects and collection_card objects with nested card
-    const cardData = cc.card || cc;
+    const cardData = (cc as any).card || cc;
     
     return {
       id: cardData.id || '',
@@ -34,7 +34,7 @@ export const CollectionGallery3D: React.FC<CollectionGallery3DProps> = ({
       rarity: (cardData.rarity as any) || 'common',
       tags: cardData.tags || [],
       creator_id: cardData.creator_id || '',
-      creator_name: cardData.creator_name,
+      creator_name: cardData.creator_name || 'Unknown Creator',
       created_at: cardData.created_at || new Date().toISOString(),
       updated_at: cardData.updated_at || new Date().toISOString(),
       collection_id: cardData.collection_id,
@@ -45,11 +45,13 @@ export const CollectionGallery3D: React.FC<CollectionGallery3DProps> = ({
       verification_status: cardData.verification_status,
       print_metadata: cardData.print_metadata || {},
       template_id: cardData.template_id,
-      creator_attribution: cardData.creator_attribution || {},
+      creator_attribution: cardData.creator_attribution || {
+        creator_name: cardData.creator_name || 'Unknown Creator'
+      },
       publishing_options: cardData.publishing_options || {
-        marketplace_listing: false,
-        crd_catalog_inclusion: true,
-        print_available: false
+        marketplace_listing: cardData.marketplace_listing || false,
+        crd_catalog_inclusion: cardData.crd_catalog_inclusion !== false,
+        print_available: cardData.print_available || false
       },
       print_available: cardData.print_available,
       crd_catalog_inclusion: cardData.crd_catalog_inclusion,
@@ -57,7 +59,7 @@ export const CollectionGallery3D: React.FC<CollectionGallery3DProps> = ({
       shop_id: cardData.shop_id,
       design_metadata: cardData.design_metadata || {},
       is_public: cardData.is_public,
-      visibility: cardData.visibility || 'public'
+      visibility: cardData.visibility || (cardData.is_public ? 'public' : 'private')
     };
   }).filter(Boolean) || [];
   

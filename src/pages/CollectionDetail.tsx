@@ -79,7 +79,9 @@ const CollectionDetail = () => {
           rarity,
           price,
           tags,
-          creator_id
+          creator_id,
+          visibility,
+          is_public
         `)
         .in('id', cardIds);
       
@@ -109,7 +111,17 @@ const CollectionDetail = () => {
             creator_name,
             creator_verified,
             price: card.price ? card.price.toString() : undefined,
-            tags: card.tags || []
+            tags: card.tags || [],
+            visibility: card.visibility || 'public',
+            edition_size: 1,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            creator_attribution: {},
+            publishing_options: {
+              marketplace_listing: false,
+              crd_catalog_inclusion: true,
+              print_available: false
+            }
           };
         })
       );

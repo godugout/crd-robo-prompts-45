@@ -6,12 +6,16 @@ import { GalleryEffects } from './GalleryEffects';
 import { GalleryControls } from './GalleryControls';
 import type { Card } from '@/types/cards';
 import type { Collection } from '@/types/collections';
+import * as THREE from 'three';
 
 interface GallerySceneProps {
   cards: Card[];
   collection: Collection;
   layoutType: string;
   environmentSettings: any;
+  cardPositions?: Map<string, THREE.Vector3>;
+  selectedCard?: Card | null;
+  navigationState?: any;
   onCardSelect?: (card: Card) => void;
   onCardInteraction?: (type: string, card: Card, data?: any) => void;
   quality: 'low' | 'medium' | 'high' | 'ultra';
@@ -22,14 +26,21 @@ export const GalleryScene: React.FC<GallerySceneProps> = ({
   collection,
   layoutType,
   environmentSettings,
+  cardPositions,
+  selectedCard,
+  navigationState,
   onCardSelect,
   onCardInteraction,
   quality
 }) => {
   const { camera } = useThree();
 
-  // Calculate positions based on layout type
-  const cardPositions = useMemo(() => {
+  // Calculate positions based on layout type or use provided positions
+  const calculatedPositions = useMemo(() => {
+    if (cardPositions) {
+      return Array.from(cardPositions.values());
+    }
+    
     const positions: Array<[number, number, number]> = [];
     const radius = Math.max(cards.length * 0.5, 5);
     
@@ -71,7 +82,7 @@ export const GalleryScene: React.FC<GallerySceneProps> = ({
     }
     
     return positions;
-  }, [cards.length, layoutType]);
+  }, [cards.length, layoutType, cardPositions]);
 
   // Animate camera for dynamic views
   useFrame((state) => {
@@ -92,7 +103,7 @@ export const GalleryScene: React.FC<GallerySceneProps> = ({
       />
       
       {cards.map((card, index) => {
-        const position = cardPositions[index] || [0, 0, 0];
+        const position = calculatedPositions[index] || [0, 0, 0];
         
         return (
           <Card3D
@@ -112,9 +123,10 @@ export const GalleryScene: React.FC<GallerySceneProps> = ({
       })}
       
       <GalleryControls
-        cards={cards}
-        onLayoutChange={() => {}}
-        onQualityChange={() => {}}
+        onNavigateToPosition={() => {}}
+        navigationState={navigationState}
+        enableVR={false}
+        enableMultiUser={false}
       />
     </>
   );
