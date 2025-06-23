@@ -13,6 +13,7 @@ import { CollectionStats } from './CollectionStats';
 import { CollectionActivityView } from './CollectionActivity';
 import { CollectionCommentsView } from './CollectionComments';
 import { Eye, Heart, Share2, Settings, Edit, Users } from 'lucide-react';
+import type { CardRarity } from '@/types/cards';
 
 interface CollectionDetailViewProps {
   collectionId: string;
@@ -176,7 +177,7 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                   title: collectionCard.card?.title || 'Unknown Card',
                   image_url: collectionCard.card?.image_url,
                   thumbnail_url: collectionCard.card?.thumbnail_url,
-                  rarity: collectionCard.card?.rarity || 'common',
+                  rarity: (collectionCard.card?.rarity as CardRarity) || 'common', // Fixed type casting
                   description: collectionCard.card?.description,
                   tags: [],
                   creator_id: '',

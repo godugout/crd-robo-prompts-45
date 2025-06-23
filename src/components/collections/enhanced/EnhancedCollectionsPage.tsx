@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useCollectionsRealtime } from '@/hooks/collections/useCollectionRealtime';
 import { useAuth } from '@/contexts/AuthContext';
 import { CollectionGrid } from '../CollectionGrid';
-import { CollectionDetail } from '../CollectionDetail';
+import CollectionDetail from '../CollectionDetail'; // Changed to default import
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
