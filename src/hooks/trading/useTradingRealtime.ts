@@ -48,7 +48,7 @@ export const useTradingRealtime = (tradeId?: string) => {
         },
         (payload) => {
           console.log('New trade message:', payload);
-          const message = payload.new as TradeMessage;
+          const message = payload.new as any;
           if (message.sender_id !== user?.id) {
             // Show notification for new message from other user
             toast.info('New message in trade chat');
@@ -151,7 +151,13 @@ export const useTradingRealtime = (tradeId?: string) => {
         .single();
 
       if (error) throw error;
-      return data;
+      
+      // Cast to our interface type
+      return {
+        ...data,
+        message_type: data.message_type as TradeMessage['message_type'],
+        metadata: data.metadata || {}
+      } as TradeMessage;
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');

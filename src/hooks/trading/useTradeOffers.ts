@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { TradeOffer, TradeCard } from './types';
+import { TradeOffer, TradeCard, TradeOfferRow } from './types';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -23,7 +23,14 @@ export const useTradeOffers = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Cast the raw database results to our typed interface
+      return (data || []).map((row: TradeOfferRow): TradeOffer => ({
+        ...row,
+        status: row.status as TradeOffer['status'],
+        offered_cards: Array.isArray(row.offered_cards) ? row.offered_cards : [],
+        requested_cards: Array.isArray(row.requested_cards) ? row.requested_cards : []
+      }));
     },
     enabled: !!user?.id
   });
@@ -47,18 +54,20 @@ export const useTradeOffers = () => {
 
       const channelId = uuidv4();
 
+      const insertData = {
+        initiator_id: user.id,
+        recipient_id: recipientId,
+        offered_cards: offeredCards,
+        requested_cards: requestedCards,
+        trade_value_difference: valueDifference,
+        messages_channel_id: channelId,
+        notes,
+        expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString() // 48 hours
+      };
+
       const { data, error } = await supabase
         .from('trade_offers')
-        .insert({
-          initiator_id: user.id,
-          recipient_id: recipientId,
-          offered_cards: offeredCards,
-          requested_cards: requestedCards,
-          trade_value_difference: valueDifference,
-          messages_channel_id: channelId,
-          notes,
-          expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString() // 48 hours
-        })
+        .insert(insertData)
         .select()
         .single();
 

@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { TradeMessage } from '@/hooks/trading/types';
+import { TradeMessage, TradeMessageRow } from '@/hooks/trading/types';
 import { formatDistanceToNow } from 'date-fns';
 import { MessageSquare, User, Clock } from 'lucide-react';
 
@@ -22,7 +22,13 @@ export const TradeHistory: React.FC<TradeHistoryProps> = ({ tradeId }) => {
         .order('timestamp', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      // Cast the raw database results to our typed interface
+      return (data || []).map((row: TradeMessageRow): TradeMessage => ({
+        ...row,
+        message_type: row.message_type as TradeMessage['message_type'],
+        metadata: row.metadata || {}
+      }));
     },
     enabled: !!tradeId
   });

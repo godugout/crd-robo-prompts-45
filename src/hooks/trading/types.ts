@@ -76,3 +76,34 @@ export interface UserTradePreferences {
   created_at: string;
   updated_at: string;
 }
+
+// Database row types for proper casting
+export interface TradeOfferRow {
+  id: string;
+  initiator_id: string;
+  recipient_id: string;
+  status: string;
+  offered_cards: any;
+  requested_cards: any;
+  trade_value_difference: number;
+  cash_included: number;
+  messages_channel_id: string;
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+  notes?: string;
+  trade_rating?: number;
+}
+
+export interface TradeMessageRow {
+  id: string;
+  trade_id: string;
+  sender_id: string;
+  message: string;
+  message_type: string;
+  timestamp: string;
+  read_status: boolean;
+  attachment_url?: string;
+  metadata: any;
+}

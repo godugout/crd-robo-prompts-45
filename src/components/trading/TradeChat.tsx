@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { TradeMessage } from '@/hooks/trading/types';
+import { TradeMessage, TradeMessageRow } from '@/hooks/trading/types';
 import { Send, Smile } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -40,7 +40,13 @@ export const TradeChat: React.FC<TradeChatProps> = ({
         .order('timestamp', { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      
+      // Cast the raw database results to our typed interface
+      return (data || []).map((row: TradeMessageRow): TradeMessage => ({
+        ...row,
+        message_type: row.message_type as TradeMessage['message_type'],
+        metadata: row.metadata || {}
+      }));
     },
     enabled: !!tradeId,
     refetchInterval: 1000 // Refetch every second for real-time updates
