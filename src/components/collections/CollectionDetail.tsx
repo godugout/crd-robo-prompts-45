@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Edit } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -8,7 +7,7 @@ import { supabase } from '@/lib/supabase-client';
 import { LoadingState } from '@/components/common/LoadingState';
 import { CardGrid } from '@/components/cards/CardGrid';
 import { toast } from 'sonner';
-import type { Card } from '@/types/cards';
+import type { Card, CardRarity } from '@/types/cards';
 
 interface Collection {
   id: string;
@@ -19,47 +18,37 @@ interface Collection {
   card_count?: number;
 }
 
-interface CollectionCard {
-  id: string;
-  title: string;
-  description?: string;
-  image_url?: string;
-  thumbnail_url?: string;
-  rarity: string;
-  price?: string;
-  creator_name?: string;
-  creator_verified?: boolean;
-  creator_id?: string;
-  tags?: string[];
+interface CollectionDetailProps {
+  collectionId: string;
+  onBack: () => void;
 }
 
-const CollectionDetail = () => {
-  const { id } = useParams<{ id: string }>();
+const CollectionDetail: React.FC<CollectionDetailProps> = ({ collectionId, onBack }) => {
   const navigate = useNavigate();
 
   const { data: collection, isLoading: collectionLoading } = useQuery({
-    queryKey: ['collection', id],
+    queryKey: ['collection', collectionId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('collections')
         .select('*')
-        .eq('id', id)
+        .eq('id', collectionId)
         .single();
       
       if (error) throw error;
       return data as Collection;
     },
-    enabled: !!id
+    enabled: !!collectionId
   });
 
   const { data: cards = [], isLoading: cardsLoading } = useQuery({
-    queryKey: ['collection-cards', id],
+    queryKey: ['collection-cards', collectionId],
     queryFn: async (): Promise<Card[]> => {
       // Get cards that are in this collection
       const { data: collectionCards, error: collectionError } = await supabase
         .from('collection_cards')
         .select('card_id')
-        .eq('collection_id', id);
+        .eq('collection_id', collectionId);
       
       if (collectionError) throw collectionError;
       
@@ -148,7 +137,7 @@ const CollectionDetail = () => {
       
       return cardsWithCreators;
     },
-    enabled: !!id
+    enabled: !!collectionId
   });
 
   const handleShare = () => {
@@ -177,8 +166,8 @@ const CollectionDetail = () => {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-white mb-4">Collection Not Found</h2>
           <p className="text-crd-lightGray mb-6">The collection you're looking for doesn't exist.</p>
-          <Button onClick={() => navigate('/gallery')} className="bg-crd-green hover:bg-crd-green/90 text-black">
-            Back to Gallery
+          <Button onClick={onBack} className="bg-crd-green hover:bg-crd-green/90 text-black">
+            Back to Collections
           </Button>
         </div>
       </div>
@@ -209,11 +198,11 @@ const CollectionDetail = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/gallery')}
+              onClick={onBack}
               className="text-crd-lightGray hover:text-white"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Gallery
+              Back to Collections
             </Button>
             <div className="h-6 w-px bg-crd-mediumGray" />
             <div>
