@@ -3838,6 +3838,189 @@ export type Database = {
           },
         ]
       }
+      trade_disputes: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          description: string
+          dispute_reason: string
+          id: string
+          reporter_id: string
+          resolution: string | null
+          resolved_at: string | null
+          status: string
+          trade_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          description: string
+          dispute_reason: string
+          id?: string
+          reporter_id: string
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: string
+          trade_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string
+          dispute_reason?: string
+          id?: string
+          reporter_id?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: string
+          trade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_disputes_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trade_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trade_feedback: {
+        Row: {
+          created_at: string
+          feedback: string | null
+          id: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+          trade_id: string
+        }
+        Insert: {
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+          trade_id: string
+        }
+        Update: {
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          rating?: number
+          reviewee_id?: string
+          reviewer_id?: string
+          trade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_feedback_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trade_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trade_messages: {
+        Row: {
+          attachment_url: string | null
+          id: string
+          message: string
+          message_type: string
+          metadata: Json | null
+          read_status: boolean
+          sender_id: string
+          timestamp: string
+          trade_id: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          id?: string
+          message: string
+          message_type?: string
+          metadata?: Json | null
+          read_status?: boolean
+          sender_id: string
+          timestamp?: string
+          trade_id: string
+        }
+        Update: {
+          attachment_url?: string | null
+          id?: string
+          message?: string
+          message_type?: string
+          metadata?: Json | null
+          read_status?: boolean
+          sender_id?: string
+          timestamp?: string
+          trade_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_messages_trade_id_fkey"
+            columns: ["trade_id"]
+            isOneToOne: false
+            referencedRelation: "trade_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trade_offers: {
+        Row: {
+          cash_included: number | null
+          completed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          initiator_id: string
+          messages_channel_id: string
+          notes: string | null
+          offered_cards: Json
+          recipient_id: string
+          requested_cards: Json
+          status: string
+          trade_rating: number | null
+          trade_value_difference: number | null
+          updated_at: string
+        }
+        Insert: {
+          cash_included?: number | null
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          initiator_id: string
+          messages_channel_id: string
+          notes?: string | null
+          offered_cards?: Json
+          recipient_id: string
+          requested_cards?: Json
+          status?: string
+          trade_rating?: number | null
+          trade_value_difference?: number | null
+          updated_at?: string
+        }
+        Update: {
+          cash_included?: number | null
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          initiator_id?: string
+          messages_channel_id?: string
+          notes?: string | null
+          offered_cards?: Json
+          recipient_id?: string
+          requested_cards?: Json
+          status?: string
+          trade_rating?: number | null
+          trade_value_difference?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -4105,6 +4288,42 @@ export type Database = {
           },
         ]
       }
+      user_trade_preferences: {
+        Row: {
+          auto_accept_equal_trades: boolean | null
+          blocked_users: string[] | null
+          created_at: string
+          id: string
+          max_trade_value: number | null
+          notification_preferences: Json | null
+          preferred_trade_types: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_accept_equal_trades?: boolean | null
+          blocked_users?: string[] | null
+          created_at?: string
+          id?: string
+          max_trade_value?: number | null
+          notification_preferences?: Json | null
+          preferred_trade_types?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_accept_equal_trades?: boolean | null
+          blocked_users?: string[] | null
+          created_at?: string
+          id?: string
+          max_trade_value?: number | null
+          notification_preferences?: Json | null
+          preferred_trade_types?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       venue_profiles: {
         Row: {
           created_at: string
@@ -4155,6 +4374,10 @@ export type Database = {
       execute_sql: {
         Args: { query_text: string; query_params?: Json }
         Returns: Json
+      }
+      expire_old_trades: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       get_app_id: {
         Args: { p_app_key: string }
