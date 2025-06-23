@@ -6,7 +6,7 @@ export interface MarketplaceListing {
   title: string;
   description?: string;
   price: number;
-  listing_type: 'fixed_price' | 'auction' | 'best_offer';
+  listing_type: 'fixed_price' | 'auction' | 'make_offer'; // Updated to match database enum
   condition: 'mint' | 'near_mint' | 'excellent' | 'good' | 'fair' | 'poor';
   quantity: number;
   images?: string[];

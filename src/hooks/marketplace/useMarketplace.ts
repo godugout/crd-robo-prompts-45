@@ -37,7 +37,16 @@ export const useMarketplace = () => {
       const { data, error } = await query;
       
       if (error) throw error;
-      setListings(data || []);
+      
+      // Type assertion to handle the database type conversion
+      const typedListings = (data || []).map(listing => ({
+        ...listing,
+        listing_type: listing.listing_type as 'fixed_price' | 'auction' | 'make_offer',
+        condition: listing.condition as 'mint' | 'near_mint' | 'excellent' | 'good' | 'fair' | 'poor',
+        status: listing.status as 'active' | 'sold' | 'cancelled' | 'expired'
+      })) as MarketplaceListing[];
+      
+      setListings(typedListings);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch listings');
     } finally {
