@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -112,11 +111,12 @@ const CollectionDetail = () => {
             creator_verified,
             price: card.price ? card.price.toString() : undefined,
             tags: card.tags || [],
-            visibility: card.visibility || 'public',
+            visibility: card.visibility || (card.is_public ? 'public' : 'private'),
             edition_size: 1,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             creator_attribution: {},
+            print_metadata: {},
             publishing_options: {
               marketplace_listing: false,
               crd_catalog_inclusion: true,

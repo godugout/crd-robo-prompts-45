@@ -70,6 +70,15 @@ export interface CardFilters {
   visibility?: CardVisibility;
   created_after?: string;
   created_before?: string;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+  limit?: number;
+}
+
+export interface PaginatedCards {
+  cards: Card[];
+  total: number;
+  hasMore: boolean;
 }
 
 export const RARITY_COLORS = {

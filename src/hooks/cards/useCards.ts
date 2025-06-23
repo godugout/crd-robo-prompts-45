@@ -56,11 +56,11 @@ export const useCards = (filters: CardFilters = {}) => {
       const cards: Card[] = (data || []).map(item => ({
         ...item,
         creator_name: 'Unknown Creator',
-        set_name: 'Unknown Set',
-        print_metadata: item.print_metadata || {},
-        creator_attribution: item.creator_attribution || {},
-        publishing_options: item.publishing_options || {},
-        design_metadata: item.design_metadata || {}
+        print_metadata: (item.print_metadata && typeof item.print_metadata === 'object') ? item.print_metadata as Record<string, any> : {},
+        creator_attribution: (item.creator_attribution && typeof item.creator_attribution === 'object') ? item.creator_attribution as any : {},
+        publishing_options: (item.publishing_options && typeof item.publishing_options === 'object') ? item.publishing_options as any : {},
+        design_metadata: (item.design_metadata && typeof item.design_metadata === 'object') ? item.design_metadata as Record<string, any> : {},
+        visibility: item.visibility || (item.is_public ? 'public' : 'private')
       }));
 
       return {
@@ -90,11 +90,11 @@ export const useCard = (id: string) => {
       return {
         ...data,
         creator_name: 'Unknown Creator',
-        set_name: 'Unknown Set',
-        print_metadata: data.print_metadata || {},
-        creator_attribution: data.creator_attribution || {},
-        publishing_options: data.publishing_options || {},
-        design_metadata: data.design_metadata || {}
+        print_metadata: (data.print_metadata && typeof data.print_metadata === 'object') ? data.print_metadata as Record<string, any> : {},
+        creator_attribution: (data.creator_attribution && typeof data.creator_attribution === 'object') ? data.creator_attribution as any : {},
+        publishing_options: (data.publishing_options && typeof data.publishing_options === 'object') ? data.publishing_options as any : {},
+        design_metadata: (data.design_metadata && typeof data.design_metadata === 'object') ? data.design_metadata as Record<string, any> : {},
+        visibility: data.visibility || (data.is_public ? 'public' : 'private')
       };
     },
     enabled: !!id
@@ -170,11 +170,11 @@ export const useFeaturedCards = (limit = 6) => {
       return (data || []).map(item => ({
         ...item,
         creator_name: 'Unknown Creator',
-        set_name: 'Unknown Set',
-        print_metadata: item.print_metadata || {},
-        creator_attribution: item.creator_attribution || {},
-        publishing_options: item.publishing_options || {},
-        design_metadata: item.design_metadata || {}
+        print_metadata: (item.print_metadata && typeof item.print_metadata === 'object') ? item.print_metadata as Record<string, any> : {},
+        creator_attribution: (item.creator_attribution && typeof item.creator_attribution === 'object') ? item.creator_attribution as any : {},
+        publishing_options: (item.publishing_options && typeof item.publishing_options === 'object') ? item.publishing_options as any : {},
+        design_metadata: (item.design_metadata && typeof item.design_metadata === 'object') ? item.design_metadata as Record<string, any> : {},
+        visibility: item.visibility || (item.is_public ? 'public' : 'private')
       }));
     }
   });
