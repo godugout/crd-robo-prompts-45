@@ -38,9 +38,12 @@ export const GalleryScene: React.FC<GallerySceneProps> = ({
   // Calculate positions based on layout type or use provided positions
   const calculatedPositions = useMemo(() => {
     if (cardPositions) {
-      return Array.from(cardPositions.values()).map(pos => 
-        pos instanceof THREE.Vector3 ? [pos.x, pos.y, pos.z] as [number, number, number] : pos
-      );
+      return Array.from(cardPositions.entries()).map(([id, pos]) => {
+        if (pos instanceof THREE.Vector3) {
+          return [pos.x, pos.y, pos.z] as [number, number, number];
+        }
+        return pos as [number, number, number];
+      });
     }
     
     const positions: Array<[number, number, number]> = [];
@@ -112,7 +115,7 @@ export const GalleryScene: React.FC<GallerySceneProps> = ({
             key={card.id}
             card={card}
             position={position}
-            onSelect={() => {
+            onClick={() => {
               onCardSelect?.(card);
               onCardInteraction?.('select', card);
             }}

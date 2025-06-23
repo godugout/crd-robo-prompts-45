@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Card, CardFilters, PaginatedCards } from '@/types/cards';
+import { Card, CardFilters, PaginatedCards, CardRarity } from '@/types/cards';
 
 const PAGE_SIZE = 20;
 
@@ -56,11 +56,12 @@ export const useCards = (filters: CardFilters = {}) => {
       const cards: Card[] = (data || []).map(item => ({
         ...item,
         creator_name: 'Unknown Creator',
+        rarity: (item.rarity as CardRarity) || 'common',
         print_metadata: (item.print_metadata && typeof item.print_metadata === 'object') ? item.print_metadata as Record<string, any> : {},
         creator_attribution: (item.creator_attribution && typeof item.creator_attribution === 'object') ? item.creator_attribution as any : {},
         publishing_options: (item.publishing_options && typeof item.publishing_options === 'object') ? item.publishing_options as any : {},
         design_metadata: (item.design_metadata && typeof item.design_metadata === 'object') ? item.design_metadata as Record<string, any> : {},
-        visibility: item.visibility || (item.is_public ? 'public' : 'private')
+        visibility: (item.visibility as any) || (item.is_public ? 'public' : 'private')
       }));
 
       return {
@@ -90,11 +91,12 @@ export const useCard = (id: string) => {
       return {
         ...data,
         creator_name: 'Unknown Creator',
+        rarity: (data.rarity as CardRarity) || 'common',
         print_metadata: (data.print_metadata && typeof data.print_metadata === 'object') ? data.print_metadata as Record<string, any> : {},
         creator_attribution: (data.creator_attribution && typeof data.creator_attribution === 'object') ? data.creator_attribution as any : {},
         publishing_options: (data.publishing_options && typeof data.publishing_options === 'object') ? data.publishing_options as any : {},
         design_metadata: (data.design_metadata && typeof data.design_metadata === 'object') ? data.design_metadata as Record<string, any> : {},
-        visibility: data.visibility || (data.is_public ? 'public' : 'private')
+        visibility: (data.visibility as any) || (data.is_public ? 'public' : 'private')
       };
     },
     enabled: !!id
@@ -170,11 +172,12 @@ export const useFeaturedCards = (limit = 6) => {
       return (data || []).map(item => ({
         ...item,
         creator_name: 'Unknown Creator',
+        rarity: (item.rarity as CardRarity) || 'common',
         print_metadata: (item.print_metadata && typeof item.print_metadata === 'object') ? item.print_metadata as Record<string, any> : {},
         creator_attribution: (item.creator_attribution && typeof item.creator_attribution === 'object') ? item.creator_attribution as any : {},
         publishing_options: (item.publishing_options && typeof item.publishing_options === 'object') ? item.publishing_options as any : {},
         design_metadata: (item.design_metadata && typeof item.design_metadata === 'object') ? item.design_metadata as Record<string, any> : {},
-        visibility: item.visibility || (item.is_public ? 'public' : 'private')
+        visibility: (item.visibility as any) || (item.is_public ? 'public' : 'private')
       }));
     }
   });

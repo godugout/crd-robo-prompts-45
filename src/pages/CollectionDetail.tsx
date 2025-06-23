@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase-client';
 import { LoadingState } from '@/components/common/LoadingState';
 import { CardGrid } from '@/components/cards/CardGrid';
 import { toast } from 'sonner';
+import type { Card } from '@/types/cards';
 
 interface Collection {
   id: string;
@@ -52,7 +53,7 @@ const CollectionDetail = () => {
 
   const { data: cards = [], isLoading: cardsLoading } = useQuery({
     queryKey: ['collection-cards', id],
-    queryFn: async () => {
+    queryFn: async (): Promise<Card[]> => {
       // Get cards that are in this collection
       const { data: collectionCards, error: collectionError } = await supabase
         .from('collection_cards')
@@ -122,11 +123,11 @@ const CollectionDetail = () => {
               crd_catalog_inclusion: true,
               print_available: false
             }
-          };
+          } as Card;
         })
       );
       
-      return cardsWithCreators as CollectionCard[];
+      return cardsWithCreators;
     },
     enabled: !!id
   });
