@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,7 +38,7 @@ export const useAuctionSystem = (listingId?: string) => {
   const winningBid = bids.find(bid => bid.is_winning_bid);
   const currentPrice = winningBid?.amount || 0;
 
-  // Place a bid
+  // Enhanced place bid with mobile optimization
   const placeBid = useMutation({
     mutationFn: async (params: {
       amount: number;
@@ -49,6 +48,25 @@ export const useAuctionSystem = (listingId?: string) => {
       if (!user?.id || !listingId) throw new Error('User not authenticated or listing not found');
 
       const { amount, proxyMaxAmount, bidType = 'manual' } = params;
+
+      // Optimistic update for mobile responsiveness
+      const optimisticBid = {
+        id: `temp-${Date.now()}`,
+        listing_id: listingId,
+        bidder_id: user.id,
+        amount,
+        proxy_max_amount: proxyMaxAmount,
+        bid_type: bidType,
+        is_winning_bid: true,
+        created_at: new Date().toISOString(),
+        metadata: {}
+      };
+
+      // Update cache immediately for mobile UX
+      queryClient.setQueryData(['auction-bids', listingId], (oldData: any) => {
+        if (!oldData) return [optimisticBid];
+        return [optimisticBid, ...oldData.map((bid: any) => ({ ...bid, is_winning_bid: false }))];
+      });
 
       // First, update all existing bids to not be winning
       await supabase
@@ -68,7 +86,8 @@ export const useAuctionSystem = (listingId?: string) => {
           is_winning_bid: true,
           metadata: {
             user_agent: navigator.userAgent,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            mobile: window.innerWidth < 768
           }
         })
         .select()
@@ -82,13 +101,25 @@ export const useAuctionSystem = (listingId?: string) => {
       return data;
     },
     onSuccess: () => {
+      // Mobile-friendly success feedback
+      if (window.navigator.vibrate) {
+        window.navigator.vibrate(200);
+      }
+      
       toast.success('Bid placed successfully!');
       queryClient.invalidateQueries({ queryKey: ['auction-bids', listingId] });
       queryClient.invalidateQueries({ queryKey: ['marketplace-listings'] });
     },
     onError: (error) => {
       console.error('Error placing bid:', error);
-      toast.error('Failed to place bid');
+      
+      // Revert optimistic update
+      queryClient.invalidateQueries({ queryKey: ['auction-bids', listingId] });
+      
+      // Mobile-friendly error feedback
+      if (window.navigator.vibrate) {
+        window.navigator.vibrate([100, 50, 100]);
+      }
     }
   });
 
@@ -216,12 +247,17 @@ export const useAuctionSystem = (listingId?: string) => {
     };
   }, [listingId, user?.id, bids, processProxyBids, queryClient]);
 
+  // Enhanced return with mobile-specific features
   return {
     bids,
     winningBid,
     currentPrice,
     bidsLoading,
     placeBid,
-    isPlacingBid: placeBid.isPending
+    isPlacingBid: placeBid.isPending,
+    // Mobile-specific helpers
+    isMobile: window.innerWidth < 768,
+    supportsVibration: !!window.navigator.vibrate,
+    lastBidTime: bids[0]?.created_at
   };
 };
