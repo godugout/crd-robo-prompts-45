@@ -43,8 +43,20 @@ export const useMarketplace = () => {
         ...listing,
         listing_type: listing.listing_type as 'fixed_price' | 'auction' | 'make_offer',
         condition: listing.condition as 'mint' | 'near_mint' | 'excellent' | 'good' | 'fair' | 'poor',
-        status: listing.status as 'active' | 'sold' | 'cancelled' | 'expired'
-      })) as MarketplaceListing[];
+        status: listing.status as 'active' | 'sold' | 'cancelled' | 'expired',
+        // Ensure seller data is properly typed
+        seller: listing.seller ? {
+          username: listing.seller.username || '',
+          avatar_url: listing.seller.avatar_url || undefined
+        } : undefined,
+        // Ensure card data is properly typed
+        card: listing.card ? {
+          id: listing.card.id,
+          title: listing.card.title,
+          image_url: listing.card.image_url,
+          rarity: listing.card.rarity
+        } : undefined
+      })) as unknown as MarketplaceListing[];
       
       setListings(typedListings);
     } catch (err) {
