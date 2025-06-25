@@ -2,14 +2,17 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Sparkles, Crown, Star } from 'lucide-react';
+import { Check, Sparkles, Crown, Star, Image, ArrowRight } from 'lucide-react';
 import { ENHANCED_FRAMES, getFramesByCategory, type EnhancedFrameData } from '../../data/enhancedFrames';
+import { ImageAdjustmentInterface } from '../components/ImageAdjustmentInterface';
 
 interface FramePhaseProps {
   selectedFrame?: string;
   frameData?: EnhancedFrameData;
   onFrameSelect: (frameId: string) => void;
   onComplete: () => void;
+  uploadedImages: string[];
+  onImageAdjust?: (imageUrl: string, adjustment: any) => void;
 }
 
 const FRAME_CATEGORIES = [
@@ -46,20 +49,106 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
   selectedFrame,
   frameData,
   onFrameSelect,
-  onComplete
+  onComplete,
+  uploadedImages,
+  onImageAdjust
 }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [showImageAdjustment, setShowImageAdjustment] = useState(false);
+  const [selectedImageForAdjustment, setSelectedImageForAdjustment] = useState<string>('');
   
   const frames = getFramesByCategory(selectedCategory);
+  const hasImages = uploadedImages && uploadedImages.length > 0;
+
+  const handleFrameSelect = (frameId: string) => {
+    onFrameSelect(frameId);
+  };
+
+  const handleImageAdjustment = (imageUrl: string) => {
+    setSelectedImageForAdjustment(imageUrl);
+    setShowImageAdjustment(true);
+  };
+
+  const handleAdjustmentComplete = () => {
+    setShowImageAdjustment(false);
+    setSelectedImageForAdjustment('');
+  };
+
+  const handleAdjustmentCancel = () => {
+    setShowImageAdjustment(false);
+    setSelectedImageForAdjustment('');
+  };
+
+  if (showImageAdjustment && selectedImageForAdjustment) {
+    return (
+      <div className="p-6">
+        <ImageAdjustmentInterface
+          imageUrl={selectedImageForAdjustment}
+          onAdjust={(adjustment) => onImageAdjust?.(selectedImageForAdjustment, adjustment)}
+          onComplete={handleAdjustmentComplete}
+          onCancel={handleAdjustmentCancel}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-6">
       <div>
         <h3 className="text-xl font-bold text-white mb-2">Choose Your Frame</h3>
         <p className="text-gray-400 text-sm">
-          Select a frame template that defines your card's layout and style.
+          Select a frame template and adjust your images to fit perfectly.
         </p>
       </div>
+
+      {/* Image Adjustment Section */}
+      {hasImages && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-white text-sm font-medium flex items-center">
+              <Image className="w-4 h-4 mr-2" />
+              Adjust Your Images
+            </label>
+            <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+              {uploadedImages.length} image{uploadedImages.length !== 1 ? 's' : ''}
+            </Badge>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            {uploadedImages.slice(0, 4).map((imageUrl, index) => (
+              <Card
+                key={index}
+                className="bg-black/30 border-white/10 p-3 cursor-pointer hover:border-crd-green/50 transition-all"
+                onClick={() => handleImageAdjustment(imageUrl)}
+              >
+                <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-black/40 mb-2">
+                  <img 
+                    src={imageUrl} 
+                    alt={`Image ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/20 hover:bg-black/10 transition-colors flex items-center justify-center">
+                    <Button
+                      size="sm"
+                      className="bg-crd-green/90 hover:bg-crd-green text-black font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleImageAdjustment(imageUrl);
+                      }}
+                    >
+                      Adjust
+                    </Button>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-white text-sm font-medium">Image {index + 1}</p>
+                  <p className="text-gray-400 text-xs">Click to adjust</p>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Category Filters */}
       <div className="space-y-3">
@@ -110,16 +199,14 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
                   ? 'bg-crd-green/10 border-crd-green'
                   : 'bg-black/30 border-white/10 hover:border-crd-green/50'
               }`}
-              onClick={() => onFrameSelect(frame.id)}
+              onClick={() => handleFrameSelect(frame.id)}
             >
               <div className="flex items-start space-x-4">
-                {/* Frame Preview */}
                 <div className={`w-16 h-20 rounded-lg flex-shrink-0 border-2 relative`}
                      style={{
                        backgroundColor: frame.template_data.colors.background,
                        borderColor: frame.template_data.borders.outer.color
                      }}>
-                  {/* Mini frame visualization */}
                   <div className="absolute inset-2 rounded"
                        style={{
                          backgroundColor: frame.template_data.colors.primary,
@@ -139,7 +226,6 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
                   )}
                 </div>
 
-                {/* Frame Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <h4 className="text-white font-medium truncate">{frame.name}</h4>
@@ -152,7 +238,6 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
                     {frame.description}
                   </p>
                   
-                  {/* Supported Rarities */}
                   <div className="flex items-center space-x-2 mb-2">
                     <span className="text-gray-500 text-xs">Rarities:</span>
                     {frame.rarity_support.slice(0, 3).map((rarity) => (
@@ -165,7 +250,6 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
                     )}
                   </div>
                   
-                  {/* Effect Badges */}
                   <div className="flex flex-wrap gap-1">
                     {getEffectBadges(frame.template_data.effects).map((effect) => (
                       <Badge 
@@ -224,6 +308,7 @@ export const FramePhase: React.FC<FramePhaseProps> = ({
             className="w-full bg-crd-green hover:bg-crd-green/90 text-black font-medium"
           >
             Continue to Effects
+            <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
       )}

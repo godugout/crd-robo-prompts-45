@@ -64,7 +64,6 @@ export const Enhanced3DCardViewer: React.FC<Enhanced3DCardViewerProps> = ({
   // Handle performance issues
   const handlePerformanceIssue = () => {
     console.warn('3D performance issues detected, suggesting fallback');
-    // Could show a toast or notification here
   };
 
   if (is3DSupported === null) {
@@ -76,7 +75,7 @@ export const Enhanced3DCardViewer: React.FC<Enhanced3DCardViewerProps> = ({
   }
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative w-full h-full ${className}`}>
       {/* 3D Toggle Button */}
       {is3DSupported && (
         <button
@@ -94,30 +93,35 @@ export const Enhanced3DCardViewer: React.FC<Enhanced3DCardViewerProps> = ({
       {/* 3D Viewer */}
       {is3DEnabled && is3DSupported && (
         <Suspense fallback={
-          <div className={`flex items-center justify-center bg-gray-900 ${className}`}>
+          <div className={`flex items-center justify-center bg-gray-900 w-full h-full ${className}`}>
             <div className="text-white text-sm">Loading 3D viewer...</div>
           </div>
         }>
           <Card3DViewer
             card={card}
             enabled={true}
-            className={className}
+            className="w-full h-full"
             onFallback={handleFallback}
             onPerformanceIssue={handlePerformanceIssue}
           />
         </Suspense>
       )}
 
-      {/* 2D Fallback */}
+      {/* 2D Fallback with Proper Centering */}
       {(!is3DEnabled || !is3DSupported) && (
-        <div className={`relative ${className}`}>
+        <div className={`relative w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 ${className}`}>
           {fallbackComponent || (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-              <div className="relative max-w-sm">
+            <div className="relative w-full h-full flex items-center justify-center p-4">
+              <div className="relative max-w-full max-h-full aspect-[2.5/3.5]">
                 <img
                   src={card.image_url || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png'}
                   alt={card.title}
-                  className="w-full h-auto rounded-lg shadow-2xl"
+                  className="w-full h-full object-contain rounded-lg shadow-2xl"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    objectFit: 'contain'
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-lg" />
               </div>

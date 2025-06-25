@@ -81,6 +81,8 @@ export const OrganizedCardStudio = () => {
             frameData={studio.frameData}
             onFrameSelect={studio.selectFrame}
             onComplete={handlePhaseComplete}
+            uploadedImages={studio.uploadedImages}
+            onImageAdjust={studio.handleImageAdjust}
           />
         );
       case 2:
@@ -170,7 +172,7 @@ export const OrganizedCardStudio = () => {
             </Card>
           </div>
 
-          {/* Right Panel - 3D Preview */}
+          {/* Right Panel - Enhanced 3D Preview */}
           <div className="space-y-6">
             <Card className="bg-black/30 border-white/10 backdrop-blur-xl p-6">
               <div className="space-y-4">
@@ -195,10 +197,12 @@ export const OrganizedCardStudio = () => {
                   </div>
                 </div>
                 
-                {/* 3D Card Viewer */}
+                {/* Enhanced 3D Card Viewer with Better Scaling */}
                 <div className="aspect-[4/5] bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden border border-white/10">
                   <Enhanced3DCardViewer
                     card={studio.cardData}
+                    className="w-full h-full"
+                    autoEnable={true}
                   />
                 </div>
 

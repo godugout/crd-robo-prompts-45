@@ -23,24 +23,26 @@ const Scene: React.FC<{
 }> = ({ card, quality, shadows }) => {
   return (
     <>
-      {/* Lighting setup based on quality */}
-      <ambientLight intensity={0.4} />
+      {/* Enhanced lighting setup for better card visibility */}
+      <ambientLight intensity={0.6} />
       <directionalLight 
         position={[5, 5, 5]} 
-        intensity={1} 
+        intensity={1.2} 
         castShadow={shadows}
         shadow-mapSize-width={quality === 'high' ? 2048 : 1024}
         shadow-mapSize-height={quality === 'high' ? 2048 : 1024}
       />
-      <pointLight position={[-5, 5, 5]} intensity={0.3} />
+      <pointLight position={[-5, 5, 5]} intensity={0.4} />
+      <pointLight position={[5, -5, 5]} intensity={0.3} />
       
       {/* Environment for reflections */}
       {quality === 'high' && <Environment preset="studio" />}
       
-      {/* The 3D card */}
+      {/* The 3D card with enhanced scale for better visibility */}
       <Card3D 
         card={card}
         position={[0, 0, 0]}
+        scale={[1.8, 1.8, 1.8]}
         quality={quality}
         interactive={true}
       />
@@ -106,7 +108,7 @@ export const Card3DViewer: React.FC<Card3DViewerProps> = ({
   }
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative w-full h-full ${className}`}>
       <Canvas
         ref={canvasRef}
         shadows={settings.shadows}
@@ -116,24 +118,29 @@ export const Card3DViewer: React.FC<Card3DViewerProps> = ({
           alpha: true,
           powerPreference: "high-performance"
         }}
-        camera={{ position: [0, 0, 6], fov: 50 }}
-        onCreated={({ gl, scene }) => {
+        camera={{ position: [0, 0, 4], fov: 60 }}
+        onCreated={({ gl, scene, camera }) => {
           gl.setClearColor(new THREE.Color('#000000'), 0);
           gl.shadowMap.enabled = settings.shadows;
           gl.shadowMap.type = THREE.PCFSoftShadowMap;
+          
+          // Optimize camera for better card visibility
+          camera.position.set(0, 0, 4);
+          camera.lookAt(0, 0, 0);
         }}
         onError={handleCanvasError}
       >
-        <PerspectiveCamera makeDefault position={[0, 0, 6]} />
+        <PerspectiveCamera makeDefault position={[0, 0, 4]} fov={60} />
         
         <OrbitControls
           enablePan={false}
           enableZoom={true}
           enableRotate={true}
-          minDistance={3}
-          maxDistance={10}
+          minDistance={2.5}
+          maxDistance={8}
           autoRotate={false}
           maxPolarAngle={Math.PI}
+          target={[0, 0, 0]}
         />
         
         <Suspense fallback={null}>
