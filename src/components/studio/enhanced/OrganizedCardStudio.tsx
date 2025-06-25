@@ -1,155 +1,114 @@
 
-import React, { useRef } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei';
+import React from 'react';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
 import { 
+  Upload, 
+  Square, 
+  Sparkles, 
+  Monitor,
   ChevronLeft,
   ChevronRight,
-  Upload,
-  Square,
-  Eye,
-  Sparkles,
-  Settings,
-  RotateCw,
+  Check,
+  Play,
   Pause,
-  Play
+  Save,
+  Download
 } from 'lucide-react';
-
-// Import our new functional phases
+import { WorkflowNavigation } from '../workflow/WorkflowNavigation';
 import { UploadPhase } from './phases/UploadPhase';
 import { FramePhase } from './phases/FramePhase';
 import { EffectsPhase } from './phases/EffectsPhase';
 import { StudioPhase } from './phases/StudioPhase';
 import { useEnhancedStudio } from './hooks/useEnhancedStudio';
-import { Advanced3DCard } from '../3d/Advanced3DCard';
+import { Enhanced3DCardViewer } from '@/components/3d/enhanced/Enhanced3DCardViewer';
 
-const PHASES = [
+const PHASE_CONFIG = [
   {
     id: 'upload',
-    title: 'Upload',
-    description: 'Add your images',
+    title: 'Upload Images',
+    description: 'Add your card images and assets',
     icon: Upload,
-    color: 'text-blue-400'
+    color: 'from-blue-500 to-cyan-500'
   },
   {
     id: 'frame',
-    title: 'Frame',
-    description: 'Choose template',
+    title: 'Choose Frame',
+    description: 'Select your card template and layout',
     icon: Square,
-    color: 'text-green-400'
+    color: 'from-purple-500 to-pink-500'
   },
   {
     id: 'effects',
-    title: 'Effects',
-    description: 'Add visual flair',
+    title: 'Apply Effects',
+    description: 'Add premium materials and effects',
     icon: Sparkles,
-    color: 'text-purple-400'
+    color: 'from-green-500 to-emerald-500'
   },
   {
     id: 'studio',
-    title: 'Studio',
-    description: 'Fine-tune & export',
-    icon: Settings,
-    color: 'text-orange-400'
+    title: 'Final Studio',
+    description: 'Fine-tune and export your creation',
+    icon: Monitor,
+    color: 'from-orange-500 to-red-500'
   }
 ];
 
-export const OrganizedCardStudio: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  
-  const {
-    // State
-    currentPhase,
-    completedPhases,
-    uploadedImages,
-    selectedFrame,
-    frameData,
-    layers,
-    effects,
-    cardData,
-    selectedLayerId,
-    isPlaying,
-    fileInputRef,
-    
-    // Phase Management
-    setCurrentPhase,
-    completePhase,
-    
-    // Image Upload
-    handleImageUpload,
-    triggerImageUpload,
-    
-    // Frame Management
-    selectFrame,
-    
-    // Layer Management
-    addLayer,
-    updateLayer,
-    removeLayer,
-    selectLayer,
-    
-    // Effects Management
-    addEffect,
-    updateEffect,
-    removeEffect,
-    
-    // Animation
-    toggleAnimation,
-    
-    // Export & Save
-    exportCard,
-    saveCard
-  } = useEnhancedStudio();
+export const OrganizedCardStudio = () => {
+  const studio = useEnhancedStudio();
 
-  const currentPhaseData = PHASES[currentPhase];
-  const progress = ((completedPhases.size) / PHASES.length) * 100;
+  const currentPhaseConfig = PHASE_CONFIG[studio.currentPhase];
+
+  const handlePhaseComplete = () => {
+    studio.completePhase(studio.currentPhase);
+  };
 
   const renderPhaseContent = () => {
-    switch (currentPhase) {
+    switch (studio.currentPhase) {
       case 0:
         return (
           <UploadPhase
-            uploadedImages={uploadedImages}
-            onImageUpload={handleImageUpload}
-            onComplete={() => completePhase(0)}
-            fileInputRef={fileInputRef}
+            uploadedImages={studio.uploadedImages}
+            onImageUpload={studio.handleImageUpload}
+            onComplete={handlePhaseComplete}
+            fileInputRef={studio.fileInputRef}
           />
         );
       case 1:
         return (
           <FramePhase
-            selectedFrame={selectedFrame}
-            frameData={frameData}
-            onFrameSelect={selectFrame}
-            onComplete={() => completePhase(1)}
+            selectedFrame={studio.selectedFrame}
+            frameData={studio.frameData}
+            onFrameSelect={studio.selectFrame}
+            onComplete={handlePhaseComplete}
           />
         );
       case 2:
         return (
           <EffectsPhase
-            effects={effects}
-            onAddEffect={addEffect}
-            onUpdateEffect={updateEffect}
-            onRemoveEffect={removeEffect}
-            onComplete={() => completePhase(2)}
-            isPlaying={isPlaying}
-            onToggleAnimation={toggleAnimation}
+            effects={studio.effects}
+            onAddEffect={studio.addEffect}
+            onUpdateEffect={studio.updateEffect}
+            onRemoveEffect={studio.removeEffect}
+            onComplete={handlePhaseComplete}
           />
         );
       case 3:
         return (
           <StudioPhase
-            layers={layers}
-            selectedLayerId={selectedLayerId}
-            onAddLayer={addLayer}
-            onUpdateLayer={updateLayer}
-            onRemoveLayer={removeLayer}
-            onSelectLayer={selectLayer}
-            onExport={exportCard}
-            onSave={saveCard}
+            layers={studio.layers}
+            effects={studio.effects}
+            selectedLayerId={studio.selectedLayerId}
+            cardData={studio.cardData}
+            onLayerSelect={studio.selectLayer}
+            onLayerUpdate={studio.updateLayer}
+            onLayerRemove={studio.removeLayer}
+            onAddLayer={studio.addLayer}
+            onExport={studio.exportCard}
+            onSave={studio.saveCard}
+            isPlaying={studio.isPlaying}
+            onToggleAnimation={studio.toggleAnimation}
           />
         );
       default:
@@ -157,220 +116,170 @@ export const OrganizedCardStudio: React.FC = () => {
     }
   };
 
-  const canNavigateToPhase = (phaseIndex: number) => {
-    if (phaseIndex === 0) return true;
-    return completedPhases.has(phaseIndex - 1);
-  };
+  // Convert studio types to viewer types for compatibility
+  const convertedLayers = studio.layers.map(layer => ({
+    ...layer,
+    locked: layer.locked || false,
+    blendMode: layer.blendMode || 'normal' as const,
+    transform: layer.transform || { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 }
+  }));
+
+  const convertedEffects = studio.effects.map(effect => ({
+    ...effect,
+    type: effect.type === 'metallic' ? 'distortion' : effect.type
+  }));
 
   return (
-    <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-crd-darkest via-gray-900 to-black">
       {/* Header */}
-      <div className="h-16 bg-black/20 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-            Enhanced Card Studio
-          </h1>
-          <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black">
-            Professional
-          </Badge>
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          <div className="text-sm text-gray-400">
-            Progress: {Math.round(progress)}%
-          </div>
-          <div className="w-32 bg-gray-700 rounded-full h-2">
-            <div 
-              className="h-2 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Phase Navigation */}
-      <div className="h-20 bg-black/30 backdrop-blur-xl border-b border-white/10 flex items-center justify-center px-6">
-        <div className="flex items-center space-x-1">
-          {PHASES.map((phase, index) => {
-            const Icon = phase.icon;
-            const isActive = currentPhase === index;
-            const isCompleted = completedPhases.has(index);
-            const canNavigate = canNavigateToPhase(index);
+      <div className="border-b border-white/10 bg-black/50 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${currentPhaseConfig.color} flex items-center justify-center`}>
+                  <currentPhaseConfig.icon className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-white">{currentPhaseConfig.title}</h1>
+                  <p className="text-sm text-gray-400">{currentPhaseConfig.description}</p>
+                </div>
+              </div>
+            </div>
             
-            return (
-              <React.Fragment key={phase.id}>
+            {/* Phase Navigation */}
+            <div className="flex items-center space-x-2">
+              {PHASE_CONFIG.map((phase, index) => (
                 <Button
-                  variant="ghost"
-                  onClick={() => canNavigate && setCurrentPhase(index)}
-                  disabled={!canNavigate}
-                  className={`h-auto p-4 flex flex-col items-center space-y-1 ${
-                    isActive 
-                      ? 'text-cyan-400 bg-cyan-400/10' 
-                      : isCompleted 
-                        ? 'text-green-400 hover:text-white'
-                        : canNavigate
-                          ? 'text-gray-400 hover:text-white'
-                          : 'text-gray-600 cursor-not-allowed'
+                  key={phase.id}
+                  variant={studio.currentPhase === index ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => studio.setCurrentPhase(index)}
+                  className={`${
+                    studio.currentPhase === index 
+                      ? 'bg-crd-green text-black' 
+                      : studio.completedPhases.has(index)
+                        ? 'border-crd-green/50 text-crd-green'
+                        : 'border-white/20 text-white hover:bg-white/10'
                   }`}
+                  disabled={index > 0 && !studio.completedPhases.has(index - 1) && studio.currentPhase < index}
                 >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
-                    isActive 
-                      ? 'border-cyan-400 bg-cyan-400/20' 
-                      : isCompleted 
-                        ? 'border-green-400 bg-green-400/20'
-                        : canNavigate
-                          ? 'border-gray-600 bg-gray-800'
-                          : 'border-gray-700 bg-gray-900'
-                  }`}>
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div className="text-center">
-                    <div className="font-medium text-xs">{phase.title}</div>
-                    <div className="text-xs opacity-70">{phase.description}</div>
-                  </div>
+                  {studio.completedPhases.has(index) && <Check className="w-3 h-3 mr-1" />}
+                  {index + 1}
                 </Button>
-                
-                {index < PHASES.length - 1 && (
-                  <ChevronRight className="w-4 h-4 text-gray-600 mx-2" />
-                )}
-              </React.Fragment>
-            );
-          })}
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex h-[calc(100vh-9rem)]">
-        {/* Left Sidebar - Phase Content */}
-        <div className="w-96 bg-black/30 backdrop-blur-xl border-r border-white/10 overflow-y-auto custom-scrollbar">
-          {renderPhaseContent()}
-        </div>
-
-        {/* Main Canvas Area */}
-        <div className="flex-1 relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-          <div className="w-full h-full">
-            <Canvas
-              ref={canvasRef}
-              shadows
-              camera={{ position: [0, 0, 8], fov: 45 }}
-              gl={{ 
-                antialias: true, 
-                alpha: true,
-                preserveDrawingBuffer: true 
-              }}
-              dpr={[1, 2]}
-            >
-              <PerspectiveCamera makeDefault position={[0, 0, 8]} />
-              
-              {/* Professional Lighting */}
-              <ambientLight intensity={0.4} />
-              <directionalLight 
-                position={[10, 10, 5]} 
-                intensity={1} 
-                castShadow
-                shadow-mapSize-width={2048}
-                shadow-mapSize-height={2048}
-              />
-              <pointLight position={[-10, -10, -10]} intensity={0.5} />
-              <spotLight
-                position={[0, 10, 0]}
-                angle={0.15}
-                penumbra={1}
-                intensity={0.3}
-                castShadow
-              />
-              
-              <Environment preset="studio" />
-              
-              {/* 3D Card with Effects */}
-              <Advanced3DCard
-                cardData={cardData}
-                layers={layers}
-                effects={effects}
-                materials={[]}
-                isPlaying={isPlaying}
-                previewMode="design"
-              />
-              
-              {/* Camera Controls */}
-              <OrbitControls
-                enablePan={false}
-                enableZoom={true}
-                enableRotate={true}
-                minDistance={3}
-                maxDistance={12}
-                autoRotate={isPlaying && currentPhase === 2}
-                autoRotateSpeed={1}
-                dampingFactor={0.05}
-                enableDamping={true}
-              />
-            </Canvas>
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6">
+          {/* Left Panel - Phase Content */}
+          <div className="space-y-6">
+            <Card className="bg-black/30 border-white/10 backdrop-blur-xl">
+              {renderPhaseContent()}
+            </Card>
           </div>
 
-          {/* 3D Controls Overlay */}
-          <div className="absolute bottom-4 right-4 bg-black/90 backdrop-blur-md p-3 rounded-xl z-10 border border-white/20">
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleAnimation}
-                className="border-white/20 text-white hover:bg-white/10"
-              >
-                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              </Button>
-              <div className="text-white text-sm">
-                3D Preview
-              </div>
-            </div>
-          </div>
+          {/* Right Panel - 3D Preview */}
+          <div className="space-y-6">
+            <Card className="bg-black/30 border-white/10 backdrop-blur-xl p-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-white">Live Preview</h3>
+                  <div className="flex items-center space-x-2">
+                    <Badge className="bg-crd-green/20 text-crd-green border-crd-green/30">
+                      Real-time 3D
+                    </Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={studio.toggleAnimation}
+                      className="border-white/20 text-white hover:bg-white/10"
+                    >
+                      {studio.isPlaying ? (
+                        <Pause className="w-4 h-4" />
+                      ) : (
+                        <Play className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* 3D Card Viewer */}
+                <div className="aspect-[4/5] bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden border border-white/10">
+                  <Enhanced3DCardViewer
+                    cardData={studio.cardData}
+                    layers={convertedLayers}
+                    effects={convertedEffects}
+                    isPlaying={studio.isPlaying}
+                  />
+                </div>
 
-          {/* Phase Indicator Overlay */}
-          <div className="absolute top-4 left-4 bg-black/90 backdrop-blur-md p-3 rounded-xl z-10 border border-white/20">
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${currentPhaseData.color.replace('text-', 'bg-')}`} />
-              <span className="text-white text-sm font-medium">
-                {currentPhaseData.title} Phase
-              </span>
-            </div>
-          </div>
+                {/* Quick Actions */}
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => studio.saveCard()}
+                    className="flex-1 border-white/20 text-white hover:bg-white/10"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => studio.exportCard('png')}
+                    className="flex-1 border-white/20 text-white hover:bg-white/10"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export
+                  </Button>
+                </div>
+              </div>
+            </Card>
 
-          {/* Status Info Overlay */}
-          <div className="absolute bottom-4 left-4 bg-black/90 backdrop-blur-md p-3 rounded-xl z-10 border border-white/20">
-            <div className="flex items-center space-x-4 text-sm">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-white">Live Preview</span>
+            {/* Progress Card */}
+            <Card className="bg-black/30 border-white/10 backdrop-blur-xl p-6">
+              <div className="space-y-4">
+                <h4 className="text-white font-medium">Creation Progress</h4>
+                <div className="space-y-3">
+                  {PHASE_CONFIG.map((phase, index) => (
+                    <div key={phase.id} className="flex items-center space-x-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        studio.completedPhases.has(index)
+                          ? 'bg-crd-green text-black'
+                          : studio.currentPhase === index
+                            ? 'bg-crd-green/20 border-2 border-crd-green text-crd-green'
+                            : 'bg-gray-700 text-gray-400'
+                      }`}>
+                        {studio.completedPhases.has(index) ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <span className="text-xs font-bold">{index + 1}</span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className={`text-sm font-medium ${
+                          studio.completedPhases.has(index) || studio.currentPhase === index
+                            ? 'text-white'
+                            : 'text-gray-400'
+                        }`}>
+                          {phase.title}
+                        </p>
+                        <p className="text-xs text-gray-500">{phase.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="text-gray-400">|</div>
-              <div className="text-gray-300">
-                {layers.filter(l => l.visible).length} layers
-              </div>
-              <div className="text-gray-400">|</div>
-              <div className="text-gray-300">
-                {effects.filter(e => e.enabled).length} effects
-              </div>
-            </div>
+            </Card>
           </div>
         </div>
       </div>
-
-      {/* Custom Scrollbar Styles */}
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.3);
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.5);
-        }
-      `}</style>
     </div>
   );
 };

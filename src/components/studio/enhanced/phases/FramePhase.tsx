@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Check, Sparkles, Crown, Star } from 'lucide-react';
-import { ENHANCED_FRAMES, getFramesByCategory, type EnhancedFrameData } from '../data/enhancedFrames';
+import { ENHANCED_FRAMES, getFramesByCategory, type EnhancedFrameData } from '../../data/enhancedFrames';
 
 interface FramePhaseProps {
   selectedFrame?: string;

@@ -3,7 +3,7 @@ import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import type { CardData } from '@/types/card';
-import { getFrameById, type EnhancedFrameData } from '../data/enhancedFrames';
+import { getFrameById, type EnhancedFrameData } from '../../data/enhancedFrames';
 
 export interface StudioLayer {
   id: string;
@@ -15,12 +15,22 @@ export interface StudioLayer {
   rotation: { x: number; y: number; z: number };
   scale: { x: number; y: number; z: number };
   data: any;
+  // Add missing properties to match Layer interface
+  locked: boolean;
+  blendMode: 'normal' | 'multiply' | 'screen' | 'overlay';
+  transform: {
+    x: number;
+    y: number;
+    rotation: number;
+    scaleX: number;
+    scaleY: number;
+  };
 }
 
 export interface StudioEffect {
   id: string;
   name: string;
-  type: 'holographic' | 'chrome' | 'particle' | 'glow' | 'metallic';
+  type: 'holographic' | 'chrome' | 'particle' | 'glow' | 'distortion'; // Fixed type to match Effect interface
   enabled: boolean;
   intensity: number;
   parameters: Record<string, any>;
@@ -71,7 +81,10 @@ const initialLayers: StudioLayer[] = [
     position: { x: 0, y: 0, z: 0 },
     rotation: { x: 0, y: 0, z: 0 },
     scale: { x: 1, y: 1, z: 1 },
-    data: { color: '#1a1a2e', gradient: true }
+    data: { color: '#1a1a2e', gradient: true },
+    locked: false,
+    blendMode: 'normal',
+    transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 }
   }
 ];
 
@@ -126,7 +139,10 @@ export const useEnhancedStudio = () => {
           position: { x: 0, y: 0, z: 0.01 },
           rotation: { x: 0, y: 0, z: 0 },
           scale: { x: 1, y: 1, z: 1 },
-          data: { url, originalFile: file }
+          data: { url, originalFile: file },
+          locked: false,
+          blendMode: 'normal',
+          transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 }
         };
         
         setState(prev => ({
@@ -175,7 +191,10 @@ export const useEnhancedStudio = () => {
       position: { x: 0, y: 0, z: 0.01 },
       rotation: { x: 0, y: 0, z: 0 },
       scale: { x: 1, y: 1, z: 1 },
-      data
+      data,
+      locked: false,
+      blendMode: 'normal',
+      transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 }
     };
     
     setState(prev => ({
