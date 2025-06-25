@@ -16,7 +16,7 @@ export const useMarketplace = () => {
         .select(`
           *,
           card:cards(*),
-          seller:crd_profiles!marketplace_listings_seller_id_fkey(username, avatar_url)
+          seller:crd_profiles(username, avatar_url)
         `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
@@ -44,17 +44,17 @@ export const useMarketplace = () => {
         listing_type: listing.listing_type as 'fixed_price' | 'auction' | 'make_offer',
         condition: listing.condition as 'mint' | 'near_mint' | 'excellent' | 'good' | 'fair' | 'poor',
         status: listing.status as 'active' | 'sold' | 'cancelled' | 'expired',
-        // Ensure seller data is properly typed
-        seller: listing.seller ? {
-          username: listing.seller.username || '',
-          avatar_url: listing.seller.avatar_url || undefined
+        // Ensure seller data is properly typed with null check
+        seller: listing.seller && typeof listing.seller === 'object' ? {
+          username: (listing.seller as any).username || '',
+          avatar_url: (listing.seller as any).avatar_url || undefined
         } : undefined,
-        // Ensure card data is properly typed
-        card: listing.card ? {
-          id: listing.card.id,
-          title: listing.card.title,
-          image_url: listing.card.image_url,
-          rarity: listing.card.rarity
+        // Ensure card data is properly typed with null check
+        card: listing.card && typeof listing.card === 'object' ? {
+          id: (listing.card as any).id,
+          title: (listing.card as any).title,
+          image_url: (listing.card as any).image_url,
+          rarity: (listing.card as any).rarity
         } : undefined
       })) as unknown as MarketplaceListing[];
       
