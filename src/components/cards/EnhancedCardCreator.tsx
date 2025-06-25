@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { useSimpleCardEditor } from '@/hooks/useSimpleCardEditor';
 import { useAuth } from '@/contexts/AuthContext';
@@ -114,15 +115,23 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
   };
 
   const canContinue = (): boolean => {
-    // Use a lookup object to avoid TypeScript narrowing issues
-    const stepValidation: Record<Step, () => boolean> = {
-      frameAndImage: () => Boolean(selectedFrame && cardData.image_url),
-      customize: () => Boolean(cardData.title.trim().length > 0),
-      polish: () => true,
-      preview: () => true,
+    // Create a function that explicitly handles all step cases
+    const validateStep = (currentStep: Step): boolean => {
+      switch (currentStep) {
+        case 'frameAndImage':
+          return Boolean(selectedFrame && cardData.image_url);
+        case 'customize':
+          return Boolean(cardData.title.trim().length > 0);
+        case 'polish':
+          return true;
+        case 'preview':
+          return true;
+        default:
+          return false;
+      }
     };
     
-    return stepValidation[step]();
+    return validateStep(step);
   };
 
   const handlePrevious = () => {
