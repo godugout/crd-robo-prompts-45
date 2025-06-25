@@ -1,268 +1,275 @@
 
-import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Users, 
   TrendingUp, 
   DollarSign, 
-  Activity, 
-  Shield, 
-  AlertTriangle,
-  Download,
-  Filter,
+  Activity,
   Search,
-  BarChart3,
+  Filter,
+  Download,
   Settings,
-  Database,
-  Globe
+  AlertCircle,
+  CheckCircle
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface PlatformMetrics {
+  totalUsers: number;
+  activeUsers: number;
+  revenue: number;
+  cardsGenerated: number;
+  templatesCreated: number;
+}
+
+interface UserData {
+  id: string;
+  username: string;
+  display_name: string;
+  created_at: string;
+  avatar_url?: string;
+  creator_verified: boolean;
+}
 
 interface AdminDashboardProps {
   isEnterprise?: boolean;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isEnterprise = false }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTimeframe, setSelectedTimeframe] = useState('7d');
-
-  // Platform Analytics Query
-  const { data: analytics } = useQuery({
-    queryKey: ['admin-analytics', selectedTimeframe],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('platform_analytics')
-        .select('*')
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
-      
-      if (error) throw error;
-      return data;
-    }
+  const { user } = useAuth();
+  const [metrics, setMetrics] = useState<PlatformMetrics>({
+    totalUsers: 0,
+    activeUsers: 0,
+    revenue: 0,
+    cardsGenerated: 0,
+    templatesCreated: 0
   });
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // User Management Query
-  const { data: users } = useQuery({
-    queryKey: ['admin-users', searchTerm],
-    queryFn: async () => {
-      let query = supabase
-        .from('profiles')
+  useEffect(() => {
+    fetchPlatformMetrics();
+    fetchUsers();
+  }, []);
+
+  const fetchPlatformMetrics = async () => {
+    try {
+      // Get user count from profiles
+      const { data: profilesData } = await supabase
+        .from('crd_profiles')
+        .select('id', { count: 'exact' });
+
+      // Get cards count
+      const { data: cardsData } = await supabase
+        .from('crd_cards')
+        .select('id', { count: 'exact' });
+
+      // Get templates count
+      const { data: templatesData } = await supabase
+        .from('crd_templates')
+        .select('id', { count: 'exact' });
+
+      setMetrics({
+        totalUsers: profilesData?.length || 0,
+        activeUsers: Math.floor((profilesData?.length || 0) * 0.7), // Estimate 70% active
+        revenue: 12500, // Mock data
+        cardsGenerated: cardsData?.length || 0,
+        templatesCreated: templatesData?.length || 0
+      });
+    } catch (error) {
+      console.error('Error fetching platform metrics:', error);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('crd_profiles')
         .select(`
-          id, username, email, created_at, last_sign_in_at,
-          subscription_status, plan_type, total_cards_created
+          id,
+          username,
+          display_name,
+          created_at,
+          avatar_url,
+          creator_verified
         `)
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(50);
 
-      if (searchTerm) {
-        query = query.or(`username.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
-      return data;
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
     }
-  });
-
-  const handleExportData = async (type: string) => {
-    // Implement data export functionality
-    console.log(`Exporting ${type} data...`);
   };
 
-  const handleBulkAction = async (action: string, userIds: string[]) => {
-    // Implement bulk user actions
-    console.log(`Performing ${action} on users:`, userIds);
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-crd-darkest">
+        <div className="text-white">Loading admin dashboard...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-crd-darkest p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
-            <p className="text-crd-lightGray">
+            <p className="text-gray-400 mt-1">
               {isEnterprise ? 'Enterprise Platform Management' : 'Platform Overview & Management'}
             </p>
           </div>
-          
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => handleExportData('all')}>
+          <div className="flex items-center space-x-4">
+            <Button variant="outline" className="bg-crd-dark border-crd-border text-white">
               <Download className="w-4 h-4 mr-2" />
               Export Data
             </Button>
-            <Button>
+            <Button className="bg-crd-primary hover:bg-crd-primary/80">
               <Settings className="w-4 h-4 mr-2" />
               Settings
             </Button>
           </div>
         </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-crd-dark border-crd-mediumGray">
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <Card className="bg-crd-dark border-crd-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-crd-lightGray">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-crd-green" />
+              <CardTitle className="text-sm font-medium text-gray-300">Total Users</CardTitle>
+              <Users className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">12,847</div>
-              <p className="text-xs text-crd-lightGray">
-                <span className="text-crd-green">+18%</span> from last month
-              </p>
+              <div className="text-2xl font-bold text-white">{metrics.totalUsers.toLocaleString()}</div>
+              <p className="text-xs text-gray-400">+12% from last month</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-crd-dark border-crd-mediumGray">
+          <Card className="bg-crd-dark border-crd-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-crd-lightGray">Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-crd-green" />
+              <CardTitle className="text-sm font-medium text-gray-300">Active Users</CardTitle>
+              <Activity className="h-4 w-4 text-green-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">$89,432</div>
-              <p className="text-xs text-crd-lightGray">
-                <span className="text-crd-green">+24%</span> from last month
-              </p>
+              <div className="text-2xl font-bold text-white">{metrics.activeUsers.toLocaleString()}</div>
+              <p className="text-xs text-gray-400">Last 30 days</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-crd-dark border-crd-mediumGray">
+          <Card className="bg-crd-dark border-crd-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-crd-lightGray">Active Sessions</CardTitle>
-              <Activity className="h-4 w-4 text-crd-green" />
+              <CardTitle className="text-sm font-medium text-gray-300">Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-green-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">2,847</div>
-              <p className="text-xs text-crd-lightGray">
-                <span className="text-red-400">-5%</span> from last hour
-              </p>
+              <div className="text-2xl font-bold text-white">${metrics.revenue.toLocaleString()}</div>
+              <p className="text-xs text-gray-400">This month</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-crd-dark border-crd-mediumGray">
+          <Card className="bg-crd-dark border-crd-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-crd-lightGray">System Health</CardTitle>
-              <Shield className="h-4 w-4 text-crd-green" />
+              <CardTitle className="text-sm font-medium text-gray-300">Cards Generated</CardTitle>
+              <TrendingUp className="h-4 w-4 text-purple-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-crd-green">99.9%</div>
-              <p className="text-xs text-crd-lightGray">Uptime this month</p>
+              <div className="text-2xl font-bold text-white">{metrics.cardsGenerated.toLocaleString()}</div>
+              <p className="text-xs text-gray-400">Total created</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-crd-dark border-crd-border">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-300">Templates</CardTitle>
+              <Activity className="h-4 w-4 text-orange-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">{metrics.templatesCreated}</div>
+              <p className="text-xs text-gray-400">Available</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 bg-crd-dark border-crd-mediumGray">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="content">Content</TabsTrigger>
-            <TabsTrigger value="financial">Financial</TabsTrigger>
-            <TabsTrigger value="system">System</TabsTrigger>
-            {isEnterprise && <TabsTrigger value="enterprise">Enterprise</TabsTrigger>}
+        <Tabs defaultValue="users" className="space-y-6">
+          <TabsList className="bg-crd-dark border-crd-border">
+            <TabsTrigger value="users" className="text-gray-300 data-[state=active]:text-white">
+              User Management
+            </TabsTrigger>
+            <TabsTrigger value="content" className="text-gray-300 data-[state=active]:text-white">
+              Content Moderation
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="text-gray-300 data-[state=active]:text-white">
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="system" className="text-gray-300 data-[state=active]:text-white">
+              System Health
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-crd-dark border-crd-mediumGray">
-                <CardHeader>
-                  <CardTitle className="text-white">Platform Analytics</CardTitle>
-                  <CardDescription>Key performance indicators</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-crd-lightGray">Cards Created Today</span>
-                      <Badge variant="secondary">1,247</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-crd-lightGray">Template Downloads</span>
-                      <Badge variant="secondary">847</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-crd-lightGray">Creator Earnings</span>
-                      <Badge variant="secondary">$12,487</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-crd-lightGray">Support Tickets</span>
-                      <Badge variant="destructive">23</Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-crd-dark border-crd-mediumGray">
-                <CardHeader>
-                  <CardTitle className="text-white">System Alerts</CardTitle>
-                  <CardDescription>Critical system notifications</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
-                      <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                      <div>
-                        <p className="text-sm font-medium text-white">High CPU Usage</p>
-                        <p className="text-xs text-crd-lightGray">Server load at 85%</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                      <Database className="w-4 h-4 text-blue-500" />
-                      <div>
-                        <p className="text-sm font-medium text-white">Backup Completed</p>
-                        <p className="text-xs text-crd-lightGray">Daily backup successful</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
           <TabsContent value="users" className="space-y-6">
-            <Card className="bg-crd-dark border-crd-mediumGray">
+            <Card className="bg-crd-dark border-crd-border">
               <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-white">User Management</CardTitle>
-                    <CardDescription>Manage platform users and permissions</CardDescription>
+                    <CardDescription className="text-gray-400">
+                      Manage user accounts, permissions, and activity
+                    </CardDescription>
                   </div>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Search users..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-64"
-                    />
-                    <Button variant="outline" size="icon">
-                      <Filter className="w-4 h-4" />
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm" className="bg-crd-darkest border-crd-border text-white">
+                      <Filter className="w-4 h-4 mr-2" />
+                      Filter
+                    </Button>
+                    <Button variant="outline" size="sm" className="bg-crd-darkest border-crd-border text-white">
+                      <Search className="w-4 h-4 mr-2" />
+                      Search
                     </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {users?.slice(0, 10).map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 border border-crd-mediumGray rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-crd-green rounded-full flex items-center justify-center">
-                          <span className="text-black font-bold">
-                            {user.username?.charAt(0).toUpperCase() || 'U'}
-                          </span>
+                  {users.map((user) => (
+                    <div key={user.id} className="flex items-center justify-between p-4 rounded-lg bg-crd-darkest">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 rounded-full bg-crd-primary flex items-center justify-center">
+                          {user.avatar_url ? (
+                            <img src={user.avatar_url} alt={user.username} className="w-10 h-10 rounded-full" />
+                          ) : (
+                            <span className="text-white font-medium">
+                              {(user.display_name || user.username)?.charAt(0)?.toUpperCase()}
+                            </span>
+                          )}
                         </div>
                         <div>
-                          <p className="font-medium text-white">{user.username || 'Unknown User'}</p>
-                          <p className="text-sm text-crd-lightGray">{user.email}</p>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-white font-medium">{user.display_name || user.username}</span>
+                            {user.creator_verified && (
+                              <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                                Verified Creator
+                              </Badge>
+                            )}
+                          </div>
+                          <span className="text-gray-400 text-sm">@{user.username}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <Badge variant={user.subscription_status === 'active' ? 'default' : 'secondary'}>
-                          {user.plan_type || 'Free'}
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Active
                         </Badge>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="bg-crd-dark border-crd-border text-white">
                           Manage
                         </Button>
                       </div>
@@ -273,65 +280,86 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ isEnterprise = f
             </Card>
           </TabsContent>
 
-          {isEnterprise && (
-            <TabsContent value="enterprise" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="bg-crd-dark border-crd-mediumGray">
-                  <CardHeader>
-                    <CardTitle className="text-white">White-Label Solutions</CardTitle>
-                    <CardDescription>Manage enterprise client configurations</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center p-3 border border-crd-mediumGray rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Globe className="w-5 h-5 text-crd-green" />
-                          <div>
-                            <p className="font-medium text-white">SportsCorp</p>
-                            <p className="text-sm text-crd-lightGray">custom.sportscorp.com</p>
-                          </div>
-                        </div>
-                        <Badge>Active</Badge>
-                      </div>
-                      <div className="flex justify-between items-center p-3 border border-crd-mediumGray rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Globe className="w-5 h-5 text-crd-green" />
-                          <div>
-                            <p className="font-medium text-white">TradingCards Inc</p>
-                            <p className="text-sm text-crd-lightGray">cards.tradingco.com</p>
-                          </div>
-                        </div>
-                        <Badge>Active</Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+          <TabsContent value="content" className="space-y-6">
+            <Card className="bg-crd-dark border-crd-border">
+              <CardHeader>
+                <CardTitle className="text-white">Content Moderation Queue</CardTitle>
+                <CardDescription className="text-gray-400">
+                  Review and moderate user-generated content
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12">
+                  <AlertCircle className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-400">No items in moderation queue</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                <Card className="bg-crd-dark border-crd-mediumGray">
-                  <CardHeader>
-                    <CardTitle className="text-white">Enterprise Analytics</CardTitle>
-                    <CardDescription>Advanced business intelligence</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-crd-lightGray">Total Enterprise Revenue</span>
-                        <span className="text-xl font-bold text-crd-green">$247,892</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-crd-lightGray">Active Enterprise Clients</span>
-                        <span className="text-xl font-bold text-white">12</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-crd-lightGray">White-Label Deployments</span>
-                        <span className="text-xl font-bold text-white">8</span>
-                      </div>
+          <TabsContent value="analytics" className="space-y-6">
+            <Card className="bg-crd-dark border-crd-border">
+              <CardHeader>
+                <CardTitle className="text-white">Platform Analytics</CardTitle>
+                <CardDescription className="text-gray-400">
+                  Detailed insights and performance metrics
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-12">
+                  <TrendingUp className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-400">Analytics dashboard coming soon</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="system" className="space-y-6">
+            <Card className="bg-crd-dark border-crd-border">
+              <CardHeader>
+                <CardTitle className="text-white">System Health</CardTitle>
+                <CardDescription className="text-gray-400">
+                  Monitor system performance and health metrics
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-lg bg-crd-darkest">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-gray-300">Database</span>
+                      <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30">
+                        Healthy
+                      </Badge>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          )}
+                    <p className="text-2xl font-bold text-white">99.9%</p>
+                    <p className="text-xs text-gray-400">Uptime</p>
+                  </div>
+                  
+                  <div className="p-4 rounded-lg bg-crd-darkest">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-gray-300">API</span>
+                      <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30">
+                        Operational
+                      </Badge>
+                    </div>
+                    <p className="text-2xl font-bold text-white">150ms</p>
+                    <p className="text-xs text-gray-400">Avg Response</p>
+                  </div>
+                  
+                  <div className="p-4 rounded-lg bg-crd-darkest">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-gray-300">Storage</span>
+                      <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                        Warning
+                      </Badge>
+                    </div>
+                    <p className="text-2xl font-bold text-white">78%</p>
+                    <p className="text-xs text-gray-400">Usage</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
