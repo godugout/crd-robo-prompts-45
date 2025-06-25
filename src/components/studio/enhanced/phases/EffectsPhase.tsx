@@ -1,18 +1,18 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { 
   Sparkles, 
   Chrome, 
   Zap, 
-  Eye, 
-  Palette,
-  Settings,
-  RotateCw
+  Sun, 
+  Circle,
+  Play,
+  Pause
 } from 'lucide-react';
 import type { StudioEffect } from '../hooks/useEnhancedStudio';
 
@@ -26,46 +26,41 @@ interface EffectsPhaseProps {
   onToggleAnimation: () => void;
 }
 
-const EFFECT_PRESETS = [
+const AVAILABLE_EFFECTS = [
   {
-    id: 'holographic',
+    type: 'holographic' as const,
     name: 'Holographic',
-    description: 'Rainbow prismatic effect',
+    description: 'Rainbow foil effect with light scattering',
     icon: Sparkles,
-    color: 'from-purple-500 to-pink-500',
-    defaultParams: { intensity: 75, speed: 0.5, hueShift: 1.0 }
+    color: 'from-purple-500 to-pink-500'
   },
   {
-    id: 'chrome',
+    type: 'chrome' as const,
     name: 'Chrome',
-    description: 'Metallic mirror finish',
+    description: 'Metallic chrome finish with reflections',
     icon: Chrome,
-    color: 'from-gray-400 to-gray-600',
-    defaultParams: { intensity: 60, reflectivity: 0.9, roughness: 0.1 }
+    color: 'from-gray-400 to-gray-600'
   },
   {
-    id: 'particle',
+    type: 'particle' as const,
     name: 'Particle',
-    description: 'Magical floating particles',
+    description: 'Magical particle effects and sparkles',
     icon: Zap,
-    color: 'from-cyan-400 to-blue-500',
-    defaultParams: { intensity: 50, count: 100, speed: 0.3 }
+    color: 'from-blue-500 to-cyan-500'
   },
   {
-    id: 'glow',
-    name: 'Energy Glow',
-    description: 'Ethereal energy aura',
-    icon: Eye,
-    color: 'from-green-400 to-emerald-500',
-    defaultParams: { intensity: 40, pulseSpeed: 0.8, color: '#00ff88' }
+    type: 'glow' as const,
+    name: 'Glow',
+    description: 'Soft ambient glow around the card',
+    icon: Sun,
+    color: 'from-yellow-500 to-orange-500'
   },
   {
-    id: 'metallic',
-    name: 'Metallic',
-    description: 'Gold/silver metallic sheen',
-    icon: Palette,
-    color: 'from-yellow-400 to-orange-500',
-    defaultParams: { intensity: 55, metalType: 'gold', patina: 0.2 }
+    type: 'distortion' as const,
+    name: 'Distortion',
+    description: 'Visual distortion and ripple effects',
+    icon: Circle,
+    color: 'from-green-500 to-emerald-500'
   }
 ];
 
@@ -78,36 +73,32 @@ export const EffectsPhase: React.FC<EffectsPhaseProps> = ({
   isPlaying,
   onToggleAnimation
 }) => {
-  const hasEffects = effects.length > 0;
-  const activeEffects = effects.filter(effect => effect.enabled);
+  const [selectedEffectType, setSelectedEffectType] = useState<string>('');
 
-  const handleAddEffect = (presetId: string) => {
-    const preset = EFFECT_PRESETS.find(p => p.id === presetId);
-    if (preset) {
-      onAddEffect(preset.id as StudioEffect['type'], preset.defaultParams);
-    }
+  const handleAddEffect = (type: StudioEffect['type']) => {
+    onAddEffect(type, { intensity: 50 });
+    setSelectedEffectType('');
   };
 
-  const getEffectIcon = (type: string) => {
-    const preset = EFFECT_PRESETS.find(p => p.id === type);
-    return preset ? preset.icon : Settings;
+  const getEffectConfig = (type: string) => {
+    return AVAILABLE_EFFECTS.find(e => e.type === type) || AVAILABLE_EFFECTS[0];
   };
 
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h3 className="text-xl font-bold text-white mb-2">Add Visual Effects</h3>
+        <h3 className="text-xl font-bold text-white mb-2">Apply Effects</h3>
         <p className="text-gray-400 text-sm">
-          Enhance your card with premium visual effects and materials.
+          Add premium visual effects to make your card stand out.
         </p>
       </div>
 
-      {/* Animation Control */}
+      {/* Animation Controls */}
       <Card className="bg-black/20 border-white/10 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-white font-medium">Preview Animation</h4>
-            <p className="text-gray-400 text-sm">See effects in motion</p>
+            <h4 className="text-white font-medium">Animation Preview</h4>
+            <p className="text-gray-400 text-sm">Preview effects in real-time</p>
           </div>
           <Button
             variant="outline"
@@ -115,70 +106,49 @@ export const EffectsPhase: React.FC<EffectsPhaseProps> = ({
             onClick={onToggleAnimation}
             className="border-white/20 text-white hover:bg-white/10"
           >
-            <RotateCw className={`w-4 h-4 mr-2 ${isPlaying ? 'animate-spin' : ''}`} />
-            {isPlaying ? 'Stop' : 'Animate'}
+            {isPlaying ? (
+              <Pause className="w-4 h-4 mr-2" />
+            ) : (
+              <Play className="w-4 h-4 mr-2" />
+            )}
+            {isPlaying ? 'Pause' : 'Play'}
           </Button>
         </div>
       </Card>
 
-      {/* Effect Presets Grid */}
+      {/* Available Effects */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <label className="text-white text-sm font-medium">Effect Library</label>
-          {hasEffects && (
-            <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">
-              {activeEffects.length} Active
-            </Badge>
-          )}
-        </div>
-        
+        <label className="text-white text-sm font-medium">Available Effects</label>
         <div className="grid grid-cols-1 gap-3">
-          {EFFECT_PRESETS.map((preset) => {
-            const Icon = preset.icon;
-            const hasThisEffect = effects.some(e => e.type === preset.id);
+          {AVAILABLE_EFFECTS.map((effect) => {
+            const Icon = effect.icon;
+            const isActive = effects.some(e => e.type === effect.type);
             
             return (
               <Card
-                key={preset.id}
+                key={effect.type}
                 className={`p-4 cursor-pointer transition-all ${
-                  hasThisEffect
-                    ? 'bg-purple-500/10 border-purple-500/50'
-                    : 'bg-black/30 border-white/10 hover:border-purple-500/30'
+                  isActive
+                    ? 'bg-crd-green/10 border-crd-green'
+                    : 'bg-black/30 border-white/10 hover:border-white/30'
                 }`}
-                onClick={() => !hasThisEffect && handleAddEffect(preset.id)}
+                onClick={() => !isActive && handleAddEffect(effect.type)}
               >
-                <div className="flex items-center space-x-4">
-                  {/* Effect Icon */}
-                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${preset.color} flex items-center justify-center`}>
-                    <Icon className="w-6 h-6 text-white" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${effect.color} flex items-center justify-center`}>
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-medium">{effect.name}</h4>
+                      <p className="text-gray-400 text-sm">{effect.description}</p>
+                    </div>
                   </div>
-                  
-                  {/* Effect Info */}
-                  <div className="flex-1">
-                    <h4 className="text-white font-medium">{preset.name}</h4>
-                    <p className="text-gray-400 text-sm">{preset.description}</p>
-                  </div>
-                  
-                  {/* Add/Remove Button */}
-                  <Button
-                    variant={hasThisEffect ? "destructive" : "default"}
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (hasThisEffect) {
-                        const effect = effects.find(e => e.type === preset.id);
-                        if (effect) onRemoveEffect(effect.id);
-                      } else {
-                        handleAddEffect(preset.id);
-                      }
-                    }}
-                    className={hasThisEffect 
-                      ? "bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30"
-                      : "bg-crd-green hover:bg-crd-green/90 text-black"
-                    }
-                  >
-                    {hasThisEffect ? 'Remove' : 'Add'}
-                  </Button>
+                  {isActive && (
+                    <Badge className="bg-crd-green/20 text-crd-green border-crd-green/30">
+                      Active
+                    </Badge>
+                  )}
                 </div>
               </Card>
             );
@@ -186,31 +156,33 @@ export const EffectsPhase: React.FC<EffectsPhaseProps> = ({
         </div>
       </div>
 
-      {/* Active Effects Controls */}
-      {hasEffects && (
-        <div className="space-y-3">
-          <label className="text-white text-sm font-medium">Effect Controls</label>
+      {/* Active Effects */}
+      {effects.length > 0 && (
+        <div className="space-y-4">
+          <label className="text-white text-sm font-medium">Active Effects ({effects.length})</label>
           <div className="space-y-3">
             {effects.map((effect) => {
-              const Icon = getEffectIcon(effect.type);
+              const config = getEffectConfig(effect.type);
+              const Icon = config.icon;
               
               return (
-                <Card key={effect.id} className="bg-black/30 border-white/10 p-4">
+                <Card key={effect.id} className="bg-black/20 border-white/10 p-4">
                   <div className="space-y-4">
-                    {/* Effect Header */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <Icon className="w-5 h-5 text-purple-400" />
-                        <span className="text-white font-medium">{effect.name}</span>
-                        <Badge variant="outline" className="border-white/20 text-white text-xs">
-                          {effect.type}
-                        </Badge>
+                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${config.color} flex items-center justify-center`}>
+                          <Icon className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <h4 className="text-white font-medium">{effect.name}</h4>
+                          <p className="text-gray-400 text-xs">{config.description}</p>
+                        </div>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Switch
                           checked={effect.enabled}
-                          onCheckedChange={(checked) => 
-                            onUpdateEffect(effect.id, { enabled: checked })
+                          onCheckedChange={(enabled) => 
+                            onUpdateEffect(effect.id, { enabled })
                           }
                         />
                         <Button
@@ -223,99 +195,25 @@ export const EffectsPhase: React.FC<EffectsPhaseProps> = ({
                         </Button>
                       </div>
                     </div>
-
-                    {/* Intensity Control */}
-                    {effect.enabled && (
-                      <div className="space-y-3">
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <label className="text-gray-400 text-sm">Intensity</label>
-                            <span className="text-white text-sm">{effect.intensity}%</span>
-                          </div>
-                          <Slider
-                            value={[effect.intensity]}
-                            onValueChange={([value]) => 
-                              onUpdateEffect(effect.id, { intensity: value })
-                            }
-                            min={0}
-                            max={100}
-                            step={1}
-                            className="w-full"
-                          />
+                    
+                    {/* Effect Controls */}
+                    <div className="space-y-3">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-gray-300 text-sm">Intensity</span>
+                          <span className="text-white text-sm">{effect.intensity}%</span>
                         </div>
-
-                        {/* Effect-specific parameters */}
-                        {effect.type === 'holographic' && (
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-2">
-                              <label className="text-gray-400 text-sm">Speed</label>
-                              <Slider
-                                value={[effect.parameters.speed || 0.5]}
-                                onValueChange={([value]) => 
-                                  onUpdateEffect(effect.id, { 
-                                    parameters: { ...effect.parameters, speed: value }
-                                  })
-                                }
-                                min={0.1}
-                                max={2.0}
-                                step={0.1}
-                                className="w-full"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <label className="text-gray-400 text-sm">Hue Shift</label>
-                              <Slider
-                                value={[effect.parameters.hueShift || 1.0]}
-                                onValueChange={([value]) => 
-                                  onUpdateEffect(effect.id, { 
-                                    parameters: { ...effect.parameters, hueShift: value }
-                                  })
-                                }
-                                min={0.0}
-                                max={2.0}
-                                step={0.1}
-                                className="w-full"
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {effect.type === 'chrome' && (
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-2">
-                              <label className="text-gray-400 text-sm">Reflectivity</label>
-                              <Slider
-                                value={[effect.parameters.reflectivity || 0.9]}
-                                onValueChange={([value]) => 
-                                  onUpdateEffect(effect.id, { 
-                                    parameters: { ...effect.parameters, reflectivity: value }
-                                  })
-                                }
-                                min={0.0}
-                                max={1.0}
-                                step={0.1}
-                                className="w-full"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <label className="text-gray-400 text-sm">Roughness</label>
-                              <Slider
-                                value={[effect.parameters.roughness || 0.1]}
-                                onValueChange={([value]) => 
-                                  onUpdateEffect(effect.id, { 
-                                    parameters: { ...effect.parameters, roughness: value }
-                                  })
-                                }
-                                min={0.0}
-                                max={1.0}
-                                step={0.1}
-                                className="w-full"
-                              />
-                            </div>
-                          </div>
-                        )}
+                        <Slider
+                          value={[effect.intensity]}
+                          onValueChange={([value]) => 
+                            onUpdateEffect(effect.id, { intensity: value })
+                          }
+                          max={100}
+                          step={1}
+                          className="w-full"
+                        />
                       </div>
-                    )}
+                    </div>
                   </div>
                 </Card>
               );
@@ -330,8 +228,7 @@ export const EffectsPhase: React.FC<EffectsPhaseProps> = ({
           onClick={onComplete}
           className="w-full bg-crd-green hover:bg-crd-green/90 text-black font-medium"
         >
-          Continue to Studio
-          {hasEffects && ` (${activeEffects.length} effect${activeEffects.length !== 1 ? 's' : ''} applied)`}
+          Continue to Studio ({effects.length} effect{effects.length !== 1 ? 's' : ''} applied)
         </Button>
       </div>
     </div>

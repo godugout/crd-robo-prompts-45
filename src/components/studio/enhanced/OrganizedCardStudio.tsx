@@ -92,13 +92,14 @@ export const OrganizedCardStudio = () => {
             onUpdateEffect={studio.updateEffect}
             onRemoveEffect={studio.removeEffect}
             onComplete={handlePhaseComplete}
+            isPlaying={studio.isPlaying}
+            onToggleAnimation={studio.toggleAnimation}
           />
         );
       case 3:
         return (
           <StudioPhase
             layers={studio.layers}
-            effects={studio.effects}
             selectedLayerId={studio.selectedLayerId}
             cardData={studio.cardData}
             onLayerSelect={studio.selectLayer}
@@ -126,7 +127,7 @@ export const OrganizedCardStudio = () => {
 
   const convertedEffects = studio.effects.map(effect => ({
     ...effect,
-    type: effect.type === 'metallic' ? 'distortion' : effect.type
+    type: effect.type === 'distortion' ? 'distortion' : effect.type
   }));
 
   return (
@@ -211,7 +212,7 @@ export const OrganizedCardStudio = () => {
                 {/* 3D Card Viewer */}
                 <div className="aspect-[4/5] bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden border border-white/10">
                   <Enhanced3DCardViewer
-                    cardData={studio.cardData}
+                    card={studio.cardData}
                     layers={convertedLayers}
                     effects={convertedEffects}
                     isPlaying={studio.isPlaying}

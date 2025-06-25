@@ -2,385 +2,306 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { 
-  Layers, 
-  Eye, 
-  EyeOff, 
-  Lock, 
-  Unlock, 
-  Trash2, 
+  Layers,
+  Eye,
+  EyeOff,
+  Edit,
+  Trash2,
   Plus,
-  Type,
-  Square,
-  Image,
+  Save,
   Download,
-  Save
+  Play,
+  Pause,
+  Settings
 } from 'lucide-react';
 import type { StudioLayer } from '../hooks/useEnhancedStudio';
+import type { CardData } from '@/types/card';
 
 interface StudioPhaseProps {
   layers: StudioLayer[];
   selectedLayerId?: string;
+  cardData: CardData;
+  onLayerSelect: (layerId: string) => void;
+  onLayerUpdate: (layerId: string, updates: Partial<StudioLayer>) => void;
+  onLayerRemove: (layerId: string) => void;
   onAddLayer: (type: StudioLayer['type'], data?: any) => void;
-  onUpdateLayer: (layerId: string, updates: Partial<StudioLayer>) => void;
-  onRemoveLayer: (layerId: string) => void;
-  onSelectLayer: (layerId: string) => void;
-  onExport: (format: 'png' | 'jpeg' | 'print') => void;
-  onSave: () => void;
+  onExport: (format: 'png' | 'jpeg' | 'print') => Promise<void>;
+  onSave: () => Promise<void>;
+  isPlaying: boolean;
+  onToggleAnimation: () => void;
 }
-
-const LAYER_TYPES = [
-  { type: 'text', name: 'Text', icon: Type, color: 'bg-blue-500' },
-  { type: 'shape', name: 'Shape', icon: Square, color: 'bg-green-500' },
-  { type: 'image', name: 'Image', icon: Image, color: 'bg-purple-500' }
-] as const;
 
 export const StudioPhase: React.FC<StudioPhaseProps> = ({
   layers,
   selectedLayerId,
+  cardData,
+  onLayerSelect,
+  onLayerUpdate,
+  onLayerRemove,
   onAddLayer,
-  onUpdateLayer,
-  onRemoveLayer,
-  onSelectLayer,
   onExport,
-  onSave
+  onSave,
+  isPlaying,
+  onToggleAnimation
 }) => {
   const [exportFormat, setExportFormat] = useState<'png' | 'jpeg' | 'print'>('png');
-  
-  const selectedLayer = layers.find(layer => layer.id === selectedLayerId);
-  const sortedLayers = [...layers].sort((a, b) => b.position.z - a.position.z);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleAddTextLayer = () => {
-    onAddLayer('text', {
-      text: 'New Text',
-      fontSize: 24,
-      fontWeight: 'normal',
-      color: '#ffffff',
-      textAlign: 'center'
-    });
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      await onExport(exportFormat);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
-  const handleAddShapeLayer = () => {
-    onAddLayer('shape', {
-      type: 'rectangle',
-      color: '#ffffff',
-      width: 100,
-      height: 100
-    });
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await onSave();
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  const selectedLayer = layers.find(l => l.id === selectedLayerId);
 
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h3 className="text-xl font-bold text-white mb-2">Advanced Studio</h3>
+        <h3 className="text-xl font-bold text-white mb-2">Final Studio</h3>
         <p className="text-gray-400 text-sm">
-          Fine-tune your card with professional layer controls and export options.
+          Fine-tune your card and export when ready.
         </p>
       </div>
 
-      {/* Layer Management */}
-      <div className="space-y-3">
+      {/* Animation Controls */}
+      <Card className="bg-black/20 border-white/10 p-4">
         <div className="flex items-center justify-between">
-          <label className="text-white text-sm font-medium flex items-center">
-            <Layers className="w-4 h-4 mr-2" />
-            Layers ({layers.length})
-          </label>
-          <div className="flex gap-2">
-            {LAYER_TYPES.map(({ type, name, icon: Icon, color }) => (
-              <Button
-                key={type}
-                variant="outline"
-                size="sm"
-                onClick={() => type === 'text' ? handleAddTextLayer() : 
-                              type === 'shape' ? handleAddShapeLayer() : 
-                              onAddLayer(type)}
-                className="border-white/20 text-white hover:bg-white/10"
-              >
-                <Icon className="w-3 h-3 mr-1" />
-                {name}
-              </Button>
-            ))}
+          <div>
+            <h4 className="text-white font-medium">Preview Animation</h4>
+            <p className="text-gray-400 text-sm">Control real-time preview</p>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToggleAnimation}
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            {isPlaying ? (
+              <Pause className="w-4 h-4 mr-2" />
+            ) : (
+              <Play className="w-4 h-4 mr-2" />
+            )}
+            {isPlaying ? 'Pause' : 'Play'}
+          </Button>
         </div>
+      </Card>
 
-        {/* Layers List */}
-        <div className="space-y-2 max-h-60 overflow-y-auto">
-          {sortedLayers.map((layer, index) => {
-            const LayerIcon = LAYER_TYPES.find(t => t.type === layer.type)?.icon || Square;
-            const isSelected = layer.id === selectedLayerId;
-            
-            return (
-              <Card
+      {/* Layers Panel */}
+      <Card className="bg-black/20 border-white/10 p-4">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-white font-medium flex items-center">
+              <Layers className="w-4 h-4 mr-2" />
+              Layers ({layers.length})
+            </h4>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onAddLayer('text', { content: 'New Text' })}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Layer
+            </Button>
+          </div>
+
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {layers.map((layer) => (
+              <div
                 key={layer.id}
-                className={`p-3 cursor-pointer transition-all ${
-                  isSelected 
-                    ? 'bg-crd-green/10 border-crd-green' 
-                    : 'bg-black/30 border-white/10 hover:border-white/20'
+                className={`p-3 rounded-lg cursor-pointer transition-all ${
+                  selectedLayerId === layer.id
+                    ? 'bg-crd-green/20 border border-crd-green'
+                    : 'bg-black/30 border border-white/10 hover:border-white/20'
                 }`}
-                onClick={() => onSelectLayer(layer.id)}
+                onClick={() => onLayerSelect(layer.id)}
               >
-                <div className="flex items-center space-x-3">
-                  <LayerIcon className="w-4 h-4 text-gray-400" />
-                  <span className="text-white text-sm font-medium flex-1 truncate">
-                    {layer.name}
-                  </span>
-                  <div className="flex items-center space-x-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onUpdateLayer(layer.id, { visible: !layer.visible });
+                        onLayerUpdate(layer.id, { visible: !layer.visible });
                       }}
                       className="w-6 h-6 p-0 text-gray-400 hover:text-white"
                     >
-                      {layer.visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                      {layer.visible ? (
+                        <Eye className="w-3 h-3" />
+                      ) : (
+                        <EyeOff className="w-3 h-3" />
+                      )}
                     </Button>
-                    {layer.type !== 'frame' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onRemoveLayer(layer.id);
-                        }}
-                        className="w-6 h-6 p-0 text-gray-400 hover:text-red-400"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    )}
+                    <div>
+                      <p className="text-white text-sm font-medium">{layer.name}</p>
+                      <p className="text-gray-400 text-xs capitalize">{layer.type}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Badge variant="outline" className="border-white/20 text-white text-xs">
+                      {Math.round(layer.opacity * 100)}%
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onLayerRemove(layer.id);
+                      }}
+                      className="w-6 h-6 p-0 text-red-400 hover:text-red-300"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
                   </div>
                 </div>
-              </Card>
-            );
-          })}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      </Card>
 
       {/* Layer Properties */}
       {selectedLayer && (
         <Card className="bg-black/20 border-white/10 p-4">
-          <h4 className="text-white font-medium mb-4">Layer Properties</h4>
-          
           <div className="space-y-4">
-            {/* Layer Name */}
-            <div className="space-y-2">
-              <label className="text-gray-400 text-sm">Layer Name</label>
-              <Input
-                value={selectedLayer.name}
-                onChange={(e) => onUpdateLayer(selectedLayer.id, { name: e.target.value })}
-                className="bg-black/30 border-white/20 text-white"
-                placeholder="Layer name"
-              />
-            </div>
-
-            {/* Opacity */}
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <label className="text-gray-400 text-sm">Opacity</label>
-                <span className="text-white text-sm">{Math.round(selectedLayer.opacity * 100)}%</span>
-              </div>
-              <Slider
-                value={[selectedLayer.opacity * 100]}
-                onValueChange={([value]) => onUpdateLayer(selectedLayer.id, { opacity: value / 100 })}
-                min={0}
-                max={100}
-                step={1}
-                className="w-full"
-              />
-            </div>
-
-            {/* Position Controls */}
+            <h4 className="text-white font-medium flex items-center">
+              <Settings className="w-4 h-4 mr-2" />
+              Layer Properties
+            </h4>
+            
             <div className="space-y-3">
-              <label className="text-gray-400 text-sm">Position</label>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-500">X</label>
-                  <Slider
-                    value={[selectedLayer.position.x * 100 + 50]}
-                    onValueChange={([value]) => 
-                      onUpdateLayer(selectedLayer.id, { 
-                        position: { ...selectedLayer.position, x: (value - 50) / 100 }
-                      })
-                    }
-                    min={0}
-                    max={100}
-                    step={1}
-                    className="w-full"
-                  />
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-300 text-sm">Opacity</span>
+                  <span className="text-white text-sm">{Math.round(selectedLayer.opacity * 100)}%</span>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-500">Y</label>
-                  <Slider
-                    value={[selectedLayer.position.y * 100 + 50]}
-                    onValueChange={([value]) => 
-                      onUpdateLayer(selectedLayer.id, { 
-                        position: { ...selectedLayer.position, y: (value - 50) / 100 }
-                      })
-                    }
-                    min={0}
-                    max={100}
-                    step={1}
-                    className="w-full"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-500">Z</label>
-                  <Slider
-                    value={[selectedLayer.position.z * 100]}
-                    onValueChange={([value]) => 
-                      onUpdateLayer(selectedLayer.id, { 
-                        position: { ...selectedLayer.position, z: value / 100 }
-                      })
-                    }
-                    min={0}
-                    max={100}
-                    step={1}
-                    className="w-full"
-                  />
-                </div>
+                <Slider
+                  value={[selectedLayer.opacity * 100]}
+                  onValueChange={([value]) => 
+                    onLayerUpdate(selectedLayer.id, { opacity: value / 100 })
+                  }
+                  max={100}
+                  step={1}
+                  className="w-full"
+                />
               </div>
-            </div>
 
-            {/* Scale Controls */}
-            <div className="space-y-3">
-              <label className="text-gray-400 text-sm">Scale</label>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-500">Width</label>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-gray-300 text-sm">Scale X</label>
                   <Slider
                     value={[selectedLayer.scale.x * 100]}
                     onValueChange={([value]) => 
-                      onUpdateLayer(selectedLayer.id, { 
+                      onLayerUpdate(selectedLayer.id, { 
                         scale: { ...selectedLayer.scale, x: value / 100 }
                       })
                     }
                     min={10}
                     max={200}
                     step={1}
-                    className="w-full"
+                    className="w-full mt-1"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-gray-500">Height</label>
+                <div>
+                  <label className="text-gray-300 text-sm">Scale Y</label>
                   <Slider
                     value={[selectedLayer.scale.y * 100]}
                     onValueChange={([value]) => 
-                      onUpdateLayer(selectedLayer.id, { 
+                      onLayerUpdate(selectedLayer.id, { 
                         scale: { ...selectedLayer.scale, y: value / 100 }
                       })
                     }
                     min={10}
                     max={200}
                     step={1}
-                    className="w-full"
+                    className="w-full mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-300 text-sm">Rotation</label>
+                  <Slider
+                    value={[selectedLayer.rotation.z]}
+                    onValueChange={([value]) => 
+                      onLayerUpdate(selectedLayer.id, { 
+                        rotation: { ...selectedLayer.rotation, z: value }
+                      })
+                    }
+                    min={-180}
+                    max={180}
+                    step={1}
+                    className="w-full mt-1"
                   />
                 </div>
               </div>
             </div>
-
-            {/* Text Layer Specific Controls */}
-            {selectedLayer.type === 'text' && (
-              <div className="space-y-3 pt-3 border-t border-white/10">
-                <label className="text-gray-400 text-sm">Text Content</label>
-                <Input
-                  value={selectedLayer.data.text || ''}
-                  onChange={(e) => 
-                    onUpdateLayer(selectedLayer.id, { 
-                      data: { ...selectedLayer.data, text: e.target.value }
-                    })
-                  }
-                  className="bg-black/30 border-white/20 text-white"
-                  placeholder="Enter text"
-                />
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-500">Font Size</label>
-                    <Slider
-                      value={[selectedLayer.data.fontSize || 24]}
-                      onValueChange={([value]) => 
-                        onUpdateLayer(selectedLayer.id, { 
-                          data: { ...selectedLayer.data, fontSize: value }
-                        })
-                      }
-                      min={8}
-                      max={72}
-                      step={1}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs text-gray-500">Color</label>
-                    <Input
-                      type="color"
-                      value={selectedLayer.data.color || '#ffffff'}
-                      onChange={(e) => 
-                        onUpdateLayer(selectedLayer.id, { 
-                          data: { ...selectedLayer.data, color: e.target.value }
-                        })
-                      }
-                      className="bg-black/30 border-white/20 h-8"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </Card>
       )}
 
-      {/* Export Controls */}
+      {/* Export & Save */}
       <Card className="bg-black/20 border-white/10 p-4">
-        <h4 className="text-white font-medium mb-4">Export & Save</h4>
-        
         <div className="space-y-4">
-          {/* Export Format Selection */}
-          <div className="space-y-2">
-            <label className="text-gray-400 text-sm">Export Format</label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { value: 'png', label: 'PNG', desc: 'Transparent' },
-                { value: 'jpeg', label: 'JPEG', desc: 'Compressed' },
-                { value: 'print', label: 'Print', desc: '300 DPI' }
-              ].map((format) => (
-                <Button
-                  key={format.value}
-                  variant={exportFormat === format.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setExportFormat(format.value as any)}
-                  className={`h-auto p-3 flex flex-col ${
-                    exportFormat === format.value 
-                      ? 'bg-crd-green text-black' 
-                      : 'border-white/20 text-white hover:bg-white/10'
-                  }`}
-                >
-                  <span className="font-medium text-sm">{format.label}</span>
-                  <span className="text-xs opacity-70">{format.desc}</span>
-                </Button>
-              ))}
+          <h4 className="text-white font-medium">Export & Save</h4>
+          
+          <div className="space-y-3">
+            <div>
+              <label className="text-gray-300 text-sm mb-2 block">Export Format</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(['png', 'jpeg', 'print'] as const).map((format) => (
+                  <Button
+                    key={format}
+                    variant={exportFormat === format ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setExportFormat(format)}
+                    className={
+                      exportFormat === format 
+                        ? 'bg-crd-green text-black' 
+                        : 'border-white/20 text-white hover:bg-white/10'
+                    }
+                  >
+                    {format.toUpperCase()}
+                  </Button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              onClick={onSave}
-              variant="outline"
-              className="border-white/20 text-white hover:bg-white/10"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Save Project
-            </Button>
-            <Button
-              onClick={() => onExport(exportFormat)}
-              className="bg-crd-green hover:bg-crd-green/90 text-black font-medium"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export {exportFormat.toUpperCase()}
-            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {isSaving ? 'Saving...' : 'Save'}
+              </Button>
+              <Button
+                onClick={handleExport}
+                disabled={isExporting}
+                className="bg-crd-green hover:bg-crd-green/90 text-black"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {isExporting ? 'Exporting...' : 'Export'}
+              </Button>
+            </div>
           </div>
         </div>
       </Card>

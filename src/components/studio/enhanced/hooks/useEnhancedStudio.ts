@@ -145,9 +145,9 @@ export const useEnhancedStudio = () => {
           transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 }
         };
         
-        setState(prev => ({
-          ...prev,
-          layers: [...prev.layers, imageLayer],
+        setState(prevState => ({
+          ...prevState,
+          layers: [...prevState.layers, imageLayer],
           selectedLayerId: imageLayer.id
         }));
       }
