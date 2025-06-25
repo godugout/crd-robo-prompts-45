@@ -5,15 +5,16 @@ import { AuthProvider } from './contexts/AuthContext';
 import { TooltipProvider } from './components/ui/tooltip';
 import { Toaster } from '@/components/ui/toaster';
 import { Navbar } from './components/layout/Navbar';
-import Home from './pages/Index'; // Use Index as Home
+import Home from './pages/Index';
 import Gallery from './pages/Gallery';
 import Editor from './pages/Editor';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import { OakMemoryCreator } from './pages/OakMemoryCreator';
 import { CardStudio } from './components/studio/CardStudio';
-import { EnhancedCardCreator } from './components/cards/EnhancedCardCreator';
 import CardCreation from '@/pages/CardCreation';
 import CardDetail from '@/pages/CardDetail';
+import Labs from '@/pages/Labs';
+import CardsEnhanced from '@/pages/CardsEnhanced';
 
 function App() {
   return (
@@ -31,9 +32,11 @@ function App() {
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/oak-creator" element={<OakMemoryCreator />} />
                   <Route path="/studio" element={<CardStudio />} />
-                  <Route path="/cards/create" element={<EnhancedCardCreator />} />
+                  <Route path="/cards/enhanced" element={<CardsEnhanced />} />
+                  <Route path="/cards/create" element={<CardsEnhanced />} />
                   <Route path="/create" element={<CardCreation />} />
                   <Route path="/card/:id" element={<CardDetail />} />
+                  <Route path="/labs" element={<Labs />} />
                 </Routes>
               </Suspense>
             </main>
@@ -43,6 +46,6 @@ function App() {
       </AuthProvider>
     </Router>
   );
-}
+};
 
 export default App;

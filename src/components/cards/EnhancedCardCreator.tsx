@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useSimpleCardEditor } from '@/hooks/useSimpleCardEditor';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -15,26 +15,51 @@ import { Sparkles } from 'lucide-react';
 
 type Step = 'frameAndImage' | 'customize' | 'polish' | 'preview';
 
-const RARITIES: { value: CardRarity; label: string; color: string }[] = [
-  { value: 'common', label: 'Common', color: 'text-gray-400' },
-  { value: 'uncommon', label: 'Uncommon', color: 'text-green-400' },
-  { value: 'rare', label: 'Rare', color: 'text-blue-400' },
-  { value: 'epic', label: 'Epic', color: 'text-purple-400' },
-  { value: 'legendary', label: 'Legendary', color: 'text-yellow-400' }
-];
+interface EnhancedCardCreatorProps {
+  initialImage?: string;
+  initialTitle?: string;
+  theme?: 'default' | 'dark' | 'light';
+  primaryColor?: string;
+  mode?: 'full' | 'embedded' | 'compact';
+}
 
-export const EnhancedCardCreator: React.FC = () => {
+export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
+  initialImage,
+  initialTitle,
+  theme = 'default',
+  primaryColor = '#00ff88',
+  mode = 'full'
+}) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { cardData, updateField, saveCard, isSaving } = useSimpleCardEditor();
   const [step, setStep] = useState<Step>('frameAndImage');
   const [selectedFrame, setSelectedFrame] = useState<string>('');
 
-  console.log('EnhancedCardCreator rendering - ENHANCED STUDIO VERSION:', {
+  // Initialize with URL parameters
+  useEffect(() => {
+    if (initialImage) {
+      updateField('image_url', initialImage);
+    }
+    if (initialTitle) {
+      updateField('title', initialTitle);
+    }
+  }, [initialImage, initialTitle, updateField]);
+
+  // Apply theme colors
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty('--primary-color', primaryColor);
+  }, [primaryColor]);
+
+  console.log('EnhancedCardCreator rendering:', {
     step,
     selectedFrame,
     cardDataImage: cardData.image_url,
-    cardTitle: cardData.title
+    cardTitle: cardData.title,
+    theme,
+    primaryColor,
+    mode
   });
 
   const handleFrameSelect = useCallback((frameId: string) => {
@@ -158,6 +183,8 @@ export const EnhancedCardCreator: React.FC = () => {
             uploadedImage={cardData.image_url}
             onFrameSelect={handleFrameSelect}
             onImageUpload={handleImageUpload}
+            theme={theme}
+            primaryColor={primaryColor}
           />
         );
 
@@ -206,25 +233,39 @@ export const EnhancedCardCreator: React.FC = () => {
               {cardData.description && (
                 <p className="text-gray-200 text-sm mb-2">{cardData.description}</p>
               )}
-              <span className={`text-sm font-medium ${RARITIES.find(r => r.value === cardData.rarity)?.color}`}>
-                {RARITIES.find(r => r.value === cardData.rarity)?.label}
-              </span>
             </div>
 
             <div className="flex gap-4 justify-center">
               <CRDButton
-                onClick={handleQuickPublish}
+                onClick={async () => {
+                  if (!user) {
+                    toast.error('Please sign in to publish cards');
+                    navigate('/auth');
+                    return;
+                  }
+                  const saved = await saveCard();
+                  if (saved) {
+                    toast.success('Card published successfully!');
+                  }
+                }}
                 disabled={isSaving}
               >
                 {isSaving ? 'Publishing...' : 'Publish Now'}
               </CRDButton>
               <CRDButton
                 variant="secondary"
-                onClick={handleContinueInStudio}
+                onClick={() => {
+                  localStorage.setItem('draft-card', JSON.stringify({
+                    ...cardData,
+                    selectedFrame,
+                  }));
+                  navigate('/studio');
+                  toast.success('Opening in advanced studio...');
+                }}
                 className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                Continue in Studio
+                Advanced Studio
               </CRDButton>
             </div>
           </div>
@@ -234,6 +275,11 @@ export const EnhancedCardCreator: React.FC = () => {
         return null;
     }
   };
+
+  // For compact mode, render just the studio
+  if (mode === 'compact') {
+    return renderStepContent();
+  }
 
   // For the frameAndImage step, render full-screen studio
   if (step === 'frameAndImage') {
@@ -249,20 +295,27 @@ export const EnhancedCardCreator: React.FC = () => {
     <div className="bg-[#141416] py-8 px-4 md:px-6 lg:px-8 min-h-screen">
       <div className="w-full max-w-none mx-auto">
         <div className="mb-6 text-center">
-          <div className="inline-block bg-crd-green text-black px-4 py-2 rounded-full text-sm font-bold mb-4">
-            ENHANCED PROFESSIONAL STUDIO
+          <div 
+            className="inline-block text-black px-4 py-2 rounded-full text-sm font-bold mb-4"
+            style={{ backgroundColor: primaryColor }}
+          >
+            ENHANCED CARD CREATOR
           </div>
         </div>
 
-        <StepProgressIndicator 
-          currentStep={step}
-          getStepDescription={getStepDescription}
-        />
+        {mode === 'full' && (
+          <StepProgressIndicator 
+            currentStep={step}
+            getStepDescription={() => 'Creating your perfect card'}
+          />
+        )}
 
         <div className="bg-[#23262F] rounded-2xl overflow-hidden">
           <div className="p-4 lg:p-6 text-center border-b border-gray-700">
             <Typography variant="h2" className="mb-2">
-              {getStepTitle()}
+              {step === 'frameAndImage' ? 'Professional Studio' : 
+               step === 'customize' ? 'Customize Your Card' :
+               step === 'polish' ? 'Add Finishing Touches' : 'Preview & Publish'}
             </Typography>
           </div>
           
@@ -271,12 +324,26 @@ export const EnhancedCardCreator: React.FC = () => {
           </div>
         </div>
 
-        <StepNavigation
-          currentStep={step}
-          canContinue={canContinue()}
-          onPrevious={handlePrevious}
-          onNext={handleNext}
-        />
+        {mode === 'full' && (
+          <StepNavigation
+            currentStep={step}
+            canContinue={true}
+            onPrevious={() => {
+              const steps: Step[] = ['frameAndImage', 'customize', 'polish', 'preview'];
+              const currentIndex = steps.indexOf(step);
+              if (currentIndex > 0) {
+                setStep(steps[currentIndex - 1]);
+              }
+            }}
+            onNext={() => {
+              const steps: Step[] = ['frameAndImage', 'customize', 'polish', 'preview'];
+              const currentIndex = steps.indexOf(step);
+              if (currentIndex < steps.length - 1) {
+                setStep(steps[currentIndex + 1]);
+              }
+            }}
+          />
+        )}
       </div>
     </div>
   );
