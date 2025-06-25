@@ -27,6 +27,13 @@ export default defineConfig({
       },
     },
     rollupOptions: {
+      external: (id) => {
+        // Exclude problematic three-mesh-bvh if it causes issues
+        if (id.includes('three-mesh-bvh')) {
+          return false;
+        }
+        return false;
+      },
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],

@@ -1,196 +1,154 @@
 
-// Performance utilities and optimization helpers
+interface DeviceCapabilities {
+  webgl2: boolean;
+  highPerformance: boolean;
+  maxTextureSize: number;
+  extensions: string[];
+}
 
-export class PerformanceOptimizer {
-  private static instance: PerformanceOptimizer;
-  private imageCache = new Map<string, string>();
-  private observers = new Map<string, IntersectionObserver>();
+interface OptimizationSettings {
+  renderQuality: number;
+  enableShadows: boolean;
+  enableReflections: boolean;
+  maxTextureSize: number;
+  antialiasing: boolean;
+}
 
-  public static getInstance(): PerformanceOptimizer {
-    if (!PerformanceOptimizer.instance) {
-      PerformanceOptimizer.instance = new PerformanceOptimizer();
+class PerformanceOptimizer {
+  private deviceCapabilities: DeviceCapabilities | null = null;
+  private imageCache = new Map<string, HTMLImageElement>();
+  private textureCache = new Map<string, any>();
+
+  getDeviceCapabilities(): DeviceCapabilities {
+    if (this.deviceCapabilities) {
+      return this.deviceCapabilities;
     }
-    return PerformanceOptimizer.instance;
-  }
 
-  // Image optimization with WebP support and lazy loading
-  optimizeImageUrl(url: string, width?: number, height?: number, quality = 80): string {
-    if (!url) return url;
-
-    // Check if browser supports WebP
-    const supportsWebP = this.supportsWebP();
-    
-    // Generate optimized URL based on CDN or storage provider
-    if (url.includes('supabase.co/storage')) {
-      const baseUrl = url.split('?')[0];
-      const params = new URLSearchParams();
-      
-      if (width) params.append('width', width.toString());
-      if (height) params.append('height', height.toString());
-      if (quality !== 80) params.append('quality', quality.toString());
-      if (supportsWebP) params.append('format', 'webp');
-      
-      return `${baseUrl}${params.toString() ? '?' + params.toString() : ''}`;
-    }
-    
-    return url;
-  }
-
-  private supportsWebP(): boolean {
     const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    return canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
-  }
-
-  // Lazy loading implementation
-  createLazyLoader(callback: (entry: IntersectionObserverEntry) => void): IntersectionObserver {
-    return new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            callback(entry);
-          }
-        });
-      },
-      {
-        rootMargin: '50px 0px',
-        threshold: 0.1
-      }
-    );
-  }
-
-  // Debounce utility for performance-critical operations
-  debounce<T extends (...args: any[]) => any>(
-    func: T,
-    wait: number,
-    immediate = false
-  ): (...args: Parameters<T>) => void {
-    let timeout: NodeJS.Timeout | null = null;
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
     
-    return (...args: Parameters<T>) => {
-      const later = () => {
-        timeout = null;
-        if (!immediate) func(...args);
+    if (!gl) {
+      this.deviceCapabilities = {
+        webgl2: false,
+        highPerformance: false,
+        maxTextureSize: 512,
+        extensions: []
       };
-      
-      const callNow = immediate && !timeout;
-      
-      if (timeout) clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-      
-      if (callNow) func(...args);
+      return this.deviceCapabilities;
+    }
+
+    const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    const renderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : '';
+    
+    this.deviceCapabilities = {
+      webgl2: !!canvas.getContext('webgl2'),
+      highPerformance: this.isHighPerformanceDevice(renderer),
+      maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+      extensions: gl.getSupportedExtensions() || []
+    };
+
+    return this.deviceCapabilities;
+  }
+
+  private isHighPerformanceDevice(renderer: string): boolean {
+    const highPerfGPUs = ['nvidia', 'amd', 'radeon', 'geforce', 'quadro'];
+    return highPerfGPUs.some(gpu => renderer.toLowerCase().includes(gpu));
+  }
+
+  getOptimalSettings(): OptimizationSettings {
+    const capabilities = this.getDeviceCapabilities();
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile || !capabilities.highPerformance) {
+      return {
+        renderQuality: 0.75,
+        enableShadows: false,
+        enableReflections: false,
+        maxTextureSize: Math.min(1024, capabilities.maxTextureSize),
+        antialiasing: false
+      };
+    }
+
+    return {
+      renderQuality: 1.0,
+      enableShadows: true,
+      enableReflections: true,
+      maxTextureSize: Math.min(2048, capabilities.maxTextureSize),
+      antialiasing: capabilities.webgl2
     };
   }
 
-  // Throttle utility for scroll and resize events
-  throttle<T extends (...args: any[]) => any>(
-    func: T,
-    limit: number
-  ): (...args: Parameters<T>) => void {
-    let inThrottle: boolean = false;
+  optimizeImageUrl(src: string, width?: number, height?: number, quality = 80): string {
+    // Simple URL optimization - in production, this would integrate with CDN
+    if (!width && !height) return src;
     
-    return (...args: Parameters<T>) => {
-      if (!inThrottle) {
-        func(...args);
-        inThrottle = true;
-        setTimeout(() => inThrottle = false, limit);
-      }
+    // For now, return original URL. In production, this would generate optimized URLs
+    return src;
+  }
+
+  createLazyLoader(callback: (entry: IntersectionObserverEntry) => void): IntersectionObserver {
+    const options = {
+      root: null,
+      rootMargin: '50px',
+      threshold: 0.1
     };
+
+    return new IntersectionObserver((entries) => {
+      entries.forEach(callback);
+    }, options);
   }
 
-  // Memory management for 3D scenes
-  cleanup3DResources(scene: any) {
-    if (!scene) return;
-    
-    scene.traverse((child: any) => {
-      if (child.geometry) {
-        child.geometry.dispose();
-      }
-      
-      if (child.material) {
-        if (Array.isArray(child.material)) {
-          child.material.forEach((material: any) => this.disposeMaterial(material));
-        } else {
-          this.disposeMaterial(child.material);
-        }
-      }
-    });
-  }
-
-  private disposeMaterial(material: any) {
-    if (material.map) material.map.dispose();
-    if (material.normalMap) material.normalMap.dispose();
-    if (material.roughnessMap) material.roughnessMap.dispose();
-    if (material.metalnessMap) material.metalnessMap.dispose();
-    material.dispose();
-  }
-
-  // Preload critical resources
   preloadImage(src: string): Promise<HTMLImageElement> {
+    if (this.imageCache.has(src)) {
+      return Promise.resolve(this.imageCache.get(src)!);
+    }
+
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = () => resolve(img);
+      img.onload = () => {
+        this.imageCache.set(src, img);
+        resolve(img);
+      };
       img.onerror = reject;
       img.src = src;
     });
   }
 
-  preloadImages(urls: string[]): Promise<HTMLImageElement[]> {
-    return Promise.all(urls.map(url => this.preloadImage(url)));
+  measureRenderTime<T>(fn: () => T): { result: T; time: number } {
+    const start = performance.now();
+    const result = fn();
+    const time = performance.now() - start;
+    return { result, time };
   }
 
-  // Check device capabilities
-  getDeviceCapabilities() {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  throttle<T extends (...args: any[]) => any>(func: T, delay: number): T {
+    let timeoutId: NodeJS.Timeout;
+    let lastExecTime = 0;
     
-    return {
-      webgl: !!gl,
-      webgl2: !!canvas.getContext('webgl2'),
-      deviceMemory: (navigator as any).deviceMemory || 4,
-      hardwareConcurrency: navigator.hardwareConcurrency || 2,
-      connection: (navigator as any).connection?.effectiveType || '4g',
-      touchSupport: 'ontouchstart' in window,
-      pixelRatio: window.devicePixelRatio || 1
-    };
+    return ((...args: any[]) => {
+      const currentTime = Date.now();
+      
+      if (currentTime - lastExecTime > delay) {
+        func(...args);
+        lastExecTime = currentTime;
+      } else {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          func(...args);
+          lastExecTime = Date.now();
+        }, delay - (currentTime - lastExecTime));
+      }
+    }) as T;
   }
 
-  // Adaptive quality based on device performance
-  getOptimalQuality(): 'low' | 'medium' | 'high' {
-    const capabilities = this.getDeviceCapabilities();
+  debounce<T extends (...args: any[]) => any>(func: T, delay: number): T {
+    let timeoutId: NodeJS.Timeout;
     
-    if (capabilities.deviceMemory >= 8 && capabilities.webgl2 && capabilities.connection === '4g') {
-      return 'high';
-    } else if (capabilities.deviceMemory >= 4 && capabilities.webgl) {
-      return 'medium';
-    } else {
-      return 'low';
-    }
+    return ((...args: any[]) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func(...args), delay);
+    }) as T;
   }
 }
 
-// Export singleton instance
-export const performanceOptimizer = PerformanceOptimizer.getInstance();
-
-// Utility functions
-export const measurePerformance = (name: string) => {
-  const start = performance.now();
-  
-  return {
-    end: () => {
-      const duration = performance.now() - start;
-      console.log(`Performance: ${name} took ${duration.toFixed(2)}ms`);
-      return duration;
-    }
-  };
-};
-
-export const isHighPerformanceDevice = (): boolean => {
-  const capabilities = performanceOptimizer.getDeviceCapabilities();
-  return capabilities.deviceMemory >= 8 && capabilities.hardwareConcurrency >= 4;
-};
-
-export const isMobileDevice = (): boolean => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-};
+export const performanceOptimizer = new PerformanceOptimizer();
