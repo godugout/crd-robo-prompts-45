@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
@@ -124,15 +123,15 @@ export const useEnhancedStudio = () => {
     fileArray.forEach(file => {
       if (file.type.startsWith('image/')) {
         const url = URL.createObjectURL(file);
-        setState(prev => ({
-          ...prev,
-          uploadedImages: [...prev.uploadedImages, url]
+        setState(prevState => ({
+          ...prevState,
+          uploadedImages: [...prevState.uploadedImages, url]
         }));
         
         // Add as image layer
         const imageLayer: StudioLayer = {
           id: uuidv4(),
-          name: `Image ${prev.uploadedImages.length + 1}`,
+          name: `Image ${prevState.uploadedImages.length + 1}`,
           type: 'image',
           visible: true,
           opacity: 1,
@@ -145,9 +144,9 @@ export const useEnhancedStudio = () => {
           transform: { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 }
         };
         
-        setState(prevState => ({
-          ...prevState,
-          layers: [...prevState.layers, imageLayer],
+        setState(currentState => ({
+          ...currentState,
+          layers: [...currentState.layers, imageLayer],
           selectedLayerId: imageLayer.id
         }));
       }

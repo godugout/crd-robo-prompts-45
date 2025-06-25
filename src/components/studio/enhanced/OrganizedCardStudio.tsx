@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -117,19 +116,6 @@ export const OrganizedCardStudio = () => {
     }
   };
 
-  // Convert studio types to viewer types for compatibility
-  const convertedLayers = studio.layers.map(layer => ({
-    ...layer,
-    locked: layer.locked || false,
-    blendMode: layer.blendMode || 'normal' as const,
-    transform: layer.transform || { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 }
-  }));
-
-  const convertedEffects = studio.effects.map(effect => ({
-    ...effect,
-    type: effect.type === 'distortion' ? 'distortion' : effect.type
-  }));
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-crd-darkest via-gray-900 to-black">
       {/* Header */}
@@ -213,9 +199,6 @@ export const OrganizedCardStudio = () => {
                 <div className="aspect-[4/5] bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden border border-white/10">
                   <Enhanced3DCardViewer
                     card={studio.cardData}
-                    layers={convertedLayers}
-                    effects={convertedEffects}
-                    isPlaying={studio.isPlaying}
                   />
                 </div>
 
