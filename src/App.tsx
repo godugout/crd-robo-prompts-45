@@ -33,9 +33,9 @@ function App() {
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/oak-creator" element={<OakMemoryCreator />} />
                   <Route path="/studio" element={<CardStudio />} />
-                  <Route path="/cards/enhanced" element={<CardsEnhanced />} />
-                  <Route path="/cards/create" element={<CardsEnhanced />} />
-                  <Route path="/create" element={<CardCreation />} />
+                  <Route path="/cards/enhanced" element={<CardCreation />} />
+                  <Route path="/cards/create" element={<CardCreation />} />
+                  <Route path="/create" element={<CardsEnhanced />} />
                   <Route path="/card/:id" element={<CardDetail />} />
                   <Route path="/labs" element={<Labs />} />
                   <Route path="/profile" element={<Profile />} />
