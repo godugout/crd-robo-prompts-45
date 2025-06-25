@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { Navbar } from './components/home/Navbar';
-import Home from './pages/Home';
+import Home from './pages/Index';
 import CardCreation from './pages/CardCreation';
 import Gallery from './pages/Gallery';
 import Profile from './pages/Profile';
