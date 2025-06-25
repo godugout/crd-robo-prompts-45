@@ -6,293 +6,209 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  Users, 
-  Activity,
-  Calendar,
-  Download,
-  Filter,
-  BarChart3,
-  PieChart,
-  LineChart
-} from 'lucide-react';
-import { 
-  LineChart as RechartsLineChart, 
-  Line, 
+  BarChart, 
+  Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
+  Legend, 
+  LineChart, 
+  Line, 
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  PieChart as RechartsPieChart,
-  Cell,
-  Area,
-  AreaChart
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts';
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  Users, 
+  DollarSign, 
+  ShoppingCart, 
+  Eye,
+  Target,
+  Zap,
+  Globe,
+  Calendar
+} from 'lucide-react';
 
-interface RevenueData {
-  month: string;
-  revenue: number;
-  subscriptions: number;
-  templates: number;
-}
-
-interface UserGrowthData {
-  date: string;
-  users: number;
-  activeUsers: number;
-}
-
-interface MarketData {
-  category: string;
-  value: number;
-  growth: number;
+interface BusinessMetrics {
+  revenue: {
+    total: number;
+    growth: number;
+    forecast: number[];
+  };
+  users: {
+    total: number;
+    active: number;
+    growth: number;
+    segments: { name: string; value: number; color: string }[];
+  };
+  content: {
+    cards_created: number;
+    templates_sold: number;
+    engagement_rate: number;
+  };
+  marketplace: {
+    transactions: number;
+    conversion_rate: number;
+    avg_order_value: number;
+  };
 }
 
 export const BusinessIntelligence: React.FC = () => {
-  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
-  const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
-  const [userGrowthData, setUserGrowthData] = useState<UserGrowthData[]>([]);
-  const [marketData, setMarketData] = useState<MarketData[]>([]);
+  const [metrics, setMetrics] = useState<BusinessMetrics>({
+    revenue: {
+      total: 125000,
+      growth: 23.5,
+      forecast: [95000, 108000, 125000, 142000, 165000, 190000]
+    },
+    users: {
+      total: 15420,
+      active: 8230,
+      growth: 18.2,
+      segments: [
+        { name: 'Free Users', value: 65, color: '#8B5CF6' },
+        { name: 'Premium', value: 25, color: '#10B981' },
+        { name: 'Enterprise', value: 10, color: '#F59E0B' }
+      ]
+    },
+    content: {
+      cards_created: 45680,
+      templates_sold: 2340,
+      engagement_rate: 72.5
+    },
+    marketplace: {
+      transactions: 1250,
+      conversion_rate: 3.8,
+      avg_order_value: 24.50
+    }
+  });
 
-  useEffect(() => {
-    // Mock data - in production, fetch from analytics API
-    setRevenueData([
-      { month: 'Jan', revenue: 12500, subscriptions: 8500, templates: 4000 },
-      { month: 'Feb', revenue: 15200, subscriptions: 10200, templates: 5000 },
-      { month: 'Mar', revenue: 18900, subscriptions: 12400, templates: 6500 },
-      { month: 'Apr', revenue: 22100, subscriptions: 14600, templates: 7500 },
-      { month: 'May', revenue: 25800, subscriptions: 17200, templates: 8600 },
-      { month: 'Jun', revenue: 28400, subscriptions: 19100, templates: 9300 }
-    ]);
+  const revenueData = [
+    { month: 'Jan', revenue: 95000, forecast: 98000 },
+    { month: 'Feb', revenue: 108000, forecast: 112000 },
+    { month: 'Mar', revenue: 125000, forecast: 128000 },
+    { month: 'Apr', revenue: 142000, forecast: 145000 },
+    { month: 'May', revenue: 165000, forecast: 168000 },
+    { month: 'Jun', revenue: 190000, forecast: 195000 }
+  ];
 
-    setUserGrowthData([
-      { date: '2024-01', users: 1250, activeUsers: 875 },
-      { date: '2024-02', users: 1890, activeUsers: 1323 },
-      { date: '2024-03', users: 2540, activeUsers: 1778 },
-      { date: '2024-04', users: 3200, activeUsers: 2240 },
-      { date: '2024-05', users: 4100, activeUsers: 2870 },
-      { date: '2024-06', users: 5250, activeUsers: 3675 }
-    ]);
+  const userGrowthData = [
+    { week: 'W1', users: 12500, active: 6200 },
+    { week: 'W2', users: 13100, active: 6800 },
+    { week: 'W3', users: 14200, active: 7400 },
+    { week: 'W4', users: 15420, active: 8230 }
+  ];
 
-    setMarketData([
-      { category: 'Premium Templates', value: 45, growth: 12.5 },
-      { category: 'Custom Cards', value: 30, growth: 8.2 },
-      { category: 'Subscriptions', value: 20, growth: 15.8 },
-      { category: 'Enterprise', value: 5, growth: 25.4 }
-    ]);
-  }, [timeRange]);
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
 
-  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'];
-
-  const totalRevenue = revenueData.reduce((sum, item) => sum + item.revenue, 0);
-  const totalUsers = userGrowthData[userGrowthData.length - 1]?.users || 0;
-  const totalActiveUsers = userGrowthData[userGrowthData.length - 1]?.activeUsers || 0;
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat('en-US').format(num);
+  };
 
   return (
-    <div className="min-h-screen bg-crd-darkest p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Business Intelligence</h1>
-            <p className="text-gray-400 mt-1">Advanced analytics and market insights</p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 bg-crd-dark rounded-lg p-1">
-              {['7d', '30d', '90d', '1y'].map((range) => (
-                <Button
-                  key={range}
-                  variant={timeRange === range ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setTimeRange(range as any)}
-                  className={timeRange === range ? 'bg-crd-primary' : 'text-gray-400'}
-                >
-                  {range}
-                </Button>
-              ))}
-            </div>
-            <Button variant="outline" className="bg-crd-dark border-crd-border text-white">
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-          </div>
+    <div className="p-6 space-y-6 bg-crd-darkest min-h-screen">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-white">Business Intelligence</h1>
+        <div className="flex gap-2">
+          <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500">
+            Live Data
+          </Badge>
+          <Button variant="outline" className="border-crd-border text-white">
+            Export Report
+          </Button>
         </div>
+      </div>
 
-        {/* Key Performance Indicators */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-crd-dark border-crd-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-green-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">${totalRevenue.toLocaleString()}</div>
-              <p className="text-xs text-green-400 flex items-center">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                +23.4% vs last period
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-crd-dark border-crd-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-blue-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{totalUsers.toLocaleString()}</div>
-              <p className="text-xs text-green-400 flex items-center">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                +18.2% growth rate
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-crd-dark border-crd-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">Active Users</CardTitle>
-              <Activity className="h-4 w-4 text-purple-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{totalActiveUsers.toLocaleString()}</div>
-              <p className="text-xs text-gray-400">
-                {((totalActiveUsers / totalUsers) * 100).toFixed(1)}% engagement rate
-              </p>
-            </Content>
-          </Card>
-
-          <Card className="bg-crd-dark border-crd-border">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">Conversion Rate</CardTitle>
-              <BarChart3 className="h-4 w-4 text-orange-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">12.8%</div>
-              <p className="text-xs text-green-400 flex items-center">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                +2.1% improvement
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Analytics Tabs */}
-        <Tabs defaultValue="revenue" className="space-y-6">
-          <TabsList className="bg-crd-dark border-crd-border">
-            <TabsTrigger value="revenue" className="text-gray-300 data-[state=active]:text-white">
-              Revenue Analytics
-            </TabsTrigger>
-            <TabsTrigger value="users" className="text-gray-300 data-[state=active]:text-white">
-              User Growth
-            </TabsTrigger>
-            <TabsTrigger value="market" className="text-gray-300 data-[state=active]:text-white">
-              Market Analysis
-            </TabsTrigger>
-            <TabsTrigger value="forecasting" className="text-gray-300 data-[state=active]:text-white">
-              Forecasting
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="revenue" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-crd-dark border-crd-border">
-                <CardHeader>
-                  <CardTitle className="text-white">Revenue Trends</CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Monthly revenue breakdown by source
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={revenueData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis dataKey="month" stroke="#9CA3AF" />
-                      <YAxis stroke="#9CA3AF" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#1F2937', 
-                          border: '1px solid #374151',
-                          borderRadius: '8px'
-                        }}
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="revenue" 
-                        stackId="1"
-                        stroke="#3B82F6" 
-                        fill="#3B82F6" 
-                        fillOpacity={0.6}
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="subscriptions" 
-                        stackId="1"
-                        stroke="#10B981" 
-                        fill="#10B981" 
-                        fillOpacity={0.6}
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="templates" 
-                        stackId="1"
-                        stroke="#F59E0B" 
-                        fill="#F59E0B" 
-                        fillOpacity={0.6}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-crd-dark border-crd-border">
-                <CardHeader>
-                  <CardTitle className="text-white">Revenue Distribution</CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Current month revenue by category
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsPieChart>
-                      <Pie
-                        data={marketData}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ category, value }) => `${category}: ${value}%`}
-                      >
-                        {marketData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+      {/* Key Metrics Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-crd-dark border-crd-border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-300">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{formatCurrency(metrics.revenue.total)}</div>
+            <div className="flex items-center text-xs text-green-400">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              +{metrics.revenue.growth}% from last month
             </div>
-          </TabsContent>
+          </CardContent>
+        </Card>
 
-          <TabsContent value="users" className="space-y-6">
+        <Card className="bg-crd-dark border-crd-border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-300">Active Users</CardTitle>
+            <Users className="h-4 w-4 text-blue-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{formatNumber(metrics.users.active)}</div>
+            <div className="flex items-center text-xs text-blue-400">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              +{metrics.users.growth}% growth
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-crd-dark border-crd-border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-300">Cards Created</CardTitle>
+            <Eye className="h-4 w-4 text-purple-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{formatNumber(metrics.content.cards_created)}</div>
+            <div className="text-xs text-gray-400">
+              {metrics.content.engagement_rate}% engagement rate
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-crd-dark border-crd-border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-300">Conversion Rate</CardTitle>
+            <Target className="h-4 w-4 text-orange-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{metrics.marketplace.conversion_rate}%</div>
+            <div className="text-xs text-gray-400">
+              AOV: {formatCurrency(metrics.marketplace.avg_order_value)}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Analytics Tabs */}
+      <Tabs defaultValue="revenue" className="space-y-6">
+        <TabsList className="bg-crd-dark border border-crd-border">
+          <TabsTrigger value="revenue" className="data-[state=active]:bg-crd-primary">Revenue</TabsTrigger>
+          <TabsTrigger value="users" className="data-[state=active]:bg-crd-primary">Users</TabsTrigger>
+          <TabsTrigger value="content" className="data-[state=active]:bg-crd-primary">Content</TabsTrigger>
+          <TabsTrigger value="marketplace" className="data-[state=active]:bg-crd-primary">Marketplace</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="revenue" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="bg-crd-dark border-crd-border">
               <CardHeader>
-                <CardTitle className="text-white">User Growth Analytics</CardTitle>
+                <CardTitle className="text-white">Revenue Trends</CardTitle>
                 <CardDescription className="text-gray-400">
-                  Total users vs active users over time
+                  Monthly revenue vs forecast
                 </CardDescription>
               </CardHeader>
-              <CardContent className="h-96">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RechartsLineChart data={userGrowthData}>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={revenueData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="date" stroke="#9CA3AF" />
+                    <XAxis dataKey="month" stroke="#9CA3AF" />
                     <YAxis stroke="#9CA3AF" />
                     <Tooltip 
                       contentStyle={{ 
@@ -301,113 +217,188 @@ export const BusinessIntelligence: React.FC = () => {
                         borderRadius: '8px'
                       }}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="users" 
-                      stroke="#3B82F6" 
-                      strokeWidth={3}
-                      name="Total Users"
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="activeUsers" 
-                      stroke="#10B981" 
-                      strokeWidth={3}
-                      name="Active Users"
-                    />
-                  </RechartsLineChart>
+                    <Legend />
+                    <Bar dataKey="revenue" fill="#10B981" name="Actual Revenue" />
+                    <Bar dataKey="forecast" fill="#6B7280" name="Forecast" />
+                  </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-          </TabsContent>
 
-          <TabsContent value="market" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-crd-dark border-crd-border">
-                <CardHeader>
-                  <CardTitle className="text-white">Market Segments</CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Performance by business segment
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {marketData.map((segment, index) => (
-                    <div key={segment.category} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-white font-medium">{segment.category}</span>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-white">{segment.value}%</span>
-                          <Badge 
-                            variant="outline" 
-                            className={segment.growth > 0 ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'}
-                          >
-                            {segment.growth > 0 ? '+' : ''}{segment.growth}%
-                          </Badge>
-                        </div>
-                      </div>
-                      <Progress value={segment.value} className="h-2" />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card className="bg-crd-dark border-crd-border">
-                <CardHeader>
-                  <CardTitle className="text-white">Competitive Analysis</CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Market position and opportunities
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="p-4 rounded-lg bg-crd-darkest">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-white font-medium">Market Share</span>
-                        <Badge variant="outline" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                          Leading
-                        </Badge>
-                      </div>
-                      <p className="text-2xl font-bold text-white">23.5%</p>
-                      <p className="text-xs text-gray-400">In digital card creation tools</p>
-                    </div>
-                    
-                    <div className="p-4 rounded-lg bg-crd-darkest">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-white font-medium">Growth Rate</span>
-                        <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30">
-                          Above Average
-                        </Badge>
-                      </div>
-                      <p className="text-2xl font-bold text-white">127%</p>
-                      <p className="text-xs text-gray-400">Year-over-year growth</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="forecasting" className="space-y-6">
             <Card className="bg-crd-dark border-crd-border">
               <CardHeader>
-                <CardTitle className="text-white">Revenue Forecasting</CardTitle>
+                <CardTitle className="text-white">Revenue Breakdown</CardTitle>
                 <CardDescription className="text-gray-400">
-                  Predictive analytics and growth projections
+                  Revenue sources this month
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="text-center py-12">
-                  <LineChart className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                  <p className="text-gray-400">Advanced forecasting models coming soon</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Based on current growth trends, we project 300% revenue increase by Q4
-                  </p>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Premium Subscriptions</span>
+                    <span className="text-white font-medium">{formatCurrency(75000)}</span>
+                  </div>
+                  <Progress value={60} className="h-2" />
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Template Sales</span>
+                    <span className="text-white font-medium">{formatCurrency(35000)}</span>
+                  </div>
+                  <Progress value={28} className="h-2" />
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">Enterprise Licenses</span>
+                    <span className="text-white font-medium">{formatCurrency(15000)}</span>
+                  </div>
+                  <Progress value={12} className="h-2" />
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="users" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="bg-crd-dark border-crd-border">
+              <CardHeader>
+                <CardTitle className="text-white">User Growth</CardTitle>
+                <CardDescription className="text-gray-400">
+                  Total and active users over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={userGrowthData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="week" stroke="#9CA3AF" />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1F2937', 
+                        border: '1px solid #374151',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Legend />
+                    <Line type="monotone" dataKey="users" stroke="#8B5CF6" name="Total Users" />
+                    <Line type="monotone" dataKey="active" stroke="#10B981" name="Active Users" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-crd-dark border-crd-border">
+              <CardHeader>
+                <CardTitle className="text-white">User Segments</CardTitle>
+                <CardDescription className="text-gray-400">
+                  Distribution by subscription type
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={metrics.users.segments}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      dataKey="value"
+                    >
+                      {metrics.users.segments.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="content" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="bg-crd-dark border-crd-border">
+              <CardHeader>
+                <CardTitle className="text-white">Content Creation</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-3xl font-bold text-white">{formatNumber(metrics.content.cards_created)}</div>
+                <p className="text-gray-400">Total cards created</p>
+                <div className="text-sm text-green-400">+1,240 this week</div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-crd-dark border-crd-border">
+              <CardHeader>
+                <CardTitle className="text-white">Template Sales</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-3xl font-bold text-white">{formatNumber(metrics.content.templates_sold)}</div>
+                <p className="text-gray-400">Templates purchased</p>
+                <div className="text-sm text-green-400">+180 this week</div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-crd-dark border-crd-border">
+              <CardHeader>
+                <CardTitle className="text-white">Engagement</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-3xl font-bold text-white">{metrics.content.engagement_rate}%</div>
+                <p className="text-gray-400">Average engagement</p>
+                <div className="text-sm text-green-400">+2.3% improvement</div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="marketplace" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="bg-crd-dark border-crd-border">
+              <CardHeader>
+                <CardTitle className="text-white">Transactions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">{formatNumber(metrics.marketplace.transactions)}</div>
+                <p className="text-gray-400 text-sm">This month</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-crd-dark border-crd-border">
+              <CardHeader>
+                <CardTitle className="text-white">Conversion Rate</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">{metrics.marketplace.conversion_rate}%</div>
+                <p className="text-gray-400 text-sm">Visitor to buyer</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-crd-dark border-crd-border">
+              <CardHeader>
+                <CardTitle className="text-white">Avg Order Value</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">{formatCurrency(metrics.marketplace.avg_order_value)}</div>
+                <p className="text-gray-400 text-sm">Per transaction</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-crd-dark border-crd-border">
+              <CardHeader>
+                <CardTitle className="text-white">Revenue Share</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">70/30</div>
+                <p className="text-gray-400 text-sm">Creator/Platform</p>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
