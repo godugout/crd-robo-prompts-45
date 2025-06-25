@@ -1,29 +1,18 @@
 
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { useSimpleCardEditor } from '@/hooks/useSimpleCardEditor';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { Typography, CRDButton } from '@/components/ui/design-system';
-import type { CardRarity } from '@/types/card';
+import { Typography } from '@/components/ui/design-system';
 import { StepProgressIndicator } from '@/components/card-creator/components/StepProgressIndicator';
 import { StepNavigation } from '@/components/card-creator/components/StepNavigation';
 import { CustomizeStep } from '@/components/card-creator/steps/CustomizeStep';
 import { PolishStep } from '@/components/card-creator/steps/PolishStep';
-import { CardPreview } from '@/components/card/CardPreview';
-import { EnhancedCardStudio } from '@/components/studio/enhanced/EnhancedCardStudio';
-import { Sparkles } from 'lucide-react';
-
-type Step = 'frameAndImage' | 'customize' | 'polish' | 'preview';
-
-interface EnhancedCardCreatorProps {
-  initialImage?: string;
-  initialTitle?: string;
-  theme?: string;
-  primaryColor?: string;
-  mode?: 'full' | 'embedded' | 'compact';
-}
+import { FrameAndImageStep } from './enhanced/steps/FrameAndImageStep';
+import { PreviewStep } from './enhanced/steps/PreviewStep';
+import { canContinueStep, getStepTitle, navigateSteps, validateTheme } from './enhanced/utils';
+import type { EnhancedCardCreatorProps, Step } from './enhanced/types';
 
 export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
   initialImage,
@@ -38,8 +27,7 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
   const [step, setStep] = useState<Step>('frameAndImage');
   const [selectedFrame, setSelectedFrame] = useState<string>('');
 
-  // Validate theme
-  const validTheme = ['default', 'dark', 'light'].includes(theme) ? theme : 'default';
+  const validTheme = validateTheme(theme);
 
   // Initialize with URL parameters
   useEffect(() => {
@@ -82,15 +70,6 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
     updateField('image_url', newImageUrl);
   }, [updateField]);
 
-  const handleContinueInStudio = () => {
-    localStorage.setItem('draft-card', JSON.stringify({
-      ...cardData,
-      selectedFrame,
-    }));
-    navigate('/cards/create');
-    toast.success('Opening card in studio...');
-  };
-
   const handleQuickPublish = async () => {
     if (!user) {
       toast.error('Please sign in to publish cards');
@@ -116,36 +95,15 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
   };
 
   const canContinue = (): boolean => {
-    const currentStep = step;
-    if (currentStep === 'frameAndImage') {
-      return Boolean(selectedFrame && cardData.image_url);
-    }
-    if (currentStep === 'customize') {
-      return Boolean(cardData.title.trim().length > 0);
-    }
-    if (currentStep === 'polish') {
-      return true;
-    }
-    if (currentStep === 'preview') {
-      return true;
-    }
-    return false;
+    return canContinueStep(step, selectedFrame, cardData);
   };
 
   const handlePrevious = () => {
-    const steps: Step[] = ['frameAndImage', 'customize', 'polish', 'preview'];
-    const currentIndex = steps.indexOf(step);
-    if (currentIndex > 0) {
-      setStep(steps[currentIndex - 1]);
-    }
+    setStep(navigateSteps(step, 'previous'));
   };
 
   const handleNext = () => {
-    const steps: Step[] = ['frameAndImage', 'customize', 'polish', 'preview'];
-    const currentIndex = steps.indexOf(step);
-    if (currentIndex < steps.length - 1) {
-      setStep(steps[currentIndex + 1]);
-    }
+    setStep(navigateSteps(step, 'next'));
   };
 
   const renderStepContent = () => {
@@ -153,9 +111,8 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
     
     switch (step) {
       case 'frameAndImage':
-        console.log('Enhanced Studio with:', { selectedFrame, uploadedImage: cardData.image_url });
         return (
-          <EnhancedCardStudio
+          <FrameAndImageStep
             selectedFrame={selectedFrame}
             uploadedImage={cardData.image_url}
             onFrameSelect={handleFrameSelect}
@@ -182,70 +139,14 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
 
       case 'preview':
         return (
-          <div className="text-center space-y-8">
-            <div>
-              <Typography variant="h3" className="mb-2">
-                Your Enhanced Card is Ready!
-              </Typography>
-              <Typography variant="body" className="text-crd-lightGray">
-                Created with the enhanced professional studio
-              </Typography>
-            </div>
-
-            <div className="flex justify-center">
-              <CardPreview
-                cardData={{
-                  title: cardData.title,
-                  description: cardData.description,
-                  rarity: cardData.rarity,
-                  template_id: selectedFrame
-                }}
-                imageUrl={cardData.image_url}
-                onImageUpdate={handleImageUpdate}
-              />
-            </div>
-
-            <div className="bg-[#23262F] rounded-xl p-4 max-w-md mx-auto">
-              <h3 className="text-white font-bold text-xl mb-1">{cardData.title}</h3>
-              {cardData.description && (
-                <p className="text-gray-200 text-sm mb-2">{cardData.description}</p>
-              )}
-            </div>
-
-            <div className="flex gap-4 justify-center">
-              <CRDButton
-                onClick={async () => {
-                  if (!user) {
-                    toast.error('Please sign in to publish cards');
-                    navigate('/auth');
-                    return;
-                  }
-                  const saved = await saveCard();
-                  if (saved) {
-                    toast.success('Card published successfully!');
-                  }
-                }}
-                disabled={isSaving}
-              >
-                {isSaving ? 'Publishing...' : 'Publish Now'}
-              </CRDButton>
-              <CRDButton
-                variant="secondary"
-                onClick={() => {
-                  localStorage.setItem('draft-card', JSON.stringify({
-                    ...cardData,
-                    selectedFrame,
-                  }));
-                  navigate('/studio');
-                  toast.success('Opening in advanced studio...');
-                }}
-                className="border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Advanced Studio
-              </CRDButton>
-            </div>
-          </div>
+          <PreviewStep
+            cardData={cardData}
+            selectedFrame={selectedFrame}
+            isSaving={isSaving}
+            user={user}
+            onImageUpdate={handleImageUpdate}
+            onSaveCard={saveCard}
+          />
         );
 
       default:
@@ -290,9 +191,7 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
         <div className="bg-[#23262F] rounded-2xl overflow-hidden">
           <div className="p-4 lg:p-6 text-center border-b border-gray-700">
             <Typography variant="h2" className="mb-2">
-              {step === 'frameAndImage' ? 'Professional Studio' : 
-               step === 'customize' ? 'Customize Your Card' :
-               step === 'polish' ? 'Add Finishing Touches' : 'Preview & Publish'}
+              {getStepTitle(step)}
             </Typography>
           </div>
           
