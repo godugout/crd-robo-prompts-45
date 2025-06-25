@@ -1,248 +1,165 @@
 
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei';
-import { motion } from 'framer-motion';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { 
-  Upload, 
-  Frame, 
-  Sparkles, 
-  Palette, 
-  Download, 
-  Play, 
-  Pause,
-  RotateCw,
-  Save,
-  Undo,
-  Redo,
+  ChevronLeft,
+  ChevronRight,
+  Upload,
+  Square,
   Eye,
-  Settings
+  Sparkles,
+  Settings,
+  RotateCw,
+  Pause,
+  Play
 } from 'lucide-react';
+
+// Import our new functional phases
+import { UploadPhase } from './phases/UploadPhase';
+import { FramePhase } from './phases/FramePhase';
+import { EffectsPhase } from './phases/EffectsPhase';
+import { StudioPhase } from './phases/StudioPhase';
+import { useEnhancedStudio } from './hooks/useEnhancedStudio';
 import { Advanced3DCard } from '../3d/Advanced3DCard';
-import { useAdvancedCardStudio } from '../hooks/useAdvancedCardStudio';
+
+const PHASES = [
+  {
+    id: 'upload',
+    title: 'Upload',
+    description: 'Add your images',
+    icon: Upload,
+    color: 'text-blue-400'
+  },
+  {
+    id: 'frame',
+    title: 'Frame',
+    description: 'Choose template',
+    icon: Square,
+    color: 'text-green-400'
+  },
+  {
+    id: 'effects',
+    title: 'Effects',
+    description: 'Add visual flair',
+    icon: Sparkles,
+    color: 'text-purple-400'
+  },
+  {
+    id: 'studio',
+    title: 'Studio',
+    description: 'Fine-tune & export',
+    icon: Settings,
+    color: 'text-orange-400'
+  }
+];
 
 export const OrganizedCardStudio: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  
   const {
-    cardData,
+    // State
+    currentPhase,
+    completedPhases,
+    uploadedImages,
+    selectedFrame,
+    frameData,
     layers,
     effects,
-    materials,
-    selectedFrame,
-    history,
+    cardData,
+    selectedLayerId,
     isPlaying,
-    updateCardData,
+    fileInputRef,
+    
+    // Phase Management
+    setCurrentPhase,
+    completePhase,
+    
+    // Image Upload
+    handleImageUpload,
+    triggerImageUpload,
+    
+    // Frame Management
     selectFrame,
-    applyEffect,
-    updateMaterial,
-    undo,
-    redo,
-    save,
-    toggleAnimation
-  } = useAdvancedCardStudio();
+    
+    // Layer Management
+    addLayer,
+    updateLayer,
+    removeLayer,
+    selectLayer,
+    
+    // Effects Management
+    addEffect,
+    updateEffect,
+    removeEffect,
+    
+    // Animation
+    toggleAnimation,
+    
+    // Export & Save
+    exportCard,
+    saveCard
+  } = useEnhancedStudio();
 
-  const [currentPhase, setCurrentPhase] = useState<'upload' | 'frame' | 'effects' | 'studio'>('upload');
-  const [activeTab, setActiveTab] = useState('design');
-
-  const phases = [
-    { id: 'upload', label: 'Upload', icon: Upload, description: 'Add your images' },
-    { id: 'frame', label: 'Frame', icon: Frame, description: 'Choose template' },
-    { id: 'effects', label: 'Effects', icon: Sparkles, description: 'Add visual magic' },
-    { id: 'studio', label: 'Studio', icon: Palette, description: 'Fine-tune design' }
-  ];
+  const currentPhaseData = PHASES[currentPhase];
+  const progress = ((completedPhases.size) / PHASES.length) * 100;
 
   const renderPhaseContent = () => {
     switch (currentPhase) {
-      case 'upload':
+      case 0:
         return (
-          <div className="space-y-6 p-6">
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-white mb-2">Upload Your Images</h3>
-              <p className="text-gray-400">Start by uploading your card images or photos</p>
-            </div>
-            
-            <div className="border-2 border-dashed border-gray-600 rounded-lg p-12 text-center hover:border-gray-500 transition-colors">
-              <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-300 mb-2">Drag & drop your images here</p>
-              <p className="text-gray-500 text-sm">or click to browse files</p>
-              <Button className="mt-4 bg-cyan-500 hover:bg-cyan-400 text-black">
-                Choose Files
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="aspect-square bg-gray-800 rounded-lg border border-gray-700 flex items-center justify-center">
-                  <span className="text-gray-500">Image {i}</span>
-                </div>
-              ))}
-            </div>
-
-            <Button 
-              onClick={() => setCurrentPhase('frame')}
-              className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-medium"
-            >
-              Continue to Frame Selection
-            </Button>
-          </div>
+          <UploadPhase
+            uploadedImages={uploadedImages}
+            onImageUpload={handleImageUpload}
+            onComplete={() => completePhase(0)}
+            fileInputRef={fileInputRef}
+          />
         );
-
-      case 'frame':
+      case 1:
         return (
-          <div className="space-y-6 p-6">
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-2">Choose Your Frame</h3>
-              <p className="text-gray-400">Select a professional template</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {['Sports Classic', 'Modern Holographic', 'Vintage Collection', 'Chrome Edition'].map((frame) => (
-                <Card key={frame} className="bg-gray-800 border-gray-700 p-4 cursor-pointer hover:bg-gray-750 transition-colors">
-                  <div className="aspect-[3/4] bg-gray-700 rounded mb-3 flex items-center justify-center">
-                    <Frame className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <p className="text-white font-medium text-sm">{frame}</p>
-                </Card>
-              ))}
-            </div>
-
-            <Button 
-              onClick={() => setCurrentPhase('effects')}
-              className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-medium"
-            >
-              Continue to Effects
-            </Button>
-          </div>
+          <FramePhase
+            selectedFrame={selectedFrame}
+            frameData={frameData}
+            onFrameSelect={selectFrame}
+            onComplete={() => completePhase(1)}
+          />
         );
-
-      case 'effects':
+      case 2:
         return (
-          <div className="space-y-6 p-6">
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-2">Add Visual Effects</h3>
-              <p className="text-gray-400">Enhance your card with premium effects</p>
-            </div>
-
-            <div className="space-y-4">
-              {[
-                { name: 'Holographic Foil', description: 'Rainbow shimmer effect', premium: true },
-                { name: 'Chrome Metallic', description: 'Mirror-like finish', premium: true },
-                { name: 'Particle Glow', description: 'Magical sparkles', premium: false },
-                { name: 'Energy Aura', description: 'Glowing outline', premium: false }
-              ].map((effect) => (
-                <Card key={effect.name} className="bg-gray-800 border-gray-700 p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-white font-medium">{effect.name}</p>
-                        {effect.premium && (
-                          <Badge className="bg-yellow-500 text-black text-xs">Premium</Badge>
-                        )}
-                      </div>
-                      <p className="text-gray-400 text-sm">{effect.description}</p>
-                    </div>
-                    <Button size="sm" variant="outline" className="border-gray-600">
-                      Apply
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            <Button 
-              onClick={() => setCurrentPhase('studio')}
-              className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-medium"
-            >
-              Open Professional Studio
-            </Button>
-          </div>
+          <EffectsPhase
+            effects={effects}
+            onAddEffect={addEffect}
+            onUpdateEffect={updateEffect}
+            onRemoveEffect={removeEffect}
+            onComplete={() => completePhase(2)}
+            isPlaying={isPlaying}
+            onToggleAnimation={toggleAnimation}
+          />
         );
-
-      case 'studio':
+      case 3:
         return (
-          <div className="h-full flex flex-col">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-              <TabsList className="bg-gray-800 border-b border-gray-700">
-                <TabsTrigger value="design" className="flex items-center gap-2">
-                  <Palette className="w-4 h-4" />
-                  Design
-                </TabsTrigger>
-                <TabsTrigger value="effects" className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Effects
-                </TabsTrigger>
-                <TabsTrigger value="export" className="flex items-center gap-2">
-                  <Download className="w-4 h-4" />
-                  Export
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="design" className="flex-1 p-6 space-y-4">
-                <h4 className="text-lg font-semibold text-white">Design Controls</h4>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-white text-sm font-medium mb-2 block">Card Title</label>
-                    <input 
-                      type="text" 
-                      className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white"
-                      value={cardData.title}
-                      onChange={(e) => updateCardData({ title: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-white text-sm font-medium mb-2 block">Description</label>
-                    <textarea 
-                      className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white h-20"
-                      value={cardData.description}
-                      onChange={(e) => updateCardData({ description: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-white text-sm font-medium mb-2 block">Rarity</label>
-                    <select 
-                      className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white"
-                      value={cardData.rarity}
-                      onChange={(e) => updateCardData({ rarity: e.target.value as any })}
-                    >
-                      <option value="common">Common</option>
-                      <option value="uncommon">Uncommon</option>
-                      <option value="rare">Rare</option>
-                      <option value="epic">Epic</option>
-                      <option value="legendary">Legendary</option>
-                    </select>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="effects" className="flex-1 p-6">
-                <h4 className="text-lg font-semibold text-white mb-4">Active Effects</h4>
-                <p className="text-gray-400">Fine-tune your visual effects here</p>
-              </TabsContent>
-
-              <TabsContent value="export" className="flex-1 p-6">
-                <h4 className="text-lg font-semibold text-white mb-4">Export Options</h4>
-                <div className="space-y-4">
-                  <Button className="w-full bg-green-600 hover:bg-green-500">
-                    Export High Quality PNG
-                  </Button>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-500">
-                    Export for Print
-                  </Button>
-                  <Button className="w-full bg-purple-600 hover:bg-purple-500">
-                    Save to Gallery
-                  </Button>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
+          <StudioPhase
+            layers={layers}
+            selectedLayerId={selectedLayerId}
+            onAddLayer={addLayer}
+            onUpdateLayer={updateLayer}
+            onRemoveLayer={removeLayer}
+            onSelectLayer={selectLayer}
+            onExport={exportCard}
+            onSave={saveCard}
+          />
         );
-
       default:
         return null;
     }
+  };
+
+  const canNavigateToPhase = (phaseIndex: number) => {
+    if (phaseIndex === 0) return true;
+    return completedPhases.has(phaseIndex - 1);
   };
 
   return (
@@ -258,69 +175,82 @@ export const OrganizedCardStudio: React.FC = () => {
           </Badge>
         </div>
         
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="sm" onClick={undo} disabled={!history.canUndo}>
-            <Undo className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={redo} disabled={!history.canRedo}>
-            <Redo className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={save}>
-            <Save className="w-4 h-4" />
-          </Button>
+        <div className="flex items-center space-x-4">
+          <div className="text-sm text-gray-400">
+            Progress: {Math.round(progress)}%
+          </div>
+          <div className="w-32 bg-gray-700 rounded-full h-2">
+            <div 
+              className="h-2 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
       </div>
 
       {/* Phase Navigation */}
-      <div className="h-20 bg-black/30 backdrop-blur-xl border-b border-white/10 flex items-center justify-center">
+      <div className="h-20 bg-black/30 backdrop-blur-xl border-b border-white/10 flex items-center justify-center px-6">
         <div className="flex items-center space-x-1">
-          {phases.map((phase, index) => (
-            <React.Fragment key={phase.id}>
-              <Button
-                variant="ghost"
-                onClick={() => setCurrentPhase(phase.id as any)}
-                className={`flex items-center space-x-3 px-6 py-3 rounded-lg transition-all ${
-                  currentPhase === phase.id 
-                    ? 'bg-cyan-500 text-black' 
-                    : 'text-gray-400 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                  currentPhase === phase.id 
-                    ? 'border-black bg-black/20' 
-                    : 'border-gray-600'
-                }`}>
-                  <phase.icon className="w-4 h-4" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">{phase.label}</div>
-                  <div className="text-xs opacity-70">{phase.description}</div>
-                </div>
-              </Button>
-              {index < phases.length - 1 && (
-                <div className="w-8 h-px bg-gray-600 mx-2" />
-              )}
-            </React.Fragment>
-          ))}
+          {PHASES.map((phase, index) => {
+            const Icon = phase.icon;
+            const isActive = currentPhase === index;
+            const isCompleted = completedPhases.has(index);
+            const canNavigate = canNavigateToPhase(index);
+            
+            return (
+              <React.Fragment key={phase.id}>
+                <Button
+                  variant="ghost"
+                  onClick={() => canNavigate && setCurrentPhase(index)}
+                  disabled={!canNavigate}
+                  className={`h-auto p-4 flex flex-col items-center space-y-1 ${
+                    isActive 
+                      ? 'text-cyan-400 bg-cyan-400/10' 
+                      : isCompleted 
+                        ? 'text-green-400 hover:text-white'
+                        : canNavigate
+                          ? 'text-gray-400 hover:text-white'
+                          : 'text-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
+                    isActive 
+                      ? 'border-cyan-400 bg-cyan-400/20' 
+                      : isCompleted 
+                        ? 'border-green-400 bg-green-400/20'
+                        : canNavigate
+                          ? 'border-gray-600 bg-gray-800'
+                          : 'border-gray-700 bg-gray-900'
+                  }`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="text-center">
+                    <div className="font-medium text-xs">{phase.title}</div>
+                    <div className="text-xs opacity-70">{phase.description}</div>
+                  </div>
+                </Button>
+                
+                {index < PHASES.length - 1 && (
+                  <ChevronRight className="w-4 h-4 text-gray-600 mx-2" />
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flex h-[calc(100vh-9rem)]">
-        {/* Left Sidebar */}
-        <motion.div
-          className="w-96 bg-black/30 backdrop-blur-xl border-r border-white/10 overflow-y-auto"
-          initial={{ x: -384 }}
-          animate={{ x: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        >
+        {/* Left Sidebar - Phase Content */}
+        <div className="w-96 bg-black/30 backdrop-blur-xl border-r border-white/10 overflow-y-auto custom-scrollbar">
           {renderPhaseContent()}
-        </motion.div>
+        </div>
 
         {/* Main Canvas Area */}
         <div className="flex-1 relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
           <div className="w-full h-full">
             <Canvas
+              ref={canvasRef}
               shadows
               camera={{ position: [0, 0, 8], fov: 45 }}
               gl={{ 
@@ -332,7 +262,7 @@ export const OrganizedCardStudio: React.FC = () => {
             >
               <PerspectiveCamera makeDefault position={[0, 0, 8]} />
               
-              {/* Enhanced Lighting */}
+              {/* Professional Lighting */}
               <ambientLight intensity={0.4} />
               <directionalLight 
                 position={[10, 10, 5]} 
@@ -352,12 +282,12 @@ export const OrganizedCardStudio: React.FC = () => {
               
               <Environment preset="studio" />
               
-              {/* 3D Card */}
+              {/* 3D Card with Effects */}
               <Advanced3DCard
                 cardData={cardData}
                 layers={layers}
                 effects={effects}
-                materials={materials}
+                materials={[]}
                 isPlaying={isPlaying}
                 previewMode="design"
               />
@@ -369,7 +299,7 @@ export const OrganizedCardStudio: React.FC = () => {
                 enableRotate={true}
                 minDistance={3}
                 maxDistance={12}
-                autoRotate={isPlaying}
+                autoRotate={isPlaying && currentPhase === 2}
                 autoRotateSpeed={1}
                 dampingFactor={0.05}
                 enableDamping={true}
@@ -377,53 +307,70 @@ export const OrganizedCardStudio: React.FC = () => {
             </Canvas>
           </div>
 
-          {/* Preview Controls Overlay */}
-          <div className="absolute top-4 right-4 bg-black/90 backdrop-blur-md p-4 rounded-xl z-10 border border-white/20">
-            <div className="flex items-center space-x-2">
+          {/* 3D Controls Overlay */}
+          <div className="absolute bottom-4 right-4 bg-black/90 backdrop-blur-md p-3 rounded-xl z-10 border border-white/20">
+            <div className="flex items-center space-x-3">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={toggleAnimation}
-                className="text-white hover:bg-white/10"
+                className="border-white/20 text-white hover:bg-white/10"
               >
                 {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/10"
-              >
-                <RotateCw className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-white/10"
-              >
-                <Eye className="w-4 h-4" />
-              </Button>
+              <div className="text-white text-sm">
+                3D Preview
+              </div>
             </div>
           </div>
 
-          {/* Status Bar */}
-          <div className="absolute bottom-4 left-4 bg-black/90 backdrop-blur-md p-4 rounded-xl z-10 border border-white/20">
-            <div className="flex items-center space-x-6 text-sm">
+          {/* Phase Indicator Overlay */}
+          <div className="absolute top-4 left-4 bg-black/90 backdrop-blur-md p-3 rounded-xl z-10 border border-white/20">
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${currentPhaseData.color.replace('text-', 'bg-')}`} />
+              <span className="text-white text-sm font-medium">
+                {currentPhaseData.title} Phase
+              </span>
+            </div>
+          </div>
+
+          {/* Status Info Overlay */}
+          <div className="absolute bottom-4 left-4 bg-black/90 backdrop-blur-md p-3 rounded-xl z-10 border border-white/20">
+            <div className="flex items-center space-x-4 text-sm">
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                 <span className="text-white">Live Preview</span>
               </div>
               <div className="text-gray-400">|</div>
               <div className="text-gray-300">
-                Phase: {currentPhase} • {layers.filter(l => l.visible).length} layers
+                {layers.filter(l => l.visible).length} layers
               </div>
               <div className="text-gray-400">|</div>
               <div className="text-gray-300">
-                {effects.filter(e => e.enabled).length} effects active
+                {effects.filter(e => e.enabled).length} effects
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Custom Scrollbar Styles */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.3);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.5);
+        }
+      `}</style>
     </div>
   );
 };
