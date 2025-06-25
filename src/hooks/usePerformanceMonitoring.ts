@@ -73,7 +73,7 @@ export const usePerformanceMonitoring = () => {
             break;
             
           case 'first-input':
-            reportMetrics({ fid: entry.processingStart - entry.startTime });
+            reportMetrics({ fid: (entry as any).processingStart - entry.startTime });
             break;
             
           case 'layout-shift':

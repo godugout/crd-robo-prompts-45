@@ -4,7 +4,7 @@ import { useQuery, useInfiniteQuery, UseQueryOptions } from '@tanstack/react-que
 import { supabase } from '@/integrations/supabase/client';
 
 interface OptimizedQueryOptions<T> extends Omit<UseQueryOptions<T>, 'queryKey' | 'queryFn'> {
-  cacheTime?: number;
+  gcTime?: number;
   staleTime?: number;
 }
 
@@ -56,7 +56,7 @@ export const useOptimizedQueries = () => {
         return data;
       },
       staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
       ...options
     });
   };
@@ -66,7 +66,7 @@ export const useOptimizedQueries = () => {
     return useInfiniteQuery({
       queryKey: ['cards-infinite', filters],
       queryFn: async ({ pageParam = 0 }) => {
-        const from = pageParam * 20;
+        const from = (pageParam as number) * 20;
         const to = from + 19;
 
         let query = supabase
@@ -84,13 +84,14 @@ export const useOptimizedQueries = () => {
 
         const { data, error } = await query;
         if (error) throw error;
-        return data;
+        return data || [];
       },
       getNextPageParam: (lastPage, allPages) => {
-        return lastPage.length === 20 ? allPages.length : undefined;
+        return (lastPage as any[]).length === 20 ? allPages.length : undefined;
       },
       staleTime: 2 * 60 * 1000, // 2 minutes
-      cacheTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 5 * 60 * 1000, // 5 minutes
+      initialPageParam: 0,
     });
   };
 
@@ -99,23 +100,21 @@ export const useOptimizedQueries = () => {
     return useQuery({
       queryKey: ['creator-profile', creatorId, includeStats],
       queryFn: async () => {
-        const baseQuery = supabase
+        const { data, error } = await supabase
           .from('creator_profiles')
           .select(`
             id, user_id, display_name, bio, avatar_url,
             creator_verified, specialties, portfolio_links
-            ${includeStats ? `, creator_earnings(count)` : ''}
           `)
           .eq('id', creatorId)
           .single();
 
-        const { data, error } = await baseQuery;
         if (error) throw error;
         return data;
       },
       enabled: !!creatorId,
       staleTime: 10 * 60 * 1000, // 10 minutes
-      cacheTime: 30 * 60 * 1000, // 30 minutes
+      gcTime: 30 * 60 * 1000, // 30 minutes
     });
   };
 

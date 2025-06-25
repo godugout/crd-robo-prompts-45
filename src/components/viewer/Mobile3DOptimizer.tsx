@@ -1,7 +1,7 @@
 
 import React, { useMemo, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useMobileOptimizations } from '@/hooks/useMobileOptimizations';
 import { performanceOptimizer } from '@/lib/performance';
 
@@ -28,7 +28,7 @@ export const Mobile3DOptimizer: React.FC<Mobile3DOptimizerProps> = ({
       dpr: pixelRatio || Math.min(window.devicePixelRatio, isMobile ? 2 : 3),
       antialias: optimal.antialiasing && deviceCapabilities.webgl2,
       alpha: true,
-      powerPreference: isLowPowerMode ? 'low-power' : 'high-performance',
+      powerPreference: (isLowPowerMode ? 'low-power' : 'high-performance') as WebGLPowerPreference,
       failIfMajorPerformanceCaveat: false,
       stencil: false,
       depth: true,

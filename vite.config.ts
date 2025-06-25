@@ -10,6 +10,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    port: 8080,
+    headers: {
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+    },
+  },
   build: {
     target: 'esnext',
     minify: 'terser',
@@ -32,12 +39,6 @@ export default defineConfig({
       },
     },
     chunkSizeWarningLimit: 1000,
-  },
-  server: {
-    headers: {
-      'Cross-Origin-Embedder-Policy': 'require-corp',
-      'Cross-Origin-Opener-Policy': 'same-origin',
-    },
   },
   define: {
     global: 'globalThis',

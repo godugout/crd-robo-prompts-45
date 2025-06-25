@@ -59,12 +59,13 @@ export const useMobileOptimizations = () => {
   const createTouchHandler = useCallback((
     onGesture: (gesture: TouchGesture) => void
   ) => {
-    let startTouch: Touch | null = null;
+    let startTouch: { clientX: number; clientY: number } | null = null;
     let startTime = 0;
     let longPressTimer: NodeJS.Timeout;
 
     const handleTouchStart = (e: React.TouchEvent) => {
-      startTouch = e.touches[0];
+      const touch = e.touches[0];
+      startTouch = { clientX: touch.clientX, clientY: touch.clientY };
       startTime = Date.now();
       
       // Long press detection
