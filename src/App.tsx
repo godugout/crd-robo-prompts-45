@@ -11,6 +11,7 @@ import CardsPage from '@/pages/CardsPage';
 import Marketplace from '@/pages/Marketplace';
 import CreatorHub from '@/pages/CreatorHub';
 import CommunityPage from '@/pages/CommunityPage';
+import AdvancedCreatorStudio from '@/pages/AdvancedCreatorStudio';
 import { TemplateMarketplace } from '@/components/marketplace/TemplateMarketplace';
 import EnhancedStudio from '@/pages/EnhancedStudio';
 import { AuthPage } from '@/components/auth/AuthPage';
@@ -52,6 +53,10 @@ const router = createBrowserRouter([
       {
         path: "creator",
         element: <CreatorHub />
+      },
+      {
+        path: "creator/advanced",
+        element: <AdvancedCreatorStudio />
       },
       {
         path: "community",

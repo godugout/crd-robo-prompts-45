@@ -363,6 +363,62 @@ export type Database = {
           },
         ]
       }
+      bulk_operations: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          creator_id: string
+          error_log: Json | null
+          failed_items: number | null
+          id: string
+          operation_data: Json
+          operation_type: string
+          processed_items: number | null
+          result_summary: Json | null
+          started_at: string | null
+          status: string | null
+          total_items: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          creator_id: string
+          error_log?: Json | null
+          failed_items?: number | null
+          id?: string
+          operation_data?: Json
+          operation_type: string
+          processed_items?: number | null
+          result_summary?: Json | null
+          started_at?: string | null
+          status?: string | null
+          total_items: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          creator_id?: string
+          error_log?: Json | null
+          failed_items?: number | null
+          id?: string
+          operation_data?: Json
+          operation_type?: string
+          processed_items?: number | null
+          result_summary?: Json | null
+          started_at?: string | null
+          status?: string | null
+          total_items?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bulk_operations_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       card_downloads: {
         Row: {
           card_id: string
@@ -1103,6 +1159,66 @@ export type Database = {
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_moderation_queue: {
+        Row: {
+          ai_confidence_score: number | null
+          community_votes: Json | null
+          content_id: string
+          content_type: string
+          created_at: string | null
+          creator_id: string
+          id: string
+          moderation_type: string
+          moderator_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+        }
+        Insert: {
+          ai_confidence_score?: number | null
+          community_votes?: Json | null
+          content_id: string
+          content_type: string
+          created_at?: string | null
+          creator_id: string
+          id?: string
+          moderation_type: string
+          moderator_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Update: {
+          ai_confidence_score?: number | null
+          community_votes?: Json | null
+          content_id?: string
+          content_type?: string
+          created_at?: string | null
+          creator_id?: string
+          id?: string
+          moderation_type?: string
+          moderator_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_moderation_queue_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_moderation_queue_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1928,6 +2044,56 @@ export type Database = {
           },
         ]
       }
+      creator_automation_rules: {
+        Row: {
+          actions: Json
+          conditions: Json
+          created_at: string | null
+          creator_id: string
+          execution_count: number | null
+          id: string
+          is_active: boolean | null
+          last_executed_at: string | null
+          rule_type: string
+          success_rate: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string | null
+          creator_id: string
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_executed_at?: string | null
+          rule_type: string
+          success_rate?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string | null
+          creator_id?: string
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_executed_at?: string | null
+          rule_type?: string
+          success_rate?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_automation_rules_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creator_challenges: {
         Row: {
           challenge_type: string
@@ -2190,6 +2356,65 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "card_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_financing: {
+        Row: {
+          amount_funded: number | null
+          amount_requested: number
+          backers_count: number | null
+          created_at: string | null
+          creator_id: string
+          deadline: string | null
+          financing_type: string
+          funding_goal: number | null
+          id: string
+          interest_rate: number | null
+          project_description: string
+          repayment_terms: Json | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount_funded?: number | null
+          amount_requested: number
+          backers_count?: number | null
+          created_at?: string | null
+          creator_id: string
+          deadline?: string | null
+          financing_type: string
+          funding_goal?: number | null
+          id?: string
+          interest_rate?: number | null
+          project_description: string
+          repayment_terms?: Json | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount_funded?: number | null
+          amount_requested?: number
+          backers_count?: number | null
+          created_at?: string | null
+          creator_id?: string
+          deadline?: string | null
+          financing_type?: string
+          funding_goal?: number | null
+          id?: string
+          interest_rate?: number | null
+          project_description?: string
+          repayment_terms?: Json | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_financing_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2503,6 +2728,44 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_quality_metrics: {
+        Row: {
+          created_at: string | null
+          creator_id: string
+          id: string
+          measurement_date: string
+          metadata: Json | null
+          metric_type: string
+          metric_value: number
+        }
+        Insert: {
+          created_at?: string | null
+          creator_id: string
+          id?: string
+          measurement_date: string
+          metadata?: Json | null
+          metric_type: string
+          metric_value: number
+        }
+        Update: {
+          created_at?: string | null
+          creator_id?: string
+          id?: string
+          measurement_date?: string
+          metadata?: Json | null
+          metric_type?: string
+          metric_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_quality_metrics_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creator_subscriptions: {
         Row: {
           created_at: string | null
@@ -2651,6 +2914,77 @@ export type Database = {
           username?: string
         }
         Relationships: []
+      }
+      design_assets_library: {
+        Row: {
+          asset_type: string
+          categories: string[] | null
+          created_at: string | null
+          creator_id: string
+          description: string | null
+          downloads_count: number | null
+          file_size: number | null
+          file_url: string
+          id: string
+          is_public: boolean | null
+          metadata: Json | null
+          mime_type: string | null
+          price: number | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string | null
+          updated_at: string | null
+          usage_rights: string
+        }
+        Insert: {
+          asset_type: string
+          categories?: string[] | null
+          created_at?: string | null
+          creator_id: string
+          description?: string | null
+          downloads_count?: number | null
+          file_size?: number | null
+          file_url: string
+          id?: string
+          is_public?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          price?: number | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string | null
+          updated_at?: string | null
+          usage_rights: string
+        }
+        Update: {
+          asset_type?: string
+          categories?: string[] | null
+          created_at?: string | null
+          creator_id?: string
+          description?: string | null
+          downloads_count?: number | null
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          is_public?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          price?: number | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string | null
+          updated_at?: string | null
+          usage_rights?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_assets_library_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       design_elements: {
         Row: {
@@ -2914,6 +3248,56 @@ export type Database = {
             columns: ["element_id"]
             isOneToOne: false
             referencedRelation: "design_elements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_integrations: {
+        Row: {
+          api_credentials: Json | null
+          created_at: string | null
+          creator_id: string
+          error_message: string | null
+          id: string
+          integration_type: string
+          last_sync_at: string | null
+          service_name: string
+          sync_settings: Json | null
+          sync_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          api_credentials?: Json | null
+          created_at?: string | null
+          creator_id: string
+          error_message?: string | null
+          id?: string
+          integration_type: string
+          last_sync_at?: string | null
+          service_name: string
+          sync_settings?: Json | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          api_credentials?: Json | null
+          created_at?: string | null
+          creator_id?: string
+          error_message?: string | null
+          id?: string
+          integration_type?: string
+          last_sync_at?: string | null
+          service_name?: string
+          sync_settings?: Json | null
+          sync_status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_integrations_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3526,6 +3910,117 @@ export type Database = {
             columns: ["card_id"]
             isOneToOne: false
             referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_performance_metrics: {
+        Row: {
+          aggregation_period: string | null
+          card_id: string | null
+          created_at: string | null
+          creator_id: string | null
+          id: string
+          metadata: Json | null
+          metric_date: string
+          metric_name: string
+          metric_value: number
+          template_id: string | null
+        }
+        Insert: {
+          aggregation_period?: string | null
+          card_id?: string | null
+          created_at?: string | null
+          creator_id?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_date: string
+          metric_name: string
+          metric_value: number
+          template_id?: string | null
+        }
+        Update: {
+          aggregation_period?: string | null
+          card_id?: string | null
+          created_at?: string | null
+          creator_id?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_date?: string
+          metric_name?: string
+          metric_value?: number
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_performance_metrics_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_performance_metrics_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketplace_performance_metrics_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "card_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_seo_profiles: {
+        Row: {
+          created_at: string | null
+          creator_id: string
+          custom_url_slug: string | null
+          id: string
+          keywords: string[] | null
+          last_optimized_at: string | null
+          meta_description: string | null
+          meta_title: string | null
+          seo_score: number | null
+          social_media_links: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          creator_id: string
+          custom_url_slug?: string | null
+          id?: string
+          keywords?: string[] | null
+          last_optimized_at?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          seo_score?: number | null
+          social_media_links?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          creator_id?: string
+          custom_url_slug?: string | null
+          id?: string
+          keywords?: string[] | null
+          last_optimized_at?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          seo_score?: number | null
+          social_media_links?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_seo_profiles_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
             referencedColumns: ["id"]
           },
         ]
