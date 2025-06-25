@@ -7,6 +7,7 @@ import Home from './pages/Index';
 import CardCreation from './pages/CardCreation';
 import Gallery from './pages/Gallery';
 import Profile from './pages/Profile';
+import EnhancedStudio from './pages/EnhancedStudio';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/create" element={<CardCreation />} />
+              <Route path="/cards/enhanced" element={<EnhancedStudio />} />
               <Route path="/gallery" element={<Gallery />} />
               <Route path="/profile" element={<Profile />} />
             </Routes>
