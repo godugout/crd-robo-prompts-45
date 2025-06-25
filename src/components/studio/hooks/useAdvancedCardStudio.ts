@@ -6,7 +6,7 @@ import type { CardData } from '@/types/card';
 export interface Layer {
   id: string;
   name: string;
-  type: 'image' | 'text' | 'shape' | 'effect';
+  type: 'image' | 'text' | 'shape' | 'effect' | 'frame';
   visible: boolean;
   locked: boolean;
   opacity: number;
@@ -104,6 +104,7 @@ export const useAdvancedCardStudio = () => {
   ]);
 
   const [selectedLayer, setSelectedLayer] = useState<string>('background');
+  const [selectedFrame, setSelectedFrame] = useState<string>('');
   const [history, setHistory] = useState<HistoryState>({ canUndo: false, canRedo: false });
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -151,6 +152,32 @@ export const useAdvancedCardStudio = () => {
     setSelectedLayer(layerId);
   }, []);
 
+  const selectFrame = useCallback((frameId: string) => {
+    setSelectedFrame(frameId);
+    
+    // Add or update frame layer
+    const frameLayer: Layer = {
+      id: 'frame-layer',
+      name: 'Card Frame',
+      type: 'frame',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      blendMode: 'normal',
+      transform: {
+        x: 0, y: 0, z: 0.01,
+        rotation: { x: 0, y: 0, z: 0 },
+        scale: { x: 1, y: 1, z: 1 }
+      },
+      data: { frameId }
+    };
+
+    setLayers(prev => {
+      const withoutFrame = prev.filter(layer => layer.id !== 'frame-layer');
+      return [...withoutFrame, frameLayer];
+    });
+  }, []);
+
   const applyEffect = useCallback((effect: Omit<Effect, 'id'>) => {
     const newEffect: Effect = {
       ...effect,
@@ -166,17 +193,14 @@ export const useAdvancedCardStudio = () => {
   }, []);
 
   const undo = useCallback(() => {
-    // Implement undo logic
     console.log('Undo');
   }, []);
 
   const redo = useCallback(() => {
-    // Implement redo logic
     console.log('Redo');
   }, []);
 
   const save = useCallback(async () => {
-    // Implement save logic
     console.log('Saving card...');
   }, []);
 
@@ -190,6 +214,7 @@ export const useAdvancedCardStudio = () => {
     effects,
     materials,
     selectedLayer,
+    selectedFrame,
     history,
     isPlaying,
     updateCardData,
@@ -197,6 +222,7 @@ export const useAdvancedCardStudio = () => {
     updateLayer,
     removeLayer,
     selectLayer,
+    selectFrame,
     applyEffect,
     updateMaterial,
     undo,

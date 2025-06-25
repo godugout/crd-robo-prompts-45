@@ -14,7 +14,6 @@ import { CardStudio } from './components/studio/CardStudio';
 import CardCreation from '@/pages/CardCreation';
 import CardDetail from '@/pages/CardDetail';
 import Labs from '@/pages/Labs';
-import CardsEnhanced from '@/pages/CardsEnhanced';
 import Profile from '@/pages/Profile';
 
 function App() {
@@ -35,7 +34,7 @@ function App() {
                   <Route path="/studio" element={<CardStudio />} />
                   <Route path="/cards/enhanced" element={<CardCreation />} />
                   <Route path="/cards/create" element={<CardCreation />} />
-                  <Route path="/create" element={<CardsEnhanced />} />
+                  <Route path="/create" element={<CardCreation />} />
                   <Route path="/card/:id" element={<CardDetail />} />
                   <Route path="/labs" element={<Labs />} />
                   <Route path="/profile" element={<Profile />} />

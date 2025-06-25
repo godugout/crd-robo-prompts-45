@@ -17,7 +17,8 @@ import {
   Share2, 
   Eye, 
   Settings, 
-  Download 
+  Download,
+  Square
 } from 'lucide-react';
 
 import { LayerPanel } from './panels/LayerPanel';
@@ -25,6 +26,7 @@ import { EffectsPanel } from './panels/EffectsPanel';
 import { MaterialsPanel } from './panels/MaterialsPanel';
 import { PropertiesPanel } from './panels/PropertiesPanel';
 import { AssetsPanel } from './panels/AssetsPanel';
+import { FramesPanel } from './panels/FramesPanel';
 import { Advanced3DCard } from './3d/Advanced3DCard';
 import { useAdvancedCardStudio } from './hooks/useAdvancedCardStudio';
 import { StudioToolbar } from './components/StudioToolbar';
@@ -37,6 +39,7 @@ export const AdvancedCardStudio: React.FC = () => {
     effects,
     materials,
     selectedLayer,
+    selectedFrame,
     history,
     isPlaying,
     updateCardData,
@@ -44,6 +47,7 @@ export const AdvancedCardStudio: React.FC = () => {
     updateLayer,
     removeLayer,
     selectLayer,
+    selectFrame,
     applyEffect,
     updateMaterial,
     undo,
@@ -88,12 +92,18 @@ export const AdvancedCardStudio: React.FC = () => {
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
           <Tabs value={activePanel} onValueChange={(value) => setActivePanel(value)} className="h-full">
-            <TabsList className="grid w-full grid-cols-5 bg-black/40 m-2">
+            <TabsList className="grid w-full grid-cols-6 bg-black/40 m-2">
               <TabsTrigger 
                 value="layers" 
                 className="data-[state=active]:bg-cyan-500 data-[state=active]:text-black"
               >
                 <Layers className="w-4 h-4" />
+              </TabsTrigger>
+              <TabsTrigger 
+                value="frames" 
+                className="data-[state=active]:bg-green-500 data-[state=active]:text-black"
+              >
+                <Square className="w-4 h-4" />
               </TabsTrigger>
               <TabsTrigger 
                 value="effects" 
@@ -130,6 +140,13 @@ export const AdvancedCardStudio: React.FC = () => {
                   onUpdateLayer={updateLayer}
                   onRemoveLayer={removeLayer}
                   onSelectLayer={selectLayer}
+                />
+              </TabsContent>
+
+              <TabsContent value="frames" className="mt-0">
+                <FramesPanel
+                  selectedFrame={selectedFrame}
+                  onFrameSelect={selectFrame}
                 />
               </TabsContent>
 
@@ -230,6 +247,7 @@ export const AdvancedCardStudio: React.FC = () => {
               <div className="text-gray-400">|</div>
               <div className="text-gray-300">
                 {layers.filter(l => l.visible).length} layers • {effects.filter(e => e.enabled).length} effects
+                {selectedFrame && ` • Frame: ${selectedFrame}`}
               </div>
             </div>
           </div>

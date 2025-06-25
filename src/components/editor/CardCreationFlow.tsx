@@ -2,7 +2,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { SimplifiedCardCreationHub } from '@/components/cards/SimplifiedCardCreationHub';
-import { EmbeddedCardCreator } from '@/components/home/EmbeddedCardCreator';
+import { AdvancedCardStudio } from '@/components/studio/AdvancedCardStudio';
 import { FlowErrorBoundary } from './flows/FlowErrorBoundary';
 
 export const CardCreationFlow = () => {
@@ -14,13 +14,13 @@ export const CardCreationFlow = () => {
     fullUrl: location.pathname + location.search
   });
   
-  // Force the enhanced layout for /cards/create with any mode
+  // Use AdvancedCardStudio for /cards/create with any mode
   if (location.pathname === '/cards/create') {
-    console.log('FORCING EmbeddedCardCreator for /cards/create - Enhanced Layout');
+    console.log('Rendering AdvancedCardStudio for /cards/create');
     return (
-      <FlowErrorBoundary flowName="Card Creator">
-        <div className="min-h-screen bg-crd-darkest">
-          <EmbeddedCardCreator />
+      <FlowErrorBoundary flowName="Advanced Card Studio">
+        <div className="min-h-screen">
+          <AdvancedCardStudio />
         </div>
       </FlowErrorBoundary>
     );
