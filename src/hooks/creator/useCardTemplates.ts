@@ -36,13 +36,17 @@ export const useCardTemplates = () => {
         .from('card_templates')
         .select(`
           *,
-          creator_profiles!inner(username:crd_profiles(username))
+          creator_profiles!inner(
+            id,
+            user_id,
+            bio
+          )
         `)
         .eq('is_active', true)
         .order('rating_average', { ascending: false });
 
       if (error) throw error;
-      return data as (CardTemplate & { creator_profiles: { username: string } })[];
+      return data as (CardTemplate & { creator_profiles: { id: string; user_id: string; bio: string } })[];
     },
   });
 
@@ -65,14 +69,22 @@ export const useCardTemplates = () => {
   });
 
   const createTemplate = useMutation({
-    mutationFn: async (templateData: Partial<CardTemplate>) => {
+    mutationFn: async (templateData: Partial<CardTemplate> & { name: string; category: string }) => {
       if (!profile?.id) throw new Error('Creator profile required');
 
       const { data, error } = await supabase
         .from('card_templates')
         .insert({
           creator_id: profile.id,
-          ...templateData,
+          name: templateData.name,
+          category: templateData.category,
+          description: templateData.description || '',
+          price: templateData.price || 0,
+          tags: templateData.tags || [],
+          template_data: templateData.template_data || {},
+          preview_images: templateData.preview_images || [],
+          is_premium: templateData.is_premium || false,
+          is_active: templateData.is_active !== false,
         })
         .select()
         .single();

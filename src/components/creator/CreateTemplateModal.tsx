@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { useCardTemplates } from '@/hooks/creator/useCardTemplates';
-import { Upload } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface CreateTemplateModalProps {
   open: boolean;
@@ -20,47 +20,46 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, 
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    price: 9.99,
     category: '',
+    price: 0,
     tags: [] as string[],
     is_premium: false,
-    template_data: {},
-    preview_images: [] as string[],
   });
-
   const [currentTag, setCurrentTag] = useState('');
 
   const categories = [
     'Sports Cards',
     'Trading Cards',
-    'Fantasy Art',
-    'Abstract',
-    'Vintage',
-    'Modern',
-    'Minimalist',
-    'Gaming',
-    'Photography',
-    'Artistic',
+    'Business Cards',
+    'Art Cards',
+    'Gaming Cards',
+    'Custom Cards',
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!formData.name || !formData.category) {
+      return;
+    }
+
     try {
-      await createTemplate.mutateAsync(formData);
+      await createTemplate.mutateAsync({
+        ...formData,
+        template_data: {},
+        preview_images: [],
+      });
       onClose();
       setFormData({
         name: '',
         description: '',
-        price: 9.99,
         category: '',
+        price: 0,
         tags: [],
         is_premium: false,
-        template_data: {},
-        preview_images: [],
       });
     } catch (error) {
-      console.error('Template creation failed:', error);
+      console.error('Failed to create template:', error);
     }
   };
 
@@ -83,77 +82,77 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, 
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-crd-dark border-crd-mediumGray max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-crd-dark border-crd-mediumGray text-white max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-white">Create New Template</DialogTitle>
+          <DialogTitle>Create New Template</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-white">Template Name *</Label>
+              <Label htmlFor="name">Template Name *</Label>
               <Input
                 id="name"
-                required
-                placeholder="Enter template name"
-                className="bg-crd-mediumGray border-crd-lightGray text-white"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="bg-crd-mediumGray border-crd-lightGray text-white"
+                required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price" className="text-white">Price (USD) *</Label>
-              <Input
-                id="price"
-                type="number"
-                min="0.99"
-                step="0.01"
-                required
-                className="bg-crd-mediumGray border-crd-lightGray text-white"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-              />
+              <Label htmlFor="category">Category *</Label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => setFormData({ ...formData, category: value })}
+              >
+                <SelectTrigger className="bg-crd-mediumGray border-crd-lightGray text-white">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent className="bg-crd-mediumGray border-crd-lightGray">
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category} className="text-white">
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-white">Description</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              placeholder="Describe your template and what makes it special..."
-              className="bg-crd-mediumGray border-crd-lightGray text-white"
-              rows={3}
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="bg-crd-mediumGray border-crd-lightGray text-white"
+              rows={3}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category" className="text-white">Category *</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-              <SelectTrigger className="bg-crd-mediumGray border-crd-lightGray text-white">
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="price">Price (USD)</Label>
+            <Input
+              id="price"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.price}
+              onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+              className="bg-crd-mediumGray border-crd-lightGray text-white"
+            />
           </div>
 
           <div className="space-y-4">
-            <Label className="text-white">Tags</Label>
+            <Label>Tags</Label>
             <div className="flex gap-2">
               <Input
                 placeholder="Add a tag"
-                className="bg-crd-mediumGray border-crd-lightGray text-white"
                 value={currentTag}
                 onChange={(e) => setCurrentTag(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                className="bg-crd-mediumGray border-crd-lightGray text-white"
               />
               <Button type="button" onClick={addTag} variant="outline">
                 Add
@@ -161,58 +160,40 @@ export const CreateTemplateModal: React.FC<CreateTemplateModalProps> = ({ open, 
             </div>
             <div className="flex flex-wrap gap-2">
               {formData.tags.map((tag) => (
-                <span
+                <Badge
                   key={tag}
-                  className="bg-crd-mediumGray text-white px-2 py-1 rounded text-sm cursor-pointer"
+                  variant="secondary"
+                  className="cursor-pointer flex items-center gap-1"
                   onClick={() => removeTag(tag)}
                 >
-                  {tag} ×
-                </span>
+                  {tag}
+                  <X className="w-3 h-3" />
+                </Badge>
               ))}
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <Label className="text-white">Premium Template</Label>
-              <p className="text-sm text-crd-lightGray">
-                Premium templates get featured placement and higher visibility
-              </p>
-            </div>
-            <Switch
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="is_premium"
               checked={formData.is_premium}
-              onCheckedChange={(checked) => setFormData({ ...formData, is_premium: checked })}
+              onChange={(e) => setFormData({ ...formData, is_premium: e.target.checked })}
+              className="rounded"
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-white">Preview Images</Label>
-            <div className="border-2 border-dashed border-crd-mediumGray rounded-lg p-8 text-center">
-              <Upload className="w-8 h-8 text-crd-lightGray mx-auto mb-2" />
-              <p className="text-crd-lightGray">
-                Upload preview images of your template
-              </p>
-              <Button type="button" variant="outline" className="mt-2">
-                Choose Files
-              </Button>
-            </div>
+            <Label htmlFor="is_premium">Premium Template</Label>
           </div>
 
           <div className="flex gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
             <Button
               type="submit"
               className="bg-crd-green hover:bg-green-600 text-black flex-1"
               disabled={createTemplate.isPending}
             >
               {createTemplate.isPending ? 'Creating...' : 'Create Template'}
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
             </Button>
           </div>
         </form>

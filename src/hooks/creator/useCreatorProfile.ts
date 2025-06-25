@@ -41,7 +41,19 @@ export const useCreatorProfile = () => {
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
-      return data as CreatorProfile | null;
+      
+      if (!data) return null;
+      
+      // Type assertion with proper commission_rates handling
+      return {
+        ...data,
+        commission_rates: data.commission_rates as {
+          standard: number;
+          premium: number;
+          custom: number;
+        },
+        specialties: data.specialties || [],
+      } as CreatorProfile;
     },
     enabled: !!user?.id,
   });
