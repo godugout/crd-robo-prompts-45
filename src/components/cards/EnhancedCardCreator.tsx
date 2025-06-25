@@ -114,20 +114,15 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
   };
 
   const canContinue = (): boolean => {
-    // Use explicit string comparisons to avoid TypeScript narrowing issues
-    const currentStep = step as string;
+    // Use a lookup object to avoid TypeScript narrowing issues
+    const stepValidation: Record<Step, () => boolean> = {
+      frameAndImage: () => Boolean(selectedFrame && cardData.image_url),
+      customize: () => Boolean(cardData.title.trim().length > 0),
+      polish: () => true,
+      preview: () => true,
+    };
     
-    if (currentStep === 'frameAndImage') {
-      return Boolean(selectedFrame && cardData.image_url);
-    } else if (currentStep === 'customize') {
-      return Boolean(cardData.title.trim().length > 0);
-    } else if (currentStep === 'polish') {
-      return true;
-    } else if (currentStep === 'preview') {
-      return true;
-    }
-    
-    return false;
+    return stepValidation[step]();
   };
 
   const handlePrevious = () => {
