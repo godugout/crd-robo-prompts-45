@@ -7,11 +7,14 @@ const CardsEnhanced: React.FC = () => {
   const [searchParams] = useSearchParams();
   
   // Extract customization parameters
-  const theme = searchParams.get('theme') || 'default';
+  const themeParam = searchParams.get('theme') || 'default';
   const primaryColor = searchParams.get('color') || '#00ff88';
   const imageUrl = searchParams.get('image');
   const title = searchParams.get('title');
   const mode = searchParams.get('mode') || 'full';
+  
+  // Validate theme to ensure it matches expected types
+  const theme = ['default', 'dark', 'light'].includes(themeParam) ? themeParam : 'default';
   
   console.log('CardsEnhanced params:', { theme, primaryColor, imageUrl, title, mode });
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { useSimpleCardEditor } from '@/hooks/useSimpleCardEditor';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,7 +19,7 @@ type Step = 'frameAndImage' | 'customize' | 'polish' | 'preview';
 interface EnhancedCardCreatorProps {
   initialImage?: string;
   initialTitle?: string;
-  theme?: 'default' | 'dark' | 'light';
+  theme?: string;
   primaryColor?: string;
   mode?: 'full' | 'embedded' | 'compact';
 }
@@ -35,6 +36,9 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
   const { cardData, updateField, saveCard, isSaving } = useSimpleCardEditor();
   const [step, setStep] = useState<Step>('frameAndImage');
   const [selectedFrame, setSelectedFrame] = useState<string>('');
+
+  // Validate theme
+  const validTheme = ['default', 'dark', 'light'].includes(theme) ? theme : 'default';
 
   // Initialize with URL parameters
   useEffect(() => {
@@ -57,7 +61,7 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
     selectedFrame,
     cardDataImage: cardData.image_url,
     cardTitle: cardData.title,
-    theme,
+    theme: validTheme,
     primaryColor,
     mode
   });
@@ -125,36 +129,6 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
     }
   };
 
-  const getStepTitle = () => {
-    switch (step) {
-      case 'frameAndImage':
-        return 'Enhanced Professional Studio';
-      case 'customize':
-        return 'Customize Your Card';
-      case 'polish':
-        return 'Add Finishing Touches';
-      case 'preview':
-        return 'Preview & Publish';
-      default:
-        return '';
-    }
-  };
-
-  const getStepDescription = () => {
-    switch (step) {
-      case 'frameAndImage':
-        return 'Professional card creation with premium frames and advanced preview';
-      case 'customize':
-        return 'Add your card title, description, and set the rarity';
-      case 'polish':
-        return 'Fine-tune your card with effects and adjustments';
-      case 'preview':
-        return 'Review your card and publish when ready';
-      default:
-        return '';
-    }
-  };
-
   const handlePrevious = () => {
     const steps: Step[] = ['frameAndImage', 'customize', 'polish', 'preview'];
     const currentIndex = steps.indexOf(step);
@@ -183,7 +157,7 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
             uploadedImage={cardData.image_url}
             onFrameSelect={handleFrameSelect}
             onImageUpload={handleImageUpload}
-            theme={theme}
+            theme={validTheme}
             primaryColor={primaryColor}
           />
         );
@@ -328,20 +302,8 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
           <StepNavigation
             currentStep={step}
             canContinue={true}
-            onPrevious={() => {
-              const steps: Step[] = ['frameAndImage', 'customize', 'polish', 'preview'];
-              const currentIndex = steps.indexOf(step);
-              if (currentIndex > 0) {
-                setStep(steps[currentIndex - 1]);
-              }
-            }}
-            onNext={() => {
-              const steps: Step[] = ['frameAndImage', 'customize', 'polish', 'preview'];
-              const currentIndex = steps.indexOf(step);
-              if (currentIndex < steps.length - 1) {
-                setStep(steps[currentIndex + 1]);
-              }
-            }}
+            onPrevious={handlePrevious}
+            onNext={handleNext}
           />
         )}
       </div>
