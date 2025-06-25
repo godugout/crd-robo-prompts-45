@@ -15,6 +15,7 @@ import CardCreation from '@/pages/CardCreation';
 import CardDetail from '@/pages/CardDetail';
 import Labs from '@/pages/Labs';
 import CardsEnhanced from '@/pages/CardsEnhanced';
+import Profile from '@/pages/Profile';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
                   <Route path="/create" element={<CardCreation />} />
                   <Route path="/card/:id" element={<CardDetail />} />
                   <Route path="/labs" element={<Labs />} />
+                  <Route path="/profile" element={<Profile />} />
                 </Routes>
               </Suspense>
             </main>
