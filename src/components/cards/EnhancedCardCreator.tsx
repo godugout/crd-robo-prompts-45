@@ -115,21 +115,18 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
   };
 
   const canContinue = (): boolean => {
-    const currentStep: Step = step;
-    
-    if (currentStep === 'frameAndImage') {
-      return Boolean(selectedFrame && cardData.image_url);
+    switch (step) {
+      case 'frameAndImage':
+        return Boolean(selectedFrame && cardData.image_url);
+      case 'customize':
+        return Boolean(cardData.title.trim().length > 0);
+      case 'polish':
+        return true;
+      case 'preview':
+        return true;
+      default:
+        return false;
     }
-    if (currentStep === 'customize') {
-      return Boolean(cardData.title.trim().length > 0);
-    }
-    if (currentStep === 'polish') {
-      return true;
-    }
-    if (currentStep === 'preview') {
-      return true;
-    }
-    return false;
   };
 
   const handlePrevious = () => {
