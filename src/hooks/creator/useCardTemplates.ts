@@ -34,19 +34,12 @@ export const useCardTemplates = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('card_templates')
-        .select(`
-          *,
-          creator_profiles!inner(
-            id,
-            user_id,
-            bio
-          )
-        `)
+        .select('*')
         .eq('is_active', true)
         .order('rating_average', { ascending: false });
 
       if (error) throw error;
-      return data as (CardTemplate & { creator_profiles: { id: string; user_id: string; bio: string } })[];
+      return data as CardTemplate[];
     },
   });
 

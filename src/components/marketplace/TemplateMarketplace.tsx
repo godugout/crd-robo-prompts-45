@@ -145,7 +145,7 @@ export const TemplateMarketplace: React.FC = () => {
                   {template.name}
                 </CardTitle>
                 <p className="text-sm text-crd-lightGray line-clamp-2">
-                  by {template.creator_profiles?.username || 'Unknown'}
+                  by Creator
                 </p>
               </CardHeader>
 
