@@ -13,6 +13,7 @@ import { OakMemoryCreator } from './pages/OakMemoryCreator';
 import { CardStudio } from './components/studio/CardStudio';
 import { EnhancedCardCreator } from './components/cards/EnhancedCardCreator';
 import CardCreation from '@/pages/CardCreation';
+import CardDetail from '@/pages/CardDetail';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
                   <Route path="/studio" element={<CardStudio />} />
                   <Route path="/cards/create" element={<EnhancedCardCreator />} />
                   <Route path="/create" element={<CardCreation />} />
+                  <Route path="/card/:id" element={<CardDetail />} />
                 </Routes>
               </Suspense>
             </main>
