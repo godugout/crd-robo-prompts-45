@@ -116,17 +116,17 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
   };
 
   const canContinue = (): boolean => {
-    // Use simple if-else to avoid TypeScript narrowing issues
-    if (step === 'frameAndImage') {
+    const currentStep = step;
+    if (currentStep === 'frameAndImage') {
       return Boolean(selectedFrame && cardData.image_url);
     }
-    if (step === 'customize') {
+    if (currentStep === 'customize') {
       return Boolean(cardData.title.trim().length > 0);
     }
-    if (step === 'polish') {
+    if (currentStep === 'polish') {
       return true;
     }
-    if (step === 'preview') {
+    if (currentStep === 'preview') {
       return true;
     }
     return false;
@@ -313,4 +313,3 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
     </div>
   );
 };
-
