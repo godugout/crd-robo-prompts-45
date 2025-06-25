@@ -2,8 +2,12 @@
 import React from 'react';
 import { AdvancedCardStudio } from '@/components/studio/AdvancedCardStudio';
 
-export const CardCreation: React.FC = () => {
-  return <AdvancedCardStudio />;
+const CardCreation: React.FC = () => {
+  return (
+    <div className="min-h-screen">
+      <AdvancedCardStudio />
+    </div>
+  );
 };
 
 export default CardCreation;

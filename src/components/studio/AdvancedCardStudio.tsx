@@ -1,36 +1,19 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei';
 import { motion } from 'framer-motion';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Layers, 
-  Sparkles, 
-  Wand2, 
-  Palette, 
-  Image as ImageIcon, 
-  Zap, 
-  Share2, 
-  Eye, 
-  Settings, 
-  Download,
-  Square
-} from 'lucide-react';
-
-import { LayerPanel } from './panels/LayerPanel';
-import { EffectsPanel } from './panels/EffectsPanel';
-import { MaterialsPanel } from './panels/MaterialsPanel';
-import { PropertiesPanel } from './panels/PropertiesPanel';
-import { AssetsPanel } from './panels/AssetsPanel';
-import { FramesPanel } from './panels/FramesPanel';
+import { WorkflowNavigation } from './workflow/WorkflowNavigation';
+import { FrameSelectionStep } from './steps/FrameSelectionStep';
+import { ElementsStep } from './steps/ElementsStep';
+import { PreviewStep } from './steps/PreviewStep';
+import { EffectsStep } from './steps/EffectsStep';
 import { Advanced3DCard } from './3d/Advanced3DCard';
 import { useAdvancedCardStudio } from './hooks/useAdvancedCardStudio';
 import { StudioToolbar } from './components/StudioToolbar';
 import { PreviewControls } from './components/PreviewControls';
+import { getFrameById } from './data/enhancedFrames';
 
 export const AdvancedCardStudio: React.FC = () => {
   const {
@@ -38,15 +21,10 @@ export const AdvancedCardStudio: React.FC = () => {
     layers,
     effects,
     materials,
-    selectedLayer,
     selectedFrame,
     history,
     isPlaying,
     updateCardData,
-    addLayer,
-    updateLayer,
-    removeLayer,
-    selectLayer,
     selectFrame,
     applyEffect,
     updateMaterial,
@@ -56,9 +34,70 @@ export const AdvancedCardStudio: React.FC = () => {
     toggleAnimation
   } = useAdvancedCardStudio();
 
-  const [activePanel, setActivePanel] = useState('layers');
-  const [previewMode, setPreviewMode] = useState<'design' | 'preview' | 'vr'>('design');
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+
+  const handleStepComplete = (stepIndex: number) => {
+    setCompletedSteps(prev => new Set([...prev, stepIndex]));
+    if (stepIndex < 3) {
+      setCurrentStep(stepIndex + 1);
+    }
+  };
+
+  const handleFrameSelect = (frameId: string) => {
+    selectFrame(frameId);
+    const frameData = getFrameById(frameId);
+    if (frameData) {
+      updateCardData({
+        design_metadata: {
+          ...cardData.design_metadata,
+          template: frameData.template_data
+        }
+      });
+    }
+  };
+
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <FrameSelectionStep
+            selectedFrame={selectedFrame}
+            onFrameSelect={handleFrameSelect}
+            onComplete={() => handleStepComplete(0)}
+          />
+        );
+      case 1:
+        return (
+          <ElementsStep
+            cardData={cardData}
+            onUpdateCardData={updateCardData}
+            onComplete={() => handleStepComplete(1)}
+          />
+        );
+      case 2:
+        return (
+          <PreviewStep
+            cardData={cardData}
+            isPlaying={isPlaying}
+            onToggleAnimation={toggleAnimation}
+            onComplete={() => handleStepComplete(2)}
+          />
+        );
+      case 3:
+        return (
+          <EffectsStep
+            effects={effects}
+            materials={materials}
+            onApplyEffect={applyEffect}
+            onUpdateMaterial={updateMaterial}
+            onComplete={() => handleStepComplete(3)}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white overflow-hidden">
@@ -66,10 +105,10 @@ export const AdvancedCardStudio: React.FC = () => {
       <div className="h-16 bg-black/20 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6">
         <div className="flex items-center space-x-4">
           <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
-            Card Studio Pro
+            Professional Card Studio
           </h1>
           <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black">
-            AI Enhanced
+            Premium Tools
           </Badge>
         </div>
         
@@ -82,105 +121,28 @@ export const AdvancedCardStudio: React.FC = () => {
         />
       </div>
 
+      {/* Workflow Navigation */}
+      <WorkflowNavigation
+        currentStep={currentStep}
+        completedSteps={completedSteps}
+        onStepChange={setCurrentStep}
+      />
+
       {/* Main Content */}
-      <div className="flex h-[calc(100vh-4rem)]">
-        {/* Left Sidebar */}
+      <div className="flex h-[calc(100vh-8rem)]">
+        {/* Left Sidebar - Step Content */}
         <motion.div
-          className="w-80 bg-black/30 backdrop-blur-xl border-r border-white/10"
-          initial={{ x: -320 }}
+          className="w-96 bg-black/30 backdrop-blur-xl border-r border-white/10 overflow-y-auto"
+          initial={{ x: -384 }}
           animate={{ x: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
-          <Tabs value={activePanel} onValueChange={(value) => setActivePanel(value)} className="h-full">
-            <TabsList className="grid w-full grid-cols-6 bg-black/40 m-2">
-              <TabsTrigger 
-                value="layers" 
-                className="data-[state=active]:bg-cyan-500 data-[state=active]:text-black"
-              >
-                <Layers className="w-4 h-4" />
-              </TabsTrigger>
-              <TabsTrigger 
-                value="frames" 
-                className="data-[state=active]:bg-green-500 data-[state=active]:text-black"
-              >
-                <Square className="w-4 h-4" />
-              </TabsTrigger>
-              <TabsTrigger 
-                value="effects" 
-                className="data-[state=active]:bg-purple-500 data-[state=active]:text-white"
-              >
-                <Sparkles className="w-4 h-4" />
-              </TabsTrigger>
-              <TabsTrigger 
-                value="materials" 
-                className="data-[state=active]:bg-orange-500 data-[state=active]:text-white"
-              >
-                <Palette className="w-4 h-4" />
-              </TabsTrigger>
-              <TabsTrigger 
-                value="properties" 
-                className="data-[state=active]:bg-green-500 data-[state=active]:text-black"
-              >
-                <Settings className="w-4 h-4" />
-              </TabsTrigger>
-              <TabsTrigger 
-                value="assets" 
-                className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
-              >
-                <ImageIcon className="w-4 h-4" />
-              </TabsTrigger>
-            </TabsList>
-
-            <div className="p-4 h-[calc(100%-4rem)] overflow-y-auto custom-scrollbar">
-              <TabsContent value="layers" className="mt-0">
-                <LayerPanel
-                  layers={layers}
-                  selectedLayer={selectedLayer}
-                  onAddLayer={addLayer}
-                  onUpdateLayer={updateLayer}
-                  onRemoveLayer={removeLayer}
-                  onSelectLayer={selectLayer}
-                />
-              </TabsContent>
-
-              <TabsContent value="frames" className="mt-0">
-                <FramesPanel
-                  selectedFrame={selectedFrame}
-                  onFrameSelect={selectFrame}
-                />
-              </TabsContent>
-
-              <TabsContent value="effects" className="mt-0">
-                <EffectsPanel
-                  effects={effects}
-                  onApplyEffect={applyEffect}
-                />
-              </TabsContent>
-
-              <TabsContent value="materials" className="mt-0">
-                <MaterialsPanel
-                  materials={materials}
-                  onUpdateMaterial={updateMaterial}
-                />
-              </TabsContent>
-
-              <TabsContent value="properties" className="mt-0">
-                <PropertiesPanel
-                  cardData={cardData}
-                  onUpdateCardData={updateCardData}
-                />
-              </TabsContent>
-
-              <TabsContent value="assets" className="mt-0">
-                <AssetsPanel />
-              </TabsContent>
-            </div>
-          </Tabs>
+          {renderCurrentStep()}
         </motion.div>
 
         {/* Main Canvas Area */}
         <div className="flex-1 relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-          <div ref={canvasRef} className="w-full h-full">
+          <div className="w-full h-full">
             <Canvas
               shadows
               camera={{ position: [0, 0, 8], fov: 45 }}
@@ -193,7 +155,7 @@ export const AdvancedCardStudio: React.FC = () => {
             >
               <PerspectiveCamera makeDefault position={[0, 0, 8]} />
               
-              {/* Lighting */}
+              {/* Enhanced Lighting */}
               <ambientLight intensity={0.4} />
               <directionalLight 
                 position={[10, 10, 5]} 
@@ -203,6 +165,13 @@ export const AdvancedCardStudio: React.FC = () => {
                 shadow-mapSize-height={2048}
               />
               <pointLight position={[-10, -10, -10]} intensity={0.5} />
+              <spotLight
+                position={[0, 10, 0]}
+                angle={0.15}
+                penumbra={1}
+                intensity={0.3}
+                castShadow
+              />
               
               <Environment preset="studio" />
               
@@ -213,7 +182,7 @@ export const AdvancedCardStudio: React.FC = () => {
                 effects={effects}
                 materials={materials}
                 isPlaying={isPlaying}
-                previewMode={previewMode}
+                previewMode="design"
               />
               
               {/* Camera Controls */}
@@ -223,8 +192,10 @@ export const AdvancedCardStudio: React.FC = () => {
                 enableRotate={true}
                 minDistance={3}
                 maxDistance={12}
-                autoRotate={previewMode === 'preview'}
+                autoRotate={isPlaying}
                 autoRotateSpeed={1}
+                dampingFactor={0.05}
+                enableDamping={true}
               />
             </Canvas>
           </div>
@@ -232,22 +203,48 @@ export const AdvancedCardStudio: React.FC = () => {
           {/* Preview Controls Overlay */}
           <PreviewControls
             isPlaying={isPlaying}
-            previewMode={previewMode}
+            previewMode="design"
             onToggleAnimation={toggleAnimation}
-            onModeChange={setPreviewMode}
+            onModeChange={() => {}}
           />
 
-          {/* Status Bar */}
-          <div className="absolute bottom-4 left-4 bg-black/90 backdrop-blur-md p-3 rounded-xl z-10 border border-white/20">
-            <div className="flex items-center space-x-4 text-sm">
+          {/* Enhanced Status Bar */}
+          <div className="absolute bottom-4 left-4 bg-black/90 backdrop-blur-md p-4 rounded-xl z-10 border border-white/20">
+            <div className="flex items-center space-x-6 text-sm">
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 <span className="text-white">Live Preview</span>
               </div>
               <div className="text-gray-400">|</div>
               <div className="text-gray-300">
-                {layers.filter(l => l.visible).length} layers • {effects.filter(e => e.enabled).length} effects
-                {selectedFrame && ` • Frame: ${selectedFrame}`}
+                Step {currentStep + 1}/4 • {layers.filter(l => l.visible).length} layers
+              </div>
+              {selectedFrame && (
+                <>
+                  <div className="text-gray-400">|</div>
+                  <div className="text-gray-300">
+                    Frame: {getFrameById(selectedFrame)?.name || 'Custom'}
+                  </div>
+                </>
+              )}
+              <div className="text-gray-400">|</div>
+              <div className="text-gray-300">
+                {effects.filter(e => e.enabled).length} effects active
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Indicator */}
+          <div className="absolute top-4 right-4 bg-black/90 backdrop-blur-md p-3 rounded-xl z-10 border border-white/20">
+            <div className="flex items-center space-x-2">
+              <div className="text-white text-sm font-medium">
+                {Math.round(((completedSteps.size) / 4) * 100)}% Complete
+              </div>
+              <div className="w-20 bg-gray-700 rounded-full h-2">
+                <div 
+                  className="h-2 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-300"
+                  style={{ width: `${(completedSteps.size / 4) * 100}%` }}
+                />
               </div>
             </div>
           </div>

@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { CardData } from '@/types/card';
@@ -72,7 +71,7 @@ export const useAdvancedCardStudio = () => {
   const [layers, setLayers] = useState<Layer[]>([
     {
       id: 'background',
-      name: 'Background',
+      name: 'Card Background',
       type: 'shape',
       visible: true,
       locked: false,
@@ -84,6 +83,36 @@ export const useAdvancedCardStudio = () => {
         scale: { x: 1, y: 1, z: 1 }
       },
       data: { color: '#1a1a2e', gradient: true }
+    },
+    {
+      id: 'image-zone',
+      name: 'Main Image',
+      type: 'image',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      blendMode: 'normal',
+      transform: {
+        x: 0, y: 0, z: 0.01,
+        rotation: { x: 0, y: 0, z: 0 },
+        scale: { x: 1, y: 1, z: 1 }
+      },
+      data: { placeholder: true }
+    },
+    {
+      id: 'title-zone',
+      name: 'Title Text',
+      type: 'text',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      blendMode: 'normal',
+      transform: {
+        x: 0, y: 0, z: 0.02,
+        rotation: { x: 0, y: 0, z: 0 },
+        scale: { x: 1, y: 1, z: 1 }
+      },
+      data: { text: 'Card Title', fontSize: 16, fontWeight: 'bold' }
     }
   ]);
 
@@ -155,9 +184,9 @@ export const useAdvancedCardStudio = () => {
   const selectFrame = useCallback((frameId: string) => {
     setSelectedFrame(frameId);
     
-    // Add or update frame layer
+    // Create frame layer that defines the card structure
     const frameLayer: Layer = {
-      id: 'frame-layer',
+      id: 'card-frame',
       name: 'Card Frame',
       type: 'frame',
       visible: true,
@@ -165,15 +194,18 @@ export const useAdvancedCardStudio = () => {
       opacity: 1,
       blendMode: 'normal',
       transform: {
-        x: 0, y: 0, z: 0.01,
+        x: 0, y: 0, z: 0.03,
         rotation: { x: 0, y: 0, z: 0 },
         scale: { x: 1, y: 1, z: 1 }
       },
-      data: { frameId }
+      data: { 
+        frameId,
+        structural: true // This layer defines card zones
+      }
     };
 
     setLayers(prev => {
-      const withoutFrame = prev.filter(layer => layer.id !== 'frame-layer');
+      const withoutFrame = prev.filter(layer => layer.id !== 'card-frame');
       return [...withoutFrame, frameLayer];
     });
   }, []);
