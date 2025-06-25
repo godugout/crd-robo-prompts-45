@@ -16,7 +16,7 @@ export const useMarketplace = () => {
         .select(`
           *,
           card:cards(*),
-          seller:crd_profiles(username, avatar_url)
+          seller:crd_profiles!marketplace_listings_seller_id_fkey(username, avatar_url)
         `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
