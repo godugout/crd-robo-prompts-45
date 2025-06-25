@@ -301,7 +301,7 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
         {mode === 'full' && (
           <StepNavigation
             currentStep={step}
-            canContinue={true}
+            canContinue={canContinue()}
             onPrevious={handlePrevious}
             onNext={handleNext}
           />
