@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { useSimpleCardEditor } from '@/hooks/useSimpleCardEditor';
 import { useAuth } from '@/contexts/AuthContext';
@@ -115,18 +114,20 @@ export const EnhancedCardCreator: React.FC<EnhancedCardCreatorProps> = ({
   };
 
   const canContinue = (): boolean => {
-    switch (step) {
-      case 'frameAndImage':
-        return Boolean(selectedFrame && cardData.image_url);
-      case 'customize':
-        return Boolean(cardData.title.trim().length > 0);
-      case 'polish':
-        return true;
-      case 'preview':
-        return true;
-      default:
-        return false;
+    // Use explicit string comparisons to avoid TypeScript narrowing issues
+    const currentStep = step as string;
+    
+    if (currentStep === 'frameAndImage') {
+      return Boolean(selectedFrame && cardData.image_url);
+    } else if (currentStep === 'customize') {
+      return Boolean(cardData.title.trim().length > 0);
+    } else if (currentStep === 'polish') {
+      return true;
+    } else if (currentStep === 'preview') {
+      return true;
     }
+    
+    return false;
   };
 
   const handlePrevious = () => {
