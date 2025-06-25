@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabase-client';
@@ -22,6 +23,8 @@ export const useSimpleCardEditor = () => {
     description: '',
     rarity: 'common' as CardRarity,
     tags: [],
+    creator_id: user?.id || '',
+    created_at: new Date().toISOString(),
     design_metadata: {},
     visibility: 'public', // Changed from 'private' to 'public'
     is_public: true, // Added this to make cards public by default
