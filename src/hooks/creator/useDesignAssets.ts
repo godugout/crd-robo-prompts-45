@@ -121,9 +121,18 @@ export const useDesignAssets = () => {
 
   const downloadAsset = useMutation({
     mutationFn: async (assetId: string) => {
+      // First get current downloads count, then increment it
+      const { data: currentAsset, error: fetchError } = await supabase
+        .from('design_assets_library')
+        .select('downloads_count')
+        .eq('id', assetId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
       const { error } = await supabase
         .from('design_assets_library')
-        .update({ downloads_count: supabase.raw('downloads_count + 1') })
+        .update({ downloads_count: (currentAsset.downloads_count || 0) + 1 })
         .eq('id', assetId);
 
       if (error) throw error;
