@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CardCreationForm } from '@/components/card-creation/CardCreationForm';
 import { UserCardsGallery } from '@/components/card-creation/UserCardsGallery';
-import { Plus, Gallery } from 'lucide-react';
+import { Plus, Images } from 'lucide-react';
 
 export const CardCreation: React.FC = () => {
   return (
@@ -21,7 +21,7 @@ export const CardCreation: React.FC = () => {
               Create Card
             </TabsTrigger>
             <TabsTrigger value="gallery" className="flex items-center gap-2">
-              <Gallery className="w-4 h-4" />
+              <Images className="w-4 h-4" />
               My Cards
             </TabsTrigger>
           </TabsList>

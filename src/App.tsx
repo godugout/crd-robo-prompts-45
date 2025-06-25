@@ -1,15 +1,13 @@
+
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { TooltipProvider } from './components/ui/tooltip';
 import { Toaster } from '@/components/ui/toaster';
 import { Navbar } from './components/layout/Navbar';
-import { Home } from './pages/Home';
-import { Gallery } from './pages/Gallery';
-import { Templates } from './pages/Templates';
-import { Auth } from './pages/Auth';
-import { PricingPage } from './pages/PricingPage';
-import { Editor } from './pages/Editor';
+import Home from './pages/Index'; // Use Index as Home
+import Gallery from './pages/Gallery';
+import Editor from './pages/Editor';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import { OakMemoryCreator } from './pages/OakMemoryCreator';
 import { CardStudio } from './components/studio/CardStudio';
@@ -28,9 +26,6 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/gallery" element={<Gallery />} />
-                  <Route path="/templates" element={<Templates />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/pricing" element={<PricingPage />} />
                   <Route path="/editor" element={<Editor />} />
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/oak-creator" element={<OakMemoryCreator />} />
