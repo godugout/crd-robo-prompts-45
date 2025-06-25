@@ -123,6 +123,8 @@ export const useEnhancedStudio = () => {
     fileArray.forEach(file => {
       if (file.type.startsWith('image/')) {
         const url = URL.createObjectURL(file);
+        const currentImageCount = state.uploadedImages.length;
+        
         setState(prevState => ({
           ...prevState,
           uploadedImages: [...prevState.uploadedImages, url]
@@ -131,7 +133,7 @@ export const useEnhancedStudio = () => {
         // Add as image layer
         const imageLayer: StudioLayer = {
           id: uuidv4(),
-          name: `Image ${prevState.uploadedImages.length + 1}`,
+          name: `Image ${currentImageCount + 1}`,
           type: 'image',
           visible: true,
           opacity: 1,
@@ -153,7 +155,7 @@ export const useEnhancedStudio = () => {
     });
     
     toast.success(`${fileArray.length} image(s) uploaded successfully!`);
-  }, []);
+  }, [state.uploadedImages.length]);
 
   const triggerImageUpload = useCallback(() => {
     fileInputRef.current?.click();
