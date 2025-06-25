@@ -613,6 +613,70 @@ export type Database = {
           },
         ]
       }
+      challenge_submissions: {
+        Row: {
+          challenge_id: string
+          creator_id: string
+          description: string | null
+          id: string
+          judge_score: number | null
+          prize_amount: number | null
+          rank_position: number | null
+          submission_data: Json
+          submitted_at: string | null
+          template_id: string | null
+          vote_count: number | null
+        }
+        Insert: {
+          challenge_id: string
+          creator_id: string
+          description?: string | null
+          id?: string
+          judge_score?: number | null
+          prize_amount?: number | null
+          rank_position?: number | null
+          submission_data?: Json
+          submitted_at?: string | null
+          template_id?: string | null
+          vote_count?: number | null
+        }
+        Update: {
+          challenge_id?: string
+          creator_id?: string
+          description?: string | null
+          id?: string
+          judge_score?: number | null
+          prize_amount?: number | null
+          rank_position?: number | null
+          submission_data?: Json
+          submitted_at?: string | null
+          template_id?: string | null
+          vote_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_submissions_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "creator_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_submissions_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_submissions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "card_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_activity: {
         Row: {
           activity_data: Json | null
@@ -1083,6 +1147,57 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "parent_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_enrollments: {
+        Row: {
+          certificate_issued: boolean | null
+          completed_at: string | null
+          course_id: string
+          enrolled_at: string | null
+          id: string
+          progress_percentage: number | null
+          rating: number | null
+          review: string | null
+          student_id: string
+        }
+        Insert: {
+          certificate_issued?: boolean | null
+          completed_at?: string | null
+          course_id: string
+          enrolled_at?: string | null
+          id?: string
+          progress_percentage?: number | null
+          rating?: number | null
+          review?: string | null
+          student_id: string
+        }
+        Update: {
+          certificate_issued?: boolean | null
+          completed_at?: string | null
+          course_id?: string
+          enrolled_at?: string | null
+          id?: string
+          progress_percentage?: number | null
+          rating?: number | null
+          review?: string | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "creator_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1733,6 +1848,41 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_activity_feed: {
+        Row: {
+          activity_data: Json
+          activity_type: string
+          created_at: string | null
+          creator_id: string
+          id: string
+          visibility: string | null
+        }
+        Insert: {
+          activity_data?: Json
+          activity_type: string
+          created_at?: string | null
+          creator_id: string
+          id?: string
+          visibility?: string | null
+        }
+        Update: {
+          activity_data?: Json
+          activity_type?: string
+          created_at?: string | null
+          creator_id?: string
+          id?: string
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_activity_feed_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creator_analytics_events: {
         Row: {
           created_at: string | null
@@ -1774,6 +1924,189 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "crd_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_challenges: {
+        Row: {
+          challenge_type: string
+          created_at: string | null
+          created_by: string
+          description: string
+          end_date: string
+          id: string
+          judging_criteria: Json
+          participant_count: number | null
+          prize_distribution: Json | null
+          prize_pool: number | null
+          skill_level: string | null
+          start_date: string
+          status: string | null
+          submission_count: number | null
+          submission_deadline: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          challenge_type: string
+          created_at?: string | null
+          created_by: string
+          description: string
+          end_date: string
+          id?: string
+          judging_criteria?: Json
+          participant_count?: number | null
+          prize_distribution?: Json | null
+          prize_pool?: number | null
+          skill_level?: string | null
+          start_date: string
+          status?: string | null
+          submission_count?: number | null
+          submission_deadline: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          challenge_type?: string
+          created_at?: string | null
+          created_by?: string
+          description?: string
+          end_date?: string
+          id?: string
+          judging_criteria?: Json
+          participant_count?: number | null
+          prize_distribution?: Json | null
+          prize_pool?: number | null
+          skill_level?: string | null
+          start_date?: string
+          status?: string | null
+          submission_count?: number | null
+          submission_deadline?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_challenges_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_collaborations: {
+        Row: {
+          collaborators: string[]
+          completion_date: string | null
+          created_at: string | null
+          deadline: string | null
+          id: string
+          ownership_split: Json
+          project_id: string
+          project_type: string
+          revenue_sharing_agreement: Json
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          collaborators: string[]
+          completion_date?: string | null
+          created_at?: string | null
+          deadline?: string | null
+          id?: string
+          ownership_split?: Json
+          project_id: string
+          project_type: string
+          revenue_sharing_agreement?: Json
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          collaborators?: string[]
+          completion_date?: string | null
+          created_at?: string | null
+          deadline?: string | null
+          id?: string
+          ownership_split?: Json
+          project_id?: string
+          project_type?: string
+          revenue_sharing_agreement?: Json
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_collaborations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "card_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_courses: {
+        Row: {
+          category: string
+          course_data: Json
+          created_at: string | null
+          description: string | null
+          duration_minutes: number | null
+          enrollment_count: number | null
+          id: string
+          instructor_id: string
+          is_free: boolean | null
+          is_published: boolean | null
+          price: number | null
+          rating_average: number | null
+          rating_count: number | null
+          skill_level: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          course_data?: Json
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          enrollment_count?: number | null
+          id?: string
+          instructor_id: string
+          is_free?: boolean | null
+          is_published?: boolean | null
+          price?: number | null
+          rating_average?: number | null
+          rating_count?: number | null
+          skill_level: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          course_data?: Json
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          enrollment_count?: number | null
+          id?: string
+          instructor_id?: string
+          is_free?: boolean | null
+          is_published?: boolean | null
+          price?: number | null
+          rating_average?: number | null
+          rating_count?: number | null
+          skill_level?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_courses_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1861,6 +2194,141 @@ export type Database = {
           },
         ]
       }
+      creator_follows: {
+        Row: {
+          created_at: string | null
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_follows_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_follows_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_forums: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          moderator_ids: string[] | null
+          name: string
+          skill_level: string
+          specialty: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          moderator_ids?: string[] | null
+          name: string
+          skill_level: string
+          specialty: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          moderator_ids?: string[] | null
+          name?: string
+          skill_level?: string
+          specialty?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      creator_mentorships: {
+        Row: {
+          commission_percentage: number | null
+          created_at: string | null
+          feedback_rating: number | null
+          id: string
+          mentee_id: string
+          mentor_id: string
+          payment_amount: number | null
+          program_type: string
+          sessions_completed: number | null
+          start_date: string | null
+          status: string
+          total_sessions: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          commission_percentage?: number | null
+          created_at?: string | null
+          feedback_rating?: number | null
+          id?: string
+          mentee_id: string
+          mentor_id: string
+          payment_amount?: number | null
+          program_type: string
+          sessions_completed?: number | null
+          start_date?: string | null
+          status?: string
+          total_sessions?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          commission_percentage?: number | null
+          created_at?: string | null
+          feedback_rating?: number | null
+          id?: string
+          mentee_id?: string
+          mentor_id?: string
+          payment_amount?: number | null
+          program_type?: string
+          sessions_completed?: number | null
+          start_date?: string | null
+          status?: string
+          total_sessions?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_mentorships_mentee_id_fkey"
+            columns: ["mentee_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_mentorships_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creator_profiles: {
         Row: {
           avg_rating: number | null
@@ -1929,6 +2397,112 @@ export type Database = {
           },
         ]
       }
+      creator_program_applications: {
+        Row: {
+          application_data: Json
+          applied_at: string | null
+          creator_id: string
+          id: string
+          program_id: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+        }
+        Insert: {
+          application_data?: Json
+          applied_at?: string | null
+          creator_id: string
+          id?: string
+          program_id: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Update: {
+          application_data?: Json
+          applied_at?: string | null
+          creator_id?: string
+          id?: string
+          program_id?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_program_applications_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_program_applications_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "creator_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_program_applications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_programs: {
+        Row: {
+          application_deadline: string | null
+          benefits: Json
+          created_at: string | null
+          current_participants: number | null
+          description: string | null
+          eligibility_criteria: Json
+          id: string
+          is_active: boolean | null
+          max_participants: number | null
+          program_duration_days: number | null
+          program_type: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          application_deadline?: string | null
+          benefits?: Json
+          created_at?: string | null
+          current_participants?: number | null
+          description?: string | null
+          eligibility_criteria?: Json
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          program_duration_days?: number | null
+          program_type: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          application_deadline?: string | null
+          benefits?: Json
+          created_at?: string | null
+          current_participants?: number | null
+          description?: string | null
+          eligibility_criteria?: Json
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          program_duration_days?: number | null
+          program_type?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       creator_subscriptions: {
         Row: {
           created_at: string | null
@@ -1982,6 +2556,71 @@ export type Database = {
             columns: ["subscriber_id"]
             isOneToOne: false
             referencedRelation: "crd_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_workshops: {
+        Row: {
+          created_at: string | null
+          current_attendees: number | null
+          description: string | null
+          duration_minutes: number
+          id: string
+          instructor_id: string
+          max_attendees: number | null
+          price: number | null
+          recording_url: string | null
+          scheduled_at: string
+          skill_level: string | null
+          status: string | null
+          stream_url: string | null
+          title: string
+          updated_at: string | null
+          workshop_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_attendees?: number | null
+          description?: string | null
+          duration_minutes: number
+          id?: string
+          instructor_id: string
+          max_attendees?: number | null
+          price?: number | null
+          recording_url?: string | null
+          scheduled_at: string
+          skill_level?: string | null
+          status?: string | null
+          stream_url?: string | null
+          title: string
+          updated_at?: string | null
+          workshop_type: string
+        }
+        Update: {
+          created_at?: string | null
+          current_attendees?: number | null
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          instructor_id?: string
+          max_attendees?: number | null
+          price?: number | null
+          recording_url?: string | null
+          scheduled_at?: string
+          skill_level?: string | null
+          status?: string | null
+          stream_url?: string | null
+          title?: string
+          updated_at?: string | null
+          workshop_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_workshops_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2361,6 +3000,121 @@ export type Database = {
             columns: ["feed_id"]
             isOneToOne: false
             referencedRelation: "fan_feeds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forum_replies: {
+        Row: {
+          content: string
+          created_at: string | null
+          creator_id: string
+          id: string
+          is_solution: boolean | null
+          parent_reply_id: string | null
+          topic_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          creator_id: string
+          id?: string
+          is_solution?: boolean | null
+          parent_reply_id?: string | null
+          topic_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          creator_id?: string
+          id?: string
+          is_solution?: boolean | null
+          parent_reply_id?: string | null
+          topic_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_replies_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_replies_parent_reply_id_fkey"
+            columns: ["parent_reply_id"]
+            isOneToOne: false
+            referencedRelation: "forum_replies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_replies_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "forum_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forum_topics: {
+        Row: {
+          content: string
+          created_at: string | null
+          creator_id: string
+          forum_id: string
+          id: string
+          is_locked: boolean | null
+          is_pinned: boolean | null
+          last_activity_at: string | null
+          reply_count: number | null
+          title: string
+          updated_at: string | null
+          view_count: number | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          creator_id: string
+          forum_id: string
+          id?: string
+          is_locked?: boolean | null
+          is_pinned?: boolean | null
+          last_activity_at?: string | null
+          reply_count?: number | null
+          title: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          creator_id?: string
+          forum_id?: string
+          id?: string
+          is_locked?: boolean | null
+          is_pinned?: boolean | null
+          last_activity_at?: string | null
+          reply_count?: number | null
+          title?: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_topics_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_topics_forum_id_fkey"
+            columns: ["forum_id"]
+            isOneToOne: false
+            referencedRelation: "creator_forums"
             referencedColumns: ["id"]
           },
         ]
@@ -5043,6 +5797,51 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      workshop_attendees: {
+        Row: {
+          attended: boolean | null
+          attendee_id: string
+          feedback_rating: number | null
+          feedback_text: string | null
+          id: string
+          registration_date: string | null
+          workshop_id: string
+        }
+        Insert: {
+          attended?: boolean | null
+          attendee_id: string
+          feedback_rating?: number | null
+          feedback_text?: string | null
+          id?: string
+          registration_date?: string | null
+          workshop_id: string
+        }
+        Update: {
+          attended?: boolean | null
+          attendee_id?: string
+          feedback_rating?: number | null
+          feedback_text?: string | null
+          id?: string
+          registration_date?: string | null
+          workshop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workshop_attendees_attendee_id_fkey"
+            columns: ["attendee_id"]
+            isOneToOne: false
+            referencedRelation: "creator_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workshop_attendees_workshop_id_fkey"
+            columns: ["workshop_id"]
+            isOneToOne: false
+            referencedRelation: "creator_workshops"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
