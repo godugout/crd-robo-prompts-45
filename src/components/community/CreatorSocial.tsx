@@ -57,6 +57,21 @@ export const CreatorSocial: React.FC<CreatorSocialProps> = ({ searchQuery }) => 
     }
   };
 
+  const getActivityDescription = (activityData: any) => {
+    if (!activityData || typeof activityData !== 'object') {
+      return 'No additional details available';
+    }
+    
+    // Type guard to check if it's a plain object with description
+    if (activityData && typeof activityData === 'object' && 'description' in activityData) {
+      return typeof activityData.description === 'string' 
+        ? activityData.description 
+        : 'No additional details available';
+    }
+    
+    return 'No additional details available';
+  };
+
   if (loadingFeed) {
     return (
       <div className="space-y-4">
@@ -129,7 +144,7 @@ export const CreatorSocial: React.FC<CreatorSocialProps> = ({ searchQuery }) => 
                     {activity.activity_data && (
                       <div className="bg-crd-mediumGray rounded-lg p-3 mb-3">
                         <p className="text-white text-sm">
-                          {activity.activity_data.description || 'No additional details available'}
+                          {getActivityDescription(activity.activity_data)}
                         </p>
                       </div>
                     )}
