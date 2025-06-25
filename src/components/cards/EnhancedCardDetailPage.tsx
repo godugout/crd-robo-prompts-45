@@ -16,7 +16,8 @@ import {
   Star,
   Calendar,
   User,
-  Tag
+  Tag,
+  Info
 } from 'lucide-react';
 import { CachedImage } from '@/components/common/CachedImage';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
@@ -41,7 +42,7 @@ export const EnhancedCardDetailPage: React.FC<EnhancedCardDetailPageProps> = ({
   onShare,
   onDownload
 }) => {
-  const [showStudioViewer, setShowStudioViewer] = useState(false);
+  const [showDetailView, setShowDetailView] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
 
@@ -55,35 +56,96 @@ export const EnhancedCardDetailPage: React.FC<EnhancedCardDetailPageProps> = ({
     }
   };
 
-  if (showStudioViewer) {
+  // Show 3D viewer by default
+  if (!showDetailView) {
     return (
-      <ImmersiveCardViewer
-        card={card}
-        isOpen={true}
-        onClose={() => setShowStudioViewer(false)}
-        onShare={onShare}
-        onDownload={onDownload}
-        allowRotation={true}
-        showStats={true}
-        ambient={true}
-      />
+      <div className="relative">
+        <ImmersiveCardViewer
+          card={card}
+          isOpen={true}
+          onClose={onGoBack}
+          onShare={onShare}
+          onDownload={onDownload}
+          allowRotation={true}
+          showStats={true}
+          ambient={true}
+        />
+        
+        {/* Switch to Detail View Button */}
+        <Button
+          onClick={() => setShowDetailView(true)}
+          className="absolute top-20 right-4 z-50 bg-black/80 backdrop-blur-sm hover:bg-black/90 text-white border border-white/20"
+          size="sm"
+        >
+          <Info className="w-4 h-4 mr-2" />
+          Card Info
+        </Button>
+
+        {/* Owner Controls in 3D View */}
+        {isOwner && (
+          <div className="absolute top-4 right-4 z-50 flex gap-2">
+            <Button
+              onClick={onEdit}
+              className="bg-crd-green hover:bg-crd-green/90 text-black"
+              size="sm"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit
+            </Button>
+            <Button
+              onClick={onToggleVisibility}
+              variant="outline"
+              size="sm"
+              className={`border-white/20 backdrop-blur-sm ${
+                card.is_public 
+                  ? 'text-crd-green hover:bg-crd-green/10' 
+                  : 'text-yellow-400 hover:bg-yellow-400/10'
+              }`}
+            >
+              {card.is_public ? (
+                <>
+                  <Globe className="w-4 h-4 mr-2" />
+                  Public
+                </>
+              ) : (
+                <>
+                  <Lock className="w-4 h-4 mr-2" />
+                  Private
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
     );
   }
 
+  // 2D Detail View (now secondary)
   return (
     <div className="min-h-screen bg-gradient-to-br from-crd-darkest via-crd-darker to-crd-darkest">
       {/* Header with consistent exit button position */}
       <div className="relative z-10 p-4 md:p-6">
         <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onGoBack}
-            className="bg-black/20 backdrop-blur-sm hover:bg-black/30 text-white border border-white/10"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDetailView(false)}
+              className="bg-black/20 backdrop-blur-sm hover:bg-black/30 text-white border border-white/10"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              3D View
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onGoBack}
+              className="bg-black/20 backdrop-blur-sm hover:bg-black/30 text-white border border-white/10"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+          </div>
 
           {/* Owner Controls */}
           {isOwner && (
@@ -145,11 +207,11 @@ export const EnhancedCardDetailPage: React.FC<EnhancedCardDetailPageProps> = ({
                 {/* Studio Viewer Button Overlay */}
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                   <Button
-                    onClick={() => setShowStudioViewer(true)}
+                    onClick={() => setShowDetailView(false)}
                     className="bg-crd-green hover:bg-crd-green/90 text-black font-medium"
                   >
                     <Eye className="w-4 h-4 mr-2" />
-                    View in Studio
+                    View in 3D
                   </Button>
                 </div>
               </div>
@@ -158,11 +220,11 @@ export const EnhancedCardDetailPage: React.FC<EnhancedCardDetailPageProps> = ({
             {/* Quick Actions */}
             <div className="flex gap-2">
               <Button
-                onClick={() => setShowStudioViewer(true)}
+                onClick={() => setShowDetailView(false)}
                 className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black"
               >
                 <Eye className="w-4 h-4 mr-2" />
-                View in Studio
+                View in 3D
               </Button>
               <Button
                 onClick={onShare}
