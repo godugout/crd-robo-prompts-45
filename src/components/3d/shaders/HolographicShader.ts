@@ -1,37 +1,41 @@
 
 import * as THREE from 'three';
+import type { HolographicShaderUniforms } from '@/types/three';
 
-export const HolographicShader = {
-  vertexShader: `
+export const createHolographicShader = (): {
+  uniforms: HolographicShaderUniforms;
+  vertexShader: string;
+  fragmentShader: string;
+} => {
+  const uniforms: HolographicShaderUniforms = {
+    time: { value: 0 },
+    intensity: { value: 1.0 },
+    colorShift: { value: 0.5 },
+    baseTexture: { value: null }
+  };
+
+  const vertexShader = `
     varying vec2 vUv;
     varying vec3 vNormal;
-    varying vec3 vWorldPosition;
-    varying vec3 vViewDirection;
-    
-    uniform float uTime;
+    varying vec3 vPosition;
     
     void main() {
       vUv = uv;
       vNormal = normalize(normalMatrix * normal);
-      
-      vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-      vWorldPosition = worldPosition.xyz;
-      vViewDirection = normalize(cameraPosition - worldPosition.xyz);
-      
+      vPosition = position;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
-  `,
-  
-  fragmentShader: `
-    uniform float uTime;
-    uniform float uIntensity;
-    uniform sampler2D uTexture;
-    uniform vec3 uColor;
+  `;
+
+  const fragmentShader = `
+    uniform float time;
+    uniform float intensity;
+    uniform float colorShift;
+    uniform sampler2D baseTexture;
     
     varying vec2 vUv;
     varying vec3 vNormal;
-    varying vec3 vWorldPosition;
-    varying vec3 vViewDirection;
+    varying vec3 vPosition;
     
     vec3 hsv2rgb(vec3 c) {
       vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
@@ -40,32 +44,21 @@ export const HolographicShader = {
     }
     
     void main() {
-      vec4 texColor = texture2D(uTexture, vUv);
+      vec4 baseColor = texture2D(baseTexture, vUv);
+      
+      // Create holographic effect
+      float angle = atan(vUv.y - 0.5, vUv.x - 0.5);
+      float hue = (angle + time * 0.5 + colorShift) / (2.0 * 3.14159);
+      vec3 rainbow = hsv2rgb(vec3(hue, 0.8, 1.0));
       
       // Fresnel effect
-      float fresnel = 1.0 - max(0.0, dot(vViewDirection, vNormal));
-      fresnel = pow(fresnel, 2.0);
+      float fresnel = 1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0)));
       
-      // Interference pattern
-      float angle = atan(vUv.y - 0.5, vUv.x - 0.5);
-      float rainbow = sin(angle * 8.0 + uTime * 3.0) * 0.5 + 0.5;
+      vec3 finalColor = mix(baseColor.rgb, rainbow, intensity * fresnel);
       
-      // Color shifting based on viewing angle
-      vec3 rainbowColor = hsv2rgb(vec3(rainbow + fresnel * 0.3, 0.8, 1.0));
-      
-      // Interference stripes
-      float stripes = sin((vUv.x + vUv.y) * 50.0 + uTime * 2.0) * 0.1 + 0.9;
-      
-      vec3 finalColor = mix(texColor.rgb, rainbowColor * stripes, uIntensity * fresnel);
-      
-      gl_FragColor = vec4(finalColor, texColor.a);
+      gl_FragColor = vec4(finalColor, baseColor.a);
     }
-  `,
-  
-  uniforms: {
-    uTime: { value: 0.0 },
-    uIntensity: { value: 1.0 },
-    uTexture: { value: null },
-    uColor: { value: new THREE.Vector3(1.0, 1.0, 1.0) }
-  }
+  `;
+
+  return { uniforms, vertexShader, fragmentShader };
 };

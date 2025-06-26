@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei';
@@ -6,6 +7,7 @@ import { Card3D } from './Card3D';
 import { PerformanceMonitor, usePerformanceMetrics } from './PerformanceMonitor';
 import { detectWebGLCapabilities, getOptimalSettings } from '../utils/webglDetection';
 import type { CardData } from '@/types/card';
+import type { OptimalSettings } from '@/types/three';
 
 interface Card3DViewerProps {
   card: CardData;
@@ -15,11 +17,13 @@ interface Card3DViewerProps {
   onPerformanceIssue?: () => void;
 }
 
-const Scene: React.FC<{ 
-  card: CardData; 
+interface SceneProps {
+  card: CardData;
   quality: 'high' | 'medium' | 'low';
-  shadows: boolean; 
-}> = ({ card, quality, shadows }) => {
+  shadows: boolean;
+}
+
+const Scene: React.FC<SceneProps> = ({ card, quality, shadows }) => {
   return (
     <>
       {/* Enhanced lighting setup for better card visibility */}
@@ -37,7 +41,7 @@ const Scene: React.FC<{
       {/* Environment for reflections */}
       {quality === 'high' && <Environment preset="studio" />}
       
-      {/* The 3D card with enhanced scale for better visibility - fix: use single number for scale */}
+      {/* The 3D card with enhanced scale for better visibility */}
       <Card3D 
         card={card}
         position={[0, 0, 0]}
@@ -65,8 +69,8 @@ export const Card3DViewer: React.FC<Card3DViewerProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [webglSupported, setWebglSupported] = useState<boolean | null>(null);
-  const [settings, setSettings] = useState(getOptimalSettings(detectWebGLCapabilities()));
-  const [hasError, setHasError] = useState(false);
+  const [settings, setSettings] = useState<OptimalSettings>(getOptimalSettings(detectWebGLCapabilities()));
+  const [hasError, setHasError] = useState<boolean>(false);
   const { metrics, updateMetrics } = usePerformanceMetrics();
 
   // WebGL capability detection
@@ -88,7 +92,7 @@ export const Card3DViewer: React.FC<Card3DViewerProps> = ({
   }, [metrics.fps, onPerformanceIssue]);
 
   // Error boundary for Canvas
-  const handleCanvasError = (event: React.SyntheticEvent<HTMLDivElement, Event>) => {
+  const handleCanvasError = (event: React.SyntheticEvent<HTMLDivElement, Event>): void => {
     console.error('3D Canvas error:', event);
     setHasError(true);
     onFallback?.();

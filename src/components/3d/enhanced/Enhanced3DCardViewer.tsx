@@ -23,7 +23,7 @@ export const Enhanced3DCardViewer: React.FC<Enhanced3DCardViewerProps> = ({
   autoEnable = true,
   onModeChange
 }) => {
-  const [is3DEnabled, setIs3DEnabled] = useState(false);
+  const [is3DEnabled, setIs3DEnabled] = useState<boolean>(false);
   const [is3DSupported, setIs3DSupported] = useState<boolean | null>(null);
   const [userPreference, setUserPreference] = useState<boolean | null>(null);
 
@@ -35,7 +35,7 @@ export const Enhanced3DCardViewer: React.FC<Enhanced3DCardViewerProps> = ({
     
     // Load user preference from localStorage
     const saved = localStorage.getItem('crd-3d-enabled');
-    const preference = saved ? JSON.parse(saved) : null;
+    const preference = saved ? JSON.parse(saved) as boolean : null;
     setUserPreference(preference);
     
     // Auto-enable if supported and no user preference set
@@ -47,7 +47,7 @@ export const Enhanced3DCardViewer: React.FC<Enhanced3DCardViewerProps> = ({
   }, [autoEnable]);
 
   // Save user preference
-  const handleToggle3D = () => {
+  const handleToggle3D = (): void => {
     const newState = !is3DEnabled;
     setIs3DEnabled(newState);
     setUserPreference(newState);
@@ -56,13 +56,13 @@ export const Enhanced3DCardViewer: React.FC<Enhanced3DCardViewerProps> = ({
   };
 
   // Handle fallback when 3D fails
-  const handleFallback = () => {
+  const handleFallback = (): void => {
     setIs3DEnabled(false);
     onModeChange?.(false);
   };
 
   // Handle performance issues
-  const handlePerformanceIssue = () => {
+  const handlePerformanceIssue = (): void => {
     console.warn('3D performance issues detected, suggesting fallback');
   };
 

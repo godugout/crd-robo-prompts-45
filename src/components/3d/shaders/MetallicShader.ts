@@ -1,68 +1,70 @@
 
 import * as THREE from 'three';
+import type { MetallicShaderUniforms } from '@/types/three';
 
-export const MetallicShader = {
-  vertexShader: `
+export const createMetallicShader = (): {
+  uniforms: MetallicShaderUniforms;
+  vertexShader: string;
+  fragmentShader: string;
+} => {
+  const uniforms: MetallicShaderUniforms = {
+    time: { value: 0 },
+    metalness: { value: 0.8 },
+    roughness: { value: 0.2 },
+    envMap: { value: null }
+  };
+
+  const vertexShader = `
     varying vec2 vUv;
     varying vec3 vNormal;
-    varying vec3 vWorldPosition;
-    varying vec3 vViewDirection;
     varying vec3 vReflect;
+    varying vec3 vWorldPosition;
     
     void main() {
       vUv = uv;
-      vNormal = normalize(normalMatrix * normal);
       
       vec4 worldPosition = modelMatrix * vec4(position, 1.0);
       vWorldPosition = worldPosition.xyz;
-      vViewDirection = normalize(cameraPosition - worldPosition.xyz);
-      vReflect = reflect(-vViewDirection, vNormal);
+      
+      vec3 worldNormal = normalize(mat3(modelMatrix) * normal);
+      vNormal = worldNormal;
+      
+      vec3 cameraToVertex = normalize(worldPosition.xyz - cameraPosition);
+      vReflect = reflect(cameraToVertex, worldNormal);
       
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
-  `,
-  
-  fragmentShader: `
-    uniform float uTime;
-    uniform float uMetalness;
-    uniform float uRoughness;
-    uniform sampler2D uTexture;
-    uniform samplerCube uEnvMap;
-    uniform vec3 uTint;
+  `;
+
+  const fragmentShader = `
+    uniform float time;
+    uniform float metalness;
+    uniform float roughness;
+    uniform samplerCube envMap;
     
     varying vec2 vUv;
     varying vec3 vNormal;
-    varying vec3 vWorldPosition;
-    varying vec3 vViewDirection;
     varying vec3 vReflect;
+    varying vec3 vWorldPosition;
     
     void main() {
-      vec4 texColor = texture2D(uTexture, vUv);
+      vec3 baseColor = vec3(0.8, 0.85, 0.9); // Metallic base color
       
       // Environment reflection
-      vec3 envColor = textureCube(uEnvMap, vReflect).rgb;
+      vec3 envColor = textureCube(envMap, vReflect).rgb;
       
-      // Fresnel for metallic reflection
-      float fresnel = 1.0 - max(0.0, dot(vViewDirection, vNormal));
-      fresnel = pow(fresnel, 1.0 - uRoughness);
+      // Simple metallic reflection
+      float fresnelFactor = pow(1.0 - max(dot(vNormal, normalize(cameraPosition - vWorldPosition)), 0.0), 2.0);
       
-      // Metallic shimmer pattern
-      float shimmer = sin(vUv.x * 20.0 + uTime * 2.0) * sin(vUv.y * 15.0 + uTime * 1.5);
-      shimmer = shimmer * 0.2 + 0.8;
+      vec3 finalColor = mix(baseColor, envColor, metalness * fresnelFactor);
       
-      // Combine base texture with metallic reflection
-      vec3 metallicColor = mix(texColor.rgb, envColor * uTint * shimmer, uMetalness * fresnel);
+      // Add some shine variation
+      float shine = sin(time + vUv.x * 10.0 + vUv.y * 10.0) * 0.1 + 0.9;
+      finalColor *= shine;
       
-      gl_FragColor = vec4(metallicColor, texColor.a);
+      gl_FragColor = vec4(finalColor, 1.0);
     }
-  `,
-  
-  uniforms: {
-    uTime: { value: 0.0 },
-    uMetalness: { value: 0.8 },
-    uRoughness: { value: 0.2 },
-    uTexture: { value: null },
-    uEnvMap: { value: null },
-    uTint: { value: new THREE.Vector3(1.0, 0.8, 0.6) }
-  }
+  `;
+
+  return { uniforms, vertexShader, fragmentShader };
 };
