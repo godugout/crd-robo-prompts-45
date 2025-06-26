@@ -6,7 +6,7 @@ import { useNavigation } from '@/contexts/NavigationContext';
 import { cn } from '@/lib/utils';
 import { 
   Home, 
-  Gallery, 
+  Image, 
   Plus, 
   Sparkles, 
   User, 
@@ -22,7 +22,7 @@ import { ProfileDropdown } from '@/components/home/navbar/ProfileDropdown';
 
 const navigationItems = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/gallery', label: 'Gallery', icon: Gallery },
+  { href: '/gallery', label: 'Gallery', icon: Image },
   { href: '/create', label: 'Create', icon: Plus },
   { href: '/cards/enhanced', label: 'Enhanced Studio', icon: Sparkles },
   { href: '/profile', label: 'Profile', icon: User },
