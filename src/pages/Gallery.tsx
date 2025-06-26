@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Gallery as GalleryIcon, Grid, List } from 'lucide-react';
+import { Image as ImageIcon, Grid, List } from 'lucide-react';
 
 const Gallery = () => {
   return (
@@ -12,7 +12,7 @@ const Gallery = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-12 h-12 bg-crd-green rounded-xl flex items-center justify-center">
-                <GalleryIcon className="w-6 h-6 text-black" />
+                <ImageIcon className="w-6 h-6 text-black" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">Gallery</h1>
