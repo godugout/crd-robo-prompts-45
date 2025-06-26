@@ -1,14 +1,12 @@
 
-import React, { useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { Button } from '@/components/ui/button';
+import React from 'react';
 import { Card } from '@/components/ui/card';
-import { Upload, Image, X, Camera, Folder } from 'lucide-react';
-import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Upload, Image, X } from 'lucide-react';
 
 interface UploadPhaseProps {
-  uploadedImages: string[];
-  onImageUpload: (files: FileList | File[]) => void;
+  uploadedImages: File[];
+  onImageUpload: (files: File[]) => void;
   onComplete: () => void;
   fileInputRef: React.RefObject<HTMLInputElement>;
 }
@@ -19,139 +17,91 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
   onComplete,
   fileInputRef
 }) => {
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      onImageUpload(acceptedFiles);
-    }
-  }, [onImageUpload]);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.webp', '.gif']
-    },
-    multiple: true,
-    maxFiles: 10
-  });
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      onImageUpload(e.target.files);
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files).filter(file => 
+      file.type.startsWith('image/')
+    );
+    if (files.length > 0) {
+      onImageUpload(files);
     }
   };
 
-  const removeImage = (index: number) => {
-    // This would need to be implemented in the parent hook
-    toast.info('Image removed');
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      onImageUpload(files);
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const newImages = uploadedImages.filter((_, i) => i !== index);
+    onImageUpload(newImages);
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="p-6 space-y-6">
       <div>
-        <h3 className="text-xl font-bold text-white mb-2">Upload Your Images</h3>
-        <p className="text-gray-400 text-sm">
-          Start by uploading your card images. You can add multiple images and organize them later.
-        </p>
+        <h3 className="text-xl font-semibold text-white mb-2">Upload Your Images</h3>
+        <p className="text-gray-400">Add photos or artwork to create your trading card</p>
       </div>
 
-      {/* File Input (Hidden) */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        accept="image/*"
-        onChange={handleFileSelect}
-        className="hidden"
-      />
-
-      {/* Main Upload Zone */}
-      <Card className="bg-black/20 border-white/10 rounded-lg overflow-hidden">
-        <div
-          {...getRootProps()}
-          className={`relative p-8 text-center cursor-pointer transition-all duration-300 ${
-            isDragActive
-              ? 'bg-crd-green/20 border-crd-green'
-              : 'hover:bg-white/5 border-white/10'
-          }`}
-        >
-          <input {...getInputProps()} />
-          
-          <div className="space-y-4">
-            {/* Icon */}
-            <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-crd-green/20 to-blue-500/20 flex items-center justify-center">
-              {isDragActive ? (
-                <Upload className="w-8 h-8 text-crd-green animate-bounce" />
-              ) : (
-                <Folder className="w-8 h-8 text-gray-300" />
-              )}
-            </div>
-            
-            {/* Text */}
-            <div>
-              <h4 className="text-white font-medium text-lg mb-2">
-                {isDragActive 
-                  ? 'Drop your images here!' 
-                  : 'Drag & drop images here'
-                }
-              </h4>
-              <p className="text-gray-400 text-sm mb-4">
-                Or click to browse your files
-              </p>
-              <p className="text-gray-500 text-xs">
-                Supports JPG, PNG, WebP, GIF • Up to 10 images • Max 50MB each
-              </p>
-            </div>
-
-            {/* Buttons */}
-            <div className="flex gap-3 justify-center">
-              <Button 
-                className="bg-crd-green hover:bg-crd-green/90 text-black font-medium"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  fileInputRef.current?.click();
-                }}
-              >
-                <Camera className="w-4 h-4 mr-2" />
-                Browse Files
-              </Button>
-              <Button 
-                variant="outline"
-                className="border-white/20 text-white hover:bg-white/10"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Image className="w-4 h-4 mr-2" />
-                Use Sample
-              </Button>
-            </div>
-          </div>
+      {/* Upload Zone */}
+      <Card 
+        className="border-2 border-dashed border-white/20 bg-black/30 hover:border-crd-green/50 transition-colors"
+        onDrop={handleDrop}
+        onDragOver={(e) => e.preventDefault()}
+        onDragEnter={(e) => e.preventDefault()}
+      >
+        <div className="p-8 text-center">
+          <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h4 className="text-lg font-medium text-white mb-2">Drop images here</h4>
+          <p className="text-gray-400 mb-4">or click to browse your files</p>
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
+          >
+            Choose Files
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
         </div>
       </Card>
 
-      {/* Uploaded Images Grid */}
+      {/* Uploaded Images */}
       {uploadedImages.length > 0 && (
         <div className="space-y-4">
           <h4 className="text-white font-medium">Uploaded Images ({uploadedImages.length})</h4>
-          <div className="grid grid-cols-2 gap-4">
-            {uploadedImages.map((imageUrl, index) => (
-              <Card key={index} className="bg-black/30 border-white/10 p-3 rounded-lg">
-                <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-black/40 mb-3">
-                  <img 
-                    src={imageUrl} 
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {uploadedImages.map((file, index) => (
+              <Card key={index} className="relative bg-black/30 border-white/20 overflow-hidden">
+                <div className="aspect-square">
+                  <img
+                    src={URL.createObjectURL(file)}
                     alt={`Upload ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
+                </div>
+                <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                   <Button
-                    variant="ghost"
+                    variant="destructive"
                     size="sm"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-2 right-2 w-6 h-6 p-0 bg-black/50 hover:bg-red-500/50 rounded-full"
+                    onClick={() => handleRemoveImage(index)}
+                    className="bg-red-600 hover:bg-red-700"
                   >
-                    <X className="w-3 h-3 text-white" />
+                    <X className="w-4 h-4" />
                   </Button>
                 </div>
-                <div className="text-center">
-                  <p className="text-white text-sm font-medium">Image {index + 1}</p>
-                  <p className="text-gray-400 text-xs">Ready to use</p>
+                <div className="absolute bottom-2 left-2 right-2">
+                  <div className="bg-black/80 backdrop-blur-sm rounded px-2 py-1">
+                    <p className="text-white text-xs truncate">{file.name}</p>
+                  </div>
                 </div>
               </Card>
             ))}
@@ -161,12 +111,12 @@ export const UploadPhase: React.FC<UploadPhaseProps> = ({
 
       {/* Continue Button */}
       {uploadedImages.length > 0 && (
-        <div className="pt-4 border-t border-white/10">
-          <Button 
+        <div className="flex justify-end pt-4 border-t border-white/10">
+          <Button
             onClick={onComplete}
-            className="w-full bg-crd-green hover:bg-crd-green/90 text-black font-medium"
+            className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
           >
-            Continue to Frames ({uploadedImages.length} image{uploadedImages.length !== 1 ? 's' : ''} ready)
+            Continue to Frames
           </Button>
         </div>
       )}

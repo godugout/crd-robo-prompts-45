@@ -12,7 +12,7 @@ import AuthCallback from "./pages/auth/AuthCallback";
 import CardCreation from "./pages/CardCreation";
 import Editor from "./pages/Editor";
 import OakMemoryCreator from "./pages/OakMemoryCreator";
-import EnhancedStudio from "./pages/EnhancedStudio";
+import { OrganizedCardStudio } from "@/components/studio/enhanced/OrganizedCardStudio";
 
 const queryClient = new QueryClient();
 
@@ -64,7 +64,7 @@ const App = () => (
               path="/cards/enhanced" 
               element={
                 <ProtectedRoute>
-                  <EnhancedStudio />
+                  <OrganizedCardStudio />
                 </ProtectedRoute>
               } 
             />

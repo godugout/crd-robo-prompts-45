@@ -1,36 +1,31 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
-import { 
-  Layers,
-  Eye,
-  EyeOff,
-  Edit,
-  Trash2,
-  Plus,
-  Save,
-  Download,
-  Play,
-  Pause,
-  Settings
-} from 'lucide-react';
-import type { StudioLayer } from '../hooks/useEnhancedStudio';
-import type { CardData } from '@/types/card';
+import { Save, Download, Share, Eye, EyeOff, Lock, Unlock, Layers, Sparkles } from 'lucide-react';
+
+interface Layer {
+  id: string;
+  name: string;
+  type: 'image' | 'text' | 'shape' | 'effect' | 'frame';
+  visible: boolean;
+  locked: boolean;
+  opacity: number;
+  transform: any;
+  data: any;
+}
 
 interface StudioPhaseProps {
-  layers: StudioLayer[];
-  selectedLayerId?: string;
-  cardData: CardData;
+  layers: Layer[];
+  selectedLayerId: string;
+  cardData: any;
   onLayerSelect: (layerId: string) => void;
-  onLayerUpdate: (layerId: string, updates: Partial<StudioLayer>) => void;
+  onLayerUpdate: (layerId: string, updates: Partial<Layer>) => void;
   onLayerRemove: (layerId: string) => void;
-  onAddLayer: (type: StudioLayer['type'], data?: any) => void;
-  onExport: (format: 'png' | 'jpeg' | 'print') => Promise<void>;
-  onSave: () => Promise<void>;
+  onAddLayer: (type: Layer['type']) => void;
+  onExport: (format: string) => void;
+  onSave: () => void;
   isPlaying: boolean;
   onToggleAnimation: () => void;
 }
@@ -48,94 +43,94 @@ export const StudioPhase: React.FC<StudioPhaseProps> = ({
   isPlaying,
   onToggleAnimation
 }) => {
-  const [exportFormat, setExportFormat] = useState<'png' | 'jpeg' | 'print'>('png');
-  const [isExporting, setIsExporting] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const handleExport = async () => {
-    setIsExporting(true);
-    try {
-      await onExport(exportFormat);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      await onSave();
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const selectedLayer = layers.find(l => l.id === selectedLayerId);
+  const [showProMode, setShowProMode] = React.useState(false);
 
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h3 className="text-xl font-bold text-white mb-2">Final Studio</h3>
-        <p className="text-gray-400 text-sm">
-          Fine-tune your card and export when ready.
-        </p>
-      </div>
-
-      {/* Animation Controls */}
-      <Card className="bg-black/20 border-white/10 p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-white font-medium">Preview Animation</h4>
-            <p className="text-gray-400 text-sm">Control real-time preview</p>
-          </div>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-semibold text-white mb-2">Final Studio</h3>
+          <p className="text-gray-400">Fine-tune your card and prepare for export</p>
+        </div>
+        <div className="flex items-center gap-3">
           <Button
             variant="outline"
             size="sm"
-            onClick={onToggleAnimation}
+            onClick={() => setShowProMode(!showProMode)}
             className="border-white/20 text-white hover:bg-white/10"
           >
-            {isPlaying ? (
-              <Pause className="w-4 h-4 mr-2" />
-            ) : (
-              <Play className="w-4 h-4 mr-2" />
-            )}
-            {isPlaying ? 'Pause' : 'Play'}
+            <Layers className="w-4 h-4 mr-2" />
+            {showProMode ? 'Simple Mode' : 'Pro Mode'}
           </Button>
+          <Badge className="bg-crd-green/20 text-crd-green border-crd-green/30">
+            Ready to Export
+          </Badge>
+        </div>
+      </div>
+
+      {/* Card Summary */}
+      <Card className="p-4 bg-black/30 border-white/20">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-white font-medium">{cardData.title || 'Untitled Card'}</h4>
+            <p className="text-gray-400 text-sm">{cardData.description || 'No description'}</p>
+            <div className="flex items-center gap-2 mt-2">
+              <Badge variant="secondary" className="capitalize">
+                {cardData.rarity || 'common'}
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                {layers.length} Layers
+              </Badge>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-gray-400">Last updated</p>
+            <p className="text-white text-sm">Just now</p>
+          </div>
         </div>
       </Card>
 
-      {/* Layers Panel */}
-      <Card className="bg-black/20 border-white/10 p-4">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="text-white font-medium flex items-center">
-              <Layers className="w-4 h-4 mr-2" />
-              Layers ({layers.length})
+      {/* Pro Mode - Layer Controls */}
+      {showProMode && (
+        <Card className="p-4 bg-black/30 border-white/20">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-white font-medium flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              Advanced Controls
             </h4>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onAddLayer('text', { content: 'New Text' })}
-              className="border-white/20 text-white hover:bg-white/10"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Layer
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                onClick={() => onAddLayer('text')}
+                className="bg-crd-green hover:bg-crd-green/90 text-black"
+              >
+                Add Text
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onAddLayer('shape')}
+                className="border-white/20 text-white hover:bg-white/10"
+              >
+                Add Shape
+              </Button>
+            </div>
           </div>
 
-          <div className="space-y-2 max-h-40 overflow-y-auto">
+          {/* Layer List */}
+          <div className="space-y-2 max-h-48 overflow-y-auto">
             {layers.map((layer) => (
               <div
                 key={layer.id}
-                className={`p-3 rounded-lg cursor-pointer transition-all ${
+                className={`flex items-center justify-between p-3 rounded border transition-colors cursor-pointer ${
                   selectedLayerId === layer.id
-                    ? 'bg-crd-green/20 border border-crd-green'
-                    : 'bg-black/30 border border-white/10 hover:border-white/20'
+                    ? 'border-crd-green bg-crd-green/10'
+                    : 'border-white/10 hover:border-white/20'
                 }`}
                 onClick={() => onLayerSelect(layer.id)}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -145,21 +140,28 @@ export const StudioPhase: React.FC<StudioPhaseProps> = ({
                       }}
                       className="w-6 h-6 p-0 text-gray-400 hover:text-white"
                     >
-                      {layer.visible ? (
-                        <Eye className="w-3 h-3" />
-                      ) : (
-                        <EyeOff className="w-3 h-3" />
-                      )}
+                      {layer.visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
                     </Button>
-                    <div>
-                      <p className="text-white text-sm font-medium">{layer.name}</p>
-                      <p className="text-gray-400 text-xs capitalize">{layer.type}</p>
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onLayerUpdate(layer.id, { locked: !layer.locked });
+                      }}
+                      className="w-6 h-6 p-0 text-gray-400 hover:text-white"
+                    >
+                      {layer.locked ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                    </Button>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Badge variant="outline" className="border-white/20 text-white text-xs">
-                      {Math.round(layer.opacity * 100)}%
-                    </Badge>
+                  <div>
+                    <p className="text-white text-sm font-medium">{layer.name}</p>
+                    <p className="text-gray-400 text-xs capitalize">{layer.type}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">{Math.round(layer.opacity * 100)}%</span>
+                  {layer.id !== 'background' && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -167,144 +169,73 @@ export const StudioPhase: React.FC<StudioPhaseProps> = ({
                         e.stopPropagation();
                         onLayerRemove(layer.id);
                       }}
-                      className="w-6 h-6 p-0 text-red-400 hover:text-red-300"
+                      className="w-6 h-6 p-0 text-gray-400 hover:text-red-400"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      ×
                     </Button>
-                  </div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      </Card>
-
-      {/* Layer Properties */}
-      {selectedLayer && (
-        <Card className="bg-black/20 border-white/10 p-4">
-          <div className="space-y-4">
-            <h4 className="text-white font-medium flex items-center">
-              <Settings className="w-4 h-4 mr-2" />
-              Layer Properties
-            </h4>
-            
-            <div className="space-y-3">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-300 text-sm">Opacity</span>
-                  <span className="text-white text-sm">{Math.round(selectedLayer.opacity * 100)}%</span>
-                </div>
-                <Slider
-                  value={[selectedLayer.opacity * 100]}
-                  onValueChange={([value]) => 
-                    onLayerUpdate(selectedLayer.id, { opacity: value / 100 })
-                  }
-                  max={100}
-                  step={1}
-                  className="w-full"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="text-gray-300 text-sm">Scale X</label>
-                  <Slider
-                    value={[selectedLayer.scale.x * 100]}
-                    onValueChange={([value]) => 
-                      onLayerUpdate(selectedLayer.id, { 
-                        scale: { ...selectedLayer.scale, x: value / 100 }
-                      })
-                    }
-                    min={10}
-                    max={200}
-                    step={1}
-                    className="w-full mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-gray-300 text-sm">Scale Y</label>
-                  <Slider
-                    value={[selectedLayer.scale.y * 100]}
-                    onValueChange={([value]) => 
-                      onLayerUpdate(selectedLayer.id, { 
-                        scale: { ...selectedLayer.scale, y: value / 100 }
-                      })
-                    }
-                    min={10}
-                    max={200}
-                    step={1}
-                    className="w-full mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-gray-300 text-sm">Rotation</label>
-                  <Slider
-                    value={[selectedLayer.rotation.z]}
-                    onValueChange={([value]) => 
-                      onLayerUpdate(selectedLayer.id, { 
-                        rotation: { ...selectedLayer.rotation, z: value }
-                      })
-                    }
-                    min={-180}
-                    max={180}
-                    step={1}
-                    className="w-full mt-1"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
         </Card>
       )}
 
-      {/* Export & Save */}
-      <Card className="bg-black/20 border-white/10 p-4">
-        <div className="space-y-4">
-          <h4 className="text-white font-medium">Export & Save</h4>
-          
-          <div className="space-y-3">
-            <div>
-              <label className="text-gray-300 text-sm mb-2 block">Export Format</label>
-              <div className="grid grid-cols-3 gap-2">
-                {(['png', 'jpeg', 'print'] as const).map((format) => (
-                  <Button
-                    key={format}
-                    variant={exportFormat === format ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setExportFormat(format)}
-                    className={
-                      exportFormat === format 
-                        ? 'bg-crd-green text-black' 
-                        : 'border-white/20 text-white hover:bg-white/10'
-                    }
-                  >
-                    {format.toUpperCase()}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {isSaving ? 'Saving...' : 'Save'}
-              </Button>
-              <Button
-                onClick={handleExport}
-                disabled={isExporting}
-                className="bg-crd-green hover:bg-crd-green/90 text-black"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                {isExporting ? 'Exporting...' : 'Export'}
-              </Button>
-            </div>
-          </div>
+      {/* Export Options */}
+      <Card className="p-4 bg-black/30 border-white/20">
+        <h4 className="text-white font-medium mb-4">Export & Share</h4>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Button
+            onClick={() => onExport('png')}
+            className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            PNG
+          </Button>
+          <Button
+            onClick={() => onExport('jpg')}
+            variant="outline"
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            JPG
+          </Button>
+          <Button
+            onClick={onSave}
+            variant="outline"
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            Save
+          </Button>
+          <Button
+            onClick={() => {}}
+            variant="outline"
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            <Share className="w-4 h-4 mr-2" />
+            Share
+          </Button>
         </div>
       </Card>
+
+      {/* Quick Actions */}
+      <div className="flex justify-between pt-4 border-t border-white/10">
+        <Button
+          variant="outline"
+          onClick={() => window.history.back()}
+          className="border-white/20 text-white hover:bg-white/10"
+        >
+          Back to Effects
+        </Button>
+        <Button
+          onClick={() => onExport('png')}
+          className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Export Card
+        </Button>
+      </div>
     </div>
   );
 };
