@@ -5,22 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Upload, Camera, Image, X, Crop } from 'lucide-react';
 import { toast } from 'sonner';
-import { ImageCropper } from '@/components/editor/ImageCropper';
 
 interface EnhancedUploadZoneProps {
   onImageUpload: (imageUrl: string) => void;
   uploadedImage?: string;
-  cardEditor?: any;
 }
 
 export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
   onImageUpload,
-  uploadedImage,
-  cardEditor
+  uploadedImage
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showCropper, setShowCropper] = useState(false);
-  const [originalImage, setOriginalImage] = useState<string>('');
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (!acceptedFiles.length) return;
@@ -30,16 +25,7 @@ export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
     
     try {
       const imageUrl = URL.createObjectURL(file);
-      setOriginalImage(imageUrl);
-      
-      // Auto-update card preview immediately
       onImageUpload(imageUrl);
-      
-      // Also update card editor if available
-      if (cardEditor) {
-        cardEditor.updateCardField('image_url', imageUrl);
-        cardEditor.updateCardField('thumbnail_url', imageUrl);
-      }
       
       toast.success('Image uploaded! Card preview updated automatically.', {
         duration: 3000,
@@ -50,7 +36,7 @@ export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
     } finally {
       setIsProcessing(false);
     }
-  }, [onImageUpload, cardEditor]);
+  }, [onImageUpload]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -59,54 +45,10 @@ export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
     disabled: isProcessing
   });
 
-  const handleCropComplete = (croppedImageUrl: string) => {
-    onImageUpload(croppedImageUrl);
-    
-    if (cardEditor) {
-      cardEditor.updateCardField('image_url', croppedImageUrl);
-      cardEditor.updateCardField('thumbnail_url', croppedImageUrl);
-    }
-    
-    setShowCropper(false);
-    toast.success('Image cropped and applied to card!');
-  };
-
   const clearImage = () => {
     onImageUpload('');
-    setOriginalImage('');
-    
-    if (cardEditor) {
-      cardEditor.updateCardField('image_url', '');
-      cardEditor.updateCardField('thumbnail_url', '');
-    }
-    
     toast.info('Image removed');
   };
-
-  if (showCropper && (uploadedImage || originalImage)) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-white font-medium">Crop Your Image</h3>
-          <Button
-            variant="ghost"
-            onClick={() => setShowCropper(false)}
-            className="text-crd-lightGray hover:text-white h-8 w-8 p-0"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-        
-        <div className="h-96 rounded-lg overflow-hidden">
-          <ImageCropper
-            imageUrl={uploadedImage || originalImage}
-            onCropComplete={handleCropComplete}
-            aspectRatio={3/4}
-          />
-        </div>
-      </div>
-    );
-  }
 
   // Compact version for when image is uploaded
   if (uploadedImage) {
@@ -136,26 +78,17 @@ export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         </div>
 
-        <div className="flex gap-2">
-          <Button
-            onClick={() => setShowCropper(true)}
-            className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black h-8 text-xs"
-          >
-            <Crop className="w-3 h-3 mr-1" />
-            Crop
-          </Button>
-          <Button
-            {...getRootProps()}
-            variant="outline"
-            size="sm"
-            className="flex-1 border-white/20 text-white hover:bg-white/10 h-8 text-xs"
-            disabled={isProcessing}
-          >
-            <input {...getInputProps()} />
-            <Upload className="w-3 h-3 mr-1" />
-            Replace
-          </Button>
-        </div>
+        <Button
+          {...getRootProps()}
+          variant="outline"
+          size="sm"
+          className="w-full border-white/20 text-white hover:bg-white/10 h-8 text-xs"
+          disabled={isProcessing}
+        >
+          <input {...getInputProps()} />
+          <Upload className="w-3 h-3 mr-1" />
+          Replace Image
+        </Button>
       </div>
     );
   }

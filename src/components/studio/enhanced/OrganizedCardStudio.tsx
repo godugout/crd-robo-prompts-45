@@ -1,398 +1,308 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 import { 
   Upload, 
+  Image, 
   Sparkles, 
-  Layers, 
-  Save, 
-  Download, 
-  Eye,
+  Palette, 
   Settings,
-  Palette,
-  Wand2,
-  RotateCcw,
   Play,
-  Pause
+  Pause,
+  RotateCcw,
+  ZoomIn,
+  ZoomOut,
+  Save,
+  Share2
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Enhanced3DCardRenderer } from '@/components/3d/Enhanced3DCardRenderer';
+import { Live3DPreview } from '@/components/studio/Live3DPreview';
 import { EnhancedUploadZone } from './EnhancedUploadZone';
-import { Live3DPreview } from '../Live3DPreview';
-import { useEnhancedStudio } from './hooks/useEnhancedStudio';
-import { ENHANCED_FRAMES } from '../data/enhancedFrames';
 
-export const OrganizedCardStudio = () => {
-  const {
-    currentPhase,
-    setCurrentPhase,
-    completedPhases,
-    uploadedImages,
-    selectedFrame,
-    frameData,
-    effects,
-    effectValues,
-    layers,
-    selectedLayerId,
-    cardData,
-    isPlaying,
-    fileInputRef,
-    handleImageUpload,
-    selectFrame,
-    completePhase,
-    addEffect,
-    updateEffect,
-    removeEffect,
-    selectLayer,
-    updateLayer,
-    removeLayer,
-    addLayer,
-    toggleAnimation,
-    handleImageAdjust,
-    exportCard,
-    saveCard
-  } = useEnhancedStudio();
+export const OrganizedCardStudio: React.FC = () => {
+  // Core state
+  const [uploadedImage, setUploadedImage] = useState<string>('');
+  const [selectedFrame, setSelectedFrame] = useState<string>('classic');
+  const [currentPhoto, setCurrentPhoto] = useState<File | null>(null);
+  
+  // 3D Effects state
+  const [effects, setEffects] = useState({
+    holographic: 0,
+    metallic: 0.2,
+    chrome: 0,
+    particles: false
+  });
+  
+  // Card data
+  const [cardData, setCardData] = useState({
+    title: 'Custom Trading Card',
+    rarity: 'Rare',
+    description: 'Created with Card Studio'
+  });
 
-  const [sidebarTab, setSidebarTab] = useState('upload');
+  // Default images for immediate preview
+  const defaultImages = {
+    front: '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png',
+    back: '/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png'
+  };
 
-  const phases = [
-    { id: 0, name: 'Upload', icon: Upload, completed: completedPhases.has(0) },
-    { id: 1, name: 'Frame', icon: Layers, completed: completedPhases.has(1) },
-    { id: 2, name: 'Effects', icon: Sparkles, completed: completedPhases.has(2) },
-    { id: 3, name: 'Studio', icon: Palette, completed: completedPhases.has(3) }
+  // Set default image on mount
+  useEffect(() => {
+    if (!uploadedImage) {
+      setUploadedImage(defaultImages.front);
+    }
+  }, []);
+
+  const handleImageUpload = (imageUrl: string) => {
+    console.log('OrganizedCardStudio: Image uploaded:', imageUrl);
+    setUploadedImage(imageUrl);
+    toast.success('Image uploaded! Preview updated automatically.');
+  };
+
+  const handleEffectChange = (effectName: string, value: number | boolean) => {
+    setEffects(prev => ({
+      ...prev,
+      [effectName]: value
+    }));
+  };
+
+  const frames = [
+    { id: 'classic', name: 'Classic', preview: '/lovable-uploads/3adf916a-0f96-4c37-a1bb-72235f0a299f.png' },
+    { id: 'modern', name: 'Modern', preview: '/lovable-uploads/49b61ce3-8589-45b1-adb7-2594a81ab97b.png' },
+    { id: 'vintage', name: 'Vintage', preview: '/lovable-uploads/50e48a4f-d7f6-46df-b6bb-93287588484d.png' },
+    { id: 'holographic', name: 'Holographic', preview: '/lovable-uploads/95a44939-2aae-4c52-94be-6e6d9a5d0853.png' }
   ];
 
-  const progress = (completedPhases.size / phases.length) * 100;
+  const handleSaveCard = () => {
+    toast.success('Card saved to your collection!');
+  };
 
-  // Convert string URL to File object for handleImageUpload compatibility
-  const handleImageUrlUpload = (imageUrl: string) => {
-    // For now, we'll handle this differently since we can't easily convert URL to File
-    // This is a temporary workaround - ideally we'd restructure the data flow
-    console.log('Image URL uploaded:', imageUrl);
+  const handleShareCard = () => {
+    toast.success('Card shared successfully!');
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex">
-      {/* Left Sidebar */}
-      <div className="w-80 bg-black/50 backdrop-blur-xl border-r border-white/10 flex flex-col">
-        {/* Header */}
-        <div className="p-6 border-b border-white/10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <Wand2 className="w-5 h-5 text-white" />
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Header */}
+      <div className="border-b border-white/10 bg-black/20 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-white">Card Studio</h1>
-              <p className="text-sm text-gray-400">Create premium 3D cards</p>
+              <h1 className="text-2xl font-bold text-white">Card Studio</h1>
+              <p className="text-gray-400 text-sm">Create premium 3D trading cards</p>
+            </div>
+            <div className="flex gap-3">
+              <Button 
+                onClick={handleSaveCard}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save Card
+              </Button>
+              <Button 
+                onClick={handleShareCard}
+                className="bg-crd-green hover:bg-crd-green/90 text-black font-medium"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
             </div>
           </div>
-          
-          {/* Progress */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-300">Progress</span>
-              <span className="text-purple-400 font-medium">{Math.round(progress)}%</span>
-            </div>
-            <Progress value={progress} className="h-2 bg-gray-800" />
-          </div>
-        </div>
-
-        {/* Phase Navigation */}
-        <div className="p-4 border-b border-white/10">
-          <div className="space-y-2">
-            {phases.map((phase, index) => {
-              const Icon = phase.icon;
-              const isActive = currentPhase === phase.id;
-              const isCompleted = phase.completed;
-              
-              return (
-                <button
-                  key={phase.id}
-                  onClick={() => setCurrentPhase(phase.id)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
-                    isActive 
-                      ? 'bg-purple-600/20 border border-purple-500/50' 
-                      : isCompleted
-                      ? 'bg-green-600/10 border border-green-500/30 hover:bg-green-600/20'
-                      : 'bg-gray-800/50 border border-gray-700/50 hover:bg-gray-700/50'
-                  }`}
-                >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                    isCompleted ? 'bg-green-500/20' : isActive ? 'bg-purple-500/20' : 'bg-gray-700/50'
-                  }`}>
-                    <Icon className={`w-4 h-4 ${
-                      isCompleted ? 'text-green-400' : isActive ? 'text-purple-400' : 'text-gray-400'
-                    }`} />
-                  </div>
-                  <span className={`font-medium ${
-                    isCompleted ? 'text-green-300' : isActive ? 'text-purple-300' : 'text-gray-300'
-                  }`}>
-                    {phase.name}
-                  </span>
-                  {isCompleted && (
-                    <Badge variant="secondary" className="ml-auto bg-green-500/20 text-green-300 border-green-500/30">
-                      ✓
-                    </Badge>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Content Tabs */}
-        <div className="flex-1 flex flex-col">
-          <Tabs value={sidebarTab} onValueChange={setSidebarTab} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-4 bg-gray-800/50 m-4 mb-0">
-              <TabsTrigger value="upload" className="text-xs">Upload</TabsTrigger>
-              <TabsTrigger value="frames" className="text-xs">Frames</TabsTrigger>
-              <TabsTrigger value="effects" className="text-xs">Effects</TabsTrigger>
-              <TabsTrigger value="layers" className="text-xs">Layers</TabsTrigger>
-            </TabsList>
-
-            {/* Upload Tab */}
-            <TabsContent value="upload" className="flex-1 p-4 space-y-4">
-              <EnhancedUploadZone
-                onImageUpload={handleImageUrlUpload}
-                uploadedImage={uploadedImages.length > 0 ? URL.createObjectURL(uploadedImages[0]) : undefined}
-              />
-              
-              {uploadedImages.length > 0 && !completedPhases.has(0) && (
-                <Button 
-                  onClick={() => completePhase(0)}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                >
-                  Continue to Frame Selection
-                </Button>
-              )}
-            </TabsContent>
-
-            {/* Frames Tab */}
-            <TabsContent value="frames" className="flex-1 p-4">
-              <div className="space-y-4">
-                <h3 className="text-white font-medium">Select Frame Style</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {ENHANCED_FRAMES.slice(0, 6).map((frame) => (
-                    <button
-                      key={frame.id}
-                      onClick={() => selectFrame(frame.id)}
-                      className={`p-3 rounded-lg border text-left transition-all ${
-                        selectedFrame === frame.id
-                          ? 'border-purple-500 bg-purple-500/20'
-                          : 'border-gray-600 bg-gray-800/50 hover:border-gray-500'
-                      }`}
-                    >
-                      <div className="text-white text-sm font-medium mb-1">{frame.name}</div>
-                      <div className="text-gray-400 text-xs">{frame.description}</div>
-                    </button>
-                  ))}
-                </div>
-                
-                {selectedFrame && !completedPhases.has(1) && (
-                  <Button 
-                    onClick={() => completePhase(1)}
-                    className="w-full bg-purple-600 hover:bg-purple-700"
-                  >
-                    Continue to Effects
-                  </Button>
-                )}
-              </div>
-            </TabsContent>
-
-            {/* Effects Tab */}
-            <TabsContent value="effects" className="flex-1 p-4">
-              <div className="space-y-4">
-                <h3 className="text-white font-medium">Visual Effects</h3>
-                
-                <div className="space-y-3">
-                  {['holographic', 'chrome', 'metallic'].map((effectType) => {
-                    const effect = effects.find(e => e.type === effectType);
-                    return (
-                      <div key={effectType} className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-white text-sm capitalize">{effectType}</span>
-                          {!effect && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => addEffect(effectType as any)}
-                              className="h-6 px-2 text-xs"
-                            >
-                              Add
-                            </Button>
-                          )}
-                        </div>
-                        
-                        {effect && (
-                          <div className="space-y-2 p-3 bg-gray-800/50 rounded-lg">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-gray-400">Intensity</span>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => removeEffect(effect.id)}
-                                className="h-4 w-4 p-0 text-red-400 hover:text-red-300"
-                              >
-                                ×
-                              </Button>
-                            </div>
-                            <input
-                              type="range"
-                              min="0"
-                              max="100"
-                              value={typeof effect.intensity === 'number' ? effect.intensity : 0}
-                              onChange={(e) => updateEffect(effect.id, { intensity: parseInt(e.target.value) })}
-                              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                            />
-                            <div className="text-xs text-gray-400 text-center">
-                              {typeof effect.intensity === 'number' ? effect.intensity : 0}%
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {effects.some(e => typeof e.intensity === 'number' && e.intensity > 0) && !completedPhases.has(2) && (
-                  <Button 
-                    onClick={() => completePhase(2)}
-                    className="w-full bg-purple-600 hover:bg-purple-700"
-                  >
-                    Continue to Studio
-                  </Button>
-                )}
-              </div>
-            </TabsContent>
-
-            {/* Layers Tab */}
-            <TabsContent value="layers" className="flex-1 p-4">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-white font-medium">Layers</h3>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => addLayer('image')}
-                    className="h-6 px-2 text-xs"
-                  >
-                    Add Layer
-                  </Button>
-                </div>
-                
-                <div className="space-y-2">
-                  {layers.map((layer) => (
-                    <div
-                      key={layer.id}
-                      onClick={() => selectLayer(layer.id)}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                        selectedLayerId === layer.id
-                          ? 'border-purple-500 bg-purple-500/20'
-                          : 'border-gray-600 bg-gray-800/50 hover:border-gray-500'
-                      }`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className="text-white text-sm">{layer.name}</span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              updateLayer(layer.id, { visible: !layer.visible });
-                            }}
-                            className="text-gray-400 hover:text-white"
-                          >
-                            <Eye className={`w-3 h-3 ${layer.visible ? '' : 'opacity-50'}`} />
-                          </button>
-                          {layer.id !== 'background' && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeLayer(layer.id);
-                              }}
-                              className="text-red-400 hover:text-red-300"
-                            >
-                              ×
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        {layer.type} • {Math.round(layer.opacity * 100)}% opacity
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        {/* Bottom Actions */}
-        <div className="p-4 border-t border-white/10 space-y-2">
-          <div className="flex gap-2">
-            <Button
-              onClick={toggleAnimation}
-              variant="outline"
-              size="sm"
-              className="flex-1"
-            >
-              {isPlaying ? <Pause className="w-3 h-3 mr-1" /> : <Play className="w-3 h-3 mr-1" />}
-              {isPlaying ? 'Pause' : 'Play'}
-            </Button>
-            <Button
-              onClick={() => exportCard('png')}
-              variant="outline"
-              size="sm"
-              className="flex-1"
-            >
-              <Download className="w-3 h-3 mr-1" />
-              Export
-            </Button>
-          </div>
-          <Button
-            onClick={saveCard}
-            className="w-full bg-purple-600 hover:bg-purple-700"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Save Card
-          </Button>
         </div>
       </div>
 
-      {/* Main Preview Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Bar */}
-        <div className="h-16 bg-black/30 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <h2 className="text-white font-semibold">Live Preview</h2>
-            <Badge variant="secondary" className="bg-purple-500/20 text-purple-300 border-purple-500/30">
-              {phases[currentPhase]?.name || 'Studio'}
-            </Badge>
-          </div>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-              <Settings className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
-              <RotateCcw className="w-4 h-4" />
-            </Button>
+          {/* Left Sidebar - Controls */}
+          <div className="lg:col-span-1 space-y-6">
+            <Tabs defaultValue="upload" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 bg-black/40">
+                <TabsTrigger value="upload" className="text-white">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload
+                </TabsTrigger>
+                <TabsTrigger value="frames" className="text-white">
+                  <Image className="w-4 h-4 mr-2" />
+                  Frames
+                </TabsTrigger>
+                <TabsTrigger value="effects" className="text-white">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Effects
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="upload" className="space-y-4">
+                <Card className="bg-black/40 border-white/20 p-4">
+                  <EnhancedUploadZone
+                    onImageUpload={handleImageUpload}
+                    uploadedImage={uploadedImage}
+                  />
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="frames" className="space-y-4">
+                <Card className="bg-black/40 border-white/20 p-4">
+                  <h3 className="text-white font-medium mb-4">Card Frames</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {frames.map((frame) => (
+                      <button
+                        key={frame.id}
+                        onClick={() => setSelectedFrame(frame.id)}
+                        className={`relative p-3 rounded-lg border-2 transition-all ${
+                          selectedFrame === frame.id
+                            ? 'border-crd-green bg-crd-green/10'
+                            : 'border-white/20 hover:border-white/40'
+                        }`}
+                      >
+                        <div className="aspect-[3/4] bg-gray-800 rounded mb-2 overflow-hidden">
+                          <img 
+                            src={frame.preview} 
+                            alt={frame.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <span className="text-white text-xs">{frame.name}</span>
+                        {selectedFrame === frame.id && (
+                          <Badge className="absolute -top-2 -right-2 bg-crd-green text-black text-xs">
+                            Active
+                          </Badge>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="effects" className="space-y-4">
+                <Card className="bg-black/40 border-white/20 p-4">
+                  <h3 className="text-white font-medium mb-4">3D Effects</h3>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-white text-sm">Holographic</label>
+                        <span className="text-crd-green text-xs">
+                          {Math.round(effects.holographic * 100)}%
+                        </span>
+                      </div>
+                      <Slider
+                        value={[effects.holographic]}
+                        onValueChange={([value]) => handleEffectChange('holographic', value)}
+                        max={1}
+                        step={0.1}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-white text-sm">Metallic</label>
+                        <span className="text-crd-green text-xs">
+                          {Math.round(effects.metallic * 100)}%
+                        </span>
+                      </div>
+                      <Slider
+                        value={[effects.metallic]}
+                        onValueChange={([value]) => handleEffectChange('metallic', value)}
+                        max={1}
+                        step={0.1}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-white text-sm">Chrome</label>
+                        <span className="text-crd-green text-xs">
+                          {Math.round(effects.chrome * 100)}%
+                        </span>
+                      </div>
+                      <Slider
+                        value={[effects.chrome]}
+                        onValueChange={([value]) => handleEffectChange('chrome', value)}
+                        max={1}
+                        step={0.1}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <label className="text-white text-sm">Particle Effects</label>
+                      <Switch
+                        checked={effects.particles}
+                        onCheckedChange={(checked) => handleEffectChange('particles', checked)}
+                      />
+                    </div>
+                  </div>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Center - 3D Preview */}
+          <div className="lg:col-span-2">
+            <Card className="bg-black/40 border-white/20 h-[600px]">
+              <Live3DPreview
+                frontImage={uploadedImage}
+                backImage={defaultImages.back}
+                selectedFrame={selectedFrame}
+                effects={effects}
+                cardData={cardData}
+                className="w-full h-full"
+              />
+            </Card>
           </div>
         </div>
 
-        {/* 3D Preview */}
-        <div className="flex-1 p-6">
-          <Live3DPreview
-            frontImage={uploadedImages.length > 0 ? URL.createObjectURL(uploadedImages[0]) : undefined}
-            selectedFrame={selectedFrame}
-            effects={effectValues}
-            cardData={cardData}
-            className="w-full h-full"
-          />
+        {/* Card Details */}
+        <div className="mt-8">
+          <Card className="bg-black/40 border-white/20 p-6">
+            <h3 className="text-white font-medium mb-4">Card Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="text-white text-sm mb-2 block">Card Title</label>
+                <input
+                  type="text"
+                  value={cardData.title}
+                  onChange={(e) => setCardData(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full bg-black/60 border border-white/20 rounded-lg px-3 py-2 text-white"
+                  placeholder="Enter card title"
+                />
+              </div>
+              <div>
+                <label className="text-white text-sm mb-2 block">Rarity</label>
+                <select
+                  value={cardData.rarity}
+                  onChange={(e) => setCardData(prev => ({ ...prev, rarity: e.target.value }))}
+                  className="w-full bg-black/60 border border-white/20 rounded-lg px-3 py-2 text-white"
+                >
+                  <option value="Common">Common</option>
+                  <option value="Uncommon">Uncommon</option>
+                  <option value="Rare">Rare</option>
+                  <option value="Epic">Epic</option>
+                  <option value="Legendary">Legendary</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-white text-sm mb-2 block">Description</label>
+                <input
+                  type="text"
+                  value={cardData.description}
+                  onChange={(e) => setCardData(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full bg-black/60 border border-white/20 rounded-lg px-3 py-2 text-white"
+                  placeholder="Card description"
+                />
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
     </div>

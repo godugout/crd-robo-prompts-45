@@ -36,6 +36,7 @@ export const Live3DPreview: React.FC<Live3DPreviewProps> = ({
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [autoRotate, setAutoRotate] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleResetView = useCallback(() => {
     setRotation({ x: 0, y: 0 });
@@ -54,6 +55,10 @@ export const Live3DPreview: React.FC<Live3DPreviewProps> = ({
     setAutoRotate(prev => !prev);
   }, []);
 
+  // Default images to prevent loading issues
+  const defaultFrontImage = frontImage || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
+  const defaultBackImage = backImage || '/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png';
+
   return (
     <div className={`relative w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-xl overflow-hidden ${className}`}>
       {/* 3D Canvas */}
@@ -66,6 +71,7 @@ export const Live3DPreview: React.FC<Live3DPreviewProps> = ({
           preserveDrawingBuffer: true
         }}
         dpr={[1, 2]}
+        onCreated={() => setIsLoading(false)}
       >
         <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={45} />
         
@@ -89,8 +95,8 @@ export const Live3DPreview: React.FC<Live3DPreviewProps> = ({
         
         {/* Enhanced Card Renderer */}
         <Enhanced3DCardRenderer
-          frontImage={frontImage}
-          backImage={backImage}
+          frontImage={defaultFrontImage}
+          backImage={defaultBackImage}
           selectedFrame={selectedFrame}
           effects={effects}
           rotation={rotation}
@@ -172,10 +178,10 @@ export const Live3DPreview: React.FC<Live3DPreviewProps> = ({
       <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-md p-3 rounded-xl border border-white/20 z-10 max-w-xs">
         <div className="text-white text-sm">
           <div className="font-semibold truncate mb-1">
-            {cardData.title || 'Untitled Card'}
+            {cardData.title || 'Custom Trading Card'}
           </div>
           <div className="text-xs text-gray-300 space-y-1">
-            <div>Rarity: {cardData.rarity || 'Common'}</div>
+            <div>Rarity: {cardData.rarity || 'Rare'}</div>
             {selectedFrame && <div>Frame: {selectedFrame}</div>}
             <div className="flex gap-1 flex-wrap mt-2">
               {effects.holographic && effects.holographic > 0 && (
@@ -203,15 +209,13 @@ export const Live3DPreview: React.FC<Live3DPreviewProps> = ({
         </div>
       </div>
 
-      {/* Loading indicator */}
-      {!frontImage && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="text-center text-white">
-            <div className="w-8 h-8 border-2 border-crd-green border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-            <div className="text-sm">Loading card preview...</div>
-          </div>
+      {/* Ready indicator */}
+      <div className="absolute top-4 left-4 bg-crd-green/20 backdrop-blur-md px-3 py-1 rounded-full border border-crd-green/50 z-10">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-crd-green rounded-full animate-pulse"></div>
+          <span className="text-crd-green text-xs font-medium">Live Preview</span>
         </div>
-      )}
+      </div>
     </div>
   );
 };
