@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import type { CardCreationState, ImageProcessingOptions } from '@/types/cardCreation';
 import { toast } from 'sonner';
@@ -22,8 +21,11 @@ const DEFAULT_STATE: CardCreationState = {
   error: null
 };
 
-export const useCardCreation = () => {
-  const [state, setState] = useState<CardCreationState>(DEFAULT_STATE);
+export const useCardCreation = (initialStep?: CardCreationState['step']) => {
+  const [state, setState] = useState<CardCreationState>({
+    ...DEFAULT_STATE,
+    step: initialStep || DEFAULT_STATE.step
+  });
 
   const processImage = useCallback(async (
     file: File, 

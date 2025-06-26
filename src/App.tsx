@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -17,6 +16,7 @@ import OakMemoryCreator from "./pages/OakMemoryCreator";
 import CardDetail from "./pages/CardDetail";
 import Gallery from "./pages/Gallery";
 import Profile from "./pages/Profile";
+import { EnhancedStudio } from "@/components/studio/EnhancedStudio";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,6 +58,14 @@ const App = () => (
               <Route index element={<Index />} />
               <Route path="gallery" element={<Gallery />} />
               <Route path="cards/:id" element={<CardDetail />} />
+              <Route 
+                path="cards/enhanced" 
+                element={
+                  <ProtectedRoute>
+                    <EnhancedStudio />
+                  </ProtectedRoute>
+                } 
+              />
               <Route 
                 path="profile" 
                 element={
