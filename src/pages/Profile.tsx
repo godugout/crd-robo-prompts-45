@@ -1,169 +1,109 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CRDButton } from '@/components/ui/design-system';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LoadingState } from '@/components/common/LoadingState';
-import { ProfileStats } from '@/components/profile/ProfileStats';
-import { ProfileTabs } from '@/components/profile/ProfileTabs';
-import { usePaginatedProfile } from '@/hooks/usePaginatedProfile';
-import { ProfileService } from '@/features/auth/services/profileService';
-import { Edit, Settings, Loader } from 'lucide-react';
-import type { Memory } from '@/types/memory';
 
-// Create a unified card interface that matches both Memory and Card types
-interface UnifiedCard extends Memory {
-  // Add card-specific properties as optional
-  rarity?: string;
-  design_metadata?: Record<string, any>;
-  creator_id?: string;
-  image_url?: string;
-  thumbnail_url?: string;
-  is_public?: boolean;
-}
+import React from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { User, Settings, Grid, Heart, Share2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
-  const {
-    user,
-    profile,
-    isLoading,
-    activeTab,
-    setActiveTab,
-    userCards,
-    cardsLoading,
-    hasMoreCards,
-    totalCards,
-    loadMoreCards,
-    memories,
-    memoriesLoading,
-    followers,
-    following
-  } = usePaginatedProfile();
-
-  if (isLoading) {
-    return <LoadingState message="Loading profile..." fullPage size="lg" />;
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-crd-darkest flex items-center justify-center">
-        <Card className="bg-crd-dark border-crd-mediumGray p-6 max-w-md w-full mx-4">
-          <CardContent className="text-center space-y-4">
-            <h2 className="text-2xl font-bold text-crd-white">Please sign in to view your profile</h2>
-            <Link to="/auth">
-              <CRDButton variant="primary" className="w-full">
-                Sign In
-              </CRDButton>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const displayName = user.full_name || user.username || user.email || 'User';
-  const bioText = profile?.bio_extended || '';
-  const avatarUrl = profile?.avatar_url || ProfileService.getDefaultAvatarUrl();
-  const isDefaultAvatar = !profile?.avatar_url || profile.avatar_url === ProfileService.getDefaultAvatarUrl();
-
-  // Convert cards to unified format
-  const unifiedCards: UnifiedCard[] = userCards.map(card => ({
-    id: card.id,
-    userId: card.creator_id || user.id || '',
-    title: card.title,
-    description: card.description,
-    teamId: '', // Set empty string since team_id doesn't exist on Card type
-    visibility: card.is_public ? 'public' : 'private',
-    createdAt: card.created_at,
-    tags: card.tags || [],
-    metadata: card.design_metadata || {},
-    // Card-specific properties
-    rarity: card.rarity,
-    design_metadata: card.design_metadata,
-    creator_id: card.creator_id,
-    image_url: card.image_url,
-    thumbnail_url: card.thumbnail_url,
-    is_public: card.is_public
-  }));
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-crd-darkest">
-      <div className="container mx-auto p-6 max-w-6xl">
+      <div className="container mx-auto p-6 max-w-7xl">
         {/* Profile Header */}
         <Card className="bg-crd-dark border-crd-mediumGray mb-8">
-          <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-            <div className="flex flex-1 space-x-4 items-center">
-              <Avatar className="h-20 w-20 border-2 border-crd-blue">
-                <AvatarImage 
-                  src={avatarUrl} 
-                  alt={displayName}
-                  style={isDefaultAvatar ? ProfileService.getInvertedAvatarStyle() : undefined}
-                />
-                <AvatarFallback className="text-2xl bg-crd-mediumGray text-crd-white">
-                  {(displayName?.[0] || '').toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <CardTitle className="text-2xl text-crd-white">{displayName}</CardTitle>
-                <CardDescription className="text-crd-lightGray">{bioText}</CardDescription>
-                {totalCards > 0 && (
-                  <p className="text-sm text-crd-lightGray mt-1">
-                    {totalCards} cards created
-                  </p>
-                )}
+          <div className="p-8">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-6">
+                <div className="w-24 h-24 bg-crd-green rounded-full flex items-center justify-center">
+                  <User className="w-12 h-12 text-black" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-white mb-2">Your Profile</h1>
+                  <p className="text-crd-lightGray mb-4">Card creator and collector</p>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-white">24</div>
+                      <div className="text-sm text-crd-lightGray">Cards Created</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-white">156</div>
+                      <div className="text-sm text-crd-lightGray">Likes</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-white">89</div>
+                      <div className="text-sm text-crd-lightGray">Followers</div>
+                    </div>
+                  </div>
+                </div>
               </div>
+              <Button 
+                onClick={() => navigate('/settings')} 
+                variant="outline" 
+                className="border-white/20 text-white hover:bg-white/10"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Button>
             </div>
-            <div className="flex space-x-2">
-              <CRDButton variant="outline" size="sm" asChild>
-                <Link to="/settings">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Profile
-                </Link>
-              </CRDButton>
-              <CRDButton variant="outline" size="sm" asChild>
-                <Link to="/settings">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </Link>
-              </CRDButton>
-            </div>
-          </CardHeader>
-        </Card>
-
-        {/* Profile Stats */}
-        <Card className="bg-crd-dark border-crd-mediumGray mb-8">
-          <ProfileStats
-            memoriesCount={unifiedCards.length + memories.length}
-            followers={followers}
-            following={following}
-          />
-        </Card>
-
-        {/* Profile Tabs with Pagination */}
-        <ProfileTabs
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          memories={[...unifiedCards, ...memories]}
-          memoriesLoading={cardsLoading || memoriesLoading}
-          hasMore={hasMoreCards}
-          onLoadMore={loadMoreCards}
-        />
-
-        {/* Load More Button for Cards */}
-        {activeTab === 'memories' && hasMoreCards && !cardsLoading && (
-          <div className="flex justify-center mt-8">
-            <Button 
-              onClick={loadMoreCards}
-              variant="outline" 
-              className="border-crd-mediumGray text-crd-lightGray hover:text-white"
-              disabled={cardsLoading}
-            >
-              {cardsLoading && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-              Load More Cards
-            </Button>
           </div>
-        )}
+        </Card>
+
+        {/* Profile Tabs */}
+        <div className="mb-6">
+          <div className="flex items-center space-x-6 border-b border-crd-mediumGray">
+            <button className="pb-4 px-2 border-b-2 border-crd-green text-crd-green font-medium">
+              My Cards
+            </button>
+            <button className="pb-4 px-2 text-crd-lightGray hover:text-white">
+              Liked Cards
+            </button>
+            <button className="pb-4 px-2 text-crd-lightGray hover:text-white">
+              Collections
+            </button>
+          </div>
+        </div>
+
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }, (_, i) => (
+            <Card key={i} className="bg-crd-dark border-crd-mediumGray overflow-hidden hover:bg-crd-mediumGray/20 transition-colors cursor-pointer group">
+              <div className="aspect-[2.5/3.5] bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center relative">
+                <img
+                  src="/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png"
+                  alt={`My Card ${i + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
+                  <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
+                    <Heart className="w-4 h-4" />
+                  </Button>
+                  <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
+                    <Share2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-white font-semibold">My Card {i + 1}</h3>
+                  <Badge className="bg-crd-green/20 text-crd-green border-crd-green/30">
+                    Rare
+                  </Badge>
+                </div>
+                <p className="text-crd-lightGray text-sm mb-3">Custom card creation</p>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-crd-lightGray">3 days ago</span>
+                  <div className="flex items-center space-x-1 text-crd-lightGray">
+                    <Heart className="w-3 h-3" />
+                    <span>{12 + i}</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
