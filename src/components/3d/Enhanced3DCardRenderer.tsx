@@ -1,9 +1,11 @@
 
-import React, { useRef, useMemo, useEffect } from 'react';
+import React, { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { TextureLoader } from 'three';
 import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
+import { calculateAspectRatioFitting, configureTextureForCard, loadImageWithDimensions } from './utils/textureUtils';
+import type { AspectRatioData } from './utils/textureUtils';
 
 interface Enhanced3DCardRendererProps {
   frontImage?: string;
@@ -22,6 +24,7 @@ interface Enhanced3DCardRendererProps {
     rarity?: string;
     description?: string;
   };
+  fitMode?: 'cover' | 'contain';
 }
 
 export const Enhanced3DCardRenderer: React.FC<Enhanced3DCardRendererProps> = ({
@@ -31,11 +34,15 @@ export const Enhanced3DCardRenderer: React.FC<Enhanced3DCardRendererProps> = ({
   effects = {},
   rotation = { x: 0, y: 0 },
   zoom = 1,
-  cardData = {}
+  cardData = {},
+  fitMode = 'cover'
 }) => {
   const cardRef = useRef<THREE.Group>(null);
   const frontMeshRef = useRef<THREE.Mesh>(null);
   const backMeshRef = useRef<THREE.Mesh>(null);
+  
+  const [frontAspectData, setFrontAspectData] = useState<AspectRatioData | null>(null);
+  const [backAspectData, setBackAspectData] = useState<AspectRatioData | null>(null);
 
   // Standard trading card dimensions (in mm, scaled down)
   const cardDimensions = {
@@ -44,40 +51,100 @@ export const Enhanced3DCardRenderer: React.FC<Enhanced3DCardRendererProps> = ({
     depth: 0.1    // Card thickness
   };
 
-  // Load textures with fallbacks
+  // Default images
   const defaultFrontTexture = '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
   const defaultBackTexture = '/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png';
 
   const frontTexture = useLoader(TextureLoader, frontImage || defaultFrontTexture);
   const backTexture = useLoader(TextureLoader, backImage || defaultBackTexture);
 
-  // Configure textures for proper card filling
+  // Calculate aspect ratios and configure textures
   useEffect(() => {
-    if (frontTexture) {
-      // Ensure texture fills entire card face
-      frontTexture.wrapS = THREE.ClampToEdgeWrapping;
-      frontTexture.wrapT = THREE.ClampToEdgeWrapping;
-      frontTexture.repeat.set(1, 1);
-      frontTexture.offset.set(0, 0);
-      frontTexture.flipY = false;
-      frontTexture.minFilter = THREE.LinearFilter;
-      frontTexture.magFilter = THREE.LinearFilter;
-      frontTexture.generateMipmaps = false;
-      frontTexture.needsUpdate = true;
-    }
+    const configureFrontTexture = async () => {
+      if (frontTexture && frontImage) {
+        try {
+          const imageData = await loadImageWithDimensions(frontImage);
+          const aspectData = calculateAspectRatioFitting(
+            imageData.width,
+            imageData.height,
+            cardDimensions.width,
+            cardDimensions.height,
+            fitMode
+          );
+          
+          setFrontAspectData(aspectData);
+          configureTextureForCard(frontTexture, aspectData);
+        } catch (error) {
+          console.warn('Could not load image dimensions, using default configuration');
+          // Fallback to basic configuration
+          frontTexture.wrapS = THREE.ClampToEdgeWrapping;
+          frontTexture.wrapT = THREE.ClampToEdgeWrapping;
+          frontTexture.repeat.set(1, 1);
+          frontTexture.offset.set(0, 0);
+          frontTexture.flipY = false;
+          frontTexture.minFilter = THREE.LinearFilter;
+          frontTexture.magFilter = THREE.LinearFilter;
+          frontTexture.generateMipmaps = false;
+          frontTexture.needsUpdate = true;
+        }
+      } else if (frontTexture) {
+        // Default texture configuration for fallback images
+        frontTexture.wrapS = THREE.ClampToEdgeWrapping;
+        frontTexture.wrapT = THREE.ClampToEdgeWrapping;
+        frontTexture.repeat.set(1, 1);
+        frontTexture.offset.set(0, 0);
+        frontTexture.flipY = false;
+        frontTexture.minFilter = THREE.LinearFilter;
+        frontTexture.magFilter = THREE.LinearFilter;
+        frontTexture.generateMipmaps = false;
+        frontTexture.needsUpdate = true;
+      }
+    };
 
-    if (backTexture) {
-      backTexture.wrapS = THREE.ClampToEdgeWrapping;
-      backTexture.wrapT = THREE.ClampToEdgeWrapping;
-      backTexture.repeat.set(1, 1);
-      backTexture.offset.set(0, 0);
-      backTexture.flipY = false;
-      backTexture.minFilter = THREE.LinearFilter;
-      backTexture.magFilter = THREE.LinearFilter;
-      backTexture.generateMipmaps = false;
-      backTexture.needsUpdate = true;
-    }
-  }, [frontTexture, backTexture]);
+    const configureBackTexture = async () => {
+      if (backTexture && backImage) {
+        try {
+          const imageData = await loadImageWithDimensions(backImage);
+          const aspectData = calculateAspectRatioFitting(
+            imageData.width,
+            imageData.height,
+            cardDimensions.width,
+            cardDimensions.height,
+            fitMode
+          );
+          
+          setBackAspectData(aspectData);
+          configureTextureForCard(backTexture, aspectData);
+        } catch (error) {
+          console.warn('Could not load back image dimensions, using default configuration');
+          // Fallback configuration
+          backTexture.wrapS = THREE.ClampToEdgeWrapping;
+          backTexture.wrapT = THREE.ClampToEdgeWrapping;
+          backTexture.repeat.set(1, 1);
+          backTexture.offset.set(0, 0);
+          backTexture.flipY = false;
+          backTexture.minFilter = THREE.LinearFilter;
+          backTexture.magFilter = THREE.LinearFilter;
+          backTexture.generateMipmaps = false;
+          backTexture.needsUpdate = true;
+        }
+      } else if (backTexture) {
+        // Default configuration for fallback back texture
+        backTexture.wrapS = THREE.ClampToEdgeWrapping;
+        backTexture.wrapT = THREE.ClampToEdgeWrapping;
+        backTexture.repeat.set(1, 1);
+        backTexture.offset.set(0, 0);
+        backTexture.flipY = false;
+        backTexture.minFilter = THREE.LinearFilter;
+        backTexture.magFilter = THREE.LinearFilter;
+        backTexture.generateMipmaps = false;
+        backTexture.needsUpdate = true;
+      }
+    };
+
+    configureFrontTexture();
+    configureBackTexture();
+  }, [frontTexture, backTexture, frontImage, backImage, fitMode, cardDimensions.width, cardDimensions.height]);
 
   // Material properties based on effects
   const materialProps = useMemo(() => {
