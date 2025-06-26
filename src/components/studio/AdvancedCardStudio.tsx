@@ -4,38 +4,37 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { WorkflowNavigation } from './workflow/WorkflowNavigation';
 import { FrameSelectionStep } from './steps/FrameSelectionStep';
 import { ElementsStep } from './steps/ElementsStep';
 import { PreviewStep } from './steps/PreviewStep';
 import { EffectsStep } from './steps/EffectsStep';
 import { Advanced3DCard } from './3d/Advanced3DCard';
-import { useAdvancedCardStudio } from './hooks/useAdvancedCardStudio';
-import { StudioToolbar } from './components/StudioToolbar';
+import { useIntegratedCardEditor } from '@/hooks/useIntegratedCardEditor';
 import { PreviewControls } from './components/PreviewControls';
 import { getFrameById } from './data/enhancedFrames';
+import { Save, Eye, Upload } from 'lucide-react';
 
 export const AdvancedCardStudio: React.FC = () => {
-  const {
-    cardData,
-    layers,
-    effects,
-    materials,
-    selectedFrame,
-    history,
-    isPlaying,
-    updateCardData,
-    selectFrame,
-    applyEffect,
-    updateMaterial,
-    undo,
-    redo,
-    save,
-    toggleAnimation
-  } = useAdvancedCardStudio();
-
+  const editor = useIntegratedCardEditor();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  if (!editor.user) {
+    return (
+      <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Authentication Required</h1>
+          <p className="text-gray-400 mb-6">Please sign in to use the Card Studio</p>
+          <Button onClick={() => window.location.href = '/auth/signin'}>
+            Sign In
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const handleStepComplete = (stepIndex: number) => {
     setCompletedSteps(prev => new Set([...prev, stepIndex]));
@@ -45,12 +44,12 @@ export const AdvancedCardStudio: React.FC = () => {
   };
 
   const handleFrameSelect = (frameId: string) => {
-    selectFrame(frameId);
+    editor.selectFrame(frameId);
     const frameData = getFrameById(frameId);
     if (frameData) {
-      updateCardData({
+      editor.updateCardData({
         design_metadata: {
-          ...cardData.design_metadata,
+          ...editor.cardData.design_metadata,
           template: frameData.template_data
         }
       });
@@ -62,7 +61,7 @@ export const AdvancedCardStudio: React.FC = () => {
       case 0:
         return (
           <FrameSelectionStep
-            selectedFrame={selectedFrame}
+            selectedFrame={editor.selectedFrame}
             onFrameSelect={handleFrameSelect}
             onComplete={() => handleStepComplete(0)}
           />
@@ -70,27 +69,27 @@ export const AdvancedCardStudio: React.FC = () => {
       case 1:
         return (
           <ElementsStep
-            cardData={cardData}
-            onUpdateCardData={updateCardData}
+            cardData={editor.cardData}
+            onUpdateCardData={editor.updateCardData}
             onComplete={() => handleStepComplete(1)}
           />
         );
       case 2:
         return (
           <PreviewStep
-            cardData={cardData}
+            cardData={editor.cardData}
             isPlaying={isPlaying}
-            onToggleAnimation={toggleAnimation}
+            onToggleAnimation={() => setIsPlaying(!isPlaying)}
             onComplete={() => handleStepComplete(2)}
           />
         );
       case 3:
         return (
           <EffectsStep
-            effects={effects}
-            materials={materials}
-            onApplyEffect={applyEffect}
-            onUpdateMaterial={updateMaterial}
+            effects={[]}
+            materials={[]}
+            onApplyEffect={() => {}}
+            onUpdateMaterial={() => {}}
             onComplete={() => handleStepComplete(3)}
           />
         );
@@ -112,13 +111,28 @@ export const AdvancedCardStudio: React.FC = () => {
           </Badge>
         </div>
         
-        <StudioToolbar
-          onUndo={undo}
-          onRedo={redo}
-          onSave={save}
-          canUndo={history.canUndo}
-          canRedo={history.canRedo}
-        />
+        {/* Save Controls */}
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => editor.saveCard(false)}
+            disabled={editor.isSaving}
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {editor.isSaving ? 'Saving...' : 'Save Draft'}
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => editor.publishCard()}
+            disabled={editor.isSaving}
+            className="bg-crd-green text-black hover:bg-crd-green/90"
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Publish
+          </Button>
+        </div>
       </div>
 
       {/* Workflow Navigation */}
@@ -137,7 +151,47 @@ export const AdvancedCardStudio: React.FC = () => {
           animate={{ x: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
-          {renderCurrentStep()}
+          <div className="p-6">
+            {/* Card Info */}
+            <div className="mb-6 p-4 bg-white/5 rounded-lg">
+              <h3 className="text-white font-medium mb-2">Card Details</h3>
+              <input
+                type="text"
+                value={editor.cardData.title}
+                onChange={(e) => editor.updateField('title', e.target.value)}
+                className="w-full bg-black/20 border border-white/20 rounded px-3 py-2 text-white mb-2"
+                placeholder="Card Title"
+              />
+              <textarea
+                value={editor.cardData.description}
+                onChange={(e) => editor.updateField('description', e.target.value)}
+                className="w-full bg-black/20 border border-white/20 rounded px-3 py-2 text-white"
+                placeholder="Card Description"
+                rows={2}
+              />
+            </div>
+
+            {/* Image Upload */}
+            <div className="mb-6">
+              <label className="block text-white font-medium mb-2">
+                <Upload className="w-4 h-4 inline mr-2" />
+                Upload Image
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    editor.handleImageUpload(file);
+                  }
+                }}
+                className="w-full text-white"
+              />
+            </div>
+            
+            {renderCurrentStep()}
+          </div>
         </motion.div>
 
         {/* Main Canvas Area */}
@@ -177,10 +231,10 @@ export const AdvancedCardStudio: React.FC = () => {
               
               {/* 3D Card */}
               <Advanced3DCard
-                cardData={cardData}
-                layers={layers}
-                effects={effects}
-                materials={materials}
+                cardData={editor.cardData}
+                layers={editor.layers}
+                effects={[]}
+                materials={[]}
                 isPlaying={isPlaying}
                 previewMode="design"
               />
@@ -204,7 +258,7 @@ export const AdvancedCardStudio: React.FC = () => {
           <PreviewControls
             isPlaying={isPlaying}
             previewMode="design"
-            onToggleAnimation={toggleAnimation}
+            onToggleAnimation={() => setIsPlaying(!isPlaying)}
             onModeChange={() => {}}
           />
 
@@ -217,19 +271,19 @@ export const AdvancedCardStudio: React.FC = () => {
               </div>
               <div className="text-gray-400">|</div>
               <div className="text-gray-300">
-                Step {currentStep + 1}/4 • {layers.filter(l => l.visible).length} layers
+                Step {currentStep + 1}/4 • {editor.layers.filter(l => l.visible).length} layers
               </div>
-              {selectedFrame && (
+              {editor.selectedFrame && (
                 <>
                   <div className="text-gray-400">|</div>
                   <div className="text-gray-300">
-                    Frame: {getFrameById(selectedFrame)?.name || 'Custom'}
+                    Frame: {getFrameById(editor.selectedFrame)?.name || 'Custom'}
                   </div>
                 </>
               )}
               <div className="text-gray-400">|</div>
               <div className="text-gray-300">
-                {effects.filter(e => e.enabled).length} effects active
+                {editor.uploadedImages.length} images uploaded
               </div>
             </div>
           </div>
@@ -250,24 +304,6 @@ export const AdvancedCardStudio: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Custom Scrollbar Styles */}
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.3);
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.5);
-        }
-      `}</style>
     </div>
   );
 };
