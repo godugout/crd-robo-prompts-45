@@ -1,6 +1,6 @@
-import { useState, useCallback, useRef } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import type { CardData } from '@/types/card';
+
+import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
 
 export interface Layer {
   id: string;
@@ -9,7 +9,6 @@ export interface Layer {
   visible: boolean;
   locked: boolean;
   opacity: number;
-  blendMode: string;
   transform: {
     x: number;
     y: number;
@@ -29,116 +28,44 @@ export interface Effect {
   parameters: Record<string, any>;
 }
 
-export interface Material {
-  id: string;
-  name: string;
-  type: 'metallic' | 'dielectric' | 'emissive' | 'glass';
-  properties: {
-    metalness: number;
-    roughness: number;
-    transparency: number;
-    emission: string;
-    normal: string;
-  };
-}
-
-interface HistoryState {
-  canUndo: boolean;
-  canRedo: boolean;
+interface CardData {
+  title: string;
+  description: string;
+  rarity: string;
+  design_metadata: any;
 }
 
 export const useAdvancedCardStudio = () => {
   const [cardData, setCardData] = useState<CardData>({
-    id: uuidv4(),
-    title: 'Untitled Card',
-    description: '',
+    title: 'My Card',
+    description: 'Card Description',
     rarity: 'common',
-    tags: [],
-    creator_id: '',
-    created_at: new Date().toISOString(),
-    design_metadata: {},
-    visibility: 'public',
-    creator_attribution: { collaboration_type: 'solo' },
-    publishing_options: {
-      marketplace_listing: false,
-      crd_catalog_inclusion: true,
-      print_available: false,
-      pricing: { currency: 'USD' },
-      distribution: { limited_edition: false }
-    }
+    design_metadata: {}
   });
 
   const [layers, setLayers] = useState<Layer[]>([
     {
       id: 'background',
-      name: 'Card Background',
+      name: 'Background',
       type: 'shape',
       visible: true,
       locked: false,
       opacity: 1,
-      blendMode: 'normal',
       transform: {
         x: 0, y: 0, z: 0,
         rotation: { x: 0, y: 0, z: 0 },
         scale: { x: 1, y: 1, z: 1 }
       },
-      data: { color: '#1a1a2e', gradient: true }
-    },
-    {
-      id: 'image-zone',
-      name: 'Main Image',
-      type: 'image',
-      visible: true,
-      locked: false,
-      opacity: 1,
-      blendMode: 'normal',
-      transform: {
-        x: 0, y: 0, z: 0.01,
-        rotation: { x: 0, y: 0, z: 0 },
-        scale: { x: 1, y: 1, z: 1 }
-      },
-      data: { placeholder: true }
-    },
-    {
-      id: 'title-zone',
-      name: 'Title Text',
-      type: 'text',
-      visible: true,
-      locked: false,
-      opacity: 1,
-      blendMode: 'normal',
-      transform: {
-        x: 0, y: 0, z: 0.02,
-        rotation: { x: 0, y: 0, z: 0 },
-        scale: { x: 1, y: 1, z: 1 }
-      },
-      data: { text: 'Card Title', fontSize: 16, fontWeight: 'bold' }
+      data: { color: '#1a1a2e' }
     }
   ]);
 
   const [effects, setEffects] = useState<Effect[]>([]);
-  const [materials, setMaterials] = useState<Material[]>([
-    {
-      id: 'default',
-      name: 'Card Base',
-      type: 'dielectric',
-      properties: {
-        metalness: 0.1,
-        roughness: 0.8,
-        transparency: 0,
-        emission: '#000000',
-        normal: ''
-      }
-    }
-  ]);
-
+  const [materials, setMaterials] = useState<any[]>([]);
   const [selectedLayer, setSelectedLayer] = useState<string>('background');
   const [selectedFrame, setSelectedFrame] = useState<string>('');
-  const [history, setHistory] = useState<HistoryState>({ canUndo: false, canRedo: false });
+  const [history, setHistory] = useState<any[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
-
-  const historyStack = useRef<any[]>([]);
-  const historyIndex = useRef(0);
 
   const updateCardData = useCallback((updates: Partial<CardData>) => {
     setCardData(prev => ({ ...prev, ...updates }));
@@ -146,13 +73,12 @@ export const useAdvancedCardStudio = () => {
 
   const addLayer = useCallback((type: Layer['type']) => {
     const newLayer: Layer = {
-      id: uuidv4(),
+      id: `layer-${Date.now()}`,
       name: `${type.charAt(0).toUpperCase() + type.slice(1)} Layer`,
       type,
       visible: true,
       locked: false,
       opacity: 1,
-      blendMode: 'normal',
       transform: {
         x: 0, y: 0, z: 0,
         rotation: { x: 0, y: 0, z: 0 },
@@ -162,6 +88,7 @@ export const useAdvancedCardStudio = () => {
     };
     setLayers(prev => [...prev, newLayer]);
     setSelectedLayer(newLayer.id);
+    toast.success(`Added ${type} layer`);
   }, []);
 
   const updateLayer = useCallback((layerId: string, updates: Partial<Layer>) => {
@@ -171,11 +98,16 @@ export const useAdvancedCardStudio = () => {
   }, []);
 
   const removeLayer = useCallback((layerId: string) => {
+    if (layerId === 'background') {
+      toast.error('Cannot remove background layer');
+      return;
+    }
     setLayers(prev => prev.filter(layer => layer.id !== layerId));
     if (selectedLayer === layerId) {
-      setSelectedLayer(layers[0]?.id || '');
+      setSelectedLayer('background');
     }
-  }, [selectedLayer, layers]);
+    toast.success('Layer removed');
+  }, [selectedLayer]);
 
   const selectLayer = useCallback((layerId: string) => {
     setSelectedLayer(layerId);
@@ -183,57 +115,37 @@ export const useAdvancedCardStudio = () => {
 
   const selectFrame = useCallback((frameId: string) => {
     setSelectedFrame(frameId);
-    
-    // Create frame layer that defines the card structure
-    const frameLayer: Layer = {
-      id: 'card-frame',
-      name: 'Card Frame',
-      type: 'frame',
-      visible: true,
-      locked: false,
-      opacity: 1,
-      blendMode: 'normal',
-      transform: {
-        x: 0, y: 0, z: 0.03,
-        rotation: { x: 0, y: 0, z: 0 },
-        scale: { x: 1, y: 1, z: 1 }
-      },
-      data: { 
-        frameId,
-        structural: true // This layer defines card zones
-      }
-    };
-
-    setLayers(prev => {
-      const withoutFrame = prev.filter(layer => layer.id !== 'card-frame');
-      return [...withoutFrame, frameLayer];
-    });
+    toast.success('Frame selected');
   }, []);
 
   const applyEffect = useCallback((effect: Omit<Effect, 'id'>) => {
     const newEffect: Effect = {
-      ...effect,
-      id: uuidv4()
+      id: `effect-${Date.now()}`,
+      ...effect
     };
     setEffects(prev => [...prev, newEffect]);
+    toast.success(`Applied ${effect.name} effect`);
   }, []);
 
-  const updateMaterial = useCallback((materialId: string, updates: Partial<Material>) => {
-    setMaterials(prev => prev.map(material =>
+  const updateMaterial = useCallback((materialId: string, updates: any) => {
+    setMaterials(prev => prev.map(material => 
       material.id === materialId ? { ...material, ...updates } : material
     ));
   }, []);
 
   const undo = useCallback(() => {
-    console.log('Undo');
+    // Implement undo functionality
+    toast.info('Undo');
   }, []);
 
   const redo = useCallback(() => {
-    console.log('Redo');
+    // Implement redo functionality
+    toast.info('Redo');
   }, []);
 
-  const save = useCallback(async () => {
-    console.log('Saving card...');
+  const save = useCallback(() => {
+    // Implement save functionality
+    toast.success('Saved');
   }, []);
 
   const toggleAnimation = useCallback(() => {

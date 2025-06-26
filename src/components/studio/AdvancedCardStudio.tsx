@@ -1,3 +1,4 @@
+
 import React, { useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -155,11 +156,11 @@ export const AdvancedCardStudio = () => {
                 
                 <Advanced3DCard
                   cardData={{
-                    title: cardData.title,
-                    description: cardData.description,
-                    image_url: editorCardData.image_url,
-                    rarity: cardData.rarity,
-                    design_metadata: cardData.design_metadata
+                    title: cardData.title || 'My Card',
+                    description: cardData.description || 'Card Description',
+                    image_url: editorCardData.image_url || '',
+                    rarity: cardData.rarity || 'common',
+                    design_metadata: cardData.design_metadata || {}
                   }}
                   layers={layers}
                   effects={effects}
