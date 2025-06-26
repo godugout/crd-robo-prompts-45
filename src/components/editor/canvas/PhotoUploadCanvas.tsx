@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Upload, Camera, Crop, RotateCw, ZoomIn, ZoomOut, X } from 'lucide-react';
+import { Upload, Camera, Crop, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { ImageCropper } from '../ImageCropper';
@@ -26,17 +26,23 @@ export const PhotoUploadCanvas: React.FC<PhotoUploadCanvasProps> = ({
       const file = acceptedFiles[0];
       const preview = URL.createObjectURL(file);
       
+      console.log('PhotoUploadCanvas: File uploaded, updating preview');
+      
       setUploadedImage(preview);
       setOriginalFile(file);
       
       // Auto-update card preview immediately
       if (cardEditor) {
+        console.log('PhotoUploadCanvas: Updating card editor with new image');
         cardEditor.updateCardField('image_url', preview);
         cardEditor.updateCardField('thumbnail_url', preview);
       }
       
       onPhotoSelect(file, preview);
-      toast.success('Image uploaded! Click "Crop Image" to adjust.');
+      toast.success('Image uploaded! Card preview updated automatically.', {
+        duration: 3000,
+        className: 'bg-crd-green text-black'
+      });
     }
   }, [onPhotoSelect, cardEditor]);
 
@@ -49,6 +55,7 @@ export const PhotoUploadCanvas: React.FC<PhotoUploadCanvasProps> = ({
   });
 
   const handleCropComplete = (croppedImageUrl: string) => {
+    console.log('PhotoUploadCanvas: Crop completed, updating preview');
     setUploadedImage(croppedImageUrl);
     
     // Update card preview with cropped image

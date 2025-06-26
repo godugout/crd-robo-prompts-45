@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 import Index from "./pages/Index";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
@@ -16,9 +17,15 @@ import OakMemoryCreator from "./pages/OakMemoryCreator";
 import CardDetail from "./pages/CardDetail";
 import Gallery from "./pages/Gallery";
 import Profile from "./pages/Profile";
-import { OrganizedCardStudio } from "@/components/studio/enhanced/OrganizedCardStudio";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -46,7 +53,7 @@ const App = () => (
             />
             <Route path="/auth/callback" element={<AuthCallback />} />
             
-            {/* All other routes with layout */}
+            {/* All other routes with layout and error boundary */}
             <Route path="/" element={<MainLayout />}>
               <Route index element={<Index />} />
               <Route path="gallery" element={<Gallery />} />
@@ -59,27 +66,12 @@ const App = () => (
                   </ProtectedRoute>
                 } 
               />
+              {/* Simplified card creation routes - remove duplicate */}
               <Route 
                 path="create" 
                 element={
                   <ProtectedRoute>
                     <CardCreation />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="cards/create" 
-                element={
-                  <ProtectedRoute>
-                    <CardCreation />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="cards/enhanced" 
-                element={
-                  <ProtectedRoute>
-                    <OrganizedCardStudio />
                   </ProtectedRoute>
                 } 
               />
@@ -99,6 +91,8 @@ const App = () => (
                   </ProtectedRoute>
                 } 
               />
+              {/* Catch-all route for invalid paths */}
+              <Route path="*" element={<RouteErrorBoundary />} />
             </Route>
           </Routes>
         </BrowserRouter>

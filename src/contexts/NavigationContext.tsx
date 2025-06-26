@@ -21,23 +21,42 @@ export const useNavigation = () => {
 };
 
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [navigationStyle, setNavigationStyle] = useState<NavigationStyle>(() => {
-    const saved = localStorage.getItem('navigation-style');
-    return (saved as NavigationStyle) || 'horizontal';
-  });
-  
-  const [sidebarExpanded, setSidebarExpanded] = useState(() => {
-    const saved = localStorage.getItem('sidebar-expanded');
-    return saved ? JSON.parse(saved) : true;
-  });
+  const [navigationStyle, setNavigationStyle] = useState<NavigationStyle>('horizontal');
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('navigation-style', navigationStyle);
-  }, [navigationStyle]);
+    // Only access localStorage after component mount
+    const savedStyle = localStorage.getItem('navigation-style');
+    const savedExpanded = localStorage.getItem('sidebar-expanded');
+    
+    if (savedStyle && (savedStyle === 'horizontal' || savedStyle === 'sidebar')) {
+      setNavigationStyle(savedStyle as NavigationStyle);
+    }
+    
+    if (savedExpanded) {
+      try {
+        setSidebarExpanded(JSON.parse(savedExpanded));
+      } catch (e) {
+        // fallback to default
+        setSidebarExpanded(true);
+      }
+    }
+    
+    setIsInitialized(true);
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem('sidebar-expanded', JSON.stringify(sidebarExpanded));
-  }, [sidebarExpanded]);
+    if (isInitialized) {
+      localStorage.setItem('navigation-style', navigationStyle);
+    }
+  }, [navigationStyle, isInitialized]);
+
+  useEffect(() => {
+    if (isInitialized) {
+      localStorage.setItem('sidebar-expanded', JSON.stringify(sidebarExpanded));
+    }
+  }, [sidebarExpanded, isInitialized]);
 
   return (
     <NavigationContext.Provider value={{
