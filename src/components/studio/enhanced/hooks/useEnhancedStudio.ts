@@ -1,4 +1,3 @@
-
 import { useState, useRef, useCallback } from 'react';
 import { ENHANCED_FRAMES } from '@/components/studio/data/enhancedFrames';
 import { Card } from '@/types/card';
@@ -67,9 +66,28 @@ export const useEnhancedStudio = () => {
       crd_catalog_inclusion: true,
       print_available: false
     },
-    design_metadata: {},
+    design_metadata: {
+      effects: effects.reduce((acc, effect) => {
+        if (effect.enabled) {
+          acc[effect.type] = effect.intensity;
+        }
+        return acc;
+      }, {} as Record<string, number>),
+      frame_id: selectedFrame,
+      layers: layers.length
+    },
     visibility: 'private'
   };
+
+  // Convert effects to the format expected by the 3D viewer
+  const effectValues = effects.reduce((acc, effect) => {
+    if (effect.enabled) {
+      acc[effect.type] = { intensity: effect.intensity, ...effect.parameters };
+    } else {
+      acc[effect.type] = { intensity: 0 };
+    }
+    return acc;
+  }, {} as Record<string, any>);
 
   const handleImageUpload = useCallback((files: File[]) => {
     setUploadedImages(files);
@@ -173,6 +191,7 @@ export const useEnhancedStudio = () => {
     selectedFrame,
     frameData,
     effects,
+    effectValues,
     layers,
     selectedLayerId,
     cardData,

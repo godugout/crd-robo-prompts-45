@@ -197,12 +197,15 @@ export const OrganizedCardStudio = () => {
                   </div>
                 </div>
                 
-                {/* Enhanced 3D Card Viewer with Better Scaling */}
+                {/* Enhanced 3D Card Viewer with Better Integration */}
                 <div className="aspect-[4/5] bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg overflow-hidden border border-white/10">
                   <Enhanced3DCardViewer
                     card={studio.cardData}
                     className="w-full h-full"
                     autoEnable={true}
+                    effects={studio.effectValues}
+                    selectedFrame={studio.selectedFrame}
+                    frameConfig={studio.frameData}
                   />
                 </div>
 

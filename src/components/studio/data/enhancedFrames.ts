@@ -40,7 +40,7 @@ export const ENHANCED_FRAMES: EnhancedFrameData[] = [
     id: 'sports-classic',
     name: 'Sports Classic',
     category: 'sports',
-    description: 'Traditional sports card design',
+    description: 'Traditional sports card design with team colors',
     template_data: {
       layout: 'portrait',
       zones: {
@@ -74,7 +74,7 @@ export const ENHANCED_FRAMES: EnhancedFrameData[] = [
     id: 'holographic-premium',
     name: 'Holographic Premium',
     category: 'modern',
-    description: 'Premium holographic card with rainbow effects',
+    description: 'Premium holographic card with rainbow prismatic effects',
     template_data: {
       layout: 'portrait',
       zones: {
@@ -105,10 +105,78 @@ export const ENHANCED_FRAMES: EnhancedFrameData[] = [
     rarity_support: ['rare', 'epic', 'legendary']
   },
   {
-    id: 'vintage-collector',
-    name: 'Vintage Collector',
+    id: 'chrome-refractor',
+    name: 'Chrome Refractor',
+    category: 'modern',
+    description: 'Sleek chrome finish with rainbow refraction',
+    template_data: {
+      layout: 'portrait',
+      zones: {
+        image: { x: 20, y: 65, width: 260, height: 190 },
+        title: { x: 20, y: 20, width: 260, height: 35 },
+        subtitle: { x: 20, y: 265, width: 260, height: 25 },
+        stats: { x: 20, y: 300, width: 260, height: 75 },
+        footer: { x: 20, y: 385, width: 260, height: 25 }
+      },
+      colors: {
+        primary: '#374151',
+        secondary: '#6b7280',
+        accent: '#06b6d4',
+        background: '#f3f4f6',
+        text: '#111827'
+      },
+      borders: {
+        outer: { color: '#374151', width: 3, style: 'gradient' },
+        inner: { color: '#9ca3af', width: 1, style: 'solid' }
+      },
+      effects: {
+        holographic: true,
+        foil: false,
+        metallic: true,
+        gradient: true
+      }
+    },
+    rarity_support: ['uncommon', 'rare', 'epic', 'legendary']
+  },
+  {
+    id: 'gold-foil',
+    name: 'Gold Foil',
+    category: 'trading',
+    description: 'Luxurious gold foil with authentic metallic shimmer',
+    template_data: {
+      layout: 'portrait',
+      zones: {
+        image: { x: 25, y: 75, width: 250, height: 170 },
+        title: { x: 25, y: 30, width: 250, height: 35 },
+        subtitle: { x: 25, y: 255, width: 250, height: 25 },
+        stats: { x: 25, y: 290, width: 250, height: 70 },
+        footer: { x: 25, y: 370, width: 250, height: 30 }
+      },
+      colors: {
+        primary: '#d97706',
+        secondary: '#f59e0b',
+        accent: '#fbbf24',
+        background: '#fffbeb',
+        text: '#92400e'
+      },
+      borders: {
+        outer: { color: '#d97706', width: 4, style: 'gradient' },
+        inner: { color: '#f59e0b', width: 2, style: 'gradient' }
+      },
+      effects: {
+        holographic: false,
+        foil: true,
+        metallic: true,
+        gradient: true
+      }
+    },
+    rarity_support: ['rare', 'epic', 'legendary']
+  },
+  {
+    id: 'vintage-tobacco',
+    name: 'Vintage Tobacco',
     category: 'vintage',
-    description: 'Classic vintage trading card style',
+    description: 'Classic 1952 tobacco card style with aged paper texture',
     template_data: {
       layout: 'portrait',
       zones: {
@@ -139,44 +207,10 @@ export const ENHANCED_FRAMES: EnhancedFrameData[] = [
     rarity_support: ['common', 'uncommon', 'rare']
   },
   {
-    id: 'chrome-edition',
-    name: 'Chrome Edition',
-    category: 'modern',
-    description: 'Sleek chrome finish with metallic accents',
-    template_data: {
-      layout: 'portrait',
-      zones: {
-        image: { x: 20, y: 65, width: 260, height: 190 },
-        title: { x: 20, y: 20, width: 260, height: 35 },
-        subtitle: { x: 20, y: 265, width: 260, height: 25 },
-        stats: { x: 20, y: 300, width: 260, height: 75 },
-        footer: { x: 20, y: 385, width: 260, height: 25 }
-      },
-      colors: {
-        primary: '#374151',
-        secondary: '#6b7280',
-        accent: '#f59e0b',
-        background: '#f3f4f6',
-        text: '#111827'
-      },
-      borders: {
-        outer: { color: '#374151', width: 3, style: 'gradient' },
-        inner: { color: '#9ca3af', width: 1, style: 'solid' }
-      },
-      effects: {
-        holographic: false,
-        foil: false,
-        metallic: true,
-        gradient: true
-      }
-    },
-    rarity_support: ['uncommon', 'rare', 'epic']
-  },
-  {
-    id: 'fantasy-mystical',
-    name: 'Fantasy Mystical',
+    id: 'crystal-prism',
+    name: 'Crystal Prism',
     category: 'fantasy',
-    description: 'Magical fantasy card with ethereal effects',
+    description: 'Crystalline faceted surface with rainbow light dispersion',
     template_data: {
       layout: 'portrait',
       zones: {
@@ -189,7 +223,7 @@ export const ENHANCED_FRAMES: EnhancedFrameData[] = [
       colors: {
         primary: '#7c3aed',
         secondary: '#a855f7',
-        accent: '#fbbf24',
+        accent: '#06b6d4',
         background: '#1e1b4b',
         text: '#e0e7ff'
       },
@@ -207,10 +241,10 @@ export const ENHANCED_FRAMES: EnhancedFrameData[] = [
     rarity_support: ['rare', 'epic', 'legendary']
   },
   {
-    id: 'minimal-clean',
-    name: 'Minimal Clean',
+    id: 'minimal-modern',
+    name: 'Minimal Modern',
     category: 'minimal',
-    description: 'Clean and simple modern design',
+    description: 'Clean contemporary design with subtle gradients',
     template_data: {
       layout: 'portrait',
       zones: {
@@ -239,6 +273,40 @@ export const ENHANCED_FRAMES: EnhancedFrameData[] = [
       }
     },
     rarity_support: ['common', 'uncommon', 'rare', 'epic', 'legendary']
+  },
+  {
+    id: 'neon-cyberpunk',
+    name: 'Neon Cyberpunk',
+    category: 'modern',
+    description: 'Futuristic neon-lit design with electric effects',
+    template_data: {
+      layout: 'portrait',
+      zones: {
+        image: { x: 25, y: 70, width: 250, height: 180 },
+        title: { x: 25, y: 25, width: 250, height: 35 },
+        subtitle: { x: 25, y: 260, width: 250, height: 25 },
+        stats: { x: 25, y: 295, width: 250, height: 70 },
+        footer: { x: 25, y: 375, width: 250, height: 25 }
+      },
+      colors: {
+        primary: '#06b6d4',
+        secondary: '#0891b2',
+        accent: '#f0f',
+        background: '#0a0a0a',
+        text: '#00ffff'
+      },
+      borders: {
+        outer: { color: '#06b6d4', width: 3, style: 'gradient' },
+        inner: { color: '#f0f', width: 1, style: 'gradient' }
+      },
+      effects: {
+        holographic: false,
+        foil: false,
+        metallic: true,
+        gradient: true
+      }
+    },
+    rarity_support: ['uncommon', 'rare', 'epic', 'legendary']
   }
 ];
 
