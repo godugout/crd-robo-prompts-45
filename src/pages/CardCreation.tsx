@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { AdvancedCardStudio } from '@/components/studio/AdvancedCardStudio';
+import { OrganizedCardStudio } from '@/components/studio/enhanced/OrganizedCardStudio';
 
 const CardCreation: React.FC = () => {
   return (
     <div className="min-h-screen">
-      <AdvancedCardStudio />
+      <OrganizedCardStudio />
     </div>
   );
 };

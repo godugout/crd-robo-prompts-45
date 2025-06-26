@@ -1,6 +1,6 @@
-
 import { useState, useRef, useCallback } from 'react';
 import { ENHANCED_FRAMES } from '@/components/studio/data/enhancedFrames';
+import { Card } from '@/types/card';
 import { toast } from 'sonner';
 
 interface Layer {
@@ -46,11 +46,28 @@ export const useEnhancedStudio = () => {
 
   const frameData = selectedFrame ? ENHANCED_FRAMES.find(f => f.id === selectedFrame) || null : null;
 
-  const cardData = {
+  // Create a proper Card object that matches the interface
+  const cardData: Partial<Card> = {
+    id: 'preview-card',
     title: 'My Card',
     description: 'Created with Enhanced Studio',
     rarity: 'common',
-    image_url: uploadedImages.length > 0 ? URL.createObjectURL(uploadedImages[0]) : null
+    image_url: uploadedImages.length > 0 ? URL.createObjectURL(uploadedImages[0]) : undefined,
+    tags: ['preview'],
+    creator_id: 'current-user',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    edition_size: 1,
+    creator_attribution: {
+      collaboration_type: 'solo'
+    },
+    publishing_options: {
+      marketplace_listing: false,
+      crd_catalog_inclusion: true,
+      print_available: false
+    },
+    design_metadata: {},
+    visibility: 'private'
   };
 
   const handleImageUpload = useCallback((files: File[]) => {

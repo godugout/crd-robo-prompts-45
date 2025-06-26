@@ -2,7 +2,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { SimplifiedCardCreationHub } from '@/components/cards/SimplifiedCardCreationHub';
-import { AdvancedCardStudio } from '@/components/studio/AdvancedCardStudio';
+import { OrganizedCardStudio } from '@/components/studio/enhanced/OrganizedCardStudio';
 import { FlowErrorBoundary } from './flows/FlowErrorBoundary';
 
 export const CardCreationFlow = () => {
@@ -14,13 +14,13 @@ export const CardCreationFlow = () => {
     fullUrl: location.pathname + location.search
   });
   
-  // Use AdvancedCardStudio for /cards/create with any mode
+  // Use OrganizedCardStudio for /cards/create with any mode
   if (location.pathname === '/cards/create') {
-    console.log('Rendering AdvancedCardStudio for /cards/create');
+    console.log('Rendering OrganizedCardStudio for /cards/create');
     return (
       <FlowErrorBoundary flowName="Advanced Card Studio">
         <div className="min-h-screen">
-          <AdvancedCardStudio />
+          <OrganizedCardStudio />
         </div>
       </FlowErrorBoundary>
     );
