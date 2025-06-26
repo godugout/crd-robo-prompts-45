@@ -25,6 +25,7 @@ declare global {
         transmission?: number;
         thickness?: number;
         ior?: number;
+        side?: THREE.Side;
         attach?: string;
       };
       meshStandardMaterial: ReactThreeFiber.Object3DNode<THREE.MeshStandardMaterial, typeof THREE.MeshStandardMaterial> & {
@@ -42,6 +43,7 @@ declare global {
         color?: THREE.Color | string;
         emissive?: THREE.Color | string;
         emissiveIntensity?: number;
+        side?: THREE.Side;
         attach?: string;
       };
       meshBasicMaterial: ReactThreeFiber.Object3DNode<THREE.MeshBasicMaterial, typeof THREE.MeshBasicMaterial> & {
@@ -58,6 +60,7 @@ declare global {
         uniforms?: { [uniform: string]: THREE.IUniform };
         transparent?: boolean;
         opacity?: number;
+        side?: THREE.Side;
         attach?: string;
         ref?: React.Ref<THREE.ShaderMaterial>;
       };
