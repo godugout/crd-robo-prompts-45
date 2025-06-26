@@ -1,3 +1,4 @@
+
 import { useState, useRef, useCallback } from 'react';
 import { ENHANCED_FRAMES } from '@/components/studio/data/enhancedFrames';
 import { Card } from '@/types/card';
@@ -46,8 +47,8 @@ export const useEnhancedStudio = () => {
 
   const frameData = selectedFrame ? ENHANCED_FRAMES.find(f => f.id === selectedFrame) || null : null;
 
-  // Create a proper Card object that matches the interface
-  const cardData: Partial<Card> = {
+  // Create a complete Card object that matches the interface
+  const cardData: Card = {
     id: 'preview-card',
     title: 'My Card',
     description: 'Created with Enhanced Studio',
