@@ -12,6 +12,7 @@ import AuthCallback from "./pages/auth/AuthCallback";
 import CardCreation from "./pages/CardCreation";
 import Editor from "./pages/Editor";
 import OakMemoryCreator from "./pages/OakMemoryCreator";
+import EnhancedStudio from "./pages/EnhancedStudio";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <CardCreation />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/cards/enhanced" 
+              element={
+                <ProtectedRoute>
+                  <EnhancedStudio />
                 </ProtectedRoute>
               } 
             />
