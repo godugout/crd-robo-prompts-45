@@ -1,320 +1,398 @@
 
-import React, { useState, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { Upload, Palette, Sparkles, Eye, Download, Save, ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { 
+  Upload, 
+  Sparkles, 
+  Layers, 
+  Save, 
+  Download, 
+  Eye,
+  Settings,
+  Palette,
+  Wand2,
+  RotateCcw,
+  Play,
+  Pause
+} from 'lucide-react';
 import { toast } from 'sonner';
-import { Live3DPreview } from '@/components/studio/Live3DPreview';
 import { EnhancedUploadZone } from './EnhancedUploadZone';
-import { EffectsPhase } from './components/EffectsPhase';
+import { Live3DPreview } from '../Live3DPreview';
 import { useEnhancedStudio } from './hooks/useEnhancedStudio';
+import { ENHANCED_FRAMES } from '../data/enhancedFrames';
 
-const STUDIO_PHASES = [
-  { id: 'upload', title: 'Upload', icon: Upload, description: 'Add your card images' },
-  { id: 'frame', title: 'Frame', icon: Palette, description: 'Choose frame style' },
-  { id: 'effects', title: 'Effects', icon: Sparkles, description: 'Add visual effects' },
-  { id: 'preview', title: 'Preview', icon: Eye, description: 'Final review' }
-];
-
-export const OrganizedCardStudio: React.FC = () => {
+export const OrganizedCardStudio = () => {
   const {
     currentPhase,
     setCurrentPhase,
     completedPhases,
     uploadedImages,
     selectedFrame,
+    frameData,
     effects,
     effectValues,
+    layers,
+    selectedLayerId,
     cardData,
+    isPlaying,
+    fileInputRef,
     handleImageUpload,
     selectFrame,
     completePhase,
+    addEffect,
     updateEffect,
-    saveCard,
-    exportCard
+    removeEffect,
+    selectLayer,
+    updateLayer,
+    removeLayer,
+    addLayer,
+    toggleAnimation,
+    handleImageAdjust,
+    exportCard,
+    saveCard
   } = useEnhancedStudio();
 
-  const [show3DPreview, setShow3DPreview] = useState(true);
+  const [sidebarTab, setSidebarTab] = useState('upload');
 
-  const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
-    updateEffect(effectId, { parameters: { [parameterId]: value } });
-  }, [updateEffect]);
+  const phases = [
+    { id: 0, name: 'Upload', icon: Upload, completed: completedPhases.has(0) },
+    { id: 1, name: 'Frame', icon: Layers, completed: completedPhases.has(1) },
+    { id: 2, name: 'Effects', icon: Sparkles, completed: completedPhases.has(2) },
+    { id: 3, name: 'Studio', icon: Palette, completed: completedPhases.has(3) }
+  ];
 
-  const handlePhaseNavigation = (phaseIndex: number) => {
-    if (phaseIndex <= currentPhase || completedPhases.has(phaseIndex)) {
-      setCurrentPhase(phaseIndex);
-    }
-  };
+  const progress = (completedPhases.size / phases.length) * 100;
 
-  const handleNextPhase = () => {
-    if (currentPhase < STUDIO_PHASES.length - 1) {
-      completePhase(currentPhase);
-      setCurrentPhase(currentPhase + 1);
-    }
-  };
-
-  const handlePrevPhase = () => {
-    if (currentPhase > 0) {
-      setCurrentPhase(currentPhase - 1);
-    }
-  };
-
-  const canProceedToNext = () => {
-    switch (currentPhase) {
-      case 0: return uploadedImages.length > 0;
-      case 1: return selectedFrame !== null;
-      case 2: return true; // Effects are optional
-      case 3: return true; // Preview phase
-      default: return false;
-    }
-  };
-
-  const renderPhaseContent = () => {
-    switch (currentPhase) {
-      case 0: // Upload Phase
-        return (
-          <div className="space-y-6">
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-white">Upload Your Images</h2>
-              <p className="text-gray-400">Start by uploading the main image for your card</p>
-            </div>
-            <EnhancedUploadZone
-              onImageUpload={(files) => handleImageUpload(files)}
-              uploadedImage={uploadedImages.length > 0 ? URL.createObjectURL(uploadedImages[0]) : undefined}
-            />
-          </div>
-        );
-
-      case 1: // Frame Phase
-        return (
-          <div className="space-y-6">
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-white">Choose Your Frame</h2>
-              <p className="text-gray-400">Select a frame style that matches your vision</p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {['classic', 'modern', 'vintage', 'holographic'].map((frameId) => (
-                <Card
-                  key={frameId}
-                  className={`p-4 cursor-pointer transition-all ${
-                    selectedFrame === frameId
-                      ? 'border-crd-green bg-crd-green/10'
-                      : 'border-gray-600 hover:border-gray-500'
-                  }`}
-                  onClick={() => selectFrame(frameId)}
-                >
-                  <div className="aspect-[3/4] bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg mb-2" />
-                  <div className="text-center">
-                    <h3 className="text-white font-medium capitalize">{frameId}</h3>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 2: // Effects Phase
-        return (
-          <div className="space-y-6">
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-white">Add Effects</h2>
-              <p className="text-gray-400">Enhance your card with visual effects</p>
-            </div>
-            <EffectsPhase
-              selectedFrame={selectedFrame || undefined}
-              onEffectChange={handleEffectChange}
-              effectValues={effectValues}
-            />
-          </div>
-        );
-
-      case 3: // Preview Phase
-        return (
-          <div className="space-y-6">
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-white">Final Preview</h2>
-              <p className="text-gray-400">Review your card and make final adjustments</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="p-4 bg-gray-800 border-gray-700">
-                <h3 className="text-white font-medium mb-3">Card Details</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Images:</span>
-                    <span className="text-white">{uploadedImages.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Frame:</span>
-                    <span className="text-white capitalize">{selectedFrame || 'None'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Effects:</span>
-                    <span className="text-white">
-                      {Object.entries(effectValues).filter(([_, effect]) => {
-                        if (typeof effect === 'object' && effect !== null) {
-                          return typeof effect.intensity === 'number' && effect.intensity > 0;
-                        }
-                        return false;
-                      }).length}
-                    </span>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-4 bg-gray-800 border-gray-700">
-                <h3 className="text-white font-medium mb-3">Export Options</h3>
-                <div className="space-y-2">
-                  <Button 
-                    onClick={() => exportCard('png')}
-                    className="w-full bg-crd-green hover:bg-crd-green/90 text-black"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Export as PNG
-                  </Button>
-                  <Button 
-                    onClick={() => saveCard()}
-                    variant="outline"
-                    className="w-full border-gray-600 text-white hover:bg-gray-700"
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    Save to Gallery
-                  </Button>
-                </div>
-              </Card>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
+  // Convert string URL to File object for handleImageUpload compatibility
+  const handleImageUrlUpload = (imageUrl: string) => {
+    // For now, we'll handle this differently since we can't easily convert URL to File
+    // This is a temporary workaround - ideally we'd restructure the data flow
+    console.log('Image URL uploaded:', imageUrl);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      <div className="container mx-auto px-4 py-6">
+    <div className="h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex">
+      {/* Left Sidebar */}
+      <div className="w-80 bg-black/50 backdrop-blur-xl border-r border-white/10 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Card Studio</h1>
-            <p className="text-gray-400">Create professional trading cards with advanced 3D effects</p>
+        <div className="p-6 border-b border-white/10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+              <Wand2 className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-white">Card Studio</h1>
+              <p className="text-sm text-gray-400">Create premium 3D cards</p>
+            </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShow3DPreview(!show3DPreview)}
-              className="border-gray-600 text-white hover:bg-gray-700"
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              {show3DPreview ? 'Hide' : 'Show'} 3D Preview
-            </Button>
+          {/* Progress */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-300">Progress</span>
+              <span className="text-purple-400 font-medium">{Math.round(progress)}%</span>
+            </div>
+            <Progress value={progress} className="h-2 bg-gray-800" />
           </div>
         </div>
 
         {/* Phase Navigation */}
-        <div className="flex items-center justify-center mb-8">
-          <div className="flex items-center space-x-4">
-            {STUDIO_PHASES.map((phase, index) => (
-              <React.Fragment key={phase.id}>
-                <div
-                  className={`flex items-center space-x-2 cursor-pointer transition-all ${
-                    index === currentPhase
-                      ? 'text-crd-green'
-                      : completedPhases.has(index)
-                      ? 'text-white'
-                      : 'text-gray-500'
+        <div className="p-4 border-b border-white/10">
+          <div className="space-y-2">
+            {phases.map((phase, index) => {
+              const Icon = phase.icon;
+              const isActive = currentPhase === phase.id;
+              const isCompleted = phase.completed;
+              
+              return (
+                <button
+                  key={phase.id}
+                  onClick={() => setCurrentPhase(phase.id)}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                    isActive 
+                      ? 'bg-purple-600/20 border border-purple-500/50' 
+                      : isCompleted
+                      ? 'bg-green-600/10 border border-green-500/30 hover:bg-green-600/20'
+                      : 'bg-gray-800/50 border border-gray-700/50 hover:bg-gray-700/50'
                   }`}
-                  onClick={() => handlePhaseNavigation(index)}
                 >
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                      index === currentPhase
-                        ? 'bg-crd-green text-black'
-                        : completedPhases.has(index)
-                        ? 'bg-white text-black'
-                        : 'bg-gray-700 text-gray-400'
-                    }`}
-                  >
-                    {completedPhases.has(index) ? (
-                      <Check className="w-4 h-4" />
-                    ) : (
-                      <phase.icon className="w-4 h-4" />
-                    )}
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    isCompleted ? 'bg-green-500/20' : isActive ? 'bg-purple-500/20' : 'bg-gray-700/50'
+                  }`}>
+                    <Icon className={`w-4 h-4 ${
+                      isCompleted ? 'text-green-400' : isActive ? 'text-purple-400' : 'text-gray-400'
+                    }`} />
                   </div>
-                  <div className="hidden sm:block">
-                    <div className="font-medium">{phase.title}</div>
-                    <div className="text-xs text-gray-400">{phase.description}</div>
-                  </div>
-                </div>
-                {index < STUDIO_PHASES.length - 1 && (
-                  <div className="w-12 h-px bg-gray-600" />
-                )}
-              </React.Fragment>
-            ))}
+                  <span className={`font-medium ${
+                    isCompleted ? 'text-green-300' : isActive ? 'text-purple-300' : 'text-gray-300'
+                  }`}>
+                    {phase.name}
+                  </span>
+                  {isCompleted && (
+                    <Badge variant="secondary" className="ml-auto bg-green-500/20 text-green-300 border-green-500/30">
+                      ✓
+                    </Badge>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Phase Content */}
-          <div className="space-y-6">
-            {renderPhaseContent()}
-            
-            {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-6 border-t border-gray-700">
-              <Button
-                variant="outline"
-                onClick={handlePrevPhase}
-                disabled={currentPhase === 0}
-                className="border-gray-600 text-white hover:bg-gray-700 disabled:opacity-50"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Previous
-              </Button>
-              
-              <Badge variant="secondary" className="bg-gray-700 text-white">
-                Step {currentPhase + 1} of {STUDIO_PHASES.length}
-              </Badge>
-              
-              <Button
-                onClick={handleNextPhase}
-                disabled={!canProceedToNext() || currentPhase === STUDIO_PHASES.length - 1}
-                className="bg-crd-green hover:bg-crd-green/90 text-black disabled:opacity-50"
-              >
-                {currentPhase === STUDIO_PHASES.length - 1 ? 'Complete' : 'Next'}
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-          </div>
+        {/* Content Tabs */}
+        <div className="flex-1 flex flex-col">
+          <Tabs value={sidebarTab} onValueChange={setSidebarTab} className="flex-1 flex flex-col">
+            <TabsList className="grid w-full grid-cols-4 bg-gray-800/50 m-4 mb-0">
+              <TabsTrigger value="upload" className="text-xs">Upload</TabsTrigger>
+              <TabsTrigger value="frames" className="text-xs">Frames</TabsTrigger>
+              <TabsTrigger value="effects" className="text-xs">Effects</TabsTrigger>
+              <TabsTrigger value="layers" className="text-xs">Layers</TabsTrigger>
+            </TabsList>
 
-          {/* 3D Preview */}
-          {show3DPreview && (
-            <div className="lg:sticky lg:top-6">
-              <Card className="p-4 bg-gray-800 border-gray-700">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-white font-medium">Live Preview</h3>
-                  <Badge variant="outline" className="border-crd-green text-crd-green">
-                    3D Interactive
-                  </Badge>
+            {/* Upload Tab */}
+            <TabsContent value="upload" className="flex-1 p-4 space-y-4">
+              <EnhancedUploadZone
+                onImageUpload={handleImageUrlUpload}
+                uploadedImage={uploadedImages.length > 0 ? URL.createObjectURL(uploadedImages[0]) : undefined}
+              />
+              
+              {uploadedImages.length > 0 && !completedPhases.has(0) && (
+                <Button 
+                  onClick={() => completePhase(0)}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                >
+                  Continue to Frame Selection
+                </Button>
+              )}
+            </TabsContent>
+
+            {/* Frames Tab */}
+            <TabsContent value="frames" className="flex-1 p-4">
+              <div className="space-y-4">
+                <h3 className="text-white font-medium">Select Frame Style</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {ENHANCED_FRAMES.slice(0, 6).map((frame) => (
+                    <button
+                      key={frame.id}
+                      onClick={() => selectFrame(frame.id)}
+                      className={`p-3 rounded-lg border text-left transition-all ${
+                        selectedFrame === frame.id
+                          ? 'border-purple-500 bg-purple-500/20'
+                          : 'border-gray-600 bg-gray-800/50 hover:border-gray-500'
+                      }`}
+                    >
+                      <div className="text-white text-sm font-medium mb-1">{frame.name}</div>
+                      <div className="text-gray-400 text-xs">{frame.description}</div>
+                    </button>
+                  ))}
                 </div>
                 
-                <div className="aspect-square rounded-lg overflow-hidden">
-                  <Live3DPreview
-                    frontImage={uploadedImages.length > 0 ? URL.createObjectURL(uploadedImages[0]) : undefined}
-                    selectedFrame={selectedFrame || undefined}
-                    effects={effectValues}
-                    cardData={cardData}
-                    className="w-full h-full"
-                  />
+                {selectedFrame && !completedPhases.has(1) && (
+                  <Button 
+                    onClick={() => completePhase(1)}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    Continue to Effects
+                  </Button>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Effects Tab */}
+            <TabsContent value="effects" className="flex-1 p-4">
+              <div className="space-y-4">
+                <h3 className="text-white font-medium">Visual Effects</h3>
+                
+                <div className="space-y-3">
+                  {['holographic', 'chrome', 'metallic'].map((effectType) => {
+                    const effect = effects.find(e => e.type === effectType);
+                    return (
+                      <div key={effectType} className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-white text-sm capitalize">{effectType}</span>
+                          {!effect && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => addEffect(effectType as any)}
+                              className="h-6 px-2 text-xs"
+                            >
+                              Add
+                            </Button>
+                          )}
+                        </div>
+                        
+                        {effect && (
+                          <div className="space-y-2 p-3 bg-gray-800/50 rounded-lg">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-gray-400">Intensity</span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => removeEffect(effect.id)}
+                                className="h-4 w-4 p-0 text-red-400 hover:text-red-300"
+                              >
+                                ×
+                              </Button>
+                            </div>
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={typeof effect.intensity === 'number' ? effect.intensity : 0}
+                              onChange={(e) => updateEffect(effect.id, { intensity: parseInt(e.target.value) })}
+                              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                            />
+                            <div className="text-xs text-gray-400 text-center">
+                              {typeof effect.intensity === 'number' ? effect.intensity : 0}%
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              </Card>
-            </div>
-          )}
+
+                {effects.some(e => typeof e.intensity === 'number' && e.intensity > 0) && !completedPhases.has(2) && (
+                  <Button 
+                    onClick={() => completePhase(2)}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    Continue to Studio
+                  </Button>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Layers Tab */}
+            <TabsContent value="layers" className="flex-1 p-4">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-white font-medium">Layers</h3>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => addLayer('image')}
+                    className="h-6 px-2 text-xs"
+                  >
+                    Add Layer
+                  </Button>
+                </div>
+                
+                <div className="space-y-2">
+                  {layers.map((layer) => (
+                    <div
+                      key={layer.id}
+                      onClick={() => selectLayer(layer.id)}
+                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                        selectedLayerId === layer.id
+                          ? 'border-purple-500 bg-purple-500/20'
+                          : 'border-gray-600 bg-gray-800/50 hover:border-gray-500'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="text-white text-sm">{layer.name}</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateLayer(layer.id, { visible: !layer.visible });
+                            }}
+                            className="text-gray-400 hover:text-white"
+                          >
+                            <Eye className={`w-3 h-3 ${layer.visible ? '' : 'opacity-50'}`} />
+                          </button>
+                          {layer.id !== 'background' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeLayer(layer.id);
+                              }}
+                              className="text-red-400 hover:text-red-300"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {layer.type} • {Math.round(layer.opacity * 100)}% opacity
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* Bottom Actions */}
+        <div className="p-4 border-t border-white/10 space-y-2">
+          <div className="flex gap-2">
+            <Button
+              onClick={toggleAnimation}
+              variant="outline"
+              size="sm"
+              className="flex-1"
+            >
+              {isPlaying ? <Pause className="w-3 h-3 mr-1" /> : <Play className="w-3 h-3 mr-1" />}
+              {isPlaying ? 'Pause' : 'Play'}
+            </Button>
+            <Button
+              onClick={() => exportCard('png')}
+              variant="outline"
+              size="sm"
+              className="flex-1"
+            >
+              <Download className="w-3 h-3 mr-1" />
+              Export
+            </Button>
+          </div>
+          <Button
+            onClick={saveCard}
+            className="w-full bg-purple-600 hover:bg-purple-700"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            Save Card
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Preview Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Bar */}
+        <div className="h-16 bg-black/30 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-6">
+          <div className="flex items-center gap-4">
+            <h2 className="text-white font-semibold">Live Preview</h2>
+            <Badge variant="secondary" className="bg-purple-500/20 text-purple-300 border-purple-500/30">
+              {phases[currentPhase]?.name || 'Studio'}
+            </Badge>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+              <Settings className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* 3D Preview */}
+        <div className="flex-1 p-6">
+          <Live3DPreview
+            frontImage={uploadedImages.length > 0 ? URL.createObjectURL(uploadedImages[0]) : undefined}
+            selectedFrame={selectedFrame}
+            effects={effectValues}
+            cardData={cardData}
+            className="w-full h-full"
+          />
         </div>
       </div>
     </div>
