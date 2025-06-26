@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import type { CardRarity } from '@/types/card';
 
 interface CardData {
+  id?: string;
   title: string;
   description: string;
   image_url: string;
@@ -38,7 +39,7 @@ export const useSimpleCardEditor = () => {
     }));
   }, []);
 
-  const saveCard = useCallback(async () => {
+  const saveCard = useCallback(async (publishImmediately: boolean = false) => {
     if (!user) {
       toast.error('Please sign in to save cards');
       return false;
@@ -62,7 +63,7 @@ export const useSimpleCardEditor = () => {
           rarity: cardData.rarity,
           template_id: cardData.template_id || null,
           tags: cardData.tags,
-          is_public: cardData.is_public,
+          is_public: publishImmediately || cardData.is_public,
           creator_id: user.id,
           edition_size: 1,
         })
@@ -75,7 +76,10 @@ export const useSimpleCardEditor = () => {
         return false;
       }
 
-      toast.success('Card saved successfully!');
+      // Update local state with the returned card ID
+      setCardData(prev => ({ ...prev, id: data.id }));
+      
+      toast.success(publishImmediately ? 'Card published successfully!' : 'Card saved successfully!');
       return true;
     } catch (error) {
       console.error('Unexpected error saving card:', error);
@@ -86,10 +90,15 @@ export const useSimpleCardEditor = () => {
     }
   }, [user, cardData]);
 
+  const publishCard = useCallback(async () => {
+    return await saveCard(true);
+  }, [saveCard]);
+
   return {
     cardData,
     updateField,
     saveCard,
+    publishCard,
     isSaving,
   };
 };

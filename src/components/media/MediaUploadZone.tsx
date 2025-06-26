@@ -14,6 +14,7 @@ interface MediaUploadZoneProps {
   generateThumbnail?: boolean;
   optimize?: boolean;
   tags?: string[];
+  metadata?: Record<string, any>;
   onUploadComplete: (files: any[]) => void;
   className?: string;
   children?: React.ReactNode;
@@ -23,6 +24,7 @@ export const MediaUploadZone: React.FC<MediaUploadZoneProps> = ({
   bucket,
   folder = '',
   maxFiles = 1,
+  metadata,
   onUploadComplete,
   className,
   children
@@ -60,10 +62,11 @@ export const MediaUploadZone: React.FC<MediaUploadZoneProps> = ({
         originalName: file.name,
         size: file.size,
         type: file.type,
-        publicUrl
+        publicUrl,
+        ...metadata
       }
     };
-  }, [user, bucket, folder]);
+  }, [user, bucket, folder, metadata]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
