@@ -15,7 +15,7 @@ interface Effect {
   parameters: Record<string, any>;
 }
 
-interface EffectsPh paseProps {
+interface EffectsPhaseProps {
   effects: Effect[];
   onAddEffect: (type: Effect['type']) => void;
   onUpdateEffect: (effectId: string, updates: Partial<Effect>) => void;
