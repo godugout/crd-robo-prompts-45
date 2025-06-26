@@ -19,14 +19,14 @@ const CardMesh: React.FC<CardMeshProps> = ({ frontImage, effects }) => {
   const frontTexture = useLoader(TextureLoader, frontImage);
   const backTexture = useLoader(TextureLoader, '/lovable-uploads/b3f6335f-9e0a-4a64-a665-15d04f456d50.png');
 
-  // Configure textures
+  // Configure textures - fix the upside-down image issue
   useMemo(() => {
     [frontTexture, backTexture].forEach(texture => {
       texture.wrapS = THREE.ClampToEdgeWrapping;
       texture.wrapT = THREE.ClampToEdgeWrapping;
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
-      texture.flipY = false;
+      texture.flipY = true; // Changed from false to true to fix upside-down rendering
     });
   }, [frontTexture, backTexture]);
 
