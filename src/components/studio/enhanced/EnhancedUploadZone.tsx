@@ -3,14 +3,14 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Upload, Camera, Image, Sparkles, X, Folder, Crop } from 'lucide-react';
+import { Upload, Camera, Image, X, Crop } from 'lucide-react';
 import { toast } from 'sonner';
 import { ImageCropper } from '@/components/editor/ImageCropper';
 
 interface EnhancedUploadZoneProps {
   onImageUpload: (imageUrl: string) => void;
   uploadedImage?: string;
-  cardEditor?: any; // For auto-updating card preview
+  cardEditor?: any;
 }
 
 export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
@@ -19,7 +19,6 @@ export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
   cardEditor
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
   const [showCropper, setShowCropper] = useState(false);
   const [originalImage, setOriginalImage] = useState<string>('');
 
@@ -55,8 +54,6 @@ export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    onDragEnter: () => setDragActive(true),
-    onDragLeave: () => setDragActive(false),
     accept: { 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] },
     maxFiles: 1,
     disabled: isProcessing
@@ -65,7 +62,6 @@ export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
   const handleCropComplete = (croppedImageUrl: string) => {
     onImageUpload(croppedImageUrl);
     
-    // Update card editor with cropped image
     if (cardEditor) {
       cardEditor.updateCardField('image_url', croppedImageUrl);
       cardEditor.updateCardField('thumbnail_url', croppedImageUrl);
@@ -89,8 +85,8 @@ export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
 
   if (showCropper && (uploadedImage || originalImage)) {
     return (
-      <Card className="bg-black/20 border-white/10 p-4 rounded-lg h-full">
-        <div className="flex items-center justify-between mb-4">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
           <h3 className="text-white font-medium">Crop Your Image</h3>
           <Button
             variant="ghost"
@@ -101,22 +97,22 @@ export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
           </Button>
         </div>
         
-        <div className="h-96">
+        <div className="h-96 rounded-lg overflow-hidden">
           <ImageCropper
             imageUrl={uploadedImage || originalImage}
             onCropComplete={handleCropComplete}
             aspectRatio={3/4}
           />
         </div>
-      </Card>
+      </div>
     );
   }
 
   // Compact version for when image is uploaded
   if (uploadedImage) {
     return (
-      <Card className="bg-black/20 border-white/10 p-4 rounded-lg">
-        <div className="flex items-center justify-between mb-3">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Image className="w-4 h-4 text-crd-green" />
             <span className="text-white text-sm font-medium">Image Active</span>
@@ -131,7 +127,7 @@ export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
           </Button>
         </div>
         
-        <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-black/40 mb-3">
+        <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-black/40">
           <img 
             src={uploadedImage} 
             alt="Uploaded"
@@ -160,56 +156,49 @@ export const EnhancedUploadZone: React.FC<EnhancedUploadZoneProps> = ({
             Replace
           </Button>
         </div>
-      </Card>
+      </div>
     );
   }
 
-  // Compact upload zone for sidebar
+  // Main upload interface
   return (
-    <Card className="bg-black/20 border-white/10 rounded-lg overflow-hidden">
-      <div
-        {...getRootProps()}
-        className={`relative p-6 text-center cursor-pointer transition-all duration-300 ${
-          isDragActive || dragActive
-            ? 'bg-crd-green/20 border-crd-green'
-            : 'hover:bg-white/5'
-        } ${isProcessing ? 'opacity-50 pointer-events-none' : ''}`}
-      >
-        <input {...getInputProps()} />
+    <div
+      {...getRootProps()}
+      className={`relative p-8 text-center cursor-pointer transition-all duration-300 border-2 border-dashed rounded-lg ${
+        isDragActive
+          ? 'bg-crd-green/20 border-crd-green'
+          : 'border-white/30 hover:bg-white/5 hover:border-crd-green/50'
+      } ${isProcessing ? 'opacity-50 pointer-events-none' : ''}`}
+    >
+      <input {...getInputProps()} />
+      
+      <div className="space-y-4">
+        {/* Icon */}
+        <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-crd-green/20 to-blue-500/20 flex items-center justify-center">
+          {isDragActive ? (
+            <Upload className="w-8 h-8 text-crd-green animate-bounce" />
+          ) : isProcessing ? (
+            <div className="w-8 h-8 border-2 border-crd-green border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Camera className="w-8 h-8 text-gray-300" />
+          )}
+        </div>
         
-        <div className="space-y-3">
-          {/* Icon */}
-          <div className="mx-auto w-12 h-12 rounded-full bg-gradient-to-br from-crd-green/20 to-blue-500/20 flex items-center justify-center">
-            {isDragActive ? (
-              <Upload className="w-6 h-6 text-crd-green animate-bounce" />
-            ) : isProcessing ? (
-              <div className="w-6 h-6 border-2 border-crd-green border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Camera className="w-6 h-6 text-gray-300" />
-            )}
-          </div>
-          
-          {/* Text */}
-          <div>
-            <p className="text-white font-medium text-sm">
-              {isDragActive 
-                ? 'Drop here!' 
-                : isProcessing 
-                ? 'Processing...'
-                : 'Upload & Preview'
-              }
-            </p>
-            <p className="text-gray-400 text-xs mt-1">
-              Auto-updates card • Crop options available
-            </p>
-          </div>
-
-          {/* Info */}
-          <div className="text-xs text-gray-400">
-            JPG, PNG, WebP • Up to 50MB
-          </div>
+        {/* Text */}
+        <div>
+          <p className="text-white font-medium text-lg mb-2">
+            {isDragActive 
+              ? 'Drop your image here!' 
+              : isProcessing 
+              ? 'Processing...'
+              : 'Upload Your Card Image'
+            }
+          </p>
+          <p className="text-gray-400 text-sm">
+            Drag & drop or click to browse • JPG, PNG, WebP • Up to 50MB
+          </p>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
