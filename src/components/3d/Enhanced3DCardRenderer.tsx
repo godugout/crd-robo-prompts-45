@@ -51,6 +51,34 @@ export const Enhanced3DCardRenderer: React.FC<Enhanced3DCardRendererProps> = ({
   const frontTexture = useLoader(TextureLoader, frontImage || defaultFrontTexture);
   const backTexture = useLoader(TextureLoader, backImage || defaultBackTexture);
 
+  // Configure textures for proper card filling
+  useEffect(() => {
+    if (frontTexture) {
+      // Ensure texture fills entire card face
+      frontTexture.wrapS = THREE.ClampToEdgeWrapping;
+      frontTexture.wrapT = THREE.ClampToEdgeWrapping;
+      frontTexture.repeat.set(1, 1);
+      frontTexture.offset.set(0, 0);
+      frontTexture.flipY = false;
+      frontTexture.minFilter = THREE.LinearFilter;
+      frontTexture.magFilter = THREE.LinearFilter;
+      frontTexture.generateMipmaps = false;
+      frontTexture.needsUpdate = true;
+    }
+
+    if (backTexture) {
+      backTexture.wrapS = THREE.ClampToEdgeWrapping;
+      backTexture.wrapT = THREE.ClampToEdgeWrapping;
+      backTexture.repeat.set(1, 1);
+      backTexture.offset.set(0, 0);
+      backTexture.flipY = false;
+      backTexture.minFilter = THREE.LinearFilter;
+      backTexture.magFilter = THREE.LinearFilter;
+      backTexture.generateMipmaps = false;
+      backTexture.needsUpdate = true;
+    }
+  }, [frontTexture, backTexture]);
+
   // Material properties based on effects
   const materialProps = useMemo(() => {
     const baseProps = {
