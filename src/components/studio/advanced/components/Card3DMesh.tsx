@@ -1,17 +1,14 @@
 
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { TextureLoader } from 'three';
 import * as THREE from 'three';
-import { Sparkles } from '@react-three/drei';
-import { EnhancedHolographicMaterial } from '../materials/EnhancedHolographicMaterial';
-import { calculateAspectRatioPreservation, configureTextureForCard } from '../utils/textureUtils';
 import type { CardData } from '@/hooks/useCardEditor';
 
 interface Card3DMeshProps {
   cardData: CardData;
   imageUrl?: string;
-  effects: {
+  effects?: {
     holographic?: boolean;
     metalness?: number;
     roughness?: number;
@@ -27,214 +24,105 @@ interface Card3DMeshProps {
 export const Card3DMesh: React.FC<Card3DMeshProps> = ({
   cardData,
   imageUrl,
-  effects
+  effects = {}
 }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const [hovered, setHovered] = useState(false);
-  const [textureError, setTextureError] = useState(false);
+  const cardRef = useRef<THREE.Group>(null);
   
-  // Card dimensions (trading card standard: 2.5" x 3.5")
-  const cardWidth = 2.5;
-  const cardHeight = 3.5;
-  const cardThickness = 0.05;
-  
-  // Create fallback texture
-  const fallbackTexture = useMemo(() => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 716; // Maintains 2.5:3.5 ratio
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      const gradient = ctx.createLinearGradient(0, 0, 0, 716);
-      gradient.addColorStop(0, '#0f4c3a');
-      gradient.addColorStop(1, '#1a5c47');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 512, 716);
-      
-      ctx.fillStyle = '#ffd700';
-      ctx.font = 'bold 48px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('CRD', 256, 380);
-    }
-    const texture = new THREE.CanvasTexture(canvas);
-    configureTextureForCard(texture);
-    return texture;
-  }, []);
-  
-  // Safe texture loading with error handling
-  const safeImageUrl = useMemo(() => {
-    // If imageUrl is a blob URL that might be invalid, validate it first
-    if (imageUrl && imageUrl.startsWith('blob:')) {
-      // For blob URLs, we'll handle errors in the useEffect below
-      return imageUrl;
-    }
-    // For regular URLs, use them directly or fallback
-    return imageUrl || '/lovable-uploads/7697ffa5-ac9b-428b-9bc0-35500bcb2286.png';
-  }, [imageUrl]);
-  
-  // Load texture with proper error handling
-  const [frontTexture, setFrontTexture] = useState<THREE.Texture>(fallbackTexture);
-  
-  useEffect(() => {
-    if (!safeImageUrl || textureError) {
-      setFrontTexture(fallbackTexture);
-      return;
-    }
-
-    const loader = new TextureLoader();
-    
-    // For blob URLs, validate first
-    if (safeImageUrl.startsWith('blob:')) {
-      // Test if blob URL is still valid by creating an image
-      const testImg = new Image();
-      testImg.onload = () => {
-        // Blob is valid, proceed with texture loading
-        loader.load(
-          safeImageUrl,
-          (texture) => {
-            configureTextureForCard(texture);
-            setFrontTexture(texture);
-            setTextureError(false);
-          },
-          undefined,
-          (error) => {
-            console.warn('Failed to load texture, using fallback:', error);
-            setTextureError(true);
-            setFrontTexture(fallbackTexture);
-          }
-        );
-      };
-      testImg.onerror = () => {
-        console.warn('Blob URL is invalid, using fallback texture');
-        setTextureError(true);
-        setFrontTexture(fallbackTexture);
-      };
-      testImg.src = safeImageUrl;
-    } else {
-      // Regular URL loading
-      loader.load(
-        safeImageUrl,
-        (texture) => {
-          configureTextureForCard(texture);
-          setFrontTexture(texture);
-          setTextureError(false);
-        },
-        undefined,
-        (error) => {
-          console.warn('Failed to load texture, using fallback:', error);
-          setTextureError(true);
-          setFrontTexture(fallbackTexture);
-        }
-      );
-    }
-  }, [safeImageUrl, fallbackTexture, textureError]);
+  // Load texture if provided
+  const texture = imageUrl ? useLoader(TextureLoader, imageUrl) : null;
   
   // Create card back texture
-  const cardBackTexture = useMemo(() => {
+  const backTexture = useMemo(() => {
     const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 716; // Maintains 2.5:3.5 ratio
+    canvas.width = 256;
+    canvas.height = 356;
     const ctx = canvas.getContext('2d');
+    
     if (ctx) {
-      const gradient = ctx.createRadialGradient(256, 358, 0, 256, 358, 400);
+      // Card back design
+      const gradient = ctx.createLinearGradient(0, 0, 256, 356);
       gradient.addColorStop(0, '#1a1a2e');
-      gradient.addColorStop(0.6, '#16213e');
-      gradient.addColorStop(1, '#0f1419');
+      gradient.addColorStop(1, '#16213e');
       ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 512, 716);
+      ctx.fillRect(0, 0, 256, 356);
       
-      // Add subtle pattern
-      ctx.strokeStyle = '#16213e';
-      ctx.lineWidth = 2;
-      for (let i = 1; i < 15; i++) {
-        ctx.beginPath();
-        ctx.arc(256, 358, i * 20, 0, Math.PI * 2);
-        ctx.stroke();
-      }
+      // Border
+      ctx.strokeStyle = '#4a9eff';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(8, 8, 240, 340);
       
-      // CRD logo
-      ctx.fillStyle = '#10b981';
-      ctx.font = 'bold 64px Arial';
+      // Logo placeholder
+      ctx.fillStyle = '#4a9eff';
+      ctx.font = 'bold 24px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('CRD', 256, 380);
-      
-      ctx.fillStyle = '#64748b';
-      ctx.font = '24px Arial';
-      ctx.fillText('PREMIUM CARD', 256, 420);
+      ctx.fillText('CRD', 128, 180);
     }
-    const backTexture = new THREE.CanvasTexture(canvas);
-    configureTextureForCard(backTexture);
-    return backTexture;
+    
+    return new THREE.CanvasTexture(canvas);
   }, []);
-  
+
   // Animation
   useFrame((state) => {
-    if (meshRef.current) {
-      // Gentle floating animation
-      meshRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.03;
-      
-      // Auto-rotate when not hovered
-      if (!hovered) {
-        meshRef.current.rotation.y += 0.002;
-      }
+    if (cardRef.current) {
+      cardRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
+      cardRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.8) * 0.02;
     }
   });
-  
+
+  const materialProps = useMemo(() => {
+    if (effects.chrome) {
+      return {
+        metalness: 0.9,
+        roughness: 0.1,
+        envMapIntensity: 2,
+      };
+    } else if (effects.crystal) {
+      return {
+        metalness: 0.1,
+        roughness: 0.0,
+        transmission: 0.9,
+        thickness: 0.5,
+      };
+    } else if (effects.vintage) {
+      return {
+        metalness: 0.2,
+        roughness: 0.8,
+      };
+    } else {
+      return {
+        metalness: effects.metalness || 0.3,
+        roughness: effects.roughness || 0.4,
+      };
+    }
+  }, [effects]);
+
   return (
-    <group>
-      {/* Main card mesh with proper thickness */}
-      <mesh
-        ref={meshRef}
-        onPointerEnter={() => setHovered(true)}
-        onPointerLeave={() => setHovered(false)}
-        scale={hovered ? 1.02 : 1}
-        castShadow
-        receiveShadow
-      >
-        <boxGeometry args={[cardWidth, cardHeight, cardThickness]} />
-        
-        {/* Edge materials (sides) */}
-        <meshStandardMaterial attach="material-0" color="#2a2a3a" /> {/* Right edge */}
-        <meshStandardMaterial attach="material-1" color="#2a2a3a" /> {/* Left edge */}
-        <meshStandardMaterial attach="material-2" color="#2a2a3a" /> {/* Top edge */}
-        <meshStandardMaterial attach="material-3" color="#2a2a3a" /> {/* Bottom edge */}
-        
-        {/* Front face with effects */}
-        {effects.holographic || effects.chrome || effects.crystal || effects.vintage ? (
-          <EnhancedHolographicMaterial 
-            texture={frontTexture}
-            effects={effects}
-          />
-        ) : (
-          <meshStandardMaterial 
-            attach="material-4"
-            map={frontTexture}
-            metalness={effects.metalness || 0.1}
-            roughness={effects.roughness || 0.4}
-          />
-        )}
-        
-        {/* Back face */}
-        <meshStandardMaterial attach="material-5" map={cardBackTexture} />
-      </mesh>
-      
-      {/* Particle effects */}
-      {effects.particles && (
-        <Sparkles
-          count={25}
-          scale={3}
-          size={2}
-          speed={0.2}
-          color="gold"
-          position={[0, 0, 0.1]}
+    <group ref={cardRef}>
+      {/* Card Front */}
+      <mesh position={[0, 0, 0.025]} castShadow receiveShadow>
+        <boxGeometry args={[2.5, 3.5, 0.05]} />
+        <meshPhysicalMaterial
+          map={texture}
+          transparent
+          opacity={0.95}
+          {...materialProps}
         />
-      )}
-      
-      {/* Glow effect */}
+      </mesh>
+
+      {/* Card Back */}
+      <mesh position={[0, 0, -0.025]} rotation={[0, Math.PI, 0]} castShadow receiveShadow>
+        <boxGeometry args={[2.5, 3.5, 0.05]} />
+        <meshStandardMaterial
+          map={backTexture}
+          {...materialProps}
+        />
+      </mesh>
+
+      {/* Glow Effect */}
       {effects.glow && (
-        <mesh position={[0, 0, -0.03]}>
-          <boxGeometry args={[cardWidth + 0.1, cardHeight + 0.1, 0.01]} />
-          <meshBasicMaterial 
+        <mesh position={[0, 0, 0.051]}>
+          <boxGeometry args={[2.52, 3.52, 0.001]} />
+          <meshBasicMaterial
             color={effects.glowColor || '#00ffff'}
             transparent
             opacity={0.3}
