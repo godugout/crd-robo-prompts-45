@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei';
@@ -38,11 +37,11 @@ const Scene: React.FC<{
       {/* Environment for reflections */}
       {quality === 'high' && <Environment preset="studio" />}
       
-      {/* The 3D card with enhanced scale for better visibility */}
+      {/* The 3D card with enhanced scale for better visibility - fix: use single number for scale */}
       <Card3D 
         card={card}
         position={[0, 0, 0]}
-        scale={[1.8, 1.8, 1.8]}
+        scale={2.2}
         quality={quality}
         interactive={true}
       />
@@ -118,26 +117,26 @@ export const Card3DViewer: React.FC<Card3DViewerProps> = ({
           alpha: true,
           powerPreference: "high-performance"
         }}
-        camera={{ position: [0, 0, 4], fov: 60 }}
+        camera={{ position: [0, 0, 3.5], fov: 75 }}
         onCreated={({ gl, scene, camera }) => {
           gl.setClearColor(new THREE.Color('#000000'), 0);
           gl.shadowMap.enabled = settings.shadows;
           gl.shadowMap.type = THREE.PCFSoftShadowMap;
           
-          // Optimize camera for better card visibility
-          camera.position.set(0, 0, 4);
+          // Optimize camera for better card visibility and centering
+          camera.position.set(0, 0, 3.5);
           camera.lookAt(0, 0, 0);
         }}
         onError={handleCanvasError}
       >
-        <PerspectiveCamera makeDefault position={[0, 0, 4]} fov={60} />
+        <PerspectiveCamera makeDefault position={[0, 0, 3.5]} fov={75} />
         
         <OrbitControls
           enablePan={false}
           enableZoom={true}
           enableRotate={true}
-          minDistance={2.5}
-          maxDistance={8}
+          minDistance={2}
+          maxDistance={6}
           autoRotate={false}
           maxPolarAngle={Math.PI}
           target={[0, 0, 0]}

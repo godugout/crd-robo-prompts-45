@@ -93,7 +93,25 @@ export const useEnhancedStudio = () => {
       title: 'New Card',
       image_url: '',
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      // Fix: Add all required Card properties
+      rarity: 'common',
+      tags: [],
+      creator_id: uuidv4(),
+      creator_attribution: {
+        creator_name: 'Studio Creator',
+        creator_id: uuidv4()
+      },
+      publishing_options: {
+        marketplace_listing: false,
+        crd_catalog_inclusion: true,
+        print_available: false,
+        pricing: { currency: 'USD' },
+        distribution: { limited_edition: false }
+      },
+      design_metadata: {},
+      visibility: 'private',
+      is_public: false
     },
     imageAdjustments: {}
   });
@@ -106,18 +124,23 @@ export const useEnhancedStudio = () => {
     return {
       ...state.cardData,
       image_url: primaryImage || state.cardData.image_url,
-      frame_id: state.selectedFrame,
-      frame_data: frameData?.template_data,
-      effects: state.effects.filter(e => e.enabled).map(e => ({
-        type: e.type,
-        intensity: e.intensity,
-        parameters: e.parameters
-      })),
-      layers: state.layers,
+      // Fix: Use template_id instead of frame_id
+      template_id: state.selectedFrame,
+      design_metadata: {
+        ...state.cardData.design_metadata,
+        frame_data: frameData?.template_data,
+        effects: state.effects.filter(e => e.enabled).map(e => ({
+          type: e.type,
+          intensity: e.intensity,
+          parameters: e.parameters
+        })),
+        layers: state.layers,
+        image_adjustments: state.imageAdjustments
+      },
       // Ensure immediate updates trigger re-renders
       updated_at: new Date().toISOString()
     };
-  }, [state.uploadedImages, state.selectedFrame, state.effects, state.layers, state.cardData.title]);
+  }, [state.uploadedImages, state.selectedFrame, state.effects, state.layers, state.cardData.title, state.imageAdjustments]);
 
   const setCurrentPhase = useCallback((phase: number) => {
     setState(prev => ({ ...prev, currentPhase: phase }));
@@ -133,34 +156,32 @@ export const useEnhancedStudio = () => {
 
   const handleImageUpload = useCallback((files: FileList | File[]) => {
     const fileArray = Array.from(files);
-    const currentImageCount = state.uploadedImages.length;
     
     fileArray.forEach(file => {
       if (file.type.startsWith('image/')) {
         const url = URL.createObjectURL(file);
         
-        setState(prevState => ({
-          ...prevState,
-          uploadedImages: [...prevState.uploadedImages, url]
-        }));
+        setState(prevState => {
+          const currentImageCount = prevState.uploadedImages.length;
+          
+          const imageLayer: StudioLayer = {
+            id: uuidv4(),
+            name: `Image ${currentImageCount + 1}`,
+            type: 'image',
+            visible: true,
+            opacity: 1,
+            position: { x: 0, y: 0, z: 0 },
+            rotation: { x: 0, y: 0, z: 0 },
+            scale: { x: 1, y: 1, z: 1 },
+            data: { imageUrl: url }
+          };
 
-        // Add as image layer
-        const imageLayer: StudioLayer = {
-          id: uuidv4(),
-          name: `Image ${currentImageCount + 1}`,
-          type: 'image',
-          visible: true,
-          opacity: 1,
-          position: { x: 0, y: 0, z: 0 },
-          rotation: { x: 0, y: 0, z: 0 },
-          scale: { x: 1, y: 1, z: 1 },
-          data: { imageUrl: url }
-        };
-
-        setState(prevState => ({
-          ...prevState,
-          layers: [...prevState.layers, imageLayer]
-        }));
+          return {
+            ...prevState,
+            uploadedImages: [...prevState.uploadedImages, url],
+            layers: [...prevState.layers, imageLayer]
+          };
+        });
       }
     });
     
@@ -177,7 +198,7 @@ export const useEnhancedStudio = () => {
         }
       }));
     }, 100);
-  }, [state.uploadedImages.length]);
+  }, []);
 
   const selectFrame = useCallback((frameId: string) => {
     const frameData = ENHANCED_FRAMES.find(f => f.id === frameId);
@@ -188,7 +209,7 @@ export const useEnhancedStudio = () => {
       // Trigger immediate preview update
       cardData: {
         ...prev.cardData,
-        frame_id: frameId,
+        template_id: frameId,
         updated_at: new Date().toISOString()
       }
     }));
