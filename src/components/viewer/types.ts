@@ -37,16 +37,29 @@ export interface CardData {
   template_id?: string;
   collection_id?: string;
   team_id?: string;
+  created_at: string; // Add required created_at property
   creator_attribution: {
     creator_name?: string;
     creator_id?: string;
+    collaboration_type?: 'solo' | 'collaboration' | 'commission';
+    additional_credits?: Array<{
+      name: string;
+      role: string;
+    }>;
   };
   publishing_options: {
     marketplace_listing: boolean;
     crd_catalog_inclusion: boolean;
     print_available: boolean;
-    pricing: { currency: string };
-    distribution: { limited_edition: boolean };
+    pricing?: {
+      base_price?: number;
+      print_price?: number;
+      currency: string;
+    };
+    distribution?: {
+      limited_edition: boolean;
+      edition_size?: number;
+    };
   };
   design_metadata: Record<string, any>;
 }
@@ -63,11 +76,42 @@ export interface UniversalCardData {
   creator_verified?: boolean;
   stock?: number;
   tags?: string[];
+  // Add missing required properties for compatibility
+  created_at?: string;
+  visibility?: 'public' | 'private' | 'shared';
+  is_public?: boolean;
+  design_metadata?: Record<string, any>;
+  creator_attribution?: {
+    creator_name?: string;
+    creator_id?: string;
+    collaboration_type?: 'solo' | 'collaboration' | 'commission';
+    additional_credits?: Array<{
+      name: string;
+      role: string;
+    }>;
+  };
+  publishing_options?: {
+    marketplace_listing: boolean;
+    crd_catalog_inclusion: boolean;
+    print_available: boolean;
+    pricing?: {
+      base_price?: number;
+      print_price?: number;
+      currency: string;
+    };
+    distribution?: {
+      limited_edition: boolean;
+      edition_size?: number;
+    };
+  };
 }
 
 // ImmersiveCardViewer props interface
 export interface ImmersiveCardViewerProps {
   card: UniversalCardData;
+  cards?: UniversalCardData[];
+  currentCardIndex?: number;
+  onCardChange?: (index: number) => void;
   isOpen?: boolean;
   onClose?: () => void;
   onShare?: (card?: UniversalCardData) => void;
@@ -119,8 +163,10 @@ export interface LightingPresetConfig {
   temperature?: number;
 }
 
-// Conversion functions
+// Enhanced conversion functions with proper type handling
 export const convertToViewerCardData = (card: any): CardData => {
+  const currentTime = new Date().toISOString();
+  
   return {
     id: card.id || '',
     title: card.title || 'Untitled Card',
@@ -133,9 +179,12 @@ export const convertToViewerCardData = (card: any): CardData => {
     template_id: card.template_id,
     collection_id: card.collection_id,
     team_id: card.team_id,
+    created_at: card.created_at || currentTime, // Provide default created_at
     creator_attribution: {
       creator_name: card.creator_name || card.creator_attribution?.creator_name,
-      creator_id: card.creator_id || card.creator_attribution?.creator_id
+      creator_id: card.creator_id || card.creator_attribution?.creator_id,
+      collaboration_type: card.creator_attribution?.collaboration_type || 'solo',
+      additional_credits: card.creator_attribution?.additional_credits || []
     },
     publishing_options: card.publishing_options || {
       marketplace_listing: false,
@@ -149,6 +198,8 @@ export const convertToViewerCardData = (card: any): CardData => {
 };
 
 export const convertToUniversalCardData = (card: any): UniversalCardData => {
+  const currentTime = new Date().toISOString();
+  
   return {
     id: card.id || '',
     title: card.title || 'Untitled Card',
@@ -160,7 +211,25 @@ export const convertToUniversalCardData = (card: any): UniversalCardData => {
     creator_name: card.creator_name || card.creator_attribution?.creator_name,
     creator_verified: card.creator_verified || false,
     stock: card.stock || 0,
-    tags: card.tags || []
+    tags: card.tags || [],
+    // Add all the missing required properties
+    created_at: card.created_at || currentTime,
+    visibility: card.visibility === 'unlisted' ? 'public' : (card.visibility || 'public'),
+    is_public: card.is_public !== false,
+    design_metadata: card.design_metadata || {},
+    creator_attribution: {
+      creator_name: card.creator_name || card.creator_attribution?.creator_name,
+      creator_id: card.creator_id || card.creator_attribution?.creator_id,
+      collaboration_type: card.creator_attribution?.collaboration_type || 'solo',
+      additional_credits: card.creator_attribution?.additional_credits || []
+    },
+    publishing_options: card.publishing_options || {
+      marketplace_listing: false,
+      crd_catalog_inclusion: true,
+      print_available: false,
+      pricing: { currency: 'USD' },
+      distribution: { limited_edition: false }
+    }
   };
 };
 
