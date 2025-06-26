@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 
@@ -26,6 +25,19 @@ export interface Effect {
   enabled: boolean;
   intensity: number;
   parameters: Record<string, any>;
+}
+
+export interface Material {
+  id: string;
+  name: string;
+  type: 'metallic' | 'glass' | 'emissive' | 'standard';
+  properties: {
+    metalness: number;
+    roughness: number;
+    transparency: number;
+    emission: string;
+    normal: string;
+  };
 }
 
 interface CardData {
@@ -61,7 +73,22 @@ export const useAdvancedCardStudio = () => {
   ]);
 
   const [effects, setEffects] = useState<Effect[]>([]);
-  const [materials, setMaterials] = useState<any[]>([]);
+  
+  const [materials, setMaterials] = useState<Material[]>([
+    {
+      id: 'default',
+      name: 'Default Material',
+      type: 'standard',
+      properties: {
+        metalness: 0.2,
+        roughness: 0.8,
+        transparency: 0,
+        emission: '#000000',
+        normal: ''
+      }
+    }
+  ]);
+
   const [selectedLayer, setSelectedLayer] = useState<string>('background');
   const [selectedFrame, setSelectedFrame] = useState<string>('');
   const [history, setHistory] = useState<any[]>([]);
@@ -127,7 +154,7 @@ export const useAdvancedCardStudio = () => {
     toast.success(`Applied ${effect.name} effect`);
   }, []);
 
-  const updateMaterial = useCallback((materialId: string, updates: any) => {
+  const updateMaterial = useCallback((materialId: string, updates: Partial<Material>) => {
     setMaterials(prev => prev.map(material => 
       material.id === materialId ? { ...material, ...updates } : material
     ));
