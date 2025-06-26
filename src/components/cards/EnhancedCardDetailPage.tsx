@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { convertToViewerCardData } from '@/components/viewer/types';
 import type { CardData as HookCardData } from '@/hooks/useCardData';
 import { CardDetailHeader } from './components/CardDetailHeader';
 import { CardDetailMainContent } from './components/CardDetailMainContent';
@@ -35,42 +34,6 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
     setIsBookmarked(!isBookmarked);
   };
 
-  // Convert UserCard/HookCardData to proper CardData format with all required properties
-  const convertToCardData = (userCard: HookCardData) => {
-    return {
-      id: userCard.id || '',
-      title: userCard.title,
-      description: userCard.description,
-      image_url: userCard.image_url,
-      thumbnail_url: userCard.thumbnail_url,
-      rarity: (userCard.rarity as any) || 'common',
-      tags: userCard.tags || [],
-      visibility: 'public' as any,
-      is_public: true,
-      template_id: undefined,
-      collection_id: undefined,
-      team_id: undefined,
-      creator_attribution: {
-        creator_name: userCard.creator_name,
-        creator_id: userCard.creator_id,
-        collaboration_type: 'solo' as any
-      },
-      publishing_options: {
-        marketplace_listing: false,
-        crd_catalog_inclusion: true,
-        print_available: false,
-        pricing: { currency: 'USD' },
-        distribution: { limited_edition: false }
-      },
-      design_metadata: {},
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-  };
-
-  // Convert card to proper format
-  const viewerCard = convertToCardData(card);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-crd-darkest via-crd-darker to-crd-darkest relative overflow-hidden">
       {/* Animated background particles */}
@@ -88,7 +51,7 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
           <CardDetailMainContent
             cardTitle={card.title}
             cardId={card.id || ''}
-            viewerCard={viewerCard}
+            card={card}
             onOpenViewer={onOpenViewer}
           />
 

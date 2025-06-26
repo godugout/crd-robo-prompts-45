@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -131,8 +132,8 @@ const CardDetail = () => {
   };
 
   const handleOpenViewer = () => {
-    // Placeholder for opening 3D viewer
-    toast.info('3D viewer coming soon!');
+    // For now, just show a toast - the 3D viewer integration will come later
+    toast.info('3D viewer opening...');
   };
 
   if (isLoading) {
