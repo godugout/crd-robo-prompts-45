@@ -48,7 +48,7 @@ export const AdvancedCardStudio = () => {
 
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
-  const [sidePanel, setSidePanel< 'layers' | 'effects' | null>('layers');
+  const [sidePanel, setSidePanel] = useState<'layers' | 'effects' | null>('layers');
 
   if (!user) {
     return (
