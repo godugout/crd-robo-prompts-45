@@ -1,13 +1,25 @@
 
 import React from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { Navbar } from '@/components/home/Navbar';
+import { AppSidebar } from './AppSidebar';
+import { NavigationProvider, useNavigation } from '@/contexts/NavigationContext';
 
-export const MainLayout = () => {
-  const location = useLocation();
-  const isHomePage = location.pathname === '/';
-  
-  console.log('MainLayout rendering, path:', location.pathname, 'isHomePage:', isHomePage);
+const LayoutContent = () => {
+  const { navigationStyle } = useNavigation();
+
+  if (navigationStyle === 'sidebar') {
+    return (
+      <div className="flex h-screen w-full">
+        <AppSidebar />
+        <div className="flex-1 overflow-auto">
+          <div className="outlet-container">
+            <Outlet />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -16,5 +28,13 @@ export const MainLayout = () => {
         <Outlet />
       </div>
     </>
+  );
+};
+
+export const MainLayout = () => {
+  return (
+    <NavigationProvider>
+      <LayoutContent />
+    </NavigationProvider>
   );
 };
