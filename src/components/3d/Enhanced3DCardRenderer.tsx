@@ -1,4 +1,3 @@
-
 import React, { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { TextureLoader } from 'three';
@@ -146,6 +145,7 @@ export const Enhanced3DCardRenderer: React.FC<Enhanced3DCardRendererProps> = ({
     configureBackTexture();
   }, [frontTexture, backTexture, frontImage, backImage, fitMode, cardDimensions.width, cardDimensions.height]);
 
+  
   // Material properties based on effects
   const materialProps = useMemo(() => {
     const baseProps = {
