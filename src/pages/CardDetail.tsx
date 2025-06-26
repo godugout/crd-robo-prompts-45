@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase-client';
 import { LoadingState } from '@/components/common/LoadingState';
-import { EnhancedCardDetailPage } from '@/components/cards/EnhancedCardDetailPage';
+import { EnhancedCardDetailView } from '@/components/cards/EnhancedCardDetailPage';
 import { CardEditMode } from '@/components/card-detail/CardEditMode';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -130,6 +130,11 @@ const CardDetail = () => {
     toast.success('Card updated successfully!');
   };
 
+  const handleOpenViewer = () => {
+    // Placeholder for opening 3D viewer
+    toast.info('3D viewer coming soon!');
+  };
+
   if (isLoading) {
     return <LoadingState message="Loading card..." />;
   }
@@ -162,14 +167,12 @@ const CardDetail = () => {
   }
 
   return (
-    <EnhancedCardDetailPage
+    <EnhancedCardDetailView
       card={card}
-      isOwner={isOwner}
-      onGoBack={handleGoBack}
-      onEdit={() => setIsEditMode(true)}
-      onToggleVisibility={handleToggleVisibility}
+      onOpenViewer={handleOpenViewer}
       onShare={handleShare}
       onDownload={handleDownload}
+      onGoBack={handleGoBack}
     />
   );
 };
