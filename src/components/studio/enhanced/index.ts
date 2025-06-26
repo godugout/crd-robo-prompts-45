@@ -1,5 +1,7 @@
 
-export { OrganizedCardStudio } from './OrganizedCardStudio';
 export { EnhancedCardStudio } from './EnhancedCardStudio';
-export { EnhancedFrameBrowser } from './EnhancedFrameBrowser';
-export { EnhancedUploadZone } from './EnhancedUploadZone';
+export { EnhancedFrameSelector } from './EnhancedFrameSelector';
+export { CardHistoryControls } from './CardHistoryControls';
+export { DraggableCardItem } from './DraggableCardItem';
+export { StudioAnalytics } from './StudioAnalytics';
+export { ThemedCardMenu } from './ThemedCardMenu';

@@ -9,9 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useDropzone } from 'react-dropzone';
 import { useCardCreation } from '@/hooks/useCardCreation';
 import { Upload, X, Plus } from 'lucide-react';
-import type { CardRarity } from '@/types/card';
 
-const RARITIES: { value: CardRarity; label: string; color: string }[] = [
+const RARITIES: { value: string; label: string; color: string }[] = [
   { value: 'common', label: 'Common', color: 'text-gray-600' },
   { value: 'uncommon', label: 'Uncommon', color: 'text-green-600' },
   { value: 'rare', label: 'Rare', color: 'text-blue-600' },
@@ -20,18 +19,10 @@ const RARITIES: { value: CardRarity; label: string; color: string }[] = [
 ];
 
 export const CardCreationForm: React.FC = () => {
-  const {
-    cardData,
-    updateCardData,
-    uploadImage,
-    createCard,
-    addTag,
-    removeTag,
-    isCreating
-  } = useCardCreation();
-
+  const { state, uploadImage, updateCardData } = useCardCreation();
   const [tagInput, setTagInput] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
 
   const onDrop = async (acceptedFiles: File[]) => {
     if (!acceptedFiles.length) return;
@@ -49,6 +40,16 @@ export const CardCreationForm: React.FC = () => {
     disabled: isUploading
   });
 
+  const addTag = (tag: string) => {
+    if (tag.trim() && !tags.includes(tag.trim())) {
+      setTags([...tags, tag.trim()]);
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
   const handleAddTag = () => {
     if (tagInput.trim()) {
       addTag(tagInput);
@@ -64,10 +65,12 @@ export const CardCreationForm: React.FC = () => {
   };
 
   const handleCreateCard = async () => {
-    const success = await createCard();
-    if (success) {
-      // Could redirect to card gallery or show success message
-    }
+    // This would integrate with a card creation service
+    console.log('Creating card with data:', {
+      ...state.cardData,
+      image_url: state.uploadedImage,
+      tags
+    });
   };
 
   return (
@@ -89,10 +92,10 @@ export const CardCreationForm: React.FC = () => {
               } ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <input {...getInputProps()} />
-              {cardData.image_url ? (
+              {state.uploadedImage ? (
                 <div className="space-y-4">
                   <img 
-                    src={cardData.image_url} 
+                    src={state.uploadedImage} 
                     alt="Card preview" 
                     className="max-h-64 mx-auto rounded-lg shadow-lg"
                   />
@@ -126,7 +129,7 @@ export const CardCreationForm: React.FC = () => {
                 <Label htmlFor="title" className="text-lg font-medium">Title *</Label>
                 <Input
                   id="title"
-                  value={cardData.title}
+                  value={state.cardData.title}
                   onChange={(e) => updateCardData({ title: e.target.value })}
                   placeholder="Enter card title"
                   className="mt-1 text-lg"
@@ -137,7 +140,7 @@ export const CardCreationForm: React.FC = () => {
                 <Label htmlFor="description" className="text-lg font-medium">Description</Label>
                 <Textarea
                   id="description"
-                  value={cardData.description}
+                  value={state.cardData.description}
                   onChange={(e) => updateCardData({ description: e.target.value })}
                   placeholder="Describe your card..."
                   className="mt-1 min-h-[120px]"
@@ -148,8 +151,8 @@ export const CardCreationForm: React.FC = () => {
               <div>
                 <Label className="text-lg font-medium">Rarity</Label>
                 <Select 
-                  value={cardData.rarity} 
-                  onValueChange={(value) => updateCardData({ rarity: value as CardRarity })}
+                  value={state.cardData.rarity} 
+                  onValueChange={(value) => updateCardData({ rarity: value as any })}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue />
@@ -181,15 +184,15 @@ export const CardCreationForm: React.FC = () => {
                     type="button" 
                     onClick={handleAddTag}
                     variant="outline"
-                    disabled={!tagInput.trim() || cardData.tags.length >= 10}
+                    disabled={!tagInput.trim() || tags.length >= 10}
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
                 
-                {cardData.tags.length > 0 && (
+                {tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {cardData.tags.map((tag) => (
+                    {tags.map((tag) => (
                       <span
                         key={tag}
                         className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
@@ -208,7 +211,7 @@ export const CardCreationForm: React.FC = () => {
                 )}
                 
                 <p className="text-xs text-gray-500">
-                  {cardData.tags.length}/10 tags used
+                  {tags.length}/10 tags used
                 </p>
               </div>
             </div>
@@ -218,11 +221,11 @@ export const CardCreationForm: React.FC = () => {
           <div className="pt-4 border-t">
             <Button 
               onClick={handleCreateCard}
-              disabled={isCreating || !cardData.title.trim() || !cardData.image_url}
+              disabled={state.processing || !state.cardData.title.trim() || !state.uploadedImage}
               className="w-full md:w-auto px-8 py-3 text-lg"
               size="lg"
             >
-              {isCreating ? 'Creating Card...' : 'Create Card'}
+              {state.processing ? 'Creating Card...' : 'Create Card'}
             </Button>
           </div>
         </CardContent>
