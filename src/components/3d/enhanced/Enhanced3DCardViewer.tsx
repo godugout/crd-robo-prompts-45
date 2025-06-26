@@ -13,6 +13,8 @@ interface Enhanced3DCardViewerProps {
   effects?: Record<string, any>;
   frameConfig?: any;
   selectedFrame?: string;
+  onModeChange?: (enabled: boolean) => void;
+  fallbackComponent?: React.ReactElement;
 }
 
 const CardScene: React.FC<{
@@ -67,13 +69,24 @@ export const Enhanced3DCardViewer: React.FC<Enhanced3DCardViewerProps> = ({
   autoEnable = true,
   effects = {},
   frameConfig,
-  selectedFrame
+  selectedFrame,
+  onModeChange,
+  fallbackComponent
 }) => {
   return (
     <div className={`w-full h-full ${className}`}>
-      <EffectProvider initialEffects={effects}>
+      <EffectProvider 
+        initialEffects={effects}
+        initialValues={{
+          effectValues: effects,
+          showEffects: true,
+          effectIntensity: Object.values(effects).map((effect: any) => 
+            typeof effect?.intensity === 'number' ? effect.intensity : 0
+          )
+        }}
+      >
         <Canvas shadows className="w-full h-full">
-          <Suspense fallback={null}>
+          <Suspense fallback={fallbackComponent || null}>
             <CardScene 
               card={card}
               effects={effects}

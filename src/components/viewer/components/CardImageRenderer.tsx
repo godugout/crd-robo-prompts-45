@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { CardData } from '@/hooks/useCardEditor';
 import { useEffectContext } from '../contexts/EffectContext';
@@ -32,7 +33,7 @@ export const CardImageRenderer: React.FC<CardImageRendererProps> = ({ card }) =>
     }
 
     const filters: string[] = [];
-    const avgIntensity = effectIntensity.length ? 
+    const avgIntensity = Array.isArray(effectIntensity) && effectIntensity.length ? 
       effectIntensity.reduce((sum, val) => sum + val, 0) / effectIntensity.length : 0;
 
     // Apply effect-specific filters that look like real film treatments
@@ -134,9 +135,9 @@ export const CardImageRenderer: React.FC<CardImageRendererProps> = ({ card }) =>
               background: `
                 linear-gradient(
                   ${45 + mousePosition.x * 30}deg,
-                  rgba(255, 255, 255, ${0.02 * (effectIntensity.reduce((sum, val) => sum + val, 0) / effectIntensity.length / 100)}) 0%,
-                  rgba(255, 255, 255, ${0.05 * (effectIntensity.reduce((sum, val) => sum + val, 0) / effectIntensity.length / 100)}) 50%,
-                  rgba(255, 255, 255, ${0.02 * (effectIntensity.reduce((sum, val) => sum + val, 0) / effectIntensity.length / 100)}) 100%
+                  rgba(255, 255, 255, ${0.02 * (Array.isArray(effectIntensity) ? effectIntensity.reduce((sum, val) => sum + val, 0) / effectIntensity.length / 100 : 0)}) 0%,
+                  rgba(255, 255, 255, ${0.05 * (Array.isArray(effectIntensity) ? effectIntensity.reduce((sum, val) => sum + val, 0) / effectIntensity.length / 100 : 0)}) 50%,
+                  rgba(255, 255, 255, ${0.02 * (Array.isArray(effectIntensity) ? effectIntensity.reduce((sum, val) => sum + val, 0) / effectIntensity.length / 100 : 0)}) 100%
                 )
               `,
               mixBlendMode: 'overlay',
