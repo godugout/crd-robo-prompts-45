@@ -1,162 +1,154 @@
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { uploadCardImage } from '@/lib/imageUpload';
+import { useState, useCallback } from 'react';
+import type { CardCreationState, ImageProcessingOptions } from '@/types/cardCreation';
 import { toast } from 'sonner';
-import { v4 as uuidv4 } from 'uuid';
-import type { CardRarity } from '@/types/card';
 
-export interface CardCreationData {
-  id: string;
-  title: string;
-  description: string;
-  rarity: CardRarity;
-  tags: string[];
-  image_url?: string;
-  template_id?: string;
-  design_metadata: Record<string, any>;
-}
+const DEFAULT_STATE: CardCreationState = {
+  step: 'upload',
+  uploadedImage: null,
+  imageFile: null,
+  cardData: {
+    title: 'My Awesome Card',
+    description: 'A fantastic trading card created with CRD',
+    rarity: 'common',
+    effects: {
+      holographic: 0,
+      metallic: 0,
+      chrome: 0,
+      particles: false
+    }
+  },
+  processing: false,
+  error: null
+};
 
 export const useCardCreation = () => {
-  const { user } = useAuth();
-  const [isCreating, setIsCreating] = useState(false);
-  const [cardData, setCardData] = useState<CardCreationData>({
-    id: uuidv4(),
-    title: '',
-    description: '',
-    rarity: 'common',
-    tags: [],
-    design_metadata: {}
-  });
+  const [state, setState] = useState<CardCreationState>(DEFAULT_STATE);
 
-  const updateCardData = (updates: Partial<CardCreationData>) => {
-    setCardData(prev => ({ ...prev, ...updates }));
-  };
-
-  const uploadImage = async (file: File): Promise<boolean> => {
-    if (!user) {
-      toast.error('Please sign in to upload images');
-      return false;
+  const processImage = useCallback(async (
+    file: File, 
+    options: ImageProcessingOptions = {
+      maxWidth: 1024,
+      maxHeight: 1024,
+      quality: 0.9,
+      format: 'jpeg'
     }
+  ): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
 
-    try {
-      const result = await uploadCardImage(file, user.id, cardData.id);
-      if (result) {
-        updateCardData({ image_url: result.publicUrl });
-        toast.success('Image uploaded successfully');
-        return true;
+      if (!ctx) {
+        reject(new Error('Canvas not supported'));
+        return;
       }
-      return false;
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Failed to upload image');
-      return false;
-    }
-  };
 
-  const createCard = async (): Promise<boolean> => {
-    if (!user) {
-      toast.error('Please sign in to create cards');
-      return false;
-    }
+      img.onload = () => {
+        // Calculate dimensions maintaining aspect ratio
+        let { width, height } = img;
+        const aspectRatio = width / height;
 
-    if (!cardData.title.trim()) {
-      toast.error('Please enter a card title');
-      return false;
-    }
+        if (width > options.maxWidth) {
+          width = options.maxWidth;
+          height = width / aspectRatio;
+        }
+        if (height > options.maxHeight) {
+          height = options.maxHeight;
+          width = height * aspectRatio;
+        }
 
-    if (!cardData.image_url) {
-      toast.error('Please upload an image for your card');
-      return false;
-    }
-
-    setIsCreating(true);
-    try {
-      const cardToSave = {
-        id: cardData.id,
-        title: cardData.title.trim(),
-        description: cardData.description?.trim() || '',
-        rarity: cardData.rarity,
-        tags: cardData.tags,
-        image_url: cardData.image_url,
-        thumbnail_url: cardData.image_url, // Use same image for thumbnail for now
-        template_id: cardData.template_id || null,
-        design_metadata: cardData.design_metadata,
-        creator_id: user.id,
-        is_public: true, // Make cards public by default
-        edition_size: 1,
-        verification_status: 'pending',
-        print_metadata: {},
-        creator_attribution: {
-          creator_name: user.user_metadata?.full_name || user.email,
-          collaboration_type: 'solo'
-        },
-        publishing_options: {
-          marketplace_listing: false,
-          crd_catalog_inclusion: true,
-          print_available: false,
-          pricing: { currency: 'USD' },
-          distribution: { limited_edition: false }
-        },
-        marketplace_listing: false,
-        crd_catalog_inclusion: true,
-        print_available: false
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw and compress
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(URL.createObjectURL(blob));
+            } else {
+              reject(new Error('Failed to process image'));
+            }
+          },
+          `image/${options.format}`,
+          options.quality
+        );
       };
 
-      const { error } = await supabase
-        .from('crd_cards')
-        .insert(cardToSave);
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = URL.createObjectURL(file);
+    });
+  }, []);
 
-      if (error) {
-        console.error('Database error:', error);
-        toast.error(`Failed to create card: ${error.message}`);
-        return false;
+  const uploadImage = useCallback(async (file: File) => {
+    setState(prev => ({ ...prev, processing: true, error: null }));
+    
+    try {
+      // Validate file
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Please select a valid image file');
+      }
+      
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error('Image must be smaller than 10MB');
       }
 
-      toast.success('Card created successfully!');
+      // Process image
+      const processedImageUrl = await processImage(file);
       
-      // Reset form for next card
-      const newId = uuidv4();
-      setCardData({
-        id: newId,
-        title: '',
-        description: '',
-        rarity: 'common',
-        tags: [],
-        design_metadata: {}
-      });
-
-      return true;
+      setState(prev => ({
+        ...prev,
+        uploadedImage: processedImageUrl,
+        imageFile: file,
+        step: 'customize',
+        processing: false
+      }));
+      
+      toast.success('Image uploaded successfully!');
     } catch (error) {
-      console.error('Card creation error:', error);
-      toast.error('Failed to create card');
-      return false;
-    } finally {
-      setIsCreating(false);
+      const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+      setState(prev => ({ ...prev, error: errorMessage, processing: false }));
+      toast.error(errorMessage);
     }
-  };
+  }, [processImage]);
 
-  const addTag = (tag: string) => {
-    const trimmedTag = tag.trim().toLowerCase();
-    if (trimmedTag && !cardData.tags.includes(trimmedTag) && cardData.tags.length < 10) {
-      updateCardData({ tags: [...cardData.tags, trimmedTag] });
-    }
-  };
+  const updateCardData = useCallback((updates: Partial<CardCreationState['cardData']>) => {
+    setState(prev => ({
+      ...prev,
+      cardData: { ...prev.cardData, ...updates }
+    }));
+  }, []);
 
-  const removeTag = (tagToRemove: string) => {
-    updateCardData({ 
-      tags: cardData.tags.filter(tag => tag !== tagToRemove) 
+  const nextStep = useCallback(() => {
+    setState(prev => {
+      const steps: CardCreationState['step'][] = ['upload', 'customize', 'preview', 'save'];
+      const currentIndex = steps.indexOf(prev.step);
+      const nextIndex = Math.min(currentIndex + 1, steps.length - 1);
+      return { ...prev, step: steps[nextIndex] };
     });
-  };
+  }, []);
+
+  const previousStep = useCallback(() => {
+    setState(prev => {
+      const steps: CardCreationState['step'][] = ['upload', 'customize', 'preview', 'save'];
+      const currentIndex = steps.indexOf(prev.step);
+      const prevIndex = Math.max(currentIndex - 1, 0);
+      return { ...prev, step: steps[prevIndex] };
+    });
+  }, []);
+
+  const reset = useCallback(() => {
+    setState(DEFAULT_STATE);
+  }, []);
 
   return {
-    cardData,
-    updateCardData,
+    state,
     uploadImage,
-    createCard,
-    addTag,
-    removeTag,
-    isCreating
+    updateCardData,
+    nextStep,
+    previousStep,
+    reset
   };
 };

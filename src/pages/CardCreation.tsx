@@ -1,13 +1,9 @@
 
 import React from 'react';
-import { OrganizedCardStudio } from '@/components/studio/enhanced/OrganizedCardStudio';
+import { NewCardStudio } from '@/components/creation/NewCardStudio';
 
 const CardCreation: React.FC = () => {
-  return (
-    <div className="min-h-screen">
-      <OrganizedCardStudio />
-    </div>
-  );
+  return <NewCardStudio />;
 };
 
 export default CardCreation;
