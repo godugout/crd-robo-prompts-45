@@ -1,304 +1,320 @@
 
 import React, { useState, useCallback } from 'react';
-import { EnhancedUploadZone } from './EnhancedUploadZone';
-import { Live3DPreview } from '../Live3DPreview';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { 
-  Sparkles, 
-  Palette, 
-  Frame, 
-  Wand2,
-  Save,
-  Share2,
-  Download,
-  Eye
-} from 'lucide-react';
-import { useCardEditor } from '@/hooks/useCardEditor';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Upload, Palette, Sparkles, Eye, Download, Save, ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { Live3DPreview } from '@/components/studio/Live3DPreview';
+import { EnhancedUploadZone } from './EnhancedUploadZone';
+import { EffectsPhase } from './components/EffectsPhase';
+import { useEnhancedStudio } from './hooks/useEnhancedStudio';
 
-export const OrganizedCardStudio = () => {
-  const cardEditor = useCardEditor();
-  const [currentStep, setCurrentStep] = useState<'upload' | 'frames' | 'effects' | 'finalize'>('upload');
-  const [uploadedImage, setUploadedImage] = useState<string>('');
-  const [selectedFrame, setSelectedFrame] = useState<string>('');
-  const [effects, setEffects] = useState({
-    holographic: 0,
-    metallic: 0,
-    chrome: 0,
-    particles: false
-  });
+const STUDIO_PHASES = [
+  { id: 'upload', title: 'Upload', icon: Upload, description: 'Add your card images' },
+  { id: 'frame', title: 'Frame', icon: Palette, description: 'Choose frame style' },
+  { id: 'effects', title: 'Effects', icon: Sparkles, description: 'Add visual effects' },
+  { id: 'preview', title: 'Preview', icon: Eye, description: 'Final review' }
+];
 
-  const handleImageUpload = useCallback((imageUrl: string) => {
-    console.log('OrganizedCardStudio: Image uploaded:', imageUrl);
-    setUploadedImage(imageUrl);
-    cardEditor.updateCardField('image_url', imageUrl);
-    cardEditor.updateCardField('thumbnail_url', imageUrl);
-    
-    // Auto-advance to frames step if image is uploaded
-    if (imageUrl && currentStep === 'upload') {
-      setCurrentStep('frames');
-      toast.success('Image uploaded! Choose a frame style.');
+export const OrganizedCardStudio: React.FC = () => {
+  const {
+    currentPhase,
+    setCurrentPhase,
+    completedPhases,
+    uploadedImages,
+    selectedFrame,
+    effects,
+    effectValues,
+    cardData,
+    handleImageUpload,
+    selectFrame,
+    completePhase,
+    updateEffect,
+    saveCard,
+    exportCard
+  } = useEnhancedStudio();
+
+  const [show3DPreview, setShow3DPreview] = useState(true);
+
+  const handleEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
+    updateEffect(effectId, { parameters: { [parameterId]: value } });
+  }, [updateEffect]);
+
+  const handlePhaseNavigation = (phaseIndex: number) => {
+    if (phaseIndex <= currentPhase || completedPhases.has(phaseIndex)) {
+      setCurrentPhase(phaseIndex);
     }
-  }, [cardEditor, currentStep]);
+  };
 
-  const handleFrameSelect = useCallback((frameId: string) => {
-    setSelectedFrame(frameId);
-    cardEditor.updateCardField('template_id', frameId);
-    toast.success(`Frame "${frameId}" selected!`);
-  }, [cardEditor]);
-
-  const handleEffectChange = useCallback((effectType: keyof typeof effects, value: number | boolean) => {
-    setEffects(prev => ({
-      ...prev,
-      [effectType]: value
-    }));
-    
-    // Update card editor with effect metadata
-    cardEditor.updateCardField('design_metadata', {
-      ...cardEditor.cardData.design_metadata,
-      effects: {
-        ...effects,
-        [effectType]: value
-      }
-    });
-  }, [cardEditor, effects]);
-
-  const handleSave = useCallback(async () => {
-    try {
-      await cardEditor.saveCard();
-      toast.success('Card saved successfully!');
-    } catch (error) {
-      toast.error('Failed to save card');
+  const handleNextPhase = () => {
+    if (currentPhase < STUDIO_PHASES.length - 1) {
+      completePhase(currentPhase);
+      setCurrentPhase(currentPhase + 1);
     }
-  }, [cardEditor]);
+  };
 
-  const steps = [
-    { id: 'upload', label: 'Upload', icon: Eye, description: 'Add your image' },
-    { id: 'frames', label: 'Frames', icon: Frame, description: 'Choose frame style' },
-    { id: 'effects', label: 'Effects', icon: Sparkles, description: 'Add visual effects' },
-    { id: 'finalize', label: 'Finalize', icon: Wand2, description: 'Review & publish' }
-  ];
+  const handlePrevPhase = () => {
+    if (currentPhase > 0) {
+      setCurrentPhase(currentPhase - 1);
+    }
+  };
 
-  const frameOptions = [
-    { id: 'classic', name: 'Classic', preview: '#8b5cf6' },
-    { id: 'modern', name: 'Modern', preview: '#06b6d4' },
-    { id: 'vintage', name: 'Vintage', preview: '#f59e0b' },
-    { id: 'holographic', name: 'Holographic', preview: '#ec4899' }
-  ];
+  const canProceedToNext = () => {
+    switch (currentPhase) {
+      case 0: return uploadedImages.length > 0;
+      case 1: return selectedFrame !== null;
+      case 2: return true; // Effects are optional
+      case 3: return true; // Preview phase
+      default: return false;
+    }
+  };
+
+  const renderPhaseContent = () => {
+    switch (currentPhase) {
+      case 0: // Upload Phase
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-white">Upload Your Images</h2>
+              <p className="text-gray-400">Start by uploading the main image for your card</p>
+            </div>
+            <EnhancedUploadZone
+              onImageUpload={(files) => handleImageUpload(files)}
+              uploadedImage={uploadedImages.length > 0 ? URL.createObjectURL(uploadedImages[0]) : undefined}
+            />
+          </div>
+        );
+
+      case 1: // Frame Phase
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-white">Choose Your Frame</h2>
+              <p className="text-gray-400">Select a frame style that matches your vision</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {['classic', 'modern', 'vintage', 'holographic'].map((frameId) => (
+                <Card
+                  key={frameId}
+                  className={`p-4 cursor-pointer transition-all ${
+                    selectedFrame === frameId
+                      ? 'border-crd-green bg-crd-green/10'
+                      : 'border-gray-600 hover:border-gray-500'
+                  }`}
+                  onClick={() => selectFrame(frameId)}
+                >
+                  <div className="aspect-[3/4] bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg mb-2" />
+                  <div className="text-center">
+                    <h3 className="text-white font-medium capitalize">{frameId}</h3>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 2: // Effects Phase
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-white">Add Effects</h2>
+              <p className="text-gray-400">Enhance your card with visual effects</p>
+            </div>
+            <EffectsPhase
+              selectedFrame={selectedFrame || undefined}
+              onEffectChange={handleEffectChange}
+              effectValues={effectValues}
+            />
+          </div>
+        );
+
+      case 3: // Preview Phase
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-white">Final Preview</h2>
+              <p className="text-gray-400">Review your card and make final adjustments</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="p-4 bg-gray-800 border-gray-700">
+                <h3 className="text-white font-medium mb-3">Card Details</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Images:</span>
+                    <span className="text-white">{uploadedImages.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Frame:</span>
+                    <span className="text-white capitalize">{selectedFrame || 'None'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Effects:</span>
+                    <span className="text-white">
+                      {Object.entries(effectValues).filter(([_, effect]) => {
+                        if (typeof effect === 'object' && effect !== null) {
+                          return typeof effect.intensity === 'number' && effect.intensity > 0;
+                        }
+                        return false;
+                      }).length}
+                    </span>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 bg-gray-800 border-gray-700">
+                <h3 className="text-white font-medium mb-3">Export Options</h3>
+                <div className="space-y-2">
+                  <Button 
+                    onClick={() => exportCard('png')}
+                    className="w-full bg-crd-green hover:bg-crd-green/90 text-black"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export as PNG
+                  </Button>
+                  <Button 
+                    onClick={() => saveCard()}
+                    variant="outline"
+                    className="w-full border-gray-600 text-white hover:bg-gray-700"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save to Gallery
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-crd-darkest via-crd-darker to-crd-darkest">
-      {/* Header */}
-      <div className="border-b border-white/10 p-6">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold text-white mb-4">Card Studio</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      <div className="container mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Card Studio</h1>
+            <p className="text-gray-400">Create professional trading cards with advanced 3D effects</p>
+          </div>
           
-          {/* Step Navigation */}
-          <div className="flex items-center gap-4">
-            {steps.map((step, index) => {
-              const Icon = step.icon;
-              const isActive = currentStep === step.id;
-              const isCompleted = steps.findIndex(s => s.id === currentStep) > index;
-              
-              return (
-                <div key={step.id} className="flex items-center gap-2">
-                  <Button
-                    variant={isActive ? "default" : isCompleted ? "secondary" : "outline"}
-                    size="sm"
-                    onClick={() => setCurrentStep(step.id as any)}
-                    className={`flex items-center gap-2 ${
-                      isActive 
-                        ? 'bg-crd-green text-black' 
-                        : isCompleted 
-                        ? 'bg-green-600 text-white' 
-                        : 'border-white/20 text-white hover:bg-white/10'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {step.label}
-                  </Button>
-                  {index < steps.length - 1 && (
-                    <div className="w-8 h-px bg-white/20"></div>
-                  )}
-                </div>
-              );
-            })}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShow3DPreview(!show3DPreview)}
+              className="border-gray-600 text-white hover:bg-gray-700"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              {show3DPreview ? 'Hide' : 'Show'} 3D Preview
+            </Button>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto p-6">
+        {/* Phase Navigation */}
+        <div className="flex items-center justify-center mb-8">
+          <div className="flex items-center space-x-4">
+            {STUDIO_PHASES.map((phase, index) => (
+              <React.Fragment key={phase.id}>
+                <div
+                  className={`flex items-center space-x-2 cursor-pointer transition-all ${
+                    index === currentPhase
+                      ? 'text-crd-green'
+                      : completedPhases.has(index)
+                      ? 'text-white'
+                      : 'text-gray-500'
+                  }`}
+                  onClick={() => handlePhaseNavigation(index)}
+                >
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                      index === currentPhase
+                        ? 'bg-crd-green text-black'
+                        : completedPhases.has(index)
+                        ? 'bg-white text-black'
+                        : 'bg-gray-700 text-gray-400'
+                    }`}
+                  >
+                    {completedPhases.has(index) ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <phase.icon className="w-4 h-4" />
+                    )}
+                  </div>
+                  <div className="hidden sm:block">
+                    <div className="font-medium">{phase.title}</div>
+                    <div className="text-xs text-gray-400">{phase.description}</div>
+                  </div>
+                </div>
+                {index < STUDIO_PHASES.length - 1 && (
+                  <div className="w-12 h-px bg-gray-600" />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Panel - Controls */}
+          {/* Phase Content */}
           <div className="space-y-6">
-            {currentStep === 'upload' && (
-              <Card className="bg-black/20 border-white/10 p-6">
-                <h2 className="text-xl font-bold text-white mb-4">Upload Your Image</h2>
-                <EnhancedUploadZone
-                  onImageUpload={handleImageUpload}
-                  uploadedImage={uploadedImage}
-                  cardEditor={cardEditor}
-                />
-              </Card>
-            )}
-
-            {currentStep === 'frames' && (
-              <Card className="bg-black/20 border-white/10 p-6">
-                <h2 className="text-xl font-bold text-white mb-4">Choose Frame Style</h2>
-                <div className="grid grid-cols-2 gap-3">
-                  {frameOptions.map((frame) => (
-                    <Button
-                      key={frame.id}
-                      variant={selectedFrame === frame.id ? "default" : "outline"}
-                      onClick={() => handleFrameSelect(frame.id)}
-                      className={`h-20 flex flex-col items-center justify-center gap-2 ${
-                        selectedFrame === frame.id
-                          ? 'bg-crd-green text-black'
-                          : 'border-white/20 text-white hover:bg-white/10'
-                      }`}
-                    >
-                      <div 
-                        className="w-8 h-8 rounded"
-                        style={{ backgroundColor: frame.preview }}
-                      />
-                      <span className="text-sm font-medium">{frame.name}</span>
-                    </Button>
-                  ))}
-                </div>
-              </Card>
-            )}
-
-            {currentStep === 'effects' && (
-              <Card className="bg-black/20 border-white/10 p-6">
-                <h2 className="text-xl font-bold text-white mb-4">Visual Effects</h2>
-                <div className="space-y-6">
-                  <div>
-                    <label className="text-white text-sm font-medium mb-3 block">
-                      Holographic Effect: {Math.round(effects.holographic * 100)}%
-                    </label>
-                    <Slider
-                      value={[effects.holographic]}
-                      onValueChange={([value]) => handleEffectChange('holographic', value)}
-                      min={0}
-                      max={1}
-                      step={0.1}
-                      className="w-full"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="text-white text-sm font-medium mb-3 block">
-                      Metallic Effect: {Math.round(effects.metallic * 100)}%
-                    </label>
-                    <Slider
-                      value={[effects.metallic]}
-                      onValueChange={([value]) => handleEffectChange('metallic', value)}
-                      min={0}
-                      max={1}
-                      step={0.1}
-                      className="w-full"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="text-white text-sm font-medium mb-3 block">
-                      Chrome Effect: {Math.round(effects.chrome * 100)}%
-                    </label>
-                    <Slider
-                      value={[effects.chrome]}
-                      onValueChange={([value]) => handleEffectChange('chrome', value)}
-                      min={0}
-                      max={1}
-                      step={0.1}
-                      className="w-full"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <label className="text-white text-sm font-medium">Particle Effects</label>
-                    <Button
-                      variant={effects.particles ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleEffectChange('particles', !effects.particles)}
-                      className={
-                        effects.particles
-                          ? 'bg-crd-green text-black'
-                          : 'border-white/20 text-white hover:bg-white/10'
-                      }
-                    >
-                      {effects.particles ? 'ON' : 'OFF'}
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            {currentStep === 'finalize' && (
-              <Card className="bg-black/20 border-white/10 p-6">
-                <h2 className="text-xl font-bold text-white mb-4">Finalize Your Card</h2>
-                <div className="space-y-4">
-                  <div className="text-white">
-                    <h3 className="font-medium mb-2">Card Summary</h3>
-                    <div className="text-sm text-gray-300 space-y-1">
-                      <div>Title: {cardEditor.cardData.title || 'Untitled Card'}</div>
-                      <div>Frame: {selectedFrame || 'None'}</div>
-                      <div>Effects: {Object.entries(effects).filter(([_, value]) => value > 0 || value === true).length} active</div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleSave}
-                      className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black"
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Card
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      className="border-white/20 text-white hover:bg-white/10"
-                    >
-                      <Share2 className="w-4 h-4" />
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      className="border-white/20 text-white hover:bg-white/10"
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            )}
-          </div>
-
-          {/* Right Panel - Live 3D Preview */}
-          <div className="lg:sticky lg:top-6">
-            <Card className="bg-black/20 border-white/10 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-white">Live Preview</h2>
-                <Badge variant="outline" className="border-crd-green text-crd-green">
-                  Real-time 3D
-                </Badge>
-              </div>
+            {renderPhaseContent()}
+            
+            {/* Navigation Buttons */}
+            <div className="flex items-center justify-between pt-6 border-t border-gray-700">
+              <Button
+                variant="outline"
+                onClick={handlePrevPhase}
+                disabled={currentPhase === 0}
+                className="border-gray-600 text-white hover:bg-gray-700 disabled:opacity-50"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Previous
+              </Button>
               
-              <div className="aspect-square">
-                <Live3DPreview
-                  frontImage={uploadedImage}
-                  selectedFrame={selectedFrame}
-                  effects={effects}
-                  cardData={cardEditor.cardData}
-                  className="w-full h-full"
-                />
-              </div>
-            </Card>
+              <Badge variant="secondary" className="bg-gray-700 text-white">
+                Step {currentPhase + 1} of {STUDIO_PHASES.length}
+              </Badge>
+              
+              <Button
+                onClick={handleNextPhase}
+                disabled={!canProceedToNext() || currentPhase === STUDIO_PHASES.length - 1}
+                className="bg-crd-green hover:bg-crd-green/90 text-black disabled:opacity-50"
+              >
+                {currentPhase === STUDIO_PHASES.length - 1 ? 'Complete' : 'Next'}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
           </div>
+
+          {/* 3D Preview */}
+          {show3DPreview && (
+            <div className="lg:sticky lg:top-6">
+              <Card className="p-4 bg-gray-800 border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-white font-medium">Live Preview</h3>
+                  <Badge variant="outline" className="border-crd-green text-crd-green">
+                    3D Interactive
+                  </Badge>
+                </div>
+                
+                <div className="aspect-square rounded-lg overflow-hidden">
+                  <Live3DPreview
+                    frontImage={uploadedImages.length > 0 ? URL.createObjectURL(uploadedImages[0]) : undefined}
+                    selectedFrame={selectedFrame || undefined}
+                    effects={effectValues}
+                    cardData={cardData}
+                    className="w-full h-full"
+                  />
+                </div>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </div>
