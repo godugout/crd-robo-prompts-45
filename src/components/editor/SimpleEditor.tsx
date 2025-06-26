@@ -9,7 +9,6 @@ import { localCardStorage } from '@/lib/localCardStorage';
 import { Button } from '@/components/ui/button';
 import { RotateCcw, Sparkles } from 'lucide-react';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
-import { convertToUniversalCardData } from '@/components/viewer/types';
 import { toast } from 'sonner';
 import type { CardData } from '@/hooks/useCardEditor';
 
@@ -134,7 +133,7 @@ export const SimpleEditor = ({ initialData, onStartOver }: SimpleEditorProps) =>
       {/* Immersive Card Viewer */}
       {showImmersiveViewer && (
         <ImmersiveCardViewer
-          card={convertToUniversalCardData(cardEditor.cardData)}
+          card={cardEditor.cardData}
           isOpen={showImmersiveViewer}
           onClose={() => setShowImmersiveViewer(false)}
           onShare={handleShareCard}

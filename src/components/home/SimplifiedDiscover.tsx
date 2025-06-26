@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { CRDButton, Typography } from "@/components/ui/design-system";
@@ -6,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useGalleryActions } from "@/pages/Gallery/hooks/useGalleryActions";
 import { useCardConversion } from "@/pages/Gallery/hooks/useCardConversion";
 import { ImmersiveCardViewer } from "@/components/viewer/ImmersiveCardViewer";
-import { convertToUniversalCardData } from "@/components/viewer/types";
+import { convertToViewerCardData } from "@/components/viewer/types";
 
 const FALLBACK_CARDS = [
   {
@@ -150,8 +151,8 @@ export const SimplifiedDiscover: React.FC = () => {
       {/* Immersive Viewer */}
       {showImmersiveViewer && convertedCards.length > 0 && (
         <ImmersiveCardViewer
-          card={convertToUniversalCardData(convertedCards[selectedCardIndex])}
-          cards={convertedCards.map(convertToUniversalCardData)}
+          card={convertToViewerCardData(convertedCards[selectedCardIndex])}
+          cards={convertedCards.map(convertToViewerCardData)}
           currentCardIndex={selectedCardIndex}
           onCardChange={handleCardChange}
           isOpen={showImmersiveViewer}

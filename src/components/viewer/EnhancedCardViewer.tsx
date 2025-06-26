@@ -2,10 +2,10 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Enhanced3DCardViewer } from '@/components/3d/enhanced/Enhanced3DCardViewer';
 import { EffectProvider } from './contexts/EffectContext';
-import type { CardData } from '@/hooks/useCardEditor';
+import type { Card } from '@/types/card';
 
 interface EnhancedCardViewerProps {
-  card: CardData;
+  card: Card;
   className?: string;
 }
 

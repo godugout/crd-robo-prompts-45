@@ -1,4 +1,3 @@
-
 export type EnvironmentScene = 'studio' | 'forest' | 'mountain' | 'cavern' | 'metropolis';
 export type LightingPreset = 'studio' | 'natural' | 'dramatic' | 'soft' | 'vibrant';
 export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
@@ -62,9 +61,10 @@ export interface CardData {
       edition_size?: number;
     };
   };
-  design_metadata: Record<string, any>;
+  design_metadata: Record<string, any>; // Required by useCardEditor
 }
 
+// Universal Card data interface for display components
 export interface UniversalCardData {
   id: string;
   title: string;
@@ -75,13 +75,14 @@ export interface UniversalCardData {
   price?: number;
   creator_name?: string;
   creator_verified?: boolean;
+  creator_id?: string;
   stock?: number;
+  highest_bid?: number;
+  edition_size?: number;
   tags?: string[];
-  // Add missing required properties for compatibility
   created_at?: string;
   visibility?: 'public' | 'private' | 'shared';
   is_public?: boolean;
-  design_metadata?: Record<string, any>;
   creator_attribution?: {
     creator_name?: string;
     creator_id?: string;
@@ -105,6 +106,7 @@ export interface UniversalCardData {
       edition_size?: number;
     };
   };
+  design_metadata?: Record<string, any>;
 }
 
 // ImmersiveCardViewer props interface
@@ -189,17 +191,17 @@ export const convertToViewerCardData = (card: any): CardData => {
     template_id: card.template_id,
     collection_id: card.collection_id,
     team_id: card.team_id,
-    created_at: card.created_at || currentTime, // Provide default created_at
-    creator_attribution: {
-      creator_name: card.creator_name || card.creator_attribution?.creator_name,
-      creator_id: card.creator_id || card.creator_attribution?.creator_id,
-      collaboration_type: card.creator_attribution?.collaboration_type || 'solo',
-      additional_credits: card.creator_attribution?.additional_credits || []
+    created_at: card.created_at || currentTime,
+    creator_attribution: card.creator_attribution || {
+      creator_name: card.creator_name || card.creator_id,
+      creator_id: card.creator_id,
+      collaboration_type: 'solo',
+      additional_credits: []
     },
     publishing_options: card.publishing_options || {
-      marketplace_listing: false,
-      crd_catalog_inclusion: true,
-      print_available: false,
+      marketplace_listing: card.marketplace_listing || false,
+      crd_catalog_inclusion: card.crd_catalog_inclusion !== false,
+      print_available: card.print_available || false,
       pricing: { currency: 'USD' },
       distribution: { limited_edition: false }
     },
@@ -208,8 +210,6 @@ export const convertToViewerCardData = (card: any): CardData => {
 };
 
 export const convertToUniversalCardData = (card: any): UniversalCardData => {
-  const currentTime = new Date().toISOString();
-  
   return {
     id: card.id || '',
     title: card.title || 'Untitled Card',
@@ -220,26 +220,17 @@ export const convertToUniversalCardData = (card: any): UniversalCardData => {
     price: typeof card.price === 'number' ? card.price : 0,
     creator_name: card.creator_name || card.creator_attribution?.creator_name,
     creator_verified: card.creator_verified || false,
-    stock: card.stock || 0,
+    creator_id: card.creator_id,
+    stock: card.stock,
+    highest_bid: card.highest_bid,
+    edition_size: card.edition_size || 1,
     tags: card.tags || [],
-    // Add all the missing required properties
-    created_at: card.created_at || currentTime,
-    visibility: card.visibility === 'unlisted' ? 'public' : (card.visibility || 'public'),
-    is_public: card.is_public !== false,
-    design_metadata: card.design_metadata || {},
-    creator_attribution: {
-      creator_name: card.creator_name || card.creator_attribution?.creator_name,
-      creator_id: card.creator_id || card.creator_attribution?.creator_id,
-      collaboration_type: card.creator_attribution?.collaboration_type || 'solo',
-      additional_credits: card.creator_attribution?.additional_credits || []
-    },
-    publishing_options: card.publishing_options || {
-      marketplace_listing: false,
-      crd_catalog_inclusion: true,
-      print_available: false,
-      pricing: { currency: 'USD' },
-      distribution: { limited_edition: false }
-    }
+    created_at: card.created_at,
+    visibility: card.visibility,
+    is_public: card.is_public,
+    creator_attribution: card.creator_attribution,
+    publishing_options: card.publishing_options,
+    design_metadata: card.design_metadata
   };
 };
 
