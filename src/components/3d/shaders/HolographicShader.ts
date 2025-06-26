@@ -62,3 +62,6 @@ export const createHolographicShader = (): {
 
   return { uniforms, vertexShader, fragmentShader };
 };
+
+// Export as HolographicShader for compatibility
+export const HolographicShader = createHolographicShader();

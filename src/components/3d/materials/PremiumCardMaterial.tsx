@@ -3,9 +3,8 @@ import React, { useRef, useEffect, useMemo } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { TextureLoader } from 'three';
 import * as THREE from 'three';
-import { HolographicShader } from '../shaders/HolographicShader';
-import { MetallicShader } from '../shaders/MetallicShader';
-import { EnergyGlowShader } from '../shaders/EnergyGlowShader';
+import { createHolographicShader } from '../shaders/HolographicShader';
+import { createMetallicShader } from '../shaders/MetallicShader';
 
 interface PremiumCardMaterialProps {
   texture: THREE.Texture | null;
@@ -22,8 +21,6 @@ export const PremiumCardMaterial: React.FC<PremiumCardMaterialProps> = ({
   
   // Create a simple environment map instead of loading external files
   const envMap = useMemo(() => {
-    const loader = new THREE.CubeTextureLoader();
-    // Create a simple procedural environment map
     const size = 64;
     const canvas = document.createElement('canvas');
     canvas.width = size;
@@ -58,11 +55,11 @@ export const PremiumCardMaterial: React.FC<PremiumCardMaterialProps> = ({
     
     switch (rarity) {
       case 'legendary':
-        return EnergyGlowShader;
+        return createHolographicShader(); // Using holographic for legendary
       case 'epic':
-        return HolographicShader;
+        return createHolographicShader();
       case 'rare':
-        return MetallicShader;
+        return createMetallicShader();
       default:
         return null;
     }
@@ -71,22 +68,24 @@ export const PremiumCardMaterial: React.FC<PremiumCardMaterialProps> = ({
   // Update uniforms
   useFrame(({ clock }) => {
     if (materialRef.current && shader) {
-      materialRef.current.uniforms.uTime.value = clock.getElapsedTime();
-      
-      if (texture && materialRef.current.uniforms.uTexture) {
-        materialRef.current.uniforms.uTexture.value = texture;
+      if (materialRef.current.uniforms.time) {
+        materialRef.current.uniforms.time.value = clock.getElapsedTime();
       }
       
-      if (shader === MetallicShader && materialRef.current.uniforms.uEnvMap) {
-        materialRef.current.uniforms.uEnvMap.value = envMap;
+      if (texture && materialRef.current.uniforms.baseTexture) {
+        materialRef.current.uniforms.baseTexture.value = texture;
+      }
+      
+      if (shader === createMetallicShader() && materialRef.current.uniforms.envMap) {
+        materialRef.current.uniforms.envMap.value = envMap;
       }
     }
   });
   
   useEffect(() => {
     if (materialRef.current && texture) {
-      if (materialRef.current.uniforms.uTexture) {
-        materialRef.current.uniforms.uTexture.value = texture;
+      if (materialRef.current.uniforms.baseTexture) {
+        materialRef.current.uniforms.baseTexture.value = texture;
       }
     }
   }, [texture]);

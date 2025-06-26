@@ -68,3 +68,6 @@ export const createMetallicShader = (): {
 
   return { uniforms, vertexShader, fragmentShader };
 };
+
+// Export as MetallicShader for compatibility
+export const MetallicShader = createMetallicShader();
