@@ -2,12 +2,13 @@
 import { useState, useCallback } from 'react';
 
 export type CreationStep = 'upload' | 'frame' | 'customize' | 'preview' | 'export';
+export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 interface CardData {
   title: string;
   description: string;
   frame: string;
-  rarity: string;
+  rarity: CardRarity;
   effects: {
     holographic: number;
     metallic: number;
