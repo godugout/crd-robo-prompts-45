@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Search, 
@@ -11,17 +10,16 @@ import {
   Grid, 
   List, 
   Filter, 
-  Star, 
-  Eye, 
-  Heart,
   Folder,
   Image,
   Sparkles
 } from 'lucide-react';
-import { CollectionGrid } from '../CollectionGrid';
-import { QuickCreateCollection } from './QuickCreateCollection';
 import { CollectionStats } from './CollectionStats';
 import { CollectionTemplates } from './CollectionTemplates';
+import { QuickCreateCollection } from './QuickCreateCollection';
+import { UnifiedCard } from '@/components/ui/UnifiedCard';
+import { UnifiedEmptyState } from '@/components/ui/UnifiedEmptyState';
+import { UnifiedLoading } from '@/components/ui/UnifiedLoading';
 
 export const EnhancedCollectionsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,6 +27,7 @@ export const EnhancedCollectionsPage = () => {
   const [sortBy, setSortBy] = useState('recent');
   const [filterBy, setFilterBy] = useState('all');
   const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const stats = {
     totalCollections: 12,
@@ -36,6 +35,34 @@ export const EnhancedCollectionsPage = () => {
     favoriteCollections: 3,
     recentActivity: 8
   };
+
+  // Mock collections data
+  const mockCollections = [
+    {
+      id: '1',
+      title: 'Baseball Legends',
+      description: 'Classic baseball cards from the golden era',
+      cardCount: 24,
+      isPublic: true,
+      lastUpdated: '2 days ago'
+    },
+    {
+      id: '2',
+      title: 'Oakland A\'s Collection',
+      description: 'Celebrating the rich history of Oakland Athletics',
+      cardCount: 18,
+      isPublic: false,
+      lastUpdated: '1 week ago'
+    },
+    {
+      id: '3',
+      title: 'Modern Art Cards',
+      description: 'Contemporary designs and artistic creations',
+      cardCount: 31,
+      isPublic: true,
+      lastUpdated: '3 days ago'
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -56,7 +83,6 @@ export const EnhancedCollectionsPage = () => {
             </Button>
           </div>
 
-          {/* Quick Stats */}
           <CollectionStats stats={stats} />
         </div>
       </div>
@@ -141,11 +167,42 @@ export const EnhancedCollectionsPage = () => {
               </div>
             </div>
 
-            {/* Collections Grid */}
-            <CollectionGrid
-              variant="user"
-              className="space-y-6"
-            />
+            {/* Collections Display */}
+            {isLoading ? (
+              <div className="py-12">
+                <UnifiedLoading size="lg" text="Loading your collections..." />
+              </div>
+            ) : mockCollections.length === 0 ? (
+              <UnifiedEmptyState
+                icon={<Folder className="w-16 h-16 text-gray-400" />}
+                title="No Collections Yet"
+                description="Create your first collection to organize your cards and showcase your creativity."
+                action={{
+                  label: "Create Collection",
+                  onClick: () => setShowQuickCreate(true)
+                }}
+              />
+            ) : (
+              <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' : 'space-y-4'}>
+                {mockCollections.map(collection => (
+                  <UnifiedCard
+                    key={collection.id}
+                    title={collection.title}
+                    description={`${collection.cardCount} cards • ${collection.lastUpdated}`}
+                    rarity={collection.isPublic ? 'rare' : 'common'}
+                    stats={{
+                      views: Math.floor(Math.random() * 1000),
+                      likes: Math.floor(Math.random() * 100)
+                    }}
+                    actions={{
+                      onView: () => console.log('View collection:', collection.id),
+                      onLike: () => console.log('Like collection:', collection.id),
+                      onShare: () => console.log('Share collection:', collection.id)
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="discover" className="space-y-6">
@@ -155,10 +212,26 @@ export const EnhancedCollectionsPage = () => {
               <p className="text-gray-400 mb-6">Explore collections from creators around the world</p>
             </div>
             
-            <CollectionGrid
-              variant="public"
-              className="space-y-6"
-            />
+            {/* Public collections would go here */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {mockCollections.filter(c => c.isPublic).map(collection => (
+                <UnifiedCard
+                  key={collection.id}
+                  title={collection.title}
+                  description={collection.description}
+                  rarity="epic"
+                  stats={{
+                    views: Math.floor(Math.random() * 5000),
+                    likes: Math.floor(Math.random() * 500)
+                  }}
+                  actions={{
+                    onView: () => console.log('View collection:', collection.id),
+                    onLike: () => console.log('Like collection:', collection.id),
+                    onShare: () => console.log('Share collection:', collection.id)
+                  }}
+                />
+              ))}
+            </div>
           </TabsContent>
 
           <TabsContent value="templates" className="space-y-6">
@@ -173,7 +246,7 @@ export const EnhancedCollectionsPage = () => {
           onClose={() => setShowQuickCreate(false)}
           onSuccess={() => {
             setShowQuickCreate(false);
-            // Refresh collections
+            // Refresh collections would happen here
           }}
         />
       )}
