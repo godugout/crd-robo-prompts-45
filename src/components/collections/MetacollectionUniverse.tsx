@@ -82,6 +82,41 @@ export const MetacollectionUniverse: React.FC<MetacollectionUniverseProps> = ({
     onCardInteraction('mode_changed', { mode });
   };
 
+  const handleCollectionEvolution = (collectionId: string, newState: any) => {
+    const collection = collections.find(c => c.id === collectionId);
+    if (collection) {
+      const updatedCollection = {
+        ...collection,
+        dna: { ...collection.dna, ...newState }
+      };
+      onCollectionUpdate(updatedCollection);
+    }
+  };
+
+  // Generate constellation pattern for the first collection or create a default
+  const constellationPattern = useMemo(() => {
+    if (collections.length === 0) return [];
+    
+    const collection = selectedCollection || collections[0];
+    return collection.cards.map((card, index) => {
+      const angle = (index / collection.cards.length) * Math.PI * 2;
+      const radius = 10 + Math.random() * 5;
+      
+      return {
+        id: card.id,
+        position: [
+          Math.cos(angle) * radius,
+          Math.sin(angle) * radius * 0.5,
+          Math.sin(angle) * radius
+        ] as [number, number, number],
+        rarity: card.rarity,
+        connections: []
+      };
+    });
+  }, [collections, selectedCollection]);
+
+  const activeCollection = selectedCollection || (collections.length > 0 ? collections[0] : null);
+
   return (
     <div className="w-full h-full relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header Controls */}
@@ -151,11 +186,13 @@ export const MetacollectionUniverse: React.FC<MetacollectionUniverseProps> = ({
         />
 
         {/* Render active mode */}
-        {activeMode === 'constellation' && (
+        {activeMode === 'constellation' && activeCollection && (
           <ConstellationGallery
-            collections={collections}
-            onCollectionSelect={handleCollectionSelect}
-            selectedCollection={selectedCollection}
+            collection={activeCollection}
+            pattern={constellationPattern}
+            environment={{ type: activeCollection.theme }}
+            viewMode="infinite"
+            onCardInteraction={onCardInteraction}
           />
         )}
 
@@ -170,7 +207,7 @@ export const MetacollectionUniverse: React.FC<MetacollectionUniverseProps> = ({
           <LivingCollectionsSystem
             collections={collections}
             onCardInteraction={onCardInteraction}
-            onCollectionEvolution={onCollectionUpdate}
+            onCollectionEvolution={handleCollectionEvolution}
           />
         )}
 
@@ -178,7 +215,7 @@ export const MetacollectionUniverse: React.FC<MetacollectionUniverseProps> = ({
           <CollectionGeneticsEngine
             collections={collections}
             onGeneticAnalysis={(data) => onCardInteraction('genetic_analysis', data)}
-            onEvolutionTrigger={(data) => onCollectionUpdate(data)}
+            onEvolutionTrigger={onCollectionUpdate}
           />
         )}
 
