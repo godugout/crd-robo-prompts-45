@@ -80,6 +80,17 @@ const Scene: React.FC = () => {
   const { state } = useAdvancedStudio();
   const { selectedCard, material, lighting, animation, environment } = state;
   
+  // Map our custom environment presets to valid @react-three/drei Environment presets
+  const getEnvironmentPreset = (preset: string) => {
+    const presetMap: Record<string, any> = {
+      'studio': 'studio',
+      'nature': 'forest',
+      'sunset': 'sunset',
+      'neon': 'night'
+    };
+    return presetMap[preset] || 'studio';
+  };
+  
   // Create dynamic lighting based on settings
   const lightColor = new THREE.Color();
   
@@ -98,7 +109,7 @@ const Scene: React.FC = () => {
   return (
     <>
       {/* Environment and lighting */}
-      <Environment preset={environment.preset} backgroundIntensity={environment.hdriIntensity} />
+      <Environment preset={getEnvironmentPreset(environment.preset)} backgroundIntensity={environment.hdriIntensity} />
       
       {/* Dynamic lighting */}
       <ambientLight 
