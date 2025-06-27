@@ -8,22 +8,24 @@ export const NavLinks = () => {
 
   const links = [
     { href: '/create', label: 'Create' },
-    { href: '/cards/enhanced', label: 'Enhanced Studio' },
-    { href: '/gallery', label: 'Gallery' },
-    { href: '/profile', label: 'Profile' }
+    { href: '/studio', label: 'Studio' },
+    { href: '/collections', label: 'Collections' },
+    { href: '/social-cosmos', label: 'Social' },
+    { href: '/enhancement-forge', label: 'Forge' },
+    { href: '/mastery', label: 'Mastery' }
   ];
 
   return (
-    <nav className="hidden md:flex items-center space-x-8">
+    <nav className="hidden md:flex items-center space-x-6">
       {links.map((link) => (
         <Link
           key={link.href}
           to={link.href}
           className={cn(
-            "text-sm font-medium transition-colors hover:text-white",
+            "text-sm font-medium transition-colors hover:text-white px-3 py-2 rounded-md",
             location.pathname === link.href 
-              ? "text-white" 
-              : "text-gray-300"
+              ? "text-white bg-white/10" 
+              : "text-gray-300 hover:bg-white/5"
           )}
         >
           {link.label}

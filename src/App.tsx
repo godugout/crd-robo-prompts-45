@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -12,6 +13,8 @@ import CardCreation from "./pages/CardCreation";
 import { EnhancedStudio } from "@/components/studio/EnhancedStudio";
 import SocialCosmosPage from '@/pages/SocialCosmosPage';
 import EnhancementForgePage from '@/pages/EnhancementForgePage';
+import MasteryExperiencePage from '@/pages/MasteryExperiencePage';
+import Collections from '@/pages/Collections';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -70,6 +73,8 @@ function App() {
                 />
                 <Route path="/social-cosmos" element={<SocialCosmosPage />} />
                 <Route path="/enhancement-forge" element={<EnhancementForgePage />} />
+                <Route path="/mastery" element={<MasteryExperiencePage />} />
+                <Route path="/collections" element={<Collections />} />
               </Routes>
             </div>
           </TooltipProvider>

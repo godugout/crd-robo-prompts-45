@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Plus, Palette } from 'lucide-react';
+import { Sparkles, Plus, Palette, Users, Zap, Crown, Camera, Target } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
@@ -60,12 +60,12 @@ const Index = () => {
               Create Amazing <span className="text-crd-green">Trading Cards</span>
             </h1>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Design professional-quality trading cards with our powerful creation tools and stunning 3D effects.
+              Experience the future of digital collectibles with AI-powered creation, 3D environments, and transcendent experiences.
             </p>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-6 justify-center">
+          {/* Main Action Buttons */}
+          <div className="flex gap-6 justify-center mb-16">
             <Button
               onClick={() => window.location.href = '/create'}
               size="lg"
@@ -86,8 +86,55 @@ const Index = () => {
             </Button>
           </div>
 
-          {/* Features */}
-          <div className="grid md:grid-cols-3 gap-8 mt-16">
+          {/* Advanced Experiences Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            <div className="bg-gradient-to-br from-purple-900/50 to-pink-900/50 p-6 rounded-xl border border-purple-500/30 hover:border-purple-400/50 transition-all cursor-pointer"
+                 onClick={() => window.location.href = '/mastery'}>
+              <div className="w-12 h-12 bg-purple-600/30 rounded-full flex items-center justify-center mb-4">
+                <Crown className="w-6 h-6 text-purple-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Mastery Experience</h3>
+              <p className="text-gray-300 text-sm">
+                AI-orchestrated creation journey with legacy mentorship and transcendent moments.
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-900/50 to-cyan-900/50 p-6 rounded-xl border border-blue-500/30 hover:border-blue-400/50 transition-all cursor-pointer"
+                 onClick={() => window.location.href = '/social-cosmos'}>
+              <div className="w-12 h-12 bg-blue-600/30 rounded-full flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-blue-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Social Cosmos</h3>
+              <p className="text-gray-300 text-sm">
+                Connect with creators, share collections, and explore community challenges.
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-green-900/50 to-emerald-900/50 p-6 rounded-xl border border-green-500/30 hover:border-green-400/50 transition-all cursor-pointer"
+                 onClick={() => window.location.href = '/enhancement-forge'}>
+              <div className="w-12 h-12 bg-green-600/30 rounded-full flex items-center justify-center mb-4">
+                <Zap className="w-6 h-6 text-green-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Enhancement Forge</h3>
+              <p className="text-gray-300 text-sm">
+                AR creation studio, metacollection universe, and time-lapse evolution systems.
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-yellow-900/50 to-orange-900/50 p-6 rounded-xl border border-yellow-500/30 hover:border-yellow-400/50 transition-all cursor-pointer"
+                 onClick={() => window.location.href = '/collections'}>
+              <div className="w-12 h-12 bg-yellow-600/30 rounded-full flex items-center justify-center mb-4">
+                <Camera className="w-6 h-6 text-yellow-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Collections</h3>
+              <p className="text-gray-300 text-sm">
+                3D galleries, living collections, and constellation-based card relationships.
+              </p>
+            </div>
+          </div>
+
+          {/* Core Features */}
+          <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
               <div className="w-12 h-12 bg-crd-green/20 rounded-full flex items-center justify-center mb-4">
                 <Plus className="w-6 h-6 text-crd-green" />
@@ -110,11 +157,11 @@ const Index = () => {
 
             <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
               <div className="w-12 h-12 bg-crd-green/20 rounded-full flex items-center justify-center mb-4">
-                <Palette className="w-6 h-6 text-crd-green" />
+                <Target className="w-6 h-6 text-crd-green" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Advanced Studio</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">AI-Powered Experience</h3>
               <p className="text-gray-400">
-                Professional editing tools with sample templates to get you started quickly.
+                Adaptive difficulty, personalized challenges, and quantum achievements that evolve with you.
               </p>
             </div>
           </div>
