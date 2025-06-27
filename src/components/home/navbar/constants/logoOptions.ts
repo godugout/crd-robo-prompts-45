@@ -1,6 +1,14 @@
 
 export const LOGO_OPTIONS = [
   {
+    id: 'cardshow-gradient-crd',
+    name: 'Gradient',
+    src: '/lovable-uploads/b4e234d6-d956-4a58-b701-5243e21a43da.png',
+    has3D: false,
+    navBgColor: 'bg-gradient-to-r from-purple-600 via-purple-500 to-blue-500',
+    dropdownBgColor: 'bg-gradient-to-br from-purple-600/95 via-purple-500/95 to-blue-500/95'
+  },
+  {
     id: 'cardshow-main',
     name: 'Official',
     src: '/lovable-uploads/5ac69e35-ecd1-4907-b089-318e7828606c.png',
@@ -31,14 +39,6 @@ export const LOGO_OPTIONS = [
     has3D: true,
     navBgColor: 'bg-orange-900',
     dropdownBgColor: 'bg-orange-900/95'
-  },
-  {
-    id: 'cardshow-gradient-crd',
-    name: 'Gradient',
-    src: '/lovable-uploads/b4e234d6-d956-4a58-b701-5243e21a43da.png',
-    has3D: false,
-    navBgColor: 'bg-purple-900',
-    dropdownBgColor: 'bg-purple-900/95'
   },
   {
     id: 'cardshow-red-blue-script',

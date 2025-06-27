@@ -1,4 +1,3 @@
-
 import { CRDDocument, CRDUtils, CRDFrameLayer, CRDImageLayer } from '@/types/crd-spec';
 import { EnhancedFrameTemplate } from '@/components/studio/frames/EnhancedFrameTemplates';
 
@@ -60,26 +59,7 @@ export class CRDConverter {
           type: this.mapEffectsToMaterialType(template.effects),
           albedo: { format: 'hex', value: '#ffffff' },
           metalness: template.effects.metallic ? 0.8 : 0.1,
-          roughness: this.getEffectRoughness(template.effects),
-          
-          holographic: template.effects.holographic ? {
-            intensity: 0.8,
-            color_shift: 180,
-            pattern: 'rainbow',
-            animation_speed: 1.0
-          } : undefined,
-          
-          metallic: template.effects.metallic ? {
-            reflection_intensity: 0.9,
-            tint: { format: 'hex', value: '#c0c0c0' },
-            polish: 0.9
-          } : undefined,
-          
-          crystal: template.effects.crystal ? {
-            transparency: 0.2,
-            refraction_index: 1.5,
-            internal_reflections: true
-          } : undefined
+          roughness: this.getEffectRoughness(template.effects)
         },
         
         layout_areas: {
