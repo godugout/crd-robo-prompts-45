@@ -1,225 +1,141 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { useCreatorProfile } from '@/hooks/creator/useCreatorProfile';
-import { useCreatorEarnings } from '@/hooks/creator/useCreatorEarnings';
-import { useCardTemplates } from '@/hooks/creator/useCardTemplates';
-import { CreatorEarningsChart } from './CreatorEarningsChart';
-import { CreatorTemplateManager } from './CreatorTemplateManager';
-import { CreatorProfileSetup } from './CreatorProfileSetup';
-import { DollarSign, Package, Star, TrendingUp, Users, Eye, Heart } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { 
+  User, Trophy, TrendingUp, Star,
+  Palette, Users, Zap, Target
+} from 'lucide-react';
 
 export const CreatorDashboard: React.FC = () => {
-  const { profile, isLoading, isCreator, isVerified } = useCreatorProfile();
-  const { monthlyStats, pendingPayouts, earnings } = useCreatorEarnings();
-  const { myTemplates } = useCardTemplates();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-crd-darkest flex items-center justify-center">
-        <div className="text-white">Loading creator dashboard...</div>
-      </div>
-    );
-  }
-
-  if (!isCreator) {
-    return <CreatorProfileSetup />;
-  }
-
-  const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
+  const [activeTab, setActiveTab] = useState('overview');
 
   return (
-    <div className="min-h-screen bg-crd-darkest p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Creator Dashboard</h1>
-            <div className="flex items-center gap-2 mt-2">
-              <Badge variant={isVerified ? 'default' : 'secondary'} className="bg-crd-green text-black">
-                {isVerified ? 'Verified Creator' : 'Pending Verification'}
-              </Badge>
-              {profile?.total_earnings > 0 && (
-                <Badge variant="outline" className="border-yellow-400 text-yellow-400">
-                  Total Earned: {formatCurrency(profile.total_earnings)}
-                </Badge>
-              )}
-            </div>
-          </div>
-          <Button className="bg-crd-green hover:bg-green-600 text-black">
-            Create New Template
-          </Button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center gap-4 mb-6">
+          <Trophy className="w-12 h-12 text-yellow-400" />
+          <User className="w-16 h-16 text-purple-400" />
+          <Star className="w-12 h-12 text-yellow-400" />
         </div>
+        
+        <h1 className="text-4xl font-bold text-white mb-4">
+          Creator Dashboard
+        </h1>
+        
+        <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-6">
+          Track your progress, discover new techniques, and connect with the CardShow community.
+        </p>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-crd-dark border-crd-mediumGray">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-crd-lightGray">Monthly Earnings</CardTitle>
-              <DollarSign className="h-4 w-4 text-crd-green" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">
-                {formatCurrency(monthlyStats?.total || 0)}
-              </div>
-              <p className="text-xs text-crd-lightGray">This month</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-crd-dark border-crd-mediumGray">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-crd-lightGray">Pending Payouts</CardTitle>
-              <TrendingUp className="h-4 w-4 text-yellow-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">
-                {formatCurrency(pendingPayouts || 0)}
-              </div>
-              <p className="text-xs text-crd-lightGray">Ready for payout</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-crd-dark border-crd-mediumGray">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-crd-lightGray">Templates Created</CardTitle>
-              <Package className="h-4 w-4 text-blue-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{myTemplates.length}</div>
-              <p className="text-xs text-crd-lightGray">Active templates</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-crd-dark border-crd-mediumGray">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-crd-lightGray">Average Rating</CardTitle>
-              <Star className="h-4 w-4 text-yellow-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">
-                {profile?.avg_rating?.toFixed(1) || '0.0'}
-              </div>
-              <p className="text-xs text-crd-lightGray">
-                {profile?.rating_count || 0} reviews
-              </p>
-            </CardContent>
-          </Card>
+        <div className="flex items-center justify-center gap-4 flex-wrap">
+          <Badge className="bg-purple-600/20 text-purple-300 px-4 py-2">
+            <Star className="w-4 h-4 mr-2" />
+            Creator Level 3
+          </Badge>
+          <Badge className="bg-yellow-600/20 text-yellow-400 px-4 py-2">
+            <Trophy className="w-4 h-4 mr-2" />
+            5 Cards Created
+          </Badge>
+          <Badge className="bg-blue-600/20 text-blue-400 px-4 py-2">
+            <Users className="w-4 h-4 mr-2" />
+            Community Member
+          </Badge>
         </div>
+      </div>
 
-        {/* Main Content */}
-        <Tabs defaultValue="earnings" className="space-y-6">
-          <TabsList className="bg-crd-dark border border-crd-mediumGray">
-            <TabsTrigger value="earnings" className="data-[state=active]:bg-crd-green data-[state=active]:text-black">
-              Earnings
-            </TabsTrigger>
-            <TabsTrigger value="templates" className="data-[state=active]:bg-crd-green data-[state=active]:text-black">
-              Templates
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="data-[state=active]:bg-crd-green data-[state=active]:text-black">
-              Analytics
-            </TabsTrigger>
-          </TabsList>
+      {/* Main Dashboard Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-6xl mx-auto">
+        <TabsList className="grid w-full grid-cols-3 bg-black/50 backdrop-blur h-auto mb-8">
+          <TabsTrigger 
+            value="overview" 
+            className="flex flex-col items-center gap-3 py-6 data-[state=active]:bg-purple-600/50"
+          >
+            <TrendingUp className="w-6 h-6" />
+            <span className="font-semibold">Overview</span>
+          </TabsTrigger>
+          
+          <TabsTrigger 
+            value="skills" 
+            className="flex flex-col items-center gap-3 py-6 data-[state=active]:bg-yellow-600/50"
+          >
+            <Palette className="w-6 h-6" />
+            <span className="font-semibold">Skills</span>
+          </TabsTrigger>
+          
+          <TabsTrigger 
+            value="community" 
+            className="flex flex-col items-center gap-3 py-6 data-[state=active]:bg-blue-600/50"
+          >
+            <Users className="w-6 h-6" />
+            <span className="font-semibold">Community</span>
+          </TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="earnings" className="space-y-6">
-            <CreatorEarningsChart earnings={earnings} />
+        <div className="bg-black/20 backdrop-blur rounded-lg p-8">
+          <TabsContent value="overview" className="space-y-6 mt-0">
+            <h2 className="text-2xl font-bold text-white mb-6">Your Progress</h2>
             
-            <Card className="bg-crd-dark border-crd-mediumGray">
-              <CardHeader>
-                <CardTitle className="text-white">Recent Transactions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {earnings.slice(0, 10).map((earning) => (
-                    <div key={earning.id} className="flex items-center justify-between p-4 bg-crd-mediumGray rounded-lg">
-                      <div>
-                        <p className="text-white font-medium">
-                          {earning.source_type.replace('_', ' ').toUpperCase()}
-                        </p>
-                        <p className="text-sm text-crd-lightGray">
-                          {new Date(earning.transaction_date).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-crd-green font-bold">
-                          +{formatCurrency(earning.net_amount)}
-                        </p>
-                        <Badge variant="outline" className={
-                          earning.payout_status === 'paid' ? 'border-green-400 text-green-400' :
-                          earning.payout_status === 'pending' ? 'border-yellow-400 text-yellow-400' :
-                          'border-red-400 text-red-400'
-                        }>
-                          {earning.payout_status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="p-6 bg-black/30 border-white/20">
+                <h3 className="text-white font-semibold mb-4">Cards Created</h3>
+                <div className="text-3xl font-bold text-purple-400 mb-2">5</div>
+                <Progress value={50} className="mb-2" />
+                <p className="text-sm text-gray-400">5 more to reach Level 4</p>
+              </Card>
+
+              <Card className="p-6 bg-black/30 border-white/20">
+                <h3 className="text-white font-semibold mb-4">Community Likes</h3>
+                <div className="text-3xl font-bold text-yellow-400 mb-2">23</div>
+                <Progress value={30} className="mb-2" />
+                <p className="text-sm text-gray-400">Great engagement!</p>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="skills" className="space-y-6 mt-0">
+            <h2 className="text-2xl font-bold text-white mb-6">Skill Development</h2>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-black/30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Palette className="w-6 h-6 text-purple-400" />
+                  <span className="text-white">Design Fundamentals</span>
                 </div>
-              </CardContent>
+                <Badge variant="outline" className="text-purple-300">Intermediate</Badge>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-black/30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Zap className="w-6 h-6 text-yellow-400" />
+                  <span className="text-white">Effects & Animation</span>
+                </div>
+                <Badge variant="outline" className="text-yellow-300">Beginner</Badge>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="community" className="space-y-6 mt-0">
+            <h2 className="text-2xl font-bold text-white mb-6">Community Activity</h2>
+            
+            <Card className="p-6 bg-black/30 border-white/20">
+              <h3 className="text-white font-semibold mb-4">Recent Activity</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-gray-300">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span>Created "Sunset Warrior" card</span>
+                </div>
+                <div className="flex items-center gap-3 text-gray-300">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                  <span>Received 5 likes on "Mountain Dragon"</span>
+                </div>
+              </div>
             </Card>
           </TabsContent>
-
-          <TabsContent value="templates">
-            <CreatorTemplateManager />
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="bg-crd-dark border-crd-mediumGray">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Eye className="w-5 h-5" />
-                    Template Views
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-white">
-                    {myTemplates.reduce((sum, t) => sum + (t.sales_count * 10), 0)}
-                  </div>
-                  <p className="text-sm text-crd-lightGray">This month</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-crd-dark border-crd-mediumGray">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Users className="w-5 h-5" />
-                    Template Sales
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-white">
-                    {myTemplates.reduce((sum, t) => sum + t.sales_count, 0)}
-                  </div>
-                  <p className="text-sm text-crd-lightGray">Total sales</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-crd-dark border-crd-mediumGray">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Heart className="w-5 h-5" />
-                    Avg. Rating
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-white">
-                    {myTemplates.length > 0 
-                      ? (myTemplates.reduce((sum, t) => sum + t.rating_average, 0) / myTemplates.length).toFixed(1)
-                      : '0.0'
-                    }
-                  </div>
-                  <p className="text-sm text-crd-lightGray">
-                    {myTemplates.reduce((sum, t) => sum + t.rating_count, 0)} reviews
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+        </div>
+      </Tabs>
     </div>
   );
 };

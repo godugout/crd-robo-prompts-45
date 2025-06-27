@@ -11,10 +11,9 @@ import SignUp from "./pages/auth/SignUp";
 import AuthCallback from "./pages/auth/AuthCallback";
 import CardCreation from "./pages/CardCreation";
 import { EnhancedStudio } from "@/components/studio/EnhancedStudio";
-import SocialCosmosPage from '@/pages/SocialCosmosPage';
-import EnhancementForgePage from '@/pages/EnhancementForgePage';
-import MasteryExperiencePage from '@/pages/MasteryExperiencePage';
 import Collections from '@/pages/Collections';
+import CreatorDashboardPage from '@/pages/CreatorDashboardPage';
+import CommunityHubPage from '@/pages/CommunityHubPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,10 +70,16 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
-                <Route path="/social-cosmos" element={<SocialCosmosPage />} />
-                <Route path="/enhancement-forge" element={<EnhancementForgePage />} />
-                <Route path="/mastery" element={<MasteryExperiencePage />} />
                 <Route path="/collections" element={<Collections />} />
+                <Route 
+                  path="/creator-dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <CreatorDashboardPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="/community" element={<CommunityHubPage />} />
               </Routes>
             </div>
           </TooltipProvider>

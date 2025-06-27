@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Plus, Palette, Users, Zap, Crown, Camera, Target } from 'lucide-react';
+import { Plus, Palette, Users, Trophy, Camera, Target } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
@@ -14,7 +14,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-white">Cardshow</h1>
+              <h1 className="text-2xl font-bold text-white">CardShow</h1>
               <span className="text-crd-green text-sm">Create • Design • Share</span>
             </div>
             
@@ -60,7 +60,7 @@ const Index = () => {
               Create Amazing <span className="text-crd-green">Trading Cards</span>
             </h1>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Experience the future of digital collectibles with AI-powered creation, 3D environments, and transcendent experiences.
+              Design, customize, and share your own digital trading cards with our powerful creation tools.
             </p>
           </div>
 
@@ -82,42 +82,42 @@ const Index = () => {
               className="border-crd-green text-crd-green hover:bg-crd-green/10 px-8 py-4 text-lg"
             >
               <Palette className="w-5 h-5 mr-2" />
-              Enhanced Studio
+              Advanced Studio
             </Button>
           </div>
 
-          {/* Advanced Experiences Grid */}
+          {/* Feature Cards */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             <div className="bg-gradient-to-br from-purple-900/50 to-pink-900/50 p-6 rounded-xl border border-purple-500/30 hover:border-purple-400/50 transition-all cursor-pointer"
-                 onClick={() => window.location.href = '/mastery'}>
+                 onClick={() => window.location.href = '/creator-dashboard'}>
               <div className="w-12 h-12 bg-purple-600/30 rounded-full flex items-center justify-center mb-4">
-                <Crown className="w-6 h-6 text-purple-400" />
+                <Trophy className="w-6 h-6 text-purple-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Mastery Experience</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Creator Dashboard</h3>
               <p className="text-gray-300 text-sm">
-                AI-orchestrated creation journey with legacy mentorship and transcendent moments.
+                Track your progress, develop skills, and see your creation journey.
               </p>
             </div>
 
             <div className="bg-gradient-to-br from-blue-900/50 to-cyan-900/50 p-6 rounded-xl border border-blue-500/30 hover:border-blue-400/50 transition-all cursor-pointer"
-                 onClick={() => window.location.href = '/social-cosmos'}>
+                 onClick={() => window.location.href = '/community'}>
               <div className="w-12 h-12 bg-blue-600/30 rounded-full flex items-center justify-center mb-4">
                 <Users className="w-6 h-6 text-blue-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Social Cosmos</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Community Hub</h3>
               <p className="text-gray-300 text-sm">
-                Connect with creators, share collections, and explore community challenges.
+                Connect with creators, join challenges, and share your work.
               </p>
             </div>
 
             <div className="bg-gradient-to-br from-green-900/50 to-emerald-900/50 p-6 rounded-xl border border-green-500/30 hover:border-green-400/50 transition-all cursor-pointer"
-                 onClick={() => window.location.href = '/enhancement-forge'}>
+                 onClick={() => window.location.href = '/studio'}>
               <div className="w-12 h-12 bg-green-600/30 rounded-full flex items-center justify-center mb-4">
-                <Zap className="w-6 h-6 text-green-400" />
+                <Palette className="w-6 h-6 text-green-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Enhancement Forge</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Advanced Studio</h3>
               <p className="text-gray-300 text-sm">
-                AR creation studio, metacollection universe, and time-lapse evolution systems.
+                Professional tools for detailed design and customization.
               </p>
             </div>
 
@@ -128,7 +128,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">Collections</h3>
               <p className="text-gray-300 text-sm">
-                3D galleries, living collections, and constellation-based card relationships.
+                Organize your cards into themed collections and galleries.
               </p>
             </div>
           </div>
@@ -147,7 +147,7 @@ const Index = () => {
 
             <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
               <div className="w-12 h-12 bg-crd-green/20 rounded-full flex items-center justify-center mb-4">
-                <Sparkles className="w-6 h-6 text-crd-green" />
+                <Palette className="w-6 h-6 text-crd-green" />
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">Premium Effects</h3>
               <p className="text-gray-400">
@@ -159,9 +159,9 @@ const Index = () => {
               <div className="w-12 h-12 bg-crd-green/20 rounded-full flex items-center justify-center mb-4">
                 <Target className="w-6 h-6 text-crd-green" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">AI-Powered Experience</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Smart Features</h3>
               <p className="text-gray-400">
-                Adaptive difficulty, personalized challenges, and quantum achievements that evolve with you.
+                AI-powered suggestions, automatic optimization, and intelligent design assistance.
               </p>
             </div>
           </div>

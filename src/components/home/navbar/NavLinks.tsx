@@ -10,9 +10,8 @@ export const NavLinks = () => {
     { href: '/create', label: 'Create' },
     { href: '/studio', label: 'Studio' },
     { href: '/collections', label: 'Collections' },
-    { href: '/social-cosmos', label: 'Social' },
-    { href: '/enhancement-forge', label: 'Forge' },
-    { href: '/mastery', label: 'Mastery' }
+    { href: '/community', label: 'Community' },
+    { href: '/creator-dashboard', label: 'Dashboard' }
   ];
 
   return (
