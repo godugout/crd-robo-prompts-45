@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { MainLayout } from "@/components/layout/MainLayout";
 import Index from "./pages/Index";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
@@ -32,10 +33,10 @@ function App() {
       <AuthProvider>
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+            <div className="min-h-screen">
               <Toaster />
               <Routes>
-                {/* Auth routes */}
+                {/* Auth routes - no navbar */}
                 <Route 
                   path="/auth/signin" 
                   element={
@@ -54,48 +55,79 @@ function App() {
                 />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 
-                {/* Main routes */}
-                <Route path="/" element={<Index />} />
+                {/* Main routes - with universal navbar */}
+                <Route 
+                  path="/" 
+                  element={
+                    <MainLayout>
+                      <Index />
+                    </MainLayout>
+                  } 
+                />
                 <Route 
                   path="/create" 
                   element={
-                    <ProtectedRoute>
-                      <CardCreation />
-                    </ProtectedRoute>
+                    <MainLayout>
+                      <ProtectedRoute>
+                        <CardCreation />
+                      </ProtectedRoute>
+                    </MainLayout>
                   } 
                 />
                 <Route 
                   path="/create/enhanced" 
                   element={
-                    <ProtectedRoute>
-                      <EnhancedCardCreationPage />
-                    </ProtectedRoute>
+                    <MainLayout>
+                      <ProtectedRoute>
+                        <EnhancedCardCreationPage />
+                      </ProtectedRoute>
+                    </MainLayout>
                   } 
                 />
                 <Route 
                   path="/studio" 
                   element={
-                    <ProtectedRoute>
-                      <EnhancedStudio />
-                    </ProtectedRoute>
+                    <MainLayout>
+                      <ProtectedRoute>
+                        <EnhancedStudio />
+                      </ProtectedRoute>
+                    </MainLayout>
                   } 
                 />
-                <Route path="/collections" element={<Collections />} />
+                <Route 
+                  path="/collections" 
+                  element={
+                    <MainLayout>
+                      <Collections />
+                    </MainLayout>
+                  } 
+                />
                 <Route 
                   path="/creator-dashboard" 
                   element={
-                    <ProtectedRoute>
-                      <CreatorDashboardPage />
-                    </ProtectedRoute>
+                    <MainLayout>
+                      <ProtectedRoute>
+                        <CreatorDashboardPage />
+                      </ProtectedRoute>
+                    </MainLayout>
                   } 
                 />
-                <Route path="/community" element={<CommunityHubPage />} />
+                <Route 
+                  path="/community" 
+                  element={
+                    <MainLayout>
+                      <CommunityHubPage />
+                    </MainLayout>
+                  } 
+                />
                 <Route 
                   path="/debug/psd-preview" 
                   element={
-                    <ProtectedRoute>
-                      <PSDPreviewPage />
-                    </ProtectedRoute>
+                    <MainLayout>
+                      <ProtectedRoute>
+                        <PSDPreviewPage />
+                      </ProtectedRoute>
+                    </MainLayout>
                   } 
                 />
               </Routes>

@@ -66,52 +66,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-crd-darkest via-[#0a0a0b] to-[#131316]">
-      {/* Header */}
-      <div className="border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-white">CardShow</h1>
-              <span className="text-crd-green text-sm font-medium px-3 py-1 bg-crd-green/10 rounded-full border border-crd-green/20">
-                Create • Design • Share
-              </span>
-            </div>
-            
-            <div className="flex gap-3">
-              {user ? (
-                <Button
-                  onClick={() => window.location.href = '/auth/signin'}
-                  variant="outline"
-                  size="sm"
-                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                >
-                  Sign Out
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    onClick={() => window.location.href = '/auth/signin'}
-                    variant="outline"
-                    size="sm"
-                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                  >
-                    Sign In
-                  </Button>
-                  <Button
-                    onClick={() => window.location.href = '/auth/signup'}
-                    size="sm"
-                    className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
-                  >
-                    Sign Up
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div className="min-h-screen">
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-6 py-20">
         <div className="text-center space-y-8">

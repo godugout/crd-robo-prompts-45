@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Navbar } from '@/components/home/Navbar';
+import { UniversalNavbar } from '@/components/navigation/UniversalNavbar';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -13,7 +13,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {showNavbar && <Navbar />}
+      {showNavbar && <UniversalNavbar />}
       <main className="flex-1">
         {children}
       </main>
