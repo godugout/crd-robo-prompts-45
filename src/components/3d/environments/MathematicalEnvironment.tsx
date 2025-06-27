@@ -28,69 +28,85 @@ export const MathematicalEnvironment: React.FC<MathematicalEnvironmentProps> = (
         <meshBasicMaterial
           color={new THREE.Color(0x001122)}
           side={THREE.BackSide}
-          wireframe={true}
           transparent={true}
           opacity={0.3}
         />
       </mesh>
 
+      {/* Wireframe sphere overlay */}
+      <lineSegments scale={50}>
+        <edgesGeometry>
+          <sphereGeometry args={[1, 16, 16]} />
+        </edgesGeometry>
+        <lineBasicMaterial
+          color={new THREE.Color(0x001122)}
+          transparent={true}
+          opacity={0.2}
+        />
+      </lineSegments>
+
       {/* Floating geometric patterns */}
       <group ref={geometryRef}>
         {/* Wireframe torus */}
-        <mesh position={[8, 0, 0]}>
-          <torusGeometry args={[2, 0.5, 16, 100]} />
-          <meshBasicMaterial
+        <lineSegments position={[8, 0, 0]}>
+          <edgesGeometry>
+            <torusGeometry args={[2, 0.5, 16, 100]} />
+          </edgesGeometry>
+          <lineBasicMaterial
             color="#00ffff"
-            wireframe={true}
             transparent={true}
             opacity={0.6 * intensity}
           />
-        </mesh>
+        </lineSegments>
 
         {/* Wireframe icosahedron */}
-        <mesh position={[-8, 0, 0]}>
-          <icosahedronGeometry args={[2, 1]} />
-          <meshBasicMaterial
+        <lineSegments position={[-8, 0, 0]}>
+          <edgesGeometry>
+            <icosahedronGeometry args={[2, 1]} />
+          </edgesGeometry>
+          <lineBasicMaterial
             color="#ff00ff"
-            wireframe={true}
             transparent={true}
             opacity={0.6 * intensity}
           />
-        </mesh>
+        </lineSegments>
 
         {/* Wireframe dodecahedron */}
-        <mesh position={[0, 6, 0]}>
-          <dodecahedronGeometry args={[1.5]} />
-          <meshBasicMaterial
+        <lineSegments position={[0, 6, 0]}>
+          <edgesGeometry>
+            <dodecahedronGeometry args={[1.5]} />
+          </edgesGeometry>
+          <lineBasicMaterial
             color="#ffff00"
-            wireframe={true}
             transparent={true}
             opacity={0.6 * intensity}
           />
-        </mesh>
+        </lineSegments>
 
         {/* Wireframe tetrahedron */}
-        <mesh position={[0, -6, 0]}>
-          <tetrahedronGeometry args={[2]} />
-          <meshBasicMaterial
+        <lineSegments position={[0, -6, 0]}>
+          <edgesGeometry>
+            <tetrahedronGeometry args={[2]} />
+          </edgesGeometry>
+          <lineBasicMaterial
             color="#00ff00"
-            wireframe={true}
             transparent={true}
             opacity={0.6 * intensity}
           />
-        </mesh>
+        </lineSegments>
       </group>
 
       {/* Grid floor */}
-      <mesh position={[0, -8, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[30, 30, 30, 30]} />
-        <meshBasicMaterial
+      <lineSegments position={[0, -8, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <edgesGeometry>
+          <planeGeometry args={[30, 30, 30, 30]} />
+        </edgesGeometry>
+        <lineBasicMaterial
           color="#004400"
-          wireframe={true}
           transparent={true}
           opacity={0.4 * intensity}
         />
-      </mesh>
+      </lineSegments>
     </>
   );
 };
