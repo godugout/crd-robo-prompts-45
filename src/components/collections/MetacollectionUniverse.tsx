@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, Stars } from '@react-three/drei';
@@ -7,6 +6,7 @@ import { MuseumMode } from './MuseumMode';
 import { LivingCollectionsSystem } from './LivingCollectionsSystem';
 import { CollectionGeneticsEngine } from './CollectionGeneticsEngine';
 import { SeasonalEventManager } from './SeasonalEventManager';
+import { CollectionsErrorBoundary } from './enhanced/CollectionsErrorBoundary';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,6 +60,7 @@ export const MetacollectionUniverse: React.FC<MetacollectionUniverseProps> = ({
 }) => {
   const [activeMode, setActiveMode] = useState<'constellation' | 'museum' | 'living' | 'genetics' | 'seasonal'>('constellation');
   const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const environmentSettings = useMemo(() => {
@@ -78,8 +79,10 @@ export const MetacollectionUniverse: React.FC<MetacollectionUniverseProps> = ({
   };
 
   const handleModeChange = (mode: typeof activeMode) => {
+    setIsLoading(true);
     setActiveMode(mode);
     onCardInteraction('mode_changed', { mode });
+    setTimeout(() => setIsLoading(false), 500);
   };
 
   const handleCollectionEvolution = (collectionId: string, newState: any) => {
@@ -117,6 +120,29 @@ export const MetacollectionUniverse: React.FC<MetacollectionUniverseProps> = ({
 
   const activeCollection = selectedCollection || (collections.length > 0 ? collections[0] : null);
 
+  // Simple fallback for when WebGL fails
+  const SimpleFallback = () => (
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <Card className="p-8 bg-black/50 backdrop-blur border-white/10 max-w-md text-center">
+        <Sparkles className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+        <h3 className="text-white text-lg font-semibold mb-2">
+          Metacollection Universe
+        </h3>
+        <p className="text-white/80 text-sm mb-4">
+          3D features are loading or not available on this device.
+        </p>
+        <div className="space-y-2">
+          <p className="text-white/60 text-xs">
+            Collections: {collections.length}
+          </p>
+          <p className="text-white/60 text-xs">
+            Mode: {activeMode}
+          </p>
+        </div>
+      </Card>
+    </div>
+  );
+
   return (
     <div className="w-full h-full relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header Controls */}
@@ -130,6 +156,12 @@ export const MetacollectionUniverse: React.FC<MetacollectionUniverseProps> = ({
           <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/50">
             {collections.length} Collections
           </Badge>
+
+          {isLoading && (
+            <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/50">
+              Loading...
+            </Badge>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -137,6 +169,7 @@ export const MetacollectionUniverse: React.FC<MetacollectionUniverseProps> = ({
             variant={activeMode === 'constellation' ? 'default' : 'outline'}
             size="sm"
             onClick={() => handleModeChange('constellation')}
+            disabled={isLoading}
           >
             <Sparkles className="w-4 h-4 mr-1" />
             Constellation
@@ -145,6 +178,7 @@ export const MetacollectionUniverse: React.FC<MetacollectionUniverseProps> = ({
             variant={activeMode === 'museum' ? 'default' : 'outline'}
             size="sm"
             onClick={() => handleModeChange('museum')}
+            disabled={isLoading}
           >
             <MuseumIcon className="w-4 h-4 mr-1" />
             Museum
@@ -153,6 +187,7 @@ export const MetacollectionUniverse: React.FC<MetacollectionUniverseProps> = ({
             variant={activeMode === 'living' ? 'default' : 'outline'}
             size="sm"
             onClick={() => handleModeChange('living')}
+            disabled={isLoading}
           >
             <Zap className="w-4 h-4 mr-1" />
             Living
@@ -160,74 +195,81 @@ export const MetacollectionUniverse: React.FC<MetacollectionUniverseProps> = ({
         </div>
       </div>
 
-      {/* Main Canvas */}
-      <Canvas 
-        ref={canvasRef}
-        className="w-full h-full"
-        camera={{ position: [0, 10, 20], fov: 75 }}
-      >
-        <ambientLight intensity={0.4} />
-        <pointLight position={[10, 10, 10]} intensity={1} />
-        <Stars 
-          radius={300} 
-          depth={60} 
-          count={1000} 
-          factor={7} 
-          saturation={0} 
-          fade={true}
-        />
-        
-        <OrbitControls 
-          enablePan={true} 
-          enableZoom={true} 
-          enableRotate={true}
-          maxDistance={100}
-          minDistance={5}
-        />
-
-        {/* Render active mode */}
-        {activeMode === 'constellation' && activeCollection && (
-          <ConstellationGallery
-            collection={activeCollection}
-            pattern={constellationPattern}
-            environment={{ type: activeCollection.theme }}
-            viewMode="infinite"
-            onCardInteraction={onCardInteraction}
+      {/* Main Canvas with Error Boundary */}
+      <CollectionsErrorBoundary fallbackComponent={<SimpleFallback />}>
+        <Canvas 
+          ref={canvasRef}
+          className="w-full h-full"
+          camera={{ position: [0, 10, 20], fov: 75 }}
+          gl={{ antialias: true, alpha: false }}
+          onCreated={(state) => {
+            // Ensure WebGL context is properly initialized
+            state.gl.setClearColor('#0f0f23');
+          }}
+        >
+          <ambientLight intensity={0.4} />
+          <pointLight position={[10, 10, 10]} intensity={1} />
+          <Stars 
+            radius={300} 
+            depth={60} 
+            count={1000} 
+            factor={7} 
+            saturation={0} 
+            fade={true}
           />
-        )}
-
-        {activeMode === 'museum' && (
-          <MuseumMode
-            collections={collections}
-            onCollectionUpdate={onCollectionUpdate}
+          
+          <OrbitControls 
+            enablePan={true} 
+            enableZoom={true} 
+            enableRotate={true}
+            maxDistance={100}
+            minDistance={5}
           />
-        )}
 
-        {activeMode === 'living' && (
-          <LivingCollectionsSystem
-            collections={collections}
-            onCardInteraction={onCardInteraction}
-            onCollectionEvolution={handleCollectionEvolution}
-          />
-        )}
+          {/* Render active mode */}
+          {activeMode === 'constellation' && activeCollection && (
+            <ConstellationGallery
+              collection={activeCollection}
+              pattern={constellationPattern}
+              environment={{ type: activeCollection.theme }}
+              viewMode="infinite"
+              onCardInteraction={onCardInteraction}
+            />
+          )}
 
-        {activeMode === 'genetics' && (
-          <CollectionGeneticsEngine
-            collections={collections}
-            onGeneticAnalysis={(data) => onCardInteraction('genetic_analysis', data)}
-            onEvolutionTrigger={onCollectionUpdate}
-          />
-        )}
+          {activeMode === 'museum' && (
+            <MuseumMode
+              collections={collections}
+              onCollectionUpdate={onCollectionUpdate}
+            />
+          )}
 
-        {activeMode === 'seasonal' && (
-          <SeasonalEventManager
-            collections={collections}
-            onSeasonalEffect={(effect) => onCardInteraction('seasonal_effect', effect)}
-          />
-        )}
+          {activeMode === 'living' && (
+            <LivingCollectionsSystem
+              collections={collections}
+              onCardInteraction={onCardInteraction}
+              onCollectionEvolution={handleCollectionEvolution}
+            />
+          )}
 
-        <Environment preset="night" />
-      </Canvas>
+          {activeMode === 'genetics' && (
+            <CollectionGeneticsEngine
+              collections={collections}
+              onGeneticAnalysis={(data) => onCardInteraction('genetic_analysis', data)}
+              onEvolutionTrigger={onCollectionUpdate}
+            />
+          )}
+
+          {activeMode === 'seasonal' && (
+            <SeasonalEventManager
+              collections={collections}
+              onSeasonalEffect={(effect) => onCardInteraction('seasonal_effect', effect)}
+            />
+          )}
+
+          <Environment preset="night" />
+        </Canvas>
+      </CollectionsErrorBoundary>
 
       {/* Collection Info Panel */}
       {selectedCollection && (

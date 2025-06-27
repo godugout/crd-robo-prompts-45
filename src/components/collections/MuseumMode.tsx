@@ -39,13 +39,13 @@ export const MuseumMode: React.FC<MuseumModeProps> = ({
             position={[0, -2, 0]}
             onClick={() => setSelectedExhibition(collection)}
           >
-            <meshStandardMaterial color="#8B4513" />
+            <meshStandardMaterial color={new THREE.Color('#8B4513')} />
           </Box>
 
           {/* Collection Display */}
           <Box args={[8, 10, 0.2]} position={[0, 3, -3]}>
             <meshPhysicalMaterial
-              color="#ffffff"
+              color={new THREE.Color('#ffffff')}
               transparent
               opacity={0.9}
               roughness={0.1}
@@ -56,7 +56,7 @@ export const MuseumMode: React.FC<MuseumModeProps> = ({
           <Text
             position={[0, 8, -2.9]}
             fontSize={1}
-            color="black"
+            color="#000000"
             anchorX="center"
             anchorY="middle"
           >
@@ -67,7 +67,7 @@ export const MuseumMode: React.FC<MuseumModeProps> = ({
           <Text
             position={[0, 6.5, -2.9]}
             fontSize={0.5}
-            color="gray"
+            color="#666666"
             anchorX="center"
             anchorY="middle"
           >
@@ -77,7 +77,7 @@ export const MuseumMode: React.FC<MuseumModeProps> = ({
           {/* Theme Indicator */}
           <Sphere args={[0.5]} position={[0, 0, 0]}>
             <meshBasicMaterial
-              color={getThemeColor(collection.theme)}
+              color={new THREE.Color(getThemeColor(collection.theme))}
               transparent
               opacity={0.7}
             />

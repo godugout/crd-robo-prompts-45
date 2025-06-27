@@ -1,14 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, Calendar, Zap, Play, Pause, Settings } from 'lucide-react';
+import { Clock, Calendar, Zap } from 'lucide-react';
 
-export interface TimeLapseCreationSystemProps {
+interface TimeLapseCreationSystemProps {
   onTransformationScheduled: (data: any) => void;
   onEvolutionCompleted: (data: any) => void;
 }
@@ -17,105 +14,108 @@ export const TimeLapseCreationSystem: React.FC<TimeLapseCreationSystemProps> = (
   onTransformationScheduled,
   onEvolutionCompleted
 }) => {
-  const [activeTransformations, setActiveTransformations] = useState<any[]>([]);
-  const [scheduledEvents, setScheduledEvents] = useState<any[]>([]);
-  const [selectedTrigger, setSelectedTrigger] = useState('time');
+  const [activeTransformations, setActiveTransformations] = useState<string[]>([]);
 
-  const handleScheduleTransformation = () => {
-    const transformation = {
-      id: Date.now().toString(),
-      type: selectedTrigger,
-      scheduled_at: new Date(),
-      card_id: 'sample-card',
-      trigger_conditions: ['time_passed', 'event_occurred']
-    };
+  const handleScheduleTransformation = (type: string) => {
+    const transformationId = `transform-${Date.now()}`;
+    setActiveTransformations(prev => [...prev, transformationId]);
+    
+    onTransformationScheduled({
+      id: transformationId,
+      type,
+      scheduledAt: new Date(),
+      duration: 5000
+    });
 
-    setScheduledEvents(prev => [...prev, transformation]);
-    onTransformationScheduled(transformation);
-  };
-
-  const handleEvolutionComplete = (data: any) => {
-    setActiveTransformations(prev => prev.filter(t => t.id !== data.id));
-    onEvolutionCompleted(data);
+    // Simulate completion
+    setTimeout(() => {
+      setActiveTransformations(prev => prev.filter(id => id !== transformationId));
+      onEvolutionCompleted({
+        id: transformationId,
+        completedAt: new Date()
+      });
+    }, 5000);
   };
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
-      {/* Header */}
-      <div className="absolute top-4 left-4 right-4 z-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Badge className="bg-green-500/20 text-green-400 border-green-500/50">
-              <Clock className="w-4 h-4 mr-2" />
-              Time-Lapse Active
-            </Badge>
-            <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/50">
-              {scheduledEvents.length} Scheduled
-            </Badge>
-          </div>
+    <div className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-4">
+            Time-Lapse Creation System
+          </h1>
+          <p className="text-white/80 text-lg">
+            Schedule card transformations based on real-world events
+          </p>
         </div>
-      </div>
 
-      {/* Controls Panel */}
-      <div className="absolute top-20 left-4 z-50 w-80">
-        <Card className="p-4 bg-black/50 backdrop-blur border-white/10">
-          <div className="space-y-4">
-            <h3 className="text-white font-medium">Schedule Transformation</h3>
-            
-            <Select value={selectedTrigger} onValueChange={setSelectedTrigger}>
-              <SelectTrigger className="bg-gray-800 border-gray-600">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="time">Time-based</SelectItem>
-                <SelectItem value="event">Event-based</SelectItem>
-                <SelectItem value="sports">Sports Score</SelectItem>
-                <SelectItem value="astronomical">Astronomical</SelectItem>
-              </SelectContent>
-            </Select>
-
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="p-6 bg-black/50 backdrop-blur border-white/10">
+            <div className="flex items-center gap-3 mb-4">
+              <Clock className="w-6 h-6 text-blue-400" />
+              <h3 className="text-white font-semibold">Scheduled Events</h3>
+            </div>
+            <p className="text-white/70 text-sm mb-4">
+              Transform cards based on time-based triggers
+            </p>
             <Button 
-              onClick={handleScheduleTransformation}
+              onClick={() => handleScheduleTransformation('time-based')}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
+              Schedule Transformation
+            </Button>
+          </Card>
+
+          <Card className="p-6 bg-black/50 backdrop-blur border-white/10">
+            <div className="flex items-center gap-3 mb-4">
+              <Calendar className="w-6 h-6 text-green-400" />
+              <h3 className="text-white font-semibold">Sports Events</h3>
+            </div>
+            <p className="text-white/70 text-sm mb-4">
+              React to live sports scores and results
+            </p>
+            <Button 
+              onClick={() => handleScheduleTransformation('sports-based')}
               className="w-full bg-green-600 hover:bg-green-700"
             >
-              <Calendar className="w-4 h-4 mr-2" />
-              Schedule
+              Link to Sports API
             </Button>
-          </div>
-        </Card>
-      </div>
+          </Card>
 
-      {/* Scheduled Events */}
-      <div className="absolute bottom-4 left-4 z-50 w-80 max-h-60 overflow-y-auto">
-        <Card className="p-4 bg-black/50 backdrop-blur border-white/10">
-          <h4 className="text-white font-medium mb-3">Scheduled Events</h4>
-          <div className="space-y-2">
-            {scheduledEvents.map((event) => (
-              <div key={event.id} className="flex items-center justify-between p-2 bg-gray-800/50 rounded">
-                <div>
-                  <span className="text-white text-sm">{event.type}</span>
-                  <p className="text-gray-400 text-xs">{event.scheduled_at.toLocaleString()}</p>
+          <Card className="p-6 bg-black/50 backdrop-blur border-white/10">
+            <div className="flex items-center gap-3 mb-4">
+              <Zap className="w-6 h-6 text-purple-400" />
+              <h3 className="text-white font-semibold">Astronomical</h3>
+            </div>
+            <p className="text-white/70 text-sm mb-4">
+              Transform with moon phases and celestial events
+            </p>
+            <Button 
+              onClick={() => handleScheduleTransformation('astronomical')}
+              className="w-full bg-purple-600 hover:bg-purple-700"
+            >
+              Sync with Stars
+            </Button>
+          </Card>
+        </div>
+
+        {/* Active Transformations */}
+        {activeTransformations.length > 0 && (
+          <Card className="p-6 bg-black/50 backdrop-blur border-white/10">
+            <h3 className="text-white font-semibold mb-4">Active Transformations</h3>
+            <div className="space-y-2">
+              {activeTransformations.map(id => (
+                <div key={id} className="flex items-center gap-3">
+                  <Badge className="bg-yellow-500/20 text-yellow-400">
+                    Processing
+                  </Badge>
+                  <span className="text-white/70 text-sm">{id}</span>
                 </div>
-                <Badge variant="outline" className="text-xs">
-                  Pending
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </Card>
+              ))}
+            </div>
+          </Card>
+        )}
       </div>
-
-      {/* 3D Visualization */}
-      <Canvas className="w-full h-full">
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} />
-        
-        {/* Simple placeholder for transformation visualization */}
-        <mesh>
-          <boxGeometry args={[2, 2, 2]} />
-          <meshStandardMaterial color="#22c55e" />
-        </mesh>
-      </Canvas>
     </div>
   );
 };

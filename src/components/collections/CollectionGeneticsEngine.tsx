@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Line, Sphere, Box } from '@react-three/drei';
@@ -102,16 +101,16 @@ export const CollectionGeneticsEngine: React.FC<CollectionGeneticsEngineProps> =
               onClick={() => handleGeneticAnalysis(collection)}
             >
               <meshPhysicalMaterial
-                color={getDNAColor(collection.dna)}
+                color={new THREE.Color(getDNAColor(collection.dna))}
                 transparent
                 opacity={0.8}
-                emissive={getDNAColor(collection.dna)}
+                emissive={new THREE.Color(getDNAColor(collection.dna))}
                 emissiveIntensity={0.3}
               />
             </Sphere>
 
             {/* Genetic Traits Visualization */}
-            {collection.dna.artistic_style.map((style, styleIndex) => (
+            {collection.dna.artistic_style.slice(0, 5).map((style, styleIndex) => (
               <Sphere
                 key={styleIndex}
                 args={[0.3]}
@@ -121,7 +120,7 @@ export const CollectionGeneticsEngine: React.FC<CollectionGeneticsEngineProps> =
                   Math.sin(styleIndex * 0.5) * 3
                 ]}
               >
-                <meshBasicMaterial color={getStyleColor(style)} />
+                <meshBasicMaterial color={new THREE.Color(getStyleColor(style))} />
               </Sphere>
             ))}
 
@@ -129,7 +128,7 @@ export const CollectionGeneticsEngine: React.FC<CollectionGeneticsEngineProps> =
             <Text
               position={[0, -3, 0]}
               fontSize={0.5}
-              color="white"
+              color="#ffffff"
               anchorX="center"
               anchorY="middle"
             >
@@ -153,13 +152,13 @@ export const CollectionGeneticsEngine: React.FC<CollectionGeneticsEngineProps> =
               position={[0, -5.5, 0]}
               onClick={() => onEvolutionTrigger(collection)}
             >
-              <meshStandardMaterial color="#22c55e" />
+              <meshStandardMaterial color={new THREE.Color('#22c55e')} />
             </Box>
 
             <Text
               position={[0, -5.5, 0.15]}
               fontSize={0.3}
-              color="white"
+              color="#ffffff"
               anchorX="center"
               anchorY="middle"
             >
@@ -171,9 +170,6 @@ export const CollectionGeneticsEngine: React.FC<CollectionGeneticsEngineProps> =
 
       {/* Genetic Connections */}
       {geneticConnections.map((connection, index) => {
-        const collection1 = collections[connection.from];
-        const collection2 = collections[connection.to];
-        
         const angle1 = (connection.from / collections.length) * Math.PI * 2;
         const angle2 = (connection.to / collections.length) * Math.PI * 2;
         const radius = 20;
@@ -194,7 +190,7 @@ export const CollectionGeneticsEngine: React.FC<CollectionGeneticsEngineProps> =
           <Line
             key={index}
             points={[start, end]}
-            color="#a855f7"
+            color={new THREE.Color('#a855f7')}
             lineWidth={connection.strength * 5}
             transparent
             opacity={connection.strength * 0.8}
