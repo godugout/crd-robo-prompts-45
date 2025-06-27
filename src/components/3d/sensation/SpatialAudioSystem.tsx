@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
 import * as Tone from 'tone';
 
 interface SpatialAudioSystemProps {
@@ -9,12 +9,16 @@ interface SpatialAudioSystemProps {
   isActive: boolean;
 }
 
-export const SpatialAudioSystem: React.FC<SpatialAudioSystemProps> = ({
+export interface SpatialAudioSystemRef {
+  playEffectSound: (effectType: string, intensity?: number) => void;
+}
+
+export const SpatialAudioSystem = forwardRef<SpatialAudioSystemRef, SpatialAudioSystemProps>(({
   cardEffects,
   cardRarity,
   cardPosition,
   isActive
-}) => {
+}, ref) => {
   const synthsRef = useRef<{ [key: string]: Tone.Synth | Tone.PolySynth | Tone.NoiseSynth }>({});
   const reverbRef = useRef<Tone.Reverb | null>(null);
   const pannerRef = useRef<Tone.Panner3D | null>(null);
@@ -96,7 +100,7 @@ export const SpatialAudioSystem: React.FC<SpatialAudioSystemProps> = ({
           synthsRef.current.holographic?.triggerAttackRelease(
             note, 
             '8n', 
-            `+${index * 0.1}`,
+            Tone.now() + (index * 0.1),
             volume
           );
         });
@@ -158,10 +162,12 @@ export const SpatialAudioSystem: React.FC<SpatialAudioSystemProps> = ({
     return () => clearInterval(interval);
   }, [cardRarity, isActive, audioInitialized]);
 
-  // Expose play function for external triggers
-  React.useImperativeHandle(React.createRef(), () => ({
+  // Expose play function for external use
+  useImperativeHandle(ref, () => ({
     playEffectSound
   }), [audioInitialized]);
 
   return null;
-};
+});
+
+SpatialAudioSystem.displayName = 'SpatialAudioSystem';

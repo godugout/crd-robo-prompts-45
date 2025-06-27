@@ -3,8 +3,8 @@ import React, { useState, useCallback, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { DimensionalCard3D } from '../core/DimensionalCard3D';
-import { SpatialAudioSystem } from './SpatialAudioSystem';
-import { HapticFeedbackSystem } from './HapticFeedbackSystem';
+import { SpatialAudioSystem, SpatialAudioSystemRef } from './SpatialAudioSystem';
+import { HapticFeedbackSystem, HapticFeedbackSystemRef } from './HapticFeedbackSystem';
 import { AdvancedGestureSystem } from './AdvancedGestureSystem';
 import { EmotionDetectionSystem } from './EmotionDetectionSystem';
 import { VoiceCommandSystem } from './VoiceCommandSystem';
@@ -29,8 +29,8 @@ export const MultiSensoryCardViewer: React.FC<MultiSensoryCardViewerProps> = ({
   const [sparkles, setSparkles] = useState<{x: number, y: number, id: string}[]>([]);
   const [emotionIntensity, setEmotionIntensity] = useState(1);
 
-  const audioSystemRef = useRef<any>(null);
-  const hapticSystemRef = useRef<any>(null);
+  const audioSystemRef = useRef<SpatialAudioSystemRef>(null);
+  const hapticSystemRef = useRef<HapticFeedbackSystemRef>(null);
 
   const handleGesture = useCallback((gesture: any) => {
     console.log('🤲 Gesture detected:', gesture.type);

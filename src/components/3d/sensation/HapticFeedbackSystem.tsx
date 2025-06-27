@@ -1,5 +1,5 @@
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useImperativeHandle, forwardRef } from 'react';
 
 interface HapticPattern {
   pattern: number[];
@@ -12,11 +12,17 @@ interface HapticFeedbackSystemProps {
   isInteracting: boolean;
 }
 
-export const HapticFeedbackSystem: React.FC<HapticFeedbackSystemProps> = ({
+export interface HapticFeedbackSystemRef {
+  triggerMaterialFeedback: () => void;
+  triggerRarityFeedback: () => void;
+  triggerInteractionFeedback: (type: 'tap' | 'swipe' | 'pinch' | 'shake') => void;
+}
+
+export const HapticFeedbackSystem = forwardRef<HapticFeedbackSystemRef, HapticFeedbackSystemProps>(({
   cardMaterial,
   cardRarity,
   isInteracting
-}) => {
+}, ref) => {
   const [isSupported, setIsSupported] = React.useState(false);
 
   useEffect(() => {
@@ -129,11 +135,13 @@ export const HapticFeedbackSystem: React.FC<HapticFeedbackSystemProps> = ({
   }, [isInteracting, triggerMaterialFeedback]);
 
   // Expose methods for external use
-  React.useImperativeHandle(React.createRef(), () => ({
+  useImperativeHandle(ref, () => ({
     triggerMaterialFeedback,
     triggerRarityFeedback,
     triggerInteractionFeedback
   }), [triggerMaterialFeedback, triggerRarityFeedback, triggerInteractionFeedback]);
 
   return null;
-};
+});
+
+HapticFeedbackSystem.displayName = 'HapticFeedbackSystem';

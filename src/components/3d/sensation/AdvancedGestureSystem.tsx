@@ -26,7 +26,7 @@ export const AdvancedGestureSystem: React.FC<AdvancedGestureSystemProps> = ({
   children
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [touches, setTouches] = useState<TouchList | null>(null);
+  const [touches, setTouches] = useState<React.TouchList | null>(null);
   const [lastTouchTime, setLastTouchTime] = useState(0);
   const [shakeThreshold] = useState(15);
   const [drawPath, setDrawPath] = useState<{x: number, y: number}[]>([]);
