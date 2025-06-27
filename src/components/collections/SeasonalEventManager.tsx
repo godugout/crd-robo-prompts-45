@@ -232,8 +232,6 @@ export const SeasonalEventManager: React.FC<SeasonalEventManagerProps> = ({
           <Box args={[4, 2, 0.2]} onClick={() => onSeasonalEffect(event)}>
             <meshPhysicalMaterial
               color={event.effects[0]?.color_scheme[0] || '#4a90e2'}
-              emissive={event.effects[0]?.color_scheme[0] || '#4a90e2'}
-              emissiveIntensity={0.3}
               transparent
               opacity={0.8}
             />
@@ -291,7 +289,7 @@ export const SeasonalEventManager: React.FC<SeasonalEventManagerProps> = ({
           Math.sin(index * Math.PI / 4) * 60
         ]}>
           <Sphere args={[2]}>
-            <meshBasicMaterial 
+            <meshStandardMaterial 
               color="#ffffff" 
               emissive="#4a90e2" 
               emissiveIntensity={0.5} 

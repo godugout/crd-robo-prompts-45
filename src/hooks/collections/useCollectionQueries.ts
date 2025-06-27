@@ -1,7 +1,6 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-// Mock data for now - in real app would connect to Supabase
+// Mock data with complete interfaces
 const mockCollectionCards = (collectionId: string) => [
   {
     id: '1',
@@ -10,6 +9,7 @@ const mockCollectionCards = (collectionId: string) => [
       title: 'Sample Card 1',
       description: 'A beautiful sample card',
       image_url: '/lovable-uploads/sample.png',
+      thumbnail_url: '/lovable-uploads/sample.png',
       rarity: 'rare',
       tags: ['sample', 'demo'],
       creator_name: 'Demo Creator',
@@ -23,6 +23,7 @@ const mockCollectionCards = (collectionId: string) => [
       title: 'Sample Card 2',
       description: 'Another sample card',
       image_url: '/lovable-uploads/sample2.png',
+      thumbnail_url: '/lovable-uploads/sample2.png',
       rarity: 'epic',
       tags: ['sample', 'premium'],
       creator_name: 'Pro Creator',
@@ -36,35 +37,62 @@ const mockCollections = [
     id: '1',
     title: 'My Sample Collection',
     description: 'A demonstration collection',
+    owner_id: 'user-1',
     visibility: 'public' as const,
     views_count: 42,
     likes_count: 8,
+    shares_count: 3,
     completion_rate: 75,
     created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     cover_image_url: '/lovable-uploads/sample.png',
     tags: ['demo', 'sample'],
-    is_template: false
+    is_template: false,
+    allow_comments: true,
+    last_activity_at: new Date().toISOString(),
+    featured_until: null,
+    template_category: null,
+    design_metadata: {},
+    team_id: null,
+    app_id: null
   }
 ];
 
 const mockActivities = [
   {
     id: '1',
-    activity_type: 'card_added',
+    collection_id: '1',
+    user_id: 'user-1',
+    activity_type: 'card_added' as const,
     activity_data: { card_id: '1', quantity: 1 },
     created_at: new Date().toISOString(),
-    user: { username: 'demo_user' }
+    user: { id: 'user-1', username: 'demo_user', avatar_url: null }
   }
 ];
 
 const mockComments = [
   {
     id: '1',
+    collection_id: '1',
+    user_id: 'user-1',
     content: 'Great collection!',
     created_at: new Date().toISOString(),
-    user: { username: 'commenter' }
+    updated_at: new Date().toISOString(),
+    parent_id: null,
+    user: { id: 'user-1', username: 'commenter', avatar_url: null },
+    replies: []
   }
 ];
+
+const mockAnalytics = {
+  total_cards: 12,
+  unique_rarities: 4,
+  completion_rate: 75,
+  total_views: 42,
+  total_likes: 8,
+  total_followers: 45,
+  recent_activity: 3
+};
 
 export const useCollectionCards = (collectionId: string) => {
   return useQuery({
@@ -123,11 +151,7 @@ export const useCollectionComments = (collectionId: string) => {
 export const useCollectionAnalytics = (collectionId: string) => {
   return useQuery({
     queryKey: ['collection-analytics', collectionId],
-    queryFn: () => Promise.resolve({
-      total_cards: 12,
-      total_followers: 45,
-      engagement_rate: 0.85
-    }),
+    queryFn: () => Promise.resolve(mockAnalytics),
     enabled: !!collectionId
   });
 };
