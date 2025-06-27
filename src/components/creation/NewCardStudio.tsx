@@ -12,7 +12,7 @@ const StepIndicator: React.FC<{ currentStep: string }> = ({ currentStep }) => {
     { id: 'upload', label: 'Upload', description: 'Choose your image' },
     { id: 'customize', label: 'Customize', description: 'Add details & effects' },
     { id: 'preview', label: 'Preview', description: 'Review your card' },
-    { id: 'save', label: 'Save', description: 'Export & share' }
+    { id: 'export', label: 'Export', description: 'Save & share' }
   ];
 
   const currentIndex = steps.findIndex(step => step.id === currentStep);
@@ -128,7 +128,7 @@ export const NewCardStudio: React.FC = () => {
                   onClick={nextStep}
                   className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
                 >
-                  Save Card
+                  Export Card
                 </Button>
               </div>
             </div>
@@ -144,14 +144,14 @@ export const NewCardStudio: React.FC = () => {
           </div>
         );
         
-      case 'save':
+      case 'export':
         return (
           <div className="text-center space-y-6">
             <div className="w-20 h-20 mx-auto bg-crd-green rounded-full flex items-center justify-center">
               <div className="text-2xl">🎉</div>
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white mb-2">Card Saved Successfully!</h2>
+              <h2 className="text-2xl font-bold text-white mb-2">Card Exported Successfully!</h2>
               <p className="text-gray-400">Your trading card has been created and saved to your collection.</p>
             </div>
             
