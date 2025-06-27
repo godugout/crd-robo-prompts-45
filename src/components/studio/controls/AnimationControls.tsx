@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import { Play, RotateCw, ArrowUp, Sparkles2 } from 'lucide-react';
+import { Play, RotateCw, ArrowUp, Sparkles } from 'lucide-react';
 
 const ANIMATION_PRESETS = [
   { name: 'Rotate', icon: RotateCw, color: 'from-blue-400 to-cyan-500' },
   { name: 'Float', icon: ArrowUp, color: 'from-green-400 to-teal-500' },
-  { name: 'Pulse', icon: Sparkles2, color: 'from-purple-400 to-pink-500' },
+  { name: 'Pulse', icon: Sparkles, color: 'from-purple-400 to-pink-500' },
   { name: 'Reveal', icon: Play, color: 'from-orange-400 to-red-500' }
 ];
 
