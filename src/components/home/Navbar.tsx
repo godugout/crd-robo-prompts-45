@@ -11,8 +11,11 @@ export const Navbar = () => {
   const [navBgColor, setNavBgColor] = useState('bg-gradient-to-r from-purple-600 via-purple-500 to-blue-500');
 
   const handleLogoChange = (logoId: string, bgColor: string) => {
+    console.log('Navbar: Logo changed to:', logoId, 'with background:', bgColor);
     setNavBgColor(bgColor);
   };
+
+  console.log('Navbar: Current background class:', navBgColor);
 
   return (
     <nav className={cn(

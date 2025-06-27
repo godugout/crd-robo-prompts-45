@@ -17,13 +17,14 @@ export const LogoPicker: React.FC<LogoPickerProps> = ({ onLogoChange }) => {
   const [selectedLogo, setSelectedLogo] = useState(LOGO_OPTIONS[0]);
 
   useEffect(() => {
-    // Ensure the gradient logo is selected by default and notify parent
+    // Immediately notify parent of the default gradient logo selection
     const gradientLogo = LOGO_OPTIONS[0]; // This is the gradient logo
-    setSelectedLogo(gradientLogo);
+    console.log('LogoPicker: Initializing with gradient logo:', gradientLogo);
     onLogoChange?.(gradientLogo.id, gradientLogo.navBgColor);
-  }, [onLogoChange]);
+  }, []); // Remove onLogoChange from dependencies to prevent loops
 
   const handleLogoSelect = (logo: typeof LOGO_OPTIONS[0]) => {
+    console.log('LogoPicker: Logo selected:', logo);
     setSelectedLogo(logo);
     onLogoChange?.(logo.id, logo.navBgColor);
   };

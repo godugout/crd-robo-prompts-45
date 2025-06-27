@@ -1,4 +1,3 @@
-
 export const LOGO_OPTIONS = [
   {
     id: 'cardshow-gradient-crd',
