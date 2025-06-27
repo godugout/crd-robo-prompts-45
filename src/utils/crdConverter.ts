@@ -33,7 +33,14 @@ export class CRDConverter {
           width: this.extractBorderWidth(template.visual.border.width),
           style: 'solid',
           color: { format: 'hex', value: template.visual.border.color },
-          gradient: template.visual.border.gradient,
+          gradient: template.visual.border.gradient ? {
+            type: 'linear',
+            angle: 45,
+            stops: [
+              { offset: 0, color: { format: 'hex', value: '#ffffff' } },
+              { offset: 1, color: { format: 'hex', value: '#000000' } }
+            ]
+          } : undefined,
           radius: this.extractBorderRadius(template.visual.borderRadius)
         },
         
@@ -58,7 +65,8 @@ export class CRDConverter {
           holographic: template.effects.holographic ? {
             intensity: 0.8,
             color_shift: 180,
-            pattern: 'rainbow'
+            pattern: 'rainbow',
+            animation_speed: 1.0
           } : undefined,
           
           metallic: template.effects.metallic ? {

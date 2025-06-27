@@ -1,525 +1,49 @@
+import { type } from 'os';
 
-/**
- * CRD (Card Rendering Document) Specification v1.0
- * 
- * A comprehensive format for defining digital trading cards with advanced
- * visual effects, animations, and interactive elements.
- */
-
-// === CORE TYPES ===
-
-export interface CRDPosition {
-  x: number;
-  y: number;
-  unit: 'px' | '%' | 'mm' | 'in';
-}
-
-export interface CRDSize {
-  width: number;
-  height: number;
-  unit: 'px' | '%' | 'mm' | 'in';
-}
-
+// Core Types
 export interface CRDColor {
-  format: 'hex' | 'rgb' | 'rgba' | 'hsl' | 'hsla';
+  format: 'hex' | 'rgb' | 'hsl';
   value: string;
   opacity?: number;
 }
 
-export interface CRDTransform {
-  position: CRDPosition;
-  rotation: number; // degrees
-  scale: {
-    x: number;
-    y: number;
-    uniform: boolean;
-  };
-  skew: {
-    x: number; // degrees
-    y: number; // degrees
-  };
-}
-
-// === DOCUMENT STRUCTURE ===
-
-export interface CRDDocument {
-  // Document metadata
-  version: string;
-  id: string;
-  name: string;
-  description?: string;
-  created_at: string;
-  updated_at: string;
-  
-  // Canvas properties
-  canvas: CRDCanvas;
-  
-  // Layer system
-  layers: CRDLayer[];
-  
-  // Global settings
-  metadata: CRDMetadata;
-  export_settings: CRDExportSettings;
-}
-
-export interface CRDCanvas {
-  // Physical dimensions
-  width: number;
-  height: number;
-  unit: 'px' | 'mm' | 'in';
-  
-  // Resolution settings
-  dpi: number;
-  color_profile: 'sRGB' | 'Adobe RGB' | 'P3';
-  
-  // Background
-  background: {
-    type: 'solid' | 'gradient' | 'image' | 'transparent';
-    color?: CRDColor;
-    gradient?: CRDGradient;
-    image?: CRDImageSource;
-  };
-  
-  // Grid and guides
-  grid?: {
-    enabled: boolean;
-    size: number;
-    color: CRDColor;
-    opacity: number;
-  };
-  
-  // Bleed and safe areas for printing
-  bleed?: {
-    top: number;
-    right: number;
-    bottom: number;
-    left: number;
-    unit: 'px' | 'mm' | 'in';
-  };
-}
-
-// === LAYER SYSTEM ===
-
-interface CRDBaseLayer {
-  id: string;
-  name: string;
-  visible: boolean;
-  locked: boolean;
-  z_index: number;
-  
-  // Transform properties
-  transform: CRDTransform;
-  
-  // Visual properties
-  opacity: number; // 0-100
-  blend_mode: CRDBlendMode;
-  
-  // Clipping and masking
-  clip_path?: string; // SVG path or CSS clip-path
-  mask?: CRDMask;
-  
-  // Animation
-  animation?: CRDAnimation;
-}
-
-export interface CRDFrameLayer extends CRDBaseLayer {
-  type: 'frame';
-  frame_data: CRDFrameData;
-}
-
-export interface CRDImageLayer extends CRDBaseLayer {
-  type: 'image';
-  image_data: CRDImageData;
-}
-
-export interface CRDTextLayer extends CRDBaseLayer {
-  type: 'text';
-  text_data: CRDTextData;
-}
-
-export interface CRDVideoLayer extends CRDBaseLayer {
-  type: 'video';
-  video_data: CRDVideoData;
-}
-
-export interface CRDStickerLayer extends CRDBaseLayer {
-  type: 'sticker';
-  sticker_data: CRDStickerData;
-}
-
-export interface CRDPlateLayer extends CRDBaseLayer {
-  type: 'plate';
-  plate_data: CRDPlateData;
-}
-
-export interface CRDEffectLayer extends CRDBaseLayer {
-  type: 'effect';
-  effect_data: CRDEffectData;
-}
-
-export interface CRDGroupLayer extends CRDBaseLayer {
-  type: 'group';
-  children: CRDLayer[];
-}
-
-export type CRDLayer = 
-  | CRDFrameLayer 
-  | CRDImageLayer 
-  | CRDTextLayer 
-  | CRDVideoLayer 
-  | CRDStickerLayer 
-  | CRDPlateLayer 
-  | CRDEffectLayer 
-  | CRDGroupLayer;
-
-// === FRAME DATA ===
-
-export interface CRDFrameData {
-  template_id: string;
-  style: 'modern' | 'vintage' | 'sports' | 'fantasy' | 'futuristic' | 'artistic' | 'minimal';
-  
-  // Border properties
-  border: {
-    width: number;
-    style: 'solid' | 'dashed' | 'dotted' | 'double' | 'groove' | 'ridge';
-    color: CRDColor;
-    gradient?: CRDGradient;
-    radius: number;
-  };
-  
-  corner_radius: number;
-  
-  // Shadow and glow
-  shadow?: CRDShadow;
-  glow?: CRDGlow;
-  
-  // Material properties
-  material: CRDMaterial;
-  
-  // Layout areas for content
-  layout_areas: {
-    image_area: CRDLayoutArea;
-    title_area: CRDLayoutArea;
-    subtitle_area?: CRDLayoutArea;
-    stats_area?: CRDLayoutArea;
-    description_area?: CRDLayoutArea;
-  };
-}
-
-export interface CRDLayoutArea {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  padding?: {
-    top: number;
-    right: number;
-    bottom: number;
-    left: number;
-  };
-}
-
-// === IMAGE DATA ===
-
-export interface CRDImageData {
-  source: CRDImageSource;
-  fit: 'cover' | 'contain' | 'fill' | 'scale-down' | 'none';
-  position: CRDPosition;
-  
-  // Image processing
-  filters: CRDImageFilters;
-  adjustments: CRDImageAdjustments;
-  crop: CRDCrop;
-  
-  // Focus point for smart cropping
-  focus_point: {
-    x: number; // 0-1
-    y: number; // 0-1
-  };
-}
-
-export interface CRDImageSource {
-  type: 'url' | 'base64' | 'file';
-  url?: string;
-  data?: string;
-  width: number;
-  height: number;
-  format: 'jpg' | 'png' | 'webp' | 'gif' | 'svg';
-  size_bytes: number;
-}
-
-export interface CRDImageFilters {
-  brightness: number; // -100 to 100
-  contrast: number; // -100 to 100
-  saturation: number; // -100 to 100
-  hue_shift: number; // -180 to 180
-  blur: number; // 0 to 10
-  sharpen: number; // 0 to 10
-  noise: number; // 0 to 100
-  vignette: number; // 0 to 100
-}
-
-export interface CRDImageAdjustments {
-  exposure: number; // -2 to 2
-  highlights: number; // -100 to 100
-  shadows: number; // -100 to 100
-  whites: number; // -100 to 100
-  blacks: number; // -100 to 100
-  clarity: number; // -100 to 100
-  vibrance: number; // -100 to 100
-  temperature: number; // 2000 to 10000K
-  tint: number; // -100 to 100
-}
-
-export interface CRDCrop {
-  enabled: boolean;
-  x: number; // 0-1
-  y: number; // 0-1
-  width: number; // 0-1
-  height: number; // 0-1
-}
-
-// === TEXT DATA ===
-
-export interface CRDTextData {
-  content: string;
-  font: CRDFont;
-  alignment: 'left' | 'center' | 'right' | 'justify';
-  vertical_alignment: 'top' | 'middle' | 'bottom';
-  
-  // Text styling
+export interface CRDGradientStop {
+  offset: number;
   color: CRDColor;
-  stroke?: CRDStroke;
-  shadow?: CRDShadow;
-  glow?: CRDGlow;
-  
-  // Text effects
-  gradient?: CRDGradient;
-  pattern?: CRDPattern;
-  
-  // Layout
-  line_height: number;
-  letter_spacing: number;
-  word_spacing: number;
-  
-  // Advanced typography
-  kerning?: boolean;
-  ligatures?: boolean;
-  small_caps?: boolean;
-}
-
-export interface CRDFont {
-  family: string;
-  size: number;
-  weight: 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
-  style: 'normal' | 'italic' | 'oblique';
-  variant: 'normal' | 'small-caps';
-  stretch: 'normal' | 'condensed' | 'expanded';
-}
-
-// === VIDEO DATA ===
-
-export interface CRDVideoData {
-  source: CRDVideoSource;
-  autoplay: boolean;
-  loop: boolean;
-  muted: boolean;
-  controls: boolean;
-  
-  // Video processing
-  filters: CRDImageFilters; // Same as image filters
-  crop: CRDCrop;
-  
-  // Playback settings
-  start_time?: number; // seconds
-  end_time?: number; // seconds
-  playback_rate: number; // 0.25 to 4.0
-}
-
-export interface CRDVideoSource {
-  type: 'url' | 'file';
-  url?: string;
-  width: number;
-  height: number;
-  duration: number; // seconds
-  format: 'mp4' | 'webm' | 'ogg';
-  size_bytes: number;
-}
-
-// === STICKER DATA ===
-
-export interface CRDStickerData {
-  sticker_id: string;
-  category: 'emoji' | 'badge' | 'decoration' | 'icon' | 'custom';
-  source: CRDImageSource;
-  
-  // Interactive properties
-  interactive: boolean;
-  hover_effect?: CRDHoverEffect;
-  click_action?: CRDClickAction;
-}
-
-// === PLATE DATA ===
-
-export interface CRDPlateData {
-  plate_type: 'nameplate' | 'stats' | 'info' | 'custom';
-  background: CRDColor | CRDGradient;
-  border?: {
-    width: number;
-    color: CRDColor;
-    style: 'solid' | 'dashed' | 'dotted';
-  };
-  corner_radius: number;
-  
-  // Content
-  content: {
-    text?: CRDTextData;
-    icon?: CRDImageSource;
-  };
-}
-
-// === MATERIALS AND EFFECTS ===
-
-export interface CRDMaterial {
-  type: 'standard' | 'holographic' | 'metallic' | 'crystal' | 'fabric' | 'paper' | 'plastic';
-  
-  // Base material properties
-  albedo: CRDColor;
-  metalness: number; // 0-1
-  roughness: number; // 0-1
-  
-  // Advanced material properties
-  holographic?: CRDHolographicMaterial;
-  metallic?: CRDMetallicMaterial;
-  crystal?: CRDCrystalMaterial;
-  fabric?: CRDFabricMaterial;
-  
-  // Texture maps
-  normal_map?: CRDImageSource;
-  bump_map?: CRDImageSource;
-  displacement_map?: CRDImageSource;
-  
-  // Environmental interaction
-  reflectance: number; // 0-1
-  transmission: number; // 0-1 for transparent materials
-}
-
-export interface CRDHolographicMaterial {
-  intensity: number; // 0-1
-  color_shift: number; // 0-360 degrees
-  pattern: 'rainbow' | 'radial' | 'linear' | 'diamond' | 'custom';
-  animation_speed: number; // 0-2
-}
-
-export interface CRDMetallicMaterial {
-  reflection_intensity: number; // 0-1
-  tint: CRDColor;
-  polish: number; // 0-1, affects roughness variation
-  oxidation?: number; // 0-1 for weathered effects
-}
-
-export interface CRDCrystalMaterial {
-  transparency: number; // 0-1
-  refraction_index: number; // 1.0-2.4
-  internal_reflections: boolean;
-  facet_count?: number;
-  dispersion?: number; // 0-1 for rainbow effects
-}
-
-export interface CRDFabricMaterial {
-  weave_pattern: 'plain' | 'twill' | 'satin' | 'canvas';
-  thread_density: number;
-  surface_fuzz: number; // 0-1
-}
-
-// === LIGHTING ===
-
-export interface CRDLighting {
-  environment: CRDEnvironment;
-  lights: CRDLight[];
-  ambient_light: {
-    color: CRDColor;
-    intensity: number; // 0-1
-  };
-  
-  // Global lighting settings
-  exposure: number; // -5 to 5
-  gamma: number; // 0.1 to 3.0
-  tone_mapping: 'linear' | 'reinhard' | 'filmic' | 'aces';
-}
-
-export interface CRDEnvironment {
-  type: 'studio' | 'outdoor' | 'indoor' | 'abstract' | 'custom';
-  hdri_map?: CRDImageSource;
-  background_blur: number; // 0-1
-  intensity: number; // 0-2
-  rotation: number; // 0-360 degrees
-}
-
-export interface CRDLight {
-  id: string;
-  type: 'directional' | 'point' | 'spot' | 'area';
-  position: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  rotation: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  color: CRDColor;
-  intensity: number; // 0-10
-  
-  // Shadow properties
-  cast_shadows: boolean;
-  shadow_softness: number; // 0-1
-  shadow_bias: number;
-}
-
-// === VISUAL EFFECTS ===
-
-export interface CRDEffectData {
-  effect_type: 'particle' | 'distortion' | 'color_grade' | 'composite';
-  
-  // Particle effects
-  particle?: CRDParticleEffect;
-  
-  // Distortion effects
-  distortion?: CRDDistortionEffect;
-  
-  // Color grading
-  color_grade?: CRDColorGrade;
-  
-  // Composite effects
-  composite?: CRDCompositeEffect;
-}
-
-export interface CRDParticleEffect {
-  particle_type: 'sparkle' | 'dust' | 'energy' | 'fire' | 'smoke' | 'magic';
-  count: number;
-  size_range: [number, number];
-  velocity: {
-    x: [number, number];
-    y: [number, number];
-    z: [number, number];
-  };
-  lifetime: number; // seconds
-  color_over_lifetime: CRDColor[];
-  opacity_over_lifetime: number[];
 }
 
 export interface CRDGradient {
   type: 'linear' | 'radial' | 'conic';
-  angle?: number; // for linear
-  center?: CRDPosition; // for radial/conic
+  angle?: number;
+  center?: { x: number; y: number };
+  radius?: number;
   stops: CRDGradientStop[];
 }
 
-export interface CRDGradientStop {
-  position: number; // 0-1
-  color: CRDColor;
+export interface CRDImageSource {
+  type: 'url' | 'base64' | 'asset';
+  url?: string;
+  base64?: string;
+  asset_id?: string;
+  width?: number;
+  height?: number;
+  format?: string;
+  size_bytes?: number;
+}
+
+export interface CRDTransform {
+  position: { x: number; y: number; unit: 'px' | '%' };
+  rotation: number;
+  scale: { x: number; y: number; uniform: boolean };
+  skew: { x: number; y: number };
+}
+
+export interface CRDAnimation {
+  type: 'fade' | 'slide' | 'zoom' | 'rotate' | 'custom';
+  duration: number;
+  delay: number;
+  easing: 'linear' | 'ease-in-out' | 'cubic-bezier';
+  keyframes?: any[];
 }
 
 export interface CRDShadow {
@@ -532,194 +56,551 @@ export interface CRDShadow {
   inset: boolean;
 }
 
-export interface CRDGlow {
-  enabled: boolean;
-  color: CRDColor;
-  intensity: number; // 0-1
-  size: number;
-  softness: number; // 0-1
-}
-
-export interface CRDStroke {
-  width: number;
-  color: CRDColor;
-  position: 'inside' | 'center' | 'outside';
-  dash_pattern?: number[];
-}
-
-export interface CRDPattern {
-  type: 'dots' | 'stripes' | 'checkerboard' | 'custom';
-  colors: CRDColor[];
-  scale: number;
-  rotation: number;
-}
-
-// === ANIMATION ===
-
-export interface CRDAnimation {
-  name: string;
-  duration: number; // seconds
-  timing_function: 'linear' | 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'cubic-bezier';
-  delay?: number; // seconds
-  iteration_count: number | 'infinite';
-  direction: 'normal' | 'reverse' | 'alternate' | 'alternate-reverse';
-  fill_mode: 'none' | 'forwards' | 'backwards' | 'both';
-  
-  keyframes: CRDKeyframe[];
-}
-
-export interface CRDKeyframe {
-  time: number; // 0-1
-  properties: {
-    transform?: Partial<CRDTransform>;
-    opacity?: number;
-    color?: CRDColor;
-    [key: string]: any;
-  };
-  
-  // Easing for this specific keyframe
-  easing?: string;
-}
-
-// === INTERACTIVITY ===
-
-export interface CRDHoverEffect {
-  type: 'scale' | 'rotate' | 'glow' | 'color_change' | 'custom';
-  parameters: Record<string, any>;
-  duration: number; // milliseconds
-}
-
-export interface CRDClickAction {
-  type: 'link' | 'popup' | 'animation' | 'sound' | 'custom';
-  target?: string;
-  parameters: Record<string, any>;
-}
-
-// === ADVANCED FEATURES ===
-
 export interface CRDMask {
-  type: 'alpha' | 'luminance' | 'shape';
-  source: CRDImageSource | string; // image or SVG path
-  invert: boolean;
-  feather: number; // 0-100
+  type: 'alpha' | 'luminance' | 'custom';
+  source_layer_id?: string;
+  invert?: boolean;
 }
 
-export interface CRDDistortionEffect {
-  type: 'wave' | 'twist' | 'bulge' | 'pinch';
-  intensity: number; // 0-1
-  frequency?: number; // for wave
-  center?: CRDPosition; // for radial distortions
+export type CRDBlendMode =
+  | 'normal'
+  | 'multiply'
+  | 'screen'
+  | 'overlay'
+  | 'darken'
+  | 'lighten'
+  | 'color-dodge'
+  | 'color-burn'
+  | 'hard-light'
+  | 'soft-light'
+  | 'difference'
+  | 'exclusion'
+  | 'hue'
+  | 'saturation'
+  | 'color'
+  | 'luminosity';
+
+// Material Types
+export interface CRDStandardMaterial {
+  type: 'standard';
+  albedo: CRDColor;
+  roughness: number;
+  metalness: number;
 }
 
-export interface CRDColorGrade {
-  shadows: CRDColor;
-  midtones: CRDColor;
-  highlights: CRDColor;
-  
-  // Color wheels
-  lift: CRDColor; // shadows
-  gamma: CRDColor; // midtones
-  gain: CRDColor; // highlights
-  
-  // Global adjustments
-  saturation: number; // 0-2
-  contrast: number; // 0-2
-  brightness: number; // -1 to 1
+export interface CRDHolographicMaterial {
+  type: 'holographic';
+  intensity: number;
+  color_shift: number;
+  pattern: 'rainbow' | 'interference';
+  animation_speed: number;
 }
 
-export interface CRDCompositeEffect {
-  blend_mode: CRDBlendMode;
-  source_layer: string; // layer ID
-  mask?: CRDMask;
+export interface CRDMetallicMaterial {
+  type: 'metallic';
+  reflection_intensity: number;
+  tint: CRDColor;
+  polish: number;
 }
 
-export type CRDBlendMode = 
-  | 'normal' | 'multiply' | 'screen' | 'overlay' | 'soft-light' | 'hard-light'
-  | 'color-dodge' | 'color-burn' | 'darken' | 'lighten' | 'difference'
-  | 'exclusion' | 'hue' | 'saturation' | 'color' | 'luminosity';
+export interface CRDCrystalMaterial {
+  type: 'crystal';
+  transparency: number;
+  refraction_index: number;
+  internal_reflections: boolean;
+}
 
-// === METADATA ===
+export type CRDMaterial =
+  | CRDStandardMaterial
+  | CRDHolographicMaterial
+  | CRDMetallicMaterial
+  | CRDCrystalMaterial;
 
-export interface CRDMetadata {
-  // Card information
-  title?: string;
-  subtitle?: string;
-  description?: string;
+// Layer Specific Types
+export interface CRDImageData {
+  source: CRDImageSource;
+  fit: 'cover' | 'contain' | 'stretch';
+  position: { x: number; y: number; unit: '%' };
+  filters: {
+    brightness: number;
+    contrast: number;
+    saturation: number;
+    hue_shift: number;
+    blur: number;
+    sharpen: number;
+    noise: number;
+    vignette: number;
+  };
+  adjustments: {
+    exposure: number;
+    highlights: number;
+    shadows: number;
+    whites: number;
+    blacks: number;
+    clarity: number;
+    vibrance: number;
+    temperature: number;
+    tint: number;
+  };
+  crop: {
+    enabled: boolean;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  focus_point: { x: number; y: number };
+}
+
+export interface CRDFrameData {
+  template_id: string;
+  style: string;
+  border: {
+    width: number;
+    style: 'solid' | 'dashed' | 'dotted';
+    color: CRDColor;
+    gradient?: CRDGradient;
+    radius: number;
+  };
+  corner_radius: number;
+  shadow: CRDShadow;
+  material: CRDMaterial;
+  layout_areas: {
+    image_area: { x: number; y: number; width: number; height: number };
+    title_area: { x: number; y: number; width: number; height: number };
+    subtitle_area?: { x: number; y: number; width: number; height: number };
+    stats_area?: { x: number; y: number; width: number; height: number };
+  };
+}
+
+export interface CRDTextData {
+  content: string;
+  font: {
+    family: string;
+    size: number;
+    weight: number;
+    style: 'normal' | 'italic';
+    variant: string;
+    stretch: string;
+    line_height: number;
+    letter_spacing: number;
+    word_spacing: number;
+    text_align: 'left' | 'center' | 'right' | 'justify';
+    vertical_align: 'top' | 'middle' | 'bottom';
+    direction: 'ltr' | 'rtl';
+  };
+  color: CRDColor;
+  shadow: CRDShadow;
+  background: {
+    color: CRDColor;
+    padding: number;
+    border_radius: number;
+  };
+  effects: {
+    outline: {
+      width: number;
+      color: CRDColor;
+    };
+    glow: {
+      radius: number;
+      color: CRDColor;
+    };
+  };
+  transform: {
+    text_case: 'uppercase' | 'lowercase' | 'capitalize' | 'normal';
+    text_decoration: 'none' | 'underline' | 'overline' | 'line-through';
+    white_space: 'normal' | 'nowrap' | 'pre' | 'pre-wrap' | 'pre-line';
+    word_break: 'normal' | 'break-all' | 'keep-all' | 'break-word';
+    overflow: 'visible' | 'hidden' | 'scroll' | 'auto';
+  };
+}
+
+export interface CRDVideoData {
+  source: {
+    type: 'url' | 'asset';
+    url?: string;
+    asset_id?: string;
+    format: string;
+    size_bytes: number;
+    duration: number;
+    frame_rate: number;
+    resolution: { width: number; height: number };
+  };
+  controls: boolean;
+  autoplay: boolean;
+  loop: boolean;
+  muted: boolean;
+  volume: number;
+  start_time: number;
+  end_time: number;
+  trim: {
+    enabled: boolean;
+    start: number;
+    end: number;
+  };
+  effects: {
+    brightness: number;
+    contrast: number;
+    saturation: number;
+    hue_shift: number;
+    blur: number;
+    sharpen: number;
+    grayscale: boolean;
+    sepia: boolean;
+    invert: boolean;
+  };
+}
+
+export interface CRDStickerData {
+  asset_id: string;
   category: string;
   tags: string[];
-  
-  // Rarity and stats
-  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
-  stats?: Record<string, number>;
-  
-  // Creator information
-  creator: {
+  animated: boolean;
+  animation_data?: any;
+}
+
+export interface CRDPlateData {
+  type: 'rectangle' | 'circle' | 'ellipse' | 'polygon' | 'path';
+  fill: CRDColor;
+  stroke: {
+    width: number;
+    color: CRDColor;
+    style: 'solid' | 'dashed' | 'dotted';
+    cap: 'butt' | 'round' | 'square';
+    join: 'miter' | 'round' | 'bevel';
+    dash_array: number[];
+    dash_offset: number;
+  };
+  shadow: CRDShadow;
+  geometry: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    radius: number;
+    sides: number;
+    points: { x: number; y: number }[];
+    path_data: string;
+  };
+  interactions: {
+    hover_effect: boolean;
+    click_action: 'none' | 'link' | 'custom';
+    link_url: string;
+    custom_script: string;
+  };
+}
+
+export interface CRDShapeData {
+  type: 'rectangle' | 'circle' | 'ellipse' | 'polygon' | 'path';
+  fill: CRDColor;
+  stroke: {
+    width: number;
+    color: CRDColor;
+    style: 'solid' | 'dashed' | 'dotted';
+    cap: 'butt' | 'round' | 'square';
+    join: 'miter' | 'round' | 'bevel';
+    dash_array: number[];
+    dash_offset: number;
+  };
+  shadow: CRDShadow;
+  geometry: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    radius: number;
+    sides: number;
+    points: { x: number; y: number }[];
+    path_data: string;
+  };
+  interactions: {
+    hover_effect: boolean;
+    click_action: 'none' | 'link' | 'custom';
+    link_url: string;
+    custom_script: string;
+  };
+}
+
+export interface CRD3DModelData {
+  asset_id: string;
+  format: 'glb' | 'gltf' | 'obj';
+  size_bytes: number;
+  polygons: number;
+  textures: string[];
+  materials: string[];
+  lighting: {
+    environment: 'studio' | 'outdoor' | 'custom';
+    intensity: number;
+    color_temperature: number;
+    shadows: boolean;
+    ambient_occlusion: boolean;
+  };
+  animation: {
+    enabled: boolean;
+    autoplay: boolean;
+    loop: boolean;
+    timeline: any;
+  };
+  interactions: {
+    rotation: boolean;
+    zoom: boolean;
+    pan: boolean;
+    custom_script: string;
+  };
+}
+
+export interface CRDParticleSystemData {
+  emitter: {
+    type: 'point' | 'line' | 'circle' | 'rectangle' | 'volume';
+    position: { x: number; y: number; z: number };
+    direction: { x: number; y: number; z: number };
+    emission_rate: number;
+    lifetime: number;
+    size: number;
+    color: CRDColor;
+    speed: number;
+    acceleration: { x: number; y: number; z: number };
+    rotation: { x: number; y: number; z: number };
+    shape: 'sphere' | 'cube' | 'custom';
+    custom_shape_asset_id: string;
+  };
+  effects: {
+    gravity: { x: number; y: number; z: number };
+    wind: { x: number; y: number; z: number };
+    turbulence: number;
+    collision: boolean;
+    bounce: number;
+    friction: number;
+  };
+  rendering: {
+    blend_mode: CRDBlendMode;
+    depth_test: boolean;
+    depth_write: boolean;
+    transparency: boolean;
+    lighting: boolean;
+    shadows: boolean;
+  };
+}
+
+export interface CRDAudioData {
+  source: {
+    type: 'url' | 'asset';
+    url?: string;
+    asset_id?: string;
+    format: string;
+    size_bytes: number;
+    duration: number;
+    sample_rate: number;
+    channels: number;
+  };
+  controls: boolean;
+  autoplay: boolean;
+  loop: boolean;
+  muted: boolean;
+  volume: number;
+  start_time: number;
+  end_time: number;
+  trim: {
+    enabled: boolean;
+    start: number;
+    end: number;
+  };
+  effects: {
+    equalizer: any[];
+    reverb: number;
+    delay: number;
+    distortion: number;
+    panning: number;
+  };
+  spatial_audio: {
+    enabled: boolean;
+    position: { x: number; y: number; z: number };
+    orientation: { x: number; y: number; z: number };
+    distance_model: 'linear' | 'inverse' | 'exponential';
+    ref_distance: number;
+    max_distance: number;
+    rolloff_factor: number;
+  };
+}
+
+// Base layer interface
+interface CRDBaseLayer {
+  id: string;
+  name: string;
+  visible: boolean;
+  locked: boolean;
+  z_index: number;
+  transform: CRDTransform;
+  opacity: number;
+  blend_mode: CRDBlendMode;
+  clip_path?: string;
+  mask?: CRDMask;
+  animation?: CRDAnimation;
+}
+
+// Frame Layer
+export interface CRDFrameLayer extends CRDBaseLayer {
+  type: 'frame';
+  frame_data: CRDFrameData;
+}
+
+// Image Layer  
+export interface CRDImageLayer extends CRDBaseLayer {
+  type: 'image';
+  image_data: CRDImageData;
+}
+
+// Text Layer
+export interface CRDTextLayer extends CRDBaseLayer {
+  type: 'text';
+  text_data: CRDTextData;
+}
+
+// Video Layer
+export interface CRDVideoLayer extends CRDBaseLayer {
+  type: 'video';
+  video_data: CRDVideoData;
+}
+
+// Sticker Layer
+export interface CRDStickerLayer extends CRDBaseLayer {
+  type: 'sticker';
+  sticker_data: CRDStickerData;
+}
+
+// Plate Layer
+export interface CRDPlateLayer extends CRDBaseLayer {
+  type: 'plate';
+  plate_data: CRDPlateData;
+}
+
+// Shape Layer
+export interface CRDShapeLayer extends CRDBaseLayer {
+  type: 'shape';
+  shape_data: CRDShapeData;
+}
+
+// 3D Layer
+export interface CRD3DLayer extends CRDBaseLayer {
+  type: '3d';
+  model_data: CRD3DModelData;
+}
+
+// Particle Layer
+export interface CRDParticleLayer extends CRDBaseLayer {
+  type: 'particle';
+  particle_data: CRDParticleSystemData;
+}
+
+// Audio Layer
+export interface CRDAudioLayer extends CRDBaseLayer {
+  type: 'audio';
+  audio_data: CRDAudioData;
+}
+
+// Union of all layer types
+export type CRDLayer = 
+  | CRDFrameLayer 
+  | CRDImageLayer 
+  | CRDTextLayer 
+  | CRDVideoLayer 
+  | CRDStickerLayer 
+  | CRDPlateLayer 
+  | CRDShapeLayer 
+  | CRD3DLayer 
+  | CRDParticleLayer 
+  | CRDAudioLayer;
+
+// Document Structure
+export interface CRDDocument {
+  version: string;
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+  author: {
     id: string;
     name: string;
-    avatar?: string;
+    email: string;
   };
-  
-  // Technical metadata
-  created_with: {
-    application: string;
-    version: string;
-  };
-  
-  // Copyright and licensing
-  copyright?: string;
-  license?: string;
-  
-  // Performance hints
-  complexity_score: number; // 1-10
-  render_priority: 'low' | 'normal' | 'high';
-}
-
-// === EXPORT SETTINGS ===
-
-export interface CRDExportSettings {
-  // Image export
-  image: {
-    formats: ('png' | 'jpg' | 'webp' | 'svg')[];
-    quality: number; // 0-100 for lossy formats
-    resolution: {
-      width: number;
-      height: number;
-      dpi: number;
+  canvas: {
+    width: number;
+    height: number;
+    unit: 'px' | '%' | 'in' | 'cm' | 'mm';
+    dpi: number;
+    color_space: 'sRGB' | 'CMYK' | 'P3';
+    background: {
+      type: 'solid' | 'gradient' | 'image';
+      color?: CRDColor;
+      gradient?: CRDGradient;
+      image?: CRDImageSource;
     };
-    
-    // Advanced options
-    transparent_background: boolean;
-    include_bleed: boolean;
-    color_profile: 'sRGB' | 'Adobe RGB' | 'P3';
   };
-  
-  // Video export (for animated cards)
-  video?: {
-    format: 'mp4' | 'webm' | 'gif';
-    quality: number; // 0-100
-    fps: number;
-    duration?: number; // seconds, null for full animation
-    loop: boolean;
+  metadata: {
+    category: string;
+    tags: string[];
+    rarity: string;
+    edition: string;
+    print_run: number;
+    series: string;
+    set: string;
+    year: number;
+    sport: string;
+    team: string;
+    player: string;
+    card_number: string;
+    rookie_card: boolean;
+    autograph: boolean;
+    memorabilia: boolean;
+    graded: boolean;
+    grade_company: string;
+    grade_score: number;
+    custom_fields: { [key: string]: any };
   };
-  
-  // 3D export
-  model_3d?: {
-    format: 'gltf' | 'obj' | 'fbx';
-    include_textures: boolean;
-    include_animations: boolean;
-    quality: 'low' | 'medium' | 'high';
+  layers: CRDLayer[];
+  global_effects: {
+    lighting: {
+      environment: 'studio' | 'outdoor' | 'custom';
+      intensity: number;
+      color_temperature: number;
+      shadows: boolean;
+      ambient_occlusion: boolean;
+    };
+    post_processing: {
+      bloom: boolean;
+      vignette: boolean;
+      film_grain: boolean;
+      color_grading: {
+        enabled: boolean;
+        temperature: number;
+        tint: number;
+        exposure: number;
+        contrast: number;
+        highlights: number;
+        shadows: number;
+        whites: number;
+        blacks: number;
+        saturation: number;
+        vibrance: number;
+      };
+    };
   };
-  
-  // Print settings
-  print?: {
-    paper_size: 'poker' | 'bridge' | 'tarot' | 'custom';
-    bleed: number; // mm
-    cut_marks: boolean;
-    color_bars: boolean;
+  export_settings: {
+    formats: string[];
+    quality: number;
+    resolution: string;
+    color_profile: string;
+    transparency: boolean;
+    metadata_embed: boolean;
+  };
+  version_history: any[];
+  collaboration: {
+    shared: boolean;
+    permissions: string;
+    collaborators: any[];
   };
 }
-
-// === UTILITY FUNCTIONS ===
 
 export class CRDUtils {
   static createEmptyDocument(): CRDDocument {
@@ -727,76 +608,106 @@ export class CRDUtils {
       version: '1.0',
       id: crypto.randomUUID(),
       name: 'Untitled Card',
+      description: '',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      author: {
+        id: '',
+        name: 'Anonymous',
+        email: ''
+      },
       
       canvas: {
         width: 300,
         height: 420,
         unit: 'px',
         dpi: 300,
-        color_profile: 'sRGB',
+        color_space: 'sRGB',
         background: {
           type: 'solid',
           color: { format: 'hex', value: '#ffffff' }
         }
       },
       
-      layers: [],
-      
       metadata: {
-        category: 'custom',
+        category: 'trading_card',
         tags: [],
         rarity: 'common',
-        creator: {
-          id: 'unknown',
-          name: 'Unknown'
+        edition: '',
+        print_run: 0,
+        series: '',
+        set: '',
+        year: new Date().getFullYear(),
+        sport: '',
+        team: '',
+        player: '',
+        card_number: '',
+        rookie_card: false,
+        autograph: false,
+        memorabilia: false,
+        graded: false,
+        grade_company: '',
+        grade_score: 0,
+        custom_fields: {}
+      },
+      
+      layers: [] as CRDLayer[],
+      
+      global_effects: {
+        lighting: {
+          environment: 'studio',
+          intensity: 1.0,
+          color_temperature: 5500,
+          shadows: true,
+          ambient_occlusion: false
         },
-        created_with: {
-          application: 'Cardshow',
-          version: '1.0'
-        },
-        complexity_score: 1,
-        render_priority: 'normal'
+        
+        post_processing: {
+          bloom: false,
+          vignette: false,
+          film_grain: false,
+          color_grading: {
+            enabled: false,
+            temperature: 0,
+            tint: 0,
+            exposure: 0,
+            contrast: 0,
+            highlights: 0,
+            shadows: 0,
+            whites: 0,
+            blacks: 0,
+            saturation: 0,
+            vibrance: 0
+          }
+        }
       },
       
       export_settings: {
-        image: {
-          formats: ['png', 'jpg'],
-          quality: 95,
-          resolution: {
-            width: 300,
-            height: 420,
-            dpi: 300
-          },
-          transparent_background: false,
-          include_bleed: false,
-          color_profile: 'sRGB'
-        }
+        formats: ['png', 'jpg'],
+        quality: 100,
+        resolution: 'high',
+        color_profile: 'sRGB',
+        transparency: true,
+        metadata_embed: true
+      },
+      
+      version_history: [],
+      collaboration: {
+        shared: false,
+        permissions: 'private',
+        collaborators: []
       }
     };
   }
-  
+
   static validateDocument(doc: CRDDocument): boolean {
-    // Basic validation logic
-    return !!(doc.version && doc.id && doc.canvas && doc.layers && doc.metadata);
+    return !!(doc.version && doc.id && doc.name && doc.canvas && doc.layers);
   }
-  
-  static getLayerById(doc: CRDDocument, layerId: string): CRDLayer | null {
-    const findLayer = (layers: CRDLayer[]): CRDLayer | null => {
-      for (const layer of layers) {
-        if (layer.id === layerId) return layer;
-        if (layer.type === 'group') {
-          const found = findLayer(layer.children);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-    
-    return findLayer(doc.layers);
+
+  static getLayerById(doc: CRDDocument, id: string): CRDLayer | undefined {
+    return doc.layers.find(layer => layer.id === id);
   }
-  
+
   static addLayer(doc: CRDDocument, layer: CRDLayer): CRDDocument {
     return {
       ...doc,
@@ -804,47 +715,45 @@ export class CRDUtils {
       updated_at: new Date().toISOString()
     };
   }
-  
+
   static removeLayer(doc: CRDDocument, layerId: string): CRDDocument {
-    const removeFromLayers = (layers: CRDLayer[]): CRDLayer[] => {
-      return layers.filter(layer => {
-        if (layer.id === layerId) return false;
-        if (layer.type === 'group') {
-          layer.children = removeFromLayers(layer.children);
-        }
-        return true;
-      });
-    };
-    
     return {
       ...doc,
-      layers: removeFromLayers(doc.layers),
+      layers: doc.layers.filter(layer => layer.id !== layerId),
       updated_at: new Date().toISOString()
     };
   }
-  
+
   static updateLayer(doc: CRDDocument, layerId: string, updates: Partial<CRDLayer>): CRDDocument {
-    const updateInLayers = (layers: CRDLayer[]): CRDLayer[] => {
-      return layers.map(layer => {
-        if (layer.id === layerId) {
-          return { ...layer, ...updates };
-        }
-        if (layer.type === 'group') {
-          return {
-            ...layer,
-            children: updateInLayers(layer.children)
-          };
-        }
-        return layer;
-      });
+    return {
+      ...doc,
+      layers: doc.layers.map(layer => 
+        layer.id === layerId ? { ...layer, ...updates } : layer
+      ),
+      updated_at: new Date().toISOString()
     };
+  }
+
+  static reorderLayers(doc: CRDDocument, layerIds: string[]): CRDDocument {
+    const layerMap = new Map(doc.layers.map(layer => [layer.id, layer]));
+    const reorderedLayers = layerIds.map(id => layerMap.get(id)).filter(Boolean) as CRDLayer[];
     
     return {
       ...doc,
-      layers: updateInLayers(doc.layers),
+      layers: reorderedLayers,
       updated_at: new Date().toISOString()
     };
+  }
+
+  static exportToJSON(doc: CRDDocument): string {
+    return JSON.stringify(doc, null, 2);
+  }
+
+  static importFromJSON(json: string): CRDDocument {
+    const doc = JSON.parse(json) as CRDDocument;
+    if (!this.validateDocument(doc)) {
+      throw new Error('Invalid CRD document format');
+    }
+    return doc;
   }
 }
-
-export default CRDUtils;
