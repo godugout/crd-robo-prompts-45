@@ -88,7 +88,6 @@ export const useCardCreation = (initialStep?: CardCreationState['step']) => {
     setState(prev => ({ ...prev, processing: true, error: null }));
     
     try {
-      // Validate file
       if (!file.type.startsWith('image/')) {
         throw new Error('Please select a valid image file');
       }
@@ -97,14 +96,13 @@ export const useCardCreation = (initialStep?: CardCreationState['step']) => {
         throw new Error('Image must be smaller than 10MB');
       }
 
-      // Process image
       const processedImageUrl = await processImage(file);
       
       setState(prev => ({
         ...prev,
         uploadedImage: processedImageUrl,
         imageFile: file,
-        step: 'customize',
+        step: 'frame', // Changed from 'customize' to 'frame'
         processing: false
       }));
       
@@ -125,7 +123,7 @@ export const useCardCreation = (initialStep?: CardCreationState['step']) => {
 
   const nextStep = useCallback(() => {
     setState(prev => {
-      const steps: CardCreationState['step'][] = ['upload', 'customize', 'preview', 'save'];
+      const steps: CardCreationState['step'][] = ['upload', 'frame', 'customize', 'preview', 'export'];
       const currentIndex = steps.indexOf(prev.step);
       const nextIndex = Math.min(currentIndex + 1, steps.length - 1);
       return { ...prev, step: steps[nextIndex] };
@@ -134,7 +132,7 @@ export const useCardCreation = (initialStep?: CardCreationState['step']) => {
 
   const previousStep = useCallback(() => {
     setState(prev => {
-      const steps: CardCreationState['step'][] = ['upload', 'customize', 'preview', 'save'];
+      const steps: CardCreationState['step'][] = ['upload', 'frame', 'customize', 'preview', 'export'];
       const currentIndex = steps.indexOf(prev.step);
       const prevIndex = Math.max(currentIndex - 1, 0);
       return { ...prev, step: steps[prevIndex] };

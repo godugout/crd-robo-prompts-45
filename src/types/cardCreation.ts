@@ -1,12 +1,14 @@
 
 export interface CardCreationState {
-  step: 'upload' | 'customize' | 'preview' | 'save';
+  step: 'upload' | 'frame' | 'customize' | 'preview' | 'export';
   uploadedImage: string | null;
   imageFile: File | null;
   cardData: {
     title: string;
     description: string;
     rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+    frame?: string;
+    effectPreset?: string;
     effects: {
       holographic: number;
       metallic: number;
