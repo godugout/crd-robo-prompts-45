@@ -38,13 +38,13 @@ export const useCardSaver = () => {
           image_url: cardData.imageUrl,
           thumbnail_url: cardData.imageUrl,
           rarity: cardData.rarity || 'common',
-          template_id: cardData.frameId,
+          template_id: null, // Set to null since frameId is not a UUID
           tags: ['custom', 'created'],
           is_public: true,
           creator_id: user.id,
           edition_size: 1,
           design_metadata: {
-            frameId: cardData.frameId,
+            frameId: cardData.frameId, // Store frame ID here instead
             version: '1.0'
           }
         })
