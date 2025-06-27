@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -25,51 +26,53 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <QueryClient client={queryClient}>
-          <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-            <Toaster />
-            <Routes>
-              {/* Auth routes */}
-              <Route 
-                path="/auth/signin" 
-                element={
-                  <ProtectedRoute requireAuth={false}>
-                    <SignIn />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/auth/signup" 
-                element={
-                  <ProtectedRoute requireAuth={false}>
-                    <SignUp />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              
-              {/* Main routes */}
-              <Route path="/" element={<Index />} />
-              <Route 
-                path="/create" 
-                element={
-                  <ProtectedRoute>
-                    <CardCreation />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/studio" 
-                element={
-                  <ProtectedRoute>
-                    <EnhancedStudio />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="/social-cosmos" element={<SocialCosmosPage />} />
-            </Routes>
-          </div>
-        </QueryClient>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+              <Toaster />
+              <Routes>
+                {/* Auth routes */}
+                <Route 
+                  path="/auth/signin" 
+                  element={
+                    <ProtectedRoute requireAuth={false}>
+                      <SignIn />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/auth/signup" 
+                  element={
+                    <ProtectedRoute requireAuth={false}>
+                      <SignUp />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                
+                {/* Main routes */}
+                <Route path="/" element={<Index />} />
+                <Route 
+                  path="/create" 
+                  element={
+                    <ProtectedRoute>
+                      <CardCreation />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/studio" 
+                  element={
+                    <ProtectedRoute>
+                      <EnhancedStudio />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="/social-cosmos" element={<SocialCosmosPage />} />
+              </Routes>
+            </div>
+          </TooltipProvider>
+        </QueryClientProvider>
       </AuthProvider>
     </Router>
   );
