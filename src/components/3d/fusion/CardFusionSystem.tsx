@@ -115,7 +115,10 @@ export const CardFusionSystem: React.FC<CardFusionSystemProps> = ({
     <group ref={groupRef}>
       {/* Card 1 */}
       {fusionProgress < 1 && (
-        <animated.group position={card1Position} scale={fusionScale}>
+        <animated.group 
+          position={card1Position as any}
+          scale={fusionScale}
+        >
           <DimensionalCard3D
             card={card1}
             environment="cosmic"
@@ -126,7 +129,10 @@ export const CardFusionSystem: React.FC<CardFusionSystemProps> = ({
 
       {/* Card 2 */}
       {fusionProgress < 1 && (
-        <animated.group position={card2Position} scale={fusionScale}>
+        <animated.group 
+          position={card2Position as any}
+          scale={fusionScale}
+        >
           <DimensionalCard3D
             card={card2}
             environment="cosmic"
@@ -173,7 +179,7 @@ export const CardFusionSystem: React.FC<CardFusionSystemProps> = ({
       {fusionProgress > 0 && fusionProgress < 1 && (
         <mesh>
           <cylinderGeometry args={[0.05, 0.05, 6, 8]} />
-          <meshBasicMaterial
+          <meshStandardMaterial
             color="#ffffff"
             transparent
             opacity={fusionProgress * 0.8}

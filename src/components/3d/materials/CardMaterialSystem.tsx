@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { useLoader } from '@react-three/fiber';
 import { TextureLoader } from 'three';
@@ -20,12 +21,15 @@ export const CardMaterialSystem: React.FC<CardMaterialSystemProps> = ({
 
   // Configure textures
   useMemo(() => {
-    [frontTexture, backTexture].forEach(texture => {
-      texture.wrapS = THREE.ClampToEdgeWrapping;
-      texture.wrapT = THREE.ClampToEdgeWrapping;
-      texture.minFilter = THREE.LinearFilter;
-      texture.magFilter = THREE.LinearFilter;
-      texture.flipY = true;
+    const textures = [frontTexture, backTexture];
+    textures.forEach(texture => {
+      if (texture && !Array.isArray(texture)) {
+        texture.wrapS = THREE.ClampToEdgeWrapping;
+        texture.wrapT = THREE.ClampToEdgeWrapping;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.flipY = true;
+      }
     });
   }, [frontTexture, backTexture]);
 

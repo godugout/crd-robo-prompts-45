@@ -40,14 +40,22 @@ export const BedroomEnvironment: React.FC<BedroomEnvironmentProps> = ({ intensit
       <group position={[-4, 3, -5.9]}>
         <mesh>
           <planeGeometry args={[1.5, 2]} />
-          <meshBasicMaterial color="#ff6b6b" emissive="#330000" emissiveIntensity={0.2} />
+          <meshStandardMaterial 
+            color="#ff6b6b" 
+            emissive="#330000" 
+            emissiveIntensity={0.2} 
+          />
         </mesh>
       </group>
 
       <group position={[4, 3, -5.9]}>
         <mesh>
           <planeGeometry args={[1.5, 2]} />
-          <meshBasicMaterial color="#4ecdc4" emissive="#003333" emissiveIntensity={0.2} />
+          <meshStandardMaterial 
+            color="#4ecdc4" 
+            emissive="#003333" 
+            emissiveIntensity={0.2} 
+          />
         </mesh>
       </group>
 
