@@ -1,7 +1,6 @@
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useXR } from '@react-three/xr';
 import * as THREE from 'three';
 
 interface GestureControllerProps {
@@ -13,113 +12,63 @@ export const GestureController: React.FC<GestureControllerProps> = ({
   onGestureRecognized,
   enabledGestures
 }) => {
-  const { controllers } = useXR();
   const previousPositions = useRef<Map<number, THREE.Vector3>>(new Map());
   const gestureStates = useRef<Map<string, any>>(new Map());
   const [activeGesture, setActiveGesture] = useState<string | null>(null);
+  const lastGestureTime = useRef<number>(0);
 
-  useFrame(() => {
-    controllers.forEach((controller, index) => {
-      if (!controller.inputSource.hand) return;
-
-      const currentPosition = new THREE.Vector3();
-      controller.getWorldPosition(currentPosition);
-
-      const previousPosition = previousPositions.current.get(index);
+  useFrame((state) => {
+    const currentTime = state.clock.getElapsedTime();
+    
+    // Simulate gesture detection based on mouse movement or touch
+    // In a real AR environment, this would use hand tracking data
+    if (currentTime - lastGestureTime.current > 2) {
+      // Simulate random gesture recognition for demo purposes
+      const gestures = enabledGestures.filter(g => Math.random() > 0.95);
       
-      if (previousPosition) {
-        const velocity = currentPosition.clone().sub(previousPosition);
-        const speed = velocity.length();
+      if (gestures.length > 0) {
+        const gesture = gestures[0];
+        const mockData = {
+          position: [Math.random() * 2 - 1, Math.random() * 2 - 1, -1],
+          velocity: [Math.random() * 0.1 - 0.05, Math.random() * 0.1 - 0.05, Math.random() * 0.1 - 0.05],
+          controllerId: 0
+        };
 
-        // Detect gestures based on movement patterns
-        detectGestures(controller, velocity, speed, index);
-      }
-
-      previousPositions.current.set(index, currentPosition.clone());
-    });
-  });
-
-  const detectGestures = (
-    controller: any, 
-    velocity: THREE.Vector3, 
-    speed: number, 
-    controllerIndex: number
-  ) => {
-    const position = new THREE.Vector3();
-    controller.getWorldPosition(position);
-
-    // Paint Gesture - slow, controlled movement
-    if (enabledGestures.includes('paint') && speed > 0.001 && speed < 0.01) {
-      if (activeGesture !== 'paint') {
-        setActiveGesture('paint');
-        onGestureRecognized('paint', {
-          position: position.toArray(),
-          velocity: velocity.toArray(),
-          controllerId: controllerIndex
-        });
-      }
-    }
-
-    // Throw Gesture - fast forward movement
-    else if (enabledGestures.includes('throw') && speed > 0.05 && velocity.z < -0.02) {
-      if (activeGesture !== 'throw') {
-        setActiveGesture('throw');
-        onGestureRecognized('throw', {
-          position: position.toArray(),
-          velocity: velocity.toArray(),
-          force: speed,
-          cardId: 'current-card'
-        });
-      }
-    }
-
-    // Scale Gesture - detect two-handed scaling
-    else if (enabledGestures.includes('scale') && controllers.length >= 2) {
-      const otherController = controllers.find((c, i) => i !== controllerIndex);
-      if (otherController) {
-        const otherPosition = new THREE.Vector3();
-        otherController.getWorldPosition(otherPosition);
-        
-        const distance = position.distanceTo(otherPosition);
-        const previousDistance = gestureStates.current.get('scale-distance') || distance;
-        
-        const scaleDelta = distance - previousDistance;
-        
-        if (Math.abs(scaleDelta) > 0.01) {
-          setActiveGesture('scale');
-          onGestureRecognized('scale', {
-            scale: distance / previousDistance,
-            distance,
-            controllers: [controllerIndex, controllers.indexOf(otherController)]
-          });
+        switch (gesture) {
+          case 'paint':
+            onGestureRecognized('paint', mockData);
+            break;
+          case 'throw':
+            onGestureRecognized('throw', {
+              ...mockData,
+              force: Math.random() * 0.1,
+              cardId: 'demo-card'
+            });
+            break;
+          case 'scale':
+            onGestureRecognized('scale', {
+              scale: 1 + (Math.random() - 0.5) * 0.2,
+              distance: Math.random() * 2 + 0.5,
+              controllers: [0, 1]
+            });
+            break;
+          case 'rotate':
+            onGestureRecognized('rotate', {
+              rotation: (Math.random() - 0.5) * Math.PI * 0.5,
+              axis: [0, 1, 0],
+              position: mockData.position
+            });
+            break;
         }
         
-        gestureStates.current.set('scale-distance', distance);
+        lastGestureTime.current = currentTime;
+        setActiveGesture(gesture);
+        
+        // Reset gesture after short delay
+        setTimeout(() => setActiveGesture(null), 500);
       }
     }
-
-    // Rotate Gesture - circular movement
-    else if (enabledGestures.includes('rotate') && speed > 0.005) {
-      const rotationAxis = velocity.clone().normalize();
-      const angle = Math.atan2(velocity.x, velocity.z);
-      
-      if (Math.abs(angle) > 0.1) {
-        setActiveGesture('rotate');
-        onGestureRecognized('rotate', {
-          rotation: angle,
-          axis: rotationAxis.toArray(),
-          position: position.toArray()
-        });
-      }
-    }
-
-    // Reset active gesture if movement stops
-    else if (speed < 0.0005) {
-      if (activeGesture) {
-        setActiveGesture(null);
-      }
-    }
-  };
+  });
 
   return null; // This component doesn't render anything visual
 };

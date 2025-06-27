@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { XR, ARButton, Controllers, Hands } from '@react-three/xr';
+import { XR, ARButton } from '@react-three/xr';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -167,10 +167,6 @@ export const ARCreationStudio: React.FC<ARCreationStudioProps> = ({
           {/* AR Scene Lighting */}
           <ambientLight intensity={0.6} />
           <directionalLight position={[10, 10, 5]} intensity={0.8} />
-
-          {/* Hand and Controller Tracking */}
-          <Controllers />
-          <Hands />
 
           {/* Core AR Components */}
           <ARCardDesigner 

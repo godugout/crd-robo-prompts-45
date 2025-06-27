@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -12,6 +11,7 @@ import AuthCallback from "./pages/auth/AuthCallback";
 import CardCreation from "./pages/CardCreation";
 import { EnhancedStudio } from "@/components/studio/EnhancedStudio";
 import SocialCosmosPage from '@/pages/SocialCosmosPage';
+import EnhancementForgePage from '@/pages/EnhancementForgePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {

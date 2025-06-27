@@ -1,7 +1,7 @@
 
 import React, { useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Interactive, useXR } from '@react-three/xr';
+import { Interactive } from '@react-three/xr';
 import { Text, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -22,7 +22,6 @@ export const ARCardDesigner: React.FC<ARCardDesignerProps> = ({
   environmentalData
 }) => {
   const { scene } = useThree();
-  const { isPresenting } = useXR();
   const cardRef = useRef<THREE.Mesh>(null);
   const [cardPosition, setCardPosition] = useState<[number, number, number]>([0, 0, -1]);
   const [cardRotation, setCardRotation] = useState<[number, number, number]>([0, 0, 0]);
@@ -63,7 +62,7 @@ export const ARCardDesigner: React.FC<ARCardDesignerProps> = ({
 
   // Time-based animations
   useFrame((state) => {
-    if (cardRef.current && isPresenting) {
+    if (cardRef.current) {
       const time = state.clock.getElapsedTime();
       
       // Environmental breathing effect
