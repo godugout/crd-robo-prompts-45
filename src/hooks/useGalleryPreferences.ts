@@ -1,19 +1,17 @@
 
-import { useState } from 'react';
-import type { LayoutType } from '@/hooks/useGalleryLayout';
+import { useState, useEffect } from 'react';
 
-interface ViewHistoryItem {
-  cardId: string;
-  timestamp: number;
-  duration: number;
-}
-
-interface GalleryPreferences {
-  layout: LayoutType;
+export interface GalleryPreferences {
+  layout: 'grid' | 'circle' | 'spiral';
   autoRotate: boolean;
   quality: 'low' | 'medium' | 'high' | 'ultra';
-  enableSounds: boolean;
-  viewHistory: ViewHistoryItem[];
+  showConnections: boolean;
+  particleEffects: boolean;
+  viewHistory: Array<{
+    cardId: string;
+    timestamp: number;
+    duration: number;
+  }>;
 }
 
 export const useGalleryPreferences = () => {
@@ -21,12 +19,27 @@ export const useGalleryPreferences = () => {
     layout: 'grid',
     autoRotate: false,
     quality: 'high',
-    enableSounds: true,
+    showConnections: true,
+    particleEffects: true,
     viewHistory: []
   });
 
+  useEffect(() => {
+    // Load from localStorage
+    const saved = localStorage.getItem('gallery-preferences');
+    if (saved) {
+      try {
+        setPreferences(JSON.parse(saved));
+      } catch (error) {
+        console.warn('Failed to load gallery preferences:', error);
+      }
+    }
+  }, []);
+
   const updatePreferences = (newPreferences: Partial<GalleryPreferences>) => {
-    setPreferences(prev => ({ ...prev, ...newPreferences }));
+    const updated = { ...preferences, ...newPreferences };
+    setPreferences(updated);
+    localStorage.setItem('gallery-preferences', JSON.stringify(updated));
   };
 
   return {

@@ -2,195 +2,224 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
+import { MetacollectionUniverse } from '../collections/MetacollectionUniverse';
 import { ARCreationStudio } from './ARCreationStudio';
 import { TimeLapseCreationSystem } from './TimeLapseCreationSystem';
-import { Smartphone, Clock, Sparkles, Eye } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Galaxy, Smartphone, Clock, 
+  Sparkles, Infinity, Dna 
+} from 'lucide-react';
 
-interface EnhancementForgeProps {
-  className?: string;
-}
+// Mock data for demonstration
+const mockCollections = [
+  {
+    id: '1',
+    title: 'Epic Sports Legends',
+    theme: 'sports' as const,
+    cards: [
+      { id: '1', title: 'Jordan Rookie', rarity: 'legendary', tags: ['basketball', 'rookie'], created_at: '2023-01-01' },
+      { id: '2', title: 'Brady Championship', rarity: 'epic', tags: ['football', 'champion'], created_at: '2023-02-01' }
+    ],
+    dna: {
+      creativity: 0.8,
+      rarity: 0.9,
+      theme_coherence: 0.85,
+      artistic_style: ['vintage', 'championship'],
+      color_palette: ['#ffd700', '#ff4444', '#0066cc'],
+      interaction_patterns: ['synergy', 'rivalry'],
+      evolution_potential: 0.7,
+      genetic_stability: 0.8
+    },
+    environment: 'stadium',
+    relationships: [
+      { cardId1: '1', cardId2: '2', type: 'synergy' as const, strength: 0.8 }
+    ]
+  },
+  {
+    id: '2',
+    title: 'Mystical Realm',
+    theme: 'fantasy' as const,
+    cards: [
+      { id: '3', title: 'Dragon Lord', rarity: 'legendary', tags: ['dragon', 'fire'], created_at: '2023-03-01' },
+      { id: '4', title: 'Ice Wizard', rarity: 'rare', tags: ['wizard', 'ice'], created_at: '2023-04-01' }
+    ],
+    dna: {
+      creativity: 0.95,
+      rarity: 0.7,
+      theme_coherence: 0.9,
+      artistic_style: ['magical', 'elemental'],
+      color_palette: ['#a855f7', '#3b82f6', '#ef4444'],
+      interaction_patterns: ['rivalry', 'evolution'],
+      evolution_potential: 0.9,
+      genetic_stability: 0.6
+    },
+    environment: 'magical_realm',
+    relationships: [
+      { cardId1: '3', cardId2: '4', type: 'rivalry' as const, strength: 0.9 }
+    ]
+  }
+];
 
-export const EnhancementForge: React.FC<EnhancementForgeProps> = ({ className = '' }) => {
-  const [activeTab, setActiveTab] = useState('ar-studio');
-  const [createdCards, setCreatedCards] = useState<any[]>([]);
-  const [activePortals, setActivePortals] = useState<string[]>([]);
+export const EnhancementForge: React.FC = () => {
+  const [activeFeature, setActiveFeature] = useState('universe');
+  const [collections, setCollections] = useState(mockCollections);
+
+  const handleCollectionUpdate = (updatedCollection: any) => {
+    setCollections(prev => 
+      prev.map(c => c.id === updatedCollection.id ? updatedCollection : c)
+    );
+  };
+
+  const handleCardInteraction = (type: string, data: any) => {
+    console.log(`Card interaction: ${type}`, data);
+    // Handle various card interactions, analytics, etc.
+  };
 
   const handleCardCreate = (cardData: any) => {
-    setCreatedCards(prev => [...prev, cardData]);
-    console.log('Card created in AR:', cardData);
+    console.log('New card created:', cardData);
+    // Add to appropriate collection based on genetics/theme
   };
 
   const handlePortalActivate = (cardId: string) => {
-    setActivePortals(prev => [...prev, cardId]);
     console.log('Portal activated for card:', cardId);
-  };
-
-  const handleTimelapseSchedule = (event: any) => {
-    console.log('Time-lapse event scheduled:', event);
+    // Handle cross-device card sharing
   };
 
   return (
-    <div className={`w-full max-w-7xl mx-auto ${className}`}>
-      <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold text-white mb-4 flex items-center justify-center gap-3">
-          <Sparkles className="w-8 h-8 text-purple-400" />
-          The Enhancement Forge
-          <Sparkles className="w-8 h-8 text-purple-400" />
-        </h1>
-        <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-          Step into the future of card creation with AR-first design tools, environmental effects, 
-          and time-based evolution systems that bring your cards to life in the real world.
-        </p>
+    <div className="w-full h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Header */}
+      <div className="absolute top-4 left-4 right-4 z-50 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Badge className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-300 border-purple-500/50">
+            <Sparkles className="w-4 h-4 mr-2" />
+            Enhancement Forge
+          </Badge>
+          
+          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/50">
+            <Infinity className="w-3 h-3 mr-1" />
+            Infinite Gallery
+          </Badge>
+        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-slate-800/50 h-auto">
-          <TabsTrigger 
-            value="ar-studio" 
-            className="flex flex-col items-center gap-2 py-4 data-[state=active]:bg-purple-600"
-          >
-            <Smartphone className="w-5 h-5" />
-            <span className="text-sm">AR Studio</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="environmental" 
-            className="flex flex-col items-center gap-2 py-4 data-[state=active]:bg-blue-600"
-          >
-            <Eye className="w-5 h-5" />
-            <span className="text-sm">Environmental</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="timelapse" 
-            className="flex flex-col items-center gap-2 py-4 data-[state=active]:bg-green-600"
-          >
-            <Clock className="w-5 h-5" />
-            <span className="text-sm">Time-Lapse</span>
-          </TabsTrigger>
-        </TabsList>
+      {/* Feature Tabs */}
+      <div className="absolute top-16 left-4 z-50">
+        <Tabs value={activeFeature} onValueChange={setActiveFeature} orientation="vertical">
+          <TabsList className="bg-black/50 backdrop-blur border-white/10 flex-col h-auto">
+            <TabsTrigger value="universe" className="flex items-center gap-2 w-full justify-start">
+              <Galaxy className="w-4 h-4" />
+              Metacollection Universe
+            </TabsTrigger>
+            <TabsTrigger value="ar" className="flex items-center gap-2 w-full justify-start">
+              <Smartphone className="w-4 h-4" />
+              AR Creation Studio
+            </TabsTrigger>
+            <TabsTrigger value="timelapse" className="flex items-center gap-2 w-full justify-start">
+              <Clock className="w-4 h-4" />
+              Time-Lapse Creation
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
 
-        <div className="mt-8">
-          <TabsContent value="ar-studio" className="space-y-6">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-white mb-2 flex items-center justify-center gap-2">
-                <Smartphone className="w-6 h-6 text-purple-400" />
-                AR Creation Studio
-              </h2>
-              <p className="text-gray-300 max-w-2xl mx-auto">
-                Design cards in physical space using WebXR. Place virtual cards on real surfaces, 
-                paint effects with hand gestures, and share through dimensional portals.
+      {/* Main Content */}
+      <div className="w-full h-full pl-48">
+        {activeFeature === 'universe' && (
+          <MetacollectionUniverse
+            collections={collections}
+            onCollectionUpdate={handleCollectionUpdate}
+            onCardInteraction={handleCardInteraction}
+          />
+        )}
+
+        {activeFeature === 'ar' && (
+          <ARCreationStudio
+            onCardCreate={handleCardCreate}
+            onPortalActivate={handlePortalActivate}
+          />
+        )}
+
+        {activeFeature === 'timelapse' && (
+          <TimeLapseCreationSystem
+            onScheduleTransformation={(data) => {
+              console.log('Transformation scheduled:', data);
+            }}
+            onEvolutionComplete={(data) => {
+              console.log('Evolution complete:', data);
+            }}
+          />
+        )}
+      </div>
+
+      {/* Feature Info Panel */}
+      <div className="absolute bottom-4 right-4 z-50">
+        <Card className="p-4 bg-black/50 backdrop-blur border-white/10 max-w-sm">
+          {activeFeature === 'universe' && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Galaxy className="w-5 h-5 text-purple-400" />
+                <span className="text-white font-medium">Metacollection Universe</span>
+              </div>
+              <p className="text-gray-300 text-sm">
+                Explore infinite 3D galleries with neural network environments, 
+                living card interactions, and genetic collection evolution.
               </p>
+              <div className="flex gap-2 mt-2">
+                <Badge variant="outline" className="text-xs">
+                  <Dna className="w-3 h-3 mr-1" />
+                  DNA System
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  Seasonal Events
+                </Badge>
+              </div>
             </div>
-            
-            <div className="h-[600px] rounded-xl overflow-hidden border border-purple-500/30">
-              <ARCreationStudio
-                onCardCreate={handleCardCreate}
-                onPortalActivate={handlePortalActivate}
-              />
-            </div>
-          </TabsContent>
+          )}
 
-          <TabsContent value="environmental" className="space-y-6">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-white mb-2 flex items-center justify-center gap-2">
-                <Eye className="w-6 h-6 text-blue-400" />
-                Environmental Effects
-              </h2>
-              <p className="text-gray-300 max-w-2xl mx-auto">
-                Cards that respond to real-world conditions. Weather integration makes them frost in winter, 
-                shimmer in sunlight, and sparkle with raindrops during storms.
+          {activeFeature === 'ar' && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Smartphone className="w-5 h-5 text-blue-400" />
+                <span className="text-white font-medium">AR Creation Studio</span>
+              </div>
+              <p className="text-gray-300 text-sm">
+                Design cards in physical space with gesture controls, 
+                environmental effects, and cross-device portals.
               </p>
+              <div className="flex gap-2 mt-2">
+                <Badge variant="outline" className="text-xs">
+                  WebXR
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  Gestures
+                </Badge>
+              </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="p-6 bg-gradient-to-br from-blue-900 to-cyan-900 text-white">
-                <h3 className="text-xl font-bold mb-4">Weather Integration</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span>Rain Effects</span>
-                    <Badge className="bg-blue-500/20 text-blue-400">Active</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Snow Overlays</span>
-                    <Badge className="bg-gray-500/20 text-gray-400">Seasonal</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Heat Waves</span>
-                    <Badge className="bg-orange-500/20 text-orange-400">Summer</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Lightning Flash</span>
-                    <Badge className="bg-yellow-500/20 text-yellow-400">Storm</Badge>
-                  </div>
-                </div>
-              </Card>
+          )}
 
-              <Card className="p-6 bg-gradient-to-br from-amber-900 to-orange-900 text-white">
-                <h3 className="text-xl font-bold mb-4">Lighting Conditions</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span>Sunlight Shimmer</span>
-                    <Badge className="bg-yellow-500/20 text-yellow-400">Bright</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Candlelight Glow</span>
-                    <Badge className="bg-orange-500/20 text-orange-400">Warm</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Moonlight Tint</span>
-                    <Badge className="bg-blue-500/20 text-blue-400">Cool</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Neon Reflection</span>
-                    <Badge className="bg-purple-500/20 text-purple-400">Urban</Badge>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="timelapse" className="space-y-6">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-white mb-2 flex items-center justify-center gap-2">
-                <Clock className="w-6 h-6 text-green-400" />
-                Time-Lapse Evolution
-              </h2>
-              <p className="text-gray-300 max-w-2xl mx-auto">
-                Schedule card transformations over days or weeks. Cards evolve based on real-world events, 
-                sports scores, weather patterns, and astronomical phenomena.
+          {activeFeature === 'timelapse' && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-green-400" />
+                <span className="text-white font-medium">Time-Lapse Creation</span>
+              </div>
+              <p className="text-gray-300 text-sm">
+                Schedule card transformations over time based on real-world 
+                events, sports scores, and astronomical phenomena.
               </p>
+              <div className="flex gap-2 mt-2">
+                <Badge variant="outline" className="text-xs">
+                  Scheduling
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  Evolution
+                </Badge>
+              </div>
             </div>
-            
-            <TimeLapseCreationSystem
-              cardId="demo-card"
-              onScheduleEvent={handleTimelapseSchedule}
-            />
-          </TabsContent>
-        </div>
-      </Tabs>
-
-      {/* Enhancement Forge Stats */}
-      <Card className="mt-8 p-6 bg-gradient-to-br from-slate-900 to-gray-900 text-white">
-        <h3 className="text-xl font-bold mb-4 text-center">Enhancement Forge Statistics</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-400">{createdCards.length}</div>
-            <div className="text-sm opacity-75">AR Cards Created</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-400">{activePortals.length}</div>
-            <div className="text-sm opacity-75">Active Portals</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-400">47</div>
-            <div className="text-sm opacity-75">Scheduled Events</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-orange-400">12</div>
-            <div className="text-sm opacity-75">Environmental Effects</div>
-          </div>
-        </div>
-      </Card>
+          )}
+        </Card>
+      </div>
     </div>
   );
 };

@@ -3,67 +3,43 @@ import { useState, useEffect } from 'react';
 
 interface QualitySettings {
   renderQuality: 'low' | 'medium' | 'high' | 'ultra';
-  enableShadows: boolean;
-  antialias: boolean;
+  shadows: boolean;
+  antialiasing: boolean;
   particleCount: number;
+  effectsIntensity: number;
 }
 
 export const use3DQualitySettings = () => {
   const [settings, setSettings] = useState<QualitySettings>({
     renderQuality: 'high',
-    enableShadows: true,
-    antialias: true,
-    particleCount: 500
+    shadows: true,
+    antialiasing: true,
+    particleCount: 100,
+    effectsIntensity: 1.0
   });
 
-  // Auto-detect device capabilities and adjust quality
   useEffect(() => {
-    const detectQuality = () => {
-      const canvas = document.createElement('canvas');
-      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      
-      if (!gl) {
-        setSettings(prev => ({ ...prev, renderQuality: 'low' }));
-        return;
-      }
-
-      const renderer = gl.getParameter(gl.RENDERER);
+    // Auto-detect device capabilities
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+    
+    if (gl) {
       const vendor = gl.getParameter(gl.VENDOR);
+      const renderer = gl.getParameter(gl.RENDERER);
       
-      // Check for mobile devices
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      
-      if (isMobile) {
-        setSettings(prev => ({ 
-          ...prev, 
+      // Simplified device detection
+      if (renderer.includes('Mali') || renderer.includes('Adreno')) {
+        // Mobile GPU - lower settings
+        setSettings(prev => ({
+          ...prev,
           renderQuality: 'medium',
-          enableShadows: false,
-          particleCount: 100
-        }));
-      } else {
-        // Desktop - check GPU capabilities
-        const isHighEnd = renderer && (
-          renderer.includes('GTX') || 
-          renderer.includes('RTX') || 
-          renderer.includes('Radeon RX')
-        );
-        
-        setSettings(prev => ({ 
-          ...prev, 
-          renderQuality: isHighEnd ? 'ultra' : 'high'
+          shadows: false,
+          particleCount: 50,
+          effectsIntensity: 0.7
         }));
       }
-    };
-
-    detectQuality();
+    }
   }, []);
 
-  const updateSettings = (newSettings: Partial<QualitySettings>) => {
-    setSettings(prev => ({ ...prev, ...newSettings }));
-  };
-
-  return {
-    settings,
-    updateSettings
-  };
+  return { settings, setSettings };
 };
