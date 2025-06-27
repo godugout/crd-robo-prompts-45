@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Sphere, Box } from '@react-three/drei';
@@ -292,7 +291,11 @@ export const SeasonalEventManager: React.FC<SeasonalEventManagerProps> = ({
           Math.sin(index * Math.PI / 4) * 60
         ]}>
           <Sphere args={[2]}>
-            <meshBasicMaterial color="#ffffff" emissive="#4a90e2" emissiveIntensity={0.5} />
+            <meshBasicMaterial 
+              color="#ffffff" 
+              emissive="#4a90e2" 
+              emissiveIntensity={0.5} 
+            />
           </Sphere>
           
           <Text

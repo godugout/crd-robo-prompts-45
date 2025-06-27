@@ -1,19 +1,19 @@
-
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, Stars } from '@react-three/drei';
+import { OrbitControls, Environment } from '@react-three/drei';
+import { ConstellationGallery } from './ConstellationGallery';
+import { MuseumMode } from './MuseumMode';
+import { LivingCollectionsSystem } from './LivingCollectionsSystem';
+import { CollectionGeneticsEngine } from './CollectionGeneticsEngine';
+import { SeasonalEventManager } from './SeasonalEventManager';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ConstellationGallery } from './ConstellationGallery';
-import { MuseumMode } from './MuseumMode';
-import { LivingCollectionsSystem } from './LivingCollectionsSystem';
-import { SeasonalEventManager } from './SeasonalEventManager';
-import { CollectionGeneticsEngine } from './CollectionGeneticsEngine';
 import { 
-  Galaxy, Sparkles, Museum, Dna, 
-  Calendar, Wand2, Eye, Settings 
+  Sparkles as GalaxyIcon, Building2 as MuseumIcon, 
+  Zap, Dna, Calendar, 
+  Play, Pause, Settings 
 } from 'lucide-react';
 
 interface Collection {
@@ -151,11 +151,11 @@ export const MetacollectionUniverse: React.FC<MetacollectionUniverseProps> = ({
 
   const getModeIcon = (mode: string) => {
     switch (mode) {
-      case 'constellation': return <Galaxy className="w-4 h-4" />;
-      case 'museum': return <Museum className="w-4 h-4" />;
-      case 'living': return <Wand2 className="w-4 h-4" />;
+      case 'constellation': return <GalaxyIcon className="w-4 h-4" />;
+      case 'museum': return <MuseumIcon className="w-4 h-4" />;
+      case 'living': return <Play className="w-4 h-4" />;
       case 'genetics': return <Dna className="w-4 h-4" />;
-      default: return <Eye className="w-4 h-4" />;
+      default: return <Pause className="w-4 h-4" />;
     }
   };
 

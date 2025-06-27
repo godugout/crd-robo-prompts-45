@@ -7,8 +7,8 @@ import { ARCreationStudio } from './ARCreationStudio';
 import { TimeLapseCreationSystem } from './TimeLapseCreationSystem';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Galaxy, Smartphone, Clock, 
-  Sparkles, Infinity, Dna 
+  Sparkles, Smartphone, Clock, 
+  Sparkles as GalaxyIcon, Infinity, Dna 
 } from 'lucide-react';
 
 // Mock data for demonstration
@@ -108,7 +108,7 @@ export const EnhancementForge: React.FC = () => {
         <Tabs value={activeFeature} onValueChange={setActiveFeature} orientation="vertical">
           <TabsList className="bg-black/50 backdrop-blur border-white/10 flex-col h-auto">
             <TabsTrigger value="universe" className="flex items-center gap-2 w-full justify-start">
-              <Galaxy className="w-4 h-4" />
+              <GalaxyIcon className="w-4 h-4" />
               Metacollection Universe
             </TabsTrigger>
             <TabsTrigger value="ar" className="flex items-center gap-2 w-full justify-start">
@@ -142,10 +142,10 @@ export const EnhancementForge: React.FC = () => {
 
         {activeFeature === 'timelapse' && (
           <TimeLapseCreationSystem
-            onScheduleTransformation={(data) => {
+            onTransformationScheduled={(data) => {
               console.log('Transformation scheduled:', data);
             }}
-            onEvolutionComplete={(data) => {
+            onEvolutionCompleted={(data) => {
               console.log('Evolution complete:', data);
             }}
           />
@@ -158,7 +158,7 @@ export const EnhancementForge: React.FC = () => {
           {activeFeature === 'universe' && (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Galaxy className="w-5 h-5 text-purple-400" />
+                <GalaxyIcon className="w-5 h-5 text-purple-400" />
                 <span className="text-white font-medium">Metacollection Universe</span>
               </div>
               <p className="text-gray-300 text-sm">
