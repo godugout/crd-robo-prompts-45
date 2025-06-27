@@ -11,6 +11,8 @@ interface FramePreviewGridProps {
   selectedFrame?: string;
   onSelectFrame: (frameId: string) => void;
   searchQuery?: string;
+  uploadedImage?: string; // Add uploaded image prop
+  cardName?: string; // Add card name prop
 }
 
 const TEMPLATES_PER_PAGE = 4;
@@ -18,7 +20,9 @@ const TEMPLATES_PER_PAGE = 4;
 export const FramePreviewGrid: React.FC<FramePreviewGridProps> = ({
   selectedFrame,
   onSelectFrame,
-  searchQuery = ''
+  searchQuery = '',
+  uploadedImage,
+  cardName
 }) => {
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -64,6 +68,9 @@ export const FramePreviewGrid: React.FC<FramePreviewGridProps> = ({
                     width={160}
                     height={213}
                     showContent={true}
+                    uploadedImage={uploadedImage}
+                    cardName={cardName}
+                    previewMode="interactive"
                   />
                   
                   {/* Selection indicator */}
@@ -74,10 +81,15 @@ export const FramePreviewGrid: React.FC<FramePreviewGridProps> = ({
                   )}
                 </div>
 
-                {/* Frame Name */}
-                <h3 className="text-crd-white font-medium text-sm text-center">
-                  {frame.name}
-                </h3>
+                {/* Frame Name and Description */}
+                <div className="space-y-1">
+                  <h3 className="text-crd-white font-medium text-sm text-center">
+                    {frame.name}
+                  </h3>
+                  <p className="text-crd-lightGray text-xs text-center line-clamp-2">
+                    {frame.description}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           );
@@ -122,6 +134,15 @@ export const FramePreviewGrid: React.FC<FramePreviewGridProps> = ({
             Next
             <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
+        </div>
+      )}
+      
+      {/* Helpful tip when no image is uploaded */}
+      {!uploadedImage && (
+        <div className="bg-editor-tool p-3 rounded-lg border border-editor-border">
+          <p className="text-crd-lightGray text-sm text-center">
+            Upload an image to see how it looks in each frame design
+          </p>
         </div>
       )}
     </div>

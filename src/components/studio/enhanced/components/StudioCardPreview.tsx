@@ -4,6 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ImagePlus, Camera, Upload } from 'lucide-react';
 import { calculateFlexibleCardSize, type CardOrientation } from '@/utils/cardDimensions';
+import { FramePreviewRenderer } from '../../frames/FramePreviewRenderer';
+import { ENHANCED_FRAME_TEMPLATES } from '../../frames/EnhancedFrameTemplates';
 
 interface StudioCardPreviewProps {
   uploadedImage?: string;
@@ -23,47 +25,50 @@ export const StudioCardPreview: React.FC<StudioCardPreviewProps> = ({
   onImageUpload
 }) => {
   const cardDimensions = calculateFlexibleCardSize(400, 500, orientation, 3, 0.5);
+  const frameTemplate = selectedFrame ? ENHANCED_FRAME_TEMPLATES.find(f => f.id === selectedFrame) : null;
 
   return (
     <div className="relative flex items-center justify-center min-h-[400px] p-4">
-      <Card 
-        className="bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 border-white/20 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-crd-green/20"
-        style={{
-          width: cardDimensions.width,
-          height: cardDimensions.height,
-          transform: show3DPreview ? 'perspective(1000px) rotateX(5deg) rotateY(-5deg)' : 'none'
-        }}
-      >
-        <div className="relative w-full h-full p-6">
-          {uploadedImage ? (
-            <div className="relative w-full h-full rounded-2xl overflow-hidden group">
-              <img 
-                src={uploadedImage} 
-                alt="Card content"
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              
-              {/* Effect Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
-              
-              {/* Card Info Overlay */}
-              <div className="absolute bottom-4 left-4 right-4">
-                <h3 className="text-white text-xl font-bold mb-1 truncate">
-                  {cardName || 'Your Card'}
-                </h3>
-                <p className="text-gray-200 text-sm truncate">
-                  Frame: {selectedFrame || 'Default'} • Effect: Active
-                </p>
-              </div>
-
-              {/* Premium Effects Overlay */}
-              {selectedFrame && (
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
-                </div>
-              )}
-            </div>
-          ) : (
+      {frameTemplate && (uploadedImage || cardName) ? (
+        // Show frame with content
+        <div 
+          className="relative transition-all duration-300 hover:scale-105"
+          style={{
+            transform: show3DPreview ? 'perspective(1000px) rotateX(5deg) rotateY(-5deg)' : 'none'
+          }}
+        >
+          <FramePreviewRenderer
+            template={frameTemplate}
+            width={cardDimensions.width}
+            height={cardDimensions.height}
+            showContent={true}
+            uploadedImage={uploadedImage}
+            cardName={cardName}
+            previewMode="interactive"
+          />
+          
+          {/* Edit overlay for uploaded image */}
+          {uploadedImage && onImageUpload && (
+            <button
+              onClick={onImageUpload}
+              className="absolute top-2 left-2 bg-black/70 hover:bg-black/90 text-white p-2 rounded-full transition-colors"
+              title="Change image"
+            >
+              <Camera className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      ) : (
+        // Show upload area
+        <Card 
+          className="bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900 border-white/20 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 hover:shadow-crd-green/20"
+          style={{
+            width: cardDimensions.width,
+            height: cardDimensions.height,
+            transform: show3DPreview ? 'perspective(1000px) rotateX(5deg) rotateY(-5deg)' : 'none'
+          }}
+        >
+          <div className="relative w-full h-full p-6">
             <div 
               className="w-full h-full rounded-2xl border-2 border-dashed border-white/30 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 hover:border-crd-green/50 hover:bg-crd-green/5"
               onClick={onImageUpload}
@@ -91,16 +96,28 @@ export const StudioCardPreview: React.FC<StudioCardPreviewProps> = ({
                 </p>
               </div>
             </div>
-          )}
-        </div>
-      </Card>
+          </div>
+        </Card>
+      )}
 
       {/* Dimension Info */}
       <div className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-sm rounded-lg px-3 py-1 border border-white/10">
         <div className="text-white text-xs font-medium">
           {Math.round(cardDimensions.width)}×{Math.round(cardDimensions.height)}
+          {frameTemplate && (
+            <span className="ml-2 text-crd-green">• {frameTemplate.name}</span>
+          )}
         </div>
       </div>
+
+      {/* Frame info */}
+      {frameTemplate && (
+        <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm rounded-lg px-3 py-1 border border-white/10">
+          <div className="text-white text-xs font-medium">
+            {frameTemplate.category} • {frameTemplate.rarity}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

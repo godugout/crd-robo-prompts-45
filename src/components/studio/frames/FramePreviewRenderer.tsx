@@ -7,19 +7,26 @@ interface FramePreviewRendererProps {
   width?: number;
   height?: number;
   showContent?: boolean;
+  uploadedImage?: string; // Add uploaded image prop
+  cardName?: string; // Add card name prop
+  previewMode?: 'static' | 'interactive'; // Add preview mode
 }
 
 export const FramePreviewRenderer: React.FC<FramePreviewRendererProps> = ({
   template,
   width = 200,
   height = 280,
-  showContent = true
+  showContent = true,
+  uploadedImage,
+  cardName = 'Card Name',
+  previewMode = 'static'
 }) => {
   const aspectRatio = height / width;
   
   return (
     <div
-      className="frame-preview relative overflow-hidden"
+      className={`frame-preview relative overflow-hidden ${previewMode === 'interactive' ? 'hover:scale-105' : ''}`}
+      data-category={template.category}
       style={{
         width: `${width}px`,
         height: `${height}px`,
@@ -34,7 +41,8 @@ export const FramePreviewRenderer: React.FC<FramePreviewRendererProps> = ({
         backgroundClip: template.visual.border.gradient ? 'padding-box, border-box' : 'padding-box',
         boxShadow: template.visual.shadow,
         borderRadius: template.visual.borderRadius,
-        animation: template.visual.animation
+        animation: template.visual.animation,
+        transition: 'transform 0.2s ease-in-out'
       }}
     >
       {/* Pattern Overlay */}
@@ -51,9 +59,9 @@ export const FramePreviewRenderer: React.FC<FramePreviewRendererProps> = ({
       {/* Content Areas */}
       {showContent && (
         <>
-          {/* Image Area */}
+          {/* Image Area - Show uploaded image or placeholder */}
           <div
-            className="absolute bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white text-xs font-bold"
+            className="absolute overflow-hidden"
             style={{
               left: `${(template.layout.imageArea.x / 300) * 100}%`,
               top: `${(template.layout.imageArea.y / 420) * 100}%`,
@@ -62,12 +70,23 @@ export const FramePreviewRenderer: React.FC<FramePreviewRendererProps> = ({
               borderRadius: '4px'
             }}
           >
-            IMG
+            {uploadedImage ? (
+              <img 
+                src={uploadedImage} 
+                alt="Card content"
+                className="w-full h-full object-cover"
+                style={{ borderRadius: '4px' }}
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white text-xs font-bold">
+                IMG
+              </div>
+            )}
           </div>
 
-          {/* Title Area */}
+          {/* Title Area - Show card name or placeholder */}
           <div
-            className="absolute flex items-center justify-center text-xs font-bold"
+            className="absolute flex items-center justify-center text-xs font-bold px-1"
             style={{
               left: `${(template.layout.titleArea.x / 300) * 100}%`,
               top: `${(template.layout.titleArea.y / 420) * 100}%`,
@@ -78,13 +97,15 @@ export const FramePreviewRenderer: React.FC<FramePreviewRendererProps> = ({
               borderRadius: '2px'
             }}
           >
-            TITLE
+            <span className="truncate text-center leading-tight">
+              {cardName && cardName !== 'Card Name' ? cardName : 'TITLE'}
+            </span>
           </div>
 
           {/* Subtitle Area */}
           {template.layout.subtitleArea && (
             <div
-              className="absolute flex items-center justify-center text-xs"
+              className="absolute flex items-center justify-center text-xs px-1"
               style={{
                 left: `${(template.layout.subtitleArea.x / 300) * 100}%`,
                 top: `${(template.layout.subtitleArea.y / 420) * 100}%`,
@@ -95,14 +116,16 @@ export const FramePreviewRenderer: React.FC<FramePreviewRendererProps> = ({
                 borderRadius: '2px'
               }}
             >
-              SUBTITLE
+              <span className="truncate text-center leading-tight">
+                {template.category}
+              </span>
             </div>
           )}
 
           {/* Stats Area */}
           {template.layout.statsArea && (
             <div
-              className="absolute flex items-center justify-center text-xs"
+              className="absolute flex items-center justify-center text-xs px-1"
               style={{
                 left: `${(template.layout.statsArea.x / 300) * 100}%`,
                 top: `${(template.layout.statsArea.y / 420) * 100}%`,
@@ -113,7 +136,9 @@ export const FramePreviewRenderer: React.FC<FramePreviewRendererProps> = ({
                 borderRadius: '2px'
               }}
             >
-              STATS
+              <span className="truncate text-center leading-tight">
+                {template.rarity.toUpperCase()}
+              </span>
             </div>
           )}
         </>
@@ -126,6 +151,13 @@ export const FramePreviewRenderer: React.FC<FramePreviewRendererProps> = ({
       
       {template.effects.glow && (
         <div className="absolute inset-0 pointer-events-none glow-overlay" />
+      )}
+
+      {/* Premium indicator */}
+      {template.rarity === 'Legendary' && (
+        <div className="absolute top-1 right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center">
+          <div className="w-2 h-2 bg-yellow-600 rounded-full animate-pulse"></div>
+        </div>
       )}
     </div>
   );
