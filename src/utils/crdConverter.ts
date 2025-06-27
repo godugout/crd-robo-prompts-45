@@ -53,7 +53,7 @@ export class CRDConverter {
           type: this.mapEffectsToMaterialType(template.effects),
           albedo: { format: 'hex', value: '#ffffff' },
           metalness: template.effects.metallic ? 0.8 : 0.1,
-          roughness: template.effects.chrome ? 0.1 : 0.6,
+          roughness: this.getEffectRoughness(template.effects),
           
           holographic: template.effects.holographic ? {
             intensity: 0.8,
@@ -212,9 +212,15 @@ export class CRDConverter {
 
   private static mapEffectsToMaterialType(effects: any): any {
     if (effects.holographic) return 'holographic';
-    if (effects.chrome || effects.metallic) return 'metallic';
+    if (effects.metallic) return 'metallic';
     if (effects.crystal) return 'crystal';
     return 'standard';
+  }
+
+  private static getEffectRoughness(effects: any): number {
+    if (effects.metallic) return 0.1;
+    if (effects.crystal) return 0.0;
+    return 0.6;
   }
 
   private static extractBorderWidth(width: string): number {
