@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { CheckCircle, Tabs } from 'lucide-react';
+import { CheckCircle, Layout } from 'lucide-react';
 import { UnifiedCardRenderer } from './UnifiedCardRenderer';
 import { CRDFrameSelector } from '../frames/crd/CRDFrameSelector';
 import type { UnifiedCardData } from '@/types/cardCreation';
