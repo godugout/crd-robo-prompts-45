@@ -3,7 +3,9 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { ENHANCED_FRAME_TEMPLATES } from './templates';
+import { ENHANCED_FRAME_TEMPLATES } from '../../studio/frames/EnhancedFrameTemplates';
+import { FramePreviewRenderer } from '../../studio/frames/FramePreviewRenderer';
+import '../../studio/frames/FrameEffects.css';
 
 interface FramePreviewGridProps {
   selectedFrame?: string;
@@ -19,11 +21,6 @@ export const FramePreviewGrid: React.FC<FramePreviewGridProps> = ({
   searchQuery = ''
 }) => {
   const [currentPage, setCurrentPage] = useState(0);
-
-  const frameComponents = ENHANCED_FRAME_TEMPLATES.reduce((acc, template) => {
-    acc[template.id] = template.preview_component;
-    return acc;
-  }, {} as Record<string, React.ComponentType<any>>);
 
   const filteredFrames = ENHANCED_FRAME_TEMPLATES.filter(frame =>
     frame.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -47,7 +44,6 @@ export const FramePreviewGrid: React.FC<FramePreviewGridProps> = ({
       {/* Frame Templates Grid - 2x2 layout */}
       <div className="grid grid-cols-2 gap-3">
         {currentFrames.map((frame) => {
-          const FrameComponent = frameComponents[frame.id];
           const isSelected = selectedFrame === frame.id;
           
           return (
@@ -62,15 +58,13 @@ export const FramePreviewGrid: React.FC<FramePreviewGridProps> = ({
             >
               <CardContent className="p-3">
                 {/* Frame Preview */}
-                <div className="aspect-[3/4] mb-3 relative overflow-hidden rounded-lg bg-gradient-to-br from-crd-mediumGray to-crd-lightGray">
-                  <div className="w-full h-full flex items-center justify-center">
-                    <FrameComponent 
-                      width={160}
-                      height={213}
-                      title={frame.name}
-                      subtitle=""
-                    />
-                  </div>
+                <div className="aspect-[3/4] mb-3 relative overflow-hidden rounded-lg">
+                  <FramePreviewRenderer
+                    template={frame}
+                    width={160}
+                    height={213}
+                    showContent={true}
+                  />
                   
                   {/* Selection indicator */}
                   {isSelected && (
