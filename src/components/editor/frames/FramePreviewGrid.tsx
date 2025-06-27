@@ -11,8 +11,8 @@ interface FramePreviewGridProps {
   selectedFrame?: string;
   onSelectFrame: (frameId: string) => void;
   searchQuery?: string;
-  uploadedImage?: string; // Add uploaded image prop
-  cardName?: string; // Add card name prop
+  uploadedImage?: string;
+  cardName?: string;
 }
 
 const TEMPLATES_PER_PAGE = 4;
