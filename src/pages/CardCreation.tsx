@@ -89,7 +89,7 @@ const CardCreation = () => {
                 Back
               </Button>
               <div>
-                <h1 className="text-xl font-bold text-white">Create Your CRD</h1>
+                <h1 className="text-xl font-bold text-white">Create Your Card</h1>
                 <p className="text-sm text-gray-400">Design and customize your trading card</p>
               </div>
             </div>

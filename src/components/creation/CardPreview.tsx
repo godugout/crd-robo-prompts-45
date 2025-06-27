@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { SimpleCardRenderer } from './SimpleCardRenderer';
+import { CardRenderer } from './CardRenderer';
+import { CardExportModal } from './CardExportModal';
+import { useCardSaver } from '@/hooks/useCardSaver';
 
 interface CardPreviewProps {
   cardData: any;
@@ -17,13 +19,30 @@ export const CardPreview: React.FC<CardPreviewProps> = ({
   onNext,
   onBack
 }) => {
+  const [showExportModal, setShowExportModal] = useState(false);
+  const { saveCard, isSaving } = useCardSaver();
+
+  const handleSaveAndExport = async () => {
+    const cardId = await saveCard({
+      title: cardData.title,
+      description: cardData.description,
+      imageUrl: uploadedImage,
+      frameId: cardData.frame,
+      rarity: cardData.rarity
+    });
+
+    if (cardId) {
+      setShowExportModal(true);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       {/* Card Info */}
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Your CRD is Ready!</h2>
-          <p className="text-gray-400">Review your card before exporting</p>
+          <h2 className="text-2xl font-bold text-white mb-2">Your Card is Ready!</h2>
+          <p className="text-gray-400">Review your card before saving and exporting</p>
         </div>
 
         <Card className="p-6 bg-gray-800/50 border-gray-700">
@@ -43,11 +62,7 @@ export const CardPreview: React.FC<CardPreviewProps> = ({
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Frame:</span>
-              <span className="text-white capitalize">{cardData.frame || 'modern'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Effects:</span>
-              <span className="text-white capitalize">{cardData.effectPreset || 'none'}</span>
+              <span className="text-white capitalize">{cardData.frame || 'classic-sports'}</span>
             </div>
           </div>
         </Card>
@@ -62,21 +77,38 @@ export const CardPreview: React.FC<CardPreviewProps> = ({
             Back to Edit
           </Button>
           <Button
-            onClick={onNext}
+            onClick={handleSaveAndExport}
+            disabled={isSaving}
             className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
           >
-            Export Card
+            {isSaving ? 'Saving...' : 'Save & Export'}
           </Button>
         </div>
       </div>
 
       {/* Final Preview */}
-      <div className="h-96 lg:h-full">
-        <SimpleCardRenderer
+      <div className="flex items-center justify-center">
+        <CardRenderer
           imageUrl={uploadedImage}
-          effects={cardData.effects || { holographic: 0, metallic: 0, chrome: 0 }}
+          frameId={cardData.frame}
+          title={cardData.title}
+          description={cardData.description}
+          width={300}
+          height={420}
+          className="shadow-2xl"
         />
       </div>
+
+      <CardExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        cardData={{
+          title: cardData.title,
+          description: cardData.description,
+          imageUrl: uploadedImage,
+          frameId: cardData.frame
+        }}
+      />
     </div>
   );
 };
