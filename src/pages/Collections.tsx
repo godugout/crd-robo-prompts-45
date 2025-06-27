@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { EnhancedCollectionsPage } from '@/components/collections/enhanced/EnhancedCollectionsPage';
 
