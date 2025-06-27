@@ -84,11 +84,14 @@ class PSDProcessingService {
           imageData = await this.createImageDataFromCanvas(canvas);
         }
         
+        // Handle layer visibility - ag-psd uses 'hidden' property instead of 'visible'
+        const isVisible = !(layer as any).hidden;
+        
         const processedLayer: ProcessedPSDLayer = {
           id: layerId,
           name: layer.name || `Layer ${i + 1}`,
           type: layerType,
-          visible: layer.visible !== false,
+          visible: isVisible,
           opacity: layer.opacity !== undefined ? layer.opacity / 255 : 1,
           bounds: {
             left: layer.left || 0,
