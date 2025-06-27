@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
 import { toast } from 'sonner';
 
@@ -32,9 +31,10 @@ export interface AnimationState {
   isPlaying: boolean;
 }
 
+// Updated to match the expected Effect interface
 export interface EffectLayer {
   id: string;
-  type: 'holographic' | 'metallic' | 'chrome' | 'glow' | 'particle' | 'vintage';
+  type: 'chrome' | 'holographic' | 'glow' | 'particle' | 'distortion';
   enabled: boolean;
   intensity: number;
   opacity: number;

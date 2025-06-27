@@ -1,32 +1,55 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
-import { Sparkles, Chrome, Zap, Star } from 'lucide-react';
-
-interface Effect {
-  id: string;
-  type: 'holographic' | 'chrome' | 'glow' | 'particle' | 'distortion';
-  enabled: boolean;
-  intensity: number;
-  parameters: Record<string, any>;
-}
-
-interface EffectPanelProps {
-  effects: Effect[];
-  onEffectAdd: (type: Effect['type']) => void;
-  onEffectUpdate: (effectId: string, updates: Partial<Effect>) => void;
-  onEffectRemove: (effectId: string) => void;
-}
+import { Badge } from '@/components/ui/badge';
+import { Sparkles, Chrome, Zap, Droplets, Stars, X } from 'lucide-react';
+import { EffectLayer } from '@/contexts/AdvancedStudioContext';
 
 const EFFECT_TYPES = [
-  { type: 'holographic' as const, name: 'Holographic', icon: Sparkles, color: 'from-purple-500 to-pink-500' },
-  { type: 'chrome' as const, name: 'Chrome', icon: Chrome, color: 'from-gray-400 to-gray-600' },
-  { type: 'glow' as const, name: 'Glow', icon: Zap, color: 'from-yellow-400 to-orange-500' },
-  { type: 'particle' as const, name: 'Particles', icon: Star, color: 'from-blue-400 to-purple-500' },
+  { 
+    type: 'holographic' as const, 
+    name: 'Holographic', 
+    icon: Sparkles, 
+    color: 'from-purple-400 to-pink-500',
+    description: 'Rainbow holographic effect'
+  },
+  { 
+    type: 'chrome' as const, 
+    name: 'Chrome', 
+    icon: Chrome, 
+    color: 'from-gray-300 to-gray-500',
+    description: 'Mirror-like chrome finish'
+  },
+  { 
+    type: 'glow' as const, 
+    name: 'Glow', 
+    icon: Zap, 
+    color: 'from-yellow-400 to-orange-500',
+    description: 'Ethereal glow effect'
+  },
+  { 
+    type: 'particle' as const, 
+    name: 'Particles', 
+    icon: Stars, 
+    color: 'from-blue-400 to-cyan-500',
+    description: 'Magical particle system'
+  },
+  { 
+    type: 'distortion' as const, 
+    name: 'Distortion', 
+    icon: Droplets, 
+    color: 'from-green-400 to-teal-500',
+    description: 'Wavy distortion effect'
+  }
 ];
+
+interface EffectPanelProps {
+  effects: EffectLayer[];
+  onEffectAdd: (type: EffectLayer['type']) => void;
+  onEffectUpdate: (id: string, updates: Partial<EffectLayer>) => void;
+  onEffectRemove: (id: string) => void;
+}
 
 export const EffectPanel: React.FC<EffectPanelProps> = ({
   effects,
@@ -34,120 +57,114 @@ export const EffectPanel: React.FC<EffectPanelProps> = ({
   onEffectUpdate,
   onEffectRemove
 }) => {
+  const [selectedEffect, setSelectedEffect] = useState<string | null>(null);
+
   return (
-    <div className="w-80 h-full bg-editor-darker border-l border-editor-border flex flex-col">
+    <div className="w-80 h-full bg-gray-900/95 backdrop-blur-sm border-l border-gray-800 flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-editor-border">
-        <h3 className="text-white font-semibold mb-3">Effects</h3>
-        <p className="text-crd-lightGray text-sm mb-4">Add premium visual effects to your card</p>
-        
-        {/* Effect Type Grid */}
+      <div className="p-4 border-b border-gray-800">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold text-white">Effect Layers</h3>
+          <Badge className="bg-crd-green/20 text-crd-green border-crd-green/50">
+            {effects.filter(e => e.enabled).length} Active
+          </Badge>
+        </div>
+      </div>
+
+      {/* Add Effects */}
+      <div className="p-4 border-b border-gray-800">
+        <h4 className="text-sm font-medium text-gray-300 mb-3">Add Effect</h4>
         <div className="grid grid-cols-2 gap-2">
-          {EFFECT_TYPES.map((effectType) => {
-            const Icon = effectType.icon;
-            const hasEffect = effects.some(e => e.type === effectType.type);
-            
+          {EFFECT_TYPES.map((effect) => {
+            const Icon = effect.icon;
             return (
               <Button
-                key={effectType.type}
-                onClick={() => !hasEffect && onEffectAdd(effectType.type)}
-                disabled={hasEffect}
+                key={effect.type}
                 variant="outline"
-                className={`border-editor-border text-white hover:bg-editor-border h-auto p-3 flex flex-col items-center ${
-                  hasEffect ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+                size="sm"
+                className="border-white/20 hover:border-white/40 text-white hover:bg-white/10 flex-col h-auto p-3"
+                onClick={() => onEffectAdd(effect.type)}
               >
-                <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${effectType.color} flex items-center justify-center mb-1`}>
+                <div className={`w-8 h-8 rounded-lg bg-gradient-to-r ${effect.color} flex items-center justify-center mb-2`}>
                   <Icon className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-xs">{effectType.name}</span>
+                <span className="text-xs">{effect.name}</span>
               </Button>
             );
           })}
         </div>
       </div>
 
-      {/* Active Effects */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      {/* Effect Layers List */}
+      <div className="flex-1 p-4 overflow-y-auto">
+        <h4 className="text-sm font-medium text-gray-300 mb-3">Current Effects</h4>
+        
         {effects.length === 0 ? (
-          <div className="text-center text-crd-lightGray py-8">
+          <div className="text-center py-8 text-gray-500">
             <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No effects added yet</p>
-            <p className="text-xs">Add effects above to get started</p>
+            <p className="text-sm">No effects applied</p>
+            <p className="text-xs">Add effects from above</p>
           </div>
         ) : (
-          effects.map((effect) => {
-            const effectType = EFFECT_TYPES.find(t => t.type === effect.type);
-            const Icon = effectType?.icon || Sparkles;
-
-            return (
-              <Card key={effect.id} className="p-4 bg-editor-tool border-editor-border">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-6 h-6 rounded-full bg-gradient-to-r ${effectType?.color} flex items-center justify-center`}>
-                      <Icon className="w-3 h-3 text-white" />
-                    </div>
-                    <span className="text-white font-medium text-sm">{effectType?.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={effect.enabled}
-                      onCheckedChange={(enabled) => onEffectUpdate(effect.id, { enabled })}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEffectRemove(effect.id)}
-                      className="w-6 h-6 p-0 text-crd-lightGray hover:text-red-400"
-                    >
-                      ×
-                    </Button>
-                  </div>
-                </div>
-
-                {effect.enabled && (
-                  <div className="space-y-3">
-                    {/* Intensity Slider */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-crd-lightGray">Intensity</span>
-                        <span className="text-white">{effect.intensity}%</span>
+          <div className="space-y-3">
+            {effects.map((effect) => {
+              const effectType = EFFECT_TYPES.find(t => t.type === effect.type);
+              const Icon = effectType?.icon || Sparkles;
+              
+              return (
+                <Card
+                  key={effect.id}
+                  className={`p-3 cursor-pointer transition-all ${
+                    selectedEffect === effect.id
+                      ? 'border-crd-green bg-crd-green/10'
+                      : 'border-gray-700 hover:border-gray-600'
+                  }`}
+                  onClick={() => setSelectedEffect(effect.id)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded bg-gradient-to-r ${effectType?.color} flex items-center justify-center`}>
+                        <Icon className="w-4 h-4 text-white" />
                       </div>
-                      <Slider
-                        value={[effect.intensity]}
-                        onValueChange={(value) => onEffectUpdate(effect.id, { intensity: value[0] })}
-                        min={0}
-                        max={100}
-                        step={1}
-                        className="w-full"
-                      />
-                    </div>
-
-                    {/* Effect-specific parameters */}
-                    {effect.type === 'glow' && (
-                      <div className="space-y-2">
-                        <label className="text-crd-lightGray text-xs">Glow Color</label>
-                        <div className="flex gap-2">
-                          {['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57'].map((color) => (
-                            <button
-                              key={color}
-                              onClick={() => onEffectUpdate(effect.id, { 
-                                parameters: { ...effect.parameters, color } 
-                              })}
-                              className={`w-6 h-6 rounded border-2 ${
-                                effect.parameters?.color === color ? 'border-white' : 'border-transparent'
-                              }`}
-                              style={{ backgroundColor: color }}
-                            />
-                          ))}
+                      <div>
+                        <div className="text-white text-sm font-medium">
+                          {effectType?.name || effect.type}
+                        </div>
+                        <div className="text-gray-400 text-xs">
+                          {effect.enabled ? 'Enabled' : 'Disabled'} • {effect.opacity}% opacity
                         </div>
                       </div>
-                    )}
+                    </div>
+                    
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEffectUpdate(effect.id, { enabled: !effect.enabled });
+                        }}
+                        className="w-8 h-8 p-0 text-gray-400 hover:text-white"
+                      >
+                        {effect.enabled ? '👁️' : '🙈'}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEffectRemove(effect.id);
+                        }}
+                        className="w-8 h-8 p-0 text-gray-400 hover:text-red-400"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                )}
-              </Card>
-            );
-          })
+                </Card>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
