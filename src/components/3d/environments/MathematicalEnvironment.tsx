@@ -25,7 +25,7 @@ export const MathematicalEnvironment: React.FC<MathematicalEnvironmentProps> = (
       {/* Mathematical space background */}
       <mesh scale={50}>
         <sphereGeometry args={[1, 32, 32]} />
-        <meshBasicMaterial
+        <meshStandardMaterial
           color={new THREE.Color(0x001122)}
           side={THREE.BackSide}
           wireframe
@@ -39,7 +39,7 @@ export const MathematicalEnvironment: React.FC<MathematicalEnvironmentProps> = (
         {/* Wireframe torus */}
         <mesh position={[8, 0, 0]}>
           <torusGeometry args={[2, 0.5, 16, 100]} />
-          <meshBasicMaterial
+          <meshStandardMaterial
             color="#00ffff"
             wireframe
             transparent
@@ -50,7 +50,7 @@ export const MathematicalEnvironment: React.FC<MathematicalEnvironmentProps> = (
         {/* Wireframe icosahedron */}
         <mesh position={[-8, 0, 0]}>
           <icosahedronGeometry args={[2, 1]} />
-          <meshBasicMaterial
+          <meshStandardMaterial
             color="#ff00ff"
             wireframe
             transparent
@@ -61,7 +61,7 @@ export const MathematicalEnvironment: React.FC<MathematicalEnvironmentProps> = (
         {/* Wireframe dodecahedron */}
         <mesh position={[0, 6, 0]}>
           <dodecahedronGeometry args={[1.5]} />
-          <meshBasicMaterial
+          <meshStandardMaterial
             color="#ffff00"
             wireframe
             transparent
@@ -72,7 +72,7 @@ export const MathematicalEnvironment: React.FC<MathematicalEnvironmentProps> = (
         {/* Wireframe tetrahedron */}
         <mesh position={[0, -6, 0]}>
           <tetrahedronGeometry args={[2]} />
-          <meshBasicMaterial
+          <meshStandardMaterial
             color="#00ff00"
             wireframe
             transparent
@@ -84,7 +84,7 @@ export const MathematicalEnvironment: React.FC<MathematicalEnvironmentProps> = (
       {/* Grid floor */}
       <mesh position={[0, -8, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[30, 30, 30, 30]} />
-        <meshBasicMaterial
+        <meshStandardMaterial
           color="#004400"
           wireframe
           transparent
