@@ -13,6 +13,7 @@ interface CardData {
     holographic: number;
     metallic: number;
     chrome: number;
+    particles: boolean;
   };
   effectPreset: string;
 }
@@ -33,7 +34,8 @@ const initialCardData: CardData = {
   effects: {
     holographic: 0,
     metallic: 0,
-    chrome: 0
+    chrome: 0,
+    particles: false
   },
   effectPreset: 'none'
 };
