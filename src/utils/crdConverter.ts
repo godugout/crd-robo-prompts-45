@@ -30,24 +30,16 @@ export class CRDConverter {
         style: this.mapCategoryToFrameStyle(template.category),
         
         border: {
-          width: this.extractBorderWidth(template.config?.visual?.border?.width || '2px'),
+          width: 2, // Default fallback
           style: 'solid',
-          color: { format: 'hex', value: template.config?.visual?.border?.color || '#000000' },
-          gradient: template.config?.visual?.border?.gradient ? {
-            type: 'linear',
-            angle: 45,
-            stops: [
-              { offset: 0, color: { format: 'hex', value: '#ffffff' } },
-              { offset: 1, color: { format: 'hex', value: '#000000' } }
-            ]
-          } : undefined,
-          radius: this.extractBorderRadius(template.config?.visual?.borderRadius || '8px')
+          color: { format: 'hex', value: '#000000' }, // Default fallback
+          radius: 8 // Default fallback
         },
         
-        corner_radius: this.extractBorderRadius(template.config?.visual?.borderRadius || '8px'),
+        corner_radius: 8, // Default fallback
         
         shadow: {
-          enabled: !!template.config?.visual?.shadow,
+          enabled: false, // Default fallback
           offset_x: 0,
           offset_y: 4,
           blur: 8,
@@ -57,49 +49,25 @@ export class CRDConverter {
         },
         
         material: {
-          type: this.mapEffectsToMaterialType(template.config?.effects),
+          type: 'standard', // Default fallback
           albedo: { format: 'hex', value: '#ffffff' },
-          metalness: template.config?.effects?.metallic ? 0.8 : 0.1,
-          roughness: this.getEffectRoughness(template.config?.effects),
-          
-          metallic: template.config?.effects?.metallic ? {
-            reflection_intensity: 0.9,
-            tint: { format: 'hex', value: '#c0c0c0' },
-            polish: 0.9
-          } : undefined,
-          
-          crystal: template.config?.effects?.crystal ? {
-            transparency: 0.2,
-            refraction_index: 1.5,
-            internal_reflections: true
-          } : undefined
+          metalness: 0.1, // Default fallback
+          roughness: 0.6, // Default fallback
         },
         
         layout_areas: {
           image_area: {
-            x: template.config?.layout?.imageArea?.x || 20,
-            y: template.config?.layout?.imageArea?.y || 20,
-            width: template.config?.layout?.imageArea?.width || 260,
-            height: template.config?.layout?.imageArea?.height || 300
+            x: 20, // Default fallback
+            y: 20, // Default fallback
+            width: 260, // Default fallback
+            height: 300 // Default fallback
           },
           title_area: {
-            x: template.config?.layout?.titleArea?.x || 20,
-            y: template.config?.layout?.titleArea?.y || 340,
-            width: template.config?.layout?.titleArea?.width || 260,
-            height: template.config?.layout?.titleArea?.height || 30
-          },
-          subtitle_area: template.config?.layout?.subtitleArea ? {
-            x: template.config.layout.subtitleArea.x,
-            y: template.config.layout.subtitleArea.y,
-            width: template.config.layout.subtitleArea.width,
-            height: template.config.layout.subtitleArea.height
-          } : undefined,
-          stats_area: template.config?.layout?.statsArea ? {
-            x: template.config.layout.statsArea.x,
-            y: template.config.layout.statsArea.y,
-            width: template.config.layout.statsArea.width,
-            height: template.config.layout.statsArea.height
-          } : undefined
+            x: 20, // Default fallback
+            y: 340, // Default fallback
+            width: 260, // Default fallback
+            height: 30 // Default fallback
+          }
         }
       }
     };
@@ -136,8 +104,8 @@ export class CRDConverter {
         
         transform: {
           position: { 
-            x: template.config?.layout?.imageArea?.x || 20, 
-            y: template.config?.layout?.imageArea?.y || 20, 
+            x: 20, // Default fallback
+            y: 20, // Default fallback
             unit: 'px' 
           },
           rotation: 0,
@@ -152,8 +120,8 @@ export class CRDConverter {
           source: {
             type: 'url',
             url: uploadedImageUrl,
-            width: template.config?.layout?.imageArea?.width || 260,
-            height: template.config?.layout?.imageArea?.height || 300,
+            width: 260, // Default fallback
+            height: 300, // Default fallback
             format: 'jpg', // assume jpg, would need detection
             size_bytes: 0 // would need actual size
           },
@@ -208,28 +176,6 @@ export class CRDConverter {
       'Crystal': 'artistic'
     };
     return mapping[category] || 'modern';
-  }
-
-  private static mapEffectsToMaterialType(effects: any): 'standard' | 'metallic' | 'crystal' {
-    if (effects?.metallic) return 'metallic';
-    if (effects?.crystal) return 'crystal';
-    return 'standard';
-  }
-
-  private static getEffectRoughness(effects: any): number {
-    if (effects?.metallic) return 0.1;
-    if (effects?.crystal) return 0.0;
-    return 0.6;
-  }
-
-  private static extractBorderWidth(width: string): number {
-    const match = width.match(/(\d+)/);
-    return match ? parseInt(match[1]) : 2;
-  }
-
-  private static extractBorderRadius(radius: string): number {
-    const match = radius.match(/(\d+)/);
-    return match ? parseInt(match[1]) : 8;
   }
 }
 

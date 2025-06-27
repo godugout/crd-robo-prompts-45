@@ -237,26 +237,6 @@ export type CRDLayer =
   | CRDStickerLayer 
   | CRDPlateLayer;
 
-// Other interfaces (mask, animation, etc.)
-export interface CRDMask {
-  type: 'alpha' | 'luminance' | 'vector';
-  source: string;
-  invert: boolean;
-}
-
-export interface CRDAnimation {
-  type: 'fade' | 'slide' | 'scale' | 'rotate' | 'custom';
-  duration: number;
-  easing: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'cubic-bezier';
-  delay: number;
-  iterations: number | 'infinite';
-  direction: 'normal' | 'reverse' | 'alternate' | 'alternate-reverse';
-  keyframes?: Array<{
-    offset: number;
-    properties: Record<string, any>;
-  }>;
-}
-
 // Main document interface
 export interface CRDDocument {
   version: string;
@@ -393,7 +373,7 @@ export class CRDUtils {
     return {
       ...doc,
       layers: doc.layers.map(layer => 
-        layer.id === layerId ? { ...layer, ...updates } : layer
+        layer.id === layerId ? { ...layer, ...updates } as CRDLayer : layer
       ),
       updated_at: new Date().toISOString()
     };
