@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -11,9 +12,10 @@ import AuthCallback from "./pages/auth/AuthCallback";
 import CardCreation from "./pages/CardCreation";
 import EnhancedCardCreationPage from "./pages/EnhancedCardCreationPage";
 import { EnhancedStudio } from "@/components/studio/EnhancedStudio";
-import Collections from '@/pages/Collections';
-import CreatorDashboardPage from '@/pages/CreatorDashboardPage';
-import CommunityHubPage from '@/pages/CommunityHubPage';
+import Collections from './pages/Collections';
+import CreatorDashboardPage from './pages/CreatorDashboardPage';
+import CommunityHubPage from './pages/CommunityHubPage';
+import PSDPreviewPage from './pages/PSDPreviewPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -88,6 +90,14 @@ function App() {
                   } 
                 />
                 <Route path="/community" element={<CommunityHubPage />} />
+                <Route 
+                  path="/debug/psd-preview" 
+                  element={
+                    <ProtectedRoute>
+                      <PSDPreviewPage />
+                    </ProtectedRoute>
+                  } 
+                />
               </Routes>
             </div>
           </TooltipProvider>
