@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Palette, Users, Trophy, Camera, Target } from 'lucide-react';
+import { Plus, Palette, Users, Trophy, Camera, Target, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
@@ -67,19 +66,29 @@ const Index = () => {
           {/* Main Action Buttons */}
           <div className="flex gap-6 justify-center mb-16">
             <Button
-              onClick={() => window.location.href = '/create'}
+              onClick={() => window.location.href = '/create/enhanced'}
               size="lg"
               className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold px-8 py-4 text-lg"
             >
               <Plus className="w-5 h-5 mr-2" />
-              Create New Card
+              Enhanced Creator
+            </Button>
+            
+            <Button
+              onClick={() => window.location.href = '/create'}
+              size="lg"
+              variant="outline"
+              className="border-crd-green text-crd-green hover:bg-crd-green/10 px-8 py-4 text-lg"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Quick Create
             </Button>
             
             <Button
               onClick={() => window.location.href = '/studio'}
               size="lg"
               variant="outline"
-              className="border-crd-green text-crd-green hover:bg-crd-green/10 px-8 py-4 text-lg"
+              className="border-purple-500 text-purple-400 hover:bg-purple-500/10 px-8 py-4 text-lg"
             >
               <Palette className="w-5 h-5 mr-2" />
               Advanced Studio
@@ -111,13 +120,13 @@ const Index = () => {
             </div>
 
             <div className="bg-gradient-to-br from-green-900/50 to-emerald-900/50 p-6 rounded-xl border border-green-500/30 hover:border-green-400/50 transition-all cursor-pointer"
-                 onClick={() => window.location.href = '/studio'}>
+                 onClick={() => window.location.href = '/create/enhanced'}>
               <div className="w-12 h-12 bg-green-600/30 rounded-full flex items-center justify-center mb-4">
-                <Palette className="w-6 h-6 text-green-400" />
+                <Sparkles className="w-6 h-6 text-green-400" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Advanced Studio</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Enhanced Creator</h3>
               <p className="text-gray-300 text-sm">
-                Professional tools for detailed design and customization.
+                Step-by-step creation with templates, effects, and real-time preview.
               </p>
             </div>
 
@@ -139,9 +148,9 @@ const Index = () => {
               <div className="w-12 h-12 bg-crd-green/20 rounded-full flex items-center justify-center mb-4">
                 <Plus className="w-6 h-6 text-crd-green" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Easy Creation</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Template Selection</h3>
               <p className="text-gray-400">
-                Upload your image and create stunning cards with our intuitive step-by-step process.
+                Choose from professional templates including nostalgic Oakland A's designs and modern styles.
               </p>
             </div>
 
@@ -149,9 +158,9 @@ const Index = () => {
               <div className="w-12 h-12 bg-crd-green/20 rounded-full flex items-center justify-center mb-4">
                 <Palette className="w-6 h-6 text-crd-green" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Premium Effects</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Visual Effects</h3>
               <p className="text-gray-400">
-                Add holographic, metallic, and chrome effects to make your cards truly spectacular.
+                Add holographic, metallic, chrome effects and particle animations with real-time preview.
               </p>
             </div>
 
@@ -159,9 +168,9 @@ const Index = () => {
               <div className="w-12 h-12 bg-crd-green/20 rounded-full flex items-center justify-center mb-4">
                 <Target className="w-6 h-6 text-crd-green" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Smart Features</h3>
+              <h3 className="text-xl font-semibold text-white mb-2">Smart Workflow</h3>
               <p className="text-gray-400">
-                AI-powered suggestions, automatic optimization, and intelligent design assistance.
+                Guided step-by-step creation process with intelligent suggestions and quality checks.
               </p>
             </div>
           </div>
