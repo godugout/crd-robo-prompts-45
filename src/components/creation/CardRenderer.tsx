@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { FrameRenderer } from '@/components/editor/frames/FrameRenderer';
+import { UnifiedCardRenderer } from './UnifiedCardRenderer';
+import type { UnifiedCardData } from '@/types/cardCreation';
 
 interface CardRendererProps {
   imageUrl?: string;
@@ -21,16 +22,28 @@ export const CardRenderer: React.FC<CardRendererProps> = ({
   height = 420,
   className = ''
 }) => {
+  // Convert props to unified card data format
+  const cardData: UnifiedCardData = {
+    title,
+    description,
+    rarity: 'common',
+    frame: frameId,
+    effects: {
+      holographic: 0,
+      metallic: 0,
+      chrome: 0,
+      particles: false
+    }
+  };
+
   return (
-    <div className={`relative ${className}`} style={{ width, height }}>
-      <FrameRenderer
-        frameId={frameId}
-        imageUrl={imageUrl}
-        title={title}
-        subtitle={description}
-        width={width}
-        height={height}
-      />
-    </div>
+    <UnifiedCardRenderer
+      cardData={cardData}
+      imageUrl={imageUrl}
+      width={width}
+      height={height}
+      className={className}
+      mode="2d"
+    />
   );
 };

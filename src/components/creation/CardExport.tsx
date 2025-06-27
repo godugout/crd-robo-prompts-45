@@ -3,11 +3,12 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Sparkles, Home, Plus } from 'lucide-react';
-import { CardRenderer } from './CardRenderer';
+import { UnifiedCardRenderer } from './UnifiedCardRenderer';
 import { CardExportModal } from './CardExportModal';
+import type { UnifiedCardData } from '@/types/cardCreation';
 
 interface CardExportProps {
-  cardData: any;
+  cardData: UnifiedCardData;
   uploadedImage: string;
   onCreateAnother: () => void;
 }
@@ -31,13 +32,12 @@ export const CardExport: React.FC<CardExportProps> = ({
 
       {/* Card Preview */}
       <div className="flex justify-center">
-        <CardRenderer
+        <UnifiedCardRenderer
+          cardData={cardData}
           imageUrl={uploadedImage}
-          frameId={cardData.frame}
-          title={cardData.title}
-          description={cardData.description}
           width={300}
           height={420}
+          mode="3d"
           className="shadow-2xl"
         />
       </div>

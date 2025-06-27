@@ -1,43 +1,29 @@
 
 import { useState, useCallback } from 'react';
+import type { UnifiedCardData } from '@/types/cardCreation';
 
 export type CreationStep = 'upload' | 'frame' | 'customize' | 'preview' | 'export';
 export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
-interface CardData {
-  title: string;
-  description: string;
-  frame: string;
-  rarity: CardRarity;
-  effects: {
-    holographic: number;
-    metallic: number;
-    chrome: number;
-    particles: boolean;
-  };
-  effectPreset: string;
-}
-
 interface CreationState {
   step: CreationStep;
   uploadedImage: string | null;
-  cardData: CardData;
+  cardData: UnifiedCardData;
   processing: boolean;
   error: string | null;
 }
 
-const initialCardData: CardData = {
+const initialCardData: UnifiedCardData = {
   title: '',
   description: '',
-  frame: 'classic-sports',
+  frame: 'classic-sports', // Default frame
   rarity: 'common',
   effects: {
     holographic: 0,
     metallic: 0,
     chrome: 0,
     particles: false
-  },
-  effectPreset: 'none'
+  }
 };
 
 export const useCardCreation = () => {
@@ -72,7 +58,7 @@ export const useCardCreation = () => {
     }
   }, []);
 
-  const updateCardData = useCallback((updates: Partial<CardData>) => {
+  const updateCardData = useCallback((updates: Partial<UnifiedCardData>) => {
     setState(prev => ({
       ...prev,
       cardData: { ...prev.cardData, ...updates }

@@ -3,55 +3,51 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CheckCircle } from 'lucide-react';
+import { UnifiedCardRenderer } from './UnifiedCardRenderer';
+import type { UnifiedCardData } from '@/types/cardCreation';
 
 const FRAME_OPTIONS = [
   {
-    id: 'modern',
-    name: 'Modern',
-    description: 'Clean, minimalist border',
-    preview: '/api/placeholder/300/400',
-    category: 'Basic'
-  },
-  {
-    id: 'classic',
+    id: 'classic-sports',
     name: 'Classic Sports',
     description: 'Traditional trading card style',
-    preview: '/api/placeholder/300/400',
     category: 'Basic'
   },
   {
-    id: 'vintage',
-    name: 'Vintage',
-    description: 'Retro ornate styling',
-    preview: '/api/placeholder/300/400',
+    id: 'holographic-modern', 
+    name: 'Holographic Pro',
+    description: 'Modern holographic design',
     category: 'Premium'
   },
   {
-    id: 'holographic',
-    name: 'Holographic',
-    description: 'Shimmering rainbow border',
-    preview: '/api/placeholder/300/400',
+    id: 'vintage-ornate',
+    name: 'Vintage Gold',
+    description: 'Ornate vintage styling',
     category: 'Premium'
   },
   {
-    id: 'chrome',
+    id: 'chrome-edition',
     name: 'Chrome Elite',
-    description: 'Metallic chrome finish',
-    preview: '/api/placeholder/300/400',
+    description: 'Sleek chrome finish',
     category: 'Premium'
   },
   {
-    id: 'crystal',
-    name: 'Crystal',
-    description: 'Crystalline transparent effect',
-    preview: '/api/placeholder/300/400',
-    category: 'Premium'
+    id: 'donruss-special',
+    name: 'Donruss Special',
+    description: 'Special edition frame',
+    category: 'Basic'
+  },
+  {
+    id: 'donruss-rookie',
+    name: 'Donruss Rookie',
+    description: 'Rookie card design',
+    category: 'Basic'
   }
 ];
 
 interface FrameSelectorProps {
   uploadedImage: string;
-  selectedFrame?: string;
+  selectedFrame: string;
   onFrameSelect: (frameId: string) => void;
   onNext: () => void;
   onBack: () => void;
@@ -64,11 +60,36 @@ export const FrameSelector: React.FC<FrameSelectorProps> = ({
   onNext,
   onBack
 }) => {
+  // Create preview card data
+  const previewCardData: UnifiedCardData = {
+    title: 'Preview',
+    description: 'Sample card',
+    rarity: 'common',
+    frame: selectedFrame,
+    effects: {
+      holographic: 0,
+      metallic: 0,
+      chrome: 0,
+      particles: false
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-white mb-2">Choose Your Frame</h2>
         <p className="text-gray-400">Select a frame style that matches your card's vibe</p>
+      </div>
+
+      {/* Preview Area */}
+      <div className="flex justify-center mb-8">
+        <UnifiedCardRenderer
+          cardData={{ ...previewCardData, frame: selectedFrame }}
+          imageUrl={uploadedImage}
+          width={250}
+          height={350}
+          className="shadow-2xl"
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -88,11 +109,12 @@ export const FrameSelector: React.FC<FrameSelectorProps> = ({
               {/* Frame Preview */}
               <div className="relative mb-4 rounded-lg overflow-hidden bg-gray-800">
                 <div className="aspect-[3/4] flex items-center justify-center">
-                  <div className="w-24 h-32 bg-gradient-to-br from-gray-700 to-gray-900 rounded border-2 border-gray-600">
-                    <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">
-                      Preview
-                    </div>
-                  </div>
+                  <UnifiedCardRenderer
+                    cardData={{ ...previewCardData, frame: frame.id }}
+                    imageUrl={uploadedImage}
+                    width={120}
+                    height={160}
+                  />
                 </div>
                 
                 {selectedFrame === frame.id && (
