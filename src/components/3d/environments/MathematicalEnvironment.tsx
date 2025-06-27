@@ -28,8 +28,8 @@ export const MathematicalEnvironment: React.FC<MathematicalEnvironmentProps> = (
         <meshStandardMaterial
           color={new THREE.Color(0x001122)}
           side={THREE.BackSide}
-          wireframe
-          transparent
+          wireframe={true}
+          transparent={true}
           opacity={0.3}
         />
       </mesh>
@@ -41,8 +41,8 @@ export const MathematicalEnvironment: React.FC<MathematicalEnvironmentProps> = (
           <torusGeometry args={[2, 0.5, 16, 100]} />
           <meshStandardMaterial
             color="#00ffff"
-            wireframe
-            transparent
+            wireframe={true}
+            transparent={true}
             opacity={0.6 * intensity}
           />
         </mesh>
@@ -52,8 +52,8 @@ export const MathematicalEnvironment: React.FC<MathematicalEnvironmentProps> = (
           <icosahedronGeometry args={[2, 1]} />
           <meshStandardMaterial
             color="#ff00ff"
-            wireframe
-            transparent
+            wireframe={true}
+            transparent={true}
             opacity={0.6 * intensity}
           />
         </mesh>
@@ -63,8 +63,8 @@ export const MathematicalEnvironment: React.FC<MathematicalEnvironmentProps> = (
           <dodecahedronGeometry args={[1.5]} />
           <meshStandardMaterial
             color="#ffff00"
-            wireframe
-            transparent
+            wireframe={true}
+            transparent={true}
             opacity={0.6 * intensity}
           />
         </mesh>
@@ -74,8 +74,8 @@ export const MathematicalEnvironment: React.FC<MathematicalEnvironmentProps> = (
           <tetrahedronGeometry args={[2]} />
           <meshStandardMaterial
             color="#00ff00"
-            wireframe
-            transparent
+            wireframe={true}
+            transparent={true}
             opacity={0.6 * intensity}
           />
         </mesh>
@@ -86,8 +86,8 @@ export const MathematicalEnvironment: React.FC<MathematicalEnvironmentProps> = (
         <planeGeometry args={[30, 30, 30, 30]} />
         <meshStandardMaterial
           color="#004400"
-          wireframe
-          transparent
+          wireframe={true}
+          transparent={true}
           opacity={0.4 * intensity}
         />
       </mesh>
