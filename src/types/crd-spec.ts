@@ -48,6 +48,26 @@ export type CRDBlendMode =
   | 'soft-light' | 'hard-light' | 'color-dodge' | 'color-burn'
   | 'darken' | 'lighten' | 'difference' | 'exclusion';
 
+// Mask interface
+export interface CRDMask {
+  type: 'alpha' | 'luminance' | 'vector';
+  source: string;
+  invert: boolean;
+}
+
+// Animation interface
+export interface CRDAnimation {
+  type: 'fade' | 'slide' | 'scale' | 'rotate' | 'custom';
+  duration: number;
+  easing: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out';
+  delay?: number;
+  loop?: boolean;
+  keyframes?: Array<{
+    offset: number;
+    properties: Record<string, any>;
+  }>;
+}
+
 // Base layer interface
 export interface CRDBaseLayer {
   id: string;
@@ -372,9 +392,29 @@ export class CRDUtils {
   static updateLayer(doc: CRDDocument, layerId: string, updates: Partial<CRDLayer>): CRDDocument {
     return {
       ...doc,
-      layers: doc.layers.map(layer => 
-        layer.id === layerId ? { ...layer, ...updates } as CRDLayer : layer
-      ),
+      layers: doc.layers.map(layer => {
+        if (layer.id !== layerId) return layer;
+        
+        // Type-safe layer updates
+        const updatedLayer = { ...layer, ...updates } as CRDLayer;
+        
+        // Ensure type consistency
+        if (layer.type === 'frame' && updates.type === 'frame') {
+          return updatedLayer as CRDFrameLayer;
+        } else if (layer.type === 'image' && updates.type === 'image') {
+          return updatedLayer as CRDImageLayer;
+        } else if (layer.type === 'text' && updates.type === 'text') {
+          return updatedLayer as CRDTextLayer;
+        } else if (layer.type === 'video' && updates.type === 'video') {
+          return updatedLayer as CRDVideoLayer;
+        } else if (layer.type === 'sticker' && updates.type === 'sticker') {
+          return updatedLayer as CRDStickerLayer;
+        } else if (layer.type === 'plate' && updates.type === 'plate') {
+          return updatedLayer as CRDPlateLayer;
+        }
+        
+        return updatedLayer;
+      }),
       updated_at: new Date().toISOString()
     };
   }
