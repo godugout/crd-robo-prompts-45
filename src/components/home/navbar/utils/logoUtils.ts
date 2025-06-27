@@ -9,8 +9,8 @@ export const getHeaderLogoStyles = (logoId: string): string => {
     case 'cardshow-blue-script':
       return 'drop-shadow-[0_0_4px_rgba(255,255,255,0.9)] filter [text-shadow:_0_0_6px_rgba(255,255,255,0.8)]';
     default:
-      // Apply mix-blend-mode to help with black backgrounds
-      return 'mix-blend-mode-screen';
+      // Apply CSS filters to remove black backgrounds and make them transparent
+      return 'brightness-0 invert mix-blend-mode-screen';
   }
 };
 
