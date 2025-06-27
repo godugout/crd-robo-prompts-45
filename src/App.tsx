@@ -69,6 +69,7 @@ function App() {
                   } 
                 />
                 <Route path="/social-cosmos" element={<SocialCosmosPage />} />
+                <Route path="/enhancement-forge" element={<EnhancementForgePage />} />
               </Routes>
             </div>
           </TooltipProvider>
