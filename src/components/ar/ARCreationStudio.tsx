@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { XR, ARButton } from '@react-three/xr';
+import { createXRStore, XR, ARButton } from '@react-three/xr';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,12 +34,15 @@ export const ARCreationStudio: React.FC<ARCreationStudioProps> = ({
   });
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const store = createXRStore();
 
   useEffect(() => {
     // Check for WebXR support
     if ('xr' in navigator) {
       navigator.xr?.isSessionSupported('immersive-ar').then((supported) => {
         setIsARSupported(supported);
+      }).catch(() => {
+        setIsARSupported(false);
       });
     }
   }, []);
@@ -163,7 +166,7 @@ export const ARCreationStudio: React.FC<ARCreationStudioProps> = ({
         className="w-full h-full"
         gl={{ alpha: true }}
       >
-        <XR>
+        <XR store={store}>
           {/* AR Scene Lighting */}
           <ambientLight intensity={0.6} />
           <directionalLight position={[10, 10, 5]} intensity={0.8} />
@@ -196,6 +199,7 @@ export const ARCreationStudio: React.FC<ARCreationStudioProps> = ({
       {/* AR Entry Button */}
       <div className="absolute bottom-4 right-4 z-50">
         <ARButton
+          store={store}
           className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-full font-bold shadow-lg hover:shadow-xl transition-all duration-300"
         />
       </div>
