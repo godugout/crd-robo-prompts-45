@@ -3,15 +3,54 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Plus, Palette } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navbar } from '@/components/home/Navbar';
 
 const Index = () => {
   const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-crd-darkest via-[#0a0a0b] to-[#131316]">
-      {/* Use the themed Navbar component */}
-      <Navbar />
+      {/* Header */}
+      <div className="border-b border-gray-800">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-white">Cardshow</h1>
+              <span className="text-crd-green text-sm">Create • Design • Share</span>
+            </div>
+            
+            <div className="flex gap-3">
+              {user ? (
+                <Button
+                  onClick={() => window.location.href = '/auth/signin'}
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                >
+                  Sign Out
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    onClick={() => window.location.href = '/auth/signin'}
+                    variant="outline"
+                    size="sm"
+                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    onClick={() => window.location.href = '/auth/signup'}
+                    size="sm"
+                    className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
+                  >
+                    Sign Up
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-6 py-20">

@@ -30,10 +30,10 @@ export class CRDConverter {
         style: this.mapCategoryToFrameStyle(template.category),
         
         border: {
-          width: this.extractBorderWidth(template.visual?.border?.width || '2px'),
+          width: this.extractBorderWidth(template.visual.border.width),
           style: 'solid',
-          color: { format: 'hex', value: template.visual?.border?.color || '#ffffff' },
-          gradient: template.visual?.border?.gradient ? {
+          color: { format: 'hex', value: template.visual.border.color },
+          gradient: template.visual.border.gradient ? {
             type: 'linear',
             angle: 45,
             stops: [
@@ -41,13 +41,13 @@ export class CRDConverter {
               { offset: 1, color: { format: 'hex', value: '#000000' } }
             ]
           } : undefined,
-          radius: this.extractBorderRadius(template.visual?.borderRadius || '8px')
+          radius: this.extractBorderRadius(template.visual.borderRadius)
         },
         
-        corner_radius: this.extractBorderRadius(template.visual?.borderRadius || '8px'),
+        corner_radius: this.extractBorderRadius(template.visual.borderRadius),
         
         shadow: {
-          enabled: template.visual?.shadow || false,
+          enabled: !!template.visual.shadow,
           offset_x: 0,
           offset_y: 4,
           blur: 8,
@@ -57,32 +57,51 @@ export class CRDConverter {
         },
         
         material: {
-          type: this.mapEffectsToMaterialType(template.effects || {}),
+          type: this.mapEffectsToMaterialType(template.effects),
           albedo: { format: 'hex', value: '#ffffff' },
-          metalness: template.effects?.metallic ? 0.8 : 0.1,
-          roughness: this.getEffectRoughness(template.effects || {})
+          metalness: template.effects.metallic ? 0.8 : 0.1,
+          roughness: this.getEffectRoughness(template.effects),
+          
+          holographic: template.effects.holographic ? {
+            intensity: 0.8,
+            color_shift: 180,
+            pattern: 'rainbow',
+            animation_speed: 1.0
+          } : undefined,
+          
+          metallic: template.effects.metallic ? {
+            reflection_intensity: 0.9,
+            tint: { format: 'hex', value: '#c0c0c0' },
+            polish: 0.9
+          } : undefined,
+          
+          crystal: template.effects.crystal ? {
+            transparency: 0.2,
+            refraction_index: 1.5,
+            internal_reflections: true
+          } : undefined
         },
         
         layout_areas: {
           image_area: {
-            x: template.layout?.imageArea?.x || 0,
-            y: template.layout?.imageArea?.y || 0,
-            width: template.layout?.imageArea?.width || 160,
-            height: template.layout?.imageArea?.height || 120
+            x: template.layout.imageArea.x,
+            y: template.layout.imageArea.y,
+            width: template.layout.imageArea.width,
+            height: template.layout.imageArea.height
           },
           title_area: {
-            x: template.layout?.titleArea?.x || 0,
-            y: template.layout?.titleArea?.y || 140,
-            width: template.layout?.titleArea?.width || 160,
-            height: template.layout?.titleArea?.height || 20
+            x: template.layout.titleArea.x,
+            y: template.layout.titleArea.y,
+            width: template.layout.titleArea.width,
+            height: template.layout.titleArea.height
           },
-          subtitle_area: template.layout?.subtitleArea ? {
+          subtitle_area: template.layout.subtitleArea ? {
             x: template.layout.subtitleArea.x,
             y: template.layout.subtitleArea.y,
             width: template.layout.subtitleArea.width,
             height: template.layout.subtitleArea.height
           } : undefined,
-          stats_area: template.layout?.statsArea ? {
+          stats_area: template.layout.statsArea ? {
             x: template.layout.statsArea.x,
             y: template.layout.statsArea.y,
             width: template.layout.statsArea.width,
@@ -106,7 +125,7 @@ export class CRDConverter {
     // Update basic info
     doc.name = cardName || template.name;
     doc.metadata.category = template.category.toLowerCase();
-    doc.metadata.rarity = (template.rarity?.toLowerCase() || 'common') as any;
+    doc.metadata.rarity = template.rarity.toLowerCase() as any;
     doc.metadata.tags = [template.category.toLowerCase(), 'enhanced-frame'];
     
     // Add frame layer
@@ -125,8 +144,8 @@ export class CRDConverter {
         
         transform: {
           position: { 
-            x: template.layout?.imageArea?.x || 0, 
-            y: template.layout?.imageArea?.y || 0, 
+            x: template.layout.imageArea.x, 
+            y: template.layout.imageArea.y, 
             unit: 'px' 
           },
           rotation: 0,
@@ -141,8 +160,8 @@ export class CRDConverter {
           source: {
             type: 'url',
             url: uploadedImageUrl,
-            width: template.layout?.imageArea?.width || 160,
-            height: template.layout?.imageArea?.height || 120,
+            width: template.layout.imageArea.width,
+            height: template.layout.imageArea.height,
             format: 'jpg', // assume jpg, would need detection
             size_bytes: 0 // would need actual size
           },
@@ -190,10 +209,11 @@ export class CRDConverter {
   private static mapCategoryToFrameStyle(category: string): any {
     const mapping: Record<string, string> = {
       'Modern': 'modern',
-      'Professional': 'sports',
-      'Classic': 'vintage',
-      'Premium': 'futuristic',
-      'Vintage': 'vintage'
+      'Classic Sports': 'sports',
+      'Vintage Ornate': 'vintage',
+      'Holographic': 'futuristic',
+      'Chrome': 'modern',
+      'Crystal': 'artistic'
     };
     return mapping[category] || 'modern';
   }

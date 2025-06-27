@@ -7,20 +7,16 @@ import { NavActions } from './navbar/NavActions';
 import { cn } from '@/lib/utils';
 
 export const Navbar = () => {
-  // Initialize with gradient background to match gradient logo default
-  const [navBgColor, setNavBgColor] = useState('bg-gradient-to-r from-purple-600 via-purple-500 to-blue-500');
+  const [navBgColor, setNavBgColor] = useState('bg-crd-darkest');
 
   const handleLogoChange = (logoId: string, bgColor: string) => {
-    console.log('Navbar: Logo changed to:', logoId, 'with background:', bgColor);
     setNavBgColor(bgColor);
   };
-
-  console.log('Navbar: Current background class:', navBgColor);
 
   return (
     <nav className={cn(
       navBgColor,
-      "border-b border-white/20 sticky top-0 z-50 transition-colors duration-300"
+      "border-b border-crd-mediumGray/20 sticky top-0 z-50 transition-colors duration-300"
     )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">

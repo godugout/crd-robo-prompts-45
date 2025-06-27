@@ -13,18 +13,13 @@ import { LogoButton } from './components/LogoButton';
 import { LogoGrid } from './components/LogoGrid';
 
 export const LogoPicker: React.FC<LogoPickerProps> = ({ onLogoChange }) => {
-  // Initialize with the gradient logo as default (first in array)
   const [selectedLogo, setSelectedLogo] = useState(LOGO_OPTIONS[0]);
 
   useEffect(() => {
-    // Immediately notify parent of the default gradient logo selection
-    const gradientLogo = LOGO_OPTIONS[0]; // This is the gradient logo
-    console.log('LogoPicker: Initializing with gradient logo:', gradientLogo);
-    onLogoChange?.(gradientLogo.id, gradientLogo.navBgColor);
-  }, []); // Remove onLogoChange from dependencies to prevent loops
+    onLogoChange?.(selectedLogo.id, selectedLogo.navBgColor);
+  }, [selectedLogo, onLogoChange]);
 
   const handleLogoSelect = (logo: typeof LOGO_OPTIONS[0]) => {
-    console.log('LogoPicker: Logo selected:', logo);
     setSelectedLogo(logo);
     onLogoChange?.(logo.id, logo.navBgColor);
   };
@@ -38,7 +33,7 @@ export const LogoPicker: React.FC<LogoPickerProps> = ({ onLogoChange }) => {
         
         <DropdownMenuContent 
           className={cn(
-            "w-80 p-4 backdrop-blur-sm border-white/30 scrollbar-themed",
+            "w-80 p-4 backdrop-blur-sm border-crd-mediumGray/30 scrollbar-themed",
             getDropdownBgClass(selectedLogo.id)
           )}
           align="start"
