@@ -1,10 +1,11 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { ProcessedPSD, ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
 import { LayerGroup } from '@/services/psdProcessor/layerGroupingService';
 import { CanvasControls } from './CanvasControls';
 import { useCanvasNavigation } from '@/hooks/useCanvasNavigation';
-import { LayerMode } from './LayerModeToggle';
+
+export type LayerMode = 'elements' | 'frame' | 'preview';
 
 interface PSDCanvasPreviewProps {
   processedPSD: ProcessedPSD;
@@ -31,269 +32,202 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [canvasDimensions, setCanvasDimensions] = useState({ width: 800, height: 600 });
 
   const {
     transform,
     isPanning,
     zoomIn,
     zoomOut,
-    setZoom,
     resetView,
     fitToScreen,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
     getTransformStyle
-  } = useCanvasNavigation();
+  } = useCanvasNavigation({
+    minZoom: 0.1,
+    maxZoom: 5,
+    zoomStep: 0.1
+  });
 
-  // Function to draw a layer on canvas
-  const drawLayer = (
-    ctx: CanvasRenderingContext2D,
-    layer: ProcessedPSDLayer,
-    isFlipped: boolean = false
-  ) => {
+  // Function to draw a layer with proper bounds
+  const drawLayer = (ctx: CanvasRenderingContext2D, layer: ProcessedPSDLayer, isSelected: boolean, isFlipped: boolean) => {
     if (hiddenLayers.has(layer.id)) return;
 
-    // Use preview image if available, otherwise create a placeholder
-    if (layer.preview) {
-      const img = new Image();
-      img.onload = () => {
-        ctx.save();
-        ctx.globalAlpha = layer.opacity;
-        
-        if (isFlipped) {
-          // Draw CRD logo placeholder instead
-          ctx.fillStyle = '#0066ff';
-          ctx.fillRect(layer.bounds.left, layer.bounds.top, 
-                      layer.bounds.right - layer.bounds.left, 
-                      layer.bounds.bottom - layer.bounds.top);
-          ctx.fillStyle = '#ffffff';
-          ctx.font = '16px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText('CRD', 
-                      (layer.bounds.left + layer.bounds.right) / 2,
-                      (layer.bounds.top + layer.bounds.bottom) / 2);
-        } else {
-          ctx.drawImage(img, layer.bounds.left, layer.bounds.top,
-                       layer.bounds.right - layer.bounds.left,
-                       layer.bounds.bottom - layer.bounds.top);
-        }
-        
-        ctx.restore();
-      };
-      img.src = layer.preview;
+    const { bounds } = layer;
+    const width = bounds.right - bounds.left;
+    const height = bounds.bottom - bounds.top;
+
+    // Set layer opacity
+    ctx.globalAlpha = layer.opacity;
+
+    // For preview mode, show flipped layers differently
+    if (mode === 'preview' && isFlipped) {
+      // Draw CRD branding overlay
+      ctx.fillStyle = 'rgba(59, 130, 246, 0.3)'; // Blue overlay
+      ctx.fillRect(bounds.left, bounds.top, width, height);
+      
+      // Add CRD text
+      ctx.fillStyle = '#3b82f6';
+      ctx.font = '16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('CRD', bounds.left + width / 2, bounds.top + height / 2);
     } else {
-      // Draw placeholder rectangle
-      ctx.save();
-      ctx.globalAlpha = layer.opacity;
-      
-      if (isFlipped) {
-        ctx.fillStyle = '#0066ff';
-        ctx.fillRect(layer.bounds.left, layer.bounds.top, 
-                    layer.bounds.right - layer.bounds.left, 
-                    layer.bounds.bottom - layer.bounds.top);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '16px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('CRD', 
-                    (layer.bounds.left + layer.bounds.right) / 2,
-                    (layer.bounds.top + layer.bounds.bottom) / 2);
-      } else {
-        // Color based on layer type
-        const layerColors = {
-          'text': '#4ade80',
-          'image': '#3b82f6', 
-          'shape': '#f59e0b',
-          'group': '#8b5cf6'
-        };
-        ctx.fillStyle = layerColors[layer.type as keyof typeof layerColors] || '#6b7280';
-        ctx.fillRect(layer.bounds.left, layer.bounds.top, 
-                    layer.bounds.right - layer.bounds.left, 
-                    layer.bounds.bottom - layer.bounds.top);
-        
-        // Add layer name
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '12px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(layer.name, 
-                    (layer.bounds.left + layer.bounds.right) / 2,
-                    (layer.bounds.top + layer.bounds.bottom) / 2);
-      }
-      
-      ctx.restore();
+      // Draw layer rectangle placeholder
+      ctx.fillStyle = isSelected ? 'rgba(34, 197, 94, 0.3)' : 'rgba(148, 163, 184, 0.2)';
+      ctx.fillRect(bounds.left, bounds.top, width, height);
     }
 
-    // Highlight selected layer
-    if (selectedLayerId === layer.id) {
-      ctx.save();
-      ctx.strokeStyle = '#10b981';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(layer.bounds.left - 2, layer.bounds.top - 2,
-                    (layer.bounds.right - layer.bounds.left) + 4,
-                    (layer.bounds.bottom - layer.bounds.top) + 4);
-      ctx.restore();
-    }
+    // Draw border
+    ctx.strokeStyle = isSelected ? '#22c55e' : '#64748b';
+    ctx.lineWidth = isSelected ? 2 : 1;
+    ctx.strokeRect(bounds.left, bounds.top, width, height);
+
+    // Draw layer name
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(layer.name, bounds.left + 4, bounds.top + 16);
+
+    // Reset alpha
+    ctx.globalAlpha = 1;
   };
 
-  const redrawCanvas = () => {
+  useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !processedPSD) return;
+    if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size
-    canvas.width = processedPSD.width;
-    canvas.height = processedPSD.height;
-
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Set background based on mode
-    if (mode === 'preview') {
-      // Show full card background
-      if (processedPSD.flattenedImageUrl) {
-        const img = new Image();
-        img.onload = () => {
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          // Then draw interactive layers
-          processedPSD.layers.forEach(layer => {
-            const isFlipped = flippedLayers.has(layer.id);
-            drawLayer(ctx, layer, isFlipped);
-          });
-        };
-        img.src = processedPSD.flattenedImageUrl;
-      } else {
-        // Fallback gradient background
-        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        gradient.addColorStop(0, '#1e293b');
-        gradient.addColorStop(1, '#0f172a');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-    } else {
-      // Transparent background for elements and frame modes
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
+    // Set background
+    ctx.fillStyle = focusMode ? '#000000' : '#1a1f2e';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw layers based on mode
-    if (mode === 'preview') {
-      // In preview mode, layers are drawn as interactive overlays
-      return; // Already handled above
-    } else {
-      // Draw all layers
-      processedPSD.layers.forEach(layer => {
-        drawLayer(ctx, layer);
-      });
-    }
-  };
+    processedPSD.layers.forEach((layer) => {
+      const isSelected = selectedLayerId === layer.id;
+      const isFlipped = flippedLayers.has(layer.id);
+      
+      // In focus mode, only show selected layer
+      if (focusMode && !isSelected) return;
+      
+      drawLayer(ctx, layer, isSelected, isFlipped);
+    });
 
-  // Handle canvas click
-  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    // Draw selection highlight for frame builder mode
+    if (frameBuilderMode && selectedLayerId) {
+      const selectedLayer = processedPSD.layers.find(l => l.id === selectedLayerId);
+      if (selectedLayer) {
+        ctx.strokeStyle = '#8b5cf6';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([5, 5]);
+        ctx.strokeRect(
+          selectedLayer.bounds.left - 2,
+          selectedLayer.bounds.top - 2,
+          (selectedLayer.bounds.right - selectedLayer.bounds.left) + 4,
+          (selectedLayer.bounds.bottom - selectedLayer.bounds.top) + 4
+        );
+        ctx.setLineDash([]);
+      }
+    }
+  }, [processedPSD, selectedLayerId, hiddenLayers, focusMode, frameBuilderMode, mode, flippedLayers]);
+
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      if (containerRef.current && canvasRef.current) {
+        const container = containerRef.current;
+        const rect = container.getBoundingClientRect();
+        
+        setCanvasDimensions({
+          width: rect.width,
+          height: rect.height
+        });
+
+        const canvas = canvasRef.current;
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+      }
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, []);
+
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (isPanning) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    
-    const x = (event.clientX - rect.left) * scaleX / transform.scale;
-    const y = (event.clientY - rect.top) * scaleY / transform.scale;
+    const x = (e.clientX - rect.left - transform.translateX) / transform.scale;
+    const y = (e.clientY - rect.top - transform.translateY) / transform.scale;
 
-    // Find clicked layer (reverse order for top-most layer)
+    // Find clicked layer
     for (let i = processedPSD.layers.length - 1; i >= 0; i--) {
       const layer = processedPSD.layers[i];
       if (hiddenLayers.has(layer.id)) continue;
-      
-      if (x >= layer.bounds.left && x <= layer.bounds.right &&
-          y >= layer.bounds.top && y <= layer.bounds.bottom) {
+
+      const { bounds } = layer;
+      if (x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom) {
         onLayerSelect(layer.id);
         break;
       }
     }
   };
 
-  // Effect to redraw canvas when dependencies change
-  useEffect(() => {
-    redrawCanvas();
-  }, [processedPSD, selectedLayerId, hiddenLayers, mode, flippedLayers]);
+  const handleFitToScreen = () => {
+    if (processedPSD.layers.length === 0) return;
 
-  // Handle container resize
-  useEffect(() => {
-    const handleResize = () => {
-      if (containerRef.current && processedPSD) {
-        const container = containerRef.current;
-        fitToScreen(container.clientWidth, container.clientHeight, processedPSD.width, processedPSD.height);
-      }
-    };
+    // Calculate bounds of all visible layers
+    const visibleLayers = processedPSD.layers.filter(layer => !hiddenLayers.has(layer.id));
+    if (visibleLayers.length === 0) return;
 
-    window.addEventListener('resize', handleResize);
-    handleResize(); // Initial fit
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    
+    visibleLayers.forEach(layer => {
+      minX = Math.min(minX, layer.bounds.left);
+      minY = Math.min(minY, layer.bounds.top);
+      maxX = Math.max(maxX, layer.bounds.right);
+      maxY = Math.max(maxY, layer.bounds.bottom);
+    });
 
-    return () => window.removeEventListener('resize', handleResize);
-  }, [processedPSD, fitToScreen]);
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
 
-  if (!processedPSD) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-[#0a0a0b]">
-        <div className="text-slate-400">No PSD loaded</div>
-      </div>
-    );
-  }
+    fitToScreen(canvasDimensions.width, canvasDimensions.height, contentWidth, contentHeight);
+  };
 
   return (
-    <div 
-      ref={containerRef}
-      className="relative flex-1 overflow-hidden bg-[#0a0a0b]"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-    >
+    <div ref={containerRef} className="relative w-full h-full bg-[#0a0a0b] overflow-hidden">
       <CanvasControls
         zoom={transform.scale}
         isPanning={isPanning}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
-        onFitToScreen={() => {
-          if (containerRef.current) {
-            fitToScreen(
-              containerRef.current.clientWidth,
-              containerRef.current.clientHeight,
-              processedPSD.width,
-              processedPSD.height
-            );
-          }
-        }}
+        onFitToScreen={handleFitToScreen}
         onResetView={resetView}
         focusMode={focusMode}
         frameBuilderMode={frameBuilderMode}
       />
-
-      <div 
-        className="flex items-center justify-center h-full"
+      
+      <canvas
+        ref={canvasRef}
+        width={canvasDimensions.width}
+        height={canvasDimensions.height}
+        className="cursor-grab active:cursor-grabbing"
         style={getTransformStyle()}
-      >
-        <canvas
-          ref={canvasRef}
-          onClick={handleCanvasClick}
-          className="border border-slate-600 shadow-2xl cursor-crosshair"
-          style={{
-            maxWidth: '100%',
-            maxHeight: '100%',
-            imageRendering: 'pixelated'
-          }}
-        />
-      </div>
-
-      {isLoading && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-[#1a1f2e] p-4 rounded-lg">
-            <div className="text-white">Loading canvas...</div>
-          </div>
-        </div>
-      )}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onClick={handleCanvasClick}
+      />
     </div>
   );
 };
