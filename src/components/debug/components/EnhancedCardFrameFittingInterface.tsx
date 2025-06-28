@@ -30,36 +30,35 @@ export const EnhancedCardFrameFittingInterface: React.FC<EnhancedCardFrameFittin
 
   return (
     <div className="h-full bg-[#0a0a0b] flex flex-col">
-      {/* Canvas Area */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="max-w-4xl w-full">
-          <div className="bg-[#1a1f2e] rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">PSD Preview</h3>
-              <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 text-sm text-gray-300">
-                  <input
-                    type="checkbox"
-                    checked={focusMode}
-                    onChange={(e) => setFocusMode(e.target.checked)}
-                    className="rounded bg-slate-700 border-slate-600"
-                  />
-                  Focus Mode
-                </label>
-              </div>
-            </div>
-            
-            <PSDCanvasPreview
-              processedPSD={processedPSD}
-              selectedLayerId={selectedLayerId}
-              hiddenLayers={hiddenLayers}
-              layerGroups={layerGroups}
-              onLayerSelect={onLayerSelect}
-              frameBuilderMode={false}
-              focusMode={focusMode}
-            />
+      {/* Controls Header */}
+      <div className="p-4 bg-[#1a1f2e] border-b border-slate-700">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-white">PSD Preview</h3>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-sm text-gray-300">
+              <input
+                type="checkbox"
+                checked={focusMode}
+                onChange={(e) => setFocusMode(e.target.checked)}
+                className="rounded bg-slate-700 border-slate-600"
+              />
+              Focus Mode
+            </label>
           </div>
         </div>
+      </div>
+      
+      {/* Canvas Area */}
+      <div className="flex-1">
+        <PSDCanvasPreview
+          processedPSD={processedPSD}
+          selectedLayerId={selectedLayerId}
+          hiddenLayers={hiddenLayers}
+          layerGroups={layerGroups}
+          onLayerSelect={onLayerSelect}
+          frameBuilderMode={false}
+          focusMode={focusMode}
+        />
       </div>
     </div>
   );

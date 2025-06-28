@@ -187,6 +187,47 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     }
   };
 
+  const drawGridBackground = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    const gridSize = 20;
+    
+    ctx.strokeStyle = 'rgba(64, 64, 64, 0.3)';
+    ctx.lineWidth = 0.5;
+    
+    // Draw vertical lines
+    for (let x = 0; x <= width; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+    
+    // Draw horizontal lines
+    for (let y = 0; y <= height; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+    
+    // Draw major grid lines every 100px
+    ctx.strokeStyle = 'rgba(64, 64, 64, 0.5)';
+    ctx.lineWidth = 1;
+    
+    for (let x = 0; x <= width; x += 100) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+    
+    for (let y = 0; y <= height; y += 100) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+  };
+
   if (!processedPSD) {
     return (
       <div className="flex items-center justify-center h-full text-gray-400">
@@ -196,14 +237,18 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 h-full">
+    <div className="flex flex-col h-full">
       <div
         ref={containerRef}
-        className="relative flex items-center justify-center bg-slate-800 rounded border border-slate-600"
+        className="relative flex items-center justify-center bg-black flex-1 overflow-hidden"
         style={{
-          width: '100%',
-          height: '100%',
-          minHeight: '400px',
+          backgroundImage: `
+            linear-gradient(rgba(64, 64, 64, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(64, 64, 64, 0.1) 1px, transparent 1px),
+            linear-gradient(rgba(64, 64, 64, 0.2) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(64, 64, 64, 0.2) 1px, transparent 1px)
+          `,
+          backgroundSize: '20px 20px, 20px 20px, 100px 100px, 100px 100px'
         }}
       >
         <canvas
@@ -219,7 +264,7 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
           className="block"
         />
       </div>
-      <div className="mt-2 text-sm text-gray-400 flex items-center gap-4">
+      <div className="p-3 bg-slate-900 border-t border-slate-700 text-sm text-gray-400 flex items-center gap-4">
         <span>Zoom: {(scale * 100).toFixed(0)}%</span>
         <span>•</span>
         <span>Click layers to select</span>
