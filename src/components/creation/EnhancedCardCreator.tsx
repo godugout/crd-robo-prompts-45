@@ -7,7 +7,6 @@ export const EnhancedCardCreator: React.FC = () => {
   // Create a mock PSD structure to bypass the upload requirement
   const mockProcessedPSD: ProcessedPSD = {
     id: 'mock-psd-1',
-    filename: 'Card Design Canvas',
     width: 1200,
     height: 800,
     layers: [
@@ -32,12 +31,14 @@ export const EnhancedCardCreator: React.FC = () => {
         opacity: 1
       }
     ],
+    totalLayers: 2,
+    flattenedImageUrl: '',
+    thumbnailUrl: '',
     metadata: {
       colorMode: 'RGB',
       resolution: 300,
       bitDepth: 8
-    },
-    processedAt: new Date().toISOString()
+    }
   };
 
   return <PSDPreviewInterface processedPSD={mockProcessedPSD} />;
