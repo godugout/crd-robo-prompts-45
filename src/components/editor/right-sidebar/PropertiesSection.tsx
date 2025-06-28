@@ -11,19 +11,7 @@ interface PropertiesSectionProps {
 }
 
 export const PropertiesSection = ({ cardEditor }: PropertiesSectionProps) => {
-  const { cardData, updateCardField, tags, addTag, removeTag, hasMaxTags } = cardEditor;
-
-  const handleTagKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const input = e.currentTarget;
-      const value = input.value.trim();
-      if (value && !hasMaxTags && !tags.includes(value)) {
-        addTag(value);
-        input.value = '';
-      }
-    }
-  };
+  const { cardData, updateCardField, tags, addTag, removeTag, hasMaxTags, handleTagInput, handlePaste } = cardEditor;
 
   return (
     <div className="p-6 border-b border-editor-border">
@@ -36,11 +24,15 @@ export const PropertiesSection = ({ cardEditor }: PropertiesSectionProps) => {
           </Label>
           <Input
             id="tags-input"
-            onKeyPress={handleTagKeyPress}
-            placeholder={hasMaxTags ? "Maximum tags reached" : "Add tags (press Enter)"}
+            onKeyDown={handleTagInput}
+            onPaste={handlePaste}
+            placeholder={hasMaxTags ? "Maximum tags reached" : "Add tags (press Enter or use commas to separate)"}
             disabled={hasMaxTags}
             className="bg-editor-darker border-editor-border text-cardshow-white mt-1"
           />
+          <p className="text-xs text-cardshow-lightGray/70 mt-1">
+            Separate multiple tags with commas, semicolons, or paste from clipboard
+          </p>
           
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">

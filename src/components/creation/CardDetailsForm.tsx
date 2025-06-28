@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
+import { useTags } from '@/components/memory/hooks/useTags';
 
 interface CardDetailsFormProps {
   cardData: {
@@ -30,28 +31,7 @@ export const CardDetailsForm: React.FC<CardDetailsFormProps> = ({
   cardData,
   onUpdateCardData
 }) => {
-  const [newTag, setNewTag] = React.useState('');
-  const [tags, setTags] = React.useState<string[]>([]);
-
-  const handleAddTag = () => {
-    if (newTag.trim() && !tags.includes(newTag.trim()) && tags.length < 5) {
-      const updatedTags = [...tags, newTag.trim()];
-      setTags(updatedTags);
-      setNewTag('');
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    const updatedTags = tags.filter(tag => tag !== tagToRemove);
-    setTags(updatedTags);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddTag();
-    }
-  };
+  const { tags, handleTagInput, handlePaste, removeTag, hasMaxTags } = useTags([], { maxTags: 5 });
 
   return (
     <div className="space-y-6">
@@ -123,26 +103,19 @@ export const CardDetailsForm: React.FC<CardDetailsFormProps> = ({
           </p>
         </div>
 
-        {/* Tags */}
+        {/* Enhanced Tags with Multi-delimiter Support */}
         <div className="space-y-2">
           <Label className="text-white">Tags</Label>
-          <div className="flex gap-2">
-            <Input
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Add a tag..."
-              className="bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-400 flex-1"
-            />
-            <Button
-              onClick={handleAddTag}
-              disabled={!newTag.trim() || tags.length >= 5}
-              size="sm"
-              className="bg-crd-green hover:bg-crd-green/90 text-black"
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
+          <Input
+            onKeyDown={handleTagInput}
+            onPaste={handlePaste}
+            placeholder={hasMaxTags ? "Maximum 5 tags reached" : "Add tags (use commas to separate multiple tags)"}
+            disabled={hasMaxTags}
+            className="bg-gray-800/50 border-gray-600 text-white placeholder:text-gray-400"
+          />
+          <p className="text-xs text-gray-400">
+            Add up to 5 tags. Separate multiple tags with commas, semicolons, or paste from clipboard
+          </p>
           
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-3">
@@ -151,7 +124,7 @@ export const CardDetailsForm: React.FC<CardDetailsFormProps> = ({
                   key={tag}
                   variant="outline"
                   className="border-crd-green text-crd-green hover:bg-crd-green/10 group cursor-pointer"
-                  onClick={() => handleRemoveTag(tag)}
+                  onClick={() => removeTag(tag)}
                 >
                   {tag}
                   <X className="w-3 h-3 ml-1 group-hover:text-red-400" />
@@ -159,10 +132,6 @@ export const CardDetailsForm: React.FC<CardDetailsFormProps> = ({
               ))}
             </div>
           )}
-          
-          <p className="text-xs text-gray-400">
-            Add up to 5 tags to help categorize your card
-          </p>
         </div>
       </div>
 
