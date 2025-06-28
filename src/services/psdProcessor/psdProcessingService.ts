@@ -1,5 +1,4 @@
-
-import PSD from 'ag-psd';
+import * as PSD from 'ag-psd';
 
 export interface ProcessedPSDLayer {
   id: string;
