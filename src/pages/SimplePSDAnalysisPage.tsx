@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { PSDFileProcessor } from '@/components/debug/components/PSDFileProcessor';
 import { PSDPreviewInterface } from '@/components/debug/PSDPreviewInterface';
 import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
-import { FileImage, Upload, RotateCcw } from 'lucide-react';
+import { Upload, RotateCcw } from 'lucide-react';
 
 const SimplePSDAnalysisPage: React.FC = () => {
   const [processedPSD, setProcessedPSD] = useState<ProcessedPSD | null>(null);
@@ -30,42 +30,9 @@ const SimplePSDAnalysisPage: React.FC = () => {
     <MainLayout>
       <div className="min-h-screen bg-[#0a0a0b] p-6">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <Card className="bg-[#0a0f1b] border-slate-800 mb-6">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <FileImage className="w-6 h-6 text-crd-green" />
-                    <h1 className="text-2xl font-bold text-white">PSD Analysis Studio</h1>
-                  </div>
-                  {processedPSD && (
-                    <div className="text-sm text-gray-400">
-                      {originalFileName || 'Processed PSD'} • {processedPSD.width} × {processedPSD.height}px • {processedPSD.layers.length} layers
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  {processedPSD && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleReset}
-                      className="text-red-400 border-red-500 hover:bg-red-500/10"
-                    >
-                      <RotateCcw className="w-4 h-4 mr-2" />
-                      New PSD
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Content */}
+          {/* Content based on state */}
           {!processedPSD ? (
-            /* Upload Section */
+            /* Upload Section - Only show when no PSD is processed */
             <div className="space-y-6">
               <Card className="bg-[#131316] border-slate-700">
                 <div className="p-8 text-center">
@@ -80,8 +47,34 @@ const SimplePSDAnalysisPage: React.FC = () => {
               <PSDFileProcessor onPSDProcessed={handlePSDProcessed} />
             </div>
           ) : (
-            /* Analysis Interface */
-            <PSDPreviewInterface processedPSD={processedPSD} />
+            /* Analysis Interface - Only show when PSD is processed */
+            <div className="space-y-6">
+              {/* Status Bar */}
+              <Card className="bg-[#0a0f1b] border-slate-800">
+                <div className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="text-sm text-gray-400">
+                        <span className="text-crd-green font-medium">✓ Processed:</span> {originalFileName || 'PSD File'} • {processedPSD.width} × {processedPSD.height}px • {processedPSD.layers.length} layers
+                      </div>
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleReset}
+                      className="text-red-400 border-red-500 hover:bg-red-500/10"
+                    >
+                      <RotateCcw className="w-4 h-4 mr-2" />
+                      New PSD
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Analysis Interface */}
+              <PSDPreviewInterface processedPSD={processedPSD} />
+            </div>
           )}
         </div>
       </div>
