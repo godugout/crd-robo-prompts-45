@@ -9,12 +9,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
 import { useTags } from '@/components/memory/hooks/useTags';
+import { CardAnalysisSection } from './CardAnalysisSection';
+import type { CardMetadata } from '@/services/cardAnalyzer/CardMetadataAnalyzer';
 
 interface CardDetailsFormProps {
   cardData: {
     title: string;
     description: string;
     rarity: string;
+    image_url?: string;
+    sports_metadata?: any;
   };
   onUpdateCardData: (updates: any) => void;
 }
@@ -33,12 +37,48 @@ export const CardDetailsForm: React.FC<CardDetailsFormProps> = ({
 }) => {
   const { tags, handleTagInput, handlePaste, removeTag, hasMaxTags } = useTags([], { maxTags: 5 });
 
+  const handleMetadataExtracted = (metadata: CardMetadata) => {
+    // Auto-populate form fields with extracted metadata
+    const updates: any = {};
+    
+    if (metadata.player) {
+      updates.title = metadata.player;
+    }
+    
+    if (metadata.rarity) {
+      updates.rarity = metadata.rarity;
+    }
+    
+    if (metadata.year || metadata.brand || metadata.team) {
+      let description = cardData.description || '';
+      if (metadata.year) description += `${metadata.year} `;
+      if (metadata.brand) description += `${metadata.brand} `;
+      if (metadata.team) description += `${metadata.team} `;
+      if (metadata.series) description += `${metadata.series} `;
+      updates.description = description.trim();
+    }
+
+    // Store full sports metadata
+    updates.sports_metadata = {
+      ...cardData.sports_metadata,
+      ...metadata
+    };
+
+    onUpdateCardData(updates);
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-2xl font-bold text-white mb-2">Card Details</h3>
         <p className="text-gray-400">Add information to bring your card to life</p>
       </div>
+
+      {/* AI Card Analysis Section */}
+      <CardAnalysisSection
+        onMetadataExtracted={handleMetadataExtracted}
+        existingImageUrl={cardData.image_url}
+      />
 
       <div className="space-y-6">
         {/* Title */}
@@ -133,6 +173,39 @@ export const CardDetailsForm: React.FC<CardDetailsFormProps> = ({
             </div>
           )}
         </div>
+
+        {/* Sports Metadata Display */}
+        {cardData.sports_metadata && Object.keys(cardData.sports_metadata).length > 0 && (
+          <Card className="p-4 bg-black/30 border-crd-green/20">
+            <h4 className="text-crd-green font-medium mb-3">Detected Sports Card Info</h4>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              {cardData.sports_metadata.player && (
+                <div>
+                  <span className="text-gray-400">Player:</span>
+                  <span className="text-white ml-2">{cardData.sports_metadata.player}</span>
+                </div>
+              )}
+              {cardData.sports_metadata.team && (
+                <div>
+                  <span className="text-gray-400">Team:</span>
+                  <span className="text-white ml-2">{cardData.sports_metadata.team}</span>
+                </div>
+              )}
+              {cardData.sports_metadata.year && (
+                <div>
+                  <span className="text-gray-400">Year:</span>
+                  <span className="text-white ml-2">{cardData.sports_metadata.year}</span>
+                </div>
+              )}
+              {cardData.sports_metadata.brand && (
+                <div>
+                  <span className="text-gray-400">Brand:</span>
+                  <span className="text-white ml-2">{cardData.sports_metadata.brand}</span>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
       </div>
 
       {/* Form Summary */}
@@ -157,6 +230,12 @@ export const CardDetailsForm: React.FC<CardDetailsFormProps> = ({
             <span className="text-gray-400">Description:</span>
             <span className="text-white">{cardData.description ? 'Added' : 'Optional'}</span>
           </div>
+          {cardData.sports_metadata && (
+            <div className="flex justify-between">
+              <span className="text-gray-400">AI Analysis:</span>
+              <span className="text-crd-green">Complete</span>
+            </div>
+          )}
         </div>
       </Card>
     </div>
