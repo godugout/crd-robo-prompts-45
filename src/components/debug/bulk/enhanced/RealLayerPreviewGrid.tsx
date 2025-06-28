@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EnhancedProcessedPSD, EnhancedProcessedPSDLayer } from '@/services/psdProcessor/enhancedPsdProcessingService';
-import { Eye, EyeOff, ZoomIn, CheckSquare, Square, ImageIcon } from 'lucide-react';
+import { Eye, EyeOff, Info, ZoomIn, CheckSquare, Square, Image } from 'lucide-react';
 
 interface RealLayerPreviewGridProps {
   processedPSD: EnhancedProcessedPSD;
@@ -60,16 +60,68 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
     return { width, height };
   };
 
+  const renderLayerPreview = (layer: EnhancedProcessedPSDLayer) => {
+    const hasError = imageErrors.has(layer.id);
+    const dimensions = getLayerDimensions(layer);
+
+    if (layer.hasRealImage && layer.thumbnailUrl && !hasError) {
+      return (
+        <img
+          src={layer.thumbnailUrl}
+          alt={layer.name}
+          className="w-full h-full object-contain"
+          onError={() => handleImageError(layer.id)}
+        />
+      );
+    }
+
+    // Fallback placeholder
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-slate-600 rounded mb-2 flex items-center justify-center">
+            <Image className="w-8 h-8 text-slate-300" />
+          </div>
+          <p className="text-slate-400 text-xs">
+            {dimensions.width} × {dimensions.height}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
-      {/* Enhanced Layer Grid - Optimized for Real Image Display */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Stats Header */}
+      <div className="bg-slate-800 border border-slate-600 rounded-lg p-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <span className="text-slate-400 text-sm">Total Layers</span>
+            <p className="text-xl font-bold text-white">{processedPSD.layers.length}</p>
+          </div>
+          <div>
+            <span className="text-slate-400 text-sm">With Images</span>
+            <p className="text-xl font-bold text-crd-green">
+              {processedPSD.layers.filter(l => l.hasRealImage).length}
+            </p>
+          </div>
+          <div>
+            <span className="text-slate-400 text-sm">Selected</span>
+            <p className="text-xl font-bold text-blue-400">{selectedLayers.size}</p>
+          </div>
+          <div>
+            <span className="text-slate-400 text-sm">Hidden</span>
+            <p className="text-xl font-bold text-slate-400">{hiddenLayers.size}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Large Visual Layer Grid - Optimized for Real Images */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {processedPSD.layers.map((layer) => {
           const dimensions = getLayerDimensions(layer);
           const isSelected = selectedLayers.has(layer.id);
           const isHidden = hiddenLayers.has(layer.id);
-          const hasImageError = imageErrors.has(layer.id);
-          const hasRealImage = layer.hasRealImage && layer.thumbnailUrl && !hasImageError;
           
           return (
             <Card
@@ -81,28 +133,8 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
             >
               <div className="p-4">
                 {/* Large Layer Preview - Real Images */}
-                <div className="aspect-square bg-slate-900 rounded-lg mb-4 overflow-hidden relative min-h-[250px]">
-                  {hasRealImage ? (
-                    <img
-                      src={layer.thumbnailUrl}
-                      alt={layer.name}
-                      className="w-full h-full object-contain"
-                      onError={() => handleImageError(layer.id)}
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
-                      <div className="text-center">
-                        <ImageIcon className="w-16 h-16 text-slate-500 mx-auto mb-2" />
-                        <p className="text-slate-400 text-xs">
-                          {hasImageError ? 'Image Error' : 'No Preview'}
-                        </p>
-                        <p className="text-slate-500 text-xs mt-1">
-                          {dimensions.width} × {dimensions.height}
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                <div className="aspect-square bg-slate-900 rounded-lg mb-4 overflow-hidden relative min-h-[200px]">
+                  {renderLayerPreview(layer)}
                   
                   {/* Layer Controls Overlay */}
                   <div className="absolute top-2 left-2 right-2 flex justify-between">
@@ -154,9 +186,9 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
                     </Button>
                   </div>
 
-                  {/* Real Image Indicator */}
-                  {hasRealImage && (
-                    <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
+                  {/* Image Status Indicator */}
+                  {layer.hasRealImage && (
+                    <div className="absolute top-2 right-2">
                       <Badge className="bg-crd-green/20 text-crd-green text-xs">
                         Real Image
                       </Badge>
@@ -208,17 +240,6 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
             </Card>
           );
         })}
-      </div>
-
-      {/* Layer Statistics */}
-      <div className="flex flex-wrap gap-4 text-sm text-slate-400">
-        <span>Total Layers: {processedPSD.layers.length}</span>
-        <span>
-          With Images: {processedPSD.layers.filter(l => l.hasRealImage).length}
-        </span>
-        <span>
-          Selected: {selectedLayers.size}
-        </span>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { EnhancedBulkPSDAnalysis } from '@/components/debug/bulk/EnhancedBulkPSDAnalysis';
-import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
+import { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 export interface BulkPSDData {
   id: string;
   fileName: string;
-  processedPSD: ProcessedPSD;
+  processedPSD: EnhancedProcessedPSD;
   uploadedAt: Date;
 }
 

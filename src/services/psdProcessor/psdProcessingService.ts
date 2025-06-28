@@ -312,3 +312,104 @@ class PSDProcessingService {
 }
 
 export const psdProcessingService = new PSDProcessingService();
+
+export const processPSD = async (file: File): Promise<ProcessedPSD> => {
+  try {
+    console.log('Processing PSD file:', file.name);
+    
+    // Read file as ArrayBuffer for ag-psd processing
+    const arrayBuffer = await file.arrayBuffer();
+    
+    // Import ag-psd dynamically
+    const { readPsd } = await import('ag-psd');
+    
+    // Parse the PSD file
+    const psd = readPsd(arrayBuffer);
+    
+    if (!psd) {
+      throw new Error('Failed to parse PSD file');
+    }
+
+    console.log('PSD parsed successfully:', {
+      width: psd.width,
+      height: psd.height,
+      layerCount: psd.children?.length || 0
+    });
+
+    // Process layers
+    const layers: ProcessedPSDLayer[] = [];
+    
+    if (psd.children) {
+      psd.children.forEach((layer, index) => {
+        const bounds = {
+          left: layer.left || 0,
+          top: layer.top || 0,
+          right: (layer.left || 0) + (layer.canvas?.width || 0),
+          bottom: (layer.top || 0) + (layer.canvas?.height || 0)
+        };
+
+        layers.push({
+          id: `layer_${index}`,
+          name: layer.name || `Layer ${index + 1}`,
+          type: layer.hidden ? 'hidden' : 'image',
+          bounds,
+          semanticType: inferSemanticType(layer.name || ''),
+          inferredDepth: index * 0.1, // Simple depth based on layer order
+          opacity: (layer.opacity || 255) / 255,
+          blendMode: layer.blendMode || 'normal'
+        });
+      });
+    }
+
+    const processedPSD: ProcessedPSD = {
+      fileName: file.name,
+      width: psd.width || 400,
+      height: psd.height || 560,
+      totalLayers: layers.length,
+      layers,
+      metadata: {
+        fileSize: file.size,
+        colorMode: psd.colorMode || 'RGB',
+        hasAlpha: true,
+        resolution: psd.resolution || 72
+      }
+    };
+
+    console.log('PSD processing completed:', {
+      fileName: file.name,
+      totalLayers: layers.length,
+      dimensions: `${processedPSD.width}x${processedPSD.height}`
+    });
+
+    return processedPSD;
+
+  } catch (error) {
+    console.error('Error processing PSD:', error);
+    throw error;
+  }
+};
+
+const inferSemanticType = (layerName: string): string | undefined => {
+  const name = layerName.toLowerCase();
+  
+  if (name.includes('player') || name.includes('athlete') || name.includes('person')) {
+    return 'player';
+  }
+  if (name.includes('background') || name.includes('bg')) {
+    return 'background';
+  }
+  if (name.includes('stats') || name.includes('numbers') || name.includes('score')) {
+    return 'stats';
+  }
+  if (name.includes('logo') || name.includes('brand') || name.includes('team')) {
+    return 'logo';
+  }
+  if (name.includes('border') || name.includes('frame') || name.includes('edge')) {
+    return 'border';
+  }
+  if (name.includes('text') || name.includes('title') || name.includes('name')) {
+    return 'text';
+  }
+  
+  return undefined;
+};
