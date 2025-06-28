@@ -18,7 +18,7 @@ export const useCardAnalysis = () => {
       
       toast.dismiss();
       
-      if (result.confidence > 0.5) {
+      if (result.confidence > 0.3) {
         toast.success(`Card analyzed successfully! Confidence: ${Math.round(result.confidence * 100)}%`);
       } else {
         toast.warning('Card analysis completed with low confidence. Please review the results.');

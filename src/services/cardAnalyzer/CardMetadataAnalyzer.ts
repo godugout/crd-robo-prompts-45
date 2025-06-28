@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface CardMetadata {
@@ -20,12 +19,12 @@ export interface CardMetadata {
 export interface AnalysisResult {
   metadata: CardMetadata;
   confidence: number;
-  source: 'ocr' | 'ai_vision' | 'pattern_match';
+  source: 'pattern_match' | 'ai_vision' | 'huggingface';
   processingTime: number;
 }
 
 export class CardMetadataAnalyzer {
-  private async analyzeWithAI(imageUrl: string): Promise<AnalysisResult> {
+  private async analyzeWithHuggingFace(imageUrl: string): Promise<AnalysisResult> {
     const startTime = Date.now();
     
     try {
@@ -37,37 +36,64 @@ export class CardMetadataAnalyzer {
 
       return {
         metadata: data.metadata,
-        confidence: data.confidence || 0.8,
-        source: 'ai_vision',
+        confidence: data.confidence || 0.3,
+        source: 'huggingface',
         processingTime: Date.now() - startTime
       };
     } catch (error) {
-      console.error('AI analysis failed:', error);
+      console.error('Hugging Face analysis failed:', error);
       return this.fallbackAnalysis(imageUrl, startTime);
     }
   }
 
   private async fallbackAnalysis(imageUrl: string, startTime: number): Promise<AnalysisResult> {
-    // Basic pattern matching and OCR fallback
+    // Enhanced pattern matching and OCR fallback
     const metadata: CardMetadata = {
-      confidence: 0.3
+      confidence: 0.2
     };
 
-    // Simple pattern matching for common card features
-    if (imageUrl.includes('rookie') || imageUrl.includes('RC')) {
+    const urlLower = imageUrl.toLowerCase();
+    
+    // Enhanced pattern matching
+    if (urlLower.includes('rookie') || urlLower.includes('rc')) {
       metadata.isRookie = true;
     }
 
+    // Sport detection
+    if (urlLower.includes('basketball') || urlLower.includes('nba')) {
+      metadata.sport = 'Basketball';
+    } else if (urlLower.includes('baseball') || urlLower.includes('mlb')) {
+      metadata.sport = 'Baseball';
+    } else if (urlLower.includes('football') || urlLower.includes('nfl')) {
+      metadata.sport = 'Football';
+    } else if (urlLower.includes('hockey') || urlLower.includes('nhl')) {
+      metadata.sport = 'Hockey';
+    }
+
+    // Brand detection
+    const brands = ['topps', 'panini', 'upper-deck', 'bowman', 'fleer', 'donruss'];
+    for (const brand of brands) {
+      if (urlLower.includes(brand)) {
+        metadata.brand = brand.replace('-', ' ').split(' ').map(w => 
+          w.charAt(0).toUpperCase() + w.slice(1)
+        ).join(' ');
+        break;
+      }
+    }
+
+    // Default rarity
+    metadata.rarity = 'common';
+
     return {
       metadata,
-      confidence: 0.3,
+      confidence: 0.2,
       source: 'pattern_match',
       processingTime: Date.now() - startTime
     };
   }
 
   async analyzeCard(imageUrl: string): Promise<AnalysisResult> {
-    return this.analyzeWithAI(imageUrl);
+    return this.analyzeWithHuggingFace(imageUrl);
   }
 
   async saveAnalysisResult(cardId: string, result: AnalysisResult): Promise<void> {
