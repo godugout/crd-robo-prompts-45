@@ -33,19 +33,19 @@ const BulkPSDAnalysisPage: React.FC = () => {
 
   return (
     <MainLayout showNavbar={false}>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+      <div className="min-h-screen bg-[#0a0a0b] p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" asChild className="text-slate-400 hover:text-white">
+                <Button variant="ghost" size="sm" asChild className="text-slate-300 hover:text-white hover:bg-slate-800">
                   <Link to="/debug/psd-preview">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to PSD Preview
                   </Link>
                 </Button>
-                <div className="h-6 w-px bg-slate-700" />
+                <div className="h-6 w-px bg-slate-600" />
                 <div className="flex items-center gap-2">
                   <GitCompare className="w-6 h-6 text-crd-green" />
                   <h1 className="text-2xl font-bold text-white">Bulk PSD Analysis</h1>
@@ -80,7 +80,7 @@ const BulkPSDAnalysisPage: React.FC = () => {
           {/* Stats Overview */}
           {processedPSDs.length > 0 && (
             <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-[#0a0f1b] border border-slate-800 rounded-lg p-4">
+              <div className="bg-[#131316] border border-slate-700 rounded-lg p-4">
                 <div className="flex items-center gap-2">
                   <Database className="w-5 h-5 text-crd-green" />
                   <span className="text-slate-400 text-sm">Total PSDs</span>
@@ -88,7 +88,7 @@ const BulkPSDAnalysisPage: React.FC = () => {
                 <p className="text-2xl font-bold text-white mt-1">{processedPSDs.length}</p>
               </div>
               
-              <div className="bg-[#0a0f1b] border border-slate-800 rounded-lg p-4">
+              <div className="bg-[#131316] border border-slate-700 rounded-lg p-4">
                 <div className="flex items-center gap-2">
                   <span className="text-slate-400 text-sm">Total Layers</span>
                 </div>
@@ -97,7 +97,7 @@ const BulkPSDAnalysisPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="bg-[#0a0f1b] border border-slate-800 rounded-lg p-4">
+              <div className="bg-[#131316] border border-slate-700 rounded-lg p-4">
                 <div className="flex items-center gap-2">
                   <span className="text-slate-400 text-sm">Avg Layers/PSD</span>
                 </div>
@@ -106,7 +106,7 @@ const BulkPSDAnalysisPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="bg-[#0a0f1b] border border-slate-800 rounded-lg p-4">
+              <div className="bg-[#131316] border border-slate-700 rounded-lg p-4">
                 <div className="flex items-center gap-2">
                   <span className="text-slate-400 text-sm">Unique Elements</span>
                 </div>
