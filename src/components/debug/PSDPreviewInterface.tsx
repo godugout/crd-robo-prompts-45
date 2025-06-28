@@ -1,20 +1,16 @@
 
 import React, { useState, useMemo } from 'react';
 import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
-import { PSDCanvasPreview } from './components/PSDCanvasPreview';
+import { CardFrameFittingInterface } from './components/CardFrameFittingInterface';
 import { SimplifiedLayerInspector } from './components/SimplifiedLayerInspector';
-import { CRDFrameBuilder } from './components/CRDFrameBuilder';
 import { findLargestLayerByVolume } from '@/utils/layerUtils';
 import { PSDCard } from '@/components/ui/design-system/PSDCard';
 import { PSDButton } from '@/components/ui/design-system/PSDButton';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Eye, 
-  EyeOff, 
-  SquareKanban,
   Palette,
-  Sun,
-  Square
+  Square,
+  Settings
 } from 'lucide-react';
 
 interface PSDPreviewInterfaceProps {
@@ -26,8 +22,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
 }) => {
   const [selectedLayerId, setSelectedLayerId] = useState<string>('');
   const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
-  const [frameBuilderMode, setFrameBuilderMode] = useState(false);
-  const [focusMode, setFocusMode] = useState(true);
+  const [selectedFrame, setSelectedFrame] = useState('classic-sports');
 
   // Initialize with largest layer selected
   React.useEffect(() => {
@@ -56,7 +51,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 h-full max-w-7xl mx-auto">
-      {/* Canvas Preview - Takes up 3/4 width on large screens */}
+      {/* Card Frame Fitting Interface - Takes up 3/4 width on large screens */}
       <div className="xl:col-span-3">
         <PSDCard variant="elevated">
           {/* Header */}
@@ -66,9 +61,9 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
                 <div className="flex items-center gap-3">
                   <Palette className="w-6 h-6 text-crd-green" />
                   <div>
-                    <h1 className="text-xl font-bold text-white">Canvas Preview</h1>
+                    <h1 className="text-xl font-bold text-white">Card Frame Fitting</h1>
                     <p className="text-sm text-slate-400">
-                      Analyzing {processedPSD.layers.length} layers from your PSD file
+                      Position and crop your image within the selected frame
                     </p>
                   </div>
                 </div>
@@ -84,69 +79,33 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
               </div>
             </div>
 
-            {/* Controls */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {selectedLayer && (
-                  <Badge className="bg-crd-green text-black font-medium px-3 py-1">
-                    Selected: {selectedLayer.name}
-                  </Badge>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <PSDButton
-                  variant={focusMode ? "primary" : "secondary"}
-                  size="sm"
-                  onClick={() => setFocusMode(!focusMode)}
-                >
-                  {focusMode ? (
-                    <>
-                      <Eye className="w-4 h-4 mr-2" />
-                      Focus Mode
-                    </>
-                  ) : (
-                    <>
-                      <Sun className="w-4 h-4 mr-2" />
-                      Full View
-                    </>
-                  )}
-                </PSDButton>
+            {/* Selected Layer Info */}
+            {selectedLayer && (
+              <div className="flex items-center justify-between">
+                <Badge className="bg-crd-green text-black font-medium px-3 py-1">
+                  Active: {selectedLayer.name}
+                </Badge>
                 
                 <PSDButton
-                  variant={frameBuilderMode ? "primary" : "secondary"}
+                  variant="secondary"
                   size="sm"
-                  onClick={() => setFrameBuilderMode(!frameBuilderMode)}
                 >
-                  <SquareKanban className="w-4 h-4 mr-2" />
-                  {frameBuilderMode ? 'Exit Builder' : 'Frame Builder'}
+                  <Settings className="w-4 h-4 mr-2" />
+                  Frame Settings
                 </PSDButton>
               </div>
-            </div>
+            )}
           </div>
           
-          {/* Canvas Content */}
+          {/* Frame Fitting Interface */}
           <div className="p-6">
-            {frameBuilderMode ? (
-              <CRDFrameBuilder
-                layers={processedPSD.layers}
-                layerGroups={[]} // We'll integrate this with the new categorization later
-                selectedLayerId={selectedLayerId}
-                onLayerSelect={setSelectedLayerId}
-                hiddenLayers={hiddenLayers}
-                onLayerToggle={toggleLayerVisibility}
-              />
-            ) : (
-              <PSDCanvasPreview
-                processedPSD={processedPSD}
-                selectedLayerId={selectedLayerId}
-                hiddenLayers={hiddenLayers}
-                layerGroups={[]} // We'll integrate this with the new categorization later
-                onLayerSelect={setSelectedLayerId}
-                frameBuilderMode={frameBuilderMode}
-                focusMode={focusMode}
-              />
-            )}
+            <CardFrameFittingInterface
+              processedPSD={processedPSD}
+              selectedLayerId={selectedLayerId}
+              hiddenLayers={hiddenLayers}
+              onLayerSelect={setSelectedLayerId}
+              selectedFrame={selectedFrame}
+            />
           </div>
         </PSDCard>
       </div>
@@ -160,7 +119,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
               <h2 className="text-lg font-semibold text-white">Layer Inspector</h2>
             </div>
             <p className="text-sm text-slate-400 mt-1">
-              Organized by content type for easy management
+              Organize layers for perfect card fitting
             </p>
           </div>
           
