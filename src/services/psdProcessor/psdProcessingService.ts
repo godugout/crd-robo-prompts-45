@@ -60,7 +60,7 @@ class PSDProcessingService {
         height: psd.height,
         layers: processedLayers,
         totalLayers: processedLayers.length,
-        colorMode: psd.colorMode || 'RGB',
+        colorMode: typeof psd.colorMode === 'string' ? psd.colorMode : String(psd.colorMode || 'RGB'),
         bitsPerChannel: psd.bitsPerChannel || 8
       };
     } catch (error) {
