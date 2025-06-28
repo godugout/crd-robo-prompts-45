@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Eye, EyeOff, Layers3, Map as MapIcon } from 'lucide-react';
 import { ProcessedPSD, ProcessedPSDLayer, psdProcessingService } from '@/services/psdProcessor/psdProcessingService';
 import { PSDLayerInspector } from './components/PSDLayerInspector';
+import { PSDCanvasPreview } from './components/PSDCanvasPreview';
 
 interface PSDPreviewInterfaceProps {
   processedPSD?: ProcessedPSD | null;
@@ -34,6 +36,10 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
 
   const handleLayerSelect = useCallback((layer: ProcessedPSDLayer) => {
     setSelectedLayerId(layer.id);
+  }, []);
+
+  const handleCanvasLayerClick = useCallback((layerId: string) => {
+    setSelectedLayerId(layerId);
   }, []);
 
   const toggleLayerVisibility = useCallback((layerId: string) => {
@@ -216,9 +222,17 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
           onToggleVisibility={toggleLayerVisibility}
         />
 
-        {/* Depth Visualization */}
-        {renderDepthVisualization()}
+        {/* Canvas Preview */}
+        <PSDCanvasPreview
+          processedPSD={processedPSD}
+          selectedLayerId={selectedLayerId}
+          layerVisibility={layerVisibility}
+          onLayerClick={handleCanvasLayerClick}
+        />
       </div>
+
+      {/* Depth Visualization - Full Width */}
+      {showDepthMap && renderDepthVisualization()}
     </div>
   );
 };
