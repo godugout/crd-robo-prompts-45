@@ -10,14 +10,20 @@ import { FileImage, Upload, RotateCcw } from 'lucide-react';
 
 const SimplePSDAnalysisPage: React.FC = () => {
   const [processedPSD, setProcessedPSD] = useState<ProcessedPSD | null>(null);
+  const [originalFileName, setOriginalFileName] = useState<string>('');
 
   const handlePSDProcessed = (psd: ProcessedPSD) => {
     console.log('PSD processed successfully:', psd);
     setProcessedPSD(psd);
+    // Extract filename from metadata if available
+    if (psd.metadata?.documentName) {
+      setOriginalFileName(psd.metadata.documentName);
+    }
   };
 
   const handleReset = () => {
     setProcessedPSD(null);
+    setOriginalFileName('');
   };
 
   return (
@@ -35,7 +41,7 @@ const SimplePSDAnalysisPage: React.FC = () => {
                   </div>
                   {processedPSD && (
                     <div className="text-sm text-gray-400">
-                      {processedPSD.fileName} • {processedPSD.width} × {processedPSD.height}px • {processedPSD.layers.length} layers
+                      {originalFileName || 'Processed PSD'} • {processedPSD.width} × {processedPSD.height}px • {processedPSD.layers.length} layers
                     </div>
                   )}
                 </div>
