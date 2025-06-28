@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -17,6 +16,8 @@ import Collections from './pages/Collections';
 import CreatorDashboardPage from './pages/CreatorDashboardPage';
 import CommunityHubPage from './pages/CommunityHubPage';
 import PSDPreviewPage from './pages/PSDPreviewPage';
+import BulkPSDAnalysisPage from "./pages/BulkPSDAnalysisPage";
+import Debug from "./pages/Debug";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -130,6 +131,8 @@ function App() {
                     </MainLayout>
                   } 
                 />
+                <Route path="/debug/bulk-psd-analysis" element={<BulkPSDAnalysisPage />} />
+                <Route path="/debug" element={<Debug />} />
               </Routes>
             </div>
           </TooltipProvider>

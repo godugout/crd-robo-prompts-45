@@ -1,9 +1,14 @@
-
 import React from 'react';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { 
+  Palette, 
+  Upload, 
+  EyeOff, 
+  RotateCcw 
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
 
 interface PSDWorkflowHeaderProps {
@@ -21,59 +26,70 @@ export const PSDWorkflowHeader: React.FC<PSDWorkflowHeaderProps> = ({
 }) => {
   return (
     <Card className="bg-[#0a0f1b] border-slate-800 mb-6">
-      <CardContent className="p-4">
+      <div className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-crd-green" />
-              <h1 className="text-white font-semibold text-lg">PSD Processing Studio</h1>
+              <Palette className="w-6 h-6 text-crd-green" />
+              <h1 className="text-2xl font-bold text-white">PSD Analysis Studio</h1>
             </div>
             
             {processedPSD && (
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-crd-green border-crd-green/50">
-                  {processedPSD.layers.length} layers
+                <Badge variant="outline" className="text-xs">
+                  {processedPSD.width} × {processedPSD.height}px
                 </Badge>
-                <Badge variant="outline" className="text-slate-300">
-                  {processedPSD.width}×{processedPSD.height}
+                <Badge variant="outline" className="text-xs">
+                  {processedPSD.totalLayers} layers
                 </Badge>
               </div>
             )}
           </div>
-
+          
           <div className="flex items-center gap-2">
-            {processedPSD && (
-              <Button
-                onClick={onReset}
-                variant="outline"
-                size="sm"
-                className="border-gray-600 text-gray-300 hover:bg-gray-700"
-              >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                New PSD
-              </Button>
-            )}
-            
             <Button
-              onClick={onToggleUpload}
               variant="outline"
               size="sm"
-              className="border-gray-600 text-gray-300 hover:bg-gray-700"
+              asChild
+              className="text-purple-400 border-purple-500 hover:bg-purple-500/10"
             >
-              {showUpload ? <ChevronUp className="w-4 h-4 mr-2" /> : <ChevronDown className="w-4 h-4 mr-2" />}
-              {showUpload ? 'Hide Upload' : 'Show Upload'}
+              <Link to="/debug/bulk-psd-analysis">
+                <Upload className="w-4 h-4 mr-2" />
+                Bulk Analysis
+              </Link>
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onToggleUpload}
+              className={showUpload ? 'bg-slate-700' : ''}
+            >
+              {showUpload ? (
+                <>
+                  <EyeOff className="w-4 h-4 mr-2" />
+                  Hide Upload
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Show Upload
+                </>
+              )}
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onReset}
+              className="text-red-400 border-red-500 hover:bg-red-500/10"
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              New PSD
             </Button>
           </div>
         </div>
-
-        {processedPSD && (
-          <div className="mt-3 pt-3 border-t border-slate-700">
-            <p className="text-sm text-slate-400">
-              PSD processed successfully. Use the layer inspector and depth visualization below to analyze your file.
-            </p>
-          </div>
-        )}
-      </CardContent>
+      </div>
     </Card>
   );
 };
