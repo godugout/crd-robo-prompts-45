@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,10 +8,10 @@ import { ProcessedPSD, ProcessedPSDLayer, psdProcessingService } from '@/service
 import { PSDLayerInspector } from './components/PSDLayerInspector';
 
 interface PSDPreviewInterfaceProps {
-  processedPSD: ProcessedPSD | null;
+  processedPSD?: ProcessedPSD | null;
 }
 
-export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ processedPSD }) => {
+export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ processedPSD = null }) => {
   const [showDepthMap, setShowDepthMap] = useState(false);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [layerVisibility, setLayerVisibility] = useState<Map<string, boolean>>(new Map());
