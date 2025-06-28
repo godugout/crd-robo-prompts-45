@@ -10,7 +10,8 @@ import { Link } from 'react-router-dom';
 export interface BulkPSDData {
   id: string;
   fileName: string;
-  processedPSD: EnhancedProcessedPSD;
+  processedPSD: EnhancedProcessedPSD; // Keep this for legacy compatibility
+  enhancedProcessedPSD: EnhancedProcessedPSD; // Add explicit enhanced version
   uploadedAt: Date;
 }
 
@@ -84,7 +85,7 @@ const BulkPSDAnalysisPage: React.FC = () => {
                   <span className="text-slate-400 text-sm">Total Layers</span>
                 </div>
                 <p className="text-2xl font-bold text-white mt-1">
-                  {processedPSDs.reduce((acc, psd) => acc + psd.processedPSD.totalLayers, 0)}
+                  {processedPSDs.reduce((acc, psd) => acc + psd.enhancedProcessedPSD.totalLayers, 0)}
                 </p>
               </div>
 
@@ -94,7 +95,7 @@ const BulkPSDAnalysisPage: React.FC = () => {
                 </div>
                 <p className="text-2xl font-bold text-white mt-1">
                   {processedPSDs.reduce((acc, psd) => {
-                    const elements = new Set(psd.processedPSD.layers.map(l => l.semanticType).filter(Boolean)).size;
+                    const elements = new Set(psd.enhancedProcessedPSD.layers.map(l => l.semanticType).filter(Boolean)).size;
                     return acc + elements;
                   }, 0)}
                 </p>
@@ -106,7 +107,7 @@ const BulkPSDAnalysisPage: React.FC = () => {
                 </div>
                 <p className="text-2xl font-bold text-white mt-1">
                   {processedPSDs.filter(psd => 
-                    psd.processedPSD.layers.some(l => l.semanticType)
+                    psd.enhancedProcessedPSD.layers.some(l => l.semanticType)
                   ).length}
                 </p>
               </div>

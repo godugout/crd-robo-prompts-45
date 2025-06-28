@@ -49,7 +49,8 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
         processedPSDs.push({
           id: `psd_${Date.now()}_${i}`,
           fileName: file.name,
-          processedPSD: enhancedProcessedPSD,
+          processedPSD: enhancedProcessedPSD, // For legacy compatibility
+          enhancedProcessedPSD: enhancedProcessedPSD, // Explicit enhanced version
           uploadedAt: new Date()
         });
 

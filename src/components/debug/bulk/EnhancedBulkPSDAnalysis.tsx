@@ -160,7 +160,7 @@ export const EnhancedBulkPSDAnalysis: React.FC<EnhancedBulkPSDAnalysisProps> = (
           <TabsContent value="analysis" className="space-y-6">
             {selectedPSD ? (
               <RealLayerPreviewGrid
-                processedPSD={selectedPSD.processedPSD}
+                processedPSD={selectedPSD.enhancedProcessedPSD}
                 selectedLayers={selectedLayers}
                 onLayerToggle={handleLayerToggle}
                 onLayerSelect={handleLayerSelect}
@@ -183,7 +183,7 @@ export const EnhancedBulkPSDAnalysis: React.FC<EnhancedBulkPSDAnalysisProps> = (
           <TabsContent value="overlay" className="space-y-6">
             {selectedPSD ? (
               <InteractiveCardOverlay
-                processedPSD={selectedPSD.processedPSD}
+                processedPSD={selectedPSD.enhancedProcessedPSD}
                 selectedLayers={selectedLayers}
                 onLayerSelect={handleLayerSelect}
                 onLayerToggle={handleLayerToggle}
