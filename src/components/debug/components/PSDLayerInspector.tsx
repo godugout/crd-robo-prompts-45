@@ -3,283 +3,274 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Eye, 
   EyeOff, 
-  ChevronDown, 
-  ChevronRight, 
   Layers, 
-  List,
-  Info,
-  MousePointer2,
-  Palette
+  Image as ImageIcon, 
+  Type, 
+  Shapes, 
+  Folder,
+  ChevronDown,
+  ChevronRight,
+  Circle
 } from 'lucide-react';
-import { ProcessedPSD, ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
-import { layerGroupingService, LayerGroup, GroupingResult } from '@/services/psdProcessor/layerGroupingService';
+import { ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
+import { LayerGroup } from '@/services/psdProcessor/layerGroupingService';
 
 interface PSDLayerInspectorProps {
-  processedPSD: ProcessedPSD;
-  selectedLayerIds: Set<string>;
+  layers: ProcessedPSDLayer[];
+  layerGroups: LayerGroup[];
+  selectedLayerId: string | null;
+  hiddenLayers: Set<string>;
   onLayerSelect: (layerId: string) => void;
   onLayerToggle: (layerId: string) => void;
-  onLayerHover: (layerId: string | null) => void;
-  visibleLayers: Set<string>;
 }
 
-type ViewMode = 'smart' | 'grouped' | 'flat';
-
 export const PSDLayerInspector: React.FC<PSDLayerInspectorProps> = ({
-  processedPSD,
-  selectedLayerIds,
+  layers,
+  layerGroups,
+  selectedLayerId,
+  hiddenLayers,
   onLayerSelect,
-  onLayerToggle,
-  onLayerHover,
-  visibleLayers
+  onLayerToggle
 }) => {
-  const [viewMode, setViewMode] = useState<ViewMode>('smart');
+  const [viewMode, setViewMode] = useState<'flat' | 'grouped'>('flat');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
-  const groupingResult = useMemo((): GroupingResult => {
-    return layerGroupingService.analyzeAndGroupLayers(processedPSD.layers);
-  }, [processedPSD.layers]);
+  // Group colors for visual distinction
+  const groupColors = {
+    'background': 'bg-gray-500',
+    'character': 'bg-green-500', 
+    'ui': 'bg-orange-500',
+    'effects': 'bg-purple-500',
+    'branding': 'bg-red-500',
+    'mixed': 'bg-blue-500'
+  };
 
-  const effectiveViewMode = useMemo((): 'grouped' | 'flat' => {
-    if (viewMode === 'smart') {
-      return groupingResult.shouldUseGrouping ? 'grouped' : 'flat';
+  // Icon mapping for layer types
+  const getLayerIcon = (layer: ProcessedPSDLayer) => {
+    switch (layer.type) {
+      case 'text': return <Type className="w-4 h-4" />;
+      case 'shape': return <Shapes className="w-4 h-4" />;
+      case 'group': return <Folder className="w-4 h-4" />;
+      default: return <ImageIcon className="w-4 h-4" />;
     }
-    return viewMode === 'grouped' ? 'grouped' : 'flat';
-  }, [viewMode, groupingResult.shouldUseGrouping]);
+  };
+
+  // Get semantic type color
+  const getSemanticColor = (semanticType?: string) => {
+    const colors = {
+      'background': 'text-gray-400',
+      'player': 'text-green-400',
+      'stats': 'text-orange-400', 
+      'logo': 'text-red-400',
+      'effect': 'text-purple-400',
+      'border': 'text-blue-400',
+      'text': 'text-yellow-400',
+      'image': 'text-cyan-400'
+    };
+    return colors[semanticType as keyof typeof colors] || 'text-slate-400';
+  };
 
   const toggleGroup = (groupId: string) => {
-    const newExpanded = new Set(expandedGroups);
-    if (newExpanded.has(groupId)) {
-      newExpanded.delete(groupId);
-    } else {
-      newExpanded.add(groupId);
-    }
-    setExpandedGroups(newExpanded);
+    setExpandedGroups(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupId)) {
+        newSet.delete(groupId);
+      } else {
+        newSet.add(groupId);
+      }
+      return newSet;
+    });
   };
 
-  const handleLayerClick = (layer: ProcessedPSDLayer, event: React.MouseEvent) => {
-    if (event.ctrlKey || event.metaKey) {
-      onLayerSelect(layer.id);
-    } else {
-      onLayerToggle(layer.id);
-    }
-  };
+  // Determine which view mode to show based on content
+  const shouldShowGrouped = useMemo(() => {
+    return layerGroups.length > 0 && layerGroups.some(group => group.layers.length > 1);
+  }, [layerGroups]);
 
-  const renderLayerItem = (layer: ProcessedPSDLayer, groupColor?: string) => {
-    const isSelected = selectedLayerIds.has(layer.id);
-    const isVisible = visibleLayers.has(layer.id);
+  // Stats for the current view
+  const viewStats = useMemo(() => {
+    if (viewMode === 'grouped' && shouldShowGrouped) {
+      const meaningfulGroups = layerGroups.filter(group => group.layers.length > 1);
+      const singleLayers = layers.length - meaningfulGroups.reduce((sum, group) => sum + group.layers.length, 0);
+      return {
+        groups: meaningfulGroups.length,
+        singleLayers,
+        totalLayers: layers.length
+      };
+    }
+    return {
+      groups: 0,
+      singleLayers: layers.length,
+      totalLayers: layers.length
+    };
+  }, [viewMode, layerGroups, layers.length, shouldShowGrouped]);
+
+  const renderLayer = (layer: ProcessedPSDLayer, isInGroup = false, groupColor?: string) => {
+    const isSelected = selectedLayerId === layer.id;
+    const isHidden = hiddenLayers.has(layer.id);
     
     return (
       <div
         key={layer.id}
-        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${
-          isSelected 
-            ? 'bg-crd-green/20 border border-crd-green/50' 
-            : 'hover:bg-slate-800/50'
-        }`}
-        onClick={(e) => handleLayerClick(layer, e)}
-        onMouseEnter={() => onLayerHover(layer.id)}
-        onMouseLeave={() => onLayerHover(null)}
-        style={groupColor ? { borderLeft: `3px solid ${groupColor}` } : {}}
+        className={`
+          flex items-center gap-2 p-2 rounded cursor-pointer transition-colors
+          ${isSelected ? 'bg-crd-green/20 border border-crd-green/50' : 'hover:bg-slate-800/50'}
+          ${isInGroup ? 'ml-4 border-l-2' : ''}
+        `}
+        style={isInGroup && groupColor ? { borderLeftColor: groupColor } : {}}
+        onClick={() => onLayerSelect(layer.id)}
       >
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
+          className="p-1 h-auto text-slate-400 hover:text-white"
           onClick={(e) => {
             e.stopPropagation();
             onLayerToggle(layer.id);
           }}
-          className="p-1 hover:bg-slate-700 rounded"
         >
-          {isVisible ? (
-            <Eye className="w-4 h-4 text-crd-green" />
-          ) : (
-            <EyeOff className="w-4 h-4 text-slate-500" />
-          )}
-        </button>
+          {isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        </Button>
+
+        <div className="text-slate-400">
+          {getLayerIcon(layer)}
+        </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-white text-sm font-medium truncate">
-              {layer.name}
-            </span>
+          <div className="flex items-center gap-2">
+            <span className="text-white text-sm truncate">{layer.name}</span>
             {layer.semanticType && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className={`text-xs ${getSemanticColor(layer.semanticType)}`}>
                 {layer.semanticType}
               </Badge>
             )}
           </div>
-
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <span>{layer.bounds.right - layer.bounds.left}×{layer.bounds.bottom - layer.bounds.top}</span>
+          
+          <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+            <span>z: {layer.zIndex}</span>
+            <span>α: {Math.round(layer.opacity * 100)}%</span>
             {layer.inferredDepth !== undefined && (
-              <span>Z: {layer.inferredDepth.toFixed(2)}</span>
+              <span>d: {layer.inferredDepth.toFixed(1)}</span>
             )}
-            {layer.opacity !== undefined && layer.opacity < 1 && (
-              <span>{Math.round(layer.opacity * 100)}%</span>
+            {layer.materialHints && (
+              <div className="flex gap-1">
+                {layer.materialHints.isMetallic && <Circle className="w-2 h-2 fill-yellow-400 text-yellow-400" />}
+                {layer.materialHints.isHolographic && <Circle className="w-2 h-2 fill-purple-400 text-purple-400" />}
+                {layer.materialHints.hasGlow && <Circle className="w-2 h-2 fill-blue-400 text-blue-400" />}
+              </div>
             )}
           </div>
-        </div>
-
-        <div className="flex items-center gap-1">
-          {layer.materialHints && layer.materialHints.length > 0 && (
-            <Palette className="w-3 h-3 text-slate-500" />
-          )}
-          <MousePointer2 className="w-3 h-3 text-slate-600" />
         </div>
       </div>
     );
   };
 
-  const renderGroupedView = () => {
+  const renderGroup = (group: LayerGroup) => {
+    const isExpanded = expandedGroups.has(group.id);
+    const groupColorClass = groupColors[group.groupType as keyof typeof groupColors] || groupColors.mixed;
+    const groupColor = groupColorClass.replace('bg-', '').replace('-500', '');
+    
     return (
-      <div className="space-y-2">
-        {groupingResult.groups.map((group) => {
-          const isExpanded = expandedGroups.has(group.id);
+      <div key={group.id} className="mb-2">
+        <div
+          className="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-slate-800/30 border border-slate-700/50"
+          onClick={() => toggleGroup(group.id)}
+        >
+          <Button variant="ghost" size="sm" className="p-1 h-auto text-slate-400">
+            {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          </Button>
           
-          return (
-            <div key={group.id} className="border border-slate-700 rounded-lg overflow-hidden">
-              <div
-                className="flex items-center gap-2 p-3 bg-slate-800/50 cursor-pointer hover:bg-slate-800/70 transition-colors"
-                onClick={() => toggleGroup(group.id)}
-                style={{ borderLeft: `4px solid ${group.color}` }}
-              >
-                <button className="p-0">
-                  {isExpanded ? (
-                    <ChevronDown className="w-4 h-4 text-slate-400" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  )}
-                </button>
-
-                <div 
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: group.color }}
-                />
-
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-white font-medium">{group.name}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {group.type}
-                    </Badge>
-                  </div>
-                  <div className="text-xs text-slate-400">
-                    Avg Depth: {group.averageDepth.toFixed(2)} • {group.layers.length} layers
-                  </div>
-                </div>
-
-                <Layers className="w-4 h-4 text-slate-500" />
-              </div>
-
-              {isExpanded && (
-                <div className="p-2 space-y-1 bg-slate-900/30">
-                  {group.layers.map((layer) => renderLayerItem(layer, group.color))}
-                </div>
-              )}
+          <div className={`w-3 h-3 rounded ${groupColorClass}`} />
+          
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-white font-medium">{group.name}</span>
+              <Badge variant="outline" className="text-xs">
+                {group.layers.length} layers
+              </Badge>
             </div>
-          );
-        })}
+            <div className="text-xs text-slate-500 mt-1">
+              Score: {group.cohesionScore.toFixed(2)} • Type: {group.groupType}
+            </div>
+          </div>
+        </div>
 
-        {/* Ungrouped layers */}
-        {groupingResult.flatLayers.some(layer => 
-          !groupingResult.groups.some(group => 
-            group.layers.some(groupLayer => groupLayer.id === layer.id)
-          )
-        ) && (
-          <div className="border border-slate-700 rounded-lg overflow-hidden">
-            <div className="flex items-center gap-2 p-3 bg-slate-800/30">
-              <List className="w-4 h-4 text-slate-500" />
-              <span className="text-white font-medium">Individual Layers</span>
-            </div>
-            <div className="p-2 space-y-1">
-              {groupingResult.flatLayers
-                .filter(layer => 
-                  !groupingResult.groups.some(group => 
-                    group.layers.some(groupLayer => groupLayer.id === layer.id)
-                  )
-                )
-                .map((layer) => renderLayerItem(layer))}
-            </div>
+        {isExpanded && (
+          <div className="mt-1 space-y-1">
+            {group.layers.map(layer => renderLayer(layer, true, `#${groupColor}`))}
           </div>
         )}
-      </div>
-    );
-  };
-
-  const renderFlatView = () => {
-    return (
-      <div className="space-y-1">
-        {groupingResult.flatLayers.map((layer) => renderLayerItem(layer))}
       </div>
     );
   };
 
   return (
-    <Card className="bg-[#0a0f1b] border-slate-800 h-full flex flex-col">
+    <Card className="bg-[#0a0f1b] border-slate-800 h-full">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-white text-lg flex items-center gap-2">
-            <Layers className="w-5 h-5 text-crd-green" />
-            Layer Inspector
-          </CardTitle>
-          
-          <div className="flex items-center gap-1">
-            <Button
-              onClick={() => setViewMode('smart')}
-              variant={viewMode === 'smart' ? 'default' : 'outline'}
-              size="sm"
-              className={viewMode === 'smart' ? 'bg-crd-green text-black' : ''}
-            >
-              Smart
-            </Button>
-            <Button
-              onClick={() => setViewMode('grouped')}
-              variant={viewMode === 'grouped' ? 'default' : 'outline'}
-              size="sm"
-              className={viewMode === 'grouped' ? 'bg-crd-green text-black' : ''}
-              disabled={!groupingResult.shouldUseGrouping && viewMode !== 'grouped'}
-            >
-              <Layers className="w-3 h-3" />
-            </Button>
-            <Button
-              onClick={() => setViewMode('flat')}
-              variant={viewMode === 'flat' ? 'default' : 'outline'}
-              size="sm"
-              className={viewMode === 'flat' ? 'bg-crd-green text-black' : ''}
-            >
-              <List className="w-3 h-3" />
-            </Button>
-          </div>
+        <CardTitle className="text-white flex items-center gap-2 text-lg">
+          <Layers className="w-5 h-5 text-crd-green" />
+          Layer Inspector
+        </CardTitle>
+        
+        {/* View Stats */}
+        <div className="flex gap-4 text-sm text-slate-400">
+          <span>{viewStats.totalLayers} layers</span>
+          {viewStats.groups > 0 && <span>{viewStats.groups} groups</span>}
+          {viewStats.singleLayers > 0 && <span>{viewStats.singleLayers} individual</span>}
         </div>
-
-        {/* Grouping Info */}
-        {viewMode === 'smart' && (
-          <div className="flex items-center gap-2 mt-2 p-2 bg-slate-800/30 rounded-lg">
-            <Info className="w-4 h-4 text-crd-green" />
-            <div className="text-xs text-slate-300">
-              {effectiveViewMode === 'grouped' ? (
-                <span>
-                  Smart grouping active • {groupingResult.groups.length} groups • 
-                  {Math.round(groupingResult.groupingEfficiency * 100)}% efficiency
-                </span>
-              ) : (
-                <span>
-                  Flat view active • Grouping not beneficial for this PSD
-                </span>
-              )}
-            </div>
-          </div>
-        )}
       </CardHeader>
 
-      <CardContent className="flex-1 overflow-y-auto">
-        <div className="mb-4 text-sm text-slate-400">
-          {processedPSD.layers.length} layers • {selectedLayerIds.size} selected • {visibleLayers.size} visible
-        </div>
+      <CardContent className="p-0">
+        {shouldShowGrouped ? (
+          <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'flat' | 'grouped')}>
+            <div className="px-4 pb-3">
+              <TabsList className="grid w-full grid-cols-2 bg-slate-800/50">
+                <TabsTrigger value="flat" className="text-xs">Flat View</TabsTrigger>
+                <TabsTrigger value="grouped" className="text-xs">Smart Groups</TabsTrigger>
+              </TabsList>
+            </div>
 
-        {effectiveViewMode === 'grouped' ? renderGroupedView() : renderFlatView()}
+            <ScrollArea className="h-[500px]">
+              <div className="px-4 pb-4">
+                <TabsContent value="flat" className="mt-0 space-y-1">
+                  {layers.map(layer => renderLayer(layer))}
+                </TabsContent>
+
+                <TabsContent value="grouped" className="mt-0 space-y-2">
+                  {layerGroups.filter(group => group.layers.length > 1).map(renderGroup)}
+                  
+                  {/* Single layers not in meaningful groups */}
+                  {(() => {
+                    const groupedLayerIds = new Set(
+                      layerGroups
+                        .filter(group => group.layers.length > 1)
+                        .flatMap(group => group.layers.map(layer => layer.id))
+                    );
+                    const singleLayers = layers.filter(layer => !groupedLayerIds.has(layer.id));
+                    
+                    return singleLayers.length > 0 ? (
+                      <div className="space-y-1 pt-2 border-t border-slate-700/50">
+                        <div className="text-xs text-slate-500 mb-2">Individual Layers</div>
+                        {singleLayers.map(layer => renderLayer(layer))}
+                      </div>
+                    ) : null;
+                  })()}
+                </TabsContent>
+              </div>
+            </ScrollArea>
+          </Tabs>
+        ) : (
+          <ScrollArea className="h-[500px]">
+            <div className="px-4 pb-4 space-y-1">
+              {layers.map(layer => renderLayer(layer))}
+            </div>
+          </ScrollArea>
+        )}
       </CardContent>
     </Card>
   );
