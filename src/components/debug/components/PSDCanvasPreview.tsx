@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from 'react';
 import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
 import { LayerGroup } from '@/services/psdProcessor/layerGroupingService';
@@ -92,6 +91,8 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     return `data:image/svg+xml;base64,${btoa(svg)}`;
   };
 
+  const selectedLayer = processedPSD.layers.find(layer => layer.id === selectedLayerId);
+
   return (
     <div className="relative w-full h-full overflow-hidden bg-[#0a0a0b]">
       {/* Canvas Controls */}
@@ -125,29 +126,59 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
           style={getTransformStyle()}
         >
           <div className="relative">
-            {/* Main Card Image */}
-            <img
-              src={processedPSD.flattenedImageUrl}
-              alt="PSD Preview"
-              className={`
-                max-w-none shadow-2xl
-                ${focusMode ? 'rounded-lg' : ''}
-                ${selectedLayerId ? 'ring-2 ring-crd-green ring-opacity-50' : ''}
-              `}
-              style={{
-                width: `${processedPSD.width}px`,
-                height: `${processedPSD.height}px`
-              }}
-              draggable={false}
-            />
-
-            {/* Layer Overlay for Selection */}
-            {selectedLayerId && (
-              <div
-                className="absolute inset-0 border-2 border-crd-green bg-crd-green/10 pointer-events-none"
+            {/* Show selected layer in full color or transparent background */}
+            {selectedLayerId && selectedLayer?.fullColorImageUrl ? (
+              <div className="relative">
+                {/* Selected Layer in Full Color */}
+                <img
+                  src={selectedLayer.fullColorImageUrl}
+                  alt={selectedLayer.name}
+                  className={`
+                    max-w-none shadow-2xl
+                    ${focusMode ? 'rounded-lg' : ''}
+                    ring-2 ring-crd-green ring-opacity-70
+                  `}
+                  style={{
+                    width: `${processedPSD.width}px`,
+                    height: `${processedPSD.height}px`,
+                    position: 'absolute',
+                    left: `${selectedLayer.bounds.left}px`,
+                    top: `${selectedLayer.bounds.top}px`,
+                    width: `${selectedLayer.bounds.right - selectedLayer.bounds.left}px`,
+                    height: `${selectedLayer.bounds.bottom - selectedLayer.bounds.top}px`
+                  }}
+                  draggable={false}
+                />
+                
+                {/* Transparent Background for Context */}
+                <img
+                  src={processedPSD.transparentFlattenedImageUrl}
+                  alt="PSD Preview (Transparent)"
+                  className={`
+                    max-w-none opacity-30
+                    ${focusMode ? 'rounded-lg' : ''}
+                  `}
+                  style={{
+                    width: `${processedPSD.width}px`,
+                    height: `${processedPSD.height}px`
+                  }}
+                  draggable={false}
+                />
+              </div>
+            ) : (
+              /* Default Transparent Background */
+              <img
+                src={processedPSD.transparentFlattenedImageUrl}
+                alt="PSD Preview (Transparent)"
+                className={`
+                  max-w-none shadow-2xl
+                  ${focusMode ? 'rounded-lg' : ''}
+                `}
                 style={{
-                  borderRadius: focusMode ? '8px' : '0'
+                  width: `${processedPSD.width}px`,
+                  height: `${processedPSD.height}px`
                 }}
+                draggable={false}
               />
             )}
 
@@ -162,10 +193,10 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
                 <div
                   key={layer.id}
                   className={`
-                    absolute border pointer-events-none transition-all
+                    absolute border pointer-events-auto cursor-pointer transition-all
                     ${isSelected 
-                      ? 'border-crd-green border-2 bg-crd-green/10' 
-                      : 'border-slate-500/30 border hover:border-slate-400/50'
+                      ? 'border-crd-green border-2 bg-crd-green/20' 
+                      : 'border-slate-500/30 border hover:border-slate-400/50 hover:bg-slate-400/10'
                     }
                   `}
                   style={{
@@ -186,6 +217,11 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
       <div className="absolute bottom-4 right-4 bg-[#1a1f2e] border border-slate-700 rounded-lg px-3 py-2">
         <div className="text-xs text-slate-400">
           {processedPSD.width} × {processedPSD.height}px • {processedPSD.layers.length} layers
+          {selectedLayer && (
+            <span className="text-crd-green ml-2">
+              • {selectedLayer.name}
+            </span>
+          )}
         </div>
       </div>
     </div>
