@@ -1,13 +1,31 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
 import { BulkPSDData } from '@/pages/BulkPSDAnalysisPage';
-import { ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
-import { bulkElementClassificationService } from '@/services/psdProcessor/bulkElementClassificationService';
-import { X, Eye, EyeOff, Download, Layers, Grid, List } from 'lucide-react';
+import { bulkElementClassificationService, BulkAnalysisResult } from '@/services/psdProcessor/bulkElementClassificationService';
+import { 
+  X, 
+  Download, 
+  BarChart3, 
+  Target, 
+  TrendingUp,
+  AlertCircle,
+  CheckCircle2,
+  Eye,
+  Layers
+} from 'lucide-react';
 
 interface PSDComparisonTableProps {
   psdData: BulkPSDData[];
@@ -18,302 +36,278 @@ export const PSDComparisonTable: React.FC<PSDComparisonTableProps> = ({
   psdData,
   onRemovePSD
 }) => {
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedTab, setSelectedTab] = useState('overview');
+  const [analysisResult, setAnalysisResult] = useState<BulkAnalysisResult | null>(null);
 
-  const analysisData = useMemo(() => {
-    return bulkElementClassificationService.analyzeBulkPSDs(psdData);
+  // Run enhanced analysis when data changes
+  const enhancedAnalysis = useMemo(() => {
+    if (psdData.length === 0) return null;
+    
+    console.log('Running enhanced bulk analysis...');
+    const result = bulkElementClassificationService.analyzeBulkPSDs(psdData);
+    setAnalysisResult(result);
+    return result;
   }, [psdData]);
 
-  const elementCategories = [
-    'all',
-    'background',
-    'player',
-    'text',
-    'logo',
-    'border',
-    'stats',
-    'effect'
-  ];
-
-  const filteredElements = useMemo(() => {
-    if (selectedCategory === 'all') {
-      return analysisData.standardizedElements;
-    }
-    return analysisData.standardizedElements.filter(element => 
-      element.category === selectedCategory
-    );
-  }, [analysisData.standardizedElements, selectedCategory]);
-
-  const getElementPreview = (psdId: string, elementType: string) => {
-    const psd = psdData.find(p => p.id === psdId);
-    if (!psd) return null;
-
-    const matchingLayers = psd.processedPSD.layers.filter(layer => 
-      layer.semanticType === elementType
-    );
-
-    return matchingLayers.length > 0 ? matchingLayers[0] : null;
+  const exportAnalysis = () => {
+    if (!enhancedAnalysis) return;
+    
+    const report = bulkElementClassificationService.exportAnalysisReport(enhancedAnalysis, psdData);
+    const blob = new Blob([report], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bulk-psd-analysis-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
-  const ElementCell: React.FC<{ 
-    psdId: string; 
-    elementType: string; 
-    elementName: string;
-  }> = ({ psdId, elementType, elementName }) => {
-    const layer = getElementPreview(psdId, elementType);
-    const [isVisible, setIsVisible] = useState(true);
+  const getConfidenceColor = (confidence: number): string => {
+    if (confidence >= 0.8) return 'text-green-400';
+    if (confidence >= 0.6) return 'text-yellow-400';
+    return 'text-red-400';
+  };
 
-    if (!layer) {
-      return (
-        <div className="p-2 text-center text-slate-500 text-xs">
-          Not found
-        </div>
-      );
-    }
+  const getConfidenceBadgeVariant = (confidence: number) => {
+    if (confidence >= 0.8) return 'default';
+    if (confidence >= 0.6) return 'secondary';
+    return 'destructive';
+  };
 
+  if (!enhancedAnalysis) {
     return (
-      <div className="p-2 group">
-        <div className="relative">
-          <div className="w-16 h-16 bg-slate-700 rounded border overflow-hidden mx-auto mb-1">
-            {layer.imageData && isVisible ? (
-              <img 
-                src={layer.imageData} 
-                alt={layer.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Layers className="w-6 h-6 text-slate-400" />
-              </div>
-            )}
-          </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto"
-            onClick={() => setIsVisible(!isVisible)}
-          >
-            {isVisible ? 
-              <Eye className="w-3 h-3" /> : 
-              <EyeOff className="w-3 h-3" />
-            }
-          </Button>
+      <Card className="bg-[#0a0f1b] border-slate-800 p-6">
+        <div className="text-center">
+          <BarChart3 className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+          <p className="text-slate-400">Upload PSDs to see enhanced comparison analysis</p>
         </div>
-        
-        <div className="text-xs text-slate-300 text-center truncate" title={layer.name}>
-          {layer.name}
-        </div>
-        
-        <div className="flex justify-center mt-1">
-          <Badge variant="outline" className="text-xs px-1 py-0">
-            {Math.round(layer.opacity * 100)}%
-          </Badge>
-        </div>
-      </div>
+      </Card>
     );
-  };
+  }
 
   return (
     <Card className="bg-[#0a0f1b] border-slate-800">
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <h3 className="text-xl font-bold text-white">Element Comparison</h3>
-            <Badge variant="outline">
-              {psdData.length} PSDs • {analysisData.standardizedElements.length} Element Types
-            </Badge>
-          </div>
-          
           <div className="flex items-center gap-2">
-            <Button
-              variant={viewMode === 'table' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('table')}
-            >
-              <List className="w-4 h-4 mr-1" />
-              Table
-            </Button>
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-            >
-              <Grid className="w-4 h-4 mr-1" />
-              Grid
-            </Button>
+            <BarChart3 className="w-6 h-6 text-crd-green" />
+            <h3 className="text-xl font-semibold text-white">Enhanced Analysis Results</h3>
           </div>
+          <Button variant="outline" onClick={exportAnalysis}>
+            <Download className="w-4 h-4 mr-2" />
+            Export Report
+          </Button>
         </div>
 
-        {/* Category Filter */}
-        <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="mb-6">
-          <TabsList className="bg-slate-800 border-slate-700">
-            {elementCategories.map(category => (
-              <TabsTrigger 
-                key={category} 
-                value={category}
-                className="data-[state=active]:bg-crd-green data-[state=active]:text-black"
-              >
-                {category === 'all' ? 'All Elements' : category.charAt(0).toUpperCase() + category.slice(1)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-
-        {/* PSD Files Header */}
-        <div className="mb-4 flex gap-2 overflow-x-auto pb-2">
-          {psdData.map((psd) => (
-            <div
-              key={psd.id}
-              className="flex-shrink-0 bg-slate-800 rounded-lg p-3 min-w-[200px]"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-white font-medium text-sm truncate" title={psd.fileName}>
-                  {psd.fileName.replace('.psd', '')}
-                </h4>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onRemovePSD(psd.id)}
-                  className="text-red-400 hover:text-red-300 p-1 h-auto"
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              </div>
-              
-              <div className="text-xs text-slate-400 space-y-1">
-                <div>Layers: {psd.processedPSD.totalLayers}</div>
-                <div>Size: {psd.processedPSD.width} × {psd.processedPSD.height}</div>
-                <div>Elements: {new Set(psd.processedPSD.layers.map(l => l.semanticType)).size}</div>
-              </div>
+        {/* Analysis Quality Overview */}
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="w-5 h-5 text-crd-green" />
+              <span className="text-sm text-slate-400">Analysis Quality</span>
             </div>
-          ))}
+            <div className="flex items-center gap-2">
+              <Progress 
+                value={enhancedAnalysis.analysisQuality.overallScore * 100} 
+                className="flex-1 h-2" 
+              />
+              <span className="text-sm font-medium text-white">
+                {Math.round(enhancedAnalysis.analysisQuality.overallScore * 100)}%
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="w-5 h-5 text-green-400" />
+              <span className="text-sm text-slate-400">High Confidence</span>
+            </div>
+            <p className="text-xl font-bold text-white">
+              {Math.round(enhancedAnalysis.analysisQuality.highConfidencePercentage)}%
+            </p>
+          </div>
+
+          <div className="bg-slate-800/50 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-5 h-5 text-blue-400" />
+              <span className="text-sm text-slate-400">Position Consistency</span>
+            </div>
+            <p className="text-xl font-bold text-white">
+              {Math.round(enhancedAnalysis.analysisQuality.positionConsistencyAvg * 100)}%
+            </p>
+          </div>
         </div>
 
-        {/* Comparison Table */}
-        {viewMode === 'table' && (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-slate-800">
-                  <th className="text-left p-3 text-white font-medium border border-slate-700 min-w-[150px]">
-                    Element Type
-                  </th>
-                  {psdData.map((psd) => (
-                    <th
-                      key={psd.id}
-                      className="text-center p-3 text-white font-medium border border-slate-700 min-w-[120px]"
-                    >
-                      <div className="truncate" title={psd.fileName}>
-                        {psd.fileName.replace('.psd', '')}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredElements.map((element) => (
-                  <tr key={element.type} className="hover:bg-slate-800/50">
-                    <td className="p-3 border border-slate-700">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {element.category}
-                        </Badge>
-                        <span className="text-white font-medium">{element.displayName}</span>
-                      </div>
-                      <div className="text-xs text-slate-400 mt-1">
-                        Found in {element.foundInPSDs.length}/{psdData.length} PSDs
-                      </div>
-                    </td>
-                    {psdData.map((psd) => (
-                      <td key={psd.id} className="border border-slate-700">
-                        <ElementCell
-                          psdId={psd.id}
-                          elementType={element.type}
-                          elementName={element.displayName}
-                        />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="elements">Elements</TabsTrigger>
+            <TabsTrigger value="templates">Templates</TabsTrigger>
+            <TabsTrigger value="issues">Issues</TabsTrigger>
+          </TabsList>
 
-        {/* Grid View */}
-        {viewMode === 'grid' && (
-          <div className="grid gap-6">
-            {filteredElements.map((element) => (
-              <Card key={element.type} className="bg-slate-800 border-slate-700">
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h4 className="text-white font-medium">{element.displayName}</h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          {element.category}
-                        </Badge>
-                        <span className="text-xs text-slate-400">
-                          Found in {element.foundInPSDs.length}/{psdData.length} PSDs
+          <TabsContent value="overview" className="mt-6">
+            <div className="space-y-4">
+              {/* PSD Files Table */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>File Name</TableHead>
+                    <TableHead>Dimensions</TableHead>
+                    <TableHead>Layers</TableHead>
+                    <TableHead>Avg Confidence</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {psdData.map((psd) => {
+                    const avgConfidence = psd.processedPSD.layers.length > 0
+                      ? psd.processedPSD.layers.reduce((sum, layer) => sum + (layer.confidence || 0), 0) / psd.processedPSD.layers.length
+                      : 0;
+
+                    return (
+                      <TableRow key={psd.id}>
+                        <TableCell className="font-medium text-white">
+                          {psd.fileName}
+                        </TableCell>
+                        <TableCell className="text-slate-400">
+                          {psd.processedPSD.width} × {psd.processedPSD.height}
+                        </TableCell>
+                        <TableCell className="text-slate-400">
+                          {psd.processedPSD.totalLayers}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getConfidenceBadgeVariant(avgConfidence)}>
+                            {Math.round(avgConfidence * 100)}%
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onRemovePSD(psd.id)}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="elements" className="mt-6">
+            <div className="space-y-4">
+              <h4 className="text-lg font-medium text-white mb-4">Element Analysis</h4>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Element Type</TableHead>
+                    <TableHead>Found In</TableHead>
+                    <TableHead>Avg Confidence</TableHead>
+                    <TableHead>Position Consistency</TableHead>
+                    <TableHead>Category</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {enhancedAnalysis.standardizedElements.map((element) => (
+                    <TableRow key={element.type}>
+                      <TableCell className="font-medium text-white">
+                        {element.displayName}
+                      </TableCell>
+                      <TableCell className="text-slate-400">
+                        {element.foundInPSDs.length} / {psdData.length} PSDs
+                      </TableCell>
+                      <TableCell>
+                        <span className={getConfidenceColor(element.avgConfidence)}>
+                          {Math.round(element.avgConfidence * 100)}%
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={getConfidenceColor(element.positionConsistency)}>
+                          {Math.round(element.positionConsistency * 100)}%
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{element.category}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="templates" className="mt-6">
+            <div className="space-y-4">
+              <h4 className="text-lg font-medium text-white mb-4">Template Patterns</h4>
+              {enhancedAnalysis.templatePatterns.length > 0 ? (
+                <div className="grid gap-4">
+                  {enhancedAnalysis.templatePatterns.map((template) => (
+                    <div key={template.id} className="bg-slate-800/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="font-medium text-white">{template.name}</h5>
+                        <Badge variant="outline">
+                          {template.commonElementCount} PSDs
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-slate-400">
+                        <span>Layout Score: {Math.round(template.layoutScore * 100)}%</span>
+                        <span>Elements: {template.layerStructure.length}</span>
                       </div>
                     </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Layers className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                  <p className="text-slate-400">No consistent template patterns detected</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="issues" className="mt-6">
+            <div className="space-y-4">
+              <h4 className="text-lg font-medium text-white mb-4">Analysis Issues</h4>
+              
+              {/* Low Confidence Elements */}
+              {enhancedAnalysis.lowConfidenceElements.length > 0 && (
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertCircle className="w-5 h-5 text-yellow-400" />
+                    <h5 className="font-medium text-yellow-400">Low Confidence Elements</h5>
                   </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {psdData.map((psd) => (
-                      <div key={psd.id} className="text-center">
-                        <div className="text-xs text-slate-400 mb-2 truncate" title={psd.fileName}>
-                          {psd.fileName.replace('.psd', '')}
-                        </div>
-                        <ElementCell
-                          psdId={psd.id}
-                          elementType={element.type}
-                          elementName={element.displayName}
-                        />
+                  <div className="space-y-2">
+                    {enhancedAnalysis.lowConfidenceElements.map((element) => (
+                      <div key={element.type} className="flex items-center justify-between">
+                        <span className="text-white">{element.displayName}</span>
+                        <Badge variant="destructive">
+                          {Math.round(element.avgConfidence * 100)}%
+                        </Badge>
                       </div>
                     ))}
                   </div>
                 </div>
-              </Card>
-            ))}
-          </div>
-        )}
+              )}
 
-        {/* Summary Stats */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-slate-800 border-slate-700 p-4">
-            <h5 className="text-white font-medium mb-2">Consistency Score</h5>
-            <div className="text-2xl font-bold text-crd-green">
-              {Math.round(analysisData.consistencyScore * 100)}%
+              {/* Recommendations */}
+              <div className="space-y-2">
+                <h5 className="font-medium text-white">Recommendations</h5>
+                {[...enhancedAnalysis.recommendations, ...enhancedAnalysis.analysisQuality.recommendations].map((recommendation, index) => (
+                  <div key={index} className="flex items-start gap-2 text-sm text-slate-300">
+                    <div className="w-1.5 h-1.5 bg-crd-green rounded-full mt-2 flex-shrink-0" />
+                    <span>{recommendation}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Based on element presence across PSDs
-            </p>
-          </Card>
-
-          <Card className="bg-slate-800 border-slate-700 p-4">
-            <h5 className="text-white font-medium mb-2">Common Elements</h5>
-            <div className="text-2xl font-bold text-blue-400">
-              {analysisData.commonElements.length}
-            </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Found in all PSDs
-            </p>
-          </Card>
-
-          <Card className="bg-slate-800 border-slate-700 p-4">
-            <h5 className="text-white font-medium mb-2">Unique Elements</h5>
-            <div className="text-2xl font-bold text-purple-400">
-              {analysisData.uniqueElements.length}
-            </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Found in only one PSD
-            </p>
-          </Card>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </Card>
   );

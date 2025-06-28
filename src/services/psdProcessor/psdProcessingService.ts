@@ -1,4 +1,6 @@
 import * as PSD from 'ag-psd';
+import { enhancedLayerAnalysisService, LayerAnalysisResult } from './enhancedLayerAnalysisService';
+import { statisticalLearningService } from './statisticalLearningService';
 
 export interface ProcessedPSDLayer {
   id: string;
@@ -15,14 +17,20 @@ export interface ProcessedPSDLayer {
   zIndex: number;
   imageData?: string;
   
-  // New semantic analysis properties
+  // Enhanced semantic analysis properties
   semanticType?: 'background' | 'player' | 'stats' | 'logo' | 'effect' | 'border' | 'text' | 'image';
   inferredDepth?: number;
   materialHints?: {
     isMetallic: boolean;
     isHolographic: boolean;
     hasGlow: boolean;
+    isTransparent?: boolean;
   };
+  
+  // New enhanced analysis properties
+  analysisResult?: LayerAnalysisResult;
+  confidence?: number;
+  positionCategory?: 'header' | 'center' | 'footer' | 'edge' | 'overlay';
 }
 
 export interface ProcessedPSD {
@@ -37,7 +45,7 @@ export interface ProcessedPSD {
 class PSDProcessingService {
   async processPSDFile(file: File): Promise<ProcessedPSD> {
     try {
-      console.log('Starting PSD processing for:', file.name);
+      console.log('Starting enhanced PSD processing for:', file.name);
       
       const arrayBuffer = await file.arrayBuffer();
       const psd = PSD.readPsd(arrayBuffer);
@@ -49,10 +57,10 @@ class PSDProcessingService {
         bitsPerChannel: psd.bitsPerChannel
       });
 
-      // Process all layers
-      const processedLayers = await this.processLayers(psd.children || []);
+      // Process all layers with enhanced analysis
+      const processedLayers = await this.processLayers(psd.children || [], psd.width, psd.height);
       
-      console.log(`Processed ${processedLayers.length} layers`);
+      console.log(`Processed ${processedLayers.length} layers with enhanced analysis`);
 
       return {
         width: psd.width,
@@ -68,7 +76,7 @@ class PSDProcessingService {
     }
   }
 
-  private async processLayers(layers: any[], parentIndex = 0): Promise<ProcessedPSDLayer[]> {
+  private async processLayers(layers: any[], canvasWidth: number, canvasHeight: number, parentIndex = 0): Promise<ProcessedPSDLayer[]> {
     const processedLayers: ProcessedPSDLayer[] = [];
     
     for (let i = 0; i < layers.length; i++) {
@@ -76,7 +84,7 @@ class PSDProcessingService {
       const layerId = `layer_${parentIndex}_${i}`;
       
       try {
-        console.log(`Processing layer: ${layer.name || 'Unnamed'}`);
+        console.log(`Processing layer with enhanced analysis: ${layer.name || 'Unnamed'}`);
         
         // Determine layer type
         const layerType = this.determineLayerType(layer);
@@ -94,11 +102,32 @@ class PSDProcessingService {
             right: layer.right || 0,
             bottom: layer.bottom || 0
           },
-          zIndex: layers.length - i // Higher layers get higher z-index
+          zIndex: layers.length - i
         };
 
-        // Add semantic analysis
-        this.addSemanticAnalysis(processedLayer, layer);
+        // Enhanced semantic analysis
+        const analysisResult = enhancedLayerAnalysisService.analyzeLayer(processedLayer, canvasWidth, canvasHeight);
+        
+        // Apply statistical learning enhancements
+        const enhancedResult = statisticalLearningService.enhanceAnalysis(processedLayer, analysisResult, canvasWidth, canvasHeight);
+        
+        // Update layer with enhanced analysis results
+        processedLayer.semanticType = enhancedResult.semanticType;
+        processedLayer.inferredDepth = enhancedResult.inferredDepth;
+        processedLayer.materialHints = {
+          ...enhancedResult.materialHints,
+          isTransparent: enhancedResult.materialHints.isTransparent
+        };
+        processedLayer.analysisResult = enhancedResult;
+        processedLayer.confidence = enhancedResult.confidence;
+        processedLayer.positionCategory = enhancedResult.positionCategory;
+
+        console.log(`Enhanced analysis for "${processedLayer.name}":`, {
+          semanticType: processedLayer.semanticType,
+          confidence: processedLayer.confidence,
+          positionCategory: processedLayer.positionCategory,
+          reasons: enhancedResult.analysisReasons
+        });
 
         // Generate image data if layer has canvas
         if (layer.canvas) {
@@ -115,7 +144,7 @@ class PSDProcessingService {
 
         // Process child layers if they exist
         if (layer.children && layer.children.length > 0) {
-          const childLayers = await this.processLayers(layer.children, i);
+          const childLayers = await this.processLayers(layer.children, canvasWidth, canvasHeight, i);
           processedLayers.push(...childLayers);
         }
         
@@ -232,6 +261,53 @@ class PSDProcessingService {
       layer.inferredDepth !== undefined && 
       layer.imageData
     ).length;
+  }
+
+  // Enhanced utility methods
+  getHighConfidenceLayers(layers: ProcessedPSDLayer[], threshold: number = 0.8): ProcessedPSDLayer[] {
+    return layers.filter(layer => (layer.confidence || 0) >= threshold);
+  }
+
+  getLowConfidenceLayers(layers: ProcessedPSDLayer[], threshold: number = 0.5): ProcessedPSDLayer[] {
+    return layers.filter(layer => (layer.confidence || 0) < threshold);
+  }
+
+  getLayersByPosition(layers: ProcessedPSDLayer[], category: ProcessedPSDLayer['positionCategory']): ProcessedPSDLayer[] {
+    return layers.filter(layer => layer.positionCategory === category);
+  }
+
+  generateAnalysisReport(layers: ProcessedPSDLayer[]): {
+    totalLayers: number;
+    highConfidence: number;
+    lowConfidence: number;
+    bySemanticType: Record<string, number>;
+    byPosition: Record<string, number>;
+    avgConfidence: number;
+  } {
+    const highConfidence = this.getHighConfidenceLayers(layers).length;
+    const lowConfidence = this.getLowConfidenceLayers(layers).length;
+    
+    const bySemanticType: Record<string, number> = {};
+    const byPosition: Record<string, number> = {};
+    let totalConfidence = 0;
+    
+    layers.forEach(layer => {
+      const semanticType = layer.semanticType || 'unknown';
+      const position = layer.positionCategory || 'unknown';
+      
+      bySemanticType[semanticType] = (bySemanticType[semanticType] || 0) + 1;
+      byPosition[position] = (byPosition[position] || 0) + 1;
+      totalConfidence += layer.confidence || 0;
+    });
+    
+    return {
+      totalLayers: layers.length,
+      highConfidence,
+      lowConfidence,
+      bySemanticType,
+      byPosition,
+      avgConfidence: layers.length > 0 ? totalConfidence / layers.length : 0
+    };
   }
 }
 
