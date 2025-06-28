@@ -5,13 +5,33 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { useCardEditor } from '@/hooks/useCardEditor';
+import { useTags } from '@/components/memory/hooks/useTags';
 
 interface PropertiesSectionProps {
   cardEditor: ReturnType<typeof useCardEditor>;
 }
 
 export const PropertiesSection = ({ cardEditor }: PropertiesSectionProps) => {
-  const { cardData, updateCardField, tags, addTag, removeTag, hasMaxTags, handleTagInput, handlePaste } = cardEditor;
+  const { cardData, updateCardField } = cardEditor;
+  
+  // Use the enhanced useTags hook for tag functionality
+  const { 
+    tags, 
+    handleTagInput, 
+    handlePaste, 
+    removeTag, 
+    hasMaxTags 
+  } = useTags(cardData.tags || [], { 
+    maxTags: 10,
+    onTagAdded: (tag: string) => {
+      const currentTags = cardData.tags || [];
+      updateCardField('tags', [...currentTags, tag]);
+    },
+    onTagRemoved: (tag: string) => {
+      const currentTags = cardData.tags || [];
+      updateCardField('tags', currentTags.filter(t => t !== tag));
+    }
+  });
 
   return (
     <div className="p-6 border-b border-editor-border">
