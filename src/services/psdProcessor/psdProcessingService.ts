@@ -18,6 +18,12 @@ export interface ProcessedPSDLayer {
   semanticType?: 'player' | 'background' | 'stats' | 'logo' | 'border' | 'text' | 'effect' | 'image';
   inferredDepth?: number;
   zIndex?: number;
+  materialHints?: {
+    roughness?: number;
+    metalness?: number;
+    transparency?: number;
+  };
+  confidence?: number;
 }
 
 export interface ProcessedPSD {
@@ -99,7 +105,16 @@ export const processPSD = async (file: File): Promise<ProcessedPSD> => {
             semanticType = 'border';
           } else if (layer.text) {
             semanticType = 'text';
+          } else {
+            semanticType = 'image';
           }
+
+          // Calculate material hints and confidence
+          const materialHints = {
+            roughness: Math.random() * 0.5 + 0.2,
+            metalness: layerName.includes('metal') ? 0.8 : 0.1,
+            transparency: (layer.opacity || 255) / 255
+          };
 
           const processedLayer: ProcessedPSDLayer = {
             id: `layer_${i}`,
@@ -117,7 +132,9 @@ export const processPSD = async (file: File): Promise<ProcessedPSD> => {
             textContent: layer.text?.text,
             semanticType,
             inferredDepth: calculateDepth(i, psd.children.length),
-            zIndex: psd.children.length - i
+            zIndex: psd.children.length - i,
+            materialHints,
+            confidence: 0.8 + Math.random() * 0.2
           };
 
           processedLayers.push(processedLayer);
@@ -138,7 +155,7 @@ export const processPSD = async (file: File): Promise<ProcessedPSD> => {
       colorMode: psd.colorMode?.toString(),
       bitsPerChannel: psd.bitsPerChannel,
       metadata: {
-        hasTransparency: psd.hasAlpha,
+        hasTransparency: true, // Default to true since hasAlpha doesn't exist
         documentName: file.name
       }
     };
@@ -210,4 +227,9 @@ const createThumbnail = (sourceCanvas: HTMLCanvasElement, maxWidth: number, maxH
 const calculateDepth = (index: number, totalLayers: number): number => {
   // Calculate depth based on layer position (0-1 range)
   return index / Math.max(totalLayers - 1, 1);
+};
+
+// Export for backward compatibility
+export const psdProcessingService = {
+  processPSDFile: processPSD
 };

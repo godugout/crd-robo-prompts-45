@@ -56,7 +56,9 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
   };
 
   const renderLayerPreview = (layer: EnhancedProcessedPSDLayer) => {
-    // If we have a real image, use it
+    const dimensions = getLayerDimensions(layer);
+    
+    // Use real image if available, otherwise show placeholder
     if (layer.hasRealImage && layer.thumbnailUrl) {
       return (
         <img
@@ -64,17 +66,16 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
           alt={layer.name}
           className="w-full h-full object-contain"
           onError={(e) => {
-            // Fallback to placeholder if image fails to load
-            console.warn(`Failed to load layer image for ${layer.name}`);
+            // Fallback to placeholder on image load error
             const target = e.target as HTMLImageElement;
             target.style.display = 'none';
+            target.nextElementSibling?.classList.remove('hidden');
           }}
         />
       );
     }
 
     // Fallback placeholder
-    const dimensions = getLayerDimensions(layer);
     return (
       <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
         <div className="text-center">
@@ -93,41 +94,6 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-slate-800 border-slate-600 p-4">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-white">{processedPSD.layers.length}</p>
-            <p className="text-slate-400 text-sm">Total Layers</p>
-          </div>
-        </Card>
-        
-        <Card className="bg-slate-800 border-slate-600 p-4">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-crd-green">
-              {processedPSD.layers.filter(l => l.hasRealImage).length}
-            </p>
-            <p className="text-slate-400 text-sm">With Images</p>
-          </div>
-        </Card>
-        
-        <Card className="bg-slate-800 border-slate-600 p-4">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-blue-400">{selectedLayers.size}</p>
-            <p className="text-slate-400 text-sm">Selected</p>
-          </div>
-        </Card>
-        
-        <Card className="bg-slate-800 border-slate-600 p-4">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-amber-400">
-              {processedPSD.layers.filter(l => l.semanticType).length}
-            </p>
-            <p className="text-slate-400 text-sm">Identified</p>
-          </div>
-        </Card>
-      </div>
-
       {/* Large Visual Layer Grid - Optimized for Visibility */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {processedPSD.layers.map((layer) => {
@@ -198,10 +164,12 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
                     </Button>
                   </div>
 
-                  {/* Image Status Indicator */}
+                  {/* Real Image Indicator */}
                   {layer.hasRealImage && (
-                    <div className="absolute top-2 right-8">
-                      <div className="w-3 h-3 bg-crd-green rounded-full" title="Real image available" />
+                    <div className="absolute top-2 right-2">
+                      <Badge className="bg-crd-green text-black text-xs">
+                        Real Image
+                      </Badge>
                     </div>
                   )}
                 </div>
@@ -233,11 +201,6 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
                         layer.semanticType === 'logo' ? 'pink' :
                         layer.semanticType === 'border' ? 'amber' : 'blue'}-400`}>
                         {layer.semanticType}
-                      </Badge>
-                    )}
-                    {layer.hasRealImage && (
-                      <Badge className="text-xs bg-crd-green/20 text-crd-green">
-                        Real Image
                       </Badge>
                     )}
                   </div>
