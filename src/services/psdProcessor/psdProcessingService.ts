@@ -22,6 +22,9 @@ export interface ProcessedPSDLayer {
     roughness?: number;
     metalness?: number;
     transparency?: number;
+    isMetallic?: boolean;
+    isHolographic?: boolean;
+    hasGlow?: boolean;
   };
   confidence?: number;
 }
@@ -113,7 +116,10 @@ export const processPSD = async (file: File): Promise<ProcessedPSD> => {
           const materialHints = {
             roughness: Math.random() * 0.5 + 0.2,
             metalness: layerName.includes('metal') ? 0.8 : 0.1,
-            transparency: (layer.opacity || 255) / 255
+            transparency: (layer.opacity || 255) / 255,
+            isMetallic: layerName.includes('metal') || layerName.includes('chrome'),
+            isHolographic: layerName.includes('holo') || layerName.includes('foil'),
+            hasGlow: layerName.includes('glow') || layerName.includes('shine')
           };
 
           const processedLayer: ProcessedPSDLayer = {
