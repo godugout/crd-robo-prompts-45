@@ -50,6 +50,12 @@ export const CRDElement: React.FC<CRDElementProps> = ({
         src={imageUrl}
         alt={name}
         className="w-full h-full object-contain"
+        style={{
+          maxWidth: '100%',
+          maxHeight: '100%',
+          width: 'auto',
+          height: 'auto'
+        }}
         draggable={false}
       />
     </div>
