@@ -95,23 +95,19 @@ export const ImageCropEditor: React.FC<ImageCropEditorProps> = ({
       });
 
       // Lock aspect ratio during scaling
-      rect.on('scaling', (e) => {
-        const target = e.target;
-        if (target && aspectRatio !== 1) {
-          const newWidth = target.width! * target.scaleX!;
+      rect.on('scaling', () => {
+        if (aspectRatio !== 1) {
+          const newWidth = rect.width! * rect.scaleX!;
           const newHeight = newWidth / aspectRatio;
-          target.set({
-            height: newHeight / target.scaleY!
+          rect.set({
+            height: newHeight / rect.scaleY!
           });
         }
       });
 
       // Update crop rect state when modified
-      rect.on('modified', (e) => {
-        const target = e.target;
-        if (target) {
-          setCropRect(target as Rect);
-        }
+      rect.on('modified', () => {
+        setCropRect(rect);
       });
 
       canvas.add(rect);
