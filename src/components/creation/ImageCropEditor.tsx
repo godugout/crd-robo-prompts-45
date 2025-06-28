@@ -1,10 +1,10 @@
-
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { RotateCw, Move, Crop, Download, X, Check } from 'lucide-react';
+import { Canvas as FabricCanvas, FabricImage, Rect } from 'fabric';
+import { RotateCw, RotateCcw, Check, X, Move, RotateCcw as Reset } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ImageCropEditorProps {
@@ -18,317 +18,426 @@ export const ImageCropEditor: React.FC<ImageCropEditorProps> = ({
   imageUrl,
   onCropComplete,
   onCancel,
-  aspectRatio = 2.5 / 3.5 // Standard trading card ratio
+  aspectRatio = 2.5 / 3.5
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [image, setImage] = useState<HTMLImageElement | null>(null);
-  const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 200, height: 280 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [imageAdjustments, setImageAdjustments] = useState({
-    brightness: 100,
-    contrast: 100,
-    saturation: 100,
-    rotation: 0
-  });
+  const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
+  const [originalImage, setOriginalImage] = useState<FabricImage | null>(null);
+  const [cropRect, setCropRect] = useState<Rect | null>(null);
+  const [brightness, setBrightness] = useState([0]);
+  const [contrast, setContrast] = useState([0]);
+  const [saturation, setSaturation] = useState([0]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [imageRotation, setImageRotation] = useState(0);
 
+  // Initialize canvas and load image
   useEffect(() => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      setImage(img);
-      // Initialize crop area to center of image
-      const width = Math.min(img.width * 0.8, img.height * aspectRatio * 0.8);
-      const height = width / aspectRatio;
-      setCropArea({
-        x: (img.width - width) / 2,
-        y: (img.height - height) / 2,
-        width,
-        height
+    if (!canvasRef.current) return;
+
+    const canvas = new FabricCanvas(canvasRef.current, {
+      width: 800,
+      height: 600,
+      backgroundColor: '#f8f9fa',
+      selection: false
+    });
+
+    setFabricCanvas(canvas);
+
+    // Load the image
+    FabricImage.fromURL(imageUrl, { crossOrigin: 'anonymous' })
+      .then((img) => {
+        // Scale image to fit canvas while maintaining aspect ratio
+        const canvasWidth = canvas.width || 800;
+        const canvasHeight = canvas.height || 600;
+        const imgAspectRatio = img.width! / img.height!;
+        const canvasAspectRatio = canvasWidth / canvasHeight;
+
+        let scaleFactor;
+        if (imgAspectRatio > canvasAspectRatio) {
+          scaleFactor = (canvasWidth * 0.8) / img.width!;
+        } else {
+          scaleFactor = (canvasHeight * 0.8) / img.height!;
+        }
+
+        img.scale(scaleFactor);
+        img.set({
+          left: (canvasWidth - img.getScaledWidth()) / 2,
+          top: (canvasHeight - img.getScaledHeight()) / 2,
+          selectable: false,
+          evented: false
+        });
+
+        canvas.add(img);
+        setOriginalImage(img);
+
+        // Create initial crop rectangle
+        const cropWidth = Math.min(200, img.getScaledWidth() * 0.8);
+        const cropHeight = cropWidth / aspectRatio;
+
+        const rect = new Rect({
+          left: img.left! + (img.getScaledWidth() - cropWidth) / 2,
+          top: img.top! + (img.getScaledHeight() - cropHeight) / 2,
+          width: cropWidth,
+          height: cropHeight,
+          fill: 'transparent',
+          stroke: '#10b981',
+          strokeWidth: 2,
+          strokeDashArray: [10, 5],
+          selectable: true,
+          evented: true,
+          lockRotation: false,
+          hasRotatingPoint: true,
+          rotatingPointOffset: 30
+        });
+
+        // Add resize controls
+        rect.setControlsVisibility({
+          tl: true, tr: true, bl: true, br: true,
+          ml: false, mt: false, mr: false, mb: false,
+          mtr: true
+        });
+
+        // Custom control behavior to maintain aspect ratio
+        rect.on('scaling', function(e) {
+          const target = e.target as Rect;
+          const pointer = canvas.getPointer(e.e);
+          const currentWidth = target.width! * target.scaleX!;
+          const currentHeight = target.height! * target.scaleY!;
+          
+          // Maintain aspect ratio during scaling
+          const newWidth = currentWidth;
+          const newHeight = newWidth / aspectRatio;
+          
+          target.set({
+            scaleX: newWidth / target.width!,
+            scaleY: newHeight / target.height!
+          });
+          
+          canvas.renderAll();
+        });
+
+        // Constrain movement within image bounds
+        rect.on('moving', function(e) {
+          const target = e.target as Rect;
+          const imgBounds = originalImage!.getBoundingRect();
+          const rectBounds = target.getBoundingRect();
+          
+          // Keep crop within image bounds
+          if (rectBounds.left < imgBounds.left) {
+            target.set('left', target.left! + (imgBounds.left - rectBounds.left));
+          }
+          if (rectBounds.top < imgBounds.top) {
+            target.set('top', target.top! + (imgBounds.top - rectBounds.top));
+          }
+          if (rectBounds.left + rectBounds.width > imgBounds.left + imgBounds.width) {
+            target.set('left', target.left! - ((rectBounds.left + rectBounds.width) - (imgBounds.left + imgBounds.width)));
+          }
+          if (rectBounds.top + rectBounds.height > imgBounds.top + imgBounds.height) {
+            target.set('top', target.top! - ((rectBounds.top + rectBounds.height) - (imgBounds.top + imgBounds.height)));
+          }
+        });
+
+        canvas.add(rect);
+        setCropRect(rect);
+        canvas.setActiveObject(rect);
+        canvas.renderAll();
+      })
+      .catch((error) => {
+        console.error('Failed to load image:', error);
+        toast.error('Failed to load image');
       });
+
+    return () => {
+      canvas.dispose();
     };
-    img.src = imageUrl;
   }, [imageUrl, aspectRatio]);
 
+  // Apply image adjustments
   useEffect(() => {
-    drawCanvas();
-  }, [image, cropArea, imageAdjustments]);
+    if (!originalImage || !fabricCanvas) return;
 
-  const drawCanvas = () => {
-    if (!canvasRef.current || !image) return;
-    
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const brightnessValue = brightness[0];
+    const contrastValue = contrast[0];
+    const saturationValue = saturation[0];
 
-    // Set canvas size to fit container while maintaining aspect ratio
-    const containerWidth = 600;
-    const containerHeight = 400;
-    const scale = Math.min(containerWidth / image.width, containerHeight / image.height);
+    // Apply filters
+    const filters: any[] = [];
     
-    canvas.width = image.width * scale;
-    canvas.height = image.height * scale;
-
-    // Apply image adjustments
-    ctx.filter = `brightness(${imageAdjustments.brightness}%) contrast(${imageAdjustments.contrast}%) saturate(${imageAdjustments.saturation}%)`;
-    
-    // Draw image
-    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-    
-    // Reset filter for overlay
-    ctx.filter = 'none';
-    
-    // Draw crop overlay
-    const scaledCrop = {
-      x: cropArea.x * scale,
-      y: cropArea.y * scale,
-      width: cropArea.width * scale,
-      height: cropArea.height * scale
-    };
-    
-    // Dark overlay outside crop area
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Clear crop area
-    ctx.clearRect(scaledCrop.x, scaledCrop.y, scaledCrop.width, scaledCrop.height);
-    
-    // Redraw image in crop area
-    ctx.save();
-    ctx.rect(scaledCrop.x, scaledCrop.y, scaledCrop.width, scaledCrop.height);
-    ctx.clip();
-    ctx.filter = `brightness(${imageAdjustments.brightness}%) contrast(${imageAdjustments.contrast}%) saturate(${imageAdjustments.saturation}%)`;
-    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-    ctx.restore();
-    
-    // Draw crop border
-    ctx.strokeStyle = '#10b981';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(scaledCrop.x, scaledCrop.y, scaledCrop.width, scaledCrop.height);
-    
-    // Draw corner handles
-    const handleSize = 8;
-    ctx.fillStyle = '#10b981';
-    ctx.fillRect(scaledCrop.x - handleSize/2, scaledCrop.y - handleSize/2, handleSize, handleSize);
-    ctx.fillRect(scaledCrop.x + scaledCrop.width - handleSize/2, scaledCrop.y - handleSize/2, handleSize, handleSize);
-    ctx.fillRect(scaledCrop.x - handleSize/2, scaledCrop.y + scaledCrop.height - handleSize/2, handleSize, handleSize);
-    ctx.fillRect(scaledCrop.x + scaledCrop.width - handleSize/2, scaledCrop.y + scaledCrop.height - handleSize/2, handleSize, handleSize);
-  };
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || !image) return;
-    
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const scale = canvas.width / image.width;
-    const scaledCrop = {
-      x: cropArea.x * scale,
-      y: cropArea.y * scale,
-      width: cropArea.width * scale,
-      height: cropArea.height * scale
-    };
-    
-    // Check if clicking inside crop area
-    if (x >= scaledCrop.x && x <= scaledCrop.x + scaledCrop.width &&
-        y >= scaledCrop.y && y <= scaledCrop.y + scaledCrop.height) {
-      setIsDragging(true);
-      setDragStart({ x: x - scaledCrop.x, y: y - scaledCrop.y });
+    if (brightnessValue !== 0) {
+      filters.push(new (window as any).fabric.Image.filters.Brightness({
+        brightness: brightnessValue / 100
+      }));
     }
+    
+    if (contrastValue !== 0) {
+      filters.push(new (window as any).fabric.Image.filters.Contrast({
+        contrast: contrastValue / 100
+      }));
+    }
+    
+    if (saturationValue !== 0) {
+      filters.push(new (window as any).fabric.Image.filters.Saturation({
+        saturation: saturationValue / 100
+      }));
+    }
+
+    originalImage.filters = filters;
+    originalImage.applyFilters();
+    fabricCanvas.renderAll();
+  }, [brightness, contrast, saturation, originalImage, fabricCanvas]);
+
+  const handleRotateImage = (degrees: number) => {
+    if (!originalImage || !fabricCanvas) return;
+    
+    const newRotation = imageRotation + degrees;
+    setImageRotation(newRotation);
+    
+    originalImage.set('angle', newRotation);
+    fabricCanvas.renderAll();
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDragging || !canvasRef.current || !image) return;
+  const handleResetRotation = () => {
+    if (!originalImage || !fabricCanvas) return;
     
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const scale = canvas.width / image.width;
-    const newX = Math.max(0, Math.min((x - dragStart.x) / scale, image.width - cropArea.width));
-    const newY = Math.max(0, Math.min((y - dragStart.y) / scale, image.height - cropArea.height));
-    
-    setCropArea(prev => ({ ...prev, x: newX, y: newY }));
+    setImageRotation(0);
+    originalImage.set('angle', 0);
+    fabricCanvas.renderAll();
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
+  const handleCropComplete = async () => {
+    if (!fabricCanvas || !originalImage || !cropRect) {
+      toast.error('No crop area selected');
+      return;
+    }
 
-  const handleCrop = async () => {
-    if (!image) return;
-    
+    setIsProcessing(true);
+
     try {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Could not get canvas context');
+      // Get crop bounds
+      const cropBounds = cropRect.getBoundingRect();
+      const imageBounds = originalImage.getBoundingRect();
       
-      // Set output size (standard card dimensions)
-      canvas.width = 300;
-      canvas.height = 420;
+      // Calculate relative crop position
+      const relativeX = (cropBounds.left - imageBounds.left) / originalImage.scaleX!;
+      const relativeY = (cropBounds.top - imageBounds.top) / originalImage.scaleY!;
+      const relativeWidth = cropBounds.width / originalImage.scaleX!;
+      const relativeHeight = cropBounds.height / originalImage.scaleY!;
+
+      // Create temporary canvas for cropping
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
       
-      // Apply image adjustments
-      ctx.filter = `brightness(${imageAdjustments.brightness}%) contrast(${imageAdjustments.contrast}%) saturate(${imageAdjustments.saturation}%)`;
+      if (!tempCtx) {
+        throw new Error('Could not get canvas context');
+      }
+
+      // Set canvas size to crop dimensions (standard card size)
+      tempCanvas.width = 300;
+      tempCanvas.height = 420;
+
+      // Load original image
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
       
-      // Draw cropped area
-      ctx.drawImage(
-        image,
-        cropArea.x, cropArea.y, cropArea.width, cropArea.height,
-        0, 0, canvas.width, canvas.height
-      );
-      
-      // Convert to blob and create URL
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const croppedUrl = URL.createObjectURL(blob);
-          onCropComplete(croppedUrl);
-          toast.success('Image cropped successfully!');
+      img.onload = () => {
+        // Apply rotation if needed
+        if (imageRotation !== 0) {
+          tempCtx.save();
+          tempCtx.translate(tempCanvas.width / 2, tempCanvas.height / 2);
+          tempCtx.rotate((imageRotation * Math.PI) / 180);
+          tempCtx.translate(-tempCanvas.width / 2, -tempCanvas.height / 2);
         }
-      }, 'image/png', 1.0);
+
+        // Draw cropped region
+        tempCtx.drawImage(
+          img,
+          relativeX, relativeY, relativeWidth, relativeHeight,
+          0, 0, tempCanvas.width, tempCanvas.height
+        );
+
+        if (imageRotation !== 0) {
+          tempCtx.restore();
+        }
+
+        // Convert to blob and create URL
+        tempCanvas.toBlob((blob) => {
+          if (blob) {
+            const croppedUrl = URL.createObjectURL(blob);
+            onCropComplete(croppedUrl);
+            toast.success('Image cropped successfully!');
+          } else {
+            toast.error('Failed to create cropped image');
+          }
+          setIsProcessing(false);
+        }, 'image/png', 1.0);
+      };
+
+      img.onerror = () => {
+        toast.error('Failed to process image');
+        setIsProcessing(false);
+      };
+
+      img.src = imageUrl;
+
     } catch (error) {
       console.error('Crop failed:', error);
       toast.error('Failed to crop image');
+      setIsProcessing(false);
     }
   };
 
-  const resetCrop = () => {
-    if (!image) return;
-    const width = Math.min(image.width * 0.8, image.height * aspectRatio * 0.8);
-    const height = width / aspectRatio;
-    setCropArea({
-      x: (image.width - width) / 2,
-      y: (image.height - height) / 2,
-      width,
-      height
-    });
-  };
-
-  const resetAdjustments = () => {
-    setImageAdjustments({
-      brightness: 100,
-      contrast: 100,
-      saturation: 100,
-      rotation: 0
-    });
-  };
-
   return (
-    <div className="flex flex-col lg:flex-row gap-6 p-6 bg-gray-900 rounded-lg">
-      {/* Canvas Area */}
-      <div className="flex-1">
-        <div className="bg-gray-800 rounded-lg p-4">
-          <canvas
-            ref={canvasRef}
-            className="max-w-full max-h-96 border border-gray-600 rounded cursor-move"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-          />
+    <div className="h-full flex">
+      {/* Main Canvas Area */}
+      <div className="flex-1 p-6">
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold text-white mb-2">Crop & Edit Image</h2>
+          <p className="text-gray-400">Drag to move, resize corners, or rotate the crop frame</p>
         </div>
-      </div>
-
-      {/* Controls */}
-      <div className="w-full lg:w-80 space-y-6">
-        {/* Image Adjustments */}
-        <Card className="p-4 bg-gray-800 border-gray-600">
-          <h3 className="text-white font-semibold mb-4">Image Adjustments</h3>
-          
-          <div className="space-y-4">
-            <div>
-              <Label className="text-white text-sm">Brightness</Label>
-              <Slider
-                value={[imageAdjustments.brightness]}
-                onValueChange={([value]) => setImageAdjustments(prev => ({ ...prev, brightness: value }))}
-                min={50}
-                max={150}
-                step={1}
-                className="mt-2"
-              />
-              <span className="text-gray-400 text-xs">{imageAdjustments.brightness}%</span>
-            </div>
-            
-            <div>
-              <Label className="text-white text-sm">Contrast</Label>
-              <Slider
-                value={[imageAdjustments.contrast]}
-                onValueChange={([value]) => setImageAdjustments(prev => ({ ...prev, contrast: value }))}
-                min={50}
-                max={150}
-                step={1}
-                className="mt-2"
-              />
-              <span className="text-gray-400 text-xs">{imageAdjustments.contrast}%</span>
-            </div>
-            
-            <div>
-              <Label className="text-white text-sm">Saturation</Label>
-              <Slider
-                value={[imageAdjustments.saturation]}
-                onValueChange={([value]) => setImageAdjustments(prev => ({ ...prev, saturation: value }))}
-                min={0}
-                max={200}
-                step={1}
-                className="mt-2"
-              />
-              <span className="text-gray-400 text-xs">{imageAdjustments.saturation}%</span>
-            </div>
-          </div>
-
-          <Button
-            onClick={resetAdjustments}
-            variant="outline"
-            size="sm"
-            className="w-full mt-4 border-gray-600 text-white"
-          >
-            <RotateCw className="w-4 h-4 mr-2" />
-            Reset Adjustments
-          </Button>
-        </Card>
-
-        {/* Crop Controls */}
-        <Card className="p-4 bg-gray-800 border-gray-600">
-          <h3 className="text-white font-semibold mb-4">Crop Controls</h3>
-          
-          <div className="space-y-3">
-            <Button
-              onClick={resetCrop}
-              variant="outline"
-              className="w-full border-gray-600 text-white"
-            >
-              <Crop className="w-4 h-4 mr-2" />
-              Reset Crop Area
-            </Button>
-            
-            <div className="text-xs text-gray-400">
-              <p>• Drag the crop area to reposition</p>
-              <p>• Crop maintains card aspect ratio</p>
-              <p>• Adjust image before cropping</p>
-            </div>
-          </div>
-        </Card>
+        
+        <div className="border border-gray-600 rounded-lg overflow-hidden bg-gray-900">
+          <canvas ref={canvasRef} className="block" />
+        </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3">
+        <div className="flex justify-between mt-6">
           <Button
             onClick={onCancel}
             variant="outline"
-            className="flex-1 border-gray-600 text-white"
+            className="border-gray-600 text-gray-300"
+            disabled={isProcessing}
           >
             <X className="w-4 h-4 mr-2" />
             Cancel
           </Button>
+
           <Button
-            onClick={handleCrop}
-            className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
+            onClick={handleCropComplete}
+            className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
+            disabled={isProcessing}
           >
-            <Check className="w-4 h-4 mr-2" />
-            Apply Crop
+            {isProcessing ? (
+              <>
+                <div className="w-4 h-4 mr-2 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Check className="w-4 h-4 mr-2" />
+                Apply Crop
+              </>
+            )}
           </Button>
         </div>
+      </div>
+
+      {/* Controls Sidebar */}
+      <div className="w-80 bg-gray-800/50 border-l border-gray-600 p-6 space-y-6">
+        {/* Rotation Controls */}
+        <Card className="p-4 bg-gray-800/50 border-gray-600">
+          <h3 className="text-white font-medium mb-4">Image Rotation</h3>
+          <div className="flex gap-2 mb-4">
+            <Button
+              onClick={() => handleRotateImage(-15)}
+              variant="outline"
+              size="sm"
+              className="border-gray-600 text-white hover:bg-gray-700"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+            <Button
+              onClick={() => handleRotateImage(15)}
+              variant="outline"
+              size="sm"
+              className="border-gray-600 text-white hover:bg-gray-700"
+            >
+              <RotateCw className="w-4 h-4" />
+            </Button>
+            <Button
+              onClick={handleResetRotation}
+              variant="outline"
+              size="sm"
+              className="border-gray-600 text-white hover:bg-gray-700"
+            >
+              <Reset className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="text-xs text-gray-400">
+            Rotation: {imageRotation}°
+          </div>
+        </Card>
+
+        {/* Image Adjustments */}
+        <Card className="p-4 bg-gray-800/50 border-gray-600">
+          <h3 className="text-white font-medium mb-4">Image Adjustments</h3>
+          
+          <div className="space-y-4">
+            <div>
+              <Label className="text-white text-sm mb-2 block">
+                Brightness: {brightness[0]}
+              </Label>
+              <Slider
+                value={brightness}
+                onValueChange={setBrightness}
+                min={-50}
+                max={50}
+                step={1}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <Label className="text-white text-sm mb-2 block">
+                Contrast: {contrast[0]}
+              </Label>
+              <Slider
+                value={contrast}
+                onValueChange={setContrast}
+                min={-50}
+                max={50}
+                step={1}
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <Label className="text-white text-sm mb-2 block">
+                Saturation: {saturation[0]}
+              </Label>
+              <Slider
+                value={saturation}
+                onValueChange={setSaturation}
+                min={-50}
+                max={50}
+                step={1}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Crop Info */}
+        <Card className="p-4 bg-gray-800/50 border-gray-600">
+          <h3 className="text-white font-medium mb-2">Crop Settings</h3>
+          <div className="text-sm text-gray-400 space-y-1">
+            <div>Aspect Ratio: {aspectRatio.toFixed(2)}:1</div>
+            <div>Output Size: 300×420px</div>
+            <div className="mt-3 pt-3 border-t border-gray-600">
+              <div className="flex items-center gap-2 text-xs">
+                <Move className="w-3 h-3" />
+                Drag to move crop area
+              </div>
+              <div className="flex items-center gap-2 text-xs mt-1">
+                <div className="w-3 h-3 border border-gray-400 rounded-sm" />
+                Drag corners to resize
+              </div>
+              <div className="flex items-center gap-2 text-xs mt-1">
+                <RotateCw className="w-3 h-3" />
+                Use rotation handle to rotate
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );
