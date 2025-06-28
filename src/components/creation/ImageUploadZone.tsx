@@ -1,9 +1,10 @@
 
 import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { Upload, Image as ImageIcon, AlertCircle, FileImage } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { toast } from 'sonner';
 
 interface ImageUploadZoneProps {
   onImageUpload: (file: File) => void;
@@ -16,9 +17,30 @@ export const ImageUploadZone: React.FC<ImageUploadZoneProps> = ({
   isProcessing = false,
   error
 }) => {
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
+    if (rejectedFiles.length > 0) {
+      const rejection = rejectedFiles[0];
+      if (rejection.errors.some((e: any) => e.code === 'file-too-large')) {
+        toast.error('File is too large. Please choose an image under 10MB.');
+      } else if (rejection.errors.some((e: any) => e.code === 'file-invalid-type')) {
+        toast.error('Invalid file type. Please choose a JPG, PNG, or WebP image.');
+      } else {
+        toast.error('File upload failed. Please try again.');
+      }
+      return;
+    }
+
     if (acceptedFiles.length > 0) {
-      onImageUpload(acceptedFiles[0]);
+      const file = acceptedFiles[0];
+      
+      // Additional validation
+      if (file.size > 10 * 1024 * 1024) { // 10MB
+        toast.error('File is too large. Please choose an image under 10MB.');
+        return;
+      }
+      
+      toast.success('Image uploaded successfully!');
+      onImageUpload(file);
     }
   }, [onImageUpload]);
 
@@ -28,6 +50,7 @@ export const ImageUploadZone: React.FC<ImageUploadZoneProps> = ({
       'image/*': ['.jpeg', '.jpg', '.png', '.webp']
     },
     maxFiles: 1,
+    maxSize: 10 * 1024 * 1024, // 10MB
     disabled: isProcessing,
     noClick: true
   });
@@ -94,6 +117,20 @@ export const ImageUploadZone: React.FC<ImageUploadZoneProps> = ({
           )}
         </div>
       </Card>
+
+      {/* Upload Tips */}
+      <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+        <h4 className="text-white font-medium mb-2 flex items-center gap-2">
+          <FileImage className="w-4 h-4" />
+          Upload Tips
+        </h4>
+        <ul className="text-gray-400 text-sm space-y-1">
+          <li>• Use high-resolution images for best results</li>
+          <li>• Square or portrait orientation works best</li>
+          <li>• Clear, well-lit photos produce better crops</li>
+          <li>• Avoid blurry or heavily compressed images</li>
+        </ul>
+      </div>
     </div>
   );
 };

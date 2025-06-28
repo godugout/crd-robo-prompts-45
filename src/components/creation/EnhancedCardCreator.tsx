@@ -1,240 +1,234 @@
 
-import React, { useState, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Upload, Palette, Sparkles, Eye, Download,
-  Image, Type, Layers, Zap
-} from 'lucide-react';
-import { useCardCreation } from '@/hooks/useCardCreation';
+import { Button } from '@/components/ui/button';
 import { ImageUploadZone } from './ImageUploadZone';
-import { TemplateSelector } from './TemplateSelector';
-import { EffectCustomizer } from './EffectCustomizer';
-import { CardPreviewArea } from './CardPreviewArea';
+import { CardAnalysisSection } from './CardAnalysisSection';
 import { CardDetailsForm } from './CardDetailsForm';
-import { SAMPLE_OAK_TEMPLATES } from '@/data/oakTemplateData';
+import { ImageCropEditor } from './ImageCropEditor';
+import { ArrowLeft, ArrowRight, Sparkles, Image, Edit3 } from 'lucide-react';
+import type { CardMetadata } from '@/services/cardAnalyzer/CardMetadataAnalyzer';
 
-type CreationStep = 'template' | 'image' | 'customize' | 'effects' | 'preview';
+type CreationStep = 'upload' | 'crop' | 'analyze' | 'details';
 
-const STEPS = [
-  { id: 'template', label: 'Template', icon: Layers, description: 'Choose your style' },
-  { id: 'image', label: 'Image', icon: Image, description: 'Upload your photo' },
-  { id: 'customize', label: 'Details', icon: Type, description: 'Add information' },
-  { id: 'effects', label: 'Effects', icon: Zap, description: 'Apply visual effects' },
-  { id: 'preview', label: 'Preview', icon: Eye, description: 'Review & export' }
-];
+interface CardFormData {
+  title: string;
+  description: string;
+  image_url: string;
+  thumbnail_url: string;
+  rarity: string;
+  tags: string[];
+  sports_metadata: CardMetadata;
+}
 
 export const EnhancedCardCreator: React.FC = () => {
-  const { state, uploadImage, updateCardData, reset } = useCardCreation();
-  const [currentStep, setCurrentStep] = useState<CreationStep>('template');
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [currentStep, setCurrentStep] = useState<CreationStep>('upload');
+  const [uploadedImage, setUploadedImage] = useState<string>('');
+  const [originalImage, setOriginalImage] = useState<string>('');
+  const [cardData, setCardData] = useState<CardFormData>({
+    title: '',
+    description: '',
+    image_url: '',
+    thumbnail_url: '',
+    rarity: 'common',
+    tags: [],
+    sports_metadata: {}
+  });
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleTemplateSelect = useCallback((templateId: string) => {
-    setSelectedTemplate(templateId);
-    updateCardData({ frame: templateId });
-  }, [updateCardData]);
-
-  const handleStepNavigation = (step: CreationStep) => {
-    setCurrentStep(step);
+  const handleImageUpload = (file: File) => {
+    setIsProcessing(true);
+    const imageUrl = URL.createObjectURL(file);
+    setUploadedImage(imageUrl);
+    setOriginalImage(imageUrl);
+    setCardData(prev => ({ ...prev, image_url: imageUrl, thumbnail_url: imageUrl }));
+    setIsProcessing(false);
+    setCurrentStep('crop');
   };
 
-  const canAdvanceFromStep = (step: CreationStep): boolean => {
-    switch (step) {
-      case 'template':
-        return Boolean(selectedTemplate);
-      case 'image':
-        return Boolean(state.uploadedImage);
-      case 'customize':
-        return Boolean(state.cardData.title.trim());
-      case 'effects':
-        return true;
-      case 'preview':
-        return true;
-      default:
-        return false;
-    }
+  const handleCropComplete = (croppedImageUrl: string) => {
+    setUploadedImage(croppedImageUrl);
+    setCardData(prev => ({ ...prev, image_url: croppedImageUrl, thumbnail_url: croppedImageUrl }));
+    setCurrentStep('analyze');
   };
 
-  const getCurrentStepIndex = () => STEPS.findIndex(step => step.id === currentStep);
+  const handleCropCancel = () => {
+    setCurrentStep('upload');
+  };
+
+  const handleMetadataExtracted = (metadata: CardMetadata) => {
+    setCardData(prev => ({
+      ...prev,
+      sports_metadata: metadata,
+      title: metadata.player || prev.title,
+      description: `${metadata.year || ''} ${metadata.brand || ''} ${metadata.series || ''}`.trim() || prev.description
+    }));
+    setCurrentStep('details');
+  };
+
+  const handleSkipAnalysis = () => {
+    setCurrentStep('details');
+  };
+
+  const handleBackToUpload = () => {
+    setCurrentStep('upload');
+    setUploadedImage('');
+    setOriginalImage('');
+    setCardData({
+      title: '',
+      description: '',
+      image_url: '',
+      thumbnail_url: '',
+      rarity: 'common',
+      tags: [],
+      sports_metadata: {}
+    });
+  };
+
+  const handleBackToCrop = () => {
+    setCurrentStep('crop');
+  };
+
+  const handleBackToAnalysis = () => {
+    setCurrentStep('analyze');
+  };
+
+  const steps = [
+    { id: 'upload', name: 'Upload Image', icon: Image },
+    { id: 'crop', name: 'Crop & Edit', icon: Edit3 },
+    { id: 'analyze', name: 'AI Analysis', icon: Sparkles },
+    { id: 'details', name: 'Card Details', icon: Edit3 }
+  ];
+
+  const currentStepIndex = steps.findIndex(step => step.id === currentStep);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-crd-darkest via-[#0a0a0b] to-[#131316] p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Create Your <span className="text-crd-green">Trading Card</span>
-          </h1>
-          <p className="text-xl text-gray-300">
-            Design professional trading cards with our enhanced creation tools
-          </p>
+          <h1 className="text-4xl font-bold text-white mb-2">Enhanced Card Creator</h1>
+          <p className="text-gray-400">Create professional trading cards with AI-powered analysis</p>
         </div>
 
-        {/* Step Progress */}
-        <div className="flex items-center justify-center mb-8 gap-4">
-          {STEPS.map((step, index) => {
-            const isActive = step.id === currentStep;
-            const isCompleted = getCurrentStepIndex() > index;
-            const canAccess = index === 0 || canAdvanceFromStep(STEPS[index - 1].id as CreationStep);
-            
-            return (
-              <div key={step.id} className="flex items-center">
-                <button
-                  onClick={() => canAccess && handleStepNavigation(step.id as CreationStep)}
-                  disabled={!canAccess}
-                  className={`
-                    flex flex-col items-center p-4 rounded-xl transition-all duration-300
+        {/* Progress Steps */}
+        <div className="mb-8">
+          <div className="flex items-center justify-center space-x-4">
+            {steps.map((step, index) => {
+              const StepIcon = step.icon;
+              const isActive = currentStep === step.id;
+              const isCompleted = index < currentStepIndex;
+              
+              return (
+                <div key={step.id} className="flex items-center">
+                  <div className={`
+                    flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all
                     ${isActive 
-                      ? 'bg-crd-green/20 border-2 border-crd-green text-crd-green' 
+                      ? 'bg-crd-green border-crd-green text-black' 
                       : isCompleted 
-                        ? 'bg-green-900/30 border border-green-600 text-green-400 hover:bg-green-900/50'
-                        : canAccess
-                          ? 'bg-gray-800/50 border border-gray-600 text-gray-400 hover:bg-gray-700/50'
-                          : 'bg-gray-900/30 border border-gray-800 text-gray-600 cursor-not-allowed'
+                      ? 'bg-crd-green/20 border-crd-green text-crd-green' 
+                      : 'bg-gray-800 border-gray-600 text-gray-400'
                     }
-                  `}
-                >
-                  <step.icon className="w-6 h-6 mb-2" />
-                  <span className="text-sm font-medium">{step.label}</span>
-                  <span className="text-xs opacity-70">{step.description}</span>
-                </button>
-                {index < STEPS.length - 1 && (
-                  <div className={`w-8 h-0.5 mx-2 ${isCompleted ? 'bg-crd-green' : 'bg-gray-700'}`} />
-                )}
-              </div>
-            );
-          })}
+                  `}>
+                    <StepIcon className="w-5 h-5" />
+                  </div>
+                  <span className={`ml-2 text-sm font-medium ${
+                    isActive ? 'text-crd-green' : isCompleted ? 'text-crd-green' : 'text-gray-400'
+                  }`}>
+                    {step.name}
+                  </span>
+                  {index < steps.length - 1 && (
+                    <div className={`w-8 h-px mx-4 ${
+                      index < currentStepIndex ? 'bg-crd-green' : 'bg-gray-600'
+                    }`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Main Content Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Creation Panel */}
-          <div className="lg:col-span-2">
-            <Card className="bg-black/30 border-white/20 p-6">
-              {currentStep === 'template' && (
-                <TemplateSelector
-                  templates={SAMPLE_OAK_TEMPLATES}
-                  selectedTemplate={selectedTemplate}
-                  onTemplateSelect={handleTemplateSelect}
-                />
-              )}
-
-              {currentStep === 'image' && (
-                <ImageUploadZone
-                  onImageUpload={uploadImage}
-                  isProcessing={state.processing}
-                  error={state.error}
-                />
-              )}
-
-              {currentStep === 'customize' && (
-                <CardDetailsForm
-                  cardData={state.cardData}
-                  onUpdateCardData={updateCardData}
-                />
-              )}
-
-              {currentStep === 'effects' && (
-                <EffectCustomizer
-                  effects={state.cardData.effects}
-                  onEffectsChange={(effects) => updateCardData({ effects })}
-                />
-              )}
-
-              {currentStep === 'preview' && (
-                <div className="text-center space-y-6">
-                  <div>
-                    <h3 className="text-2xl font-bold text-white mb-2">Your Card is Ready!</h3>
-                    <p className="text-gray-400">Review your creation and export when satisfied</p>
-                  </div>
-                  
-                  <div className="flex gap-4 justify-center">
-                    <Button
-                      onClick={reset}
-                      variant="outline"
-                      className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                    >
-                      Create Another
-                    </Button>
-                    <Button className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold">
-                      <Download className="w-4 h-4 mr-2" />
-                      Export Card
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </Card>
-
-            {/* Step Navigation */}
-            <div className="flex justify-between mt-6">
-              <Button
-                onClick={() => {
-                  const currentIndex = getCurrentStepIndex();
-                  if (currentIndex > 0) {
-                    handleStepNavigation(STEPS[currentIndex - 1].id as CreationStep);
-                  }
-                }}
-                disabled={getCurrentStepIndex() === 0}
-                variant="outline"
-                className="border-gray-600 text-gray-300 hover:bg-gray-700"
-              >
-                Previous
-              </Button>
-              
-              <Button
-                onClick={() => {
-                  const currentIndex = getCurrentStepIndex();
-                  if (currentIndex < STEPS.length - 1 && canAdvanceFromStep(currentStep)) {
-                    handleStepNavigation(STEPS[currentIndex + 1].id as CreationStep);
-                  }
-                }}
-                disabled={getCurrentStepIndex() === STEPS.length - 1 || !canAdvanceFromStep(currentStep)}
-                className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
-              >
-                {getCurrentStepIndex() === STEPS.length - 1 ? 'Complete' : 'Next'}
-              </Button>
+        {/* Step Content */}
+        <Card className="bg-gray-800/50 border-gray-600 min-h-[600px]">
+          {currentStep === 'upload' && (
+            <div className="p-8">
+              <ImageUploadZone
+                onImageUpload={handleImageUpload}
+                isProcessing={isProcessing}
+              />
             </div>
-          </div>
+          )}
 
-          {/* Live Preview Panel */}
-          <div className="lg:col-span-1">
-            <Card className="bg-black/30 border-white/20 p-6 sticky top-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">Live Preview</h3>
-                <Badge variant="outline" className="border-crd-green text-crd-green">
-                  Real-time
-                </Badge>
-              </div>
-              
-              <CardPreviewArea
-                template={selectedTemplate}
-                uploadedImage={state.uploadedImage}
-                cardData={state.cardData}
-                effects={state.cardData.effects}
+          {currentStep === 'crop' && uploadedImage && (
+            <ImageCropEditor
+              imageUrl={originalImage}
+              onCropComplete={handleCropComplete}
+              onCancel={handleCropCancel}
+              aspectRatio={2.5 / 3.5}
+            />
+          )}
+
+          {currentStep === 'analyze' && uploadedImage && (
+            <div className="p-8">
+              <CardAnalysisSection
+                onMetadataExtracted={handleMetadataExtracted}
+                existingImageUrl={uploadedImage}
               />
               
-              {/* Card Stats */}
-              <div className="mt-4 p-4 bg-gray-900/50 rounded-lg">
-                <h4 className="text-white font-medium mb-2">Card Information</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Template:</span>
-                    <span className="text-white">{selectedTemplate || 'None selected'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Title:</span>
-                    <span className="text-white">{state.cardData.title || 'Untitled'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Rarity:</span>
-                    <span className="text-white capitalize">{state.cardData.rarity}</span>
-                  </div>
-                </div>
+              <div className="mt-6 flex justify-center">
+                <Button
+                  onClick={handleSkipAnalysis}
+                  variant="outline"
+                  className="border-gray-600 text-gray-300"
+                >
+                  Skip Analysis & Continue
+                </Button>
               </div>
-            </Card>
-          </div>
+            </div>
+          )}
+
+          {currentStep === 'details' && (
+            <div className="p-8">
+              <CardDetailsForm
+                initialData={cardData}
+                onSubmit={(data) => {
+                  console.log('Card created:', data);
+                  // Handle card creation
+                }}
+                previewImage={uploadedImage}
+              />
+            </div>
+          )}
+        </Card>
+
+        {/* Navigation */}
+        <div className="flex justify-between mt-6">
+          <Button
+            onClick={() => {
+              if (currentStep === 'crop') handleBackToUpload();
+              else if (currentStep === 'analyze') handleBackToCrop();
+              else if (currentStep === 'details') handleBackToAnalysis();
+            }}
+            variant="outline"
+            className="border-gray-600 text-gray-300"
+            disabled={currentStep === 'upload'}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+
+          <Button
+            onClick={() => {
+              if (currentStep === 'upload' && uploadedImage) setCurrentStep('crop');
+              else if (currentStep === 'crop') setCurrentStep('analyze');
+              else if (currentStep === 'analyze') setCurrentStep('details');
+            }}
+            className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
+            disabled={!uploadedImage || currentStep === 'details'}
+          >
+            Continue
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
         </div>
       </div>
     </div>
