@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect } from 'react';
 import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
 import { LayerGroup } from '@/services/psdProcessor/layerGroupingService';
@@ -139,8 +140,6 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
                     ring-2 ring-crd-green ring-opacity-70
                   `}
                   style={{
-                    width: `${processedPSD.width}px`,
-                    height: `${processedPSD.height}px`,
                     position: 'absolute',
                     left: `${selectedLayer.bounds.left}px`,
                     top: `${selectedLayer.bounds.top}px`,
