@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
 import { EnhancedCardFrameFittingInterface } from './components/EnhancedCardFrameFittingInterface';
@@ -25,6 +24,8 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
   const [selectedFrame, setSelectedFrame] = useState('classic-sports');
   const [activeTab, setActiveTab] = useState<'fitting' | 'builder'>('fitting');
   const [generatedFrames, setGeneratedFrames] = useState<any[]>([]);
+  const [currentMode, setCurrentMode] = useState<'elements' | 'frame' | 'preview'>('elements');
+  const [flippedLayers, setFlippedLayers] = useState<Set<string>>(new Set());
 
   // Initialize with largest layer selected
   React.useEffect(() => {
@@ -58,6 +59,14 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
     setGeneratedFrames(prev => [...prev, newFrame]);
     setSelectedFrame(newFrame.id);
     setActiveTab('fitting');
+  };
+
+  const handleModeChange = (mode: 'elements' | 'frame' | 'preview') => {
+    setCurrentMode(mode);
+  };
+
+  const handleFlippedLayersChange = (flipped: Set<string>) => {
+    setFlippedLayers(flipped);
   };
 
   const selectedLayer = processedPSD.layers.find(layer => layer.id === selectedLayerId);
@@ -98,9 +107,14 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
             <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-600">
               {visibleLayerCount} visible
             </Badge>
-            {selectedLayer && activeTab === 'fitting' && (
+            {selectedLayer && activeTab === 'fitting' && currentMode !== 'preview' && (
               <Badge className="bg-crd-green text-black font-medium px-3 py-1">
                 Active: {selectedLayer.name}
+              </Badge>
+            )}
+            {currentMode === 'preview' && flippedLayers.size > 0 && (
+              <Badge className="bg-crd-blue text-white font-medium px-3 py-1">
+                {flippedLayers.size} CRD Branded
               </Badge>
             )}
           </div>
@@ -140,7 +154,9 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
               <h2 className="text-lg font-semibold text-white">Layer Inspector</h2>
             </div>
             <p className="text-sm text-slate-400 mt-1">
-              Organize layers for perfect card fitting
+              {currentMode === 'elements' && 'Detailed layer analysis and sorting'}
+              {currentMode === 'frame' && 'Content vs Design separation'}
+              {currentMode === 'preview' && 'CRD branding preview mode'}
             </p>
           </div>
           
@@ -151,6 +167,8 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
               onLayerSelect={setSelectedLayerId}
               hiddenLayers={hiddenLayers}
               onLayerToggle={toggleLayerVisibility}
+              onModeChange={handleModeChange}
+              onFlippedLayersChange={handleFlippedLayersChange}
             />
           </div>
         </div>

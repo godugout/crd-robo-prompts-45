@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
 import { PSDCanvasPreview } from './PSDCanvasPreview';
 import { LayerGroup } from '@/services/psdProcessor/layerGroupingService';
+import { LayerMode } from './LayerModeToggle';
 
 interface EnhancedCardFrameFittingInterfaceProps {
   processedPSD: ProcessedPSD;
@@ -24,9 +25,19 @@ export const EnhancedCardFrameFittingInterface: React.FC<EnhancedCardFrameFittin
   onFrameSelect
 }) => {
   const [focusMode, setFocusMode] = useState(false);
+  const [currentMode, setCurrentMode] = useState<LayerMode>('elements');
+  const [flippedLayers, setFlippedLayers] = useState<Set<string>>(new Set());
 
   // Create empty layer groups for now - you can enhance this later
   const layerGroups: LayerGroup[] = [];
+
+  const handleModeChange = (mode: LayerMode) => {
+    setCurrentMode(mode);
+  };
+
+  const handleFlippedLayersChange = (flipped: Set<string>) => {
+    setFlippedLayers(flipped);
+  };
 
   return (
     <div className="h-full bg-[#0a0a0b] flex flex-col">
@@ -61,6 +72,8 @@ export const EnhancedCardFrameFittingInterface: React.FC<EnhancedCardFrameFittin
           onLayerSelect={onLayerSelect}
           frameBuilderMode={false}
           focusMode={focusMode}
+          mode={currentMode}
+          flippedLayers={flippedLayers}
         />
       </div>
     </div>
