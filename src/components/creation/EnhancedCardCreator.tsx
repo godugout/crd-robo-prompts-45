@@ -17,7 +17,6 @@ export const EnhancedCardCreator: React.FC = () => {
         type: 'image',
         isVisible: true,
         imageData: null,
-        thumbnail: null,
         zIndex: 0
       },
       {
@@ -26,7 +25,6 @@ export const EnhancedCardCreator: React.FC = () => {
         type: 'image',
         isVisible: true,
         imageData: null,
-        thumbnail: null,
         zIndex: 1
       }
     ],
