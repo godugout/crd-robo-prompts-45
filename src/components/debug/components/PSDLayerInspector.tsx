@@ -16,7 +16,11 @@ import {
   Square,
   Layers,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Shield,
+  Sparkles,
+  Type,
+  Image
 } from 'lucide-react';
 
 interface PSDLayerInspectorProps {
@@ -51,12 +55,21 @@ export const PSDLayerInspector: React.FC<PSDLayerInspectorProps> = ({
   };
 
   const getLayerIcon = (layer: ProcessedPSDLayer) => {
+    // First check semantic type for more meaningful icons
     if (layer.semanticType === 'player') return User;
     if (layer.semanticType === 'background') return Mountain;
     if (layer.semanticType === 'stats') return BarChart;
-    if (layer.semanticType === 'logo' || layer.semanticType === 'border') return Square;
-    if (layer.type === 'effect') return Zap;
-    return Layers;
+    if (layer.semanticType === 'logo') return Shield;
+    if (layer.semanticType === 'border') return Square;
+    
+    // Fall back to layer type icons
+    if (layer.type === 'text') return Type;
+    if (layer.type === 'image') return Image;
+    if (layer.type === 'shape') return Square;
+    if (layer.type === 'group') return Layers;
+    
+    // Default icon for other types
+    return Sparkles;
   };
 
   const getSemanticColor = (semanticType?: string) => {
@@ -81,11 +94,26 @@ export const PSDLayerInspector: React.FC<PSDLayerInspectorProps> = ({
       'image': 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
       'shape': 'bg-purple-500/20 text-purple-300 border-purple-500/30',
       'group': 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-      'adjustment': 'bg-red-500/20 text-red-300 border-red-500/30',
-      'effect': 'bg-pink-500/20 text-pink-300 border-pink-500/30'
+      'adjustment': 'bg-red-500/20 text-red-300 border-red-500/30'
     };
     
     return colors[type as keyof typeof colors] || 'bg-slate-500/20 text-slate-300 border-slate-500/30';
+  };
+
+  const getGroupSemanticType = (group: LayerGroup): string => {
+    // Determine group semantic type based on the most common semantic type in the group
+    const semanticCounts: Record<string, number> = {};
+    group.layers.forEach(layer => {
+      const semantic = layer.semanticType || 'unknown';
+      semanticCounts[semantic] = (semanticCounts[semantic] || 0) + 1;
+    });
+    
+    // Return the most common semantic type
+    const mostCommon = Object.entries(semanticCounts).reduce((a, b) => 
+      semanticCounts[a[0]] > semanticCounts[b[0]] ? a : b
+    );
+    
+    return mostCommon[0];
   };
 
   return (
@@ -101,105 +129,109 @@ export const PSDLayerInspector: React.FC<PSDLayerInspectorProps> = ({
       </div>
       
       <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto">
-        {layerGroups.map((group) => (
-          <div key={group.id} className="space-y-2">
-            {/* Group Header */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => toggleGroup(group.id)}
-                className="p-1 h-6 w-6 text-slate-400 hover:text-white"
-              >
-                {expandedGroups.has(group.id) ? (
-                  <ChevronDown className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
-                )}
-              </Button>
-              <Badge className={`text-xs ${getSemanticColor(group.semanticType)} font-medium`}>
-                {group.name} ({group.layers.length})
-              </Badge>
-            </div>
+        {layerGroups.map((group) => {
+          const groupSemanticType = getGroupSemanticType(group);
+          
+          return (
+            <div key={group.id} className="space-y-2">
+              {/* Group Header */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleGroup(group.id)}
+                  className="p-1 h-6 w-6 text-slate-400 hover:text-white"
+                >
+                  {expandedGroups.has(group.id) ? (
+                    <ChevronDown className="w-4 h-4" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4" />
+                  )}
+                </Button>
+                <Badge className={`text-xs ${getSemanticColor(groupSemanticType)} font-medium`}>
+                  {group.name} ({group.layers.length})
+                </Badge>
+              </div>
 
-            {/* Group Layers */}
-            {expandedGroups.has(group.id) && (
-              <div className="ml-6 space-y-2">
-                {group.layers.map((layer) => {
-                  const LayerIcon = getLayerIcon(layer);
-                  const isSelected = selectedLayerId === layer.id;
-                  const isHidden = hiddenLayers.has(layer.id);
-                  const volume = calculateLayerVolume(layer);
-                  
-                  return (
-                    <div
-                      key={layer.id}
-                      className={`p-3 rounded-lg border transition-all cursor-pointer hover:border-crd-green/50 ${
-                        isSelected 
-                          ? 'border-crd-green bg-crd-green/10' 
-                          : 'border-slate-600 bg-slate-800/50'
-                      } ${isHidden ? 'opacity-50' : ''}`}
-                      onClick={() => onLayerSelect(layer.id)}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <LayerIcon className={`w-4 h-4 ${isSelected ? 'text-crd-green' : 'text-slate-400'}`} />
-                          <span className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-slate-300'}`}>
-                            {layer.name}
+              {/* Group Layers */}
+              {expandedGroups.has(group.id) && (
+                <div className="ml-6 space-y-2">
+                  {group.layers.map((layer) => {
+                    const LayerIcon = getLayerIcon(layer);
+                    const isSelected = selectedLayerId === layer.id;
+                    const isHidden = hiddenLayers.has(layer.id);
+                    const volume = calculateLayerVolume(layer);
+                    
+                    return (
+                      <div
+                        key={layer.id}
+                        className={`p-3 rounded-lg border transition-all cursor-pointer hover:border-crd-green/50 ${
+                          isSelected 
+                            ? 'border-crd-green bg-crd-green/10' 
+                            : 'border-slate-600 bg-slate-800/50'
+                        } ${isHidden ? 'opacity-50' : ''}`}
+                        onClick={() => onLayerSelect(layer.id)}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <LayerIcon className={`w-4 h-4 ${isSelected ? 'text-crd-green' : 'text-slate-400'}`} />
+                            <span className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-slate-300'}`}>
+                              {layer.name}
+                            </span>
+                          </div>
+                          
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onLayerToggle(layer.id);
+                            }}
+                            className="p-1 h-6 w-6 text-slate-400 hover:text-white"
+                          >
+                            {isHidden ? (
+                              <EyeOff className="w-3 h-3" />
+                            ) : (
+                              <Eye className="w-3 h-3" />
+                            )}
+                          </Button>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          <Badge className={`text-xs border ${getLayerTypeColor(layer.type)}`}>
+                            {layer.type}
+                          </Badge>
+                          {layer.semanticType && (
+                            <Badge className={`text-xs ${getSemanticColor(layer.semanticType)}`}>
+                              {layer.semanticType}
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <div className="flex justify-between text-xs text-slate-400">
+                          <span>
+                            {Math.round(layer.bounds.right - layer.bounds.left)} × {Math.round(layer.bounds.bottom - layer.bounds.top)}px
+                          </span>
+                          <span>
+                            Vol: {Math.round(volume).toLocaleString()}
                           </span>
                         </div>
                         
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onLayerToggle(layer.id);
-                          }}
-                          className="p-1 h-6 w-6 text-slate-400 hover:text-white"
-                        >
-                          {isHidden ? (
-                            <EyeOff className="w-3 h-3" />
-                          ) : (
-                            <Eye className="w-3 h-3" />
-                          )}
-                        </Button>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        <Badge className={`text-xs border ${getLayerTypeColor(layer.type)}`}>
-                          {layer.type}
-                        </Badge>
-                        {layer.semanticType && (
-                          <Badge className={`text-xs ${getSemanticColor(layer.semanticType)}`}>
-                            {layer.semanticType}
-                          </Badge>
+                        {layer.inferredDepth && (
+                          <div className="mt-1">
+                            <Badge variant="outline" className="text-xs bg-slate-700 text-slate-300 border-slate-600">
+                              Depth: {layer.inferredDepth.toFixed(2)}
+                            </Badge>
+                          </div>
                         )}
                       </div>
-                      
-                      <div className="flex justify-between text-xs text-slate-400">
-                        <span>
-                          {Math.round(layer.bounds.right - layer.bounds.left)} × {Math.round(layer.bounds.bottom - layer.bounds.top)}px
-                        </span>
-                        <span>
-                          Vol: {Math.round(volume).toLocaleString()}
-                        </span>
-                      </div>
-                      
-                      {layer.inferredDepth && (
-                        <div className="mt-1">
-                          <Badge variant="outline" className="text-xs bg-slate-700 text-slate-300 border-slate-600">
-                            Depth: {layer.inferredDepth.toFixed(2)}
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ))}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </Card>
   );
