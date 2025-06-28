@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -12,28 +13,18 @@ export interface CRDFrameBuilderProps {
   layerGroups: LayerGroup[];
   selectedLayerId: string;
   onLayerSelect: (layerId: string) => void;
+  hiddenLayers: Set<string>;
+  onLayerToggle: (layerId: string) => void;
 }
 
 export const CRDFrameBuilder: React.FC<CRDFrameBuilderProps> = ({
   layers,
   layerGroups,
   selectedLayerId,
-  onLayerSelect
+  onLayerSelect,
+  hiddenLayers,
+  onLayerToggle
 }) => {
-  const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
-
-  const toggleLayerVisibility = (layerId: string) => {
-    setHiddenLayers((prevHiddenLayers) => {
-      const newHiddenLayers = new Set(prevHiddenLayers);
-      if (newHiddenLayers.has(layerId)) {
-        newHiddenLayers.delete(layerId);
-      } else {
-        newHiddenLayers.add(layerId);
-      }
-      return newHiddenLayers;
-    });
-  };
-
   return (
     <div className="space-y-4">
       {/* Layer List */}
@@ -65,7 +56,7 @@ export const CRDFrameBuilder: React.FC<CRDFrameBuilderProps> = ({
                   size="icon"
                   onClick={(e) => {
                     e.stopPropagation();
-                    toggleLayerVisibility(layer.id);
+                    onLayerToggle(layer.id);
                   }}
                 >
                   {hiddenLayers.has(layer.id) ? (

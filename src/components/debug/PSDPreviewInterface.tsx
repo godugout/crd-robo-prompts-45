@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
 import { PSDCanvasPreview } from './components/PSDCanvasPreview';
@@ -112,6 +113,8 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
                 layerGroups={layerGroupingResult.groups}
                 selectedLayerId={selectedLayerId}
                 onLayerSelect={setSelectedLayerId}
+                hiddenLayers={hiddenLayers}
+                onLayerToggle={toggleLayerVisibility}
               />
             ) : (
               <PSDCanvasPreview
@@ -134,6 +137,8 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
           layerGroups={layerGroupingResult.groups}
           selectedLayerId={selectedLayerId}
           onLayerSelect={setSelectedLayerId}
+          hiddenLayers={hiddenLayers}
+          onLayerToggle={toggleLayerVisibility}
         />
       </div>
     </div>
