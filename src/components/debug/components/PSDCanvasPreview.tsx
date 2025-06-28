@@ -25,7 +25,6 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scale, setScale] = useState(1);
-  const [loadedImages, setLoadedImages] = useState<Map<string, HTMLImageElement>>(new Map());
 
   // Auto-select largest layer on PSD load
   useEffect(() => {
@@ -37,38 +36,19 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     }
   }, [processedPSD, selectedLayerId, onLayerSelect]);
 
-  // Preload images
+  // Calculate scale to fit the canvas in container
   useEffect(() => {
-    const loadImages = async () => {
-      const imageMap = new Map<string, HTMLImageElement>();
-      
-      for (const layer of processedPSD.layers) {
-        if (layer.imageData) {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          
-          await new Promise<void>((resolve, reject) => {
-            img.onload = () => {
-              imageMap.set(layer.id, img);
-              resolve();
-            };
-            img.onerror = () => reject();
-            img.src = layer.imageData!;
-          }).catch(() => {
-            // Skip failed images
-          });
-        }
-      }
-      
-      setLoadedImages(imageMap);
-    };
-
-    if (processedPSD?.layers) {
-      loadImages();
+    if (processedPSD) {
+      const containerWidth = 600;
+      const containerHeight = 400;
+      const scaleX = containerWidth / processedPSD.width;
+      const scaleY = containerHeight / processedPSD.height;
+      const initialScale = Math.min(scaleX, scaleY, 1);
+      setScale(initialScale);
     }
   }, [processedPSD]);
 
-  // Render canvas
+  // Render the PSD on canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !processedPSD) return;
@@ -83,55 +63,61 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Render layers
-    processedPSD.layers.forEach(layer => {
-      if (hiddenLayers.has(layer.id)) return;
-
-      const img = loadedImages.get(layer.id);
-      if (!img) return;
-
-      const x = layer.bounds.left;
-      const y = layer.bounds.top;
-      const width = layer.bounds.right - layer.bounds.left;
-      const height = layer.bounds.bottom - layer.bounds.top;
-
-      // Apply focus mode opacity
-      let opacity = layer.opacity;
-      if (focusMode) {
-        if (selectedLayerId && layer.id !== selectedLayerId) {
-          opacity = layer.opacity * 0.3; // Darken non-selected layers
+    // If we have a flattened image, use it
+    if (processedPSD.flattenedImageUrl) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, processedPSD.width, processedPSD.height);
+        
+        // Draw selection highlight if in focus mode
+        if (selectedLayerId && focusMode) {
+          drawSelectionHighlight(ctx, processedPSD, selectedLayerId);
         }
-      }
-
-      ctx.globalAlpha = opacity;
+      };
+      img.src = processedPSD.flattenedImageUrl;
+    } else {
+      // Fallback: draw a placeholder
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#667eea');
+      gradient.addColorStop(1, '#764ba2');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      try {
-        ctx.drawImage(img, x, y, width, height);
-      } catch (error) {
-        console.warn('Failed to draw layer:', layer.name, error);
-      }
-
-      ctx.globalAlpha = 1; // Reset opacity
-    });
-
-    // Draw selection highlight
-    if (selectedLayerId && focusMode) {
-      const selectedLayer = processedPSD.layers.find(l => l.id === selectedLayerId);
-      if (selectedLayer && !hiddenLayers.has(selectedLayer.id)) {
-        const x = selectedLayer.bounds.left;
-        const y = selectedLayer.bounds.top;
-        const width = selectedLayer.bounds.right - selectedLayer.bounds.left;
-        const height = selectedLayer.bounds.bottom - selectedLayer.bounds.top;
-
-        // Draw highlight border
-        ctx.strokeStyle = '#00ff00';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([10, 5]);
-        ctx.strokeRect(x - 2, y - 2, width + 4, height + 4);
-        ctx.setLineDash([]); // Reset dash
-      }
+      // Add text overlay
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 24px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('PSD Preview', canvas.width / 2, canvas.height / 2);
+      ctx.font = '16px Arial';
+      ctx.fillText(`${processedPSD.width} × ${processedPSD.height}px`, canvas.width / 2, canvas.height / 2 + 40);
+      ctx.fillText(`${processedPSD.layers.length} layers`, canvas.width / 2, canvas.height / 2 + 65);
     }
-  }, [processedPSD, hiddenLayers, selectedLayerId, focusMode, loadedImages]);
+  }, [processedPSD, selectedLayerId, focusMode]);
+
+  const drawSelectionHighlight = (ctx: CanvasRenderingContext2D, psd: ProcessedPSD, layerId: string) => {
+    const selectedLayer = psd.layers.find(l => l.id === layerId);
+    if (selectedLayer && !hiddenLayers.has(selectedLayer.id)) {
+      const x = selectedLayer.bounds.left;
+      const y = selectedLayer.bounds.top;
+      const width = selectedLayer.bounds.right - selectedLayer.bounds.left;
+      const height = selectedLayer.bounds.bottom - selectedLayer.bounds.top;
+
+      // Draw highlight border
+      ctx.strokeStyle = '#00ff00';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([10, 5]);
+      ctx.strokeRect(x - 2, y - 2, width + 4, height + 4);
+      ctx.setLineDash([]); // Reset dash
+      
+      // Draw layer info
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      ctx.fillRect(x, y - 30, Math.max(200, width), 25);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(selectedLayer.name, x + 5, y - 10);
+    }
+  };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -170,9 +156,9 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center p-4">
       <div
-        className="relative overflow-hidden border border-slate-600 rounded"
+        className="relative overflow-hidden border border-slate-600 rounded bg-slate-800"
         style={{
           width: Math.min(600, processedPSD.width * scale),
           height: Math.min(400, processedPSD.height * scale),
@@ -194,8 +180,12 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
           className="block"
         />
       </div>
-      <div className="mt-2 text-sm text-gray-500">
-        Zoom: {(scale * 100).toFixed(0)}% | Click layers to select
+      <div className="mt-2 text-sm text-gray-400 flex items-center gap-4">
+        <span>Zoom: {(scale * 100).toFixed(0)}%</span>
+        <span>•</span>
+        <span>Click layers to select</span>
+        <span>•</span>
+        <span>Scroll to zoom</span>
       </div>
     </div>
   );
