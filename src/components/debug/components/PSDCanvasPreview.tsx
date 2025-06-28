@@ -24,7 +24,9 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   focusMode = false
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   // Auto-select largest layer on PSD load
   useEffect(() => {
@@ -36,17 +38,32 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     }
   }, [processedPSD, selectedLayerId, onLayerSelect]);
 
-  // Calculate scale to fit the canvas in container
+  // Calculate optimal scale and centering
   useEffect(() => {
-    if (processedPSD) {
-      const containerWidth = 600;
-      const containerHeight = 400;
-      const scaleX = containerWidth / processedPSD.width;
-      const scaleY = containerHeight / processedPSD.height;
-      const initialScale = Math.min(scaleX, scaleY, 1);
-      setScale(initialScale);
+    if (processedPSD && containerRef.current) {
+      const container = containerRef.current;
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      
+      // Use 85% of container space to leave reasonable padding
+      const usableWidth = containerWidth * 0.85;
+      const usableHeight = containerHeight * 0.85;
+      
+      const scaleX = usableWidth / processedPSD.width;
+      const scaleY = usableHeight / processedPSD.height;
+      const optimalScale = Math.min(scaleX, scaleY);
+      
+      setScale(optimalScale);
+      
+      // Calculate centering offset
+      const scaledWidth = processedPSD.width * optimalScale;
+      const scaledHeight = processedPSD.height * optimalScale;
+      const offsetX = (containerWidth - scaledWidth) / 2;
+      const offsetY = (containerHeight - scaledHeight) / 2;
+      
+      setOffset({ x: offsetX, y: offsetY });
     }
-  }, [processedPSD]);
+  }, [processedPSD, containerRef.current?.clientWidth, containerRef.current?.clientHeight]);
 
   // Render the PSD on canvas
   useEffect(() => {
@@ -56,9 +73,12 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas dimensions
-    canvas.width = processedPSD.width;
-    canvas.height = processedPSD.height;
+    // Set canvas dimensions to match the scaled PSD
+    const scaledWidth = processedPSD.width * scale;
+    const scaledHeight = processedPSD.height * scale;
+    
+    canvas.width = scaledWidth;
+    canvas.height = scaledHeight;
 
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -67,11 +87,11 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     if (processedPSD.flattenedImageUrl) {
       const img = new Image();
       img.onload = () => {
-        ctx.drawImage(img, 0, 0, processedPSD.width, processedPSD.height);
+        ctx.drawImage(img, 0, 0, scaledWidth, scaledHeight);
         
         // Draw selection highlight if in focus mode
         if (selectedLayerId && focusMode) {
-          drawSelectionHighlight(ctx, processedPSD, selectedLayerId);
+          drawSelectionHighlight(ctx, processedPSD, selectedLayerId, scale);
         }
       };
       img.src = processedPSD.flattenedImageUrl;
@@ -85,22 +105,22 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
       
       // Add text overlay
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 24px Arial';
+      ctx.font = `bold ${24 * scale}px Arial`;
       ctx.textAlign = 'center';
       ctx.fillText('PSD Preview', canvas.width / 2, canvas.height / 2);
-      ctx.font = '16px Arial';
-      ctx.fillText(`${processedPSD.width} × ${processedPSD.height}px`, canvas.width / 2, canvas.height / 2 + 40);
-      ctx.fillText(`${processedPSD.layers.length} layers`, canvas.width / 2, canvas.height / 2 + 65);
+      ctx.font = `${16 * scale}px Arial`;
+      ctx.fillText(`${processedPSD.width} × ${processedPSD.height}px`, canvas.width / 2, canvas.height / 2 + 40 * scale);
+      ctx.fillText(`${processedPSD.layers.length} layers`, canvas.width / 2, canvas.height / 2 + 65 * scale);
     }
-  }, [processedPSD, selectedLayerId, focusMode]);
+  }, [processedPSD, selectedLayerId, focusMode, scale]);
 
-  const drawSelectionHighlight = (ctx: CanvasRenderingContext2D, psd: ProcessedPSD, layerId: string) => {
+  const drawSelectionHighlight = (ctx: CanvasRenderingContext2D, psd: ProcessedPSD, layerId: string, currentScale: number) => {
     const selectedLayer = psd.layers.find(l => l.id === layerId);
     if (selectedLayer && !hiddenLayers.has(selectedLayer.id)) {
-      const x = selectedLayer.bounds.left;
-      const y = selectedLayer.bounds.top;
-      const width = selectedLayer.bounds.right - selectedLayer.bounds.left;
-      const height = selectedLayer.bounds.bottom - selectedLayer.bounds.top;
+      const x = selectedLayer.bounds.left * currentScale;
+      const y = selectedLayer.bounds.top * currentScale;
+      const width = (selectedLayer.bounds.right - selectedLayer.bounds.left) * currentScale;
+      const height = (selectedLayer.bounds.bottom - selectedLayer.bounds.top) * currentScale;
 
       // Draw highlight border
       ctx.strokeStyle = '#00ff00';
@@ -111,11 +131,11 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
       
       // Draw layer info
       ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-      ctx.fillRect(x, y - 30, Math.max(200, width), 25);
+      ctx.fillRect(x, y - 30 * currentScale, Math.max(200 * currentScale, width), 25 * currentScale);
       ctx.fillStyle = '#ffffff';
-      ctx.font = '12px Arial';
+      ctx.font = `${12 * currentScale}px Arial`;
       ctx.textAlign = 'left';
-      ctx.fillText(selectedLayer.name, x + 5, y - 10);
+      ctx.fillText(selectedLayer.name, x + 5 * currentScale, y - 10 * currentScale);
     }
   };
 
@@ -152,27 +172,46 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     e.preventDefault();
     const zoomSpeed = 0.1;
     const delta = e.deltaY > 0 ? -zoomSpeed : zoomSpeed;
-    setScale(prevScale => Math.max(0.1, Math.min(3, prevScale + delta)));
+    const newScale = Math.max(0.1, Math.min(3, scale + delta));
+    setScale(newScale);
+    
+    // Recalculate offset for new scale
+    if (containerRef.current && processedPSD) {
+      const containerWidth = containerRef.current.clientWidth;
+      const containerHeight = containerRef.current.clientHeight;
+      const scaledWidth = processedPSD.width * newScale;
+      const scaledHeight = processedPSD.height * newScale;
+      const offsetX = (containerWidth - scaledWidth) / 2;
+      const offsetY = (containerHeight - scaledHeight) / 2;
+      setOffset({ x: offsetX, y: offsetY });
+    }
   };
 
+  if (!processedPSD) {
+    return (
+      <div className="flex items-center justify-center h-full text-gray-400">
+        <p>No PSD loaded</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center p-4">
+    <div className="flex flex-col items-center justify-center p-4 h-full">
       <div
-        className="relative overflow-hidden border border-slate-600 rounded bg-slate-800"
+        ref={containerRef}
+        className="relative flex items-center justify-center bg-slate-800 rounded border border-slate-600"
         style={{
-          width: Math.min(600, processedPSD.width * scale),
-          height: Math.min(400, processedPSD.height * scale),
+          width: '100%',
+          height: '100%',
+          minHeight: '400px',
         }}
       >
         <canvas
           ref={canvasRef}
-          width={processedPSD.width}
-          height={processedPSD.height}
           onClick={handleCanvasClick}
           onWheel={handleWheel}
           style={{
-            transform: `scale(${scale})`,
-            transformOrigin: 'top left',
+            transform: `translate(${offset.x}px, ${offset.y}px)`,
             cursor: 'pointer',
             maxWidth: '100%',
             maxHeight: '100%',
