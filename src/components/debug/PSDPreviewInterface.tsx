@@ -2,22 +2,19 @@
 import React, { useState, useMemo } from 'react';
 import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
 import { PSDCanvasPreview } from './components/PSDCanvasPreview';
-import { PSDLayerInspector } from './components/PSDLayerInspector';
+import { SimplifiedLayerInspector } from './components/SimplifiedLayerInspector';
 import { CRDFrameBuilder } from './components/CRDFrameBuilder';
-import { layerGroupingService } from '@/services/psdProcessor/layerGroupingService';
 import { findLargestLayerByVolume } from '@/utils/layerUtils';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
+import { PSDCard } from '@/components/ui/design-system/PSDCard';
+import { PSDButton } from '@/components/ui/design-system/PSDButton';
 import { Badge } from '@/components/ui/badge';
 import { 
   Eye, 
   EyeOff, 
-  Download, 
-  Grid,
+  SquareKanban,
   Palette,
   Sun,
-  MoonIcon
+  Square
 } from 'lucide-react';
 
 interface PSDPreviewInterfaceProps {
@@ -30,12 +27,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
   const [selectedLayerId, setSelectedLayerId] = useState<string>('');
   const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
   const [frameBuilderMode, setFrameBuilderMode] = useState(false);
-  const [focusMode, setFocusMode] = useState(true); // Default to focus mode enabled
-  
-  const layerGroupingResult = useMemo(() => 
-    layerGroupingService.smartGroupLayers(processedPSD.layers), 
-    [processedPSD.layers]
-  );
+  const [focusMode, setFocusMode] = useState(true);
 
   // Initialize with largest layer selected
   React.useEffect(() => {
@@ -59,45 +51,58 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
     });
   };
 
-  const toggleFocusMode = () => {
-    setFocusMode(!focusMode);
-  };
-
   const selectedLayer = processedPSD.layers.find(layer => layer.id === selectedLayerId);
+  const visibleLayerCount = processedPSD.layers.length - hiddenLayers.size;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-      {/* Canvas Preview */}
-      <div className="lg:col-span-2">
-        <Card className="bg-[#1a1f2e] border-slate-700 h-full">
-          <div className="p-4 border-b border-slate-700">
-            <div className="flex items-center justify-between">
+    <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 h-full max-w-7xl mx-auto">
+      {/* Canvas Preview - Takes up 3/4 width on large screens */}
+      <div className="xl:col-span-3">
+        <PSDCard variant="elevated">
+          {/* Header */}
+          <div className="p-6 border-b border-slate-700">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <Palette className="w-6 h-6 text-crd-green" />
+                  <div>
+                    <h1 className="text-xl font-bold text-white">Canvas Preview</h1>
+                    <p className="text-sm text-slate-400">
+                      Analyzing {processedPSD.layers.length} layers from your PSD file
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
               <div className="flex items-center gap-3">
-                <Palette className="w-5 h-5 text-crd-green" />
-                <h3 className="text-lg font-semibold text-white">Canvas Preview</h3>
-                <Badge variant="outline" className="text-xs bg-slate-800 text-slate-300 border-slate-600">
+                <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-600">
                   {processedPSD.width} × {processedPSD.height}px
                 </Badge>
+                <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-600">
+                  {visibleLayerCount} visible
+                </Badge>
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
                 {selectedLayer && (
-                  <Badge className="text-xs bg-crd-green text-black font-medium">
-                    {selectedLayer.name}
+                  <Badge className="bg-crd-green text-black font-medium px-3 py-1">
+                    Selected: {selectedLayer.name}
                   </Badge>
                 )}
               </div>
               
               <div className="flex items-center gap-2">
-                <Button
-                  variant={focusMode ? "default" : "outline"}
+                <PSDButton
+                  variant={focusMode ? "primary" : "secondary"}
                   size="sm"
-                  onClick={toggleFocusMode}
-                  className={focusMode ? 
-                    "bg-crd-green text-black hover:bg-crd-green/90 font-medium" : 
-                    "border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"
-                  }
+                  onClick={() => setFocusMode(!focusMode)}
                 >
                   {focusMode ? (
                     <>
-                      <MoonIcon className="w-4 h-4 mr-2" />
+                      <Eye className="w-4 h-4 mr-2" />
                       Focus Mode
                     </>
                   ) : (
@@ -106,38 +111,26 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
                       Full View
                     </>
                   )}
-                </Button>
+                </PSDButton>
                 
-                <Button
-                  variant={frameBuilderMode ? "default" : "outline"}
+                <PSDButton
+                  variant={frameBuilderMode ? "primary" : "secondary"}
                   size="sm"
                   onClick={() => setFrameBuilderMode(!frameBuilderMode)}
-                  className={frameBuilderMode ? 
-                    "bg-crd-blue text-white hover:bg-crd-blue/90 font-medium" : 
-                    "border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"
-                  }
                 >
-                  <Grid className="w-4 h-4 mr-2" />
+                  <SquareKanban className="w-4 h-4 mr-2" />
                   {frameBuilderMode ? 'Exit Builder' : 'Frame Builder'}
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
+                </PSDButton>
               </div>
             </div>
           </div>
           
-          <div className="p-4">
+          {/* Canvas Content */}
+          <div className="p-6">
             {frameBuilderMode ? (
               <CRDFrameBuilder
                 layers={processedPSD.layers}
-                layerGroups={layerGroupingResult.groups}
+                layerGroups={[]} // We'll integrate this with the new categorization later
                 selectedLayerId={selectedLayerId}
                 onLayerSelect={setSelectedLayerId}
                 hiddenLayers={hiddenLayers}
@@ -148,26 +141,39 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
                 processedPSD={processedPSD}
                 selectedLayerId={selectedLayerId}
                 hiddenLayers={hiddenLayers}
-                layerGroups={layerGroupingResult.groups}
+                layerGroups={[]} // We'll integrate this with the new categorization later
                 onLayerSelect={setSelectedLayerId}
                 frameBuilderMode={frameBuilderMode}
                 focusMode={focusMode}
               />
             )}
           </div>
-        </Card>
+        </PSDCard>
       </div>
 
-      {/* Layer Inspector */}
-      <div className="space-y-4">
-        <PSDLayerInspector
-          layers={processedPSD.layers}
-          layerGroups={layerGroupingResult.groups}
-          selectedLayerId={selectedLayerId}
-          onLayerSelect={setSelectedLayerId}
-          hiddenLayers={hiddenLayers}
-          onLayerToggle={toggleLayerVisibility}
-        />
+      {/* Layer Inspector - Takes up 1/4 width on large screens */}
+      <div className="xl:col-span-1">
+        <PSDCard variant="elevated">
+          <div className="p-4 border-b border-slate-700">
+            <div className="flex items-center gap-3">
+              <Square className="w-5 h-5 text-crd-blue" />
+              <h2 className="text-lg font-semibold text-white">Layer Inspector</h2>
+            </div>
+            <p className="text-sm text-slate-400 mt-1">
+              Organized by content type for easy management
+            </p>
+          </div>
+          
+          <div className="p-4">
+            <SimplifiedLayerInspector
+              layers={processedPSD.layers}
+              selectedLayerId={selectedLayerId}
+              onLayerSelect={setSelectedLayerId}
+              hiddenLayers={hiddenLayers}
+              onLayerToggle={toggleLayerVisibility}
+            />
+          </div>
+        </PSDCard>
       </div>
     </div>
   );
