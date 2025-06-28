@@ -5,13 +5,10 @@ import { EnhancedCardFrameFittingInterface } from './components/EnhancedCardFram
 import { CRDFrameBuilder } from './components/CRDFrameBuilder';
 import { SimplifiedLayerInspector } from './components/SimplifiedLayerInspector';
 import { findLargestLayerByVolume } from '@/utils/layerUtils';
-import { PSDCard } from '@/components/ui/design-system/PSDCard';
 import { PSDButton } from '@/components/ui/design-system/PSDButton';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Palette,
   Square,
-  Settings,
   Wand2,
   FrameIcon
 } from 'lucide-react';
@@ -68,78 +65,50 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
   const allFrames = [...generatedFrames];
 
   return (
-    <div className="h-screen bg-[#0a0a0b] flex flex-col">
-      {/* Header */}
-      <div className="bg-[#1a1f2e] border-b border-slate-700 p-4">
+    <div className="h-full bg-[#0a0a0b] flex flex-col">
+      {/* Tab Navigation Bar */}
+      <div className="bg-[#1a1f2e] border-b border-slate-700 p-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <Palette className="w-6 h-6 text-crd-green" />
-              <div>
-                <h1 className="text-xl font-bold text-white">Enhanced Card Frame System</h1>
-                <p className="text-sm text-slate-400">
-                  AI-powered frame building and precise card fitting
-                </p>
-              </div>
-            </div>
+            <PSDButton
+              variant={activeTab === 'fitting' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setActiveTab('fitting')}
+            >
+              <FrameIcon className="w-4 h-4 mr-2" />
+              Frame Fitting
+            </PSDButton>
+            <PSDButton
+              variant={activeTab === 'builder' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setActiveTab('builder')}
+            >
+              <Wand2 className="w-4 h-4 mr-2" />
+              CRD Builder
+            </PSDButton>
+            
+            {generatedFrames.length > 0 && (
+              <Badge className="bg-crd-blue text-white">
+                {generatedFrames.length} Generated
+              </Badge>
+            )}
           </div>
           
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-600">
-              {processedPSD.width} × {processedPSD.height}px
-            </Badge>
-            <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-600">
               {visibleLayerCount} visible
             </Badge>
+            {selectedLayer && activeTab === 'fitting' && (
+              <Badge className="bg-crd-green text-black font-medium px-3 py-1">
+                Active: {selectedLayer.name}
+              </Badge>
+            )}
           </div>
         </div>
-
-        {/* Tab Navigation */}
-        <div className="flex items-center gap-4 mt-4">
-          <PSDButton
-            variant={activeTab === 'fitting' ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => setActiveTab('fitting')}
-          >
-            <FrameIcon className="w-4 h-4 mr-2" />
-            Frame Fitting
-          </PSDButton>
-          <PSDButton
-            variant={activeTab === 'builder' ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => setActiveTab('builder')}
-          >
-            <Wand2 className="w-4 h-4 mr-2" />
-            CRD Builder
-          </PSDButton>
-          
-          {generatedFrames.length > 0 && (
-            <Badge className="bg-crd-blue text-white">
-              {generatedFrames.length} Generated
-            </Badge>
-          )}
-        </div>
-
-        {/* Selected Layer Info */}
-        {selectedLayer && activeTab === 'fitting' && (
-          <div className="flex items-center justify-between mt-4">
-            <Badge className="bg-crd-green text-black font-medium px-3 py-1">
-              Active: {selectedLayer.name}
-            </Badge>
-            
-            <PSDButton
-              variant="secondary"
-              size="sm"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Frame Settings
-            </PSDButton>
-          </div>
-        )}
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex">
+      <div className="flex-1 flex overflow-hidden">
         {/* Main Canvas Area */}
         <div className="flex-1">
           {activeTab === 'fitting' && (
@@ -165,7 +134,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
 
         {/* Layer Inspector Sidebar */}
         <div className="w-80 bg-[#1a1f2e] border-l border-slate-700 flex flex-col">
-          <div className="p-4 border-b border-slate-700">
+          <div className="p-4 border-b border-slate-700 flex-shrink-0">
             <div className="flex items-center gap-3">
               <Square className="w-5 h-5 text-crd-blue" />
               <h2 className="text-lg font-semibold text-white">Layer Inspector</h2>
