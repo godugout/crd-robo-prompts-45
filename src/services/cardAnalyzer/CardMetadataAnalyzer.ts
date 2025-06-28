@@ -14,6 +14,7 @@ export interface CardMetadata {
   isRookie?: boolean;
   stats?: Record<string, any>;
   confidence?: number;
+  [key: string]: any; // Add index signature for Json compatibility
 }
 
 export interface AnalysisResult {
@@ -76,7 +77,7 @@ export class CardMetadataAnalyzer {
         card_id: cardId,
         analysis_type: result.source,
         confidence_score: result.confidence,
-        extracted_data: result.metadata,
+        extracted_data: result.metadata as any, // Cast to any for Json compatibility
         processing_time_ms: result.processingTime
       });
 
