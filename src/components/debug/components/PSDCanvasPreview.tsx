@@ -1,5 +1,4 @@
-
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
 import { LayerGroup } from '@/services/psdProcessor/layerGroupingService';
 import { useCanvasNavigation } from '@/hooks/useCanvasNavigation';
@@ -23,6 +22,8 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   focusMode = false
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [hoveredLayerId, setHoveredLayerId] = useState<string | null>(null);
+  
   const {
     transform,
     isPanning,
@@ -93,6 +94,7 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   };
 
   const selectedLayer = processedPSD.layers.find(layer => layer.id === selectedLayerId);
+  const hoveredLayer = processedPSD.layers.find(layer => layer.id === hoveredLayerId);
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-[#0a0a0b]">
@@ -127,55 +129,58 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
           style={getTransformStyle()}
         >
           <div className="relative">
-            {/* Show selected layer in full color or transparent background */}
-            {selectedLayerId && selectedLayer?.fullColorImageUrl ? (
-              <div className="relative">
-                {/* Selected Layer in Full Color */}
-                <img
-                  src={selectedLayer.fullColorImageUrl}
-                  alt={selectedLayer.name}
-                  className={`
-                    max-w-none shadow-2xl
-                    ${focusMode ? 'rounded-lg' : ''}
-                    ring-2 ring-crd-green ring-opacity-70
-                  `}
-                  style={{
-                    position: 'absolute',
-                    left: `${selectedLayer.bounds.left}px`,
-                    top: `${selectedLayer.bounds.top}px`,
-                    width: `${selectedLayer.bounds.right - selectedLayer.bounds.left}px`,
-                    height: `${selectedLayer.bounds.bottom - selectedLayer.bounds.top}px`
-                  }}
-                  draggable={false}
-                />
-                
-                {/* Transparent Background for Context */}
-                <img
-                  src={processedPSD.transparentFlattenedImageUrl}
-                  alt="PSD Preview (Transparent)"
-                  className={`
-                    max-w-none opacity-30
-                    ${focusMode ? 'rounded-lg' : ''}
-                  `}
-                  style={{
-                    width: `${processedPSD.width}px`,
-                    height: `${processedPSD.height}px`
-                  }}
-                  draggable={false}
-                />
-              </div>
-            ) : (
-              /* Default Transparent Background */
+            {/* Base transparent image */}
+            <img
+              src={processedPSD.transparentFlattenedImageUrl}
+              alt="PSD Preview (Transparent)"
+              className={`
+                max-w-none shadow-2xl opacity-30
+                ${focusMode ? 'rounded-lg' : ''}
+              `}
+              style={{
+                width: `${processedPSD.width}px`,
+                height: `${processedPSD.height}px`
+              }}
+              draggable={false}
+            />
+
+            {/* Hovered Layer - Light Preview */}
+            {hoveredLayerId && hoveredLayer?.fullColorImageUrl && hoveredLayerId !== selectedLayerId && (
               <img
-                src={processedPSD.transparentFlattenedImageUrl}
-                alt="PSD Preview (Transparent)"
+                src={hoveredLayer.fullColorImageUrl}
+                alt={hoveredLayer.name}
                 className={`
-                  max-w-none shadow-2xl
+                  max-w-none opacity-60 transition-opacity duration-200
                   ${focusMode ? 'rounded-lg' : ''}
+                  ring-1 ring-slate-400 ring-opacity-50
                 `}
                 style={{
-                  width: `${processedPSD.width}px`,
-                  height: `${processedPSD.height}px`
+                  position: 'absolute',
+                  left: `${hoveredLayer.bounds.left}px`,
+                  top: `${hoveredLayer.bounds.top}px`,
+                  width: `${hoveredLayer.bounds.right - hoveredLayer.bounds.left}px`,
+                  height: `${hoveredLayer.bounds.bottom - hoveredLayer.bounds.top}px`
+                }}
+                draggable={false}
+              />
+            )}
+
+            {/* Selected Layer - Full Color */}
+            {selectedLayerId && selectedLayer?.fullColorImageUrl && (
+              <img
+                src={selectedLayer.fullColorImageUrl}
+                alt={selectedLayer.name}
+                className={`
+                  max-w-none shadow-2xl transition-all duration-300
+                  ${focusMode ? 'rounded-lg' : ''}
+                  ring-2 ring-crd-green ring-opacity-70
+                `}
+                style={{
+                  position: 'absolute',
+                  left: `${selectedLayer.bounds.left}px`,
+                  top: `${selectedLayer.bounds.top}px`,
+                  width: `${selectedLayer.bounds.right - selectedLayer.bounds.left}px`,
+                  height: `${selectedLayer.bounds.bottom - selectedLayer.bounds.top}px`
                 }}
                 draggable={false}
               />
@@ -184,6 +189,7 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
             {/* Layer Bounds Visualization */}
             {!focusMode && processedPSD.layers.map(layer => {
               const isSelected = selectedLayerId === layer.id;
+              const isHovered = hoveredLayerId === layer.id;
               const isHidden = hiddenLayers.has(layer.id);
               
               if (isHidden) return null;
@@ -192,10 +198,12 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
                 <div
                   key={layer.id}
                   className={`
-                    absolute border pointer-events-auto cursor-pointer transition-all
+                    absolute border pointer-events-auto cursor-pointer transition-all duration-200
                     ${isSelected 
                       ? 'border-crd-green border-2 bg-crd-green/20' 
-                      : 'border-slate-500/30 border hover:border-slate-400/50 hover:bg-slate-400/10'
+                      : isHovered
+                        ? 'border-slate-300 border-2 bg-slate-300/10'
+                        : 'border-slate-500/30 border hover:border-slate-400/50 hover:bg-slate-400/10'
                     }
                   `}
                   style={{
@@ -205,6 +213,8 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
                     height: `${layer.bounds.bottom - layer.bounds.top}px`
                   }}
                   onClick={() => onLayerSelect(layer.id)}
+                  onMouseEnter={() => setHoveredLayerId(layer.id)}
+                  onMouseLeave={() => setHoveredLayerId(null)}
                 />
               );
             })}
@@ -219,6 +229,11 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
           {selectedLayer && (
             <span className="text-crd-green ml-2">
               • {selectedLayer.name}
+            </span>
+          )}
+          {hoveredLayer && hoveredLayerId !== selectedLayerId && (
+            <span className="text-slate-300 ml-2">
+              • Hover: {hoveredLayer.name}
             </span>
           )}
         </div>
