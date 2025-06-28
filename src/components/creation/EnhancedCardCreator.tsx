@@ -17,7 +17,9 @@ export const EnhancedCardCreator: React.FC = () => {
         type: 'image',
         isVisible: true,
         imageData: null,
-        zIndex: 0
+        zIndex: 0,
+        bounds: { left: 0, top: 0, right: 1200, bottom: 800 },
+        opacity: 1
       },
       {
         id: 'card-layer',
@@ -25,7 +27,9 @@ export const EnhancedCardCreator: React.FC = () => {
         type: 'image',
         isVisible: true,
         imageData: null,
-        zIndex: 1
+        zIndex: 1,
+        bounds: { left: 100, top: 100, right: 1100, bottom: 700 },
+        opacity: 1
       }
     ],
     metadata: {
