@@ -33,7 +33,7 @@ export const EnhancedCardFrameFittingInterface: React.FC<EnhancedCardFrameFittin
       {/* Controls Header */}
       <div className="p-4 bg-[#1a1f2e] border-b border-slate-700">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">PSD Preview</h3>
+          <h3 className="text-lg font-semibold text-white">PSD Canvas</h3>
           <div className="flex items-center gap-3">
             <label className="flex items-center gap-2 text-sm text-gray-300">
               <input
@@ -48,8 +48,11 @@ export const EnhancedCardFrameFittingInterface: React.FC<EnhancedCardFrameFittin
         </div>
       </div>
       
-      {/* Canvas Area */}
-      <div className="flex-1">
+      {/* Canvas Area - Disable scroll zoom */}
+      <div 
+        className="flex-1 overflow-hidden"
+        onWheel={(e) => e.preventDefault()}
+      >
         <PSDCanvasPreview
           processedPSD={processedPSD}
           selectedLayerId={selectedLayerId}

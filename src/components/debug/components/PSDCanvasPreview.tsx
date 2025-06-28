@@ -1,10 +1,11 @@
 
-import React, { useRef, useEffect, useState } from 'react';
-import { ProcessedPSD, ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
+import React, { useRef, useEffect } from 'react';
+import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
 import { LayerGroup } from '@/services/psdProcessor/layerGroupingService';
-import { findLargestLayerByVolume } from '@/utils/layerUtils';
+import { useCanvasNavigation } from '@/hooks/useCanvasNavigation';
+import { CanvasControls } from './CanvasControls';
 
-export interface PSDCanvasPreviewProps {
+interface PSDCanvasPreviewProps {
   processedPSD: ProcessedPSD;
   selectedLayerId: string;
   hiddenLayers: Set<string>;
@@ -18,258 +19,174 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   processedPSD,
   selectedLayerId,
   hiddenLayers,
-  layerGroups,
   onLayerSelect,
-  frameBuilderMode = false,
   focusMode = false
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const {
+    transform,
+    isPanning,
+    zoomIn,
+    zoomOut,
+    resetView,
+    fitToScreen,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    getTransformStyle
+  } = useCanvasNavigation();
 
-  // Auto-select largest layer on PSD load
-  useEffect(() => {
-    if (processedPSD && !selectedLayerId) {
-      const largestLayerId = findLargestLayerByVolume(processedPSD.layers);
-      if (largestLayerId) {
-        onLayerSelect(largestLayerId);
-      }
-    }
-  }, [processedPSD, selectedLayerId, onLayerSelect]);
-
-  // Calculate optimal scale and centering
-  useEffect(() => {
-    if (processedPSD && containerRef.current) {
+  const handleFitToScreen = () => {
+    if (containerRef.current) {
       const container = containerRef.current;
-      const containerWidth = container.clientWidth;
-      const containerHeight = container.clientHeight;
-      
-      // Use 85% of container space to leave reasonable padding
-      const usableWidth = containerWidth * 0.85;
-      const usableHeight = containerHeight * 0.85;
-      
-      const scaleX = usableWidth / processedPSD.width;
-      const scaleY = usableHeight / processedPSD.height;
-      const optimalScale = Math.min(scaleX, scaleY);
-      
-      setScale(optimalScale);
-      
-      // Calculate centering offset
-      const scaledWidth = processedPSD.width * optimalScale;
-      const scaledHeight = processedPSD.height * optimalScale;
-      const offsetX = (containerWidth - scaledWidth) / 2;
-      const offsetY = (containerHeight - scaledHeight) / 2;
-      
-      setOffset({ x: offsetX, y: offsetY });
+      fitToScreen(
+        container.clientWidth,
+        container.clientHeight,
+        processedPSD.width,
+        processedPSD.height
+      );
     }
-  }, [processedPSD, containerRef.current?.clientWidth, containerRef.current?.clientHeight]);
+  };
 
-  // Render the PSD on canvas
+  // Keyboard shortcuts
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !processedPSD) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Set canvas dimensions to match the scaled PSD
-    const scaledWidth = processedPSD.width * scale;
-    const scaledHeight = processedPSD.height * scale;
-    
-    canvas.width = scaledWidth;
-    canvas.height = scaledHeight;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // If we have a flattened image, use it
-    if (processedPSD.flattenedImageUrl) {
-      const img = new Image();
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, scaledWidth, scaledHeight);
-        
-        // Draw selection highlight if in focus mode
-        if (selectedLayerId && focusMode) {
-          drawSelectionHighlight(ctx, processedPSD, selectedLayerId, scale);
-        }
-      };
-      img.src = processedPSD.flattenedImageUrl;
-    } else {
-      // Fallback: draw a placeholder
-      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      gradient.addColorStop(0, '#667eea');
-      gradient.addColorStop(1, '#764ba2');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Add text overlay
-      ctx.fillStyle = '#ffffff';
-      ctx.font = `bold ${24 * scale}px Arial`;
-      ctx.textAlign = 'center';
-      ctx.fillText('PSD Preview', canvas.width / 2, canvas.height / 2);
-      ctx.font = `${16 * scale}px Arial`;
-      ctx.fillText(`${processedPSD.width} × ${processedPSD.height}px`, canvas.width / 2, canvas.height / 2 + 40 * scale);
-      ctx.fillText(`${processedPSD.layers.length} layers`, canvas.width / 2, canvas.height / 2 + 65 * scale);
-    }
-  }, [processedPSD, selectedLayerId, focusMode, scale]);
-
-  const drawSelectionHighlight = (ctx: CanvasRenderingContext2D, psd: ProcessedPSD, layerId: string, currentScale: number) => {
-    const selectedLayer = psd.layers.find(l => l.id === layerId);
-    if (selectedLayer && !hiddenLayers.has(selectedLayer.id)) {
-      const x = selectedLayer.bounds.left * currentScale;
-      const y = selectedLayer.bounds.top * currentScale;
-      const width = (selectedLayer.bounds.right - selectedLayer.bounds.left) * currentScale;
-      const height = (selectedLayer.bounds.bottom - selectedLayer.bounds.top) * currentScale;
-
-      // Draw highlight border
-      ctx.strokeStyle = '#00ff00';
-      ctx.lineWidth = 3;
-      ctx.setLineDash([10, 5]);
-      ctx.strokeRect(x - 2, y - 2, width + 4, height + 4);
-      ctx.setLineDash([]); // Reset dash
-      
-      // Draw layer info
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-      ctx.fillRect(x, y - 30 * currentScale, Math.max(200 * currentScale, width), 25 * currentScale);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = `${12 * currentScale}px Arial`;
-      ctx.textAlign = 'left';
-      ctx.fillText(selectedLayer.name, x + 5 * currentScale, y - 10 * currentScale);
-    }
-  };
-
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / scale;
-    const y = (e.clientY - rect.top) / scale;
-
-    // Find the topmost layer under the click
-    for (let i = processedPSD.layers.length - 1; i >= 0; i--) {
-      const layer = processedPSD.layers[i];
-
-      if (hiddenLayers.has(layer.id)) continue;
-
-      const left = layer.bounds.left;
-      const top = layer.bounds.top;
-      const right = layer.bounds.right;
-      const bottom = layer.bounds.bottom;
-
-      if (x >= left && x <= right && y >= top && y <= bottom) {
-        onLayerSelect(layer.id);
-        return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '=' || e.key === '+') {
+        e.preventDefault();
+        zoomIn();
+      } else if (e.key === '-') {
+        e.preventDefault();
+        zoomOut();
+      } else if (e.key === '0') {
+        e.preventDefault();
+        resetView();
+      } else if (e.key === '1') {
+        e.preventDefault();
+        handleFitToScreen();
       }
-    }
+    };
 
-    // If no layer is selected, clear the selection
-    onLayerSelect('');
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [zoomIn, zoomOut, resetView, handleFitToScreen]);
+
+  // Create grid pattern
+  const createGridPattern = () => {
+    const svg = `
+      <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
+            <!-- Fine grid lines every 20px -->
+            <path d="M 20 0 L 20 100 M 40 0 L 40 100 M 60 0 L 60 100 M 80 0 L 80 100" 
+                  stroke="#1e293b" stroke-width="0.5" opacity="0.3"/>
+            <path d="M 0 20 L 100 20 M 0 40 L 100 40 M 0 60 L 100 60 M 0 80 L 100 80" 
+                  stroke="#1e293b" stroke-width="0.5" opacity="0.3"/>
+            <!-- Major grid lines every 100px -->
+            <path d="M 100 0 L 100 100 M 0 100 L 100 100" 
+                  stroke="#334155" stroke-width="1" opacity="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)" />
+      </svg>
+    `;
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
   };
-
-  const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    const zoomSpeed = 0.1;
-    const delta = e.deltaY > 0 ? -zoomSpeed : zoomSpeed;
-    const newScale = Math.max(0.1, Math.min(3, scale + delta));
-    setScale(newScale);
-    
-    // Recalculate offset for new scale
-    if (containerRef.current && processedPSD) {
-      const containerWidth = containerRef.current.clientWidth;
-      const containerHeight = containerRef.current.clientHeight;
-      const scaledWidth = processedPSD.width * newScale;
-      const scaledHeight = processedPSD.height * newScale;
-      const offsetX = (containerWidth - scaledWidth) / 2;
-      const offsetY = (containerHeight - scaledHeight) / 2;
-      setOffset({ x: offsetX, y: offsetY });
-    }
-  };
-
-  const drawGridBackground = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    const gridSize = 20;
-    
-    ctx.strokeStyle = 'rgba(64, 64, 64, 0.3)';
-    ctx.lineWidth = 0.5;
-    
-    // Draw vertical lines
-    for (let x = 0; x <= width; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
-      ctx.stroke();
-    }
-    
-    // Draw horizontal lines
-    for (let y = 0; y <= height; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
-    }
-    
-    // Draw major grid lines every 100px
-    ctx.strokeStyle = 'rgba(64, 64, 64, 0.5)';
-    ctx.lineWidth = 1;
-    
-    for (let x = 0; x <= width; x += 100) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
-      ctx.stroke();
-    }
-    
-    for (let y = 0; y <= height; y += 100) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
-    }
-  };
-
-  if (!processedPSD) {
-    return (
-      <div className="flex items-center justify-center h-full text-gray-400">
-        <p>No PSD loaded</p>
-      </div>
-    );
-  }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative w-full h-full overflow-hidden bg-[#0a0a0b]">
+      {/* Canvas Controls */}
+      <CanvasControls
+        zoom={transform.scale}
+        isPanning={isPanning}
+        onZoomIn={zoomIn}
+        onZoomOut={zoomOut}
+        onFitToScreen={handleFitToScreen}
+        onResetView={resetView}
+      />
+
+      {/* Canvas Container */}
       <div
         ref={containerRef}
-        className="relative flex items-center justify-center bg-black flex-1 overflow-hidden"
+        className="w-full h-full relative"
         style={{
-          backgroundImage: `
-            linear-gradient(rgba(64, 64, 64, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(64, 64, 64, 0.1) 1px, transparent 1px),
-            linear-gradient(rgba(64, 64, 64, 0.2) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(64, 64, 64, 0.2) 1px, transparent 1px)
-          `,
-          backgroundSize: '20px 20px, 20px 20px, 100px 100px, 100px 100px'
+          backgroundImage: `url("${createGridPattern()}")`,
+          backgroundSize: `${100 * transform.scale}px ${100 * transform.scale}px`,
+          backgroundPosition: `${transform.translateX}px ${transform.translateY}px`,
+          cursor: isPanning ? 'grabbing' : 'grab'
         }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
       >
-        <canvas
-          ref={canvasRef}
-          onClick={handleCanvasClick}
-          onWheel={handleWheel}
-          style={{
-            transform: `translate(${offset.x}px, ${offset.y}px)`,
-            cursor: 'pointer',
-            maxWidth: '100%',
-            maxHeight: '100%',
-          }}
-          className="block"
-        />
+        {/* Card Container */}
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={getTransformStyle()}
+        >
+          <div className="relative">
+            {/* Main Card Image */}
+            <img
+              src={processedPSD.flattenedImageUrl}
+              alt="PSD Preview"
+              className={`
+                max-w-none shadow-2xl
+                ${focusMode ? 'rounded-lg' : ''}
+                ${selectedLayerId ? 'ring-2 ring-crd-green ring-opacity-50' : ''}
+              `}
+              style={{
+                width: `${processedPSD.width}px`,
+                height: `${processedPSD.height}px`
+              }}
+              draggable={false}
+            />
+
+            {/* Layer Overlay for Selection */}
+            {selectedLayerId && (
+              <div
+                className="absolute inset-0 border-2 border-crd-green bg-crd-green/10 pointer-events-none"
+                style={{
+                  borderRadius: focusMode ? '8px' : '0'
+                }}
+              />
+            )}
+
+            {/* Layer Bounds Visualization */}
+            {!focusMode && processedPSD.layers.map(layer => {
+              const isSelected = selectedLayerId === layer.id;
+              const isHidden = hiddenLayers.has(layer.id);
+              
+              if (isHidden) return null;
+
+              return (
+                <div
+                  key={layer.id}
+                  className={`
+                    absolute border pointer-events-none transition-all
+                    ${isSelected 
+                      ? 'border-crd-green border-2 bg-crd-green/10' 
+                      : 'border-slate-500/30 border hover:border-slate-400/50'
+                    }
+                  `}
+                  style={{
+                    left: `${layer.bounds.left}px`,
+                    top: `${layer.bounds.top}px`,
+                    width: `${layer.bounds.right - layer.bounds.left}px`,
+                    height: `${layer.bounds.bottom - layer.bounds.top}px`
+                  }}
+                  onClick={() => onLayerSelect(layer.id)}
+                />
+              );
+            })}
+          </div>
+        </div>
       </div>
-      <div className="p-3 bg-slate-900 border-t border-slate-700 text-sm text-gray-400 flex items-center gap-4">
-        <span>Zoom: {(scale * 100).toFixed(0)}%</span>
-        <span>•</span>
-        <span>Click layers to select</span>
-        <span>•</span>
-        <span>Scroll to zoom</span>
+
+      {/* Status Bar */}
+      <div className="absolute bottom-4 right-4 bg-[#1a1f2e] border border-slate-700 rounded-lg px-3 py-2">
+        <div className="text-xs text-slate-400">
+          {processedPSD.width} × {processedPSD.height}px • {processedPSD.layers.length} layers
+        </div>
       </div>
     </div>
   );
