@@ -3,315 +3,162 @@ import { ProcessedPSDLayer } from './psdProcessingService';
 export interface LayerGroup {
   id: string;
   name: string;
-  type: 'background' | 'character' | 'ui' | 'effects' | 'branding' | 'mixed';
-  color: string;
   layers: ProcessedPSDLayer[];
-  averageDepth: number;
-  bounds: {
-    left: number;
-    top: number;
-    right: number;
-    bottom: number;
-  };
+  groupType: 'depth' | 'semantic' | 'spatial' | 'mixed';
+  cohesionScore: number;
+  color: string;
 }
 
-export interface GroupingResult {
-  shouldUseGrouping: boolean;
+export interface LayerGroupingResult {
   groups: LayerGroup[];
-  flatLayers: ProcessedPSDLayer[];
-  groupingEfficiency: number; // 0-1, how effective the grouping is
+  ungroupedLayers: ProcessedPSDLayer[];
+  shouldShowGroups: boolean;
+  totalLayers: number;
+  groupStats: {
+    byDepth: number;
+    bySemantic: number;
+    bySpatial: number;
+  };
 }
 
-export class LayerGroupingService {
-  private readonly GROUP_COLORS = {
-    background: '#1e40af', // blue-800
-    character: '#16a34a', // green-600
-    ui: '#ea580c', // orange-600
-    effects: '#9333ea', // purple-600
-    branding: '#dc2626', // red-600
-    mixed: '#6b7280' // gray-500
-  };
+class LayerGroupingService {
+  private groupByDepth(layers: ProcessedPSDLayer[]): LayerGroup[] {
+    const depthMap: Record<number, ProcessedPSDLayer[]> = {};
+    layers.forEach(layer => {
+      const depth = layer.inferredDepth || 0.5;
+      if (!depthMap[depth]) {
+        depthMap[depth] = [];
+      }
+      depthMap[depth].push(layer);
+    });
 
-  private readonly MIN_GROUP_SIZE = 2; // Minimum layers needed to form a group
-  private readonly MIN_GROUPING_EFFICIENCY = 0.3; // Minimum efficiency to use grouping
+    return Object.entries(depthMap).map(([depth, groupedLayers], index) => ({
+      id: `depth_${depth}_${index}`,
+      name: `Depth ${depth}`,
+      layers: groupedLayers,
+      groupType: 'depth',
+      cohesionScore: this.calculateCohesionScore(groupedLayers, 'depth'),
+      color: this.getGroupColor('depth', index)
+    }));
+  }
 
-  analyzeAndGroupLayers(layers: ProcessedPSDLayer[]): GroupingResult {
-    if (layers.length < 4) {
-      // Too few layers to benefit from grouping
-      return {
-        shouldUseGrouping: false,
-        groups: [],
-        flatLayers: layers.sort((a, b) => (a.inferredDepth || 0) - (b.inferredDepth || 0)),
-        groupingEfficiency: 0
-      };
+  private groupBySemantic(layers: ProcessedPSDLayer[]): LayerGroup[] {
+    const semanticMap: Record<string, ProcessedPSDLayer[]> = {};
+    layers.forEach(layer => {
+      const semanticType = layer.semanticType || 'unknown';
+      if (!semanticMap[semanticType]) {
+        semanticMap[semanticType] = [];
+      }
+      semanticMap[semanticType].push(layer);
+    });
+
+    return Object.entries(semanticMap).map(([semantic, groupedLayers], index) => ({
+      id: `semantic_${semantic}_${index}`,
+      name: `Semantic: ${semantic}`,
+      layers: groupedLayers,
+      groupType: 'semantic',
+      cohesionScore: this.calculateCohesionScore(groupedLayers, 'semantic'),
+      color: this.getGroupColor('semantic', index)
+    }));
+  }
+
+  private groupBySpatial(layers: ProcessedPSDLayer[]): LayerGroup[] {
+    // Simple spatial grouping (example: group layers that are close to each other)
+    const spatialMap: Record<string, ProcessedPSDLayer[]> = {};
+    layers.forEach(layer => {
+      const spatialKey = `${Math.floor(layer.bounds.left / 50)}_${Math.floor(layer.bounds.top / 50)}`;
+      if (!spatialMap[spatialKey]) {
+        spatialMap[spatialKey] = [];
+      }
+      spatialMap[spatialKey].push(layer);
+    });
+
+    return Object.entries(spatialMap).map(([spatialKey, groupedLayers], index) => ({
+      id: `spatial_${spatialKey}_${index}`,
+      name: `Spatial Group ${index + 1}`,
+      layers: groupedLayers,
+      groupType: 'spatial',
+      cohesionScore: this.calculateCohesionScore(groupedLayers, 'spatial'),
+      color: this.getGroupColor('spatial', index)
+    }));
+  }
+
+  private calculateCohesionScore(layers: ProcessedPSDLayer[], groupType: string): number {
+    // Implement a scoring system based on the group type
+    // This is a placeholder and should be refined
+    if (layers.length === 0) return 0;
+
+    let score = layers.length;
+
+    if (groupType === 'depth') {
+      const depthValues = layers.map(layer => layer.inferredDepth || 0.5);
+      const depthVariance = this.calculateVariance(depthValues);
+      score = 1 / (depthVariance + 0.01); // Avoid division by zero
+    } else if (groupType === 'semantic') {
+      const uniqueSemantics = new Set(layers.map(layer => layer.semanticType));
+      score = uniqueSemantics.size > 1 ? 0.5 : 1; // Penalize mixed semantics
+    } else if (groupType === 'spatial') {
+      const bounds = this.calculateGroupBounds(layers);
+      const area = (bounds.right - bounds.left) * (bounds.bottom - bounds.top);
+      score = 1 / (area + 1);
     }
 
-    const potentialGroups = this.generatePotentialGroups(layers);
-    const validGroups = potentialGroups.filter(group => group.layers.length >= this.MIN_GROUP_SIZE);
-    
-    if (validGroups.length === 0) {
-      return {
-        shouldUseGrouping: false,
-        groups: [],
-        flatLayers: layers.sort((a, b) => (a.inferredDepth || 0) - (b.inferredDepth || 0)),
-        groupingEfficiency: 0
-      };
-    }
+    return score;
+  }
 
-    const groupingEfficiency = this.calculateGroupingEfficiency(layers, validGroups);
-    const shouldUseGrouping = groupingEfficiency >= this.MIN_GROUPING_EFFICIENCY && validGroups.length >= 2;
+  private calculateVariance(values: number[]): number {
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    return values.reduce((acc, val) => acc + Math.pow(val - avg, 2), 0) / values.length;
+  }
 
-    if (!shouldUseGrouping) {
-      return {
-        shouldUseGrouping: false,
-        groups: [],
-        flatLayers: layers.sort((a, b) => (a.inferredDepth || 0) - (b.inferredDepth || 0)),
-        groupingEfficiency
-      };
-    }
+  private calculateGroupBounds(layers: ProcessedPSDLayer[]): { left: number; top: number; right: number; bottom: number } {
+    let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+    layers.forEach(layer => {
+      left = Math.min(left, layer.bounds.left);
+      top = Math.min(top, layer.bounds.top);
+      right = Math.max(right, layer.bounds.right);
+      bottom = Math.max(bottom, layer.bounds.bottom);
+    });
+    return { left, top, right, bottom };
+  }
 
-    return {
-      shouldUseGrouping: true,
-      groups: validGroups.sort((a, b) => a.averageDepth - b.averageDepth),
-      flatLayers: layers.sort((a, b) => (a.inferredDepth || 0) - (b.inferredDepth || 0)),
-      groupingEfficiency
+  private getGroupColor(groupType: string, index: number): string {
+    const colors: Record<string, string[]> = {
+      depth: ['#1e3a8a', '#3b82f6', '#60a5fa', '#93c5fd'],
+      semantic: ['#166534', '#22c55e', '#86efac', '#bbf7d0'],
+      spatial: ['#7c3aed', '#a855f7', '#d8b4fe', '#ede9fe']
     };
+
+    const colorSet = colors[groupType] || ['#6b7280', '#9ca3af', '#d1d5db', '#e5e7eb'];
+    return colorSet[index % colorSet.length];
   }
 
-  private generatePotentialGroups(layers: ProcessedPSDLayer[]): LayerGroup[] {
-    const groups: LayerGroup[] = [];
-    const processedLayers = new Set<string>();
+  smartGroupLayers(layers: ProcessedPSDLayer[]): LayerGroupingResult {
+    const depthGroups = this.groupByDepth(layers);
+    const semanticGroups = this.groupBySemantic(layers);
+    const spatialGroups = this.groupBySpatial(layers);
 
-    // First pass: Group by semantic type with spatial proximity
-    const semanticGroups = this.groupBySemanticTypeWithProximity(layers);
-    
-    for (const [semanticType, semanticLayers] of Object.entries(semanticGroups)) {
-      if (semanticLayers.length >= this.MIN_GROUP_SIZE) {
-        // Further group by depth proximity within semantic groups
-        const depthGroups = this.groupByDepthProximity(semanticLayers);
-        
-        for (const depthGroup of depthGroups) {
-          if (depthGroup.length >= this.MIN_GROUP_SIZE) {
-            const group = this.createGroup(depthGroup, semanticType);
-            groups.push(group);
-            depthGroup.forEach(layer => processedLayers.add(layer.id));
-          }
-        }
-      }
-    }
+    // Combine groups (you can implement more sophisticated logic here)
+    const allGroups = [...depthGroups, ...semanticGroups, ...spatialGroups];
 
-    // Second pass: Group remaining layers by pure spatial proximity
-    const ungroupedLayers = layers.filter(layer => !processedLayers.has(layer.id));
-    if (ungroupedLayers.length >= this.MIN_GROUP_SIZE) {
-      const spatialGroups = this.groupBySpatialProximity(ungroupedLayers);
-      
-      for (const spatialGroup of spatialGroups) {
-        if (spatialGroup.length >= this.MIN_GROUP_SIZE) {
-          const group = this.createGroup(spatialGroup, 'mixed');
-          groups.push(group);
-          spatialGroup.forEach(layer => processedLayers.add(layer.id));
-        }
-      }
-    }
+    // Determine ungrouped layers (layers not part of any group)
+    const groupedLayerIds = new Set(allGroups.flatMap(group => group.layers.map(layer => layer.id)));
+    const ungroupedLayers = layers.filter(layer => !groupedLayerIds.has(layer.id));
 
-    return groups;
-  }
-
-  private groupBySemanticTypeWithProximity(layers: ProcessedPSDLayer[]): Record<string, ProcessedPSDLayer[]> {
-    const groups: Record<string, ProcessedPSDLayer[]> = {};
-    
-    layers.forEach(layer => {
-      const type = this.getGroupType(layer.semanticType);
-      if (!groups[type]) {
-        groups[type] = [];
-      }
-      groups[type].push(layer);
-    });
-    
-    // Only keep groups that have potential for spatial relationships
-    const filteredGroups: Record<string, ProcessedPSDLayer[]> = {};
-    for (const [type, typeLayer] of Object.entries(groups)) {
-      if (typeLayer.length >= this.MIN_GROUP_SIZE) {
-        // Check if layers are spatially related
-        const spatiallyRelated = this.checkSpatialCohesion(typeLayer);
-        if (spatiallyRelated) {
-          filteredGroups[type] = typeLayer;
-        }
-      }
-    }
-    
-    return filteredGroups;
-  }
-
-  private checkSpatialCohesion(layers: ProcessedPSDLayer[]): boolean {
-    if (layers.length < 2) return false;
-    
-    // Calculate average distance between all pairs
-    let totalDistance = 0;
-    let pairCount = 0;
-    
-    for (let i = 0; i < layers.length; i++) {
-      for (let j = i + 1; j < layers.length; j++) {
-        const distance = this.calculateDistance(layers[i], layers[j]);
-        totalDistance += distance;
-        pairCount++;
-      }
-    }
-    
-    const averageDistance = totalDistance / pairCount;
-    const cohesionThreshold = 150; // pixels
-    
-    return averageDistance < cohesionThreshold;
-  }
-
-  private groupByDepthProximity(layers: ProcessedPSDLayer[]): ProcessedPSDLayer[][] {
-    if (layers.length < this.MIN_GROUP_SIZE) return [];
-    
-    const sortedLayers = [...layers].sort((a, b) => (a.inferredDepth || 0) - (b.inferredDepth || 0));
-    const groups: ProcessedPSDLayer[][] = [];
-    let currentGroup: ProcessedPSDLayer[] = [sortedLayers[0]];
-    
-    for (let i = 1; i < sortedLayers.length; i++) {
-      const currentDepth = sortedLayers[i].inferredDepth || 0;
-      const lastDepth = sortedLayers[i - 1].inferredDepth || 0;
-      
-      if (Math.abs(currentDepth - lastDepth) > 0.2) {
-        if (currentGroup.length >= this.MIN_GROUP_SIZE) {
-          groups.push(currentGroup);
-        }
-        currentGroup = [sortedLayers[i]];
-      } else {
-        currentGroup.push(sortedLayers[i]);
-      }
-    }
-    
-    if (currentGroup.length >= this.MIN_GROUP_SIZE) {
-      groups.push(currentGroup);
-    }
-    
-    return groups;
-  }
-
-  private groupBySpatialProximity(layers: ProcessedPSDLayer[]): ProcessedPSDLayer[][] {
-    if (layers.length < this.MIN_GROUP_SIZE) return [];
-    
-    const groups: ProcessedPSDLayer[][] = [];
-    const processed = new Set<string>();
-    
-    layers.forEach(layer => {
-      if (processed.has(layer.id)) return;
-      
-      const group = [layer];
-      processed.add(layer.id);
-      
-      // Find all layers within proximity threshold
-      layers.forEach(otherLayer => {
-        if (processed.has(otherLayer.id)) return;
-        
-        if (this.areSpatiallyClose(layer, otherLayer)) {
-          group.push(otherLayer);
-          processed.add(otherLayer.id);
-        }
-      });
-      
-      if (group.length >= this.MIN_GROUP_SIZE) {
-        groups.push(group);
-      }
-    });
-    
-    return groups;
-  }
-
-  private calculateGroupingEfficiency(layers: ProcessedPSDLayer[], groups: LayerGroup[]): number {
     const totalLayers = layers.length;
-    const groupedLayers = groups.reduce((sum, group) => sum + group.layers.length, 0);
-    const ungroupedLayers = totalLayers - groupedLayers;
-    
-    // Efficiency is based on:
-    // 1. Percentage of layers that are grouped
-    // 2. Average group size (larger groups are better)
-    // 3. Number of meaningful groups (too many small groups is bad)
-    
-    const groupingRatio = groupedLayers / totalLayers;
-    const avgGroupSize = groups.length > 0 ? groupedLayers / groups.length : 1;
-    const groupSizeScore = Math.min(avgGroupSize / 4, 1); // Normalize to 0-1, optimal at 4+ layers per group
-    const groupCountPenalty = groups.length > 4 ? 0.8 : 1; // Penalize having too many groups
-    
-    return groupingRatio * groupSizeScore * groupCountPenalty;
-  }
+    const shouldShowGroups = allGroups.length > 0;
 
-  private calculateDistance(layer1: ProcessedPSDLayer, layer2: ProcessedPSDLayer): number {
-    const center1 = {
-      x: (layer1.bounds.left + layer1.bounds.right) / 2,
-      y: (layer1.bounds.top + layer1.bounds.bottom) / 2
-    };
-    
-    const center2 = {
-      x: (layer2.bounds.left + layer2.bounds.right) / 2,
-      y: (layer2.bounds.top + layer2.bounds.bottom) / 2
-    };
-    
-    return Math.sqrt(
-      Math.pow(center1.x - center2.x, 2) + Math.pow(center1.y - center2.y, 2)
-    );
-  }
-
-  private areSpatiallyClose(layer1: ProcessedPSDLayer, layer2: ProcessedPSDLayer): boolean {
-    const threshold = 80; // More selective threshold
-    return this.calculateDistance(layer1, layer2) < threshold;
-  }
-
-  private createGroup(layers: ProcessedPSDLayer[], semanticType: string): LayerGroup {
-    const groupType = this.getGroupType(semanticType);
-    const averageDepth = layers.reduce((sum, layer) => sum + (layer.inferredDepth || 0), 0) / layers.length;
-    
-    const bounds = {
-      left: Math.min(...layers.map(l => l.bounds.left)),
-      top: Math.min(...layers.map(l => l.bounds.top)),
-      right: Math.max(...layers.map(l => l.bounds.right)),
-      bottom: Math.max(...layers.map(l => l.bounds.bottom))
-    };
-    
     return {
-      id: `group-${groupType}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: this.getGroupName(groupType, layers.length),
-      type: groupType as LayerGroup['type'],
-      color: this.GROUP_COLORS[groupType] || this.GROUP_COLORS.mixed,
-      layers,
-      averageDepth,
-      bounds
+      groups: allGroups,
+      ungroupedLayers: ungroupedLayers,
+      shouldShowGroups: shouldShowGroups,
+      totalLayers: totalLayers,
+      groupStats: {
+        byDepth: depthGroups.length,
+        bySemantic: semanticGroups.length,
+        bySpatial: spatialGroups.length
+      }
     };
-  }
-
-  private getGroupType(semanticType?: string): string {
-    switch (semanticType) {
-      case 'background':
-        return 'background';
-      case 'player':
-        return 'character';
-      case 'stats':
-      case 'text':
-        return 'ui';
-      case 'effect':
-        return 'effects';
-      case 'logo':
-        return 'branding';
-      default:
-        return 'mixed';
-    }
-  }
-
-  private getGroupName(type: string, layerCount: number): string {
-    const names = {
-      background: 'Background Elements',
-      character: 'Character/Player',
-      ui: 'UI & Text',
-      effects: 'Effects & Shadows',
-      branding: 'Logos & Branding',
-      mixed: 'Related Elements'
-    };
-    
-    return `${names[type] || 'Group'} (${layerCount})`;
   }
 }
 
