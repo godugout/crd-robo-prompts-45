@@ -58,8 +58,8 @@ export const LayerCanvasViewer: React.FC<LayerCanvasViewerProps> = ({
 
         const x = layer.bounds.left * scaleX;
         const y = layer.bounds.top * scaleY;
-        const w = layer.bounds.width * scaleX;
-        const h = layer.bounds.height * scaleY;
+        const w = (layer.bounds.right - layer.bounds.left) * scaleX;
+        const h = (layer.bounds.bottom - layer.bounds.top) * scaleY;
 
         // Draw layer bounds
         ctx.strokeStyle = selectedLayerId === layer.id ? '#22d3ee' : '#64748b';
@@ -110,8 +110,8 @@ export const LayerCanvasViewer: React.FC<LayerCanvasViewerProps> = ({
 
       const x = layer.bounds.left * scaleX;
       const y = layer.bounds.top * scaleY;
-      const w = layer.bounds.width * scaleX;
-      const h = layer.bounds.height * scaleY;
+      const w = (layer.bounds.right - layer.bounds.left) * scaleX;
+      const h = (layer.bounds.bottom - layer.bounds.top) * scaleY;
 
       if (clickX >= x && clickX <= x + w && clickY >= y && clickY <= y + h) {
         setSelectedLayerId(layer.id);

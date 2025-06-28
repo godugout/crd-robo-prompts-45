@@ -69,15 +69,7 @@ export const LayerThumbnailGrid: React.FC<LayerThumbnailGridProps> = ({
             <div className="p-3">
               {/* Layer Thumbnail */}
               <div className="aspect-square bg-slate-700 rounded-md mb-2 flex items-center justify-center overflow-hidden">
-                {layer.thumbnail ? (
-                  <img
-                    src={layer.thumbnail}
-                    alt={layer.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Layers className="w-8 h-8 text-slate-500" />
-                )}
+                <Layers className="w-8 h-8 text-slate-500" />
               </div>
 
               {/* Layer Info */}
@@ -115,7 +107,7 @@ export const LayerThumbnailGrid: React.FC<LayerThumbnailGridProps> = ({
                 </div>
 
                 <div className="text-xs text-slate-400">
-                  {Math.round(layer.bounds.width)}×{Math.round(layer.bounds.height)}
+                  {Math.round(layer.bounds.right - layer.bounds.left)}×{Math.round(layer.bounds.bottom - layer.bounds.top)}
                 </div>
               </div>
             </div>
@@ -158,7 +150,7 @@ export const LayerThumbnailGrid: React.FC<LayerThumbnailGridProps> = ({
                     <div>
                       <label className="block text-sm font-medium text-slate-300 mb-1">Dimensions</label>
                       <p className="text-white">
-                        {Math.round(selectedLayer.bounds.width)} × {Math.round(selectedLayer.bounds.height)}
+                        {Math.round(selectedLayer.bounds.right - selectedLayer.bounds.left)} × {Math.round(selectedLayer.bounds.bottom - selectedLayer.bounds.top)}
                       </p>
                     </div>
                     <div>

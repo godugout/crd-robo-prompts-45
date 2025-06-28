@@ -8,7 +8,7 @@ import { BulkPSDData } from '@/pages/BulkPSDAnalysisPage';
 import { LayerThumbnailGrid } from './LayerThumbnailGrid';
 import { LayerCanvasViewer } from './LayerCanvasViewer';
 import { LayerArchitectureView } from './LayerArchitectureView';
-import { Eye, Layers, Info, Grid, Canvas, Building } from 'lucide-react';
+import { Eye, Layers, Info, Grid, Paintbrush, Building } from 'lucide-react';
 
 interface VisualLayerAnalysisProps {
   psdData: BulkPSDData[];
@@ -89,7 +89,7 @@ export const VisualLayerAnalysis: React.FC<VisualLayerAnalysisProps> = ({
                   onClick={() => setViewMode('canvas')}
                   className={viewMode === 'canvas' ? 'bg-crd-green text-black' : ''}
                 >
-                  <Canvas className="w-4 h-4 mr-2" />
+                  <Paintbrush className="w-4 h-4 mr-2" />
                   Canvas
                 </Button>
                 <Button
