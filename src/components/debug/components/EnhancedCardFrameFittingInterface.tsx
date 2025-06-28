@@ -6,15 +6,15 @@ import { PSDButton } from '@/components/ui/design-system/PSDButton';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { 
-  Move, 
-  RotateCw, 
-  ZoomIn, 
-  ZoomOut, 
-  Maximize2,
   Eye,
   EyeOff,
-  Image as ImageIcon,
-  Square
+  Move,
+  RotateCw,
+  ZoomIn,
+  ZoomOut,
+  Layers,
+  Frame,
+  Upload
 } from 'lucide-react';
 
 interface EnhancedCardFrameFittingInterfaceProps {
@@ -37,367 +37,271 @@ export const EnhancedCardFrameFittingInterface: React.FC<EnhancedCardFrameFittin
   onFrameSelect
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
   const [imageScale, setImageScale] = useState(1);
-  const [imageRotation, setImageRotation] = useState(0);
-  const [frameBounds, setFrameBounds] = useState({ x: 50, y: 50, width: 650, height: 650 });
-  const [showFrame, setShowFrame] = useState(true);
-  const [transparency, setTransparency] = useState([80]);
+  const [frameOpacity, setFrameOpacity] = useState(1);
+  const [showFrameBehind, setShowFrameBehind] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [uploadedImage, setUploadedImage] = useState<string>('');
+
+  // Card dimensions in pixels (2.5" x 3.5" at 96 DPI)
+  const CARD_WIDTH = 240; // 2.5 * 96
+  const CARD_HEIGHT = 336; // 3.5 * 96
 
   const selectedLayer = processedPSD.layers.find(layer => layer.id === selectedLayerId);
-  const visibleLayers = processedPSD.layers.filter(layer => !hiddenLayers.has(layer.id));
 
-  // Generate a placeholder image URL for layers that don't have imageData
-  const getLayerImageUrl = (layer: ProcessedPSDLayer): string => {
-    if (layer.imageData) {
-      return layer.imageData;
-    }
-    
-    // Generate a placeholder based on layer properties
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.max(200, layer.bounds.right - layer.bounds.left);
-    canvas.height = Math.max(200, layer.bounds.bottom - layer.bounds.top);
-    const ctx = canvas.getContext('2d');
-    
-    if (ctx) {
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, '#3b82f6');
-      gradient.addColorStop(1, '#1e40af');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Add layer name if it's text
-      if (layer.textContent) {
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(layer.textContent, canvas.width / 2, canvas.height / 2);
-      } else {
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 14px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(layer.name, canvas.width / 2, canvas.height / 2);
-      }
-    }
-    
-    return canvas.toDataURL('image/png');
-  };
-
-  // Draw the fitting interface
+  // Update canvas size on mount and resize
   useEffect(() => {
+    const updateCanvasSize = () => {
+      if (canvasRef.current) {
+        const rect = canvasRef.current.getBoundingClientRect();
+        const width = window.innerWidth;
+        const height = window.innerHeight - 200; // Account for header
+        setCanvasSize({ width, height });
+        canvasRef.current.width = width;
+        canvasRef.current.height = height;
+        drawCanvas();
+      }
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, []);
+
+  // Draw canvas with graph paper background and card guide
+  const drawCanvas = () => {
     const canvas = canvasRef.current;
-    if (!canvas || !selectedLayer) return;
+    if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const { width, height } = canvasSize;
+    
     // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw background gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, '#1e293b');
-    gradient.addColorStop(1, '#0f172a');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Draw frame outline if enabled
-    if (showFrame) {
-      ctx.strokeStyle = '#22c55e';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
-      ctx.strokeRect(frameBounds.x, frameBounds.y, frameBounds.width, frameBounds.height);
-      ctx.setLineDash([]);
+    ctx.clearRect(0, 0, width, height);
+    
+    // Draw graph paper background
+    ctx.strokeStyle = 'rgba(100, 116, 139, 0.1)'; // slate-500 with low opacity
+    ctx.lineWidth = 0.5;
+    
+    const gridSize = 20;
+    
+    // Vertical lines
+    for (let x = 0; x < width; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+    
+    // Horizontal lines
+    for (let y = 0; y < height; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
     }
 
-    // Load and draw the selected layer image
-    const img = new Image();
-    img.onload = () => {
-      ctx.save();
-      
-      // Apply transformations
-      const centerX = frameBounds.x + frameBounds.width / 2;
-      const centerY = frameBounds.y + frameBounds.height / 2;
-      
-      ctx.translate(centerX + imagePosition.x, centerY + imagePosition.y);
-      ctx.rotate((imageRotation * Math.PI) / 180);
-      ctx.scale(imageScale, imageScale);
-      
-      // Set transparency
-      ctx.globalAlpha = transparency[0] / 100;
-      
-      // Draw image centered
-      ctx.drawImage(img, -img.width / 2, -img.height / 2);
-      
-      ctx.restore();
-    };
-    
-    img.src = getLayerImageUrl(selectedLayer);
-    
-  }, [selectedLayer, imagePosition, imageScale, imageRotation, frameBounds, showFrame, transparency]);
+    // Calculate card guide position (centered)
+    const cardX = (width - CARD_WIDTH) / 2;
+    const cardY = (height - CARD_HEIGHT) / 2;
 
-  // Handle mouse interactions for dragging
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
+    // Draw card guide
+    ctx.strokeStyle = 'rgba(34, 197, 94, 0.8)'; // crd-green
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.strokeRect(cardX, cardY, CARD_WIDTH, CARD_HEIGHT);
+    ctx.setLineDash([]);
+
+    // Draw corner markers
+    ctx.fillStyle = 'rgba(34, 197, 94, 0.8)';
+    const cornerSize = 8;
+    const corners = [
+      [cardX, cardY], // top-left
+      [cardX + CARD_WIDTH, cardY], // top-right
+      [cardX, cardY + CARD_HEIGHT], // bottom-left
+      [cardX + CARD_WIDTH, cardY + CARD_HEIGHT] // bottom-right
+    ];
     
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    corners.forEach(([x, y]) => {
+      ctx.fillRect(x - cornerSize/2, y - cornerSize/2, cornerSize, cornerSize);
+    });
+
+    // Draw dimension labels
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.9)'; // slate-400
+    ctx.font = '12px monospace';
+    ctx.textAlign = 'center';
     
-    setIsDragging(true);
-    setDragStart({ x: x - imagePosition.x, y: y - imagePosition.y });
+    // Width label
+    ctx.fillText('2.5"', cardX + CARD_WIDTH/2, cardY - 10);
+    
+    // Height label
+    ctx.save();
+    ctx.translate(cardX - 15, cardY + CARD_HEIGHT/2);
+    ctx.rotate(-Math.PI/2);
+    ctx.fillText('3.5"', 0, 0);
+    ctx.restore();
+
+    // Draw uploaded image if available
+    if (uploadedImage) {
+      const img = new Image();
+      img.onload = () => {
+        const imgX = cardX + imagePosition.x;
+        const imgY = cardY + imagePosition.y;
+        const imgWidth = img.width * imageScale;
+        const imgHeight = img.height * imageScale;
+        
+        ctx.save();
+        ctx.globalAlpha = showFrameBehind ? 0.8 : 1;
+        ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
+        ctx.restore();
+      };
+      img.src = uploadedImage;
+    }
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDragging) return;
-    
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    setImagePosition({
-      x: x - dragStart.x,
-      y: y - dragStart.y
-    });
+  // Redraw canvas when dependencies change
+  useEffect(() => {
+    drawCanvas();
+  }, [canvasSize, imagePosition, imageScale, frameOpacity, showFrameBehind, uploadedImage]);
+
+  // Handle mouse interactions
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - imagePosition.x, y: e.clientY - imagePosition.y });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      setImagePosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    }
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
   };
 
-  // Auto-fit layer to frame
-  const handleAutoFit = () => {
-    if (!selectedLayer) return;
-    
-    const layerWidth = selectedLayer.bounds.right - selectedLayer.bounds.left;
-    const layerHeight = selectedLayer.bounds.bottom - selectedLayer.bounds.top;
-    
-    const scaleX = frameBounds.width / layerWidth;
-    const scaleY = frameBounds.height / layerHeight;
-    const optimalScale = Math.min(scaleX, scaleY) * 0.9; // 90% to leave some padding
-    
-    setImageScale(optimalScale);
-    setImagePosition({ x: 0, y: 0 });
-    setImageRotation(0);
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    setImageScale(prev => Math.max(0.1, Math.min(5, prev * delta)));
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setUploadedImage(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-      {/* Main Canvas Area */}
-      <div className="lg:col-span-2">
-        <PSDCard variant="elevated">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Card Frame Fitting</h3>
-              <div className="flex items-center gap-2">
-                <PSDButton
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowFrame(!showFrame)}
-                >
-                  {showFrame ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                  Frame Guide
-                </PSDButton>
-                <PSDButton
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleAutoFit}
-                >
-                  <Maximize2 className="w-4 h-4 mr-2" />
-                  Auto Fit
-                </PSDButton>
-              </div>
-            </div>
-            
-            <div className="relative bg-slate-900 rounded-lg overflow-hidden">
-              <canvas
-                ref={canvasRef}
-                width={800}
-                height={600}
-                className="w-full cursor-move"
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
+    <div className="flex flex-col h-full">
+      {/* Canvas Controls */}
+      <div className="flex items-center justify-between p-4 bg-slate-800 border-b border-slate-700">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Upload className="w-4 h-4 text-crd-green" />
+            <label className="cursor-pointer">
+              <span className="text-sm text-white">Upload Image</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
               />
-            </div>
+            </label>
           </div>
-        </PSDCard>
+          
+          <div className="flex items-center gap-2">
+            <Move className="w-4 h-4 text-slate-400" />
+            <span className="text-sm text-slate-400">Drag to move</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <ZoomIn className="w-4 h-4 text-slate-400" />
+            <span className="text-sm text-slate-400">Scroll to zoom</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-400">Scale:</span>
+            <Badge variant="outline" className="bg-slate-700 text-slate-300 border-slate-600">
+              {Math.round(imageScale * 100)}%
+            </Badge>
+          </div>
+          
+          <PSDButton
+            variant={showFrameBehind ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setShowFrameBehind(!showFrameBehind)}
+          >
+            <Frame className="w-4 h-4 mr-2" />
+            {showFrameBehind ? 'Frame Behind' : 'Frame Front'}
+          </PSDButton>
+        </div>
       </div>
 
-      {/* Controls Panel */}
-      <div className="space-y-4">
-        {/* Layer Selection */}
-        <PSDCard variant="elevated">
-          <div className="p-4">
-            <h4 className="font-semibold text-white mb-3">Active Layer</h4>
-            {selectedLayer ? (
-              <div className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
-                <ImageIcon className="w-5 h-5 text-crd-green" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-white">{selectedLayer.name}</p>
-                  <p className="text-xs text-slate-400">
-                    {Math.round(selectedLayer.bounds.right - selectedLayer.bounds.left)} × {Math.round(selectedLayer.bounds.bottom - selectedLayer.bounds.top)}px
-                  </p>
-                </div>
+      {/* Main Canvas */}
+      <div className="flex-1 relative overflow-hidden">
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 cursor-move"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onWheel={handleWheel}
+        />
+      </div>
+
+      {/* Bottom Controls */}
+      <div className="p-4 bg-slate-800 border-t border-slate-700">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-400">Frame Opacity:</span>
+              <div className="w-32">
+                <Slider
+                  value={[frameOpacity]}
+                  onValueChange={(value) => setFrameOpacity(value[0])}
+                  min={0}
+                  max={1}
+                  step={0.1}
+                  className="w-full"
+                />
               </div>
-            ) : (
-              <p className="text-slate-400 text-sm">No layer selected</p>
-            )}
-          </div>
-        </PSDCard>
-
-        {/* Transform Controls */}
-        <PSDCard variant="elevated">
-          <div className="p-4 space-y-4">
-            <h4 className="font-semibold text-white">Transform Controls</h4>
-            
-            {/* Position */}
-            <div>
-              <label className="text-sm text-slate-300 mb-2 block">Position</label>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs text-slate-400">X</label>
-                  <input
-                    type="number"
-                    value={Math.round(imagePosition.x)}
-                    onChange={(e) => setImagePosition(prev => ({ ...prev, x: parseInt(e.target.value) || 0 }))}
-                    className="w-full px-2 py-1 bg-slate-800 text-white rounded text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-400">Y</label>
-                  <input
-                    type="number"
-                    value={Math.round(imagePosition.y)}
-                    onChange={(e) => setImagePosition(prev => ({ ...prev, y: parseInt(e.target.value) || 0 }))}
-                    className="w-full px-2 py-1 bg-slate-800 text-white rounded text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Scale */}
-            <div>
-              <label className="text-sm text-slate-300 mb-2 block">
-                Scale: {Math.round(imageScale * 100)}%
-              </label>
-              <Slider
-                value={[imageScale * 100]}
-                onValueChange={(value) => setImageScale(value[0] / 100)}
-                min={10}
-                max={300}
-                step={5}
-                className="w-full"
-              />
-            </div>
-
-            {/* Rotation */}
-            <div>
-              <label className="text-sm text-slate-300 mb-2 block">
-                Rotation: {imageRotation}°
-              </label>
-              <Slider
-                value={[imageRotation]}
-                onValueChange={(value) => setImageRotation(value[0])}
-                min={-180}
-                max={180}
-                step={1}
-                className="w-full"
-              />
-            </div>
-
-            {/* Transparency */}
-            <div>
-              <label className="text-sm text-slate-300 mb-2 block">
-                Opacity: {transparency[0]}%
-              </label>
-              <Slider
-                value={transparency}
-                onValueChange={setTransparency}
-                min={0}
-                max={100}
-                step={5}
-                className="w-full"
-              />
+              <Badge variant="outline" className="bg-slate-700 text-slate-300 border-slate-600">
+                {Math.round(frameOpacity * 100)}%
+              </Badge>
             </div>
           </div>
-        </PSDCard>
 
-        {/* Quick Actions */}
-        <PSDCard variant="elevated">
-          <div className="p-4">
-            <h4 className="font-semibold text-white mb-3">Quick Actions</h4>
-            <div className="grid grid-cols-2 gap-2">
-              <PSDButton
-                variant="ghost"
-                size="sm"
-                onClick={() => setImagePosition({ x: 0, y: 0 })}
-              >
-                <Move className="w-4 h-4 mr-1" />
-                Center
-              </PSDButton>
-              <PSDButton
-                variant="ghost"
-                size="sm"
-                onClick={() => setImageRotation(0)}
-              >
-                <RotateCw className="w-4 h-4 mr-1" />
-                Reset Rotation
-              </PSDButton>
-              <PSDButton
-                variant="ghost"
-                size="sm"
-                onClick={() => setImageScale(imageScale * 1.1)}
-              >
-                <ZoomIn className="w-4 h-4 mr-1" />
-                Zoom In
-              </PSDButton>
-              <PSDButton
-                variant="ghost"
-                size="sm"
-                onClick={() => setImageScale(Math.max(0.1, imageScale * 0.9))}
-              >
-                <ZoomOut className="w-4 h-4 mr-1" />
-                Zoom Out
-              </PSDButton>
-            </div>
+          <div className="flex items-center gap-2">
+            <PSDButton
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setImagePosition({ x: 0, y: 0 });
+                setImageScale(1);
+              }}
+            >
+              <RotateCw className="w-4 h-4 mr-2" />
+              Reset Position
+            </PSDButton>
           </div>
-        </PSDCard>
-
-        {/* Layer List */}
-        <PSDCard variant="elevated">
-          <div className="p-4">
-            <h4 className="font-semibold text-white mb-3">Available Layers</h4>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {visibleLayers.map((layer) => (
-                <div
-                  key={layer.id}
-                  className={`
-                    flex items-center gap-2 p-2 rounded cursor-pointer transition-colors
-                    ${selectedLayerId === layer.id 
-                      ? 'bg-crd-green/20 border border-crd-green/50' 
-                      : 'hover:bg-slate-800'
-                    }
-                  `}
-                  onClick={() => onLayerSelect(layer.id)}
-                >
-                  <Square className="w-4 h-4 text-slate-400" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white truncate">{layer.name}</p>
-                    <p className="text-xs text-slate-400">
-                      {layer.type} • {Math.round(layer.opacity * 100)}%
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </PSDCard>
+        </div>
       </div>
     </div>
   );

@@ -68,107 +68,103 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
   const allFrames = [...generatedFrames];
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 h-full max-w-7xl mx-auto">
-      {/* Main Content Area - Takes up 3/4 width on large screens */}
-      <div className="xl:col-span-3">
-        <PSDCard variant="elevated">
-          {/* Header */}
-          <div className="p-6 border-b border-slate-700">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-3">
-                  <Palette className="w-6 h-6 text-crd-green" />
-                  <div>
-                    <h1 className="text-xl font-bold text-white">Enhanced Card Frame System</h1>
-                    <p className="text-sm text-slate-400">
-                      AI-powered frame building and precise card fitting
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-600">
-                  {processedPSD.width} × {processedPSD.height}px
-                </Badge>
-                <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-600">
-                  {visibleLayerCount} visible
-                </Badge>
+    <div className="h-screen bg-[#0a0a0b] flex flex-col">
+      {/* Header */}
+      <div className="bg-[#1a1f2e] border-b border-slate-700 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <Palette className="w-6 h-6 text-crd-green" />
+              <div>
+                <h1 className="text-xl font-bold text-white">Enhanced Card Frame System</h1>
+                <p className="text-sm text-slate-400">
+                  AI-powered frame building and precise card fitting
+                </p>
               </div>
             </div>
-
-            {/* Tab Navigation */}
-            <div className="flex items-center gap-4">
-              <PSDButton
-                variant={activeTab === 'fitting' ? 'primary' : 'secondary'}
-                size="sm"
-                onClick={() => setActiveTab('fitting')}
-              >
-                <FrameIcon className="w-4 h-4 mr-2" />
-                Frame Fitting
-              </PSDButton>
-              <PSDButton
-                variant={activeTab === 'builder' ? 'primary' : 'secondary'}
-                size="sm"
-                onClick={() => setActiveTab('builder')}
-              >
-                <Wand2 className="w-4 h-4 mr-2" />
-                CRD Builder
-              </PSDButton>
-              
-              {generatedFrames.length > 0 && (
-                <Badge className="bg-crd-blue text-white">
-                  {generatedFrames.length} Generated
-                </Badge>
-              )}
-            </div>
-
-            {/* Selected Layer Info */}
-            {selectedLayer && activeTab === 'fitting' && (
-              <div className="flex items-center justify-between mt-4">
-                <Badge className="bg-crd-green text-black font-medium px-3 py-1">
-                  Active: {selectedLayer.name}
-                </Badge>
-                
-                <PSDButton
-                  variant="secondary"
-                  size="sm"
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Frame Settings
-                </PSDButton>
-              </div>
-            )}
           </div>
           
-          {/* Main Content */}
-          <div className="p-6">
-            {activeTab === 'fitting' && (
-              <EnhancedCardFrameFittingInterface
-                processedPSD={processedPSD}
-                selectedLayerId={selectedLayerId}
-                hiddenLayers={hiddenLayers}
-                onLayerSelect={setSelectedLayerId}
-                selectedFrame={selectedFrame}
-                availableFrames={allFrames}
-                onFrameSelect={setSelectedFrame}
-              />
-            )}
-            
-            {activeTab === 'builder' && (
-              <CRDFrameBuilder
-                processedPSD={processedPSD}
-                selectedLayerId={selectedLayerId}
-                onFrameGenerated={handleFrameGenerated}
-              />
-            )}
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-600">
+              {processedPSD.width} × {processedPSD.height}px
+            </Badge>
+            <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-600">
+              {visibleLayerCount} visible
+            </Badge>
           </div>
-        </PSDCard>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex items-center gap-4 mt-4">
+          <PSDButton
+            variant={activeTab === 'fitting' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setActiveTab('fitting')}
+          >
+            <FrameIcon className="w-4 h-4 mr-2" />
+            Frame Fitting
+          </PSDButton>
+          <PSDButton
+            variant={activeTab === 'builder' ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setActiveTab('builder')}
+          >
+            <Wand2 className="w-4 h-4 mr-2" />
+            CRD Builder
+          </PSDButton>
+          
+          {generatedFrames.length > 0 && (
+            <Badge className="bg-crd-blue text-white">
+              {generatedFrames.length} Generated
+            </Badge>
+          )}
+        </div>
+
+        {/* Selected Layer Info */}
+        {selectedLayer && activeTab === 'fitting' && (
+          <div className="flex items-center justify-between mt-4">
+            <Badge className="bg-crd-green text-black font-medium px-3 py-1">
+              Active: {selectedLayer.name}
+            </Badge>
+            
+            <PSDButton
+              variant="secondary"
+              size="sm"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Frame Settings
+            </PSDButton>
+          </div>
+        )}
       </div>
 
-      {/* Layer Inspector - Takes up 1/4 width on large screens */}
-      <div className="xl:col-span-1">
-        <PSDCard variant="elevated">
+      {/* Main Content */}
+      <div className="flex-1 flex">
+        {/* Main Canvas Area */}
+        <div className="flex-1">
+          {activeTab === 'fitting' && (
+            <EnhancedCardFrameFittingInterface
+              processedPSD={processedPSD}
+              selectedLayerId={selectedLayerId}
+              hiddenLayers={hiddenLayers}
+              onLayerSelect={setSelectedLayerId}
+              selectedFrame={selectedFrame}
+              availableFrames={allFrames}
+              onFrameSelect={setSelectedFrame}
+            />
+          )}
+          
+          {activeTab === 'builder' && (
+            <CRDFrameBuilder
+              processedPSD={processedPSD}
+              selectedLayerId={selectedLayerId}
+              onFrameGenerated={handleFrameGenerated}
+            />
+          )}
+        </div>
+
+        {/* Layer Inspector Sidebar */}
+        <div className="w-80 bg-[#1a1f2e] border-l border-slate-700 flex flex-col">
           <div className="p-4 border-b border-slate-700">
             <div className="flex items-center gap-3">
               <Square className="w-5 h-5 text-crd-blue" />
@@ -179,7 +175,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
             </p>
           </div>
           
-          <div className="p-4">
+          <div className="flex-1 overflow-auto p-4">
             <SimplifiedLayerInspector
               layers={processedPSD.layers}
               selectedLayerId={selectedLayerId}
@@ -188,7 +184,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
               onLayerToggle={toggleLayerVisibility}
             />
           </div>
-        </PSDCard>
+        </div>
       </div>
     </div>
   );
