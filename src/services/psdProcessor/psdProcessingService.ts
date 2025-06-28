@@ -1,4 +1,3 @@
-
 import { readPsd, Psd, Layer } from 'ag-psd';
 
 export interface ProcessedPSDLayer {
@@ -16,6 +15,15 @@ export interface ProcessedPSDLayer {
   zIndex: number;
   imageData?: string; // Base64 data URL
   canvas?: HTMLCanvasElement;
+  
+  // New semantic properties for 3D conversion
+  semanticType?: 'background' | 'player' | 'stats' | 'logo' | 'effect' | 'border' | 'text';
+  inferredDepth?: number; // 0-1 scale (0 = back, 1 = front)
+  materialHints?: {
+    isMetallic: boolean;
+    isHolographic: boolean;
+    hasGlow: boolean;
+  };
 }
 
 export interface ProcessedPSD {
@@ -87,6 +95,9 @@ class PSDProcessingService {
         // Handle layer visibility - ag-psd uses 'hidden' property instead of 'visible'
         const isVisible = !(layer as any).hidden;
         
+        // Perform semantic analysis
+        const semanticAnalysis = this.analyzeLayerSemantics(layer, layerType);
+        
         const processedLayer: ProcessedPSDLayer = {
           id: layerId,
           name: layer.name || `Layer ${i + 1}`,
@@ -101,7 +112,8 @@ class PSDProcessingService {
           },
           zIndex: layers.length - i, // Reverse order for proper stacking
           imageData,
-          canvas
+          canvas,
+          ...semanticAnalysis
         };
         
         processedLayers.push(processedLayer);
@@ -119,6 +131,96 @@ class PSDProcessingService {
     }
     
     return processedLayers;
+  }
+
+  private analyzeLayerSemantics(layer: Layer, layerType: ProcessedPSDLayer['type']): {
+    semanticType: ProcessedPSDLayer['semanticType'];
+    inferredDepth: number;
+    materialHints: ProcessedPSDLayer['materialHints'];
+  } {
+    const layerName = (layer.name || '').toLowerCase();
+    
+    // Initialize material hints
+    const materialHints = {
+      isMetallic: false,
+      isHolographic: false,
+      hasGlow: false
+    };
+    
+    // Analyze layer name for semantic meaning
+    let semanticType: ProcessedPSDLayer['semanticType'] = 'image';
+    let inferredDepth = 0.5; // Default middle depth
+    
+    // Background detection
+    if (layerName.includes('bg') || layerName.includes('background') || layerName.includes('backdrop')) {
+      semanticType = 'background';
+      inferredDepth = 0.0;
+    }
+    // Player/Character detection
+    else if (layerName.includes('player') || layerName.includes('character') || layerName.includes('hero') || layerName.includes('person')) {
+      semanticType = 'player';
+      inferredDepth = 0.5;
+    }
+    // Stats detection
+    else if (layerName.includes('stat') || layerName.includes('number') || layerName.includes('rating') || layerName.includes('score')) {
+      semanticType = 'stats';
+      inferredDepth = 0.7;
+    }
+    // Logo detection
+    else if (layerName.includes('logo') || layerName.includes('brand') || layerName.includes('team')) {
+      semanticType = 'logo';
+      inferredDepth = 0.6;
+    }
+    // Border detection
+    else if (layerName.includes('border') || layerName.includes('frame') || layerName.includes('edge')) {
+      semanticType = 'border';
+      inferredDepth = 0.9;
+    }
+    // Text detection (also check layer properties)
+    else if (layerType === 'text' || layer.text || layerName.includes('text') || layerName.includes('name') || layerName.includes('title')) {
+      semanticType = 'text';
+      inferredDepth = 0.8;
+    }
+    // Effect detection
+    else if (layerName.includes('effect') || layerName.includes('glow') || layerName.includes('fx') || 
+             layerName.includes('shadow') || layerName.includes('highlight')) {
+      semanticType = 'effect';
+      inferredDepth = 0.9;
+    }
+    
+    // Material hints analysis
+    if (layerName.includes('metal') || layerName.includes('chrome') || layerName.includes('gold') || 
+        layerName.includes('silver') || layerName.includes('steel')) {
+      materialHints.isMetallic = true;
+    }
+    
+    if (layerName.includes('holo') || layerName.includes('rainbow') || layerName.includes('prismatic') || 
+        layerName.includes('refract')) {
+      materialHints.isHolographic = true;
+    }
+    
+    if (layerName.includes('glow') || layerName.includes('shine') || layerName.includes('bright') || 
+        layerName.includes('emit')) {
+      materialHints.hasGlow = true;
+    }
+    
+    // Additional depth adjustments based on layer properties
+    if (layer.opacity && layer.opacity < 128) {
+      // Semi-transparent layers are likely effects or overlays
+      inferredDepth = Math.max(inferredDepth, 0.8);
+    }
+    
+    console.log(`Layer "${layer.name}" analyzed:`, {
+      semanticType,
+      inferredDepth,
+      materialHints
+    });
+    
+    return {
+      semanticType,
+      inferredDepth,
+      materialHints
+    };
   }
 
   private determineLayerType(layer: Layer): ProcessedPSDLayer['type'] {
