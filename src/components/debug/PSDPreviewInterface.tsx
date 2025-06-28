@@ -4,10 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Eye, EyeOff, Layers3, Map as MapIcon } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Eye, EyeOff, Layers3, Map as MapIcon, Settings, Palette } from 'lucide-react';
 import { ProcessedPSD, ProcessedPSDLayer, psdProcessingService } from '@/services/psdProcessor/psdProcessingService';
+import { layerGroupingService, LayerGroup } from '@/services/psdProcessor/layerGroupingService';
 import { PSDLayerInspector } from './components/PSDLayerInspector';
 import { PSDCanvasPreview } from './components/PSDCanvasPreview';
+import { CRDFrameBuilder } from './components/CRDFrameBuilder';
+import { CRDFrame } from '@/types/crdFrames';
+import { toast } from 'sonner';
 
 interface PSDPreviewInterfaceProps {
   processedPSD?: ProcessedPSD | null;
@@ -17,8 +22,10 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
   const [showDepthMap, setShowDepthMap] = useState(false);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [layerVisibility, setLayerVisibility] = useState<Map<string, boolean>>(new Map());
+  const [layerGroups, setLayerGroups] = useState<LayerGroup[]>([]);
+  const [activeTab, setActiveTab] = useState('layers');
 
-  // Initialize layer visibility when PSD data changes
+  // Initialize layer visibility and groups when PSD data changes
   useEffect(() => {
     if (processedPSD?.layers) {
       const visibilityMap = new Map();
@@ -31,6 +38,12 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
       if (!selectedLayerId && processedPSD.layers.length > 0) {
         setSelectedLayerId(processedPSD.layers[0].id);
       }
+
+      // Generate layer groups
+      const groups = layerGroupingService.groupLayers(processedPSD.layers);
+      setLayerGroups(groups);
+      
+      console.log('Generated layer groups:', groups);
     }
   }, [processedPSD, selectedLayerId]);
 
@@ -48,6 +61,14 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
       newMap.set(layerId, !prev.get(layerId));
       return newMap;
     });
+  }, []);
+
+  const handleFrameCreated = useCallback((frame: CRDFrame) => {
+    console.log('New CRD Frame created:', frame);
+    toast.success(`CRD Frame "${frame.name}" created successfully!`);
+    
+    // Here you would typically save the frame to your database or frame library
+    // For now, we'll just log it and show a success message
   }, []);
 
   // Keyboard navigation
@@ -107,7 +128,6 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
   const renderDepthVisualization = () => {
     if (!showDepthMap || !processedPSD.layers) return null;
 
-    // Limit to first 30 layers for performance
     const layersToShow = processedPSD.layers.slice(0, 30);
 
     return (
@@ -129,6 +149,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
               const isSelected = selectedLayerId === layer.id;
               const depth = layer.inferredDepth ?? 0.5;
               const brightness = Math.round(depth * 255);
+              const groupColor = layerGroups.find(g => g.layers.some(l => l.id === layer.id))?.color;
               
               if (!isVisible) return null;
 
@@ -148,7 +169,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
                       : `rgb(${brightness}, ${brightness}, ${brightness})`,
                     minWidth: '20px',
                     minHeight: '20px',
-                    border: isSelected ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.1)'
+                    border: groupColor ? `2px solid ${groupColor}` : '1px solid rgba(255,255,255,0.1)'
                   }}
                   onClick={() => handleLayerSelect(layer)}
                   title={`${layer.name} - Depth: ${Math.round(depth * 100)}%`}
@@ -200,6 +221,9 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
             {processedPSD.layers.length} layers
           </Badge>
           <Badge variant="outline" className="text-slate-300">
+            {layerGroups.length} groups
+          </Badge>
+          <Badge variant="outline" className="text-slate-300">
             {processedPSD.width}×{processedPSD.height}
           </Badge>
         </div>
@@ -213,20 +237,82 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Layer Inspector */}
-        <PSDLayerInspector
-          processedLayers={processedPSD.layers}
-          onLayerSelect={handleLayerSelect}
-          selectedLayerId={selectedLayerId}
-          layerVisibility={layerVisibility}
-          onToggleVisibility={toggleLayerVisibility}
-        />
+        {/* Left Panel - Layers and Tools */}
+        <div className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3 bg-slate-800">
+              <TabsTrigger value="layers" className="data-[state=active]:bg-slate-700">
+                <Layers3 className="w-4 h-4 mr-2" />
+                Layers
+              </TabsTrigger>
+              <TabsTrigger value="groups" className="data-[state=active]:bg-slate-700">
+                <Palette className="w-4 h-4 mr-2" />
+                Groups
+              </TabsTrigger>
+              <TabsTrigger value="builder" className="data-[state=active]:bg-slate-700">
+                <Settings className="w-4 h-4 mr-2" />
+                Builder
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="layers" className="mt-4">
+              <PSDLayerInspector
+                processedLayers={processedPSD.layers}
+                layerGroups={layerGroups}
+                onLayerSelect={handleLayerSelect}
+                selectedLayerId={selectedLayerId}
+                layerVisibility={layerVisibility}
+                onToggleVisibility={toggleLayerVisibility}
+              />
+            </TabsContent>
+            
+            <TabsContent value="groups" className="mt-4">
+              <Card className="bg-[#0a0f1b] border-slate-800">
+                <CardContent className="p-6">
+                  <h3 className="text-white font-semibold mb-4">Layer Groups</h3>
+                  <div className="space-y-3">
+                    {layerGroups.map((group) => (
+                      <div 
+                        key={group.id}
+                        className="flex items-center gap-3 p-3 rounded-lg border border-slate-700 hover:border-slate-600 transition-colors"
+                      >
+                        <div 
+                          className="w-4 h-4 rounded border-2 border-white/20"
+                          style={{ backgroundColor: group.color }}
+                        />
+                        <div className="flex-1">
+                          <div className="text-white font-medium">{group.name}</div>
+                          <div className="text-slate-400 text-sm">
+                            {group.layers.length} layers • Avg depth: {Math.round(group.averageDepth * 100)}%
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="text-slate-300">
+                          {group.type}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="builder" className="mt-4">
+              <CRDFrameBuilder
+                processedLayers={processedPSD.layers}
+                layerGroups={layerGroups}
+                psdDimensions={{ width: processedPSD.width, height: processedPSD.height }}
+                onFrameCreated={handleFrameCreated}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
 
-        {/* Canvas Preview */}
+        {/* Right Panel - Canvas Preview */}
         <PSDCanvasPreview
           processedPSD={processedPSD}
           selectedLayerId={selectedLayerId}
           layerVisibility={layerVisibility}
+          layerGroups={layerGroups}
           onLayerClick={handleCanvasLayerClick}
         />
       </div>
