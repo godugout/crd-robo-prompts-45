@@ -1,360 +1,398 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Upload, Download, Eye, EyeOff, Layers, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Download, Eye, Layers, Zap } from 'lucide-react';
-import { toast } from 'sonner';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { psdProcessingService, ProcessedPSD, ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
 import { PSDLayerInspector } from './components/PSDLayerInspector';
 
 export const PSDPreviewInterface: React.FC = () => {
-  const [processedPSD, setProcessedPSD] = useState<ProcessedPSD | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [psdData, setPsdData] = useState<ProcessedPSD | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedLayerId, setSelectedLayerId] = useState<string | undefined>();
+  const [error, setError] = useState<string | null>(null);
   const [showDepthMap, setShowDepthMap] = useState(false);
+  const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
+  const [layerVisibility, setLayerVisibility] = useState<Map<string, boolean>>(new Map());
 
-  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && file.name.toLowerCase().endsWith('.psd')) {
-      setSelectedFile(file);
-      setProcessedPSD(null);
-      setSelectedLayerId(undefined);
-    } else {
-      toast.error('Please select a valid PSD file');
+  // Initialize layer visibility when PSD data loads
+  useEffect(() => {
+    if (psdData) {
+      const visibilityMap = new Map(
+        psdData.layers.map(layer => [layer.id, layer.visible])
+      );
+      setLayerVisibility(visibilityMap);
+      
+      // Auto-select first visible layer
+      const firstVisibleLayer = psdData.layers.find(layer => layer.visible);
+      if (firstVisibleLayer) {
+        setSelectedLayerId(firstVisibleLayer.id);
+      }
     }
-  }, []);
+  }, [psdData]);
 
-  const handleProcess = useCallback(async () => {
-    if (!selectedFile) return;
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!psdData || psdData.layers.length === 0) return;
+
+      const currentIndex = selectedLayerId 
+        ? psdData.layers.findIndex(layer => layer.id === selectedLayerId)
+        : -1;
+
+      switch (event.key) {
+        case 'ArrowUp':
+          event.preventDefault();
+          if (currentIndex > 0) {
+            setSelectedLayerId(psdData.layers[currentIndex - 1].id);
+          } else if (currentIndex === -1) {
+            setSelectedLayerId(psdData.layers[0].id);
+          }
+          break;
+
+        case 'ArrowDown':
+          event.preventDefault();
+          if (currentIndex < psdData.layers.length - 1) {
+            setSelectedLayerId(psdData.layers[currentIndex + 1].id);
+          } else if (currentIndex === -1) {
+            setSelectedLayerId(psdData.layers[0].id);
+          }
+          break;
+
+        case 'Enter':
+          event.preventDefault();
+          if (selectedLayerId) {
+            toggleLayerVisibility(selectedLayerId);
+          }
+          break;
+
+        case 'Delete':
+        case 'Backspace':
+          event.preventDefault();
+          if (selectedLayerId) {
+            hideLayer(selectedLayerId);
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [psdData, selectedLayerId]);
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.psd')) {
+      setError('Please select a PSD file');
+      return;
+    }
 
     setIsProcessing(true);
+    setError(null);
+    setPsdData(null);
+    setSelectedLayerId(null);
+
     try {
-      const result = await psdProcessingService.processPSDFile(selectedFile);
-      setProcessedPSD(result);
-      toast.success(`Successfully processed ${result.layers.length} layers`);
-    } catch (error) {
-      console.error('PSD processing failed:', error);
-      toast.error('Failed to process PSD file');
+      const processedData = await psdProcessingService.processPSDFile(file);
+      setPsdData(processedData);
+      console.log('PSD processed successfully:', processedData);
+    } catch (err) {
+      console.error('PSD processing error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to process PSD file');
     } finally {
       setIsProcessing(false);
     }
-  }, [selectedFile]);
+  };
 
   const handleLayerSelect = useCallback((layer: ProcessedPSDLayer) => {
     setSelectedLayerId(layer.id);
   }, []);
 
-  const handleExport = useCallback(() => {
-    if (!processedPSD) return;
-    
-    const exportData = {
-      metadata: {
-        width: processedPSD.width,
-        height: processedPSD.height,
-        totalLayers: processedPSD.totalLayers,
-        colorMode: processedPSD.colorMode,
-        bitsPerChannel: processedPSD.bitsPerChannel
-      },
-      layers: processedPSD.layers.map(layer => ({
-        id: layer.id,
-        name: layer.name,
-        type: layer.type,
-        semanticType: layer.semanticType,
-        inferredDepth: layer.inferredDepth,
-        materialHints: layer.materialHints,
-        bounds: layer.bounds,
-        visible: layer.visible,
-        opacity: layer.opacity,
-        zIndex: layer.zIndex
-      }))
-    };
+  const toggleLayerVisibility = useCallback((layerId: string) => {
+    setLayerVisibility(prev => {
+      const newMap = new Map(prev);
+      newMap.set(layerId, !newMap.get(layerId));
+      return newMap;
+    });
+  }, []);
 
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const hideLayer = useCallback((layerId: string) => {
+    setLayerVisibility(prev => {
+      const newMap = new Map(prev);
+      newMap.set(layerId, false);
+      return newMap;
+    });
+  }, []);
+
+  const exportDepthMap = () => {
+    if (!psdData) return;
+    
+    const depthData = psdData.layers.map(layer => ({
+      id: layer.id,
+      name: layer.name,
+      depth: layer.inferredDepth || 0,
+      semanticType: layer.semanticType,
+      bounds: layer.bounds
+    }));
+
+    const blob = new Blob([JSON.stringify(depthData, null, 2)], {
+      type: 'application/json'
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${selectedFile?.name || 'psd'}_analysis.json`;
+    a.download = 'depth-map.json';
     a.click();
     URL.revokeObjectURL(url);
-  }, [processedPSD, selectedFile]);
+  };
 
   const DepthVisualization: React.FC = () => {
-    if (!processedPSD || !showDepthMap) return null;
+    if (!psdData || !showDepthMap) return null;
 
     // Limit to first 30 layers for performance
-    const layersToShow = processedPSD.layers.slice(0, 30);
-    
-    // Calculate scale factor to fit the visualization
-    const maxDimension = Math.max(processedPSD.width, processedPSD.height);
-    const containerSize = 400;
-    const scale = containerSize / maxDimension;
+    const displayLayers = psdData.layers.slice(0, 30);
+    const maxWidth = Math.max(...displayLayers.map(l => l.bounds.right));
+    const maxHeight = Math.max(...displayLayers.map(l => l.bounds.bottom));
+    const scale = Math.min(400 / maxWidth, 300 / maxHeight, 1);
 
     return (
-      <Card className="bg-[#0a0f1b] border-slate-800">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-white text-lg flex items-center gap-2">
-            <Layers className="w-5 h-5" />
-            Depth Visualization
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div 
-            className="relative bg-slate-900 border border-slate-700 rounded-lg overflow-hidden"
-            style={{ 
-              width: Math.round(processedPSD.width * scale),
-              height: Math.round(processedPSD.height * scale),
-              maxWidth: '100%',
-              maxHeight: '400px'
-            }}
-          >
-            {layersToShow.map((layer) => {
-              // Convert depth (0-1) to brightness (0-255)
-              const depth = layer.inferredDepth || 0.5;
-              const brightness = Math.round(depth * 255);
-              const color = `rgb(${brightness}, ${brightness}, ${brightness})`;
-              
-              const left = Math.round(layer.bounds.left * scale);
-              const top = Math.round(layer.bounds.top * scale);
-              const width = Math.round((layer.bounds.right - layer.bounds.left) * scale);
-              const height = Math.round((layer.bounds.bottom - layer.bounds.top) * scale);
+      <div className="relative bg-slate-900 rounded-lg p-4 border border-slate-700">
+        <h4 className="text-sm font-medium text-white mb-3">Depth Visualization</h4>
+        <div 
+          className="relative border border-slate-600 rounded"
+          style={{ 
+            width: maxWidth * scale,
+            height: maxHeight * scale,
+            minWidth: 300,
+            minHeight: 200
+          }}
+        >
+          {displayLayers.map((layer) => {
+            const isVisible = layerVisibility.get(layer.id) ?? layer.visible;
+            const isSelected = selectedLayerId === layer.id;
+            const depth = layer.inferredDepth || 0;
+            const brightness = Math.round(depth * 255);
+            
+            if (!isVisible) return null;
 
-              return (
-                <div
-                  key={layer.id}
-                  className={`absolute border border-slate-600 transition-all duration-200 ${
-                    selectedLayerId === layer.id ? 'ring-2 ring-blue-500' : ''
-                  }`}
-                  style={{
-                    left: `${left}px`,
-                    top: `${top}px`,
-                    width: `${width}px`,
-                    height: `${height}px`,
-                    backgroundColor: color,
-                    opacity: layer.visible ? 0.8 : 0.3,
-                    cursor: 'pointer',
-                    minWidth: '2px',
-                    minHeight: '2px'
-                  }}
-                  onClick={() => handleLayerSelect(layer)}
-                  title={`${layer.name} - Depth: ${Math.round(depth * 100)}%`}
-                >
-                  {/* Depth value overlay */}
-                  {width > 40 && height > 20 && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span 
-                        className="text-xs font-medium px-1 rounded"
-                        style={{
-                          color: brightness > 127 ? '#000' : '#fff',
-                          backgroundColor: brightness > 127 ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)'
-                        }}
-                      >
-                        {Math.round(depth * 100)}%
-                      </span>
-                    </div>
-                  )}
+            return (
+              <div
+                key={layer.id}
+                className={`absolute border-2 cursor-pointer transition-all ${
+                  isSelected 
+                    ? 'border-blue-500 z-20' 
+                    : 'border-transparent hover:border-blue-300'
+                }`}
+                style={{
+                  left: layer.bounds.left * scale,
+                  top: layer.bounds.top * scale,
+                  width: (layer.bounds.right - layer.bounds.left) * scale,
+                  height: (layer.bounds.bottom - layer.bounds.top) * scale,
+                  backgroundColor: isSelected 
+                    ? `rgba(59, 130, 246, 0.3)` 
+                    : `rgb(${brightness}, ${brightness}, ${brightness})`,
+                  minWidth: 20,
+                  minHeight: 20
+                }}
+                onClick={() => handleLayerSelect(layer)}
+                title={`${layer.name} (Depth: ${Math.round(depth * 100)}%)`}
+              >
+                {/* Depth value overlay */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className={`text-xs font-mono ${
+                    depth > 0.5 ? 'text-black' : 'text-white'
+                  }`}>
+                    {Math.round(depth * 100)}%
+                  </span>
                 </div>
-              );
-            })}
-          </div>
-          
-          {processedPSD.layers.length > 30 && (
-            <p className="text-slate-400 text-sm mt-2">
-              Showing first 30 layers for performance. Total: {processedPSD.layers.length}
-            </p>
-          )}
-          
-          <div className="flex items-center gap-4 mt-3 text-sm text-slate-400">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-white rounded border"></div>
-              <span>Front (depth 100%)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-black rounded border border-slate-600"></div>
-              <span>Back (depth 0%)</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-xs text-slate-400 mt-2">
+          Click layers to select • White = Front • Black = Back
+        </p>
+      </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f1b] p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-white mb-2">PSD Preview & Analysis</h1>
-          <p className="text-slate-400">
-            Upload PSD files to analyze layer structure and prepare for 3D reconstruction
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">PSD Layer Analyzer</h1>
+          <p className="text-slate-300">
+            Upload a PSD file to analyze layer hierarchy and semantic content for 3D card creation
           </p>
         </div>
 
         {/* Upload Section */}
-        <Card className="bg-[#0a0f1b] border-slate-800">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Upload className="w-5 h-5" />
-              Upload PSD File
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
+        <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm mb-6">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-white">Upload PSD File</h2>
+              <div className="flex gap-2">
+                {psdData && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowDepthMap(!showDepthMap)}
+                      className={`border-slate-600 ${
+                        showDepthMap 
+                          ? 'bg-blue-600 text-white border-blue-500' 
+                          : 'text-slate-300 hover:text-white hover:border-slate-500'
+                      }`}
+                    >
+                      <Map className="w-4 h-4 mr-2" />
+                      Show Depth Map
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={exportDepthMap}
+                      className="border-slate-600 text-slate-300 hover:text-white hover:border-slate-500"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Export Depth
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="relative">
               <input
-                id="psd-upload"
                 type="file"
                 accept=".psd"
-                onChange={handleFileSelect}
-                className="hidden"
+                onChange={handleFileUpload}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                disabled={isProcessing}
               />
-              <label 
-                htmlFor="psd-upload"
-                className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg border border-slate-600 transition-colors"
-              >
-                Choose PSD File
-              </label>
-              {selectedFile && (
-                <span className="text-slate-300">{selectedFile.name}</span>
-              )}
+              <div className="border-2 border-dashed border-slate-600 rounded-lg p-8 text-center hover:border-slate-500 transition-colors">
+                <Upload className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                <p className="text-slate-300 mb-2">
+                  {isProcessing ? 'Processing PSD file...' : 'Click to upload a PSD file'}
+                </p>
+                <p className="text-sm text-slate-500">
+                  Supports layered PSD files with semantic analysis
+                </p>
+              </div>
             </div>
 
-            <div className="flex gap-3">
-              <Button 
-                onClick={handleProcess}
-                disabled={!selectedFile || isProcessing}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {isProcessing ? 'Processing...' : 'Process PSD'}
-              </Button>
-              
-              {processedPSD && (
-                <>
-                  <Button 
-                    onClick={handleExport}
-                    variant="outline"
-                    className="border-slate-600 text-slate-300 hover:bg-slate-800"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Export Analysis
-                  </Button>
-                  
-                  <Button
-                    onClick={() => setShowDepthMap(!showDepthMap)}
-                    variant="outline"
-                    className={`border-slate-600 text-slate-300 hover:bg-slate-800 ${
-                      showDepthMap ? 'bg-slate-800' : ''
-                    }`}
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    {showDepthMap ? 'Hide' : 'Show'} Depth Map
-                  </Button>
-                </>
-              )}
-            </div>
-          </CardContent>
+            {error && (
+              <div className="mt-4 p-4 bg-red-900/20 border border-red-700 rounded-lg">
+                <p className="text-red-300">{error}</p>
+              </div>
+            )}
+          </div>
         </Card>
 
-        {/* Results Section */}
-        {processedPSD && (
+        {/* Results */}
+        {psdData && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* PSD Info */}
-            <Card className="bg-[#0a0f1b] border-slate-800">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Zap className="w-5 h-5" />
+            <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                  <Layers className="w-5 h-5 mr-2" />
                   PSD Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
+                </h3>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between">
                     <span className="text-slate-400">Dimensions:</span>
-                    <p className="text-white font-medium">
-                      {processedPSD.width} × {processedPSD.height}px
-                    </p>
+                    <span className="text-white">{psdData.width} × {psdData.height}px</span>
                   </div>
-                  <div>
+                  <div className="flex justify-between">
                     <span className="text-slate-400">Total Layers:</span>
-                    <p className="text-white font-medium">{processedPSD.totalLayers}</p>
+                    <span className="text-white">{psdData.totalLayers}</span>
                   </div>
-                  <div>
+                  <div className="flex justify-between">
                     <span className="text-slate-400">Color Mode:</span>
-                    <p className="text-white font-medium">{processedPSD.colorMode}</p>
+                    <span className="text-white">{psdData.colorMode}</span>
                   </div>
-                  <div>
-                    <span className="text-slate-400">Bit Depth:</span>
-                    <p className="text-white font-medium">{processedPSD.bitsPerChannel}-bit</p>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Bits per Channel:</span>
+                    <span className="text-white">{psdData.bitsPerChannel}</span>
                   </div>
-                </div>
 
-                {/* Semantic Analysis Summary */}
-                <div className="pt-4 border-t border-slate-800">
-                  <h4 className="text-white font-medium mb-2">Semantic Analysis</h4>
-                  <div className="space-y-2">
-                    {Object.entries(psdProcessingService.getSemanticTypeDistribution(processedPSD.layers)).map(([type, count]) => (
-                      <div key={type} className="flex items-center justify-between">
-                        <Badge variant="secondary" className="text-xs">
-                          {type.toUpperCase()}
-                        </Badge>
-                        <span className="text-slate-300 text-sm">{count}</span>
-                      </div>
-                    ))}
+                  {/* Analysis Summary */}
+                  <div className="pt-4 border-t border-slate-700">
+                    <h4 className="text-sm font-medium text-white mb-3">Analysis Summary</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {(() => {
+                        const distribution = psdProcessingService.getSemanticTypeDistribution(psdData.layers);
+                        return Object.entries(distribution).map(([type, count]) => (
+                          <Badge key={type} variant="secondary" className="text-xs">
+                            {type}: {count}
+                          </Badge>
+                        ));
+                      })()}
+                    </div>
+                    
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {(() => {
+                        const materialHints = psdProcessingService.getMaterialHintsCount(psdData.layers);
+                        return [
+                          { label: 'Metallic', count: materialHints.metallic, color: 'bg-gray-600' },
+                          { label: 'Holographic', count: materialHints.holographic, color: 'bg-purple-600' },
+                          { label: 'Glow', count: materialHints.glow, color: 'bg-orange-600' }
+                        ].filter(hint => hint.count > 0).map(hint => (
+                          <Badge key={hint.label} className={`${hint.color} text-white text-xs`}>
+                            {hint.label}: {hint.count}
+                          </Badge>
+                        ));
+                      })()}
+                    </div>
+
+                    <div className="mt-3">
+                      <Badge className="bg-green-600 text-white text-xs">
+                        3D Ready: {psdProcessingService.get3DReadyCount(psdData.layers)}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-
-                {/* Material Hints Summary */}
-                <div className="pt-4 border-t border-slate-800">
-                  <h4 className="text-white font-medium mb-2">Material Hints</h4>
-                  <div className="space-y-2">
-                    {(() => {
-                      const hints = psdProcessingService.getMaterialHintsCount(processedPSD.layers);
-                      return (
-                        <>
-                          <div className="flex items-center justify-between">
-                            <Badge className="bg-gradient-to-r from-gray-400 to-gray-600 text-white text-xs">
-                              ✨ Metallic
-                            </Badge>
-                            <span className="text-slate-300 text-sm">{hints.metallic}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <Badge className="bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white text-xs">
-                              🌈 Holographic
-                            </Badge>
-                            <span className="text-slate-300 text-sm">{hints.holographic}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <Badge className="bg-gradient-to-r from-orange-400 to-red-500 text-white text-xs">
-                              💫 Glow
-                            </Badge>
-                            <span className="text-slate-300 text-sm">{hints.glow}</span>
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-slate-800">
-                  <p className="text-slate-400 text-sm">
-                    3D-Ready Layers: {psdProcessingService.get3DReadyCount(processedPSD.layers)} / {processedPSD.layers.length}
-                  </p>
-                </div>
-              </CardContent>
+              </div>
             </Card>
 
+            {/* Layer Inspector */}
+            <div>
+              <PSDLayerInspector
+                processedLayers={psdData.layers}
+                onLayerSelect={handleLayerSelect}
+                selectedLayerId={selectedLayerId}
+                layerVisibility={layerVisibility}
+                onToggleVisibility={toggleLayerVisibility}
+              />
+            </div>
+
             {/* Depth Visualization */}
-            <DepthVisualization />
+            {showDepthMap && (
+              <div className="lg:col-span-2">
+                <DepthVisualization />
+              </div>
+            )}
           </div>
         )}
 
-        {/* Layer Inspector */}
-        {processedPSD && (
-          <PSDLayerInspector
-            processedLayers={processedPSD.layers}
-            onLayerSelect={handleLayerSelect}
-            selectedLayerId={selectedLayerId}
-          />
+        {/* Keyboard shortcuts help */}
+        {psdData && (
+          <Card className="bg-slate-800/30 border-slate-700 backdrop-blur-sm mt-6">
+            <div className="p-4">
+              <h4 className="text-sm font-medium text-white mb-2">Keyboard Shortcuts</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-slate-400">
+                <div>↑↓ - Navigate layers</div>
+                <div>Enter - Toggle visibility</div>
+                <div>Delete - Hide layer</div>
+                <div>Click - Select layer</div>
+              </div>
+            </div>
+          </Card>
         )}
       </div>
     </div>

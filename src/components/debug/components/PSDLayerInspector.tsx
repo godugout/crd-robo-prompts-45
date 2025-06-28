@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Eye, EyeOff, ChevronRight, ChevronDown } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -8,18 +7,19 @@ import { ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService'
 interface PSDLayerInspectorProps {
   processedLayers: ProcessedPSDLayer[];
   onLayerSelect?: (layer: ProcessedPSDLayer) => void;
-  selectedLayerId?: string;
+  selectedLayerId?: string | null;
+  layerVisibility?: Map<string, boolean>;
+  onToggleVisibility?: (layerId: string) => void;
 }
 
 export const PSDLayerInspector: React.FC<PSDLayerInspectorProps> = ({
   processedLayers,
   onLayerSelect,
-  selectedLayerId
+  selectedLayerId,
+  layerVisibility,
+  onToggleVisibility
 }) => {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  const [visibilityStates, setVisibilityStates] = useState<Map<string, boolean>>(
-    new Map(processedLayers.map(layer => [layer.id, layer.visible]))
-  );
 
   // Organize layers into hierarchy (basic implementation - flat for now)
   const organizedLayers = useMemo(() => {
@@ -36,11 +36,7 @@ export const PSDLayerInspector: React.FC<PSDLayerInspectorProps> = ({
 
   const toggleVisibility = (layerId: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    setVisibilityStates(prev => {
-      const newMap = new Map(prev);
-      newMap.set(layerId, !newMap.get(layerId));
-      return newMap;
-    });
+    onToggleVisibility?.(layerId);
   };
 
   const toggleGroup = (layerId: string, event: React.MouseEvent) => {
@@ -127,7 +123,7 @@ export const PSDLayerInspector: React.FC<PSDLayerInspectorProps> = ({
     isGroup: boolean;
   }> = ({ layer, level, isGroup }) => {
     const isSelected = selectedLayerId === layer.id;
-    const isVisible = visibilityStates.get(layer.id) ?? layer.visible;
+    const isVisible = layerVisibility?.get(layer.id) ?? layer.visible;
     const isExpanded = expandedGroups.has(layer.id);
     const depthPercentage = Math.round((layer.inferredDepth || 0) * 100);
 
@@ -136,7 +132,7 @@ export const PSDLayerInspector: React.FC<PSDLayerInspectorProps> = ({
         className={`
           flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all
           hover:bg-slate-800/50 touch-manipulation
-          ${isSelected ? 'bg-blue-900/30 border border-blue-600/50' : ''}
+          ${isSelected ? 'bg-blue-900/50 border-2 border-blue-500/70 shadow-lg shadow-blue-500/20' : 'border-2 border-transparent'}
           ${!isVisible ? 'opacity-50' : ''}
         `}
         style={{ paddingLeft: `${8 + level * 16}px` }}
@@ -153,7 +149,9 @@ export const PSDLayerInspector: React.FC<PSDLayerInspectorProps> = ({
         )}
 
         {/* Layer thumbnail */}
-        <div className="w-10 h-10 bg-slate-700 rounded border flex-shrink-0 overflow-hidden">
+        <div className={`w-10 h-10 bg-slate-700 rounded border flex-shrink-0 overflow-hidden ${
+          isSelected ? 'ring-2 ring-blue-400' : ''
+        }`}>
           {layer.imageData ? (
             <img
               src={layer.imageData}
@@ -173,14 +171,18 @@ export const PSDLayerInspector: React.FC<PSDLayerInspectorProps> = ({
         {/* Layer info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-white text-sm font-medium truncate">
+            <span className={`text-sm font-medium truncate ${
+              isSelected ? 'text-blue-200' : 'text-white'
+            }`}>
               {layer.name}
             </span>
             {getSemanticTypeBadge(layer.semanticType)}
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-slate-400 text-xs">
+            <span className={`text-xs ${
+              isSelected ? 'text-blue-300' : 'text-slate-400'
+            }`}>
               Depth: {depthPercentage}%
             </span>
             {getMaterialHintBadges(layer.materialHints)}
@@ -190,7 +192,11 @@ export const PSDLayerInspector: React.FC<PSDLayerInspectorProps> = ({
         {/* Visibility toggle */}
         <button
           onClick={(e) => toggleVisibility(layer.id, e)}
-          className="text-slate-400 hover:text-white transition-colors p-1"
+          className={`transition-colors p-1 ${
+            isSelected 
+              ? 'text-blue-300 hover:text-blue-100' 
+              : 'text-slate-400 hover:text-white'
+          }`}
         >
           {isVisible ? <Eye size={16} /> : <EyeOff size={16} />}
         </button>
