@@ -1,7 +1,8 @@
 
 import React, { useState, useMemo } from 'react';
 import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
-import { CardFrameFittingInterface } from './components/CardFrameFittingInterface';
+import { EnhancedCardFrameFittingInterface } from './components/EnhancedCardFrameFittingInterface';
+import { CRDFrameBuilder } from './components/CRDFrameBuilder';
 import { SimplifiedLayerInspector } from './components/SimplifiedLayerInspector';
 import { findLargestLayerByVolume } from '@/utils/layerUtils';
 import { PSDCard } from '@/components/ui/design-system/PSDCard';
@@ -10,7 +11,9 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Palette,
   Square,
-  Settings
+  Settings,
+  Wand2,
+  FrameIcon
 } from 'lucide-react';
 
 interface PSDPreviewInterfaceProps {
@@ -23,6 +26,8 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
   const [selectedLayerId, setSelectedLayerId] = useState<string>('');
   const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
   const [selectedFrame, setSelectedFrame] = useState('classic-sports');
+  const [activeTab, setActiveTab] = useState<'fitting' | 'builder'>('fitting');
+  const [generatedFrames, setGeneratedFrames] = useState<any[]>([]);
 
   // Initialize with largest layer selected
   React.useEffect(() => {
@@ -46,12 +51,25 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
     });
   };
 
+  const handleFrameGenerated = (svgContent: string) => {
+    const newFrame = {
+      id: `generated-${Date.now()}`,
+      name: `Generated Frame ${generatedFrames.length + 1}`,
+      category: 'AI Generated',
+      svgContent
+    };
+    setGeneratedFrames(prev => [...prev, newFrame]);
+    setSelectedFrame(newFrame.id);
+    setActiveTab('fitting');
+  };
+
   const selectedLayer = processedPSD.layers.find(layer => layer.id === selectedLayerId);
   const visibleLayerCount = processedPSD.layers.length - hiddenLayers.size;
+  const allFrames = [...generatedFrames];
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 h-full max-w-7xl mx-auto">
-      {/* Card Frame Fitting Interface - Takes up 3/4 width on large screens */}
+      {/* Main Content Area - Takes up 3/4 width on large screens */}
       <div className="xl:col-span-3">
         <PSDCard variant="elevated">
           {/* Header */}
@@ -61,9 +79,9 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
                 <div className="flex items-center gap-3">
                   <Palette className="w-6 h-6 text-crd-green" />
                   <div>
-                    <h1 className="text-xl font-bold text-white">Card Frame Fitting</h1>
+                    <h1 className="text-xl font-bold text-white">Enhanced Card Frame System</h1>
                     <p className="text-sm text-slate-400">
-                      Position and crop your image within the selected frame
+                      AI-powered frame building and precise card fitting
                     </p>
                   </div>
                 </div>
@@ -79,9 +97,35 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
               </div>
             </div>
 
+            {/* Tab Navigation */}
+            <div className="flex items-center gap-4">
+              <PSDButton
+                variant={activeTab === 'fitting' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setActiveTab('fitting')}
+              >
+                <FrameIcon className="w-4 h-4 mr-2" />
+                Frame Fitting
+              </PSDButton>
+              <PSDButton
+                variant={activeTab === 'builder' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setActiveTab('builder')}
+              >
+                <Wand2 className="w-4 h-4 mr-2" />
+                CRD Builder
+              </PSDButton>
+              
+              {generatedFrames.length > 0 && (
+                <Badge className="bg-crd-blue text-white">
+                  {generatedFrames.length} Generated
+                </Badge>
+              )}
+            </div>
+
             {/* Selected Layer Info */}
-            {selectedLayer && (
-              <div className="flex items-center justify-between">
+            {selectedLayer && activeTab === 'fitting' && (
+              <div className="flex items-center justify-between mt-4">
                 <Badge className="bg-crd-green text-black font-medium px-3 py-1">
                   Active: {selectedLayer.name}
                 </Badge>
@@ -97,15 +141,27 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
             )}
           </div>
           
-          {/* Frame Fitting Interface */}
+          {/* Main Content */}
           <div className="p-6">
-            <CardFrameFittingInterface
-              processedPSD={processedPSD}
-              selectedLayerId={selectedLayerId}
-              hiddenLayers={hiddenLayers}
-              onLayerSelect={setSelectedLayerId}
-              selectedFrame={selectedFrame}
-            />
+            {activeTab === 'fitting' && (
+              <EnhancedCardFrameFittingInterface
+                processedPSD={processedPSD}
+                selectedLayerId={selectedLayerId}
+                hiddenLayers={hiddenLayers}
+                onLayerSelect={setSelectedLayerId}
+                selectedFrame={selectedFrame}
+                availableFrames={allFrames}
+                onFrameSelect={setSelectedFrame}
+              />
+            )}
+            
+            {activeTab === 'builder' && (
+              <CRDFrameBuilder
+                processedPSD={processedPSD}
+                selectedLayerId={selectedLayerId}
+                onFrameGenerated={handleFrameGenerated}
+              />
+            )}
           </div>
         </PSDCard>
       </div>
