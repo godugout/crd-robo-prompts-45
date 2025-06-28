@@ -1,8 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { ProcessedPSD, ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
 import { LayerGroup } from '@/services/psdProcessor/layerGroupingService';
 import { useCanvasNavigation } from '@/hooks/useCanvasNavigation';
 import { CanvasControls } from './CanvasControls';
+import { LayerMode } from './LayerModeToggle';
 
 interface PSDCanvasPreviewProps {
   processedPSD: ProcessedPSD;
@@ -12,7 +14,7 @@ interface PSDCanvasPreviewProps {
   onLayerSelect: (layerId: string) => void;
   frameBuilderMode?: boolean;
   focusMode?: boolean;
-  mode?: 'elements' | 'frame' | 'preview';
+  mode?: LayerMode;
   flippedLayers?: Set<string>;
 }
 
@@ -28,259 +30,263 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   flippedLayers = new Set()
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [hoveredLayerId, setHoveredLayerId] = useState<string | null>(null);
-  const { transform, isPanning, zoomIn, zoomOut, setZoom, resetView, fitToScreen, handleMouseDown, handleMouseMove, handleMouseUp, getTransformStyle } = useCanvasNavigation();
+  const [lastRenderTime, setLastRenderTime] = useState(0);
 
-  useEffect(() => {
+  const {
+    transform,
+    isPanning,
+    zoomIn,
+    zoomOut,
+    resetView,
+    fitToScreen,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    getTransformStyle
+  } = useCanvasNavigation();
+
+  // Move drawLayer function declaration before its usage
+  const drawLayer = useCallback((
+    ctx: CanvasRenderingContext2D,
+    layer: ProcessedPSDLayer,
+    isHovered: boolean = false,
+    isSelected: boolean = false,
+    isFlipped: boolean = false
+  ) => {
+    if (!layer.extractedImage || hiddenLayers.has(layer.id) || !layer.extractedImage.fullColorImageUrl) {
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      ctx.save();
+      
+      // Set layer opacity and blend mode
+      let opacity = layer.opacity;
+      if (mode === 'elements') {
+        if (isHovered && !isSelected) {
+          opacity = 0.7; // Light preview on hover
+        } else if (isSelected) {
+          opacity = 1.0; // Full color on selection
+        } else {
+          opacity = 0.3; // Muted when not interacted with
+        }
+      } else if (mode === 'preview') {
+        opacity = isFlipped ? 0.8 : 1.0; // Slightly transparent when showing CRD overlay
+      }
+      
+      ctx.globalAlpha = opacity;
+      
+      // Draw the layer image
+      ctx.drawImage(
+        img,
+        layer.bounds.left,
+        layer.bounds.top,
+        layer.bounds.right - layer.bounds.left,
+        layer.bounds.bottom - layer.bounds.top
+      );
+
+      // Add selection highlight
+      if (isSelected) {
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(
+          layer.bounds.left - 1,
+          layer.bounds.top - 1,
+          layer.bounds.right - layer.bounds.left + 2,
+          layer.bounds.bottom - layer.bounds.top + 2
+        );
+      }
+
+      // Add hover highlight
+      if (isHovered && !isSelected) {
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(
+          layer.bounds.left,
+          layer.bounds.top,
+          layer.bounds.right - layer.bounds.left,
+          layer.bounds.bottom - layer.bounds.top
+        );
+      }
+
+      // Add CRD overlay for flipped layers in preview mode
+      if (mode === 'preview' && isFlipped) {
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.3)';
+        ctx.fillRect(
+          layer.bounds.left,
+          layer.bounds.top,
+          layer.bounds.right - layer.bounds.left,
+          layer.bounds.bottom - layer.bounds.top
+        );
+        
+        // Add CRD logo placeholder
+        ctx.fillStyle = '#3b82f6';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(
+          'CRD',
+          layer.bounds.left + (layer.bounds.right - layer.bounds.left) / 2,
+          layer.bounds.top + (layer.bounds.bottom - layer.bounds.top) / 2
+        );
+      }
+      
+      ctx.restore();
+    };
+    
+    img.src = layer.extractedImage.fullColorImageUrl;
+  }, [hiddenLayers, mode]);
+
+  const renderCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || !processedPSD) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas dimensions
+    // Set canvas size to PSD dimensions
     canvas.width = processedPSD.width;
     canvas.height = processedPSD.height;
 
     // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw each layer
-    processedPSD.layers.forEach(layer => {
-      const isSelected = layer.id === selectedLayerId;
-      const isHovered = layer.id === hoveredLayerId;
-      drawLayer(ctx, layer, isSelected, isHovered);
-    });
-  }, [processedPSD, selectedLayerId, hoveredLayerId, hiddenLayers, transform, drawLayer, mode, flippedLayers]);
-
-  const handleCanvasClick = (e: React.MouseEvent) => {
-    if (!canvasRef.current) return;
-
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    // Adjust coordinates based on current zoom and pan
-    const adjustedX = (x - transform.translateX) / transform.scale;
-    const adjustedY = (y - transform.translateY) / transform.scale;
-
-    // Find clicked layer
-    for (let i = processedPSD.layers.length - 1; i >= 0; i--) {
-      const layer = processedPSD.layers[i];
-      if (hiddenLayers.has(layer.id)) continue;
-
-      const bounds = layer.bounds;
-      if (adjustedX >= bounds.left && adjustedX <= bounds.right &&
-          adjustedY >= bounds.top && adjustedY <= bounds.bottom) {
-        onLayerSelect(layer.id);
-        return;
-      }
+    if (mode === 'preview') {
+      // Show full card background in preview mode
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
-    // Deselect if no layer is clicked
-    onLayerSelect('');
-  };
+    // Draw layers based on mode
+    processedPSD.layers.forEach(layer => {
+      const isHovered = hoveredLayerId === layer.id;
+      const isSelected = selectedLayerId === layer.id;
+      const isFlipped = flippedLayers.has(layer.id);
+      
+      drawLayer(ctx, layer, isHovered, isSelected, isFlipped);
+    });
 
-  const handleCanvasMouseMove = (e: React.MouseEvent) => {
-    if (!canvasRef.current) return;
+    setLastRenderTime(Date.now());
+  }, [processedPSD, selectedLayerId, hiddenLayers, hoveredLayerId, mode, flippedLayers, drawLayer]);
 
+  // Handle canvas interactions
+  const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (isPanning) return;
+    
     const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    if (!canvas) return;
 
-    // Adjust coordinates based on current zoom and pan
-    const adjustedX = (x - transform.translateX) / transform.scale;
-    const adjustedY = (y - transform.translateY) / transform.scale;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const x = ((event.clientX - rect.left) * scaleX - transform.translateX) / transform.scale;
+    const y = ((event.clientY - rect.top) * scaleY - transform.translateY) / transform.scale;
+
+    // Find clicked layer (reverse order to get topmost)
+    const clickedLayer = [...processedPSD.layers].reverse().find(layer => {
+      return !hiddenLayers.has(layer.id) &&
+             x >= layer.bounds.left &&
+             x <= layer.bounds.right &&
+             y >= layer.bounds.top &&
+             y <= layer.bounds.bottom;
+    });
+
+    if (clickedLayer) {
+      onLayerSelect(clickedLayer.id);
+    }
+  }, [isPanning, transform, processedPSD.layers, hiddenLayers, onLayerSelect]);
+
+  const handleCanvasMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    handleMouseMove(event);
+    
+    if (isPanning || mode !== 'elements') return;
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const x = ((event.clientX - rect.left) * scaleX - transform.translateX) / transform.scale;
+    const y = ((event.clientY - rect.top) * scaleY - transform.translateY) / transform.scale;
 
     // Find hovered layer
-    for (let i = processedPSD.layers.length - 1; i >= 0; i--) {
-      const layer = processedPSD.layers[i];
-      if (hiddenLayers.has(layer.id)) continue;
+    const hoveredLayer = [...processedPSD.layers].reverse().find(layer => {
+      return !hiddenLayers.has(layer.id) &&
+             x >= layer.bounds.left &&
+             x <= layer.bounds.right &&
+             y >= layer.bounds.top &&
+             y <= layer.bounds.bottom;
+    });
 
-      const bounds = layer.bounds;
-      if (adjustedX >= bounds.left && adjustedX <= bounds.right &&
-          adjustedY >= bounds.top && adjustedY <= bounds.bottom) {
-        setHoveredLayerId(layer.id);
-        return;
-      }
+    setHoveredLayerId(hoveredLayer?.id || null);
+  }, [isPanning, transform, processedPSD.layers, hiddenLayers, mode, handleMouseMove]);
+
+  // Render canvas when dependencies change
+  useEffect(() => {
+    renderCanvas();
+  }, [renderCanvas]);
+
+  // Fit to screen on initial load
+  useEffect(() => {
+    if (containerRef.current && processedPSD) {
+      const container = containerRef.current;
+      fitToScreen(container.clientWidth, container.clientHeight, processedPSD.width, processedPSD.height);
     }
-
-    // Clear hover if no layer is hovered
-    setHoveredLayerId(null);
-  };
-
-  const handleCanvasMouseLeave = () => {
-    setHoveredLayerId(null);
-  };
-
-  const getLayerColor = (layer: ProcessedPSDLayer): string => {
-    switch (layer.semanticType) {
-      case 'player': return 'rgba(59, 130, 246, 0.2)'; // Blue
-      case 'background': return 'rgba(16, 185, 129, 0.2)'; // Green
-      case 'stats': return 'rgba(245, 158, 11, 0.2)'; // Amber
-      case 'logo': return 'rgba(139, 92, 246, 0.2)'; // Purple
-      case 'border': return 'rgba(239, 68, 68, 0.2)'; // Red
-      case 'text': return 'rgba(107, 114, 128, 0.2)'; // Gray
-      case 'effect': return 'rgba(236, 72, 153, 0.2)'; // Pink
-      default: return 'rgba(100, 116, 139, 0.2)'; // Slate
-    }
-  };
-
-  const drawLayer = useCallback((ctx: CanvasRenderingContext2D, layer: ProcessedPSDLayer, isSelected: boolean, isHovered: boolean) => {
-    if (hiddenLayers.has(layer.id) && mode !== 'preview') return;
-
-    const bounds = layer.bounds;
-    const layerWidth = bounds.right - bounds.left;
-    const layerHeight = bounds.bottom - bounds.top;
-
-    if (layerWidth <= 0 || layerHeight <= 0) return;
-
-    ctx.save();
-
-    try {
-      // Mode-specific rendering logic
-      if (mode === 'preview') {
-        // Preview mode: show full card or flipped CRD branding
-        const isFlipped = flippedLayers.has(layer.id);
-        
-        if (isFlipped) {
-          // Draw CRD logo overlay
-          ctx.fillStyle = '#00d4ff';
-          ctx.globalAlpha = 0.8;
-          ctx.fillRect(bounds.left, bounds.top, layerWidth, layerHeight);
-          
-          // Add CRD text
-          ctx.fillStyle = '#ffffff';
-          ctx.globalAlpha = 1;
-          ctx.font = `${Math.min(layerHeight / 4, 24)}px Arial`;
-          ctx.textAlign = 'center';
-          ctx.fillText('CRD', bounds.left + layerWidth / 2, bounds.top + layerHeight / 2);
-        } else {
-          // Draw normal layer (full opacity for card view)
-          ctx.globalAlpha = layer.opacity;
-          ctx.fillStyle = getLayerColor(layer);
-          ctx.fillRect(bounds.left, bounds.top, layerWidth, layerHeight);
-        }
-      } else if (mode === 'frame') {
-        // Frame mode: visual separation of content vs design
-        const isContentLayer = isContentOrDesign(layer) === 'content';
-        const baseColor = isContentLayer ? '#3b82f6' : '#8b5cf6'; // Blue for content, purple for design
-        
-        if (isSelected) {
-          ctx.globalAlpha = layer.opacity;
-          ctx.fillStyle = baseColor;
-        } else if (isHovered) {
-          ctx.globalAlpha = 0.3;
-          ctx.fillStyle = baseColor;
-        } else {
-          ctx.globalAlpha = 0.1;
-          ctx.fillStyle = baseColor;
-        }
-        
-        ctx.fillRect(bounds.left, bounds.top, layerWidth, layerHeight);
-        
-        // Add category indicator
-        ctx.strokeStyle = baseColor;
-        ctx.lineWidth = 2;
-        ctx.globalAlpha = 0.8;
-        ctx.strokeRect(bounds.left, bounds.top, layerWidth, layerHeight);
-      } else {
-        // Elements mode: current behavior
-        if (isSelected) {
-          ctx.globalAlpha = layer.opacity;
-          ctx.fillStyle = getLayerColor(layer);
-        } else if (isHovered) {
-          ctx.globalAlpha = 0.3;
-          ctx.fillStyle = getLayerColor(layer);
-        } else {
-          ctx.globalAlpha = 0.1;
-          ctx.fillStyle = '#64748b';
-        }
-        
-        ctx.fillRect(bounds.left, bounds.top, layerWidth, layerHeight);
-      }
-
-      // Selection highlight (all modes)
-      if (isSelected) {
-        ctx.strokeStyle = '#22c55e';
-        ctx.lineWidth = 2;
-        ctx.globalAlpha = 1;
-        ctx.strokeRect(bounds.left - 1, bounds.top - 1, layerWidth + 2, layerHeight + 2);
-      }
-
-    } catch (error) {
-      console.warn('Error drawing layer:', layer.name, error);
-    } finally {
-      ctx.restore();
-    }
-  }, [hiddenLayers, mode, flippedLayers]);
-
-  const isContentOrDesign = (layer: ProcessedPSDLayer): 'content' | 'design' => {
-    const name = layer.name.toLowerCase();
-    const semanticType = layer.semanticType;
-
-    if (
-      semanticType === 'player' ||
-      semanticType === 'background' ||
-      name.includes('photo') ||
-      name.includes('image') ||
-      name.includes('player') ||
-      name.includes('character') ||
-      name.includes('subject') ||
-      name.includes('portrait')
-    ) {
-      return 'content';
-    }
-    
-    return 'design';
-  };
-
-  // Update the canvas background for different modes
-  const getCanvasBackground = () => {
-    switch (mode) {
-      case 'preview':
-        return 'bg-slate-900'; // Darker for full card preview
-      case 'frame':
-        return 'bg-slate-800'; // Medium for content/design separation
-      default:
-        return 'bg-transparent'; // Transparent for elements mode
-    }
-  };
+  }, [processedPSD, fitToScreen]);
 
   return (
-    <div className="relative w-full h-full overflow-hidden">
+    <div ref={containerRef} className="h-full flex flex-col">
       <CanvasControls
-        zoom={transform.scale}
-        isPanning={isPanning}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
-        onFitToScreen={() => fitToScreen(
-          canvasRef.current?.clientWidth || 800,
-          canvasRef.current?.clientHeight || 600,
-          processedPSD.width,
-          processedPSD.height
-        )}
         onResetView={resetView}
+        onFitToScreen={() => {
+          if (containerRef.current && processedPSD) {
+            fitToScreen(
+              containerRef.current.clientWidth,
+              containerRef.current.clientHeight - 60,
+              processedPSD.width,
+              processedPSD.height
+            );
+          }
+        }}
+        zoom={transform.scale}
+        focusMode={focusMode}
+        frameBuilderMode={frameBuilderMode}
       />
       
-      <div 
-        className={`w-full h-full ${getCanvasBackground()}`}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
-      >
-        <canvas
-          ref={canvasRef}
-          style={getTransformStyle()}
-          className="border border-slate-600 shadow-lg"
-          onClick={handleCanvasClick}
-          onMouseMove={handleCanvasMouseMove}
-          onMouseLeave={handleCanvasMouseLeave}
-        />
+      <div className="flex-1 overflow-hidden bg-slate-900 relative">
+        <div 
+          className="w-full h-full flex items-center justify-center"
+          style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
+        >
+          <canvas
+            ref={canvasRef}
+            className="border border-slate-600 shadow-lg"
+            style={getTransformStyle()}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseUp={handleMouseUp}
+            onClick={handleCanvasClick}
+          />
+        </div>
+        
+        {/* Mode indicator */}
+        <div className="absolute top-4 left-4 bg-slate-800 border border-slate-600 rounded px-3 py-1">
+          <span className="text-sm text-slate-300 capitalize">{mode} Mode</span>
+        </div>
+        
+        {/* Render stats */}
+        <div className="absolute bottom-4 right-4 bg-slate-800 border border-slate-600 rounded px-3 py-1">
+          <span className="text-xs text-slate-400">
+            Last render: {new Date(lastRenderTime).toLocaleTimeString()}
+          </span>
+        </div>
       </div>
     </div>
   );
