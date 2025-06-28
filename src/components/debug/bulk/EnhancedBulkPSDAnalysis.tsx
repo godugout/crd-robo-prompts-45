@@ -7,7 +7,7 @@ import { BulkPSDData } from '@/pages/BulkPSDAnalysisPage';
 import { BulkPSDUploader } from './BulkPSDUploader';
 import { PSDComparisonTable } from './PSDComparisonTable';
 import { EnhancedPSDCard } from './enhanced/EnhancedPSDCard';
-import { VisualLayerPreviewGrid } from './enhanced/VisualLayerPreviewGrid';
+import { RealLayerPreviewGrid } from './enhanced/RealLayerPreviewGrid';
 import { InteractiveCardOverlay } from './enhanced/InteractiveCardOverlay';
 import { Upload, Grid, Eye, Sparkles, ArrowRight } from 'lucide-react';
 
@@ -54,13 +54,13 @@ export const EnhancedBulkPSDAnalysis: React.FC<EnhancedBulkPSDAnalysisProps> = (
 
   const handleCreateCRDFrame = useCallback((psdId: string) => {
     console.log('Create CRD frame for PSD:', psdId);
-    // TODO: Implement CRD frame creation workflow
+    // TODO: Implement enhanced CRD frame creation workflow
   }, []);
 
   const handleBulkCreateFrames = useCallback(() => {
     const selectedElements = Array.from(selectedLayers);
     console.log('Create CRD frames for selected elements:', selectedElements);
-    // TODO: Implement bulk CRD frame creation
+    // TODO: Implement bulk CRD frame creation with real images
   }, [selectedLayers]);
 
   return (
@@ -95,7 +95,7 @@ export const EnhancedBulkPSDAnalysis: React.FC<EnhancedBulkPSDAnalysisProps> = (
                 className="flex items-center gap-2 data-[state=active]:bg-crd-green data-[state=active]:text-black"
               >
                 <Eye className="w-4 h-4" />
-                Layer Analysis
+                Real Layer Analysis
               </TabsTrigger>
               <TabsTrigger 
                 value="overlay"
@@ -156,10 +156,10 @@ export const EnhancedBulkPSDAnalysis: React.FC<EnhancedBulkPSDAnalysisProps> = (
             </div>
           </TabsContent>
 
-          {/* Layer Analysis View */}
+          {/* Real Layer Analysis View */}
           <TabsContent value="analysis" className="space-y-6">
             {selectedPSD ? (
-              <VisualLayerPreviewGrid
+              <RealLayerPreviewGrid
                 processedPSD={selectedPSD.processedPSD}
                 selectedLayers={selectedLayers}
                 onLayerToggle={handleLayerToggle}
@@ -170,9 +170,9 @@ export const EnhancedBulkPSDAnalysis: React.FC<EnhancedBulkPSDAnalysisProps> = (
               <Card className="bg-[#131316] border-slate-700">
                 <div className="p-12 text-center">
                   <Eye className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-medium text-white mb-2">Select a PSD for Layer Analysis</h3>
+                  <h3 className="text-xl font-medium text-white mb-2">Select a PSD for Real Layer Analysis</h3>
                   <p className="text-slate-400">
-                    Choose a PSD card above to explore its layers in detail
+                    Choose a PSD card above to explore its layers with real image previews
                   </p>
                 </div>
               </Card>
@@ -194,7 +194,7 @@ export const EnhancedBulkPSDAnalysis: React.FC<EnhancedBulkPSDAnalysisProps> = (
                   <Sparkles className="w-16 h-16 text-slate-600 mx-auto mb-4" />
                   <h3 className="text-xl font-medium text-white mb-2">Select a PSD for Interactive Overlay</h3>
                   <p className="text-slate-400">
-                    Choose a PSD card above to see color-coded element overlays
+                    Choose a PSD card above to see color-coded element overlays with real images
                   </p>
                 </div>
               </Card>
