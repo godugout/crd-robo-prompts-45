@@ -69,17 +69,17 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
       {/* Canvas Preview */}
       <div className="lg:col-span-2">
-        <Card className="bg-[#0a0f1b] border-slate-800 h-full">
-          <div className="p-4 border-b border-slate-800">
+        <Card className="bg-[#1a1f2e] border-slate-700 h-full">
+          <div className="p-4 border-b border-slate-700">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <Palette className="w-5 h-5 text-crd-green" />
                 <h3 className="text-lg font-semibold text-white">Canvas Preview</h3>
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs bg-slate-800 text-slate-300 border-slate-600">
                   {processedPSD.width} × {processedPSD.height}px
                 </Badge>
                 {selectedLayer && (
-                  <Badge variant="outline" className="text-xs bg-crd-green/20 text-crd-green">
+                  <Badge className="text-xs bg-crd-green text-black font-medium">
                     {selectedLayer.name}
                   </Badge>
                 )}
@@ -90,17 +90,20 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
                   variant={focusMode ? "default" : "outline"}
                   size="sm"
                   onClick={toggleFocusMode}
-                  className={focusMode ? "bg-crd-green text-black hover:bg-crd-green/90" : ""}
+                  className={focusMode ? 
+                    "bg-crd-green text-black hover:bg-crd-green/90 font-medium" : 
+                    "border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"
+                  }
                 >
                   {focusMode ? (
                     <>
-                      <MoonIcon className="w-4 h-4 mr-1" />
+                      <MoonIcon className="w-4 h-4 mr-2" />
                       Focus Mode
                     </>
                   ) : (
                     <>
-                      <Sun className="w-4 h-4 mr-1" />
-                      Full Brightness
+                      <Sun className="w-4 h-4 mr-2" />
+                      Full View
                     </>
                   )}
                 </Button>
@@ -109,14 +112,21 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
                   variant={frameBuilderMode ? "default" : "outline"}
                   size="sm"
                   onClick={() => setFrameBuilderMode(!frameBuilderMode)}
-                  className="text-xs"
+                  className={frameBuilderMode ? 
+                    "bg-crd-blue text-white hover:bg-crd-blue/90 font-medium" : 
+                    "border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"
+                  }
                 >
-                  <Grid className="w-4 h-4 mr-1" />
+                  <Grid className="w-4 h-4 mr-2" />
                   {frameBuilderMode ? 'Exit Builder' : 'Frame Builder'}
                 </Button>
                 
-                <Button variant="outline" size="sm">
-                  <Download className="w-4 h-4 mr-1" />
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"
+                >
+                  <Download className="w-4 h-4 mr-2" />
                   Export
                 </Button>
               </div>
