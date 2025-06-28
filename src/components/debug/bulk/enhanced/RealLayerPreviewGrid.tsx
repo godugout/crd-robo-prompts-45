@@ -96,7 +96,7 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
     <div className="space-y-6">
       {/* Large Visual Layer Grid - Optimized for Visibility */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {processedPSD.layers.map((layer) => {
+        {processedPSD.layers.map((layer: EnhancedProcessedPSDLayer) => {
           const dimensions = getLayerDimensions(layer);
           const isSelected = selectedLayers.has(layer.id);
           const isHidden = hiddenLayers.has(layer.id);
