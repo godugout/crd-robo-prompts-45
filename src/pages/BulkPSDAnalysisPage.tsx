@@ -47,7 +47,7 @@ const BulkPSDAnalysisPage: React.FC = () => {
                 <div className="h-6 w-px bg-slate-600" />
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-6 h-6 text-crd-green" />
-                  <h1 className="text-2xl font-bold text-white">Visual PSD Analysis</h1>
+                  <h1 className="text-2xl font-bold text-white">Enhanced Visual PSD Analysis</h1>
                 </div>
               </div>
 
@@ -62,12 +62,13 @@ const BulkPSDAnalysisPage: React.FC = () => {
               )}
             </div>
 
-            <p className="text-slate-400 text-sm max-w-2xl">
-              Upload and analyze PSD files to detect card elements, review layer structures, and create CRD frames with intelligent element selection.
+            <p className="text-slate-400 text-sm max-w-3xl">
+              Upload and analyze PSD files with enhanced visual previews, interactive element overlays, and streamlined CRD frame creation. 
+              See actual card images and layer previews optimized for visibility and frame building.
             </p>
           </div>
 
-          {/* Stats Overview */}
+          {/* Enhanced Stats Overview */}
           {processedPSDs.length > 0 && (
             <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-[#131316] border border-slate-700 rounded-lg p-4">
@@ -89,19 +90,19 @@ const BulkPSDAnalysisPage: React.FC = () => {
 
               <div className="bg-[#131316] border border-slate-700 rounded-lg p-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-400 text-sm">Avg Elements</span>
+                  <span className="text-slate-400 text-sm">Detected Elements</span>
                 </div>
                 <p className="text-2xl font-bold text-white mt-1">
-                  {Math.round(processedPSDs.reduce((acc, psd) => {
+                  {processedPSDs.reduce((acc, psd) => {
                     const elements = new Set(psd.processedPSD.layers.map(l => l.semanticType).filter(Boolean)).size;
                     return acc + elements;
-                  }, 0) / Math.max(processedPSDs.length, 1))}
+                  }, 0)}
                 </p>
               </div>
 
               <div className="bg-[#131316] border border-slate-700 rounded-lg p-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-400 text-sm">Ready for CRD</span>
+                  <span className="text-slate-400 text-sm">CRD Ready</span>
                 </div>
                 <p className="text-2xl font-bold text-white mt-1">
                   {processedPSDs.filter(psd => 
