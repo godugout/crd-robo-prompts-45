@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EnhancedProcessedPSD, EnhancedProcessedPSDLayer } from '@/services/psdProcessor/enhancedPsdProcessingService';
-import { Eye, EyeOff, Info, ZoomIn, CheckSquare, Square, Image } from 'lucide-react';
+import { Eye, EyeOff, Info, ZoomIn, CheckSquare, Square } from 'lucide-react';
 
 interface RealLayerPreviewGridProps {
   processedPSD: EnhancedProcessedPSD;
@@ -22,7 +22,6 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
   onLayerPreview
 }) => {
   const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
-  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
   const toggleLayerVisibility = (layerId: string) => {
     setHiddenLayers(prev => {
@@ -34,10 +33,6 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
       }
       return newSet;
     });
-  };
-
-  const handleImageError = (layerId: string) => {
-    setImageErrors(prev => new Set(prev).add(layerId));
   };
 
   const getSemanticTypeColor = (type?: string) => {
@@ -61,26 +56,32 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
   };
 
   const renderLayerPreview = (layer: EnhancedProcessedPSDLayer) => {
-    const hasError = imageErrors.has(layer.id);
-    const dimensions = getLayerDimensions(layer);
-
-    if (layer.hasRealImage && layer.thumbnailUrl && !hasError) {
+    // If we have a real image, use it
+    if (layer.hasRealImage && layer.thumbnailUrl) {
       return (
         <img
           src={layer.thumbnailUrl}
           alt={layer.name}
           className="w-full h-full object-contain"
-          onError={() => handleImageError(layer.id)}
+          onError={(e) => {
+            // Fallback to placeholder if image fails to load
+            console.warn(`Failed to load layer image for ${layer.name}`);
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+          }}
         />
       );
     }
 
     // Fallback placeholder
+    const dimensions = getLayerDimensions(layer);
     return (
       <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 bg-slate-600 rounded mb-2 flex items-center justify-center">
-            <Image className="w-8 h-8 text-slate-300" />
+            <span className="text-slate-300 text-xs font-mono">
+              {layer.type.charAt(0).toUpperCase()}
+            </span>
           </div>
           <p className="text-slate-400 text-xs">
             {dimensions.width} × {dimensions.height}
@@ -92,32 +93,43 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Stats Header */}
-      <div className="bg-slate-800 border border-slate-600 rounded-lg p-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div>
-            <span className="text-slate-400 text-sm">Total Layers</span>
-            <p className="text-xl font-bold text-white">{processedPSD.layers.length}</p>
+      {/* Statistics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="bg-slate-800 border-slate-600 p-4">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-white">{processedPSD.layers.length}</p>
+            <p className="text-slate-400 text-sm">Total Layers</p>
           </div>
-          <div>
-            <span className="text-slate-400 text-sm">With Images</span>
-            <p className="text-xl font-bold text-crd-green">
+        </Card>
+        
+        <Card className="bg-slate-800 border-slate-600 p-4">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-crd-green">
               {processedPSD.layers.filter(l => l.hasRealImage).length}
             </p>
+            <p className="text-slate-400 text-sm">With Images</p>
           </div>
-          <div>
-            <span className="text-slate-400 text-sm">Selected</span>
-            <p className="text-xl font-bold text-blue-400">{selectedLayers.size}</p>
+        </Card>
+        
+        <Card className="bg-slate-800 border-slate-600 p-4">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-blue-400">{selectedLayers.size}</p>
+            <p className="text-slate-400 text-sm">Selected</p>
           </div>
-          <div>
-            <span className="text-slate-400 text-sm">Hidden</span>
-            <p className="text-xl font-bold text-slate-400">{hiddenLayers.size}</p>
+        </Card>
+        
+        <Card className="bg-slate-800 border-slate-600 p-4">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-amber-400">
+              {processedPSD.layers.filter(l => l.semanticType).length}
+            </p>
+            <p className="text-slate-400 text-sm">Identified</p>
           </div>
-        </div>
+        </Card>
       </div>
 
-      {/* Large Visual Layer Grid - Optimized for Real Images */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {/* Large Visual Layer Grid - Optimized for Visibility */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {processedPSD.layers.map((layer) => {
           const dimensions = getLayerDimensions(layer);
           const isSelected = selectedLayers.has(layer.id);
@@ -132,7 +144,7 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
               onClick={() => onLayerSelect(layer.id)}
             >
               <div className="p-4">
-                {/* Large Layer Preview - Real Images */}
+                {/* Large Layer Preview - Minimum 200x200px */}
                 <div className="aspect-square bg-slate-900 rounded-lg mb-4 overflow-hidden relative min-h-[200px]">
                   {renderLayerPreview(layer)}
                   
@@ -188,10 +200,8 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
 
                   {/* Image Status Indicator */}
                   {layer.hasRealImage && (
-                    <div className="absolute top-2 right-2">
-                      <Badge className="bg-crd-green/20 text-crd-green text-xs">
-                        Real Image
-                      </Badge>
+                    <div className="absolute top-2 right-8">
+                      <div className="w-3 h-3 bg-crd-green rounded-full" title="Real image available" />
                     </div>
                   )}
                 </div>
@@ -223,6 +233,11 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
                         layer.semanticType === 'logo' ? 'pink' :
                         layer.semanticType === 'border' ? 'amber' : 'blue'}-400`}>
                         {layer.semanticType}
+                      </Badge>
+                    )}
+                    {layer.hasRealImage && (
+                      <Badge className="text-xs bg-crd-green/20 text-crd-green">
+                        Real Image
                       </Badge>
                     )}
                   </div>
