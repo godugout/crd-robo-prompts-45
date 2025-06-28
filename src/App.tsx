@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -11,11 +12,13 @@ import SignUp from "./pages/auth/SignUp";
 import AuthCallback from "./pages/auth/AuthCallback";
 import CardCreation from "./pages/CardCreation";
 import EnhancedCardCreationPage from "./pages/EnhancedCardCreationPage";
+import FunctionalCardCreationPage from "./pages/FunctionalCardCreationPage";
 import { EnhancedStudio } from "@/components/studio/EnhancedStudio";
 import Collections from './pages/Collections';
 import CreatorDashboardPage from './pages/CreatorDashboardPage';
 import CommunityHubPage from './pages/CommunityHubPage';
 import PSDPreviewPage from './pages/PSDPreviewPage';
+import SimplePSDAnalysisPage from './pages/SimplePSDAnalysisPage';
 import BulkPSDAnalysisPage from "./pages/BulkPSDAnalysisPage";
 import Debug from "./pages/Debug";
 
@@ -86,6 +89,16 @@ function App() {
                   } 
                 />
                 <Route 
+                  path="/create/functional" 
+                  element={
+                    <MainLayout>
+                      <ProtectedRoute>
+                        <FunctionalCardCreationPage />
+                      </ProtectedRoute>
+                    </MainLayout>
+                  } 
+                />
+                <Route 
                   path="/studio" 
                   element={
                     <MainLayout>
@@ -123,6 +136,16 @@ function App() {
                 />
                 <Route 
                   path="/debug/psd-preview" 
+                  element={
+                    <MainLayout>
+                      <ProtectedRoute>
+                        <SimplePSDAnalysisPage />
+                      </ProtectedRoute>
+                    </MainLayout>
+                  } 
+                />
+                <Route 
+                  path="/debug/psd-preview-advanced" 
                   element={
                     <MainLayout>
                       <ProtectedRoute>
