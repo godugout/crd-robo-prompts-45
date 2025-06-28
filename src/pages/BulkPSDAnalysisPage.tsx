@@ -1,11 +1,10 @@
 
 import React, { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { BulkPSDUploader } from '@/components/debug/bulk/BulkPSDUploader';
-import { PSDComparisonTable } from '@/components/debug/bulk/PSDComparisonTable';
+import { EnhancedBulkPSDAnalysis } from '@/components/debug/bulk/EnhancedBulkPSDAnalysis';
 import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Database, GitCompare } from 'lucide-react';
+import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export interface BulkPSDData {
@@ -47,8 +46,8 @@ const BulkPSDAnalysisPage: React.FC = () => {
                 </Button>
                 <div className="h-6 w-px bg-slate-600" />
                 <div className="flex items-center gap-2">
-                  <GitCompare className="w-6 h-6 text-crd-green" />
-                  <h1 className="text-2xl font-bold text-white">Bulk PSD Analysis</h1>
+                  <Sparkles className="w-6 h-6 text-crd-green" />
+                  <h1 className="text-2xl font-bold text-white">Visual PSD Analysis</h1>
                 </div>
               </div>
 
@@ -64,25 +63,16 @@ const BulkPSDAnalysisPage: React.FC = () => {
             </div>
 
             <p className="text-slate-400 text-sm max-w-2xl">
-              Upload multiple PSD files to analyze and compare their layer structures, elements, and design patterns.
+              Upload and analyze PSD files to detect card elements, review layer structures, and create CRD frames with intelligent element selection.
             </p>
-          </div>
-
-          {/* Upload Section */}
-          <div className="mb-8">
-            <BulkPSDUploader
-              onPSDsProcessed={handlePSDsProcessed}
-              isUploading={isUploading}
-              setIsUploading={setIsUploading}
-            />
           </div>
 
           {/* Stats Overview */}
           {processedPSDs.length > 0 && (
-            <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-[#131316] border border-slate-700 rounded-lg p-4">
                 <div className="flex items-center gap-2">
-                  <Database className="w-5 h-5 text-crd-green" />
+                  <Sparkles className="w-5 h-5 text-crd-green" />
                   <span className="text-slate-400 text-sm">Total PSDs</span>
                 </div>
                 <p className="text-2xl font-bold text-white mt-1">{processedPSDs.length}</p>
@@ -99,42 +89,37 @@ const BulkPSDAnalysisPage: React.FC = () => {
 
               <div className="bg-[#131316] border border-slate-700 rounded-lg p-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-400 text-sm">Avg Layers/PSD</span>
+                  <span className="text-slate-400 text-sm">Avg Elements</span>
                 </div>
                 <p className="text-2xl font-bold text-white mt-1">
-                  {Math.round(processedPSDs.reduce((acc, psd) => acc + psd.processedPSD.totalLayers, 0) / processedPSDs.length)}
+                  {Math.round(processedPSDs.reduce((acc, psd) => {
+                    const elements = new Set(psd.processedPSD.layers.map(l => l.semanticType).filter(Boolean)).size;
+                    return acc + elements;
+                  }, 0) / Math.max(processedPSDs.length, 1))}
                 </p>
               </div>
 
               <div className="bg-[#131316] border border-slate-700 rounded-lg p-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-slate-400 text-sm">Unique Elements</span>
+                  <span className="text-slate-400 text-sm">Ready for CRD</span>
                 </div>
                 <p className="text-2xl font-bold text-white mt-1">
-                  {new Set(processedPSDs.flatMap(psd => 
-                    psd.processedPSD.layers.map(layer => layer.semanticType || 'unknown')
-                  )).size}
+                  {processedPSDs.filter(psd => 
+                    psd.processedPSD.layers.some(l => l.semanticType)
+                  ).length}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Comparison Table */}
-          {processedPSDs.length > 0 && (
-            <PSDComparisonTable
-              psdData={processedPSDs}
-              onRemovePSD={handleRemovePSD}
-            />
-          )}
-
-          {/* Empty State */}
-          {processedPSDs.length === 0 && !isUploading && (
-            <div className="text-center py-16">
-              <GitCompare className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-white mb-2">No PSDs Uploaded</h3>
-              <p className="text-slate-400">Upload multiple PSD files to start comparing their elements</p>
-            </div>
-          )}
+          {/* Enhanced Analysis Interface */}
+          <EnhancedBulkPSDAnalysis
+            psdData={processedPSDs}
+            onPSDsProcessed={handlePSDsProcessed}
+            onRemovePSD={handleRemovePSD}
+            isUploading={isUploading}
+            setIsUploading={setIsUploading}
+          />
         </div>
       </div>
     </MainLayout>
