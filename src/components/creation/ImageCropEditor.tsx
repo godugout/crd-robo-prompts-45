@@ -96,7 +96,7 @@ export const ImageCropEditor: React.FC<ImageCropEditorProps> = ({
 
       // Lock aspect ratio during scaling
       rect.on('scaling', (e) => {
-        const target = e.transform?.target || e.target;
+        const target = e.target;
         if (target && aspectRatio !== 1) {
           const newWidth = target.width! * target.scaleX!;
           const newHeight = newWidth / aspectRatio;
@@ -108,7 +108,7 @@ export const ImageCropEditor: React.FC<ImageCropEditorProps> = ({
 
       // Update crop rect state when modified
       rect.on('modified', (e) => {
-        const target = e.transform?.target || e.target;
+        const target = e.target;
         if (target) {
           setCropRect(target as Rect);
         }
@@ -135,11 +135,8 @@ export const ImageCropEditor: React.FC<ImageCropEditorProps> = ({
     const center = originalImage.getCenterPoint();
     const radians = (degrees * Math.PI) / 180;
     
-    // Get current transform matrix
-    const currentTransform = originalImage.calcTransformMatrix();
-    
-    // Create rotation matrix
-    const rotationMatrix = [
+    // Create rotation matrix as a proper TMat2D tuple
+    const rotationMatrix: [number, number, number, number, number, number] = [
       Math.cos(radians), Math.sin(radians),
       -Math.sin(radians), Math.cos(radians),
       0, 0
