@@ -19,6 +19,8 @@ interface CanvasControlsProps {
   onResetView: () => void;
   minZoom?: number;
   maxZoom?: number;
+  focusMode?: boolean;
+  frameBuilderMode?: boolean;
 }
 
 export const CanvasControls: React.FC<CanvasControlsProps> = ({
@@ -29,7 +31,9 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
   onFitToScreen,
   onResetView,
   minZoom = 0.1,
-  maxZoom = 5
+  maxZoom = 5,
+  focusMode = false,
+  frameBuilderMode = false
 }) => {
   const zoomPercentage = Math.round(zoom * 100);
 
@@ -91,6 +95,19 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
         <div className="bg-crd-blue/20 border border-crd-blue rounded-lg p-2 flex items-center gap-2">
           <Move className="w-4 h-4 text-crd-blue" />
           <span className="text-sm text-crd-blue font-medium">Panning</span>
+        </div>
+      )}
+
+      {/* Mode Indicators */}
+      {focusMode && (
+        <div className="bg-crd-green/20 border border-crd-green rounded-lg p-2 flex items-center gap-2">
+          <span className="text-sm text-crd-green font-medium">Focus Mode</span>
+        </div>
+      )}
+
+      {frameBuilderMode && (
+        <div className="bg-purple-500/20 border border-purple-500 rounded-lg p-2 flex items-center gap-2">
+          <span className="text-sm text-purple-400 font-medium">Frame Builder</span>
         </div>
       )}
     </div>
