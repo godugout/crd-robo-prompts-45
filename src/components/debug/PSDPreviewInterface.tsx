@@ -5,22 +5,19 @@ import { PSDCanvasPreview } from './components/PSDCanvasPreview';
 import { PSDLayerInspector } from './components/PSDLayerInspector';
 import { CRDFrameBuilder } from './components/CRDFrameBuilder';
 import { layerGroupingService } from '@/services/psdProcessor/layerGroupingService';
+import { findLargestLayerByVolume } from '@/utils/layerUtils';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { 
   Eye, 
   EyeOff, 
-  Layers, 
   Download, 
-  Share, 
-  Settings,
-  Palette,
   Grid,
-  List,
-  Zap
+  Palette,
+  Sun,
+  MoonIcon
 } from 'lucide-react';
 
 interface PSDPreviewInterfaceProps {
@@ -33,12 +30,22 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
   const [selectedLayerId, setSelectedLayerId] = useState<string>('');
   const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
   const [frameBuilderMode, setFrameBuilderMode] = useState(false);
+  const [focusMode, setFocusMode] = useState(true); // Default to focus mode enabled
   
-  // Use the correct method name
   const layerGroupingResult = useMemo(() => 
     layerGroupingService.smartGroupLayers(processedPSD.layers), 
     [processedPSD.layers]
   );
+
+  // Initialize with largest layer selected
+  React.useEffect(() => {
+    if (processedPSD && !selectedLayerId) {
+      const largestLayerId = findLargestLayerByVolume(processedPSD.layers);
+      if (largestLayerId) {
+        setSelectedLayerId(largestLayerId);
+      }
+    }
+  }, [processedPSD, selectedLayerId]);
 
   const toggleLayerVisibility = (layerId: string) => {
     setHiddenLayers((prevHiddenLayers) => {
@@ -52,25 +59,11 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
     });
   };
 
-  const handleDownload = () => {
-    console.log('Download button clicked');
-    // Implement download logic here
+  const toggleFocusMode = () => {
+    setFocusMode(!focusMode);
   };
 
-  const handleShare = () => {
-    console.log('Share button clicked');
-    // Implement share logic here
-  };
-
-  const handleSettings = () => {
-    console.log('Settings button clicked');
-    // Implement settings logic here
-  };
-
-  const handlePalette = () => {
-    console.log('Palette button clicked');
-    // Implement palette logic here
-  };
+  const selectedLayer = processedPSD.layers.find(layer => layer.id === selectedLayerId);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
@@ -85,9 +78,33 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
                 <Badge variant="outline" className="text-xs">
                   {processedPSD.width} × {processedPSD.height}px
                 </Badge>
+                {selectedLayer && (
+                  <Badge variant="outline" className="text-xs bg-crd-green/20 text-crd-green">
+                    {selectedLayer.name}
+                  </Badge>
+                )}
               </div>
               
               <div className="flex items-center gap-2">
+                <Button
+                  variant={focusMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={toggleFocusMode}
+                  className={focusMode ? "bg-crd-green text-black hover:bg-crd-green/90" : ""}
+                >
+                  {focusMode ? (
+                    <>
+                      <MoonIcon className="w-4 h-4 mr-1" />
+                      Focus Mode
+                    </>
+                  ) : (
+                    <>
+                      <Sun className="w-4 h-4 mr-1" />
+                      Full Brightness
+                    </>
+                  )}
+                </Button>
+                
                 <Button
                   variant={frameBuilderMode ? "default" : "outline"}
                   size="sm"
@@ -124,6 +141,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
                 layerGroups={layerGroupingResult.groups}
                 onLayerSelect={setSelectedLayerId}
                 frameBuilderMode={frameBuilderMode}
+                focusMode={focusMode}
               />
             )}
           </div>
