@@ -15,7 +15,7 @@ export const EnhancedCardCreator: React.FC = () => {
         id: 'background-layer',
         name: 'Background',
         type: 'image',
-        visible: true,
+        isVisible: true,
         imageData: null,
         thumbnail: null,
         zIndex: 0
@@ -24,7 +24,7 @@ export const EnhancedCardCreator: React.FC = () => {
         id: 'card-layer',
         name: 'Card Content',
         type: 'image',
-        visible: true,
+        isVisible: true,
         imageData: null,
         thumbnail: null,
         zIndex: 1
