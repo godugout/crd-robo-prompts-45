@@ -109,9 +109,17 @@ export interface ProfessionalButtonProps
 
 export const ProfessionalButton = React.forwardRef<HTMLButtonElement, ProfessionalButtonProps>(
   ({ className, variant, size, context, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? 'div' : 'button';
+    if (asChild) {
+      return (
+        <div
+          className={cn(professionalButtonVariants({ variant, size, context }), className)}
+          {...(props as React.HTMLAttributes<HTMLDivElement>)}
+        />
+      );
+    }
+    
     return (
-      <Comp
+      <button
         ref={ref}
         className={cn(professionalButtonVariants({ variant, size, context }), className)}
         {...props}
