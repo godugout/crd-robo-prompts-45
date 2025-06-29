@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ProcessedPSDLayer, EnhancedProcessedPSD } from '@/types/psdTypes';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -5,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SimplifiedLayerInspector } from './components/SimplifiedLayerInspector';
-import { PSDCanvasPreview } from './components/PSDCanvasPreview';
+import { EnhancedPSDCanvasPreview } from './components/PSDCanvasPreview';
 import { LayerThumbnailView } from './components/LayerThumbnailView';
 import { ElementsModeView } from './components/ElementsModeView';
 import { FrameModeView } from './components/FrameModeView';
@@ -98,12 +99,16 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
 
           {/* Canvas Preview */}
           <div className="p-4">
-            <PSDCanvasPreview
+            <EnhancedPSDCanvasPreview
               processedPSD={processedPSD}
               selectedLayerId={selectedLayerId}
               hiddenLayers={hiddenLayers}
-              showBackground={showBackground}
+              onLayerSelect={handleLayerSelect}
               focusMode={focusMode}
+              onFocusModeToggle={() => setFocusMode(!focusMode)}
+              showBackground={showBackground}
+              onToggleBackground={() => setShowBackground(!showBackground)}
+              viewMode={activeTab as 'inspect' | 'frame' | 'build'}
               reorderedLayers={reorderedLayers}
             />
           </div>
@@ -151,6 +156,8 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
               layers={reorderedLayers}
               selectedLayerId={selectedLayerId}
               hiddenLayers={hiddenLayers}
+              onLayerSelect={handleLayerSelect}
+              onLayerToggle={handleLayerToggle}
             />
           )}
           {activeTab === 'thumbnails' && (
@@ -166,13 +173,11 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
             <FrameModeView
               layers={reorderedLayers}
               selectedLayerId={selectedLayerId}
-              hiddenLayers={hiddenLayers}
-              onFlippedLayersChange={handleFlippedLayersChange}
+              onLayerSelect={handleLayerSelect}
             />
           )}
           {activeTab === 'build' && (
             <CRDFrameBuilder
-              layers={reorderedLayers}
               selectedLayerId={selectedLayerId}
               hiddenLayers={hiddenLayers}
             />
