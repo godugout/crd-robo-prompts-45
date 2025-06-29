@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { MediaManager, type UploadOptions } from '@/lib/storage/MediaManager';
 import { toast } from 'sonner';
 
-interface UseMediaUploadOptions extends Omit<UploadOptions, 'onProgress'> {
+interface UseMediaUploadOptions extends UploadOptions {
   onComplete?: (result: any) => void;
   onError?: (error: string) => void;
 }

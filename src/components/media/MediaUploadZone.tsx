@@ -168,7 +168,7 @@ export const MediaUploadZone: React.FC<MediaUploadZoneProps> = ({
                 
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
-                    {file.path.split('/').pop()}
+                    {file.name}
                   </p>
                   <p className="text-xs text-gray-500">
                     {(file.metadata.size / 1024).toFixed(1)} KB
