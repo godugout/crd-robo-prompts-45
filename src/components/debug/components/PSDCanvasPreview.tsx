@@ -1,28 +1,35 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
-import { useCanvasNavigation } from '@/hooks/useCanvasNavigation';
+import React, { useRef, useEffect, useState } from 'react';
+import { ProcessedPSD, ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
+import { LayerGroup } from '@/services/psdProcessor/layerGroupingService';
+import { LayerMode } from './LayerModeToggle';
 import { CanvasControls } from './CanvasControls';
+import { useCanvasNavigation } from '@/hooks/useCanvasNavigation';
 
-interface PSDCanvasPreviewProps {
-  layers: ProcessedPSDLayer[];
+export interface PSDCanvasPreviewProps {
+  processedPSD: ProcessedPSD;
   selectedLayerId: string;
   hiddenLayers: Set<string>;
+  layerGroups?: LayerGroup[];
   onLayerSelect: (layerId: string) => void;
-  cardImageUrl?: string;
-  cardImageDimensions?: { width: number; height: number };
+  frameBuilderMode?: boolean;
+  focusMode?: boolean;
+  mode?: LayerMode;
+  flippedLayers?: Set<string>;
 }
 
 export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
-  layers,
+  processedPSD,
   selectedLayerId,
   hiddenLayers,
+  layerGroups = [],
   onLayerSelect,
-  cardImageUrl,
-  cardImageDimensions
+  frameBuilderMode = false,
+  focusMode = false,
+  mode = 'elements',
+  flippedLayers = new Set()
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [showCardImage, setShowCardImage] = useState(true);
   
   const {
     transform,
@@ -31,10 +38,10 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     zoomOut,
     resetView,
     fitToScreen,
-    handleWheel,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
+    handleWheel,
     getTransformStyle
   } = useCanvasNavigation({
     minZoom: 0.1,
@@ -42,9 +49,9 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     zoomStep: 0.1
   });
 
-  const drawCanvas = useCallback(() => {
+  const drawCanvas = () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !processedPSD) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -52,262 +59,148 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw checkered background when card image is hidden
-    if (!showCardImage) {
-      const checkSize = 20;
-      ctx.fillStyle = '#f0f0f0';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      ctx.fillStyle = '#e0e0e0';
-      for (let x = 0; x < canvas.width; x += checkSize) {
-        for (let y = 0; y < canvas.height; y += checkSize) {
-          if ((Math.floor(x / checkSize) + Math.floor(y / checkSize)) % 2 === 1) {
-            ctx.fillRect(x, y, checkSize, checkSize);
-          }
-        }
-      }
-    }
+    // Draw PSD document bounds
+    const { width, height } = processedPSD.document;
+    ctx.strokeStyle = '#666';
+    ctx.strokeRect(0, 0, width, height);
 
-    // Draw card image if visible and available
-    if (showCardImage && cardImageUrl && cardImageDimensions) {
-      const img = new Image();
-      img.onload = () => {
-        const containerRect = containerRef.current?.getBoundingClientRect();
-        if (!containerRect) return;
-
-        const containerAspect = containerRect.width / containerRect.height;
-        const imageAspect = cardImageDimensions.width / cardImageDimensions.height;
-
-        let drawWidth, drawHeight, offsetX, offsetY;
-
-        if (imageAspect > containerAspect) {
-          drawWidth = containerRect.width * 0.8;
-          drawHeight = drawWidth / imageAspect;
-          offsetX = (containerRect.width - drawWidth) / 2;
-          offsetY = (containerRect.height - drawHeight) / 2;
-        } else {
-          drawHeight = containerRect.height * 0.8;
-          drawWidth = drawHeight * imageAspect;
-          offsetX = (containerRect.width - drawWidth) / 2;
-          offsetY = (containerRect.height - drawHeight) / 2;
-        }
-
-        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-        drawLayerOverlays(ctx, drawWidth, drawHeight, offsetX, offsetY);
-      };
-      img.src = cardImageUrl;
-    } else {
-      drawLayerOverlays(ctx, canvas.width, canvas.height, 0, 0);
-    }
-  }, [layers, selectedLayerId, hiddenLayers, cardImageUrl, cardImageDimensions, showCardImage]);
-
-  const drawLayerOverlays = (
-    ctx: CanvasRenderingContext2D,
-    cardWidth: number,
-    cardHeight: number,
-    cardOffsetX: number,
-    cardOffsetY: number
-  ) => {
-    if (!cardImageDimensions) return;
-
-    const scaleX = cardWidth / cardImageDimensions.width;
-    const scaleY = cardHeight / cardImageDimensions.height;
-
-    layers.forEach((layer) => {
+    // Draw visible layers
+    processedPSD.layers.forEach(layer => {
       if (hiddenLayers.has(layer.id)) return;
 
-      const scaledBounds = {
-        left: layer.bounds.left * scaleX + cardOffsetX,
-        top: layer.bounds.top * scaleY + cardOffsetY,
-        right: layer.bounds.right * scaleX + cardOffsetX,
-        bottom: layer.bounds.bottom * scaleY + cardOffsetY
-      };
+      // Draw layer bounds
+      const { left, top, right, bottom } = layer.bounds;
+      const layerWidth = right - left;
+      const layerHeight = bottom - top;
 
-      const width = scaledBounds.right - scaledBounds.left;
-      const height = scaledBounds.bottom - scaledBounds.top;
+      ctx.strokeStyle = selectedLayerId === layer.id ? '#00ff00' : '#ff0000';
+      ctx.lineWidth = selectedLayerId === layer.id ? 2 : 1;
+      ctx.strokeRect(left, top, layerWidth, layerHeight);
 
-      const isSelected = selectedLayerId === layer.id;
-
-      // Draw layer boundary
-      ctx.strokeStyle = isSelected ? '#3b82f6' : '#10b981';
-      ctx.lineWidth = isSelected ? 3 : 2;
-      ctx.setLineDash(isSelected ? [] : [5, 5]);
-      ctx.strokeRect(scaledBounds.left, scaledBounds.top, width, height);
-
-      // Draw layer fill
-      ctx.fillStyle = isSelected ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)';
-      ctx.fillRect(scaledBounds.left, scaledBounds.top, width, height);
-
-      // Draw layer label
-      const label = `${layer.name} (${layer.semanticType || layer.type})`;
-      ctx.fillStyle = isSelected ? '#1e40af' : '#059669';
-      ctx.font = '12px Inter, sans-serif';
-      ctx.fillText(label, scaledBounds.left + 4, scaledBounds.top - 4);
-
-      ctx.setLineDash([]);
+      // Draw layer thumbnail if available
+      if (layer.thumbnail) {
+        const img = new Image();
+        img.onload = () => {
+          ctx.drawImage(img, left, top, layerWidth, layerHeight);
+        };
+        img.src = layer.thumbnail;
+      }
     });
   };
 
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (isPanning) return;
+  const handleCanvasClick = (event: React.MouseEvent) => {
+    if (!processedPSD) return;
 
     const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container || !cardImageDimensions) return;
+    if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-    
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
+    const x = (event.clientX - rect.left) / transform.scale - transform.translateX / transform.scale;
+    const y = (event.clientY - rect.top) / transform.scale - transform.translateY / transform.scale;
 
-    // Calculate card image dimensions and position
-    const containerAspect = containerRect.width / containerRect.height;
-    const imageAspect = cardImageDimensions.width / cardImageDimensions.height;
-
-    let cardWidth, cardHeight, cardOffsetX, cardOffsetY;
-
-    if (imageAspect > containerAspect) {
-      cardWidth = containerRect.width * 0.8;
-      cardHeight = cardWidth / imageAspect;
-      cardOffsetX = (containerRect.width - cardWidth) / 2;
-      cardOffsetY = (containerRect.height - cardHeight) / 2;
-    } else {
-      cardHeight = containerRect.height * 0.8;
-      cardWidth = cardHeight * imageAspect;
-      cardOffsetX = (containerRect.width - cardWidth) / 2;
-      cardOffsetY = (containerRect.height - cardHeight) / 2;
-    }
-
-    const scaleX = cardWidth / cardImageDimensions.width;
-    const scaleY = cardHeight / cardImageDimensions.height;
-
-    // Check if click is within any visible layer
-    for (const layer of layers) {
+    // Find clicked layer
+    for (const layer of processedPSD.layers) {
       if (hiddenLayers.has(layer.id)) continue;
 
-      const scaledBounds = {
-        left: layer.bounds.left * scaleX + cardOffsetX,
-        top: layer.bounds.top * scaleY + cardOffsetY,
-        right: layer.bounds.right * scaleX + cardOffsetX,
-        bottom: layer.bounds.bottom * scaleY + cardOffsetY
-      };
-
-      if (
-        clickX >= scaledBounds.left &&
-        clickX <= scaledBounds.right &&
-        clickY >= scaledBounds.top &&
-        clickY <= scaledBounds.bottom
-      ) {
+      const { left, top, right, bottom } = layer.bounds;
+      if (x >= left && x <= right && y >= top && y <= bottom) {
         onLayerSelect(layer.id);
         break;
       }
     }
   };
 
-  const handleCanvasWheel = useCallback((e: WheelEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const rect = canvas.getBoundingClientRect();
+  const handleWheelEvent = (e: WheelEvent) => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
     const handled = handleWheel(e, rect);
     
-    if (!handled) {
-      // Allow normal scrolling when CMD is not pressed
-      return;
+    if (handled) {
+      e.preventDefault();
     }
-  }, [handleWheel]);
-
-  const handleFitToScreen = () => {
-    const container = containerRef.current;
-    if (!container || !cardImageDimensions) return;
-    
-    const rect = container.getBoundingClientRect();
-    fitToScreen(rect.width, rect.height, cardImageDimensions.width, cardImageDimensions.height);
   };
 
   useEffect(() => {
-    if (!cardImageDimensions) return;
+    const container = containerRef.current;
+    if (!container) return;
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    canvas.width = cardImageDimensions.width;
-    canvas.height = cardImageDimensions.height;
-  }, [cardImageDimensions]);
+    container.addEventListener('wheel', handleWheelEvent, { passive: false });
+    
+    return () => {
+      container.removeEventListener('wheel', handleWheelEvent);
+    };
+  }, [handleWheel]);
 
   useEffect(() => {
     drawCanvas();
-  }, [drawCanvas]);
+  }, [processedPSD, selectedLayerId, hiddenLayers, transform]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (processedPSD && containerRef.current) {
+      const container = containerRef.current;
+      fitToScreen(
+        container.clientWidth,
+        container.clientHeight,
+        processedPSD.document.width,
+        processedPSD.document.height
+      );
+    }
+  }, [processedPSD, fitToScreen]);
 
-    canvas.addEventListener('wheel', handleCanvasWheel, { passive: false });
-    
-    return () => {
-      canvas.removeEventListener('wheel', handleCanvasWheel);
-    };
-  }, [handleCanvasWheel]);
+  if (!processedPSD) {
+    return (
+      <div className="flex items-center justify-center h-full text-slate-400">
+        No PSD data available
+      </div>
+    );
+  }
 
   return (
-    <div className="relative w-full h-full bg-slate-900 overflow-hidden">
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden bg-slate-900">
       {/* Canvas Controls */}
       <CanvasControls
         zoom={transform.scale}
         isPanning={isPanning}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
-        onFitToScreen={handleFitToScreen}
+        onFitToScreen={() => {
+          if (containerRef.current) {
+            fitToScreen(
+              containerRef.current.clientWidth,
+              containerRef.current.clientHeight,
+              processedPSD.document.width,
+              processedPSD.document.height
+            );
+          }
+        }}
         onResetView={resetView}
+        focusMode={focusMode}
+        frameBuilderMode={frameBuilderMode}
       />
 
-      {/* Card Image Toggle */}
-      <div className="absolute top-4 right-4 z-10">
-        <button
-          onClick={() => setShowCardImage(!showCardImage)}
-          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-            showCardImage
-              ? 'bg-crd-blue text-white'
-              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-          }`}
-        >
-          {showCardImage ? 'Hide Card' : 'Show Card'}
-        </button>
-      </div>
-
-      {/* Canvas Container */}
+      {/* Canvas Container with Transform */}
       <div
-        ref={containerRef}
-        className="w-full h-full cursor-move"
+        className="absolute inset-0 flex items-center justify-center cursor-grab active:cursor-grabbing"
+        style={getTransformStyle()}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
+        onMouseLeave={handleMouseUp}
       >
-        <div style={getTransformStyle()}>
-          <canvas
-            ref={canvasRef}
-            width={800}
-            height={600}
-            className="border border-slate-700 bg-slate-800"
-            onClick={handleCanvasClick}
-            style={{ 
-              cursor: isPanning ? 'grabbing' : 'crosshair',
-              touchAction: 'none'
-            }}
-          />
-        </div>
+        <canvas
+          ref={canvasRef}
+          width={processedPSD.document.width}
+          height={processedPSD.document.height}
+          className="border border-slate-600 bg-white"
+          onClick={handleCanvasClick}
+        />
       </div>
 
-      {/* Instructions */}
-      <div className="absolute bottom-4 left-4 z-10 bg-slate-800/90 backdrop-blur-sm rounded-lg p-3 text-sm text-slate-300">
-        <div className="space-y-1">
-          <div>• Click layers to select them</div>
-          <div>• Drag to pan around</div>
-          <div>• <kbd className="px-1 py-0.5 bg-slate-700 rounded text-xs">⌘</kbd> + scroll to zoom</div>
-        </div>
+      {/* Zoom Instructions */}
+      <div className="absolute bottom-4 right-4 bg-black/60 text-white text-sm px-3 py-2 rounded-lg">
+        Hold CMD and scroll to zoom
       </div>
     </div>
   );
