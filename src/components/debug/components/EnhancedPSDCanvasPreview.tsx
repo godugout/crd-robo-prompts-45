@@ -128,11 +128,17 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
         img.onload = () => {
           ctx.save();
           
+          // Get layer dimensions from bounds
+          const layerX = layer.bounds?.left || 0;
+          const layerY = layer.bounds?.top || 0;
+          const layerWidth = (layer.bounds?.right || 0) - (layer.bounds?.left || 0);
+          const layerHeight = (layer.bounds?.bottom || 0) - (layer.bounds?.top || 0);
+          
           // Highlight selected layer
           if (layer.id === selectedLayerId) {
             ctx.strokeStyle = '#00ff00';
             ctx.lineWidth = 2;
-            ctx.strokeRect(layer.x, layer.y, layer.width, layer.height);
+            ctx.strokeRect(layerX, layerY, layerWidth, layerHeight);
           }
           
           // Apply focus mode dimming
@@ -140,7 +146,7 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
             ctx.globalAlpha = 0.3;
           }
           
-          ctx.drawImage(img, layer.x, layer.y, layer.width, layer.height);
+          ctx.drawImage(img, layerX, layerY, layerWidth, layerHeight);
           ctx.restore();
         };
         img.src = layer.imageData;
@@ -170,8 +176,14 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
       const layer = processedPSD.layers[i];
       if (hiddenLayers.has(layer.id)) continue;
 
-      if (x >= layer.x && x <= layer.x + layer.width &&
-          y >= layer.y && y <= layer.y + layer.height) {
+      // Get layer bounds
+      const layerLeft = layer.bounds?.left || 0;
+      const layerTop = layer.bounds?.top || 0;
+      const layerRight = layer.bounds?.right || 0;
+      const layerBottom = layer.bounds?.bottom || 0;
+
+      if (x >= layerLeft && x <= layerRight &&
+          y >= layerTop && y <= layerBottom) {
         onLayerSelect(layer.id);
         break;
       }
