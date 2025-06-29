@@ -1,35 +1,75 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { EnhancedProcessedPSD, ProcessedPSDLayer } from '@/types/psdTypes';
 import { 
+  Search, 
   Layers, 
-  Type, 
-  Image, 
-  Square, 
-  Sparkles, 
   Eye, 
-  Download,
+  EyeOff, 
+  Grid, 
+  List,
   CheckSquare,
-  X
+  Square,
+  Filter
 } from 'lucide-react';
 
 interface LayerElementSelectorProps {
-  processedPSD: ProcessedPSD;
+  processedPSDs: EnhancedProcessedPSD[];
+  selectedElements: Set<string>;
+  onElementToggle: (elementId: string) => void;
+  onBulkSelect: (elementIds: string[]) => void;
 }
 
 export const LayerElementSelector: React.FC<LayerElementSelectorProps> = ({
-  processedPSD
+  processedPSDs,
+  selectedElements,
+  onElementToggle,
+  onBulkSelect
 }) => {
-  const [selectedLayers, setSelectedLayers] = useState<Set<string>>(new Set());
-  const [previewMode, setPreviewMode] = useState<'grid' | 'preview'>('grid');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
+  const [selectedPSDId, setSelectedPSDId] = useState<string | null>(null);
 
-  const toggleLayerSelection = (layerId: string) => {
-    setSelectedLayers(prev => {
+  // Get all layers from all PSDs
+  const allLayers = useMemo(() => {
+    return processedPSDs.flatMap(psd => 
+      psd.layers.map(layer => ({
+        ...layer,
+        psdId: psd.id,
+        psdName: psd.fileName
+      }))
+    );
+  }, [processedPSDs]);
+
+  // Filter layers based on search and selection
+  const filteredLayers = useMemo(() => {
+    let layers = allLayers;
+    
+    // Apply search filter
+    if (searchTerm) {
+      layers = layers.filter(layer => 
+        layer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (layer.semanticType && layer.semanticType.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+    
+    // Apply PSD filter
+    if (selectedPSDId) {
+      layers = layers.filter(layer => layer.psdId === selectedPSDId);
+    }
+    
+    return layers;
+  }, [allLayers, searchTerm, selectedPSDId]);
+
+  const handleToggleLayer = (layerId: string) => {
+    setHiddenLayers(prev => {
       const newSet = new Set(prev);
       if (newSet.has(layerId)) {
         newSet.delete(layerId);
@@ -40,270 +80,190 @@ export const LayerElementSelector: React.FC<LayerElementSelectorProps> = ({
     });
   };
 
-  const selectAllByType = (type: string) => {
-    const layersOfType = processedPSD.layers.filter(layer => layer.type === type);
-    setSelectedLayers(prev => {
-      const newSet = new Set(prev);
-      layersOfType.forEach(layer => newSet.add(layer.id));
-      return newSet;
-    });
+  const handleSelectAll = () => {
+    const allLayerIds = filteredLayers.map(layer => layer.id);
+    onBulkSelect(allLayerIds);
   };
 
-  const selectAllBySemantic = (semanticType: string) => {
-    const layersOfType = processedPSD.layers.filter(layer => layer.semanticType === semanticType);
-    setSelectedLayers(prev => {
-      const newSet = new Set(prev);
-      layersOfType.forEach(layer => newSet.add(layer.id));
-      return newSet;
-    });
+  const handleClearAll = () => {
+    onBulkSelect([]);
   };
-
-  const clearSelection = () => {
-    setSelectedLayers(new Set());
-  };
-
-  const getTypeIcon = (type: string) => {
-    const icons = {
-      'text': Type,
-      'image': Image,
-      'shape': Square,
-      'group': Layers,
-      'adjustment': Sparkles,
-      'effect': Sparkles
-    };
-    return icons[type as keyof typeof icons] || Layers;
-  };
-
-  const getTypeColor = (type: string) => {
-    const colors = {
-      'text': 'text-blue-400',
-      'image': 'text-green-400',
-      'shape': 'text-purple-400',
-      'group': 'text-orange-400',
-      'adjustment': 'text-red-400',
-      'effect': 'text-yellow-400'
-    };
-    return colors[type as keyof typeof colors] || 'text-slate-400';
-  };
-
-  const layersByType = processedPSD.layers.reduce((acc, layer) => {
-    if (!acc[layer.type]) acc[layer.type] = [];
-    acc[layer.type].push(layer);
-    return acc;
-  }, {} as Record<string, typeof processedPSD.layers>);
-
-  const layersBySemantic = processedPSD.layers.reduce((acc, layer) => {
-    if (layer.semanticType) {
-      if (!acc[layer.semanticType]) acc[layer.semanticType] = [];
-      acc[layer.semanticType].push(layer);
-    }
-    return acc;
-  }, {} as Record<string, typeof processedPSD.layers>);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <Card className="bg-[#131316] border-slate-700">
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-white">Select Elements for CRD Frame</h3>
-              <p className="text-slate-400 text-sm">Choose layers to include in your CRD frame template</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={clearSelection}>
-                <X className="w-4 h-4 mr-2" />
-                Clear ({selectedLayers.size})
-              </Button>
-              <Button 
-                size="sm"
-                className="bg-crd-green text-black hover:bg-crd-green/90"
-                disabled={selectedLayers.size === 0}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Create CRD Frame
-              </Button>
-            </div>
-          </div>
-
-          {/* Quick Selection */}
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => selectAllByType('text')}>
-              <Type className="w-3 h-3 mr-1" />
-              All Text
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => selectAllByType('image')}>
-              <Image className="w-3 h-3 mr-1" />
-              All Images
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => selectAllBySemantic('player')}>
-              <Sparkles className="w-3 h-3 mr-1" />
-              Player Elements
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => selectAllBySemantic('stats')}>
-              <Sparkles className="w-3 h-3 mr-1" />
-              Stats Elements
-            </Button>
-          </div>
+      {/* Header Controls */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Layers className="w-5 h-5 text-crd-blue" />
+          <h3 className="text-lg font-semibold text-white">Layer Element Selector</h3>
+          <Badge variant="outline" className="bg-slate-800 text-slate-300">
+            {filteredLayers.length} layers
+          </Badge>
         </div>
-      </Card>
+        
+        <div className="flex items-center gap-2">
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('grid')}
+          >
+            <Grid className="w-4 h-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('list')}
+          >
+            <List className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
 
-      {/* Element Selection */}
-      <Card className="bg-[#131316] border-slate-700">
-        <Tabs defaultValue="by-type" className="w-full">
-          <div className="p-4 border-b border-slate-700">
-            <TabsList className="grid w-full grid-cols-2 bg-slate-800">
-              <TabsTrigger 
-                value="by-type"
-                className="data-[state=active]:bg-crd-green data-[state=active]:text-black"
-              >
-                By Layer Type
-              </TabsTrigger>
-              <TabsTrigger 
-                value="by-semantic"
-                className="data-[state=active]:bg-crd-green data-[state=active]:text-black"
-              >
-                By Element Type
-              </TabsTrigger>
-            </TabsList>
-          </div>
+      {/* Search and Filters */}
+      <div className="flex gap-3">
+        <div className="flex-1 relative">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+          <Input
+            placeholder="Search layers..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 bg-slate-800 border-slate-600"
+          />
+        </div>
+        
+        <select
+          value={selectedPSDId || ''}
+          onChange={(e) => setSelectedPSDId(e.target.value || null)}
+          className="px-3 py-2 bg-slate-800 border border-slate-600 rounded-md text-white"
+        >
+          <option value="">All PSDs</option>
+          {processedPSDs.map(psd => (
+            <option key={psd.id} value={psd.id}>
+              {psd.fileName}
+            </option>
+          ))}
+        </select>
+      </div>
 
-          <TabsContent value="by-type" className="p-4">
-            <div className="space-y-4">
-              {Object.entries(layersByType).map(([type, layers]) => {
-                const TypeIcon = getTypeIcon(type);
-                const selectedCount = layers.filter(l => selectedLayers.has(l.id)).length;
+      {/* Bulk Actions */}
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSelectAll}
+          disabled={filteredLayers.length === 0}
+        >
+          <CheckSquare className="w-4 h-4 mr-2" />
+          Select All
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleClearAll}
+          disabled={selectedElements.size === 0}
+        >
+          <Square className="w-4 h-4 mr-2" />
+          Clear All
+        </Button>
+        
+        {selectedElements.size > 0 && (
+          <Badge className="bg-crd-green text-black">
+            {selectedElements.size} selected
+          </Badge>
+        )}
+      </div>
+
+      {/* Layer Grid/List */}
+      <div className={
+        viewMode === 'grid' 
+          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          : "space-y-2"
+      }>
+        {filteredLayers.map((layer) => {
+          const isSelected = selectedElements.has(layer.id);
+          const isHidden = hiddenLayers.has(layer.id);
+          
+          return (
+            <Card
+              key={layer.id}
+              className={`p-4 cursor-pointer transition-all ${
+                isSelected ? 'ring-2 ring-crd-green bg-slate-700' : 'bg-slate-800 hover:bg-slate-750'
+              } ${isHidden ? 'opacity-50' : ''}`}
+              onClick={() => onElementToggle(layer.id)}
+            >
+              <div className="flex items-start gap-3">
+                {/* Layer Preview */}
+                <div className="w-12 h-12 bg-slate-600 rounded flex-shrink-0 flex items-center justify-center">
+                  {layer.imageUrl ? (
+                    <img
+                      src={layer.imageUrl}
+                      alt={layer.name}
+                      className="w-full h-full object-contain rounded"
+                    />
+                  ) : (
+                    <span className="text-slate-400 text-xs font-mono">
+                      {layer.type.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
                 
-                return (
-                  <div key={type} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <TypeIcon className={`w-4 h-4 ${getTypeColor(type)}`} />
-                        <span className="text-white font-medium capitalize">{type} Layers</span>
-                        <Badge variant="outline" className="text-xs">
-                          {selectedCount}/{layers.length}
-                        </Badge>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => selectAllByType(type)}
-                      >
-                        <CheckSquare className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                      {layers.map((layer) => (
-                        <div
-                          key={layer.id}
-                          className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                            selectedLayers.has(layer.id)
-                              ? 'border-crd-green bg-crd-green/10'
-                              : 'border-slate-600 bg-slate-800 hover:border-slate-500'
-                          }`}
-                          onClick={() => toggleLayerSelection(layer.id)}
-                        >
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              checked={selectedLayers.has(layer.id)}
-                              onChange={() => toggleLayerSelection(layer.id)}
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-white text-sm font-medium truncate">{layer.name}</p>
-                              <p className="text-slate-400 text-xs">
-                                {Math.round(layer.bounds.right - layer.bounds.left)}×{Math.round(layer.bounds.bottom - layer.bounds.top)}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                {/* Layer Info */}
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-medium text-white truncate">
+                    {layer.name}
+                  </h4>
+                  <p className="text-xs text-slate-400 truncate">
+                    {(layer as any).psdName}
+                  </p>
+                  
+                  <div className="flex gap-1 mt-1">
+                    <Badge variant="secondary" className="text-xs">
+                      {layer.type}
+                    </Badge>
+                    {layer.semanticType && (
+                      <Badge className="text-xs bg-blue-500/20 text-blue-400">
+                        {layer.semanticType}
+                      </Badge>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="by-semantic" className="p-4">
-            <div className="space-y-4">
-              {Object.entries(layersBySemantic).map(([semanticType, layers]) => {
-                const selectedCount = layers.filter(l => selectedLayers.has(l.id)).length;
+                </div>
                 
-                return (
-                  <div key={semanticType} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-crd-green" />
-                        <span className="text-white font-medium capitalize">{semanticType} Elements</span>
-                        <Badge variant="outline" className="text-xs text-crd-green border-crd-green/30">
-                          {selectedCount}/{layers.length}
-                        </Badge>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => selectAllBySemantic(semanticType)}
-                      >
-                        <CheckSquare className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                      {layers.map((layer) => (
-                        <div
-                          key={layer.id}
-                          className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                            selectedLayers.has(layer.id)
-                              ? 'border-crd-green bg-crd-green/10'
-                              : 'border-slate-600 bg-slate-800 hover:border-slate-500'
-                          }`}
-                          onClick={() => toggleLayerSelection(layer.id)}
-                        >
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              checked={selectedLayers.has(layer.id)}
-                              onChange={() => toggleLayerSelection(layer.id)}
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-white text-sm font-medium truncate">{layer.name}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge className={getTypeColor(layer.type)} variant="outline">
-                                  {layer.type}
-                                </Badge>
-                                <p className="text-slate-400 text-xs">
-                                  {Math.round(layer.bounds.right - layer.bounds.left)}×{Math.round(layer.bounds.bottom - layer.bounds.top)}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </Card>
-
-      {/* Selection Preview */}
-      {selectedLayers.size > 0 && (
-        <Card className="bg-[#131316] border-slate-700">
-          <div className="p-4">
-            <h4 className="text-lg font-semibold text-white mb-4">
-              Preview Selected Elements ({selectedLayers.size})
-            </h4>
-            <div className="aspect-[4/3] bg-slate-800 rounded-lg flex items-center justify-center">
-              <div className="text-center text-slate-400">
-                <Eye className="w-12 h-12 mx-auto mb-2" />
-                <p>CRD Frame Preview</p>
-                <p className="text-sm">Shows how selected elements will look as a frame</p>
+                {/* Controls */}
+                <div className="flex flex-col gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-6 h-6"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleLayer(layer.id);
+                    }}
+                  >
+                    {isHidden ? (
+                      <EyeOff className="w-3 h-3" />
+                    ) : (
+                      <Eye className="w-3 h-3" />
+                    )}
+                  </Button>
+                  
+                  {isSelected && (
+                    <CheckSquare className="w-4 h-4 text-crd-green" />
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-        </Card>
+            </Card>
+          );
+        })}
+      </div>
+
+      {filteredLayers.length === 0 && (
+        <div className="text-center py-8">
+          <Filter className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-white mb-2">No layers found</h3>
+          <p className="text-slate-400">
+            Try adjusting your search terms or filters
+          </p>
+        </div>
       )}
     </div>
   );

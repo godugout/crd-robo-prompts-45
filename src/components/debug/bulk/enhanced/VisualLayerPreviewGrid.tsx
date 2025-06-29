@@ -3,11 +3,11 @@ import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ProcessedPSD, ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
+import { EnhancedProcessedPSD, ProcessedPSDLayer } from '@/types/psdTypes';
 import { Eye, EyeOff, Info, ZoomIn, CheckSquare, Square } from 'lucide-react';
 
 interface VisualLayerPreviewGridProps {
-  processedPSD: ProcessedPSD;
+  processedPSD: EnhancedProcessedPSD;
   selectedLayers: Set<string>;
   onLayerToggle: (layerId: string) => void;
   onLayerSelect: (layerId: string) => void;

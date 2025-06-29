@@ -1,6 +1,7 @@
-
 import React, { useState } from 'react';
-import { ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
+import { Card } from '@/components/ui/card';
+import { ProcessedPSDLayer } from '@/types/psdTypes';
+import { Badge } from '@/components/ui/badge';
 import { LayerThumbnailView } from './LayerThumbnailView';
 import { PSDButton } from '@/components/ui/design-system/PSDButton';
 import { 

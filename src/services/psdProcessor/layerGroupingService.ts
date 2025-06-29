@@ -1,4 +1,4 @@
-import { ProcessedPSDLayer } from './psdProcessingService';
+import { ProcessedPSDLayer } from '@/types/psdTypes';
 
 export interface LayerGroup {
   id: string;

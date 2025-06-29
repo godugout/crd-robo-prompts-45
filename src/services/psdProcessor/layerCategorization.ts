@@ -1,5 +1,5 @@
 
-import { ProcessedPSDLayer } from './psdProcessingService';
+import { ProcessedPSDLayer } from '@/types/psdTypes';
 import { LayerCategoryType } from '@/components/ui/design-system/psd-tokens';
 
 export interface CategorizedLayer {

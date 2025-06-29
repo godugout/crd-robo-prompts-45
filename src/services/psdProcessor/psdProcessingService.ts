@@ -1,5 +1,4 @@
-
-import { PSD } from 'ag-psd';
+import { Psd } from 'ag-psd';
 import { ProcessedPSDLayer, LayerBounds, LayerProperties } from '@/types/psdTypes';
 
 export interface PSDProcessingResult {
@@ -9,7 +8,7 @@ export interface PSDProcessingResult {
   totalLayers: number;
 }
 
-export const processPSDLayers = (psd: PSD): PSDProcessingResult => {
+export const processPSDLayers = (psd: Psd): PSDProcessingResult => {
   const layers: ProcessedPSDLayer[] = [];
   let layerIndex = 0;
 
