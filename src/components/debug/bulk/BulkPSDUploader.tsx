@@ -50,8 +50,8 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
       try {
         console.log(`Processing PSD ${i + 1}/${files.length}: ${file.name}`);
         
-        const processor = new UnifiedPSDProcessor();
-        const enhancedProcessedPSD = await processor.processPSDFile(file);
+        // Use the static method correctly
+        const enhancedProcessedPSD = await UnifiedPSDProcessor.processPSDFile(file);
         
         processedPSDs.push({
           id: `psd_${Date.now()}_${i}`,

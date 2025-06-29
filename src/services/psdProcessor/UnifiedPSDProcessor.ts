@@ -1,7 +1,7 @@
-
-import { readPsd, Layer, LayerAdditionalInfo } from 'ag-psd';
-import { EnhancedProcessedPSD, ProcessedPSDLayer, ExtractedPSDImages, ExtractedLayerImage } from '@/types/psdTypes';
-import { MediaManager } from '@/services/media/MediaManager';
+import { readPsd, Psd } from 'ag-psd';
+import { ProcessedPSD, EnhancedProcessedPSD, ExtractedPSDImages, ProcessedPSDLayer, ExtractedLayerImage } from '@/types/psdTypes';
+import { processPSDLayers } from './psdProcessingService';
+import { MediaManager } from '@/lib/storage/MediaManager';
 
 export class UnifiedPSDProcessor {
   private static async extractLayerToCanvas(layer: Layer, psdWidth: number, psdHeight: number): Promise<HTMLCanvasElement | null> {
