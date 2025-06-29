@@ -1,4 +1,6 @@
 
+export type SemanticType = 'text' | 'image' | 'border' | 'background' | 'player' | 'stats' | 'logo' | 'effect';
+
 export const getSemanticTypeColor = (type?: string): string => {
   if (!type) return '#64748b'; // slate-500
   
@@ -9,15 +11,16 @@ export const getSemanticTypeColor = (type?: string): string => {
     'logo': '#ec4899', // pink-500
     'border': '#f59e0b', // amber-500
     'text': '#3b82f6', // blue-500
+    'image': '#8b5cf6', // violet-500
     'effect': '#8b5cf6' // violet-500
   };
-  return colors[type] || '#64748b';
+  return colors[type] || '#64738b';
 };
 
-export const getValidSemanticTypes = (): string[] => {
+export const getValidSemanticTypes = (): SemanticType[] => {
   return ['text', 'image', 'border', 'background', 'player', 'stats', 'logo', 'effect'];
 };
 
-export const isValidSemanticType = (type: string): boolean => {
-  return getValidSemanticTypes().includes(type);
+export const isValidSemanticType = (type: string): type is SemanticType => {
+  return getValidSemanticTypes().includes(type as SemanticType);
 };
