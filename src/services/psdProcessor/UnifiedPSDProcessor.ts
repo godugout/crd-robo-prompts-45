@@ -1,5 +1,6 @@
+
 import { Psd } from 'ag-psd';
-import { ProcessedPSDLayer, LayerBounds, LayerProperties, ProcessedPSD } from '@/types/psdTypes';
+import { ProcessedPSDLayer, LayerBounds, LayerProperties, ProcessedPSD, EnhancedProcessedPSD } from '@/types/psdTypes';
 
 // Utility function to check if a layer name contains certain keywords
 const containsKeyword = (layerName: string, keywords: string[]): boolean => {
@@ -54,6 +55,37 @@ export class UnifiedPSDProcessor {
     this.psd = psd;
   }
 
+  public async processPSDFile(file: File): Promise<EnhancedProcessedPSD> {
+    // Import ag-psd dynamically to handle the PSD parsing
+    const { readPsd } = await import('ag-psd');
+    
+    // Read the file as array buffer
+    const arrayBuffer = await file.arrayBuffer();
+    
+    // Parse the PSD
+    const psd = readPsd(arrayBuffer);
+    
+    // Create a new processor instance with the parsed PSD
+    const processor = new UnifiedPSDProcessor(psd);
+    
+    // Process and return the enhanced PSD
+    const processedPSD = await processor.process();
+    
+    return {
+      ...processedPSD,
+      extractedImages: {
+        flattenedImageUrl: processedPSD.flattenedImageUrl,
+        layerImages: processedPSD.layerImages,
+        thumbnailUrl: processedPSD.thumbnailUrl,
+        archiveUrls: {
+          originalPsd: 'url_to_original_psd',
+          layerArchive: 'url_to_layer_archive'
+        }
+      },
+      layerPreviews: new Map<string, string>()
+    };
+  }
+
   public async process(): Promise<ProcessedPSD> {
     const layers = this.processLayers(this.psd.children || []);
 
@@ -65,8 +97,9 @@ export class UnifiedPSDProcessor {
       layers: layers,
       totalLayers: layers.length,
       metadata: {
-        documentName: this.psd.documentName,
-        colorMode: this.psd.header.colorMode,
+        // Use safe property access for ag-psd properties
+        documentName: this.psd.name || 'Untitled',
+        colorMode: this.psd.colorMode?.toString() || 'RGB',
         created: new Date().toISOString()
       },
       flattenedImageUrl: this.flattenedImageUrl || 'url_to_flattened_image',
@@ -118,7 +151,7 @@ export class UnifiedPSDProcessor {
       properties,
       semanticType: this.inferSemanticType(layer),
       hasRealImage: !!(layer.canvas || layer.imageData),
-      layerIndex: layerIndex, // Add the missing layerIndex property
+      layerIndex: layerIndex,
       type: layer.type || 'layer',
       isVisible: properties.visible,
       opacity: properties.opacity,
@@ -126,3 +159,6 @@ export class UnifiedPSDProcessor {
     };
   }
 }
+
+// Export singleton instance
+export const unifiedPSDProcessor = new UnifiedPSDProcessor({} as Psd);
