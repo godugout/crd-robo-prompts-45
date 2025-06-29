@@ -1,3 +1,4 @@
+
 import { Psd } from 'ag-psd';
 import { ProcessedPSDLayer, LayerBounds, LayerProperties, ProcessedPSD, EnhancedProcessedPSD } from '@/types/psdTypes';
 import { MediaManager } from '@/lib/storage/MediaManager';
@@ -157,9 +158,9 @@ export class UnifiedPSDProcessor {
 
     // Render layers from bottom to top
     for (const layer of this.psd.children) {
-      if (layer.canvas && layer.visible !== false) {
+      if (layer.canvas && layer.hidden !== true) {
         try {
-          ctx.globalAlpha = (layer.opacity || 255) / 255;
+          ctx.globalAlpha = (layer.opacity !== undefined ? layer.opacity : 255) / 255;
           ctx.drawImage(
             layer.canvas,
             layer.left || 0,
@@ -226,7 +227,7 @@ export class UnifiedPSDProcessor {
     const properties: LayerProperties = {
       opacity: (layer.opacity || 255) / 255,
       blendMode: layer.blendMode || 'normal',
-      visible: layer.visible !== false,
+      visible: layer.hidden !== true,
       locked: layer.locked || false
     };
 
