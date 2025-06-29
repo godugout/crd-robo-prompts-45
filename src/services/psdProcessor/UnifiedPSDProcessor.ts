@@ -1,5 +1,5 @@
 
-import { PSD, Layer } from 'ag-psd';
+import { Psd, Layer } from 'ag-psd';
 import { MediaManager } from '@/lib/storage/MediaManager';
 import { 
   EnhancedProcessedPSD, 
@@ -10,8 +10,8 @@ import {
   PSDMetadata,
   LayerAnalysis,
   LayerEffect,
-  ExtractedImages,
-  ExtractedImage
+  ExtractedPSDImages,
+  ExtractedLayerImage
 } from '@/types/psdTypes';
 
 export class UnifiedPSDProcessor {
@@ -21,7 +21,7 @@ export class UnifiedPSDProcessor {
     try {
       // Read the PSD file
       const arrayBuffer = await file.arrayBuffer();
-      const psd = new PSD();
+      const psd = new Psd();
       psd.parse(arrayBuffer);
       
       console.log('📋 PSD parsed successfully:', {
@@ -82,17 +82,24 @@ export class UnifiedPSDProcessor {
         width: psd.width,
         height: psd.height,
         layers,
+        totalLayers: layers.length,
         flattenedImageUrl,
         thumbnailUrl: flattenedImageUrl,
         metadata,
         extractedImages: {
           flattenedImageUrl,
-          layerImages: []
+          layerImages: [],
+          thumbnailUrl: flattenedImageUrl,
+          archiveUrls: {
+            originalPsd: '',
+            layerArchive: ''
+          }
         },
         layerImages: [],
+        layerPreviews: new Map<string, string>(),
         analysis: {
           totalLayers: layers.length,
-          visibleLayers: layers.filter(l => l.visible).length,
+          visibleLayers: layers.filter(l => l.isVisible).length,
           layerTypes: this.categorizeLayerTypes(layers),
           complexity: this.calculateComplexity(layers),
           potentialElements: this.identifyPotentialElements(layers)
@@ -113,29 +120,60 @@ export class UnifiedPSDProcessor {
     
     for (let i = 0; i < layers.length; i++) {
       const layer = layers[i];
+      const isVisible = layer.hidden !== true;
       
       const processedLayer: ProcessedPSDLayer = {
         id: `layer_${i}`,
         name: layer.name || `Layer ${i}`,
         type: this.determineLayerType(layer),
-        visible: layer.hidden !== true, // Use hidden property (inverted)
+        isVisible,
+        visible: isVisible, // Keep both for compatibility
         opacity: layer.opacity || 1,
         blendMode: layer.blendMode || 'normal',
+        bounds: {
+          left: layer.left || 0,
+          top: layer.top || 0,
+          right: layer.right || 0,
+          bottom: layer.bottom || 0
+        },
         dimensions: {
           x: layer.left || 0,
           y: layer.top || 0,
           width: (layer.right || 0) - (layer.left || 0),
           height: (layer.bottom || 0) - (layer.top || 0)
         },
+        properties: {
+          opacity: layer.opacity || 1,
+          blendMode: layer.blendMode || 'normal',
+          visible: isVisible
+        },
         hasRealImage: false,
         imageUrl: null,
         thumbnailUrl: null,
+        layerIndex: i,
         effects: [],
         analysis: {
           isBackground: i === layers.length - 1,
           isText: layer.text !== undefined,
           hasEffects: false,
-          complexity: 'simple'
+          complexity: 'simple',
+          semantic: {
+            category: layer.text ? 'text' : 'image',
+            importance: 'secondary'
+          },
+          spatial: {
+            depth: i / layers.length,
+            parallaxFactor: 1
+          },
+          complexity: {
+            score: 1,
+            factors: {
+              size: (layer.right || 0) - (layer.left || 0),
+              hasEffects: false,
+              hasRealContent: !!layer.canvas,
+              semanticImportance: 1
+            }
+          }
         }
       };
 

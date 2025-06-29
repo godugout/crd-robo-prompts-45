@@ -7,12 +7,27 @@ export interface LayerBounds {
   bottom: number;
 }
 
+export interface LayerDimensions {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface LayerProperties {
   opacity: number;
   blendMode?: string;
   visible: boolean;
   locked?: boolean;
 }
+
+export interface LayerEffect {
+  type: string;
+  enabled: boolean;
+  parameters: Record<string, any>;
+}
+
+export type PSDLayerType = 'text' | 'image' | 'group' | 'shape' | 'adjustment' | 'smartObject';
 
 export interface ProcessedPSDLayer {
   id: string;
@@ -24,12 +39,27 @@ export interface ProcessedPSDLayer {
   imageUrl?: string;
   thumbnailUrl?: string;
   inferredDepth?: number;
-  layerIndex: number; // Added missing property for layer ordering
+  layerIndex: number;
   // Unified compatibility fields
-  type: 'text' | 'image' | 'group' | 'shape' | 'layer';
+  type: PSDLayerType;
   isVisible: boolean;
+  visible: boolean; // Keep both for compatibility
   opacity: number;
+  blendMode?: string;
+  dimensions: LayerDimensions;
+  effects: LayerEffect[];
   confidence?: number;
+  analysis: LayerAnalysis;
+}
+
+export interface PSDMetadata {
+  documentName: string;
+  colorMode: string;
+  bitDepth: number;
+  hasTransparency: boolean;
+  layerCount: number;
+  createdAt: Date;
+  fileSize: number;
 }
 
 export interface ExtractedLayerImage {
@@ -60,11 +90,7 @@ export interface ProcessedPSD {
   height: number;
   layers: ProcessedPSDLayer[];
   totalLayers: number;
-  metadata?: {
-    documentName?: string;
-    colorMode?: string;
-    created?: string;
-  };
+  metadata?: PSDMetadata;
   // Required fields for all PSD objects
   flattenedImageUrl: string;
   transparentFlattenedImageUrl?: string;
@@ -75,6 +101,13 @@ export interface ProcessedPSD {
 export interface EnhancedProcessedPSD extends ProcessedPSD {
   extractedImages: ExtractedPSDImages;
   layerPreviews: Map<string, string>;
+  analysis: {
+    totalLayers: number;
+    visibleLayers: number;
+    layerTypes: Record<PSDLayerType, number>;
+    complexity: 'simple' | 'moderate' | 'complex';
+    potentialElements: string[];
+  };
 }
 
 // Processing states
@@ -105,4 +138,8 @@ export interface LayerAnalysis {
       semanticImportance: number;
     };
   };
+  isBackground: boolean;
+  isText: boolean;
+  hasEffects: boolean;
+  complexity: 'simple' | 'moderate' | 'complex';
 }
