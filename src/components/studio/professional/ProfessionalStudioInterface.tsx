@@ -36,23 +36,33 @@ export const ProfessionalStudioInterface: React.FC = () => {
     }
   };
 
+  const handleExport = () => {
+    // TODO: Implement export functionality
+    console.log('Exporting card with:', { selectedFrame, uploadedImage, cardData });
+  };
+
+  const handlePublish = () => {
+    // TODO: Implement publish functionality
+    console.log('Publishing card with:', { selectedFrame, uploadedImage, cardData });
+  };
+
   return (
     <ProfessionalLayout>
       {/* Professional Header */}
       <ProfessionalHeader
-        title="Professional Card Creation Studio"
-        subtitle="Create professional-grade trading cards with advanced tools"
+        title="Enhanced Card Creation Studio"
+        subtitle="Create professional-grade trading cards with advanced tools and real-time preview"
         actions={
           <>
             <ProfessionalButton variant="ghost" size="sm">
               <Settings className="w-4 h-4" />
               Settings
             </ProfessionalButton>
-            <ProfessionalButton variant="secondary" size="sm">
+            <ProfessionalButton variant="secondary" size="sm" onClick={handleExport}>
               <Download className="w-4 h-4" />
               Export
             </ProfessionalButton>
-            <ProfessionalButton variant="primary" size="sm" context="professional">
+            <ProfessionalButton variant="primary" size="sm" context="professional" onClick={handlePublish}>
               <Share2 className="w-4 h-4" />
               Publish
             </ProfessionalButton>

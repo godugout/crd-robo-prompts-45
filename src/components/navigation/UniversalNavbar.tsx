@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { cn } from '@/lib/utils';
 
 const navigationItems = [
   { href: '/', label: 'Home', icon: Home, public: true },
-  { href: '/create/enhanced', label: 'Create', icon: Plus, protected: true },
+  { href: '/create/enhanced', label: 'Create', icon: Plus, protected: true, featured: true },
   { href: '/studio', label: 'Studio', icon: Palette, protected: true },
   { href: '/collections', label: 'Collections', icon: Camera, public: true },
   { href: '/community', label: 'Community', icon: Users, public: true },
@@ -59,11 +60,16 @@ export const UniversalNavbar: React.FC = () => {
                     "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                     isActive 
                       ? "bg-crd-green text-black" 
+                      : item.featured
+                      ? "text-crd-green hover:text-white hover:bg-crd-green/20 ring-1 ring-crd-green/30"
                       : "text-gray-300 hover:text-white hover:bg-white/10"
                   )}
                 >
                   <Icon className="w-4 h-4" />
                   {item.label}
+                  {item.featured && !isActive && (
+                    <div className="w-2 h-2 bg-crd-green rounded-full animate-pulse" />
+                  )}
                 </Link>
               );
             })}
@@ -136,6 +142,8 @@ export const UniversalNavbar: React.FC = () => {
                     "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                     isActive 
                       ? "bg-crd-green text-black" 
+                      : item.featured
+                      ? "text-crd-green hover:text-white hover:bg-crd-green/20"
                       : "text-gray-300 hover:text-white hover:bg-white/10"
                   )}
                 >

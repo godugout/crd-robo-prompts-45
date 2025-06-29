@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, Camera, Star } from 'lucide-react';
+import { Upload, Camera, Star, Grid3X3 } from 'lucide-react';
 import { FramePreviewRenderer } from '@/components/studio/frames/FramePreviewRenderer';
 import { ENHANCED_FRAME_TEMPLATES } from '@/components/studio/frames/EnhancedFrameTemplates';
 import { 
@@ -26,6 +26,7 @@ export const CardPreviewPanel: React.FC<CardPreviewPanelProps> = ({
   rating
 }) => {
   const frameTemplate = ENHANCED_FRAME_TEMPLATES.find(f => f.id === selectedFrame);
+  const [showFrameSelection, setShowFrameSelection] = React.useState(false);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -38,9 +39,19 @@ export const CardPreviewPanel: React.FC<CardPreviewPanelProps> = ({
   return (
     <ProfessionalPanel
       header={
-        <div>
-          <h2 className="text-lg font-semibold text-[#FFFFFF]">Card Preview</h2>
-          <p className="text-sm text-[#9CA3AF] mt-1">Professional grading visualization</p>
+        <div className="flex items-center justify-between w-full">
+          <div>
+            <h2 className="text-lg font-semibold text-[#FFFFFF]">Card Preview</h2>
+            <p className="text-sm text-[#9CA3AF] mt-1">Professional grading visualization</p>
+          </div>
+          <ProfessionalButton
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowFrameSelection(!showFrameSelection)}
+          >
+            <Grid3X3 className="w-4 h-4" />
+            Frames
+          </ProfessionalButton>
         </div>
       }
     >
@@ -81,6 +92,33 @@ export const CardPreviewPanel: React.FC<CardPreviewPanelProps> = ({
           </ProfessionalCard>
         </div>
       </div>
+
+      {/* Frame Selection Grid */}
+      {showFrameSelection && (
+        <div className="border-t border-[#404040] bg-[#1A1A1B] p-4">
+          <h3 className="text-white font-medium mb-3">Select Frame</h3>
+          <div className="grid grid-cols-4 gap-2 max-h-32 overflow-y-auto">
+            {ENHANCED_FRAME_TEMPLATES.slice(0, 8).map((frame) => (
+              <button
+                key={frame.id}
+                onClick={() => {
+                  onFrameSelect(frame.id);
+                  setShowFrameSelection(false);
+                }}
+                className={`relative aspect-[2.5/3.5] rounded border-2 transition-all ${
+                  selectedFrame === frame.id
+                    ? 'border-[#F97316] ring-1 ring-[#F97316]'
+                    : 'border-[#404040] hover:border-[#525552]'
+                }`}
+              >
+                <div className="w-full h-full bg-gradient-to-br from-[#252526] to-[#1A1A1B] rounded flex items-center justify-center text-xs text-[#9CA3AF]">
+                  {frame.name}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Upload Area */}
       <div className="p-4 border-t border-[#404040] bg-[#1A1A1B]">
