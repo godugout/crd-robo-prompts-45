@@ -1,17 +1,6 @@
 
-import { ProcessedPSD, ProcessedPSDLayer } from './psdProcessingService';
-import { ExtractedPSDImages, extractRealPSDImages } from './realImageExtraction';
-
-export interface EnhancedProcessedPSD extends ProcessedPSD {
-  extractedImages: ExtractedPSDImages;
-  layerPreviews: Map<string, string>;
-}
-
-export interface EnhancedProcessedPSDLayer extends ProcessedPSDLayer {
-  imageUrl?: string;
-  thumbnailUrl?: string;
-  hasRealImage: boolean;
-}
+import { ProcessedPSD, ProcessedPSDLayer, EnhancedProcessedPSD, ExtractedPSDImages } from '@/types/psdTypes';
+import { extractRealPSDImages } from './realImageExtraction';
 
 export const processEnhancedPSD = async (
   file: File,
@@ -30,7 +19,7 @@ export const processEnhancedPSD = async (
     const layerPreviews = new Map<string, string>();
     
     // Map extracted images to processed layers
-    const enhancedLayers: EnhancedProcessedPSDLayer[] = originalProcessedPSD.layers.map((layer, index) => {
+    const enhancedLayers: ProcessedPSDLayer[] = originalProcessedPSD.layers.map((layer, index) => {
       const extractedLayer = extractedImages.layerImages[index];
       
       if (extractedLayer) {
