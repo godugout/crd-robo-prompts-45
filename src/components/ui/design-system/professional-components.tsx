@@ -57,18 +57,18 @@ export const ProfessionalCard = React.forwardRef<HTMLDivElement, ProfessionalCar
 );
 ProfessionalCard.displayName = "ProfessionalCard";
 
-// Professional Button Component
+// Professional Button Component - Updated with professional context
 const professionalButtonVariants = cva(
   "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-250 ease-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0A0A0B] disabled:opacity-50 disabled:pointer-events-none",
   {
     variants: {
       variant: {
         primary: "bg-[#F97316] text-white hover:bg-[#FB923C] focus:ring-[#F97316]",
-        secondary: "bg-[#252526] text-[#E5E5E7] border border-[#525252] hover:bg-[#2D2D30] hover:border-[#737373] focus:ring-[#525252]",
+        secondary: "bg-[#252526] text-[#E5E5E7] border border-[#525552] hover:bg-[#2D2D30] hover:border-[#737373] focus:ring-[#525552]",
         professional: "bg-[#8B5CF6] text-white hover:bg-[#A78BFA] focus:ring-[#8B5CF6]",
-        ghost: "text-[#E5E5E7] hover:bg-[#252526] focus:ring-[#525252]",
+        ghost: "text-[#E5E5E7] hover:bg-[#252526] focus:ring-[#525552]",
         destructive: "bg-[#EF4444] text-white hover:bg-[#F87171] focus:ring-[#EF4444]",
-        outline: "border border-[#525252] text-[#E5E5E7] hover:bg-[#252526] focus:ring-[#525252]",
+        outline: "border border-[#525552] text-[#E5E5E7] hover:bg-[#252526] focus:ring-[#525552]",
         link: "text-[#3B82F6] hover:text-[#60A5FA] underline-offset-4 hover:underline focus:ring-[#3B82F6]",
       },
       size: {
@@ -83,6 +83,7 @@ const professionalButtonVariants = cva(
         cards: "bg-[#F97316] text-white hover:bg-[#FB923C] focus:ring-[#F97316]", 
         shops: "bg-[#3B82F6] text-white hover:bg-[#60A5FA] focus:ring-[#3B82F6]",
         currency: "bg-[#FACC15] text-black hover:bg-[#FDE047] focus:ring-[#FACC15]",
+        professional: "bg-[#8B5CF6] text-white hover:bg-[#A78BFA] focus:ring-[#8B5CF6]",
       }
     },
     defaultVariants: {
@@ -90,6 +91,13 @@ const professionalButtonVariants = cva(
       size: "md", 
       context: "none",
     },
+    compoundVariants: [
+      {
+        variant: "primary",
+        context: "professional",
+        className: "bg-[#8B5CF6] text-white hover:bg-[#A78BFA] focus:ring-[#8B5CF6]"
+      }
+    ]
   }
 );
 
@@ -100,9 +108,10 @@ export interface ProfessionalButtonProps
 }
 
 export const ProfessionalButton = React.forwardRef<HTMLButtonElement, ProfessionalButtonProps>(
-  ({ className, variant, size, context, ...props }, ref) => {
+  ({ className, variant, size, context, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? 'div' : 'button';
     return (
-      <button
+      <Comp
         ref={ref}
         className={cn(professionalButtonVariants({ variant, size, context }), className)}
         {...props}
@@ -151,7 +160,7 @@ export interface ProfessionalStatProps {
   value: string | number;
   icon?: React.ReactNode;
   trend?: 'up' | 'down' | 'neutral';
-  context?: 'collections' | 'cards' | 'shops' | 'currency';
+  context?: 'collections' | 'cards' | 'shops' | 'currency' | 'professional';
 }
 
 export const ProfessionalStat: React.FC<ProfessionalStatProps> = ({
@@ -167,6 +176,7 @@ export const ProfessionalStat: React.FC<ProfessionalStatProps> = ({
       case 'cards': return '#F97316';
       case 'shops': return '#3B82F6'; 
       case 'currency': return '#FACC15';
+      case 'professional': return '#8B5CF6';
       default: return '#E5E5E7';
     }
   };
