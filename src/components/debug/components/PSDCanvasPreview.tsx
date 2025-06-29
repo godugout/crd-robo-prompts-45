@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { EnhancedProcessedPSD, ProcessedPSDLayer } from '@/types/psdTypes';
 import { Button } from '@/components/ui/button';
+import { Enhanced3DInspectCanvas } from './Enhanced3DInspectCanvas';
 
 interface PSDCanvasPreviewProps {
   processedPSD: EnhancedProcessedPSD;
@@ -33,6 +34,19 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
 
   // Use reordered layers if available, otherwise fall back to original layers
   const layersToRender = reorderedLayers || processedPSD.layers;
+
+  // If we're in inspect mode, use the new 3D canvas
+  if (viewMode === 'inspect') {
+    return (
+      <Enhanced3DInspectCanvas
+        processedPSD={processedPSD}
+        selectedLayerId={selectedLayerId}
+        hiddenLayers={hiddenLayers}
+        onLayerSelect={onLayerSelect}
+        reorderedLayers={reorderedLayers}
+      />
+    );
+  }
 
   useEffect(() => {
     if (processedPSD && canvasRef.current) {
