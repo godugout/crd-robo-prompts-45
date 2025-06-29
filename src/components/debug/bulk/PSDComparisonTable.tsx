@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,35 +53,21 @@ export const PSDComparisonTable: React.FC<PSDComparisonTableProps> = ({
                   <TableHead className="text-slate-300">Layer Types</TableHead>
                   <TableHead className="text-slate-300">Semantic Elements</TableHead>
                   <TableHead className="text-slate-300">Complexity</TableHead>
-                  <TableHead className="text-slate-300">Depth Range</TableHead>
                   <TableHead className="text-slate-300">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {psdData.map((psd) => {
-                  const layerTypes = psd.processedPSD.layers.reduce((acc, layer) => {
-                    acc[layer.type] = (acc[layer.type] || 0) + 1;
-                    return acc;
-                  }, {} as Record<string, number>);
-
-                  const semanticTypes = psd.processedPSD. layers.reduce((acc, layer) => {
+                  const semanticTypes = psd.processedPSD.layers.reduce((acc, layer) => {
                     if (layer.semanticType) {
                       acc[layer.semanticType] = (acc[layer.semanticType] || 0) + 1;
                     }
                     return acc;
                   }, {} as Record<string, number>);
 
-                  const depthValues = psd.processedPSD.layers
-                    .filter(layer => layer.inferredDepth !== undefined)
-                    .map(layer => layer.inferredDepth!);
-                  
-                  const minDepth = depthValues.length > 0 ? Math.min(...depthValues) : 0;
-                  const maxDepth = depthValues.length > 0 ? Math.max(...depthValues) : 0;
-
                   const complexityScore = Math.min(100, 
                     (psd.processedPSD.totalLayers * 2) + 
-                    (Object.keys(semanticTypes).length * 5) + 
-                    (Object.keys(layerTypes).length * 3)
+                    (Object.keys(semanticTypes).length * 5)
                   );
 
                   return (
@@ -112,11 +99,9 @@ export const PSDComparisonTable: React.FC<PSDComparisonTableProps> = ({
                       
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {Object.entries(layerTypes).map(([type, count]) => (
-                            <Badge key={type} variant="secondary" className="text-xs">
-                              {type}: {count}
-                            </Badge>
-                          ))}
+                          <Badge variant="secondary" className="text-xs">
+                            {psd.processedPSD.layers.filter(l => l.hasRealImage).length} with images
+                          </Badge>
                         </div>
                       </TableCell>
                       
@@ -140,16 +125,6 @@ export const PSDComparisonTable: React.FC<PSDComparisonTableProps> = ({
                           </div>
                           <span className="text-white text-sm">{complexityScore}</span>
                         </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        {depthValues.length > 0 ? (
-                          <Badge variant="outline" className="text-xs">
-                            {minDepth.toFixed(2)} - {maxDepth.toFixed(2)}
-                          </Badge>
-                        ) : (
-                          <span className="text-slate-400 text-xs">No depth data</span>
-                        )}
                       </TableCell>
                       
                       <TableCell>

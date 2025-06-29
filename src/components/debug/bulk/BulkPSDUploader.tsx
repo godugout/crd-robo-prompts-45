@@ -5,9 +5,15 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { BulkPSDData } from '@/pages/BulkPSDAnalysisPage';
-import { processPSD } from '@/services/psdProcessor/psdProcessingService';
-import { processEnhancedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
-import { Upload, FileImage, AlertCircle } from 'lucide-react';
+import { unifiedPSDProcessor } from '@/services/psdProcessor/unifiedPsdProcessor';
+import { EnhancedProcessedPSD } from '@/types/psdTypes';
+import { 
+  Upload, 
+  FileImage, 
+  CheckCircle, 
+  AlertCircle,
+  Loader2
+} from 'lucide-react';
 
 interface BulkPSDUploaderProps {
   onPSDsProcessed: (newPSDs: BulkPSDData[]) => void;
@@ -23,6 +29,24 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [currentFile, setCurrentFile] = React.useState<string>('');
   const [errors, setErrors] = React.useState<string[]>([]);
+
+  const simulateProgress = useCallback((stage: string, duration: number = 2000) => {
+    setProcessingStage(stage);
+    const steps = 20;
+    const increment = 100 / steps;
+    let currentProgress = 0;
+    
+    const interval = setInterval(() => {
+      currentProgress += increment;
+      setUploadProgress(prev => Math.min(prev + increment, 100));
+      
+      if (currentProgress >= 100) {
+        clearInterval(interval);
+      }
+    }, duration / steps);
+    
+    return interval;
+  }, []);
 
   const processFiles = async (files: File[]) => {
     setIsUploading(true);
@@ -40,11 +64,8 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
       try {
         console.log(`Processing PSD ${i + 1}/${files.length}: ${file.name}`);
         
-        // First, process with original system
-        const originalProcessedPSD = await processPSD(file);
-        
-        // Then enhance with real image extraction
-        const enhancedProcessedPSD = await processEnhancedPSD(file, originalProcessedPSD);
+        // Process with unified processor
+        const enhancedProcessedPSD = await unifiedPSDProcessor.processPSDFile(file);
         
         processedPSDs.push({
           id: `psd_${Date.now()}_${i}`,
@@ -93,6 +114,13 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
     },
     disabled: isUploading
   });
+
+  const resetState = () => {
+    setErrors([]);
+    setSuccess(false);
+    setUploadProgress(0);
+    setProcessingStage('');
+  };
 
   return (
     <div className="space-y-6">

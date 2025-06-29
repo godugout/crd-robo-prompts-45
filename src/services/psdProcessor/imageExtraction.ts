@@ -1,4 +1,6 @@
-import { ExtractedPSDImages, extractRealPSDImages } from './realImageExtraction';
+
+import { extractRealPSDImages } from './realImageExtraction';
+import { ExtractedPSDImages } from '@/types/psdTypes';
 
 export interface ExtractedPSDImage {
   flattenedImageUrl: string;

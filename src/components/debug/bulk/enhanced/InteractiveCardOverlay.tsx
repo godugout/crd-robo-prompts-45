@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
+import { EnhancedProcessedPSD } from '@/types/psdTypes';
 import { Eye, EyeOff, Layers, Palette } from 'lucide-react';
 
 interface InteractiveCardOverlayProps {

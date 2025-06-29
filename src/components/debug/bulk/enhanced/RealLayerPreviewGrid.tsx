@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { EnhancedProcessedPSD, EnhancedProcessedPSDLayer } from '@/services/psdProcessor/enhancedPsdProcessingService';
+import { EnhancedProcessedPSD, ProcessedPSDLayer } from '@/types/psdTypes';
 import { Eye, EyeOff, Info, ZoomIn, CheckSquare, Square } from 'lucide-react';
 
 interface RealLayerPreviewGridProps {
@@ -49,54 +49,17 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
     return colors[type] || 'border-slate-600';
   };
 
-  const getLayerDimensions = (layer: EnhancedProcessedPSDLayer) => {
+  const getLayerDimensions = (layer: ProcessedPSDLayer) => {
     const width = Math.round(layer.bounds.right - layer.bounds.left);
     const height = Math.round(layer.bounds.bottom - layer.bounds.top);
     return { width, height };
-  };
-
-  const renderLayerPreview = (layer: EnhancedProcessedPSDLayer) => {
-    const dimensions = getLayerDimensions(layer);
-    
-    // Use real image if available, otherwise show placeholder
-    if (layer.hasRealImage && layer.thumbnailUrl) {
-      return (
-        <img
-          src={layer.thumbnailUrl}
-          alt={layer.name}
-          className="w-full h-full object-contain"
-          onError={(e) => {
-            // Fallback to placeholder on image load error
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            target.nextElementSibling?.classList.remove('hidden');
-          }}
-        />
-      );
-    }
-
-    // Fallback placeholder
-    return (
-      <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-slate-600 rounded mb-2 flex items-center justify-center">
-            <span className="text-slate-300 text-xs font-mono">
-              {layer.type.charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <p className="text-slate-400 text-xs">
-            {dimensions.width} × {dimensions.height}
-          </p>
-        </div>
-      </div>
-    );
   };
 
   return (
     <div className="space-y-6">
       {/* Large Visual Layer Grid - Optimized for Visibility */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {processedPSD.layers.map((layer: EnhancedProcessedPSDLayer) => {
+        {processedPSD.layers.map((layer) => {
           const dimensions = getLayerDimensions(layer);
           const isSelected = selectedLayers.has(layer.id);
           const isHidden = hiddenLayers.has(layer.id);
@@ -112,7 +75,26 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
               <div className="p-4">
                 {/* Large Layer Preview - Minimum 200x200px */}
                 <div className="aspect-square bg-slate-900 rounded-lg mb-4 overflow-hidden relative min-h-[200px]">
-                  {renderLayerPreview(layer)}
+                  {layer.thumbnailUrl ? (
+                    <img
+                      src={layer.thumbnailUrl}
+                      alt={layer.name}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="w-16 h-16 bg-slate-600 rounded mb-2 flex items-center justify-center">
+                          <span className="text-slate-300 text-xs font-mono">
+                            {layer.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <p className="text-slate-400 text-xs">
+                          {dimensions.width} × {dimensions.height}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Layer Controls Overlay */}
                   <div className="absolute top-2 left-2 right-2 flex justify-between">
@@ -163,15 +145,6 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
                       )}
                     </Button>
                   </div>
-
-                  {/* Real Image Indicator */}
-                  {layer.hasRealImage && (
-                    <div className="absolute top-2 right-2">
-                      <Badge className="bg-crd-green text-black text-xs">
-                        Real Image
-                      </Badge>
-                    </div>
-                  )}
                 </div>
 
                 {/* Enhanced Layer Information */}
@@ -186,9 +159,11 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {layer.type}
-                    </Badge>
+                    {layer.hasRealImage && (
+                      <Badge className="text-xs bg-green-500/20 text-green-400">
+                        Real Image
+                      </Badge>
+                    )}
                     {layer.semanticType && (
                       <Badge className={`text-xs bg-${layer.semanticType === 'player' ? 'emerald' : 
                         layer.semanticType === 'background' ? 'indigo' :
@@ -205,14 +180,12 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
                     )}
                   </div>
 
-                  {layer.inferredDepth && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-slate-400 text-xs">Depth:</span>
-                      <Badge variant="outline" className="text-xs">
-                        {layer.inferredDepth.toFixed(2)}
-                      </Badge>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400 text-xs">Opacity:</span>
+                    <Badge variant="outline" className="text-xs">
+                      {Math.round(layer.properties.opacity * 100)}%
+                    </Badge>
+                  </div>
                 </div>
               </div>
             </Card>
