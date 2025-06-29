@@ -28,22 +28,20 @@ export const EnhancedPSDCard: React.FC<EnhancedPSDCardProps> = ({
   onAnalyze,
   isSelected
 }) => {
-  // Determine the best image to display
+  // Determine the best image to display with improved logic
   const getPreviewImage = (): { url: string; isProcessing: boolean } => {
     const { enhancedProcessedPSD } = psd;
     
-    // Check if we have a real flattened image (not placeholder)
-    if (enhancedProcessedPSD.extractedImages?.flattenedImageUrl && 
-        !enhancedProcessedPSD.extractedImages.flattenedImageUrl.includes('placeholder')) {
-      console.log('✅ Using flattened image from extractedImages');
-      return { 
-        url: enhancedProcessedPSD.extractedImages.flattenedImageUrl, 
-        isProcessing: false 
-      };
-    }
+    console.log('🔍 Getting preview image for:', psd.fileName, {
+      flattenedImageUrl: enhancedProcessedPSD.flattenedImageUrl,
+      extractedImagesCount: enhancedProcessedPSD.extractedImages?.layerImages?.length || 0,
+      layerImagesCount: enhancedProcessedPSD.layerImages?.length || 0,
+      hasRealImageLayers: enhancedProcessedPSD.layers.filter(l => l.hasRealImage).length
+    });
     
-    // Check main flattened image URL
+    // Priority 1: Check for a real flattened image
     if (enhancedProcessedPSD.flattenedImageUrl && 
+        enhancedProcessedPSD.flattenedImageUrl.startsWith('http') &&
         !enhancedProcessedPSD.flattenedImageUrl.includes('placeholder')) {
       console.log('✅ Using main flattened image URL');
       return { 
@@ -52,20 +50,49 @@ export const EnhancedPSDCard: React.FC<EnhancedPSDCardProps> = ({
       };
     }
     
-    // Check if we have layer images to show
+    // Priority 2: Check extracted images flattened URL
+    if (enhancedProcessedPSD.extractedImages?.flattenedImageUrl && 
+        enhancedProcessedPSD.extractedImages.flattenedImageUrl.startsWith('http') &&
+        !enhancedProcessedPSD.extractedImages.flattenedImageUrl.includes('placeholder')) {
+      console.log('✅ Using extractedImages flattened URL');
+      return { 
+        url: enhancedProcessedPSD.extractedImages.flattenedImageUrl, 
+        isProcessing: false 
+      };
+    }
+    
+    // Priority 3: Use first layer with real image
+    const layersWithImages = enhancedProcessedPSD.layers.filter(layer => 
+      layer.hasRealImage && 
+      layer.imageUrl && 
+      layer.imageUrl.startsWith('http') &&
+      !layer.imageUrl.includes('placeholder')
+    );
+    
+    if (layersWithImages.length > 0) {
+      console.log('✅ Using first layer with real image:', layersWithImages[0].name);
+      return { 
+        url: layersWithImages[0].imageUrl!, 
+        isProcessing: false 
+      };
+    }
+    
+    // Priority 4: Check extracted layer images
     if (enhancedProcessedPSD.extractedImages?.layerImages?.length > 0) {
-      const firstLayerImage = enhancedProcessedPSD.extractedImages.layerImages[0];
-      if (firstLayerImage.imageUrl && !firstLayerImage.imageUrl.includes('placeholder')) {
-        console.log('✅ Using first layer image as fallback');
+      const firstExtractedImage = enhancedProcessedPSD.extractedImages.layerImages[0];
+      if (firstExtractedImage.imageUrl && 
+          firstExtractedImage.imageUrl.startsWith('http') &&
+          !firstExtractedImage.imageUrl.includes('placeholder')) {
+        console.log('✅ Using first extracted layer image');
         return { 
-          url: firstLayerImage.imageUrl, 
+          url: firstExtractedImage.imageUrl, 
           isProcessing: false 
         };
       }
     }
     
-    // Still processing if we only have placeholders
-    console.log('⚠️ Still processing - only placeholder URLs available');
+    // If we get here, still processing or failed
+    console.log('⚠️ No valid images found - still processing or failed');
     return { 
       url: '', 
       isProcessing: true 
@@ -79,7 +106,7 @@ export const EnhancedPSDCard: React.FC<EnhancedPSDCardProps> = ({
     if (isProcessing) {
       return {
         status: 'processing',
-        message: 'Rendering card...',
+        message: 'Extracting layers...',
         icon: <Loader2 className="w-4 h-4 animate-spin" />
       };
     }
@@ -87,19 +114,20 @@ export const EnhancedPSDCard: React.FC<EnhancedPSDCardProps> = ({
     if (previewImageUrl) {
       return {
         status: 'complete',
-        message: 'Ready to view',
+        message: 'Ready to analyze',
         icon: <CheckCircle className="w-4 h-4 text-green-500" />
       };
     }
     
     return {
       status: 'error',
-      message: 'Processing failed',
+      message: 'Extraction failed',
       icon: <AlertCircle className="w-4 h-4 text-red-500" />
     };
   };
 
   const processingStatus = getProcessingStatus();
+  const layersWithImages = psd.enhancedProcessedPSD.layers.filter(l => l.hasRealImage).length;
 
   return (
     <Card className={`bg-[#131316] border-slate-700 transition-all duration-200 hover:border-slate-600 ${
@@ -111,26 +139,36 @@ export const EnhancedPSDCard: React.FC<EnhancedPSDCardProps> = ({
           <div className="w-full h-full flex flex-col items-center justify-center">
             <Loader2 className="w-8 h-8 text-crd-blue animate-spin mb-3" />
             <p className="text-sm text-slate-400 text-center px-4">
-              Processing PSD layers...
+              Extracting PSD layers...
             </p>
             <p className="text-xs text-slate-500 mt-1">
-              Card render in progress
+              Processing {psd.enhancedProcessedPSD.layers.length} layers
             </p>
           </div>
         ) : previewImageUrl ? (
-          <EnhancedImage
-            src={previewImageUrl}
-            alt={psd.fileName}
-            className="w-full h-full object-contain"
-            loading="lazy"
-            onLoad={() => console.log('✅ Preview image loaded successfully')}
-            onError={() => console.error('❌ Preview image failed to load')}
-          />
+          <>
+            <EnhancedImage
+              src={previewImageUrl}
+              alt={psd.fileName}
+              className="w-full h-full object-contain"
+              loading="lazy"
+              onLoad={() => console.log('✅ Preview image loaded successfully:', previewImageUrl)}
+              onError={() => console.error('❌ Preview image failed to load:', previewImageUrl)}
+            />
+            {/* Layer count overlay */}
+            {layersWithImages > 0 && (
+              <div className="absolute bottom-3 left-3">
+                <Badge className="bg-crd-green/20 text-crd-green border-crd-green/30 text-xs">
+                  {layersWithImages} layer{layersWithImages !== 1 ? 's' : ''} extracted
+                </Badge>
+              </div>
+            )}
+          </>
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center">
             <AlertCircle className="w-8 h-8 text-red-500 mb-3" />
             <p className="text-sm text-red-400 text-center px-4">
-              Failed to process PSD
+              Failed to extract layers
             </p>
             <p className="text-xs text-slate-500 mt-1">
               Check console for details
@@ -169,6 +207,12 @@ export const EnhancedPSDCard: React.FC<EnhancedPSDCardProps> = ({
               <Layers className="w-3 h-3" />
               {psd.enhancedProcessedPSD.layers.length} layers
             </span>
+            {layersWithImages > 0 && (
+              <>
+                <span>•</span>
+                <span className="text-crd-green">{layersWithImages} with images</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -179,9 +223,9 @@ export const EnhancedPSDCard: React.FC<EnhancedPSDCardProps> = ({
             <span>{new Date(psd.uploadedAt).toLocaleDateString()}</span>
           </div>
           
-          {psd.enhancedProcessedPSD.extractedImages?.layerImages?.length > 0 && (
+          {layersWithImages > 0 && (
             <Badge variant="outline" className="text-xs">
-              {psd.enhancedProcessedPSD.extractedImages.layerImages.length} images
+              {layersWithImages} extracted
             </Badge>
           )}
         </div>
