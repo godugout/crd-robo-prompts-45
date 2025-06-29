@@ -1,11 +1,10 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { BulkPSDData } from '@/pages/BulkPSDAnalysisPage';
-import { Eye, Play, Layers, FileImage, Calendar, Ruler } from 'lucide-react';
+import { Eye, Play, Layers, FileImage, Calendar, Ruler, Image } from 'lucide-react';
 
 interface EnhancedPSDCardProps {
   psd: BulkPSDData;
@@ -21,27 +20,38 @@ export const EnhancedPSDCard: React.FC<EnhancedPSDCardProps> = ({
   isSelected
 }) => {
   const [imageError, setImageError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Get the best available image for preview
   const previewImage = useMemo(() => {
     const { processedPSD } = psd;
     
-    // Try flattened image first, then transparent version, then thumbnail
-    if (processedPSD.flattenedImageUrl && processedPSD.flattenedImageUrl !== 'url_to_flattened_image') {
+    // Try flattened image first (this should be the main rendered card)
+    if (processedPSD.flattenedImageUrl && 
+        processedPSD.flattenedImageUrl !== 'url_to_flattened_image' &&
+        !processedPSD.flattenedImageUrl.includes('url_to_')) {
       return processedPSD.flattenedImageUrl;
     }
     
-    if (processedPSD.transparentFlattenedImageUrl && processedPSD.transparentFlattenedImageUrl !== 'url_to_transparent_flattened_image') {
+    // Try transparent flattened version
+    if (processedPSD.transparentFlattenedImageUrl && 
+        processedPSD.transparentFlattenedImageUrl !== 'url_to_transparent_flattened_image' &&
+        !processedPSD.transparentFlattenedImageUrl.includes('url_to_')) {
       return processedPSD.transparentFlattenedImageUrl;
     }
     
-    if (processedPSD.thumbnailUrl && processedPSD.thumbnailUrl !== 'url_to_thumbnail') {
+    // Try thumbnail
+    if (processedPSD.thumbnailUrl && 
+        processedPSD.thumbnailUrl !== 'url_to_thumbnail' &&
+        !processedPSD.thumbnailUrl.includes('url_to_')) {
       return processedPSD.thumbnailUrl;
     }
     
-    // Try to find a layer with an image
+    // Try to find a layer with an actual image
     const layerWithImage = processedPSD.layers.find(layer => 
-      layer.imageUrl && layer.hasRealImage
+      layer.imageUrl && 
+      layer.hasRealImage &&
+      !layer.imageUrl.includes('url_to_')
     );
     
     return layerWithImage?.imageUrl || null;
@@ -62,7 +72,13 @@ export const EnhancedPSDCard: React.FC<EnhancedPSDCardProps> = ({
     return breakdown;
   }, [psd.processedPSD.layers]);
 
+  const handleImageLoad = () => {
+    setIsLoading(false);
+    setImageError(false);
+  };
+
   const handleImageError = () => {
+    setIsLoading(false);
     setImageError(true);
   };
 
@@ -89,17 +105,37 @@ export const EnhancedPSDCard: React.FC<EnhancedPSDCardProps> = ({
           {/* Image Preview */}
           <div className="aspect-[3/4] bg-slate-800 rounded-lg overflow-hidden relative">
             {previewImage && !imageError ? (
-              <img
-                src={previewImage}
-                alt={psd.fileName}
-                className="w-full h-full object-contain"
-                onError={handleImageError}
-              />
+              <>
+                {isLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-slate-800">
+                    <div className="text-center text-slate-500">
+                      <div className="w-8 h-8 border-2 border-crd-green border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                      <p className="text-xs">Loading card...</p>
+                    </div>
+                  </div>
+                )}
+                <img
+                  src={previewImage}
+                  alt={psd.fileName}
+                  className={`w-full h-full object-contain transition-opacity duration-300 ${
+                    isLoading ? 'opacity-0' : 'opacity-100'
+                  }`}
+                  onLoad={handleImageLoad}
+                  onError={handleImageError}
+                />
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <div className="text-center text-slate-500">
                   <FileImage className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-xs">No Preview</p>
+                  <p className="text-xs">
+                    {imageError ? 'Failed to load' : 'Processing...'}
+                  </p>
+                  {!imageError && (
+                    <p className="text-xs mt-1 opacity-75">
+                      Card render in progress
+                    </p>
+                  )}
                 </div>
               </div>
             )}

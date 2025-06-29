@@ -1,6 +1,6 @@
-
 import { Psd } from 'ag-psd';
 import { ProcessedPSDLayer, LayerBounds, LayerProperties, ProcessedPSD, EnhancedProcessedPSD } from '@/types/psdTypes';
+import { MediaManager } from '@/lib/storage/MediaManager';
 
 // Utility function to check if a layer name contains certain keywords
 const containsKeyword = (layerName: string, keywords: string[]): boolean => {
@@ -71,10 +71,14 @@ export class UnifiedPSDProcessor {
     // Process and return the enhanced PSD
     const processedPSD = await processor.process();
     
+    // Generate flattened image from PSD
+    const flattenedImageUrl = await processor.generateFlattenedImage(file.name);
+    
     return {
       ...processedPSD,
+      flattenedImageUrl: flattenedImageUrl || processedPSD.flattenedImageUrl,
       extractedImages: {
-        flattenedImageUrl: processedPSD.flattenedImageUrl,
+        flattenedImageUrl: flattenedImageUrl || processedPSD.flattenedImageUrl,
         layerImages: processedPSD.layerImages,
         thumbnailUrl: processedPSD.thumbnailUrl,
         archiveUrls: {
@@ -86,18 +90,100 @@ export class UnifiedPSDProcessor {
     };
   }
 
+  private async generateFlattenedImage(fileName: string): Promise<string | null> {
+    try {
+      // Create a canvas to render the flattened PSD
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx || !this.psd.width || !this.psd.height) {
+        console.warn('Cannot create canvas context or PSD dimensions missing');
+        return null;
+      }
+
+      canvas.width = this.psd.width;
+      canvas.height = this.psd.height;
+
+      // Clear canvas with white background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // If PSD has a composite image, use it
+      if (this.psd.canvas) {
+        ctx.drawImage(this.psd.canvas, 0, 0);
+      } else {
+        // Render layers if no composite available
+        await this.renderLayersToCanvas(ctx);
+      }
+
+      // Convert canvas to blob
+      return new Promise((resolve) => {
+        canvas.toBlob(async (blob) => {
+          if (!blob) {
+            resolve(null);
+            return;
+          }
+
+          try {
+            // Create file from blob
+            const file = new File([blob], `${fileName.replace('.psd', '')}_flattened.png`, {
+              type: 'image/png'
+            });
+
+            // Upload to storage
+            const uploadResult = await MediaManager.uploadFile(file, {
+              bucket: 'media',
+              folder: 'psd-renders',
+              optimize: true,
+              generateThumbnail: true,
+              tags: ['psd-render', 'flattened']
+            });
+
+            resolve(uploadResult?.metadata.publicUrl || null);
+          } catch (error) {
+            console.error('Failed to upload flattened image:', error);
+            resolve(null);
+          }
+        }, 'image/png', 0.9);
+      });
+    } catch (error) {
+      console.error('Failed to generate flattened image:', error);
+      return null;
+    }
+  }
+
+  private async renderLayersToCanvas(ctx: CanvasRenderingContext2D): Promise<void> {
+    if (!this.psd.children) return;
+
+    // Render layers from bottom to top
+    for (const layer of this.psd.children) {
+      if (layer.canvas && layer.visible !== false) {
+        try {
+          ctx.globalAlpha = (layer.opacity || 255) / 255;
+          ctx.drawImage(
+            layer.canvas,
+            layer.left || 0,
+            layer.top || 0
+          );
+          ctx.globalAlpha = 1;
+        } catch (error) {
+          console.warn('Failed to render layer:', layer.name, error);
+        }
+      }
+    }
+  }
+
   public async process(): Promise<ProcessedPSD> {
     const layers = this.processLayers(this.psd.children || []);
 
     return {
-      id: 'psd_123', // Generate a proper unique ID here
-      fileName: 'example.psd', // Extract file name if available
+      id: `psd_${Date.now()}`,
+      fileName: 'example.psd',
       width: this.psd.width || 0,
       height: this.psd.height || 0,
       layers: layers,
       totalLayers: layers.length,
       metadata: {
-        // Use safe property access for ag-psd properties
         documentName: this.psd.name || 'Untitled',
         colorMode: this.psd.colorMode?.toString() || 'RGB',
         created: new Date().toISOString()
@@ -105,7 +191,7 @@ export class UnifiedPSDProcessor {
       flattenedImageUrl: this.flattenedImageUrl || 'url_to_flattened_image',
       transparentFlattenedImageUrl: this.transparentFlattenedImageUrl || 'url_to_transparent_flattened_image',
       thumbnailUrl: this.thumbnailUrl || 'url_to_thumbnail',
-      layerImages: [] // Populate this with actual extracted image data
+      layerImages: []
     };
   }
 
