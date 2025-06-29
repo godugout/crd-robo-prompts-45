@@ -1,7 +1,8 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { ENHANCED_FRAMES } from '@/components/studio/data/enhancedFrames';
 import { Card } from '@/types/card';
 import { toast } from 'sonner';
+import { fetchDatabaseCardImages, getFallbackCardImages, type DatabaseCardImage } from '@/services/cardImageService';
 
 interface Layer {
   id: string;
@@ -28,6 +29,10 @@ export const useEnhancedStudio = () => {
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [selectedFrame, setSelectedFrame] = useState<string | null>(null);
   const [effects, setEffects] = useState<Effect[]>([]);
+  const [databaseCards, setDatabaseCards] = useState<DatabaseCardImage[]>([]);
+  const [selectedDatabaseCard, setSelectedDatabaseCard] = useState<DatabaseCardImage | null>(null);
+  const [isLoadingCards, setIsLoadingCards] = useState(true);
+  
   const [layers, setLayers] = useState<Layer[]>([
     {
       id: 'background',
@@ -44,15 +49,43 @@ export const useEnhancedStudio = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Load database cards on mount
+  useEffect(() => {
+    const loadDatabaseCards = async () => {
+      setIsLoadingCards(true);
+      try {
+        const cards = await fetchDatabaseCardImages();
+        if (cards.length > 0) {
+          setDatabaseCards(cards);
+          setSelectedDatabaseCard(cards[0]); // Select first card by default
+        } else {
+          // Use fallback if no database cards found
+          const fallbackCards = getFallbackCardImages();
+          setDatabaseCards(fallbackCards);
+          setSelectedDatabaseCard(fallbackCards[0]);
+        }
+      } catch (error) {
+        console.error('Failed to load database cards:', error);
+        const fallbackCards = getFallbackCardImages();
+        setDatabaseCards(fallbackCards);
+        setSelectedDatabaseCard(fallbackCards[0]);
+      } finally {
+        setIsLoadingCards(false);
+      }
+    };
+
+    loadDatabaseCards();
+  }, []);
+
   const frameData = selectedFrame ? ENHANCED_FRAMES.find(f => f.id === selectedFrame) || null : null;
 
-  // Create a complete Card object that matches the interface
+  // Create card data based on selected database card or uploaded image
   const cardData: Card = {
-    id: 'preview-card',
-    title: 'My Card',
-    description: 'Created with Enhanced Studio',
-    rarity: 'common',
-    image_url: uploadedImages.length > 0 ? URL.createObjectURL(uploadedImages[0]) : undefined,
+    id: selectedDatabaseCard?.id || 'preview-card',
+    title: selectedDatabaseCard?.title || 'My Card',
+    description: selectedDatabaseCard?.description || 'Created with Enhanced Studio',
+    rarity: selectedDatabaseCard?.rarity || 'common',
+    image_url: selectedDatabaseCard?.image_url || (uploadedImages.length > 0 ? URL.createObjectURL(uploadedImages[0]) : undefined),
     tags: ['preview'],
     creator_id: 'current-user',
     created_at: new Date().toISOString(),
@@ -74,7 +107,8 @@ export const useEnhancedStudio = () => {
         return acc;
       }, {} as Record<string, number>),
       frame_id: selectedFrame,
-      layers: layers.length
+      layers: layers.length,
+      source_table: selectedDatabaseCard?.source_table
     },
     visibility: 'private'
   };
@@ -91,7 +125,14 @@ export const useEnhancedStudio = () => {
 
   const handleImageUpload = useCallback((files: File[]) => {
     setUploadedImages(files);
+    setSelectedDatabaseCard(null); // Clear database card selection when uploading
     toast.success(`Uploaded ${files.length} image${files.length > 1 ? 's' : ''}`);
+  }, []);
+
+  const selectDatabaseCard = useCallback((card: DatabaseCardImage) => {
+    setSelectedDatabaseCard(card);
+    setUploadedImages([]); // Clear uploaded images when selecting database card
+    toast.success(`Selected ${card.title} from ${card.source_table}`);
   }, []);
 
   const selectFrame = useCallback((frameId: string) => {
@@ -197,8 +238,12 @@ export const useEnhancedStudio = () => {
     cardData,
     isPlaying,
     fileInputRef,
+    databaseCards,
+    selectedDatabaseCard,
+    isLoadingCards,
     handleImageUpload,
     selectFrame,
+    selectDatabaseCard,
     completePhase,
     addEffect,
     updateEffect,

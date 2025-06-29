@@ -1,67 +1,22 @@
-
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { EXTRACTED_FRAMES } from '../../frames/ExtractedFrameConfigs';
+import { fetchDatabaseCardImages, getFallbackCardImages, type DatabaseCardImage } from '@/services/cardImageService';
 
 interface GridCard {
   id: string;
   cardData: ReturnType<typeof useCardEditor>['cardData'];
   gridPosition: number;
   currentPhoto?: string;
+  databaseCard?: DatabaseCardImage;
 }
 
-const EXAMPLE_CARDS: GridCard[] = [
-  {
-    id: 'card-1',
-    cardData: {
-      title: 'Dragon Lord',
-      rarity: 'legendary',
-      tags: ['dragon', 'fantasy'],
-      description: 'Ancient ruler of flame.',
-      image_url: '/lovable-uploads/3adf916a-0f96-4c37-a1bb-72235f0a299f.png',
-      template_id: EXTRACTED_FRAMES[0].id,
-      design_metadata: { templateId: EXTRACTED_FRAMES[0].id },
-      visibility: 'public',
-      creator_attribution: { collaboration_type: 'solo' },
-      publishing_options: {
-        marketplace_listing: false,
-        crd_catalog_inclusion: true,
-        print_available: false,
-        pricing: { currency: 'USD' },
-        distribution: { limited_edition: false }
-      }
-    } as any,
-    gridPosition: 0,
-    currentPhoto: '/lovable-uploads/3adf916a-0f96-4c37-a1bb-72235f0a299f.png'
-  },
-  {
-    id: 'card-2',
-    cardData: {
-      title: 'Mystic Sage',
-      rarity: 'epic',
-      tags: ['magic', 'wisdom'],
-      description: 'Keeper of ancient knowledge.',
-      image_url: '/lovable-uploads/3adf916a-0f96-4c37-a1bb-72235f0a299f.png',
-      template_id: EXTRACTED_FRAMES[1].id,
-      design_metadata: { templateId: EXTRACTED_FRAMES[1].id },
-      visibility: 'public',
-      creator_attribution: { collaboration_type: 'solo' },
-      publishing_options: {
-        marketplace_listing: false,
-        crd_catalog_inclusion: true,
-        print_available: false,
-        pricing: { currency: 'USD' },
-        distribution: { limited_edition: false }
-      }
-    } as any,
-    gridPosition: 1
-  }
-];
-
 export const useStudioState = () => {
-  const [cards, setCards] = useState<GridCard[]>(EXAMPLE_CARDS);
-  const [selectedCardId, setSelectedCardId] = useState<string | null>('card-1');
+  const [cards, setCards] = useState<GridCard[]>([]);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [databaseCards, setDatabaseCards] = useState<DatabaseCardImage[]>([]);
+  const [isLoadingCards, setIsLoadingCards] = useState(true);
 
   const cardEditor = useCardEditor({
     initialData: {
@@ -82,6 +37,63 @@ export const useStudioState = () => {
     }
   });
 
+  // Load database cards and create initial grid
+  useEffect(() => {
+    const loadDatabaseCards = async () => {
+      setIsLoadingCards(true);
+      try {
+        let dbCards = await fetchDatabaseCardImages();
+        if (dbCards.length === 0) {
+          dbCards = getFallbackCardImages();
+        }
+        
+        setDatabaseCards(dbCards);
+        
+        // Create initial grid cards from database cards (limit to 4 for 2x2 grid)
+        const initialCards: GridCard[] = dbCards.slice(0, 4).map((dbCard, index) => ({
+          id: `card-${index + 1}`,
+          cardData: {
+            title: dbCard.title,
+            rarity: dbCard.rarity || 'common',
+            tags: [],
+            description: dbCard.description,
+            image_url: dbCard.image_url,
+            template_id: EXTRACTED_FRAMES[index % EXTRACTED_FRAMES.length].id,
+            design_metadata: { 
+              templateId: EXTRACTED_FRAMES[index % EXTRACTED_FRAMES.length].id,
+              source_table: dbCard.source_table 
+            },
+            visibility: 'public',
+            creator_attribution: { collaboration_type: 'solo' },
+            publishing_options: {
+              marketplace_listing: false,
+              crd_catalog_inclusion: true,
+              print_available: false,
+              pricing: { currency: 'USD' },
+              distribution: { limited_edition: false }
+            }
+          } as any,
+          gridPosition: index,
+          currentPhoto: dbCard.image_url,
+          databaseCard: dbCard
+        }));
+        
+        setCards(initialCards);
+        if (initialCards.length > 0) {
+          setSelectedCardId(initialCards[0].id);
+        }
+        
+      } catch (error) {
+        console.error('Failed to load database cards:', error);
+        toast.error('Failed to load database cards');
+      } finally {
+        setIsLoadingCards(false);
+      }
+    };
+
+    loadDatabaseCards();
+  }, []);
+
   const selectedCard = selectedCardId ? cards.find(c => c.id === selectedCardId) : null;
 
   const handleAddCard = useCallback(() => {
@@ -91,16 +103,26 @@ export const useStudioState = () => {
       return;
     }
 
+    // Use a random database card for new cards
+    const randomDbCard = databaseCards[Math.floor(Math.random() * databaseCards.length)];
+    
     const newCard: GridCard = {
       id: `card-${Date.now()}`,
-      cardData: { ...cardEditor.cardData },
-      gridPosition: nextPosition
+      cardData: { 
+        ...cardEditor.cardData,
+        title: randomDbCard?.title || 'New Card',
+        image_url: randomDbCard?.image_url,
+        rarity: randomDbCard?.rarity || 'common'
+      },
+      gridPosition: nextPosition,
+      currentPhoto: randomDbCard?.image_url,
+      databaseCard: randomDbCard
     };
 
     setCards(prev => [...prev, newCard]);
     setSelectedCardId(newCard.id);
     toast.success('New card added to grid');
-  }, [cards.length, cardEditor.cardData]);
+  }, [cards.length, cardEditor.cardData, databaseCards]);
 
   const handleCardSelect = useCallback((cardId: string) => {
     setSelectedCardId(cardId);
@@ -153,6 +175,8 @@ export const useStudioState = () => {
     cards,
     selectedCardId,
     selectedCard,
+    databaseCards,
+    isLoadingCards,
     handleAddCard,
     handleCardSelect,
     handleCardUpdate,
