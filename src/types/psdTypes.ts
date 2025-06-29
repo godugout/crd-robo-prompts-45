@@ -1,5 +1,5 @@
 
-// Unified PSD type definitions
+// Unified PSD type definitions - Single source of truth
 export interface LayerBounds {
   left: number;
   top: number;
@@ -14,17 +14,6 @@ export interface LayerProperties {
   locked?: boolean;
 }
 
-export interface ExtractedLayerImage {
-  id: string;
-  name: string;
-  imageUrl: string;
-  thumbnailUrl: string;
-  bounds: LayerBounds;
-  width: number;
-  height: number;
-  properties: LayerProperties;
-}
-
 export interface ProcessedPSDLayer {
   id: string;
   name: string;
@@ -34,10 +23,22 @@ export interface ProcessedPSDLayer {
   hasRealImage: boolean;
   imageUrl?: string;
   thumbnailUrl?: string;
-  // Add missing properties for compatibility
-  type?: string;
+  // Unified compatibility fields
+  type: 'text' | 'image' | 'group' | 'shape' | 'layer';
   isVisible: boolean;
   opacity: number;
+  confidence?: number;
+}
+
+export interface ExtractedLayerImage {
+  id: string;
+  name: string;
+  imageUrl: string;
+  thumbnailUrl: string;
+  bounds: LayerBounds;
+  width: number;
+  height: number;
+  properties: LayerProperties;
 }
 
 export interface ExtractedPSDImages {
@@ -62,7 +63,7 @@ export interface ProcessedPSD {
     colorMode?: string;
     created?: string;
   };
-  // Add the missing properties that components expect
+  // Required fields for all PSD objects
   flattenedImageUrl: string;
   transparentFlattenedImageUrl?: string;
   thumbnailUrl: string;
@@ -72,4 +73,34 @@ export interface ProcessedPSD {
 export interface EnhancedProcessedPSD extends ProcessedPSD {
   extractedImages: ExtractedPSDImages;
   layerPreviews: Map<string, string>;
+}
+
+// Processing states
+export interface PSDProcessingState {
+  isProcessing: boolean;
+  progress: number;
+  stage: string;
+  error: string | null;
+  success: boolean;
+}
+
+// Analysis types
+export interface LayerAnalysis {
+  semantic: {
+    category: 'player' | 'background' | 'stats' | 'logo' | 'effect' | 'border' | 'text' | 'image';
+    importance: 'primary' | 'secondary' | 'decorative';
+  };
+  spatial: {
+    depth: number;
+    parallaxFactor: number;
+  };
+  complexity: {
+    score: number;
+    factors: {
+      size: number;
+      hasEffects: boolean;
+      hasRealContent: boolean;
+      semanticImportance: number;
+    };
+  };
 }

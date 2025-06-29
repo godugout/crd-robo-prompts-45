@@ -28,9 +28,28 @@ export const calculateLayerArea = (layer: ProcessedPSDLayer): number => {
 };
 
 export const isLayerVisible = (layer: ProcessedPSDLayer): boolean => {
-  return layer.properties?.visible !== false;
+  return layer.properties?.visible !== false && layer.isVisible;
 };
 
 export const getLayerOpacity = (layer: ProcessedPSDLayer): number => {
-  return layer.properties?.opacity ?? 1;
+  return layer.properties?.opacity ?? layer.opacity ?? 1;
+};
+
+export const getLayerDimensions = (layer: ProcessedPSDLayer): { width: number; height: number } => {
+  return {
+    width: Math.round(layer.bounds.right - layer.bounds.left),
+    height: Math.round(layer.bounds.bottom - layer.bounds.top)
+  };
+};
+
+export const filterVisibleLayers = (layers: ProcessedPSDLayer[]): ProcessedPSDLayer[] => {
+  return layers.filter(isLayerVisible);
+};
+
+export const sortLayersByArea = (layers: ProcessedPSDLayer[], descending: boolean = true): ProcessedPSDLayer[] => {
+  return [...layers].sort((a, b) => {
+    const areaA = calculateLayerArea(a);
+    const areaB = calculateLayerArea(b);
+    return descending ? areaB - areaA : areaA - areaB;
+  });
 };

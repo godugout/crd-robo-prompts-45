@@ -5,8 +5,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { BulkPSDData } from '@/pages/BulkPSDAnalysisPage';
-import { unifiedPSDProcessor } from '@/services/psdProcessor/unifiedPsdProcessor';
-import { EnhancedProcessedPSD } from '@/types/psdTypes';
+import { unifiedPSDProcessor } from '@/services/psdProcessor/UnifiedPSDProcessor';
+import { EnhancedProcessedPSD, PSDProcessingState } from '@/types/psdTypes';
 import { 
   Upload, 
   FileImage, 
@@ -17,44 +17,28 @@ import {
 
 interface BulkPSDUploaderProps {
   onPSDsProcessed: (newPSDs: BulkPSDData[]) => void;
-  isUploading: boolean;
-  setIsUploading: (uploading: boolean) => void;
 }
 
 export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
-  onPSDsProcessed,
-  isUploading,
-  setIsUploading
+  onPSDsProcessed
 }) => {
-  const [uploadProgress, setUploadProgress] = React.useState(0);
+  const [processingState, setProcessingState] = React.useState<PSDProcessingState>({
+    isProcessing: false,
+    progress: 0,
+    stage: '',
+    error: null,
+    success: false
+  });
   const [currentFile, setCurrentFile] = React.useState<string>('');
   const [errors, setErrors] = React.useState<string[]>([]);
-  const [processingStage, setProcessingStage] = React.useState<string>('');
-  const [success, setSuccess] = React.useState(false);
 
-  const simulateProgress = useCallback((stage: string, duration: number = 2000) => {
-    setProcessingStage(stage);
-    const steps = 20;
-    const increment = 100 / steps;
-    let currentProgress = 0;
-    
-    const interval = setInterval(() => {
-      currentProgress += increment;
-      setUploadProgress(prev => Math.min(prev + increment, 100));
-      
-      if (currentProgress >= 100) {
-        clearInterval(interval);
-      }
-    }, duration / steps);
-    
-    return interval;
-  }, []);
+  const updateProcessingState = (updates: Partial<PSDProcessingState>) => {
+    setProcessingState(prev => ({ ...prev, ...updates }));
+  };
 
   const processFiles = async (files: File[]) => {
-    setIsUploading(true);
-    setUploadProgress(0);
+    updateProcessingState({ isProcessing: true, progress: 0, error: null, success: false });
     setErrors([]);
-    setSuccess(false);
     
     const processedPSDs: BulkPSDData[] = [];
     const newErrors: string[] = [];
@@ -62,19 +46,18 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       setCurrentFile(file.name);
-      setUploadProgress((i / files.length) * 100);
+      updateProcessingState({ progress: (i / files.length) * 100 });
 
       try {
         console.log(`Processing PSD ${i + 1}/${files.length}: ${file.name}`);
         
-        // Process with unified processor
         const enhancedProcessedPSD = await unifiedPSDProcessor.processPSDFile(file);
         
         processedPSDs.push({
           id: `psd_${Date.now()}_${i}`,
           fileName: file.name,
-          processedPSD: enhancedProcessedPSD, // For legacy compatibility
-          enhancedProcessedPSD: enhancedProcessedPSD, // Explicit enhanced version
+          processedPSD: enhancedProcessedPSD,
+          enhancedProcessedPSD: enhancedProcessedPSD,
           uploadedAt: new Date()
         });
 
@@ -86,12 +69,14 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
       }
     }
 
-    setUploadProgress(100);
+    updateProcessingState({ 
+      progress: 100, 
+      isProcessing: false, 
+      success: true,
+      stage: 'Complete!'
+    });
     setCurrentFile('');
-    setIsUploading(false);
     setErrors(newErrors);
-    setSuccess(true);
-    setProcessingStage('Complete!');
     
     if (processedPSDs.length > 0) {
       onPSDsProcessed(processedPSDs);
@@ -117,14 +102,18 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
     accept: {
       'image/vnd.adobe.photoshop': ['.psd']
     },
-    disabled: isUploading
+    disabled: processingState.isProcessing
   });
 
   const resetState = () => {
+    setProcessingState({
+      isProcessing: false,
+      progress: 0,
+      stage: '',
+      error: null,
+      success: false
+    });
     setErrors([]);
-    setSuccess(false);
-    setUploadProgress(0);
-    setProcessingStage('');
   };
 
   return (
@@ -136,7 +125,7 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
           isDragActive 
             ? 'border-crd-green bg-crd-green/5' 
             : 'border-slate-600 hover:border-slate-500'
-        } ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        } ${processingState.isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <input {...getInputProps()} />
         <div className="space-y-4">
@@ -158,7 +147,7 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
             </p>
           </div>
 
-          {!isUploading && (
+          {!processingState.isProcessing && (
             <Button variant="outline" className="mt-4">
               <Upload className="w-4 h-4 mr-2" />
               Choose PSD Files
@@ -168,15 +157,15 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
       </Card>
 
       {/* Upload Progress */}
-      {isUploading && (
+      {processingState.isProcessing && (
         <Card className="bg-slate-800 border-slate-600 p-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-lg font-medium text-white">Processing PSD Files</h4>
-              <span className="text-sm text-slate-400">{Math.round(uploadProgress)}%</span>
+              <span className="text-sm text-slate-400">{Math.round(processingState.progress)}%</span>
             </div>
             
-            <Progress value={uploadProgress} className="w-full" />
+            <Progress value={processingState.progress} className="w-full" />
             
             {currentFile && (
               <p className="text-sm text-slate-400">
@@ -184,15 +173,15 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
               </p>
             )}
 
-            {processingStage && (
-              <p className="text-sm text-slate-300">{processingStage}</p>
+            {processingState.stage && (
+              <p className="text-sm text-slate-300">{processingState.stage}</p>
             )}
           </div>
         </Card>
       )}
 
       {/* Success Display */}
-      {success && !isUploading && (
+      {processingState.success && !processingState.isProcessing && (
         <Card className="bg-green-900/20 border-green-500/20 p-4">
           <div className="flex items-start gap-3">
             <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />

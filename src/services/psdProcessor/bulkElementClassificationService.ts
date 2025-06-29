@@ -1,4 +1,5 @@
-import { ProcessedPSDLayer, EnhancedProcessedPSD } from '@/types/psdTypes';
+
+import { ProcessedPSDLayer, EnhancedProcessedPSD, LayerAnalysis } from '@/types/psdTypes';
 import { getSemanticTypeColor, isValidSemanticType } from '@/utils/semanticTypeColors';
 
 export interface LayerInsights {
@@ -35,16 +36,14 @@ export const analyzeLayerComplexity = (layer: ProcessedPSDLayer): LayerComplexit
   const height = layer.bounds.bottom - layer.bounds.top;
   const area = width * height;
   
-  // Use properties.opacity instead of direct opacity
-  const opacity = layer.properties?.opacity ?? 1;
+  const opacity = layer.opacity;
   
-  // Calculate complexity score based on available properties
   let complexityScore = 0;
   
   // Size contribution
-  complexityScore += Math.min(area / 10000, 50); // Max 50 points for size
+  complexityScore += Math.min(area / 10000, 50);
   
-  // Opacity contribution (more complex if partially transparent)
+  // Opacity contribution
   if (opacity < 1 && opacity > 0) {
     complexityScore += 20;
   }
@@ -71,7 +70,6 @@ export const analyzeLayerComplexity = (layer: ProcessedPSDLayer): LayerComplexit
 };
 
 export const classifyLayerByContent = (layer: ProcessedPSDLayer): ElementClassificationResult | null => {
-  // Placeholder logic - replace with actual content analysis
   if (layer.hasRealImage) {
     return {
       type: 'image',
@@ -85,7 +83,7 @@ export const classifyLayerBySemanticType = (layer: ProcessedPSDLayer): ElementCl
   if (layer.semanticType && isValidSemanticType(layer.semanticType)) {
     return {
       type: layer.semanticType as LayerType,
-      confidence: 0.9
+      confidence: layer.confidence || 0.9
     };
   }
   return null;
@@ -95,9 +93,8 @@ export const generateLayerInsights = (layers: ProcessedPSDLayer[]): LayerInsight
   const totalLayers = layers.length;
   const layersWithImages = layers.filter(l => l.hasRealImage).length;
   
-  // Calculate average opacity using properties
   const averageOpacity = layers.reduce((sum, layer) => {
-    return sum + (layer.properties?.opacity ?? 1);
+    return sum + layer.opacity;
   }, 0) / totalLayers;
 
   const semanticDistribution: Record<string, number> = layers.reduce((acc, layer) => {
@@ -107,30 +104,24 @@ export const generateLayerInsights = (layers: ProcessedPSDLayer[]): LayerInsight
     return acc;
   }, {} as Record<string, number>);
   
-  const simpleLayers = layers.filter(l => analyzeLayerComplexity(l).score < 30).length;
-  const moderateLayers = layers.filter(l => {
-    const score = analyzeLayerComplexity(l).score;
-    return score >= 30 && score < 70;
-  }).length;
-  const complexLayers = layers.filter(l => analyzeLayerComplexity(l).score >= 70).length;
+  const complexityAnalysis = {
+    simple: layers.filter(l => analyzeLayerComplexity(l).score < 30).length,
+    moderate: layers.filter(l => {
+      const score = analyzeLayerComplexity(l).score;
+      return score >= 30 && score < 70;
+    }).length,
+    complex: layers.filter(l => analyzeLayerComplexity(l).score >= 70).length
+  };
   
   return {
     totalLayers,
     layersWithImages,
     averageOpacity,
-    semanticDistribution: layers.reduce((acc, layer) => {
-      if (layer.semanticType && isValidSemanticType(layer.semanticType)) {
-        acc[layer.semanticType] = (acc[layer.semanticType] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>),
-    complexityAnalysis: {
-      simple: layers.filter(l => analyzeLayerComplexity(l).score < 30).length,
-      moderate: layers.filter(l => {
-        const score = analyzeLayerComplexity(l).score;
-        return score >= 30 && score < 70;
-      }).length,
-      complex: layers.filter(l => analyzeLayerComplexity(l).score >= 70).length
-    }
+    semanticDistribution,
+    complexityAnalysis
   };
+};
+
+export const generatePSDInsights = (psd: EnhancedProcessedPSD): LayerInsights => {
+  return generateLayerInsights(psd.layers);
 };
