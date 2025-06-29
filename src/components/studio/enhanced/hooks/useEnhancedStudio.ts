@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { ENHANCED_FRAMES } from '@/components/studio/data/enhancedFrames';
-import { Card } from '@/types/card';
+import { Card, CardRarity } from '@/types/card';
 import { toast } from 'sonner';
 import { fetchDatabaseCardImages, getFallbackCardImages, type DatabaseCardImage } from '@/services/cardImageService';
 

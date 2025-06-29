@@ -1,15 +1,25 @@
 
 import { supabase } from '@/lib/supabase-client';
+import { CardRarity } from '@/types/card';
 
 export interface DatabaseCardImage {
   id: string;
   title: string;
   image_url: string;
   thumbnail_url?: string;
-  rarity?: string;
+  rarity?: CardRarity;
   description?: string;
   source_table: string;
 }
+
+// Helper function to validate and convert rarity strings to CardRarity type
+const validateRarity = (rarity: string | null | undefined): CardRarity => {
+  const validRarities = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
+  if (rarity && validRarities.includes(rarity.toLowerCase())) {
+    return rarity.toLowerCase() as CardRarity;
+  }
+  return 'common'; // Default fallback
+};
 
 export const fetchDatabaseCardImages = async (): Promise<DatabaseCardImage[]> => {
   const cardImages: DatabaseCardImage[] = [];
@@ -25,6 +35,7 @@ export const fetchDatabaseCardImages = async (): Promise<DatabaseCardImage[]> =>
     if (mainCards) {
       cardImages.push(...mainCards.map(card => ({
         ...card,
+        rarity: validateRarity(card.rarity),
         source_table: 'cards'
       })));
     }
@@ -39,6 +50,7 @@ export const fetchDatabaseCardImages = async (): Promise<DatabaseCardImage[]> =>
     if (crdCards) {
       cardImages.push(...crdCards.map(card => ({
         ...card,
+        rarity: validateRarity(card.rarity),
         source_table: 'crd_cards'
       })));
     }
@@ -57,7 +69,7 @@ export const fetchDatabaseCardImages = async (): Promise<DatabaseCardImage[]> =>
           title: card.title,
           image_url: card.image_url,
           thumbnail_url: card.thumbnail_url,
-          rarity: 'rare', // Default for PSD cards
+          rarity: 'rare' as CardRarity, // Default for PSD cards
           description: 'Reconstructed from PSD layers',
           source_table: 'psd_reconstructed_cards'
         })));
@@ -82,7 +94,7 @@ export const fetchDatabaseCardImages = async (): Promise<DatabaseCardImage[]> =>
               title: template.name,
               image_url: template.preview_images[0],
               thumbnail_url: template.preview_images[0],
-              rarity: 'common',
+              rarity: 'common' as CardRarity,
               description: 'Template preview',
               source_table: 'card_templates'
             });
@@ -107,7 +119,7 @@ export const getFallbackCardImages = (): DatabaseCardImage[] => [
     title: 'Sample Trading Card 1',
     image_url: '/lovable-uploads/3adf916a-0f96-4c37-a1bb-72235f0a299f.png',
     thumbnail_url: '/lovable-uploads/3adf916a-0f96-4c37-a1bb-72235f0a299f.png',
-    rarity: 'rare',
+    rarity: 'rare' as CardRarity,
     description: 'Sample card for studio preview',
     source_table: 'fallback'
   },
@@ -116,7 +128,7 @@ export const getFallbackCardImages = (): DatabaseCardImage[] => [
     title: 'Sample Trading Card 2',
     image_url: '/lovable-uploads/3adf916a-0f96-4c37-a1bb-72235f0a299f.png',
     thumbnail_url: '/lovable-uploads/3adf916a-0f96-4c37-a1bb-72235f0a299f.png',
-    rarity: 'epic',
+    rarity: 'epic' as CardRarity,
     description: 'Sample card for studio preview',
     source_table: 'fallback'
   }

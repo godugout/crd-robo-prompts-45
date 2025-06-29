@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { EXTRACTED_FRAMES } from '../../frames/ExtractedFrameConfigs';
 import { fetchDatabaseCardImages, getFallbackCardImages, type DatabaseCardImage } from '@/services/cardImageService';
+import { CardRarity } from '@/types/card';
 
 interface GridCard {
   id: string;
@@ -21,7 +22,7 @@ export const useStudioState = () => {
   const cardEditor = useCardEditor({
     initialData: {
       title: 'New Card',
-      rarity: 'common',
+      rarity: 'common' as CardRarity,
       tags: [],
       design_metadata: {},
       template_id: EXTRACTED_FRAMES[0].id,
