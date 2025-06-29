@@ -60,8 +60,8 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw PSD document bounds
-    const { width, height } = processedPSD.document;
+    // Draw PSD document bounds - using width/height directly from processedPSD
+    const { width, height } = processedPSD;
     ctx.strokeStyle = '#666';
     ctx.strokeRect(0, 0, width, height);
 
@@ -78,7 +78,7 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
       ctx.lineWidth = selectedLayerId === layer.id ? 2 : 1;
       ctx.strokeRect(left, top, layerWidth, layerHeight);
 
-      // Draw layer thumbnail if available
+      // Draw layer thumbnail if available (check if thumbnail exists)
       if (layer.thumbnail) {
         const img = new Image();
         img.onload = () => {
@@ -144,8 +144,8 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
       fitToScreen(
         container.clientWidth,
         container.clientHeight,
-        processedPSD.document.width,
-        processedPSD.document.height
+        processedPSD.width,
+        processedPSD.height
       );
     }
   }, [processedPSD, fitToScreen]);
@@ -171,8 +171,8 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
             fitToScreen(
               containerRef.current.clientWidth,
               containerRef.current.clientHeight,
-              processedPSD.document.width,
-              processedPSD.document.height
+              processedPSD.width,
+              processedPSD.height
             );
           }
         }}
@@ -192,8 +192,8 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
       >
         <canvas
           ref={canvasRef}
-          width={processedPSD.document.width}
-          height={processedPSD.document.height}
+          width={processedPSD.width}
+          height={processedPSD.height}
           className="border border-slate-600 bg-white"
           onClick={handleCanvasClick}
         />
