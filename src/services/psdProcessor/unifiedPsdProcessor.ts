@@ -74,7 +74,11 @@ export class UnifiedPSDProcessor {
               locked: false
             },
             semanticType: this.inferSemanticType(layer.name || ''),
-            hasRealImage: false
+            hasRealImage: false,
+            // Add compatibility fields
+            type: 'layer',
+            isVisible: !layer.hidden,
+            opacity: (layer.opacity || 255) / 255
           });
         });
       }
@@ -90,7 +94,12 @@ export class UnifiedPSDProcessor {
           documentName: file.name,
           colorMode: 'RGB',
           created: new Date().toISOString()
-        }
+        },
+        // Add required properties
+        flattenedImageUrl: '',
+        transparentFlattenedImageUrl: '',
+        thumbnailUrl: '',
+        layerImages: []
       };
       
     } catch (error) {
@@ -120,9 +129,18 @@ export class UnifiedPSDProcessor {
       return layer;
     });
 
-    return {
+    // Update the basic PSD with extracted images data
+    const updatedBasicPSD: ProcessedPSD = {
       ...basicPSD,
       layers: enhancedLayers,
+      flattenedImageUrl: extractedImages.flattenedImageUrl,
+      transparentFlattenedImageUrl: extractedImages.flattenedImageUrl,
+      thumbnailUrl: extractedImages.thumbnailUrl,
+      layerImages: extractedImages.layerImages
+    };
+
+    return {
+      ...updatedBasicPSD,
       extractedImages,
       layerPreviews
     };

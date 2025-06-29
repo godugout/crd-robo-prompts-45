@@ -18,7 +18,7 @@ export const processEnhancedPSD = async (
     // Create layer preview map
     const layerPreviews = new Map<string, string>();
     
-    // Map extracted images to processed layers
+    // Map extracted images to processed layers with proper compatibility fields
     const enhancedLayers: ProcessedPSDLayer[] = originalProcessedPSD.layers.map((layer, index) => {
       const extractedLayer = extractedImages.layerImages[index];
       
@@ -29,13 +29,21 @@ export const processEnhancedPSD = async (
           ...layer,
           imageUrl: extractedLayer.imageUrl,
           thumbnailUrl: extractedLayer.thumbnailUrl,
-          hasRealImage: true
+          hasRealImage: true,
+          // Ensure compatibility fields are present
+          type: layer.type || 'image',
+          isVisible: layer.properties?.visible ?? true,
+          opacity: layer.properties?.opacity ?? 1
         };
       }
       
       return {
         ...layer,
-        hasRealImage: false
+        hasRealImage: false,
+        // Ensure compatibility fields are present
+        type: layer.type || 'unknown',
+        isVisible: layer.properties?.visible ?? true,
+        opacity: layer.properties?.opacity ?? 1
       };
     });
 
@@ -71,7 +79,11 @@ export const processEnhancedPSD = async (
       ...originalProcessedPSD,
       layers: originalProcessedPSD.layers.map(layer => ({
         ...layer,
-        hasRealImage: false
+        hasRealImage: false,
+        // Ensure compatibility fields are present
+        type: layer.type || 'unknown',
+        isVisible: layer.properties?.visible ?? true,
+        opacity: layer.properties?.opacity ?? 1
       })),
       flattenedImageUrl: '',
       transparentFlattenedImageUrl: '',

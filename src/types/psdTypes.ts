@@ -34,6 +34,10 @@ export interface ProcessedPSDLayer {
   hasRealImage: boolean;
   imageUrl?: string;
   thumbnailUrl?: string;
+  // Add missing properties for compatibility
+  type?: string;
+  isVisible: boolean;
+  opacity: number;
 }
 
 export interface ExtractedPSDImages {
