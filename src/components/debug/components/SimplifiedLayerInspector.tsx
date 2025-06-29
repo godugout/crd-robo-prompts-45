@@ -27,6 +27,13 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
 }) => {
   const [currentMode, setCurrentMode] = useState<LayerMode>('elements');
 
+  // Sort layers by visual stacking order for display
+  const sortedLayers = [...layers].sort((a, b) => {
+    const aDepth = a.inferredDepth || a.bounds.top;
+    const bDepth = b.inferredDepth || b.bounds.top;
+    return aDepth - bDepth; // Top to bottom in sidebar matches canvas rendering
+  });
+
   const handleModeChange = (mode: LayerMode) => {
     setCurrentMode(mode);
     onModeChange?.(mode);
@@ -37,7 +44,7 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
       case 'elements':
         return (
           <ElementsModeView
-            layers={layers}
+            layers={sortedLayers}
             selectedLayerId={selectedLayerId}
             hiddenLayers={hiddenLayers}
             onLayerSelect={onLayerSelect}
@@ -47,7 +54,7 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
       case 'frame':
         return (
           <FrameModeView
-            layers={layers}
+            layers={sortedLayers}
             selectedLayerId={selectedLayerId}
             hiddenLayers={hiddenLayers}
             onLayerSelect={onLayerSelect}
@@ -57,7 +64,7 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
       case 'preview':
         return (
           <PreviewModeView
-            layers={layers}
+            layers={sortedLayers}
             selectedLayerId={selectedLayerId}
             hiddenLayers={hiddenLayers}
             onLayerSelect={onLayerSelect}
@@ -69,14 +76,18 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
   };
 
   return (
-    <div className="space-y-4">
-      <LayerModeToggle
-        currentMode={currentMode}
-        onModeChange={handleModeChange}
-        layerCount={layers.length}
-      />
+    <div className="h-full flex flex-col">
+      {/* Prominent Mode Toggle at Top */}
+      <div className="flex-shrink-0 p-3 border-b border-slate-700 bg-[#1a1f2e]">
+        <LayerModeToggle
+          currentMode={currentMode}
+          onModeChange={handleModeChange}
+          layerCount={layers.length}
+        />
+      </div>
       
-      <div className="min-h-0 flex-1">
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-auto p-4">
         {renderModeContent()}
       </div>
     </div>

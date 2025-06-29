@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { PSDButton } from '@/components/ui/design-system/PSDButton';
 import { Badge } from '@/components/ui/badge';
 import { 
   Layers,
@@ -26,49 +25,60 @@ export const LayerModeToggle: React.FC<LayerModeToggleProps> = ({
       id: 'elements' as LayerMode,
       label: 'Elements',
       icon: Layers,
-      description: 'Detailed layer analysis'
+      description: 'Layer analysis'
     },
     {
       id: 'frame' as LayerMode,
       label: 'Frame',
       icon: Frame,
-      description: 'Content vs Design separation'
+      description: 'Content vs Design'
     },
     {
       id: 'preview' as LayerMode,
       label: 'Preview',
       icon: Eye,
-      description: 'Full card with CRD branding'
+      description: 'CRD branding'
     }
   ];
 
   return (
-    <div className="flex items-center gap-2 bg-[#1a1f2e] border border-slate-700 rounded-lg p-1">
-      {modes.map((mode) => {
-        const Icon = mode.icon;
-        const isActive = currentMode === mode.id;
-        
-        return (
-          <PSDButton
-            key={mode.id}
-            variant={isActive ? 'primary' : 'ghost'}
-            size="sm"
-            onClick={() => onModeChange(mode.id)}
-            className={`
-              px-3 py-2 transition-all duration-200
-              ${isActive ? 'bg-crd-blue text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}
-            `}
-          >
-            <Icon className="w-4 h-4 mr-2" />
-            {mode.label}
-            {mode.id === 'elements' && (
-              <Badge variant="outline" className="ml-2 text-xs bg-slate-800 border-slate-600">
-                {layerCount}
-              </Badge>
-            )}
-          </PSDButton>
-        );
-      })}
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-white">View Mode</h3>
+        <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-600 text-xs">
+          {layerCount} layers
+        </Badge>
+      </div>
+      
+      {/* Segmented Control */}
+      <div className="bg-slate-800 rounded-lg p-1 flex">
+        {modes.map((mode) => {
+          const Icon = mode.icon;
+          const isActive = currentMode === mode.id;
+          
+          return (
+            <button
+              key={mode.id}
+              onClick={() => onModeChange(mode.id)}
+              className={`
+                flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200
+                ${isActive 
+                  ? 'bg-crd-blue text-white shadow-sm' 
+                  : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                }
+              `}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="hidden sm:inline">{mode.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      
+      {/* Mode Description */}
+      <p className="text-xs text-slate-400">
+        {modes.find(mode => mode.id === currentMode)?.description}
+      </p>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { ProcessedPSD, ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
 import { LayerGroup } from '@/services/psdProcessor/layerGroupingService';
@@ -33,6 +32,7 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 800, height: 600 });
+  const [cardImage, setCardImage] = useState<HTMLImageElement | null>(null);
 
   const {
     transform,
@@ -51,7 +51,23 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     zoomStep: 0.1
   });
 
-  // Function to draw a layer with proper bounds
+  // Load the flattened card image
+  useEffect(() => {
+    if (processedPSD.flattenedImageUrl) {
+      const img = new Image();
+      img.onload = () => setCardImage(img);
+      img.onerror = () => console.warn('Failed to load card image');
+      img.src = processedPSD.flattenedImageUrl;
+    }
+  }, [processedPSD.flattenedImageUrl]);
+
+  // Sort layers by visual stacking order (z-index or inferredDepth)
+  const sortedLayers = [...processedPSD.layers].sort((a, b) => {
+    const aDepth = a.inferredDepth || a.bounds.top;
+    const bDepth = b.inferredDepth || b.bounds.top;
+    return aDepth - bDepth;
+  });
+
   const drawLayer = (ctx: CanvasRenderingContext2D, layer: ProcessedPSDLayer, isSelected: boolean, isFlipped: boolean) => {
     if (hiddenLayers.has(layer.id)) return;
 
@@ -59,39 +75,44 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     const width = bounds.right - bounds.left;
     const height = bounds.bottom - bounds.top;
 
-    // Set layer opacity
-    ctx.globalAlpha = layer.opacity;
+    // In focus mode, only show selected layer overlay
+    if (focusMode && !isSelected) return;
 
-    // For preview mode, show flipped layers differently
+    // For preview mode with flipped layers, show CRD branding
     if (mode === 'preview' && isFlipped) {
-      // Draw CRD branding overlay
-      ctx.fillStyle = 'rgba(59, 130, 246, 0.3)'; // Blue overlay
+      ctx.fillStyle = 'rgba(59, 130, 246, 0.4)';
       ctx.fillRect(bounds.left, bounds.top, width, height);
       
-      // Add CRD text
       ctx.fillStyle = '#3b82f6';
-      ctx.font = '16px Arial';
+      ctx.font = 'bold 16px Arial';
       ctx.textAlign = 'center';
       ctx.fillText('CRD', bounds.left + width / 2, bounds.top + height / 2);
-    } else {
-      // Draw layer rectangle placeholder
-      ctx.fillStyle = isSelected ? 'rgba(34, 197, 94, 0.3)' : 'rgba(148, 163, 184, 0.2)';
-      ctx.fillRect(bounds.left, bounds.top, width, height);
+      return;
     }
 
-    // Draw border
-    ctx.strokeStyle = isSelected ? '#22c55e' : '#64748b';
-    ctx.lineWidth = isSelected ? 2 : 1;
-    ctx.strokeRect(bounds.left, bounds.top, width, height);
-
-    // Draw layer name
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '12px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText(layer.name, bounds.left + 4, bounds.top + 16);
-
-    // Reset alpha
-    ctx.globalAlpha = 1;
+    // Draw interactive layer overlay
+    if (isSelected) {
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.2)';
+      ctx.fillRect(bounds.left, bounds.top, width, height);
+      
+      ctx.strokeStyle = '#22c55e';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bounds.left, bounds.top, width, height);
+      
+      // Layer name tag
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.9)';
+      ctx.fillRect(bounds.left, bounds.top - 20, Math.min(width, 120), 18);
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(layer.name, bounds.left + 4, bounds.top - 6);
+    } else if (mode === 'elements') {
+      // Subtle hover regions for non-selected layers
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(bounds.left, bounds.top, width, height);
+    }
   };
 
   useEffect(() => {
@@ -108,20 +129,31 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     ctx.fillStyle = focusMode ? '#000000' : '#1a1f2e';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw layers based on mode
-    processedPSD.layers.forEach((layer) => {
+    // Draw the full card image as base layer
+    if (cardImage) {
+      const scale = Math.min(
+        canvas.width / cardImage.width,
+        canvas.height / cardImage.height
+      ) * 0.8; // Leave some padding
+      
+      const scaledWidth = cardImage.width * scale;
+      const scaledHeight = cardImage.height * scale;
+      const x = (canvas.width - scaledWidth) / 2;
+      const y = (canvas.height - scaledHeight) / 2;
+      
+      ctx.drawImage(cardImage, x, y, scaledWidth, scaledHeight);
+    }
+
+    // Draw layer overlays in correct order
+    sortedLayers.forEach((layer) => {
       const isSelected = selectedLayerId === layer.id;
       const isFlipped = flippedLayers.has(layer.id);
-      
-      // In focus mode, only show selected layer
-      if (focusMode && !isSelected) return;
-      
       drawLayer(ctx, layer, isSelected, isFlipped);
     });
 
-    // Draw selection highlight for frame builder mode
+    // Frame builder highlight
     if (frameBuilderMode && selectedLayerId) {
-      const selectedLayer = processedPSD.layers.find(l => l.id === selectedLayerId);
+      const selectedLayer = sortedLayers.find(l => l.id === selectedLayerId);
       if (selectedLayer) {
         ctx.strokeStyle = '#8b5cf6';
         ctx.lineWidth = 3;
@@ -135,7 +167,7 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
         ctx.setLineDash([]);
       }
     }
-  }, [processedPSD, selectedLayerId, hiddenLayers, focusMode, frameBuilderMode, mode, flippedLayers]);
+  }, [processedPSD, selectedLayerId, hiddenLayers, focusMode, frameBuilderMode, mode, flippedLayers, cardImage, sortedLayers]);
 
   useEffect(() => {
     const updateCanvasSize = () => {
@@ -169,9 +201,9 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     const x = (e.clientX - rect.left - transform.translateX) / transform.scale;
     const y = (e.clientY - rect.top - transform.translateY) / transform.scale;
 
-    // Find clicked layer
-    for (let i = processedPSD.layers.length - 1; i >= 0; i--) {
-      const layer = processedPSD.layers[i];
+    // Find clicked layer (reverse order for top-most layer)
+    for (let i = sortedLayers.length - 1; i >= 0; i--) {
+      const layer = sortedLayers[i];
       if (hiddenLayers.has(layer.id)) continue;
 
       const { bounds } = layer;
@@ -183,10 +215,9 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   };
 
   const handleFitToScreen = () => {
-    if (processedPSD.layers.length === 0) return;
+    if (sortedLayers.length === 0) return;
 
-    // Calculate bounds of all visible layers
-    const visibleLayers = processedPSD.layers.filter(layer => !hiddenLayers.has(layer.id));
+    const visibleLayers = sortedLayers.filter(layer => !hiddenLayers.has(layer.id));
     if (visibleLayers.length === 0) return;
 
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;

@@ -5,8 +5,7 @@ import { LayerThumbnailView } from './LayerThumbnailView';
 import { PSDButton } from '@/components/ui/design-system/PSDButton';
 import { 
   ArrowUpDown,
-  SortAsc,
-  SortDesc
+  ChevronDown
 } from 'lucide-react';
 
 type SortOption = 'name' | 'type' | 'opacity' | 'size' | 'semantic' | 'position';
@@ -20,6 +19,15 @@ interface ElementsModeViewProps {
   onLayerToggle: (layerId: string) => void;
 }
 
+const sortOptions = [
+  { value: 'position' as SortOption, label: 'Visual Order' },
+  { value: 'name' as SortOption, label: 'Name' },
+  { value: 'type' as SortOption, label: 'Type' },
+  { value: 'semantic' as SortOption, label: 'Category' },
+  { value: 'opacity' as SortOption, label: 'Opacity' },
+  { value: 'size' as SortOption, label: 'Size' }
+];
+
 export const ElementsModeView: React.FC<ElementsModeViewProps> = ({
   layers,
   selectedLayerId,
@@ -29,15 +37,7 @@ export const ElementsModeView: React.FC<ElementsModeViewProps> = ({
 }) => {
   const [sortBy, setSortBy] = useState<SortOption>('position');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-
-  const sortOptions = [
-    { value: 'name' as SortOption, label: 'Name' },
-    { value: 'type' as SortOption, label: 'Type' },
-    { value: 'semantic' as SortOption, label: 'Semantic' },
-    { value: 'opacity' as SortOption, label: 'Opacity' },
-    { value: 'size' as SortOption, label: 'Size' },
-    { value: 'position' as SortOption, label: 'Position' }
-  ];
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
 
   const sortedLayers = [...layers].sort((a, b) => {
     let aValue: any;
@@ -65,8 +65,8 @@ export const ElementsModeView: React.FC<ElementsModeViewProps> = ({
         bValue = (b.bounds.right - b.bounds.left) * (b.bounds.bottom - b.bounds.top);
         break;
       case 'position':
-        aValue = a.bounds.top * 10000 + a.bounds.left; // Sort by Y then X
-        bValue = b.bounds.top * 10000 + b.bounds.left;
+        aValue = a.inferredDepth || a.bounds.top;
+        bValue = b.inferredDepth || b.bounds.top;
         break;
       default:
         return 0;
@@ -85,45 +85,51 @@ export const ElementsModeView: React.FC<ElementsModeViewProps> = ({
     }
   });
 
-  const toggleSort = (option: SortOption) => {
+  const handleSortChange = (option: SortOption) => {
     if (sortBy === option) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortBy(option);
       setSortDirection('asc');
     }
+    setShowSortDropdown(false);
   };
+
+  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Visual Order';
 
   return (
     <div className="space-y-4">
-      {/* Sorting Controls */}
-      <div className="bg-[#1a1f2e] border border-slate-700 rounded-lg p-3">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-white">Sort by:</span>
-          <div className="flex items-center gap-1 text-slate-400">
-            {sortDirection === 'asc' ? (
-              <SortAsc className="w-4 h-4" />
-            ) : (
-              <SortDesc className="w-4 h-4" />
-            )}
-            <span className="text-xs capitalize">{sortDirection}</span>
+      {/* Compact Sort Dropdown */}
+      <div className="relative">
+        <button
+          onClick={() => setShowSortDropdown(!showSortDropdown)}
+          className="w-full bg-[#1a1f2e] border border-slate-700 rounded-lg p-3 flex items-center justify-between text-white hover:bg-slate-800 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="w-4 h-4 text-slate-400" />
+            <span className="text-sm">Sort by: {currentSortLabel}</span>
+            <span className="text-xs text-slate-400 capitalize">({sortDirection})</span>
           </div>
-        </div>
+          <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} />
+        </button>
         
-        <div className="grid grid-cols-3 gap-2">
-          {sortOptions.map((option) => (
-            <PSDButton
-              key={option.value}
-              variant={sortBy === option.value ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => toggleSort(option.value)}
-              className="text-xs"
-            >
-              <ArrowUpDown className="w-3 h-3 mr-1" />
-              {option.label}
-            </PSDButton>
-          ))}
-        </div>
+        {showSortDropdown && (
+          <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1f2e] border border-slate-700 rounded-lg shadow-lg z-10">
+            {sortOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => handleSortChange(option.value)}
+                className={`
+                  w-full text-left px-3 py-2 text-sm hover:bg-slate-700 transition-colors
+                  ${sortBy === option.value ? 'text-crd-green bg-slate-800' : 'text-white'}
+                  first:rounded-t-lg last:rounded-b-lg
+                `}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Layer List */}
