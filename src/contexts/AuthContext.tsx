@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, AuthError, Session } from '@supabase/supabase-js';
@@ -13,6 +12,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   signInWithOAuth: (provider: 'google' | 'github' | 'discord') => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  autoSignIn: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
   signInWithOAuth: async () => ({ error: null }),
   resetPassword: async () => ({ error: null }),
+  autoSignIn: async () => {},
 });
 
 export const useAuth = () => {
@@ -38,6 +39,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Development auto-login function
+  const autoSignIn = async () => {
+    const isDev = window.location.hostname === 'localhost';
+    
+    if (isDev) {
+      // Create a mock user session for development
+      const mockUser = {
+        id: 'dev-user-123',
+        email: 'dev@cardshow.com',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        user_metadata: {
+          full_name: 'Dev User',
+          username: 'devuser'
+        },
+        app_metadata: {},
+        aud: 'authenticated',
+        confirmation_sent_at: null,
+        confirmed_at: new Date().toISOString(),
+        email_confirmed_at: new Date().toISOString(),
+        identities: [],
+        last_sign_in_at: new Date().toISOString(),
+        phone: null,
+        recovery_sent_at: null,
+        role: 'authenticated'
+      } as User;
+
+      const mockSession = {
+        access_token: 'dev-token',
+        refresh_token: 'dev-refresh-token',
+        expires_in: 3600,
+        expires_at: Math.floor(Date.now() / 1000) + 3600,
+        token_type: 'bearer',
+        user: mockUser
+      } as Session;
+
+      setUser(mockUser);
+      setSession(mockSession);
+      setLoading(false);
+      
+      toast.success('Auto-signed in (Development Mode)');
+      console.log('🔧 Development: Auto-signed in as dev user');
+      return;
+    }
+
+    // In production, try to sign in with a test account
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: 'test@cardshow.com',
+        password: 'test123456'
+      });
+
+      if (error) {
+        console.log('Auto sign-in failed, user needs to sign in manually');
+      } else {
+        toast.success('Auto-signed in');
+      }
+    } catch (error) {
+      console.log('Auto sign-in failed:', error);
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener
@@ -173,7 +236,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signUp, 
       signOut, 
       signInWithOAuth, 
-      resetPassword 
+      resetPassword,
+      autoSignIn
     }}>
       {children}
     </AuthContext.Provider>

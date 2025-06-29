@@ -20,7 +20,7 @@ const navigationItems = [
 ];
 
 export const UniversalNavbar: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, autoSignIn } = useAuth();
   const location = useLocation();
 
   const isActivePath = (path: string) => {
@@ -28,6 +28,10 @@ export const UniversalNavbar: React.FC = () => {
       return location.pathname === '/';
     }
     return location.pathname.startsWith(path);
+  };
+
+  const handleSignInClick = async () => {
+    await autoSignIn();
   };
 
   const visibleItems = navigationItems.filter(item => 
@@ -94,15 +98,14 @@ export const UniversalNavbar: React.FC = () => {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Link to="/auth/signin">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                  >
-                    Sign In
-                  </Button>
-                </Link>
+                <Button
+                  onClick={handleSignInClick}
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                >
+                  Sign In
+                </Button>
                 <Link to="/auth/signup">
                   <Button
                     size="sm"
