@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { psdProcessingService, ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
+import { psdProcessingService } from '@/services/psdProcessor/psdProcessingService';
+import { processEnhancedPSD, EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
 
 interface PSDFileProcessorProps {
-  onPSDProcessed: (psd: ProcessedPSD) => void;
+  onPSDProcessed: (psd: EnhancedProcessedPSD) => void;
 }
 
 export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
@@ -46,22 +47,28 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
       // Simulate progress updates
       const progressInterval = setInterval(() => {
         setProgress(prev => {
-          if (prev >= 90) {
+          if (prev >= 70) {
             clearInterval(progressInterval);
-            return 90;
+            return 70;
           }
           return prev + 10;
         });
       }, 200);
 
       console.log('Processing PSD file:', selectedFile.name);
-      const processedPSD = await psdProcessingService.processPSDFile(selectedFile);
+      
+      // First process with basic processor
+      const basicProcessedPSD = await psdProcessingService.processPSDFile(selectedFile);
+      setProgress(80);
+      
+      // Then enhance with real image extraction
+      const enhancedProcessedPSD = await processEnhancedPSD(selectedFile, basicProcessedPSD);
       
       clearInterval(progressInterval);
       setProgress(100);
       
-      console.log('PSD processed successfully:', processedPSD);
-      onPSDProcessed(processedPSD);
+      console.log('Enhanced PSD processed successfully:', enhancedProcessedPSD);
+      onPSDProcessed(enhancedProcessedPSD);
       setSuccess(true);
       
     } catch (error) {
@@ -156,7 +163,9 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
         {isProcessing && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-300">Processing PSD...</span>
+              <span className="text-gray-300">
+                {progress < 80 ? 'Processing PSD...' : 'Extracting images...'}
+              </span>
               <span className="text-gray-300">{progress}%</span>
             </div>
             <Progress value={progress} className="bg-gray-700" />
@@ -189,6 +198,7 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
             <li>Upload a PSD file to extract its layers</li>
             <li>Each layer will be converted to web-optimized PNG format</li>
             <li>Layer properties (position, opacity, blend modes) will be preserved</li>
+            <li>Real images will be extracted and processed for preview</li>
             <li>Use the extracted layers to create CRD frame elements</li>
           </ul>
         </div>
