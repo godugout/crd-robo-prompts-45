@@ -1,4 +1,3 @@
-
 import { useCallback, useRef, useState } from 'react';
 
 interface CanvasTransform {
@@ -47,6 +46,48 @@ export const useCanvasNavigation = ({
       scale: Math.max(minZoom, Math.min(scale, maxZoom))
     }));
   }, [minZoom, maxZoom]);
+
+  const zoomToPoint = useCallback((newScale: number, mouseX: number, mouseY: number, canvasRect: DOMRect) => {
+    setTransform(prev => {
+      const boundedScale = Math.max(minZoom, Math.min(newScale, maxZoom));
+      const scaleDiff = boundedScale - prev.scale;
+      
+      // Calculate mouse position relative to canvas center
+      const canvasCenterX = canvasRect.width / 2;
+      const canvasCenterY = canvasRect.height / 2;
+      const mouseRelativeX = mouseX - canvasCenterX;
+      const mouseRelativeY = mouseY - canvasCenterY;
+      
+      // Adjust translation to keep the point under cursor stationary
+      const newTranslateX = prev.translateX - (mouseRelativeX * scaleDiff);
+      const newTranslateY = prev.translateY - (mouseRelativeY * scaleDiff);
+      
+      return {
+        scale: boundedScale,
+        translateX: newTranslateX,
+        translateY: newTranslateY
+      };
+    });
+  }, [minZoom, maxZoom]);
+
+  const handleWheel = useCallback((e: WheelEvent, canvasRect: DOMRect) => {
+    // Only handle zoom when CMD (Meta) key is pressed
+    if (!e.metaKey) return false;
+    
+    e.preventDefault();
+    
+    // Calculate zoom factor based on wheel delta
+    const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+    const newScale = transform.scale * zoomFactor;
+    
+    // Get mouse position relative to canvas
+    const mouseX = e.clientX - canvasRect.left;
+    const mouseY = e.clientY - canvasRect.top;
+    
+    zoomToPoint(newScale, mouseX, mouseY, canvasRect);
+    
+    return true; // Indicate that the event was handled
+  }, [transform.scale, zoomToPoint]);
 
   const resetView = useCallback(() => {
     setTransform({
@@ -109,6 +150,8 @@ export const useCanvasNavigation = ({
     zoomIn,
     zoomOut,
     setZoom,
+    zoomToPoint,
+    handleWheel,
     resetView,
     fitToScreen,
     handleMouseDown,
