@@ -1,8 +1,8 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { ProcessedPSD, ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
-import { CanvasControls } from './CanvasControls';
 import { useCanvasNavigation } from '@/hooks/useCanvasNavigation';
+import { CanvasControls } from './CanvasControls';
 
 interface EnhancedPSDCanvasPreviewProps {
   processedPSD: ProcessedPSD;
@@ -10,7 +10,17 @@ interface EnhancedPSDCanvasPreviewProps {
   hiddenLayers: Set<string>;
   onLayerSelect: (layerId: string) => void;
   focusMode?: boolean;
-  onFocusModeToggle?: (enabled: boolean) => void;
+  onFocusModeToggle?: () => void;
+  showBackground?: boolean;
+  onToggleBackground?: () => void;
+  viewMode?: 'inspect' | 'frame' | 'build';
+}
+
+interface LayerImage {
+  id: string;
+  image: HTMLImageElement;
+  loaded: boolean;
+  error?: boolean;
 }
 
 export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> = ({
@@ -19,14 +29,22 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
   hiddenLayers,
   onLayerSelect,
   focusMode = false,
-  onFocusModeToggle
+  onFocusModeToggle,
+  showBackground = true,
+  onToggleBackground,
+  viewMode = 'inspect'
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [showBackground, setShowBackground] = useState(true);
-  const [imageCache, setImageCache] = useState<Map<string, HTMLImageElement>>(new Map());
-  const [imagesLoaded, setImagesLoaded] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<HTMLImageElement | null>(null);
+  const [layerImages, setLayerImages] = useState<Map<string, LayerImage>>(new Map());
+  const [isLoading, setIsLoading] = useState(true);
+  const [hoveredLayerId, setHoveredLayerId] = useState<string>('');
+
+  // Canvas workspace dimensions - much larger for better navigation
+  const CANVAS_WIDTH = 2400;
+  const CANVAS_HEIGHT = 1600;
+  const WORKSPACE_PADDING = 200;
 
   const {
     transform,
@@ -42,173 +60,198 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
     getTransformStyle
   } = useCanvasNavigation({
     minZoom: 0.1,
-    maxZoom: 5,
-    zoomStep: 0.2
+    maxZoom: 3,
+    zoomStep: 0.1
   });
 
   // Load background image
   useEffect(() => {
-    if (processedPSD.flattenedImageUrl) {
-      const img = new Image();
-      img.onload = () => setBackgroundImage(img);
-      img.onerror = () => console.warn('Failed to load background image');
-      img.src = processedPSD.flattenedImageUrl;
-    }
+    if (!processedPSD.flattenedImageUrl) return;
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      setBackgroundImage(img);
+      setIsLoading(false);
+    };
+    img.onerror = () => {
+      console.error('Failed to load background image');
+      setIsLoading(false);
+    };
+    img.src = processedPSD.flattenedImageUrl;
   }, [processedPSD.flattenedImageUrl]);
 
   // Load layer images
   useEffect(() => {
-    const loadImages = async () => {
-      const cache = new Map<string, HTMLImageElement>();
-      const loadPromises = processedPSD.layers.map(layer => {
-        return new Promise<void>((resolve) => {
-          if (layer.fullColorImageUrl) {
-            const img = new Image();
-            img.onload = () => {
-              cache.set(layer.id, img);
-              resolve();
-            };
-            img.onerror = () => {
-              console.warn(`Failed to load layer image for ${layer.name}`);
-              resolve();
-            };
-            img.src = layer.fullColorImageUrl;
-          } else {
-            resolve();
-          }
-        });
-      });
-
-      await Promise.all(loadPromises);
-      setImageCache(cache);
-      setImagesLoaded(true);
+    const loadLayerImages = async () => {
+      const imageMap = new Map<string, LayerImage>();
+      
+      for (const layer of processedPSD.layers) {
+        if (!layer.fullColorImageUrl) continue;
+        
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        const layerImage: LayerImage = {
+          id: layer.id,
+          image: img,
+          loaded: false,
+          error: false
+        };
+        
+        imageMap.set(layer.id, layerImage);
+        
+        img.onload = () => {
+          layerImage.loaded = true;
+          setLayerImages(new Map(imageMap));
+        };
+        
+        img.onerror = () => {
+          layerImage.error = true;
+          setLayerImages(new Map(imageMap));
+        };
+        
+        img.src = layer.fullColorImageUrl;
+      }
+      
+      setLayerImages(imageMap);
     };
 
-    loadImages();
+    loadLayerImages();
   }, [processedPSD.layers]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      
+      switch (e.key.toLowerCase()) {
+        case 'f':
+          e.preventDefault();
+          onFocusModeToggle?.();
+          break;
+        case 'b':
+          e.preventDefault();
+          onToggleBackground?.();
+          break;
+        case 'r':
+          e.preventDefault();
+          resetView();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [onFocusModeToggle, onToggleBackground, resetView]);
+
+  // Draw canvas content
   const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !imagesLoaded) return;
+    if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Save context for transforms
-    ctx.save();
+    // Draw workspace grid (subtle)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    const gridSize = 50;
+    for (let x = 0; x < CANVAS_WIDTH; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, CANVAS_HEIGHT);
+      ctx.stroke();
+    }
+    for (let y = 0; y < CANVAS_HEIGHT; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(CANVAS_WIDTH, y);
+      ctx.stroke();
+    }
 
-    // Apply zoom and pan transforms
-    ctx.translate(transform.translateX, transform.translateY);
-    ctx.scale(transform.scale, transform.scale);
+    // Calculate PSD positioning (centered in workspace)
+    const psdWidth = processedPSD.dimensions.width;
+    const psdHeight = processedPSD.dimensions.height;
+    const offsetX = (CANVAS_WIDTH - psdWidth) / 2;
+    const offsetY = (CANVAS_HEIGHT - psdHeight) / 2;
 
-    // Draw background image if enabled
+    // Draw background image if enabled and loaded
     if (showBackground && backgroundImage) {
-      ctx.globalAlpha = 1;
-      ctx.drawImage(backgroundImage, 0, 0);
+      const bgOpacity = focusMode ? 0.3 : 1.0;
+      ctx.globalAlpha = bgOpacity;
+      ctx.drawImage(backgroundImage, offsetX, offsetY, psdWidth, psdHeight);
+      ctx.globalAlpha = 1.0;
     }
 
-    // Sort layers by zIndex (bottom to top)
-    const sortedLayers = [...processedPSD.layers].sort((a, b) => a.zIndex - b.zIndex);
+    // Draw layers in proper order (z-index)
+    const sortedLayers = [...processedPSD.layers].sort((a, b) => 
+      (a.zIndex || 0) - (b.zIndex || 0)
+    );
 
-    // Draw layers
-    sortedLayers.forEach(layer => {
-      if (hiddenLayers.has(layer.id)) return;
+    for (const layer of sortedLayers) {
+      if (hiddenLayers.has(layer.id)) continue;
+      
+      const layerImage = layerImages.get(layer.id);
+      if (!layerImage?.loaded) continue;
 
-      const layerImage = imageCache.get(layer.id);
-      if (!layerImage) return;
+      const isSelected = selectedLayerId === layer.id;
+      const isHovered = hoveredLayerId === layer.id;
+      
+      // Calculate layer position
+      const layerX = offsetX + layer.bounds.left;
+      const layerY = offsetY + layer.bounds.top;
+      const layerWidth = layer.bounds.right - layer.bounds.left;
+      const layerHeight = layer.bounds.bottom - layer.bounds.top;
 
-      ctx.save();
-
-      // Apply focus mode darkening
-      if (focusMode && selectedLayerId && layer.id !== selectedLayerId) {
-        ctx.globalAlpha = 0.3; // Darken non-selected layers
+      // Apply focus mode dimming
+      if (focusMode && !isSelected) {
+        ctx.globalAlpha = 0.3;
       } else {
-        ctx.globalAlpha = layer.opacity;
+        ctx.globalAlpha = 1.0;
       }
 
-      // Draw layer image at its bounds position
-      ctx.drawImage(
-        layerImage,
-        layer.bounds.left,
-        layer.bounds.top,
-        layer.bounds.right - layer.bounds.left,
-        layer.bounds.bottom - layer.bounds.top
-      );
+      // Draw layer image
+      ctx.drawImage(layerImage.image, layerX, layerY, layerWidth, layerHeight);
+      ctx.globalAlpha = 1.0;
 
-      ctx.restore();
-    });
-
-    // Draw focus mode overlay
-    if (focusMode && selectedLayerId) {
-      const selectedLayer = processedPSD.layers.find(l => l.id === selectedLayerId);
-      if (selectedLayer) {
-        // Dark overlay on entire canvas
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Cut out selected layer area
-        ctx.save();
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.fillRect(
-          selectedLayer.bounds.left - 10,
-          selectedLayer.bounds.top - 10,
-          selectedLayer.bounds.right - selectedLayer.bounds.left + 20,
-          selectedLayer.bounds.bottom - selectedLayer.bounds.top + 20
-        );
-        ctx.restore();
-
-        // Highlight border around selected layer
-        ctx.strokeStyle = '#00ff88';
-        ctx.lineWidth = 3 / transform.scale;
+      // Draw selection/hover indicators
+      if (isSelected || isHovered) {
+        ctx.strokeStyle = isSelected ? '#00ff88' : '#ffffff';
+        ctx.lineWidth = isSelected ? 3 : 1;
+        ctx.setLineDash(isSelected ? [] : [5, 5]);
+        ctx.strokeRect(layerX - 2, layerY - 2, layerWidth + 4, layerHeight + 4);
         ctx.setLineDash([]);
-        ctx.strokeRect(
-          selectedLayer.bounds.left - 5,
-          selectedLayer.bounds.top - 5,
-          selectedLayer.bounds.right - selectedLayer.bounds.left + 10,
-          selectedLayer.bounds.bottom - selectedLayer.bounds.top + 10
-        );
+      }
+
+      // Draw layer bounds for frame mode
+      if (viewMode === 'frame') {
+        ctx.strokeStyle = 'rgba(0, 150, 255, 0.5)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.strokeRect(layerX, layerY, layerWidth, layerHeight);
+        ctx.setLineDash([]);
       }
     }
 
-    // Draw selection outline for non-focus mode
-    if (!focusMode && selectedLayerId) {
-      const selectedLayer = processedPSD.layers.find(l => l.id === selectedLayerId);
-      if (selectedLayer) {
-        ctx.strokeStyle = '#00ff88';
-        ctx.lineWidth = 2 / transform.scale;
-        ctx.setLineDash([5 / transform.scale, 5 / transform.scale]);
-        ctx.strokeRect(
-          selectedLayer.bounds.left,
-          selectedLayer.bounds.top,
-          selectedLayer.bounds.right - selectedLayer.bounds.left,
-          selectedLayer.bounds.bottom - selectedLayer.bounds.top
-        );
-      }
-    }
+    // Draw center reference point
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.fillRect(CANVAS_WIDTH / 2 - 1, CANVAS_HEIGHT / 2 - 1, 2, 2);
 
-    ctx.restore();
-  }, [
-    imagesLoaded,
-    transform,
-    showBackground,
-    backgroundImage,
-    processedPSD.layers,
-    hiddenLayers,
-    focusMode,
-    selectedLayerId,
-    imageCache
-  ]);
+  }, [processedPSD, backgroundImage, layerImages, showBackground, focusMode, selectedLayerId, hoveredLayerId, hiddenLayers, viewMode]);
 
-  // Redraw canvas when dependencies change
+  // Redraw when dependencies change
   useEffect(() => {
     drawCanvas();
   }, [drawCanvas]);
 
-  // Handle canvas click to select layers
+  // Handle canvas clicks for layer selection
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
+    if (isPanning) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -216,113 +259,180 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
     const x = (e.clientX - rect.left - transform.translateX) / transform.scale;
     const y = (e.clientY - rect.top - transform.translateY) / transform.scale;
 
-    // Find clicked layer (check from top to bottom)
-    const sortedLayers = [...processedPSD.layers].sort((a, b) => b.zIndex - a.zIndex);
+    // Convert to PSD coordinates
+    const psdWidth = processedPSD.dimensions.width;
+    const psdHeight = processedPSD.dimensions.height;
+    const offsetX = (CANVAS_WIDTH - psdWidth) / 2;
+    const offsetY = (CANVAS_HEIGHT - psdHeight) / 2;
     
+    const psdX = x - offsetX;
+    const psdY = y - offsetY;
+
+    // Find clicked layer (top-most first)
+    const sortedLayers = [...processedPSD.layers]
+      .sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0))
+      .filter(layer => !hiddenLayers.has(layer.id));
+
     for (const layer of sortedLayers) {
-      if (hiddenLayers.has(layer.id)) continue;
-      
-      if (
-        x >= layer.bounds.left &&
-        x <= layer.bounds.right &&
-        y >= layer.bounds.top &&
-        y <= layer.bounds.bottom
-      ) {
+      if (psdX >= layer.bounds.left && psdX <= layer.bounds.right &&
+          psdY >= layer.bounds.top && psdY <= layer.bounds.bottom) {
         onLayerSelect(layer.id);
         return;
       }
     }
-  }, [transform, processedPSD.layers, hiddenLayers, onLayerSelect]);
+  }, [isPanning, transform, processedPSD, hiddenLayers, onLayerSelect]);
+
+  // Handle mouse hover for layer highlighting
+  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
+    handleMouseMove(e);
+
+    if (isPanning) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left - transform.translateX) / transform.scale;
+    const y = (e.clientY - rect.top - transform.translateY) / transform.scale;
+
+    // Convert to PSD coordinates
+    const psdWidth = processedPSD.dimensions.width;
+    const psdHeight = processedPSD.dimensions.height;
+    const offsetX = (CANVAS_WIDTH - psdWidth) / 2;
+    const offsetY = (CANVAS_HEIGHT - psdHeight) / 2;
+    
+    const psdX = x - offsetX;
+    const psdY = y - offsetY;
+
+    // Find hovered layer
+    let newHoveredLayerId = '';
+    const sortedLayers = [...processedPSD.layers]
+      .sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0))
+      .filter(layer => !hiddenLayers.has(layer.id));
+
+    for (const layer of sortedLayers) {
+      if (psdX >= layer.bounds.left && psdX <= layer.bounds.right &&
+          psdY >= layer.bounds.top && psdY <= layer.bounds.bottom) {
+        newHoveredLayerId = layer.id;
+        break;
+      }
+    }
+
+    if (newHoveredLayerId !== hoveredLayerId) {
+      setHoveredLayerId(newHoveredLayerId);
+    }
+  }, [handleMouseMove, isPanning, transform, processedPSD, hiddenLayers, hoveredLayerId]);
 
   // Handle wheel zoom
+  const handleCanvasWheel = useCallback((e: WheelEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const handled = handleWheel(e, rect);
+    
+    if (handled) {
+      e.preventDefault();
+    }
+  }, [handleWheel]);
+
+  // Add wheel event listener
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const handleWheelEvent = (e: WheelEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      if (handleWheel(e, rect)) {
-        drawCanvas();
-      }
-    };
+    canvas.addEventListener('wheel', handleCanvasWheel, { passive: false });
+    return () => canvas.removeEventListener('wheel', handleCanvasWheel);
+  }, [handleCanvasWheel]);
 
-    canvas.addEventListener('wheel', handleWheelEvent, { passive: false });
-    return () => canvas.removeEventListener('wheel', handleWheelEvent);
-  }, [handleWheel, drawCanvas]);
-
-  // Keyboard shortcuts
+  // Auto-fit to screen on load
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'f' || e.key === 'F') {
-        onFocusModeToggle?.(!focusMode);
-      } else if (e.key === 'b' || e.key === 'B') {
-        setShowBackground(!showBackground);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [focusMode, showBackground, onFocusModeToggle]);
-
-  // Auto-fit to screen on first load
-  useEffect(() => {
-    if (imagesLoaded && containerRef.current && backgroundImage) {
+    if (backgroundImage && containerRef.current) {
       const container = containerRef.current;
-      fitToScreen(
-        container.clientWidth,
-        container.clientHeight,
-        backgroundImage.width,
-        backgroundImage.height
-      );
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      
+      // Fit the PSD content within the container
+      fitToScreen(containerWidth, containerHeight, processedPSD.dimensions.width, processedPSD.dimensions.height);
     }
-  }, [imagesLoaded, backgroundImage, fitToScreen]);
+  }, [backgroundImage, fitToScreen, processedPSD.dimensions]);
 
-  if (!imagesLoaded) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full bg-slate-900 text-white">
+      <div className="flex-1 flex items-center justify-center bg-[#0a0a0b]">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-crd-blue border-t-transparent rounded-full mx-auto mb-4" />
-          <p>Loading layer images...</p>
+          <div className="animate-spin w-8 h-8 border-2 border-crd-blue border-t-transparent rounded-full mb-4 mx-auto"></div>
+          <p className="text-slate-400">Loading PSD canvas...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="relative w-full h-full bg-slate-900 overflow-hidden">
+    <div ref={containerRef} className="flex-1 relative bg-[#0a0a0b] overflow-hidden">
+      {/* Canvas Controls */}
       <CanvasControls
         zoom={transform.scale}
         isPanning={isPanning}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
         onFitToScreen={() => {
-          if (containerRef.current && backgroundImage) {
-            fitToScreen(
-              containerRef.current.clientWidth,
-              containerRef.current.clientHeight,
-              backgroundImage.width,
-              backgroundImage.height
-            );
+          if (containerRef.current) {
+            const container = containerRef.current;
+            fitToScreen(container.clientWidth, container.clientHeight, processedPSD.dimensions.width, processedPSD.dimensions.height);
           }
         }}
         onResetView={resetView}
         focusMode={focusMode}
         showBackground={showBackground}
-        onToggleBackground={() => setShowBackground(!showBackground)}
-        onToggleFocusMode={() => onFocusModeToggle?.(!focusMode)}
+        onToggleFocusMode={onFocusModeToggle}
+        onToggleBackground={onToggleBackground}
       />
-      
-      <canvas
-        ref={canvasRef}
-        width={backgroundImage?.width || 800}
-        height={backgroundImage?.height || 600}
-        className="absolute inset-0 cursor-pointer"
+
+      {/* Canvas Container */}
+      <div 
+        className="w-full h-full overflow-hidden cursor-grab active:cursor-grabbing"
         style={getTransformStyle()}
-        onClick={handleCanvasClick}
         onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
+        onMouseMove={handleCanvasMouseMove}
         onMouseUp={handleMouseUp}
-      />
+        onMouseLeave={handleMouseUp}
+      >
+        <canvas
+          ref={canvasRef}
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
+          className="block"
+          onClick={handleCanvasClick}
+          style={{
+            imageRendering: 'pixelated',
+            transformOrigin: 'center center'
+          }}
+        />
+      </div>
+
+      {/* Mode Indicator */}
+      <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-2 text-sm text-white">
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${
+            viewMode === 'inspect' ? 'bg-green-400' :
+            viewMode === 'frame' ? 'bg-blue-400' : 'bg-purple-400'
+          }`}></div>
+          {viewMode === 'inspect' && 'Inspect Mode'}
+          {viewMode === 'frame' && 'Frame Analysis'}
+          {viewMode === 'build' && 'Build Mode'}
+        </div>
+      </div>
+
+      {/* Keyboard Shortcuts Hint */}
+      <div className="absolute bottom-4 right-4 bg-black/80 backdrop-blur-sm rounded-lg px-3 py-2 text-xs text-slate-400">
+        <div className="space-y-1">
+          <div>F - Focus Mode</div>
+          <div>B - Toggle Background</div>
+          <div>R - Reset View</div>
+          <div>⌘ + Scroll - Zoom</div>
+        </div>
+      </div>
     </div>
   );
 };
