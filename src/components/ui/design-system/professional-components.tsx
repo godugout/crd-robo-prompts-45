@@ -115,7 +115,7 @@ export const ProfessionalButton = React.forwardRef<HTMLButtonElement, Profession
       return (
         <div
           className={cn(professionalButtonVariants({ variant, size, context }), className)}
-          {...(divProps as React.HTMLAttributes<HTMLDivElement>)}
+          {...(divProps as unknown as React.HTMLAttributes<HTMLDivElement>)}
         />
       );
     }
