@@ -1,3 +1,4 @@
+
 import { Psd } from 'ag-psd';
 import { ProcessedPSDLayer, LayerBounds, LayerProperties } from '@/types/psdTypes';
 
@@ -27,12 +28,15 @@ export const processPSDLayers = (psd: Psd): PSDProcessingResult => {
       locked: layer.locked || false
     };
 
+    const currentLayerIndex = layerIndex++;
+
     return {
-      id: `layer_${layerIndex++}`,
-      name: layer.name || `Layer ${layerIndex}`,
+      id: `layer_${currentLayerIndex}`,
+      name: layer.name || `Layer ${currentLayerIndex}`,
       bounds,
       properties,
       hasRealImage: !!(layer.canvas || layer.imageData),
+      layerIndex: currentLayerIndex, // Add the layerIndex property
       type: layer.type || 'layer',
       isVisible: properties.visible,
       opacity: properties.opacity,

@@ -23,7 +23,8 @@ export interface ProcessedPSDLayer {
   hasRealImage: boolean;
   imageUrl?: string;
   thumbnailUrl?: string;
-  inferredDepth?: number; // Added missing property
+  inferredDepth?: number;
+  layerIndex: number; // Added missing property for layer ordering
   // Unified compatibility fields
   type: 'text' | 'image' | 'group' | 'shape' | 'layer';
   isVisible: boolean;

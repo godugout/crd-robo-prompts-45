@@ -68,7 +68,7 @@ export const EnhancedPSDCard: React.FC<EnhancedPSDCardProps> = ({
                   style={{
                     zIndex: layer.layerIndex,
                     opacity: layer.opacity,
-                    mixBlendMode: layer.blendMode === 'normal' ? 'normal' : 'multiply'
+                    mixBlendMode: layer.properties.blendMode === 'normal' ? 'normal' : 'multiply'
                   }}
                   onError={(e) => {
                     console.warn(`Failed to load layer image: ${layer.name}`);
