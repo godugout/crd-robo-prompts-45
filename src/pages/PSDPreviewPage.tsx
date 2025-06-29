@@ -4,7 +4,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { PSDPreviewInterface } from '@/components/debug/PSDPreviewInterface';
 import { PSDFileProcessor } from '@/components/debug/components/PSDFileProcessor';
 import { PSDWorkflowHeader } from '@/components/debug/components/PSDWorkflowHeader';
-import { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
+import { EnhancedProcessedPSD } from '@/types/psdTypes';
 
 const PSDPreviewPage: React.FC = () => {
   const [processedPSD, setProcessedPSD] = useState<EnhancedProcessedPSD | null>(null);

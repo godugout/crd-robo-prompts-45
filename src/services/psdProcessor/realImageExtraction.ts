@@ -1,24 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-
-export interface ExtractedLayerImage {
-  id: string;
-  name: string;
-  imageUrl: string;
-  thumbnailUrl: string;
-  bounds: { left: number; top: number; right: number; bottom: number };
-  width: number;
-  height: number;
-}
-
-export interface ExtractedPSDImages {
-  flattenedImageUrl: string;
-  layerImages: ExtractedLayerImage[];
-  thumbnailUrl: string;
-  archiveUrls: {
-    originalPsd: string;
-    layerArchive: string;
-  };
-}
+import { ExtractedLayerImage, ExtractedPSDImages } from '@/types/psdTypes';
 
 export const extractRealPSDImages = async (
   psdBuffer: ArrayBuffer,
@@ -79,7 +60,13 @@ export const extractRealPSDImages = async (
               bottom: (layer.top || 0) + (layer.canvas?.height || 0)
             },
             width: layer.canvas.width,
-            height: layer.canvas.height
+            height: layer.canvas.height,
+            properties: {
+              opacity: (layer.opacity || 255) / 255,
+              blendMode: layer.blendMode,
+              visible: !layer.hidden,
+              locked: false
+            }
           });
         } catch (layerError) {
           console.warn(`Failed to extract layer ${i}:`, layerError);

@@ -1,5 +1,6 @@
+
 import React, { useState, useMemo } from 'react';
-import { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
+import { EnhancedProcessedPSD } from '@/types/psdTypes';
 import { EnhancedCardFrameFittingInterface } from './components/EnhancedCardFrameFittingInterface';
 import { CRDFrameBuilder } from './components/CRDFrameBuilder';
 import { SimplifiedLayerInspector } from './components/SimplifiedLayerInspector';
