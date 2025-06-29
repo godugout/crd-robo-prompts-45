@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { EnhancedProcessedPSD } from '@/types/psdTypes';
 import { EnhancedCardFrameFittingInterface } from './components/EnhancedCardFrameFittingInterface';
@@ -30,14 +29,16 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
   const [flippedLayers, setFlippedLayers] = useState<Set<string>>(new Set());
   const [focusMode, setFocusMode] = useState(false);
   const [showBackground, setShowBackground] = useState(true);
+  const [reorderedLayers, setReorderedLayers] = useState<ProcessedPSDLayer[]>(processedPSD.layers);
 
-  // Initialize with largest layer selected
+  // Initialize with largest layer selected and set initial layer order
   React.useEffect(() => {
     if (processedPSD && !selectedLayerId) {
       const largestLayerId = findLargestLayerByVolume(processedPSD.layers);
       if (largestLayerId) {
         setSelectedLayerId(largestLayerId);
       }
+      setReorderedLayers(processedPSD.layers);
     }
   }, [processedPSD, selectedLayerId]);
 
@@ -69,9 +70,19 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
     setFlippedLayers(flipped);
   };
 
-  const selectedLayer = processedPSD.layers.find(layer => layer.id === selectedLayerId);
-  const visibleLayerCount = processedPSD.layers.length - hiddenLayers.size;
+  const handleLayersReorder = (newLayers: ProcessedPSDLayer[]) => {
+    setReorderedLayers(newLayers);
+  };
+
+  const selectedLayer = reorderedLayers.find(layer => layer.id === selectedLayerId);
+  const visibleLayerCount = reorderedLayers.length - hiddenLayers.size;
   const allFrames = [...generatedFrames];
+
+  // Create enhanced PSD with reordered layers for canvas preview
+  const enhancedPSDWithReorderedLayers = {
+    ...processedPSD,
+    layers: reorderedLayers
+  };
 
   // Tab configuration with unified mode system
   const tabConfig = [
@@ -164,7 +175,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
         <div className="flex-1">
           {activeTab === 'inspect' && (
             <EnhancedPSDCanvasPreview
-              processedPSD={processedPSD}
+              processedPSD={enhancedPSDWithReorderedLayers}
               selectedLayerId={selectedLayerId}
               hiddenLayers={hiddenLayers}
               onLayerSelect={setSelectedLayerId}
@@ -178,7 +189,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
           
           {activeTab === 'frame' && (
             <EnhancedCardFrameFittingInterface
-              processedPSD={processedPSD}
+              processedPSD={enhancedPSDWithReorderedLayers}
               selectedLayerId={selectedLayerId}
               hiddenLayers={hiddenLayers}
               onLayerSelect={setSelectedLayerId}
@@ -190,7 +201,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
           
           {activeTab === 'build' && (
             <CRDFrameBuilder
-              processedPSD={processedPSD}
+              processedPSD={enhancedPSDWithReorderedLayers}
               selectedLayerId={selectedLayerId}
               onFrameGenerated={handleFrameGenerated}
             />
@@ -222,6 +233,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
               viewMode={activeTab}
               focusMode={focusMode}
               showBackground={showBackground}
+              onLayersReorder={handleLayersReorder}
             />
           </div>
         </div>
