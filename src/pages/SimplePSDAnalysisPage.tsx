@@ -4,14 +4,14 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PSDFileProcessor } from '@/components/debug/components/PSDFileProcessor';
 import { PSDPreviewInterface } from '@/components/debug/PSDPreviewInterface';
-import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
+import { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
 import { Upload, RotateCcw } from 'lucide-react';
 
 const SimplePSDAnalysisPage: React.FC = () => {
-  const [processedPSD, setProcessedPSD] = useState<ProcessedPSD | null>(null);
+  const [processedPSD, setProcessedPSD] = useState<EnhancedProcessedPSD | null>(null);
   const [originalFileName, setOriginalFileName] = useState<string>('');
 
-  const handlePSDProcessed = (psd: ProcessedPSD) => {
+  const handlePSDProcessed = (psd: EnhancedProcessedPSD) => {
     console.log('PSD processed successfully:', psd);
     setProcessedPSD(psd);
     // Extract filename from metadata if available
