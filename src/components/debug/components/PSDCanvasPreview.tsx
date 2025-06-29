@@ -18,6 +18,14 @@ interface PSDCanvasPreviewProps {
   flippedLayers?: Set<string>;
 }
 
+interface CardImageTransform {
+  scale: number;
+  offsetX: number;
+  offsetY: number;
+  scaledWidth: number;
+  scaledHeight: number;
+}
+
 export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   processedPSD,
   selectedLayerId,
@@ -33,6 +41,7 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 800, height: 600 });
   const [cardImage, setCardImage] = useState<HTMLImageElement | null>(null);
+  const [cardTransform, setCardTransform] = useState<CardImageTransform | null>(null);
 
   const {
     transform,
@@ -68,12 +77,48 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     return aDepth - bDepth;
   });
 
-  const drawLayer = (ctx: CanvasRenderingContext2D, layer: ProcessedPSDLayer, isSelected: boolean, isFlipped: boolean) => {
-    if (hiddenLayers.has(layer.id)) return;
+  // Calculate card image transformation for proper layer positioning
+  const calculateCardTransform = (canvas: HTMLCanvasElement, image: HTMLImageElement): CardImageTransform => {
+    const scale = Math.min(
+      canvas.width / image.width,
+      canvas.height / image.height
+    ) * 0.8; // Leave some padding
+    
+    const scaledWidth = image.width * scale;
+    const scaledHeight = image.height * scale;
+    const offsetX = (canvas.width - scaledWidth) / 2;
+    const offsetY = (canvas.height - scaledHeight) / 2;
+    
+    return {
+      scale,
+      offsetX,
+      offsetY,
+      scaledWidth,
+      scaledHeight
+    };
+  };
 
-    const { bounds } = layer;
-    const width = bounds.right - bounds.left;
-    const height = bounds.bottom - bounds.top;
+  // Transform layer bounds to match card image positioning
+  const transformLayerBounds = (layer: ProcessedPSDLayer, cardTransform: CardImageTransform, cardImage: HTMLImageElement) => {
+    if (!cardTransform) return layer.bounds;
+    
+    // Calculate the scale factor from PSD dimensions to rendered card dimensions
+    const psdToCardScale = cardTransform.scale;
+    
+    return {
+      left: cardTransform.offsetX + (layer.bounds.left * psdToCardScale),
+      top: cardTransform.offsetY + (layer.bounds.top * psdToCardScale),
+      right: cardTransform.offsetX + (layer.bounds.right * psdToCardScale),
+      bottom: cardTransform.offsetY + (layer.bounds.bottom * psdToCardScale)
+    };
+  };
+
+  const drawLayer = (ctx: CanvasRenderingContext2D, layer: ProcessedPSDLayer, isSelected: boolean, isFlipped: boolean) => {
+    if (hiddenLayers.has(layer.id) || !cardTransform || !cardImage) return;
+
+    const transformedBounds = transformLayerBounds(layer, cardTransform, cardImage);
+    const width = transformedBounds.right - transformedBounds.left;
+    const height = transformedBounds.bottom - transformedBounds.top;
 
     // In focus mode, only show selected layer overlay
     if (focusMode && !isSelected) return;
@@ -81,37 +126,37 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     // For preview mode with flipped layers, show CRD branding
     if (mode === 'preview' && isFlipped) {
       ctx.fillStyle = 'rgba(59, 130, 246, 0.4)';
-      ctx.fillRect(bounds.left, bounds.top, width, height);
+      ctx.fillRect(transformedBounds.left, transformedBounds.top, width, height);
       
       ctx.fillStyle = '#3b82f6';
       ctx.font = 'bold 16px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('CRD', bounds.left + width / 2, bounds.top + height / 2);
+      ctx.fillText('CRD', transformedBounds.left + width / 2, transformedBounds.top + height / 2);
       return;
     }
 
     // Draw interactive layer overlay
     if (isSelected) {
       ctx.fillStyle = 'rgba(34, 197, 94, 0.2)';
-      ctx.fillRect(bounds.left, bounds.top, width, height);
+      ctx.fillRect(transformedBounds.left, transformedBounds.top, width, height);
       
       ctx.strokeStyle = '#22c55e';
       ctx.lineWidth = 2;
-      ctx.strokeRect(bounds.left, bounds.top, width, height);
+      ctx.strokeRect(transformedBounds.left, transformedBounds.top, width, height);
       
       // Layer name tag
       ctx.fillStyle = 'rgba(34, 197, 94, 0.9)';
-      ctx.fillRect(bounds.left, bounds.top - 20, Math.min(width, 120), 18);
+      ctx.fillRect(transformedBounds.left, transformedBounds.top - 20, Math.min(width, 120), 18);
       
       ctx.fillStyle = '#ffffff';
       ctx.font = '12px Arial';
       ctx.textAlign = 'left';
-      ctx.fillText(layer.name, bounds.left + 4, bounds.top - 6);
+      ctx.fillText(layer.name, transformedBounds.left + 4, transformedBounds.top - 6);
     } else if (mode === 'elements') {
       // Subtle hover regions for non-selected layers
       ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
       ctx.lineWidth = 1;
-      ctx.strokeRect(bounds.left, bounds.top, width, height);
+      ctx.strokeRect(transformedBounds.left, transformedBounds.top, width, height);
     }
   };
 
@@ -129,45 +174,45 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     ctx.fillStyle = focusMode ? '#000000' : '#1a1f2e';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw the full card image as base layer
+    // Draw the full card image as base layer and calculate transform
     if (cardImage) {
-      const scale = Math.min(
-        canvas.width / cardImage.width,
-        canvas.height / cardImage.height
-      ) * 0.8; // Leave some padding
+      const transform = calculateCardTransform(canvas, cardImage);
+      setCardTransform(transform);
       
-      const scaledWidth = cardImage.width * scale;
-      const scaledHeight = cardImage.height * scale;
-      const x = (canvas.width - scaledWidth) / 2;
-      const y = (canvas.height - scaledHeight) / 2;
-      
-      ctx.drawImage(cardImage, x, y, scaledWidth, scaledHeight);
+      ctx.drawImage(
+        cardImage, 
+        transform.offsetX, 
+        transform.offsetY, 
+        transform.scaledWidth, 
+        transform.scaledHeight
+      );
+
+      // Draw layer overlays in correct order with transformed positions
+      sortedLayers.forEach((layer) => {
+        const isSelected = selectedLayerId === layer.id;
+        const isFlipped = flippedLayers.has(layer.id);
+        drawLayer(ctx, layer, isSelected, isFlipped);
+      });
     }
 
-    // Draw layer overlays in correct order
-    sortedLayers.forEach((layer) => {
-      const isSelected = selectedLayerId === layer.id;
-      const isFlipped = flippedLayers.has(layer.id);
-      drawLayer(ctx, layer, isSelected, isFlipped);
-    });
-
     // Frame builder highlight
-    if (frameBuilderMode && selectedLayerId) {
+    if (frameBuilderMode && selectedLayerId && cardTransform) {
       const selectedLayer = sortedLayers.find(l => l.id === selectedLayerId);
       if (selectedLayer) {
+        const transformedBounds = transformLayerBounds(selectedLayer, cardTransform, cardImage!);
         ctx.strokeStyle = '#8b5cf6';
         ctx.lineWidth = 3;
         ctx.setLineDash([5, 5]);
         ctx.strokeRect(
-          selectedLayer.bounds.left - 2,
-          selectedLayer.bounds.top - 2,
-          (selectedLayer.bounds.right - selectedLayer.bounds.left) + 4,
-          (selectedLayer.bounds.bottom - selectedLayer.bounds.top) + 4
+          transformedBounds.left - 2,
+          transformedBounds.top - 2,
+          (transformedBounds.right - transformedBounds.left) + 4,
+          (transformedBounds.bottom - transformedBounds.top) + 4
         );
         ctx.setLineDash([]);
       }
     }
-  }, [processedPSD, selectedLayerId, hiddenLayers, focusMode, frameBuilderMode, mode, flippedLayers, cardImage, sortedLayers]);
+  }, [processedPSD, selectedLayerId, hiddenLayers, focusMode, frameBuilderMode, mode, flippedLayers, cardImage, sortedLayers, canvasDimensions]);
 
   useEffect(() => {
     const updateCanvasSize = () => {
@@ -192,7 +237,7 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   }, []);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (isPanning) return;
+    if (isPanning || !cardTransform || !cardImage) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -201,13 +246,14 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     const x = (e.clientX - rect.left - transform.translateX) / transform.scale;
     const y = (e.clientY - rect.top - transform.translateY) / transform.scale;
 
-    // Find clicked layer (reverse order for top-most layer)
+    // Find clicked layer using transformed bounds (reverse order for top-most layer)
     for (let i = sortedLayers.length - 1; i >= 0; i--) {
       const layer = sortedLayers[i];
       if (hiddenLayers.has(layer.id)) continue;
 
-      const { bounds } = layer;
-      if (x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom) {
+      const transformedBounds = transformLayerBounds(layer, cardTransform, cardImage);
+      if (x >= transformedBounds.left && x <= transformedBounds.right && 
+          y >= transformedBounds.top && y <= transformedBounds.bottom) {
         onLayerSelect(layer.id);
         break;
       }
