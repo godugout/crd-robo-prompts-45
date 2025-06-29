@@ -1,14 +1,7 @@
 
 import React from 'react';
-import { PSDButton } from '@/components/ui/design-system/PSDButton';
-import { Badge } from '@/components/ui/badge';
-import { 
-  ZoomIn, 
-  ZoomOut, 
-  Maximize2, 
-  RotateCcw,
-  Move
-} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ZoomIn, ZoomOut, Maximize2, RotateCcw, Eye, EyeOff } from 'lucide-react';
 
 interface CanvasControlsProps {
   zoom: number;
@@ -17,8 +10,6 @@ interface CanvasControlsProps {
   onZoomOut: () => void;
   onFitToScreen: () => void;
   onResetView: () => void;
-  minZoom?: number;
-  maxZoom?: number;
   focusMode?: boolean;
   frameBuilderMode?: boolean;
 }
@@ -30,84 +21,67 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
   onZoomOut,
   onFitToScreen,
   onResetView,
-  minZoom = 0.1,
-  maxZoom = 5,
   focusMode = false,
   frameBuilderMode = false
 }) => {
-  const zoomPercentage = Math.round(zoom * 100);
-
   return (
-    <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-      {/* Zoom Controls */}
-      <div className="bg-[#1a1f2e] border border-slate-700 rounded-lg p-1 flex items-center gap-1">
-        <PSDButton
-          variant="ghost"
+    <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 bg-black/80 backdrop-blur-sm rounded-lg p-2 border border-slate-600">
+      <div className="flex items-center gap-1">
+        <Button
           size="sm"
-          onClick={onZoomOut}
-          disabled={zoom <= minZoom}
-          className="p-2"
-        >
-          <ZoomOut className="w-4 h-4" />
-        </PSDButton>
-        
-        <Badge 
-          variant="outline" 
-          className="bg-slate-800 text-slate-300 border-slate-600 min-w-[60px] text-center"
-        >
-          {zoomPercentage}%
-        </Badge>
-        
-        <PSDButton
           variant="ghost"
-          size="sm"
           onClick={onZoomIn}
-          disabled={zoom >= maxZoom}
-          className="p-2"
+          className="text-white hover:bg-white/20 h-8 w-8 p-0"
+          title="Zoom In"
         >
           <ZoomIn className="w-4 h-4" />
-        </PSDButton>
-      </div>
-
-      {/* View Controls */}
-      <div className="bg-[#1a1f2e] border border-slate-700 rounded-lg p-1 flex items-center gap-1">
-        <PSDButton
-          variant="ghost"
+        </Button>
+        
+        <Button
           size="sm"
+          variant="ghost"
+          onClick={onZoomOut}
+          className="text-white hover:bg-white/20 h-8 w-8 p-0"
+          title="Zoom Out"
+        >
+          <ZoomOut className="w-4 h-4" />
+        </Button>
+        
+        <Button
+          size="sm"
+          variant="ghost"
           onClick={onFitToScreen}
-          className="p-2"
+          className="text-white hover:bg-white/20 h-8 w-8 p-0"
+          title="Fit to Screen"
         >
           <Maximize2 className="w-4 h-4" />
-        </PSDButton>
+        </Button>
         
-        <PSDButton
-          variant="ghost"
+        <Button
           size="sm"
+          variant="ghost"
           onClick={onResetView}
-          className="p-2"
+          className="text-white hover:bg-white/20 h-8 w-8 p-0"
+          title="Reset View"
         >
           <RotateCcw className="w-4 h-4" />
-        </PSDButton>
+        </Button>
       </div>
-
-      {/* Pan Indicator */}
+      
+      <div className="text-xs text-slate-300 text-center px-2">
+        {(zoom * 100).toFixed(0)}%
+      </div>
+      
       {isPanning && (
-        <div className="bg-crd-blue/20 border border-crd-blue rounded-lg p-2 flex items-center gap-2">
-          <Move className="w-4 h-4 text-crd-blue" />
-          <span className="text-sm text-crd-blue font-medium">Panning</span>
+        <div className="text-xs text-green-400 text-center px-2">
+          Panning
         </div>
       )}
-
-      {/* Mode Indicators */}
+      
       {focusMode && (
-        <div className="bg-crd-green/20 border border-crd-green rounded-lg p-2 flex items-center gap-2">
-          <span className="text-sm text-crd-green font-medium">Focus Mode</span>
-        </div>
-      )}
-
-      {frameBuilderMode && (
-        <div className="bg-purple-500/20 border border-purple-500 rounded-lg p-2 flex items-center gap-2">
-          <span className="text-sm text-purple-400 font-medium">Frame Builder</span>
+        <div className="flex items-center gap-1 text-xs text-blue-400 px-2">
+          <Eye className="w-3 h-3" />
+          Focus
         </div>
       )}
     </div>
