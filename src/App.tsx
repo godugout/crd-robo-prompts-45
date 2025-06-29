@@ -24,6 +24,7 @@ import Labs from "./pages/Labs";
 import LabsPSDTools from "./pages/labs/LabsPSDTools";
 import Debug from "./pages/Debug";
 import { LabsLayout } from "@/components/layout/LabsLayout";
+import ModernPSDAnalysisPage from './pages/ModernPSDAnalysisPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -183,6 +184,16 @@ function App() {
                     <ProtectedRoute>
                       <LabsLayout>
                         <PSDPreviewPage />
+                      </LabsLayout>
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/labs/psd-tools/modern-analysis" 
+                  element={
+                    <ProtectedRoute>
+                      <LabsLayout>
+                        <ModernPSDAnalysisPage />
                       </LabsLayout>
                     </ProtectedRoute>
                   } 
