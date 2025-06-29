@@ -4,6 +4,7 @@
 @import './theme.css';
 @import './components.css';
 @import './utilities.css';
+@import './cardshow-tokens.css';
 
 /* Organized custom CSS imports */
 @import './utilities/scrollbar.css';
@@ -28,5 +29,35 @@
   
   .btn-text-gray {
     color: #777E90 !important;
+  }
+}
+
+/* Cardshow Design System Base Styles */
+@layer base {
+  body {
+    font-family: var(--cardshow-font-family);
+    font-size: var(--cardshow-font-size-md);
+    background-color: var(--cardshow-bg-default);
+    color: #FCFCFD;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+  }
+  
+  h1 {
+    font-size: var(--cardshow-font-size-3xl);
+  }
+  
+  h2 {
+    font-size: var(--cardshow-font-size-2xl);
+  }
+  
+  h3 {
+    font-size: var(--cardshow-font-size-xl);
+  }
+  
+  h4 {
+    font-size: var(--cardshow-font-size-lg);
   }
 }
