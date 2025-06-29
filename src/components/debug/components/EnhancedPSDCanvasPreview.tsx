@@ -30,6 +30,7 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [autoFitApplied, setAutoFitApplied] = useState(false);
+  const [loadedImages, setLoadedImages] = useState<Map<string, HTMLImageElement>>(new Map());
 
   const {
     transform,
@@ -76,6 +77,49 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
     setAutoFitApplied(false);
   }, [processedPSD]);
 
+  // Preload all layer images
+  useEffect(() => {
+    if (!processedPSD) return;
+
+    const imageMap = new Map<string, HTMLImageElement>();
+    let loadedCount = 0;
+    const totalImages = processedPSD.layers.filter(layer => layer.imageData).length;
+
+    if (totalImages === 0) {
+      drawCanvas();
+      return;
+    }
+
+    processedPSD.layers.forEach((layer) => {
+      if (layer.imageData) {
+        const img = new Image();
+        img.onload = () => {
+          imageMap.set(layer.id, img);
+          loadedCount++;
+          
+          // When all images are loaded, update state and redraw
+          if (loadedCount === totalImages) {
+            setLoadedImages(imageMap);
+          }
+        };
+        img.onerror = () => {
+          console.warn(`Failed to load image for layer ${layer.id}`);
+          loadedCount++;
+          
+          if (loadedCount === totalImages) {
+            setLoadedImages(imageMap);
+          }
+        };
+        img.src = layer.imageData;
+      }
+    });
+  }, [processedPSD]);
+
+  // Redraw when images are loaded or other dependencies change
+  useEffect(() => {
+    drawCanvas();
+  }, [loadedImages, selectedLayerId, hiddenLayers, focusMode, showBackground]);
+
   const handleCanvasWheel = (e: React.WheelEvent) => {
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
@@ -119,44 +163,39 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    // Draw visible layers
+    // Draw visible layers using preloaded images
     processedPSD.layers.forEach((layer) => {
       if (hiddenLayers.has(layer.id)) return;
 
-      if (layer.imageData) {
-        const img = new Image();
-        img.onload = () => {
-          ctx.save();
-          
-          // Get layer dimensions from bounds
-          const layerX = layer.bounds?.left || 0;
-          const layerY = layer.bounds?.top || 0;
-          const layerWidth = (layer.bounds?.right || 0) - (layer.bounds?.left || 0);
-          const layerHeight = (layer.bounds?.bottom || 0) - (layer.bounds?.top || 0);
-          
-          // Highlight selected layer
-          if (layer.id === selectedLayerId) {
-            ctx.strokeStyle = '#00ff00';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(layerX, layerY, layerWidth, layerHeight);
-          }
-          
-          // Apply focus mode dimming
-          if (focusMode && layer.id !== selectedLayerId) {
-            ctx.globalAlpha = 0.3;
-          }
-          
-          ctx.drawImage(img, layerX, layerY, layerWidth, layerHeight);
-          ctx.restore();
-        };
-        img.src = layer.imageData;
+      const img = loadedImages.get(layer.id);
+      if (img) {
+        ctx.save();
+        
+        // Get layer dimensions from bounds
+        const layerX = layer.bounds?.left || 0;
+        const layerY = layer.bounds?.top || 0;
+        const layerWidth = (layer.bounds?.right || 0) - (layer.bounds?.left || 0);
+        const layerHeight = (layer.bounds?.bottom || 0) - (layer.bounds?.top || 0);
+        
+        // Apply focus mode dimming
+        if (focusMode && layer.id !== selectedLayerId) {
+          ctx.globalAlpha = 0.3;
+        }
+        
+        // Draw the image
+        ctx.drawImage(img, layerX, layerY, layerWidth, layerHeight);
+        
+        // Highlight selected layer
+        if (layer.id === selectedLayerId) {
+          ctx.strokeStyle = '#00ff00';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(layerX, layerY, layerWidth, layerHeight);
+        }
+        
+        ctx.restore();
       }
     });
   };
-
-  useEffect(() => {
-    drawCanvas();
-  }, [processedPSD, selectedLayerId, hiddenLayers, focusMode, showBackground]);
 
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (!processedPSD || isPanning) return;
@@ -229,7 +268,7 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
       </div>
 
       {/* Loading State */}
-      {!processedPSD && (
+      {(!processedPSD || loadedImages.size === 0) && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-slate-400">Loading PSD preview...</div>
         </div>
