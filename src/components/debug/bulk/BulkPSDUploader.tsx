@@ -29,6 +29,8 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [currentFile, setCurrentFile] = React.useState<string>('');
   const [errors, setErrors] = React.useState<string[]>([]);
+  const [processingStage, setProcessingStage] = React.useState<string>('');
+  const [success, setSuccess] = React.useState(false);
 
   const simulateProgress = useCallback((stage: string, duration: number = 2000) => {
     setProcessingStage(stage);
@@ -52,6 +54,7 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
     setIsUploading(true);
     setUploadProgress(0);
     setErrors([]);
+    setSuccess(false);
     
     const processedPSDs: BulkPSDData[] = [];
     const newErrors: string[] = [];
@@ -87,6 +90,8 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
     setCurrentFile('');
     setIsUploading(false);
     setErrors(newErrors);
+    setSuccess(true);
+    setProcessingStage('Complete!');
     
     if (processedPSDs.length > 0) {
       onPSDsProcessed(processedPSDs);
@@ -178,6 +183,25 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
                 Currently processing: <span className="text-white">{currentFile}</span>
               </p>
             )}
+
+            {processingStage && (
+              <p className="text-sm text-slate-300">{processingStage}</p>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* Success Display */}
+      {success && !isUploading && (
+        <Card className="bg-green-900/20 border-green-500/20 p-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-sm font-medium text-green-400 mb-2">Processing Complete</h4>
+              <p className="text-sm text-green-300">
+                Successfully processed PSD files. Check the analysis results below.
+              </p>
+            </div>
           </div>
         </Card>
       )}

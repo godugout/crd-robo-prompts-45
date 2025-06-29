@@ -50,10 +50,10 @@ export const VisualLayerAnalysis: React.FC<VisualLayerAnalysisProps> = ({
                   <span className="font-medium truncate w-full">{psd.fileName}</span>
                   <div className="flex gap-2 mt-1">
                     <Badge variant="secondary" className="text-xs">
-                      {psd.processedPSD.width}×{psd.processedPSD.height}
+                      {psd.enhancedProcessedPSD.width}×{psd.enhancedProcessedPSD.height}
                     </Badge>
                     <Badge variant="secondary" className="text-xs">
-                      {psd.processedPSD.totalLayers} layers
+                      {psd.enhancedProcessedPSD.totalLayers} layers
                     </Badge>
                   </div>
                 </div>
@@ -107,13 +107,13 @@ export const VisualLayerAnalysis: React.FC<VisualLayerAnalysisProps> = ({
 
           <div className="p-4">
             {viewMode === 'thumbnails' && (
-              <LayerThumbnailGrid processedPSD={selectedPSD.processedPSD} />
+              <LayerThumbnailGrid processedPSD={selectedPSD.enhancedProcessedPSD} />
             )}
             {viewMode === 'canvas' && (
-              <LayerCanvasViewer processedPSD={selectedPSD.processedPSD} />
+              <LayerCanvasViewer processedPSD={selectedPSD.enhancedProcessedPSD} />
             )}
             {viewMode === 'architecture' && (
-              <LayerArchitectureView processedPSD={selectedPSD.processedPSD} />
+              <LayerArchitectureView processedPSD={selectedPSD.enhancedProcessedPSD} />
             )}
           </div>
         </Card>

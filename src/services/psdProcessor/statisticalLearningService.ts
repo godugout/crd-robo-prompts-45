@@ -1,7 +1,7 @@
-
 import { ProcessedPSDLayer } from './psdProcessingService';
 import { LayerAnalysisResult } from './enhancedLayerAnalysisService';
 import { BulkPSDData } from '@/pages/BulkPSDAnalysisPage';
+import { getValidSemanticTypes, isValidSemanticType } from '@/utils/semanticTypeColors';
 
 export interface LayerPattern {
   semanticType: ProcessedPSDLayer['semanticType'];
@@ -302,3 +302,52 @@ class StatisticalLearningService {
 }
 
 export const statisticalLearningService = new StatisticalLearningService();
+
+export const classifyLayerByName = (layerName: string): SemanticType => {
+  const name = layerName.toLowerCase();
+  
+  // Direct semantic type mapping
+  const typeMapping: Record<string, SemanticType> = {
+    'player': 'player',
+    'background': 'background', 
+    'stats': 'stats',
+    'logo': 'logo',
+    'text': 'text',
+    'border': 'border',
+    'effect': 'effect'
+  };
+
+  // Check for exact matches first
+  for (const [key, value] of Object.entries(typeMapping)) {
+    if (name.includes(key)) {
+      return value;
+    }
+  }
+
+  // Fallback pattern matching
+  if (name.includes('person') || name.includes('character')) {
+    return 'player';
+  }
+  if (name.includes('bg') || name.includes('backdrop')) {
+    return 'background';
+  }
+  if (name.includes('number') || name.includes('score') || name.includes('rating')) {
+    return 'stats';
+  }
+  if (name.includes('brand') || name.includes('team') || name.includes('club')) {
+    return 'logo';
+  }
+  if (name.includes('title') || name.includes('name') || name.includes('label')) {
+    return 'text';
+  }
+  if (name.includes('frame') || name.includes('edge') || name.includes('outline')) {
+    return 'border';
+  }
+  if (name.includes('glow') || name.includes('shadow') || name.includes('filter')) {
+    return 'effect';
+  }
+
+  // Default fallback - ensure it's a valid semantic type
+  const inferredType = 'image';
+  return isValidSemanticType(inferredType) ? inferredType as SemanticType : 'image';
+};

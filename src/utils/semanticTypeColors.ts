@@ -1,26 +1,23 @@
 
-// Semantic type color mapping utility with fallbacks
-export const SEMANTIC_TYPE_COLORS = {
-  'player': '#3b82f6',
-  'background': '#6b7280',
-  'stats': '#10b981',
-  'logo': '#f59e0b',
-  'text': '#8b5cf6',
-  'border': '#ef4444',
-  'effect': '#ec4899',
-  'unknown': '#64748b'
-} as const;
-
-export type SemanticType = keyof typeof SEMANTIC_TYPE_COLORS;
-
-export const getSemanticTypeColor = (semanticType: string | undefined | null): string => {
-  if (!semanticType) return SEMANTIC_TYPE_COLORS.unknown;
+export const getSemanticTypeColor = (type?: string): string => {
+  if (!type) return '#64748b'; // slate-500
   
-  const normalizedType = semanticType.toLowerCase() as SemanticType;
-  return SEMANTIC_TYPE_COLORS[normalizedType] || SEMANTIC_TYPE_COLORS.unknown;
+  const colors: Record<string, string> = {
+    'player': '#10b981', // emerald-500
+    'background': '#6366f1', // indigo-500
+    'stats': '#06b6d4', // cyan-500
+    'logo': '#ec4899', // pink-500
+    'border': '#f59e0b', // amber-500
+    'text': '#3b82f6', // blue-500
+    'effect': '#8b5cf6' // violet-500
+  };
+  return colors[type] || '#64748b';
 };
 
-export const getSemanticTypeBadgeClass = (semanticType: string | undefined | null): string => {
-  const color = getSemanticTypeColor(semanticType);
-  return `bg-[${color}] text-white`;
+export const getValidSemanticTypes = (): string[] => {
+  return ['text', 'image', 'border', 'background', 'player', 'stats', 'logo', 'effect'];
+};
+
+export const isValidSemanticType = (type: string): boolean => {
+  return getValidSemanticTypes().includes(type);
 };
