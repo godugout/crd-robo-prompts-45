@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut, Maximize2, RotateCcw, Eye, EyeOff } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, RotateCcw, Eye, EyeOff, Image, Layers } from 'lucide-react';
 
 interface CanvasControlsProps {
   zoom: number;
@@ -11,6 +11,9 @@ interface CanvasControlsProps {
   onFitToScreen: () => void;
   onResetView: () => void;
   focusMode?: boolean;
+  showBackground?: boolean;
+  onToggleFocusMode?: () => void;
+  onToggleBackground?: () => void;
   frameBuilderMode?: boolean;
 }
 
@@ -22,6 +25,9 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
   onFitToScreen,
   onResetView,
   focusMode = false,
+  showBackground = true,
+  onToggleFocusMode,
+  onToggleBackground,
   frameBuilderMode = false
 }) => {
   return (
@@ -67,6 +73,37 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
           <RotateCcw className="w-4 h-4" />
         </Button>
       </div>
+
+      {/* New toggle controls */}
+      {onToggleBackground && (
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onToggleBackground}
+            className={`text-white hover:bg-white/20 h-8 w-8 p-0 ${
+              showBackground ? 'bg-white/20' : ''
+            }`}
+            title={`${showBackground ? 'Hide' : 'Show'} Background (B)`}
+          >
+            <Image className="w-4 h-4" />
+          </Button>
+
+          {onToggleFocusMode && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onToggleFocusMode}
+              className={`text-white hover:bg-white/20 h-8 w-8 p-0 ${
+                focusMode ? 'bg-blue-500/50' : ''
+              }`}
+              title={`${focusMode ? 'Exit' : 'Enter'} Focus Mode (F)`}
+            >
+              <Layers className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      )}
       
       <div className="text-xs text-slate-300 text-center px-2">
         {(zoom * 100).toFixed(0)}%
@@ -80,8 +117,15 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
       
       {focusMode && (
         <div className="flex items-center gap-1 text-xs text-blue-400 px-2">
-          <Eye className="w-3 h-3" />
+          <Layers className="w-3 h-3" />
           Focus
+        </div>
+      )}
+
+      {showBackground !== undefined && (
+        <div className="flex items-center gap-1 text-xs text-slate-400 px-2">
+          <Image className="w-3 h-3" />
+          {showBackground ? 'BG On' : 'BG Off'}
         </div>
       )}
     </div>

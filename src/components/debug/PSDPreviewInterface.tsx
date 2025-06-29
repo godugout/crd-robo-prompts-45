@@ -1,15 +1,18 @@
+
 import React, { useState, useMemo } from 'react';
 import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
 import { EnhancedCardFrameFittingInterface } from './components/EnhancedCardFrameFittingInterface';
 import { CRDFrameBuilder } from './components/CRDFrameBuilder';
 import { SimplifiedLayerInspector } from './components/SimplifiedLayerInspector';
+import { EnhancedPSDCanvasPreview } from './components/EnhancedPSDCanvasPreview';
 import { findLargestLayerByVolume } from '@/utils/layerUtils';
 import { PSDButton } from '@/components/ui/design-system/PSDButton';
 import { Badge } from '@/components/ui/badge';
 import { 
   Square,
   Wand2,
-  FrameIcon
+  FrameIcon,
+  Layers
 } from 'lucide-react';
 
 interface PSDPreviewInterfaceProps {
@@ -22,10 +25,11 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
   const [selectedLayerId, setSelectedLayerId] = useState<string>('');
   const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
   const [selectedFrame, setSelectedFrame] = useState('classic-sports');
-  const [activeTab, setActiveTab] = useState<'fitting' | 'builder'>('fitting');
+  const [activeTab, setActiveTab] = useState<'preview' | 'fitting' | 'builder'>('preview');
   const [generatedFrames, setGeneratedFrames] = useState<any[]>([]);
   const [currentMode, setCurrentMode] = useState<'elements' | 'frame' | 'preview'>('elements');
   const [flippedLayers, setFlippedLayers] = useState<Set<string>>(new Set());
+  const [focusMode, setFocusMode] = useState(false);
 
   // Initialize with largest layer selected
   React.useEffect(() => {
@@ -80,6 +84,14 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <PSDButton
+              variant={activeTab === 'preview' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setActiveTab('preview')}
+            >
+              <Layers className="w-4 h-4 mr-2" />
+              Layer Preview
+            </PSDButton>
+            <PSDButton
               variant={activeTab === 'fitting' ? 'primary' : 'secondary'}
               size="sm"
               onClick={() => setActiveTab('fitting')}
@@ -107,12 +119,17 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
             <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-600">
               {visibleLayerCount} visible
             </Badge>
-            {selectedLayer && activeTab === 'fitting' && currentMode !== 'preview' && (
+            {selectedLayer && activeTab !== 'preview' && (
               <Badge className="bg-crd-green text-black font-medium px-3 py-1">
                 Active: {selectedLayer.name}
               </Badge>
             )}
-            {currentMode === 'preview' && flippedLayers.size > 0 && (
+            {focusMode && activeTab === 'preview' && (
+              <Badge className="bg-blue-500 text-white font-medium px-3 py-1">
+                Focus Mode
+              </Badge>
+            )}
+            {flippedLayers.size > 0 && currentMode === 'preview' && (
               <Badge className="bg-crd-blue text-white font-medium px-3 py-1">
                 {flippedLayers.size} CRD Branded
               </Badge>
@@ -125,6 +142,17 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
       <div className="flex-1 flex overflow-hidden">
         {/* Main Canvas Area */}
         <div className="flex-1">
+          {activeTab === 'preview' && (
+            <EnhancedPSDCanvasPreview
+              processedPSD={processedPSD}
+              selectedLayerId={selectedLayerId}
+              hiddenLayers={hiddenLayers}
+              onLayerSelect={setSelectedLayerId}
+              focusMode={focusMode}
+              onFocusModeToggle={setFocusMode}
+            />
+          )}
+          
           {activeTab === 'fitting' && (
             <EnhancedCardFrameFittingInterface
               processedPSD={processedPSD}
@@ -154,9 +182,9 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
               <h2 className="text-lg font-semibold text-white">Layer Inspector</h2>
             </div>
             <p className="text-sm text-slate-400 mt-1">
-              {currentMode === 'elements' && 'Detailed layer analysis and sorting'}
-              {currentMode === 'frame' && 'Content vs Design separation'}
-              {currentMode === 'preview' && 'CRD branding preview mode'}
+              {activeTab === 'preview' && 'Click layers to select, use Focus mode (F)'}
+              {activeTab === 'fitting' && 'Frame fitting and layer analysis'}
+              {activeTab === 'builder' && 'CRD frame generation tools'}
             </p>
           </div>
           
