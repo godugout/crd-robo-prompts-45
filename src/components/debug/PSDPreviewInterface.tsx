@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ProcessedPSDLayer, EnhancedProcessedPSD } from '@/types/psdTypes';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,7 +10,8 @@ import { LayerThumbnailView } from './components/LayerThumbnailView';
 import { ElementsModeView } from './components/ElementsModeView';
 import { FrameModeView } from './components/FrameModeView';
 import { CRDFrameBuilder } from './components/CRDFrameBuilder';
-import { Eye, EyeOff, Layers, Grid, Frame, Wrench } from 'lucide-react';
+import { SavePSDCardDialog } from './components/SavePSDCardDialog';
+import { Eye, EyeOff, Layers, Grid, Frame, Wrench, Save } from 'lucide-react';
 import { findLargestLayerByVolume } from '@/utils/layerUtils';
 
 interface PSDPreviewInterfaceProps {
@@ -26,6 +26,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
   const [showBackground, setShowBackground] = useState(true);
   const [focusMode, setFocusMode] = useState(false);
   const [reorderedLayers, setReorderedLayers] = useState<ProcessedPSDLayer[]>(processedPSD.layers);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
 
   useEffect(() => {
     // Set initial selected layer to the largest layer by volume
@@ -55,6 +56,11 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
 
   const handleLayersReorder = (newLayers: ProcessedPSDLayer[]) => {
     setReorderedLayers(newLayers);
+  };
+
+  const getSelectedLayerIds = () => {
+    const visibleLayers = reorderedLayers.filter(layer => !hiddenLayers.has(layer.id));
+    return visibleLayers.map(layer => layer.id);
   };
 
   return (
@@ -142,6 +148,15 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
             >
               {focusMode ? 'Disable Focus' : 'Enable Focus'}
             </Button>
+
+            <Button
+              onClick={() => setShowSaveDialog(true)}
+              className="bg-crd-green text-black hover:bg-crd-green/90"
+              size="sm"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save to CRD Catalog
+            </Button>
           </div>
 
           <Badge variant="secondary">
@@ -184,6 +199,14 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
           )}
         </div>
       </div>
+
+      {/* Save Dialog */}
+      <SavePSDCardDialog
+        isOpen={showSaveDialog}
+        onClose={() => setShowSaveDialog(false)}
+        processedPSD={processedPSD}
+        selectedLayerIds={getSelectedLayerIds()}
+      />
     </div>
   );
 };
