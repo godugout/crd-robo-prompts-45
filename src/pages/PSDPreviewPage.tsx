@@ -4,13 +4,13 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { PSDPreviewInterface } from '@/components/debug/PSDPreviewInterface';
 import { PSDFileProcessor } from '@/components/debug/components/PSDFileProcessor';
 import { PSDWorkflowHeader } from '@/components/debug/components/PSDWorkflowHeader';
-import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
+import { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
 
 const PSDPreviewPage: React.FC = () => {
-  const [processedPSD, setProcessedPSD] = useState<ProcessedPSD | null>(null);
+  const [processedPSD, setProcessedPSD] = useState<EnhancedProcessedPSD | null>(null);
   const [showUpload, setShowUpload] = useState(true);
 
-  const handlePSDProcessed = (psd: ProcessedPSD) => {
+  const handlePSDProcessed = (psd: EnhancedProcessedPSD) => {
     console.log('PSD processed in PSDPreviewPage:', psd);
     setProcessedPSD(psd);
     setShowUpload(false); // Auto-hide upload after successful processing

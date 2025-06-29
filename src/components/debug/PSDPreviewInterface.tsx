@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
-import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
+import { EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
 import { EnhancedCardFrameFittingInterface } from './components/EnhancedCardFrameFittingInterface';
 import { CRDFrameBuilder } from './components/CRDFrameBuilder';
 import { SimplifiedLayerInspector } from './components/SimplifiedLayerInspector';
@@ -16,7 +15,7 @@ import {
 } from 'lucide-react';
 
 interface PSDPreviewInterfaceProps {
-  processedPSD: ProcessedPSD;
+  processedPSD: EnhancedProcessedPSD;
 }
 
 export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
