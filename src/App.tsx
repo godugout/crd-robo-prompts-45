@@ -23,6 +23,7 @@ import BulkPSDAnalysisPage from "./pages/BulkPSDAnalysisPage";
 import Labs from "./pages/Labs";
 import LabsPSDTools from "./pages/labs/LabsPSDTools";
 import Debug from "./pages/Debug";
+import { LabsLayout } from "@/components/layout/LabsLayout";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -147,13 +148,22 @@ function App() {
                   } 
                 />
                 
-                {/* Labs routes - PSD Tools Archive */}
-                <Route path="/labs" element={<Labs />} />
+                {/* Labs routes - with Labs navbar */}
+                <Route 
+                  path="/labs" 
+                  element={
+                    <LabsLayout>
+                      <Labs />
+                    </LabsLayout>
+                  } 
+                />
                 <Route 
                   path="/labs/psd-tools" 
                   element={
                     <ProtectedRoute>
-                      <LabsPSDTools />
+                      <LabsLayout>
+                        <LabsPSDTools />
+                      </LabsLayout>
                     </ProtectedRoute>
                   } 
                 />
@@ -161,7 +171,9 @@ function App() {
                   path="/labs/psd-tools/simple-analysis" 
                   element={
                     <ProtectedRoute>
-                      <SimplePSDAnalysisPage />
+                      <LabsLayout>
+                        <SimplePSDAnalysisPage />
+                      </LabsLayout>
                     </ProtectedRoute>
                   } 
                 />
@@ -169,7 +181,9 @@ function App() {
                   path="/labs/psd-tools/advanced-preview" 
                   element={
                     <ProtectedRoute>
-                      <PSDPreviewPage />
+                      <LabsLayout>
+                        <PSDPreviewPage />
+                      </LabsLayout>
                     </ProtectedRoute>
                   } 
                 />
@@ -177,7 +191,9 @@ function App() {
                   path="/labs/psd-tools/bulk-analysis" 
                   element={
                     <ProtectedRoute>
-                      <BulkPSDAnalysisPage />
+                      <LabsLayout>
+                        <BulkPSDAnalysisPage />
+                      </LabsLayout>
                     </ProtectedRoute>
                   } 
                 />
