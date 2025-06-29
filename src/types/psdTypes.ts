@@ -58,6 +58,11 @@ export interface ProcessedPSD {
     colorMode?: string;
     created?: string;
   };
+  // Add the missing properties that components expect
+  flattenedImageUrl: string;
+  transparentFlattenedImageUrl?: string;
+  thumbnailUrl: string;
+  layerImages: ExtractedLayerImage[];
 }
 
 export interface EnhancedProcessedPSD extends ProcessedPSD {

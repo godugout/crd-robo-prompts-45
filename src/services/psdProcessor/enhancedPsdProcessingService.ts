@@ -39,9 +39,18 @@ export const processEnhancedPSD = async (
       };
     });
 
-    const enhancedPSD: EnhancedProcessedPSD = {
+    // Ensure the base ProcessedPSD has all required properties
+    const enhancedBasePSD: ProcessedPSD = {
       ...originalProcessedPSD,
       layers: enhancedLayers,
+      flattenedImageUrl: extractedImages.flattenedImageUrl,
+      transparentFlattenedImageUrl: extractedImages.flattenedImageUrl,
+      thumbnailUrl: extractedImages.thumbnailUrl,
+      layerImages: extractedImages.layerImages
+    };
+
+    const enhancedPSD: EnhancedProcessedPSD = {
+      ...enhancedBasePSD,
       extractedImages,
       layerPreviews
     };
@@ -58,12 +67,20 @@ export const processEnhancedPSD = async (
     console.error('Error in enhanced PSD processing:', error);
     
     // Return enhanced version with original data as fallback
-    return {
+    const fallbackPSD: ProcessedPSD = {
       ...originalProcessedPSD,
       layers: originalProcessedPSD.layers.map(layer => ({
         ...layer,
         hasRealImage: false
       })),
+      flattenedImageUrl: '',
+      transparentFlattenedImageUrl: '',
+      thumbnailUrl: '',
+      layerImages: []
+    };
+
+    return {
+      ...fallbackPSD,
       extractedImages: {
         flattenedImageUrl: '',
         layerImages: [],
