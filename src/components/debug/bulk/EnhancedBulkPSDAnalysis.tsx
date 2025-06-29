@@ -15,16 +15,12 @@ interface EnhancedBulkPSDAnalysisProps {
   psdData: BulkPSDData[];
   onPSDsProcessed: (newPSDs: BulkPSDData[]) => void;
   onRemovePSD: (id: string) => void;
-  isUploading: boolean;
-  setIsUploading: (uploading: boolean) => void;
 }
 
 export const EnhancedBulkPSDAnalysis: React.FC<EnhancedBulkPSDAnalysisProps> = ({
   psdData,
   onPSDsProcessed,
-  onRemovePSD,
-  isUploading,
-  setIsUploading
+  onRemovePSD
 }) => {
   const [selectedPSDId, setSelectedPSDId] = useState<string | null>(null);
   const [selectedLayers, setSelectedLayers] = useState<Set<string>>(new Set());
@@ -69,11 +65,7 @@ export const EnhancedBulkPSDAnalysis: React.FC<EnhancedBulkPSDAnalysisProps> = (
       {psdData.length === 0 && (
         <Card className="bg-[#131316] border-slate-700">
           <div className="p-6">
-            <BulkPSDUploader
-              onPSDsProcessed={onPSDsProcessed}
-              isUploading={isUploading}
-              setIsUploading={setIsUploading}
-            />
+            <BulkPSDUploader onPSDsProcessed={onPSDsProcessed} />
           </div>
         </Card>
       )}

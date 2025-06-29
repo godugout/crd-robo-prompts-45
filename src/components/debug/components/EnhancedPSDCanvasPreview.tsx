@@ -1,27 +1,26 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
-import { EnhancedProcessedPSD, ProcessedPSDLayer } from '@/types/psdTypes';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
+import { EnhancedProcessedPSD } from '@/types/psdTypes';
+import { getSemanticTypeColor } from '@/utils/semanticTypeColors';
 import { 
   ZoomIn, 
   ZoomOut, 
-  RotateCw, 
+  RotateCcw, 
   Eye, 
-  EyeOff, 
+  EyeOff,
   Focus,
   Layers,
-  MousePointer
+  Image as ImageIcon
 } from 'lucide-react';
 
 interface EnhancedPSDCanvasPreviewProps {
   processedPSD: EnhancedProcessedPSD;
-  selectedLayerId: string;
-  hiddenLayers: Set<string>;
-  onLayerSelect: (layerId: string) => void;
+  selectedLayerId?: string;
+  hiddenLayers?: Set<string>;
+  onLayerSelect?: (layerId: string) => void;
   focusMode?: boolean;
   onFocusModeToggle?: () => void;
   showBackground?: boolean;
@@ -32,7 +31,7 @@ interface EnhancedPSDCanvasPreviewProps {
 export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> = ({
   processedPSD,
   selectedLayerId,
-  hiddenLayers,
+  hiddenLayers = new Set(),
   onLayerSelect,
   focusMode = false,
   onFocusModeToggle,
@@ -40,224 +39,270 @@ export const EnhancedPSDCanvasPreview: React.FC<EnhancedPSDCanvasPreviewProps> =
   onToggleBackground,
   viewMode = 'inspect'
 }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
-  const [rotation, setRotation] = useState(0);
-  const [panX, setPanX] = useState(0);
-  const [panY, setPanY] = useState(0);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [loadedImages, setLoadedImages] = useState<Map<string, HTMLImageElement>>(new Map());
 
-  const selectedLayer = processedPSD.layers.find(layer => layer.id === selectedLayerId);
-  const visibleLayers = processedPSD.layers.filter(layer => !hiddenLayers.has(layer.id));
+  // Preload images
+  useEffect(() => {
+    const imagePromises: Promise<void>[] = [];
+    const imageMap = new Map<string, HTMLImageElement>();
 
+    // Load flattened image
+    if (processedPSD.flattenedImageUrl) {
+      const promise = new Promise<void>((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          imageMap.set('flattened', img);
+          resolve();
+        };
+        img.onerror = () => reject();
+        img.src = processedPSD.flattenedImageUrl;
+      });
+      imagePromises.push(promise);
+    }
+
+    // Load layer images
+    processedPSD.layers.forEach(layer => {
+      if (layer.imageUrl) {
+        const promise = new Promise<void>((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            imageMap.set(layer.id, img);
+            resolve();
+          };
+          img.onerror = () => resolve(); // Don't fail on individual layer images
+          img.src = layer.imageUrl;
+        });
+        imagePromises.push(promise);
+      }
+    });
+
+    Promise.allSettled(imagePromises).then(() => {
+      setLoadedImages(imageMap);
+      setImagesLoaded(true);
+    });
+  }, [processedPSD]);
+
+  // Canvas drawing
+  const drawCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !imagesLoaded) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const { width, height } = processedPSD;
+    canvas.width = width;
+    canvas.height = height;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw background if enabled
+    if (showBackground) {
+      const flattenedImg = loadedImages.get('flattened');
+      if (flattenedImg) {
+        ctx.drawImage(flattenedImg, 0, 0, width, height);
+      } else {
+        // Fallback gradient background
+        const gradient = ctx.createLinearGradient(0, 0, width, height);
+        gradient.addColorStop(0, '#1e293b');
+        gradient.addColorStop(1, '#0f172a');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+      }
+    }
+
+    // Draw layer overlays for inspection mode
+    if (viewMode === 'inspect') {
+      processedPSD.layers.forEach(layer => {
+        if (hiddenLayers.has(layer.id)) return;
+
+        const { bounds, semanticType } = layer;
+        const isSelected = selectedLayerId === layer.id;
+        const isFocused = focusMode && isSelected;
+
+        // Skip if focus mode is on and this isn't the selected layer
+        if (focusMode && !isSelected) return;
+
+        // Draw layer image if available
+        const layerImg = loadedImages.get(layer.id);
+        if (layerImg && layer.isVisible) {
+          ctx.globalAlpha = layer.opacity;
+          ctx.drawImage(
+            layerImg,
+            bounds.left,
+            bounds.top,
+            bounds.right - bounds.left,
+            bounds.bottom - bounds.top
+          );
+          ctx.globalAlpha = 1;
+        }
+
+        // Draw semantic overlay
+        if (semanticType) {
+          const color = getSemanticTypeColor(semanticType);
+          ctx.fillStyle = color + (isSelected ? '40' : '20');
+          ctx.fillRect(bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top);
+        }
+
+        // Draw border
+        ctx.strokeStyle = isSelected ? '#10b981' : (semanticType ? getSemanticTypeColor(semanticType) : '#64748b');
+        ctx.lineWidth = isSelected ? 3 : 1;
+        ctx.setLineDash(isSelected ? [] : [5, 5]);
+        ctx.strokeRect(bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top);
+        ctx.setLineDash([]);
+      });
+    }
+  }, [processedPSD, selectedLayerId, hiddenLayers, focusMode, showBackground, viewMode, imagesLoaded, loadedImages]);
+
+  // Redraw when dependencies change
+  useEffect(() => {
+    drawCanvas();
+  }, [drawCanvas]);
+
+  // Zoom controls
   const handleZoomIn = () => setZoom(prev => Math.min(prev * 1.2, 5));
   const handleZoomOut = () => setZoom(prev => Math.max(prev / 1.2, 0.1));
-  const handleRotate = () => setRotation(prev => (prev + 90) % 360);
-  const handleReset = () => {
+  const handleResetView = () => {
     setZoom(1);
-    setRotation(0);
-    setPanX(0);
-    setPanY(0);
+    setPan({ x: 0, y: 0 });
   };
 
+  // Mouse interaction
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
-    setDragStart({ x: e.clientX - panX, y: e.clientY - panY });
+    setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging) return;
-    setPanX(e.clientX - dragStart.x);
-    setPanY(e.clientY - dragStart.y);
+    setPan({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
+    });
   };
 
   const handleMouseUp = () => {
     setIsDragging(false);
   };
 
-  const handleLayerClick = (layerId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    onLayerSelect(layerId);
+  const handleCanvasClick = (e: React.MouseEvent) => {
+    if (!onLayerSelect || isDragging) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = processedPSD.width / rect.width;
+    const scaleY = processedPSD.height / rect.height;
+    
+    const x = (e.clientX - rect.left) * scaleX / zoom - pan.x / zoom;
+    const y = (e.clientY - rect.top) * scaleY / zoom - pan.y / zoom;
+
+    // Find clicked layer (reverse order for top-most)
+    for (let i = processedPSD.layers.length - 1; i >= 0; i--) {
+      const layer = processedPSD.layers[i];
+      if (hiddenLayers.has(layer.id) || !layer.isVisible) continue;
+
+      const { bounds } = layer;
+      if (x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom) {
+        onLayerSelect(layer.id);
+        break;
+      }
+    }
   };
 
-  const getLayerStyle = (layer: ProcessedPSDLayer) => ({
-    position: 'absolute' as const,
-    left: `${layer.bounds.left}px`,
-    top: `${layer.bounds.top}px`,
-    width: `${layer.bounds.right - layer.bounds.left}px`,
-    height: `${layer.bounds.bottom - layer.bounds.top}px`,
-    opacity: layer.properties.opacity,
-    zIndex: processedPSD.layers.indexOf(layer),
-    cursor: 'pointer',
-    border: selectedLayerId === layer.id ? '2px solid #10B981' : '1px solid transparent',
-    boxShadow: selectedLayerId === layer.id ? '0 0 10px rgba(16, 185, 129, 0.5)' : 'none',
-    transition: 'all 0.2s ease'
-  });
-
   return (
-    <div className="h-full flex flex-col bg-[#0a0a0b]">
-      {/* Enhanced Control Panel */}
-      <div className="bg-[#1a1f2e] border-b border-slate-700 p-4 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          {/* Left Controls */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleZoomOut}>
-                <ZoomOut className="w-4 h-4" />
-              </Button>
-              <span className="text-sm text-slate-300 min-w-[60px] text-center">
-                {Math.round(zoom * 100)}%
-              </span>
-              <Button variant="outline" size="sm" onClick={handleZoomIn}>
-                <ZoomIn className="w-4 h-4" />
-              </Button>
-            </div>
+    <div className="flex flex-col h-full bg-[#0a0a0b]">
+      {/* Controls */}
+      <div className="flex items-center justify-between p-4 bg-[#1a1f2e] border-b border-slate-700">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleZoomIn}>
+            <ZoomIn className="w-4 h-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleZoomOut}>
+            <ZoomOut className="w-4 h-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleResetView}>
+            <RotateCcw className="w-4 h-4" />
+          </Button>
+          <Badge variant="outline" className="ml-2">
+            {Math.round(zoom * 100)}%
+          </Badge>
+        </div>
 
-            <Button variant="outline" size="sm" onClick={handleRotate}>
-              <RotateCw className="w-4 h-4" />
+        <div className="flex items-center gap-2">
+          {onToggleBackground && (
+            <Button
+              variant={showBackground ? "default" : "outline"}
+              size="sm"
+              onClick={onToggleBackground}
+            >
+              <ImageIcon className="w-4 h-4 mr-2" />
+              Background
             </Button>
-
-            <Button variant="outline" size="sm" onClick={handleReset}>
-              Reset View
+          )}
+          
+          {onFocusModeToggle && (
+            <Button
+              variant={focusMode ? "default" : "outline"}
+              size="sm"
+              onClick={onFocusModeToggle}
+            >
+              <Focus className="w-4 h-4 mr-2" />
+              Focus
             </Button>
-          </div>
+          )}
 
-          {/* Center Info */}
-          <div className="flex items-center gap-4">
-            <Badge variant="outline" className="bg-slate-800 text-slate-300">
-              {visibleLayers.length} / {processedPSD.layers.length} layers
-            </Badge>
-            
-            {selectedLayer && (
-              <Badge className="bg-crd-green text-black">
-                {selectedLayer.name}
-              </Badge>
-            )}
-          </div>
-
-          {/* Right Controls */}
-          <div className="flex items-center gap-4">
-            {onFocusModeToggle && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-400">Focus</span>
-                <Switch checked={focusMode} onCheckedChange={onFocusModeToggle} />
-              </div>
-            )}
-            
-            {onToggleBackground && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-400">Background</span>
-                <Switch checked={showBackground} onCheckedChange={onToggleBackground} />
-              </div>
-            )}
-          </div>
+          <Badge className="bg-crd-blue text-white">
+            <Layers className="w-3 h-3 mr-1" />
+            {processedPSD.layers.length - hiddenLayers.size} visible
+          </Badge>
         </div>
       </div>
 
-      {/* Canvas Area */}
-      <div className="flex-1 overflow-hidden relative">
+      {/* Canvas */}
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-hidden bg-slate-900 relative cursor-grab active:cursor-grabbing"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
         <div
-          ref={canvasRef}
-          className="w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transformOrigin: 'center'
+          }}
         >
-          {/* Main Canvas Container */}
-          <div
-            className="relative bg-white shadow-2xl"
+          <canvas
+            ref={canvasRef}
+            onClick={handleCanvasClick}
+            className="border border-slate-600 shadow-2xl cursor-pointer"
             style={{
-              width: `${processedPSD.width}px`,
-              height: `${processedPSD.height}px`,
-              transform: `scale(${zoom}) rotate(${rotation}deg) translate(${panX}px, ${panY}px)`,
-              transformOrigin: 'center',
-              transition: isDragging ? 'none' : 'transform 0.2s ease'
+              maxWidth: '100%',
+              maxHeight: '100%',
+              imageRendering: zoom > 2 ? 'pixelated' : 'auto'
             }}
-          >
-            {/* Background Layer */}
-            {showBackground && processedPSD.extractedImages.flattenedImageUrl && (
-              <img
-                src={processedPSD.extractedImages.flattenedImageUrl}
-                alt="PSD Background"
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ zIndex: 0 }}
-              />
-            )}
-
-            {/* Individual Layers */}
-            {processedPSD.layers.map((layer) => {
-              if (hiddenLayers.has(layer.id)) return null;
-              if (focusMode && selectedLayerId && layer.id !== selectedLayerId) return null;
-
-              return (
-                <div
-                  key={layer.id}
-                  style={getLayerStyle(layer)}
-                  onClick={(e) => handleLayerClick(layer.id, e)}
-                  className="hover:ring-2 hover:ring-crd-blue/50 transition-all"
-                >
-                  {layer.thumbnailUrl ? (
-                    <img
-                      src={layer.thumbnailUrl}
-                      alt={layer.name}
-                      className="w-full h-full object-contain"
-                      draggable={false}
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-slate-300 to-slate-400 rounded flex items-center justify-center">
-                      <span className="text-slate-600 text-xs font-medium">
-                        {layer.name}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Layer Label */}
-                  <div className="absolute -top-6 left-0 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap">
-                    {layer.name}
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Selection Indicator */}
-            {selectedLayer && (
-              <div
-                className="absolute border-2 border-crd-green pointer-events-none"
-                style={{
-                  left: `${selectedLayer.bounds.left}px`,
-                  top: `${selectedLayer.bounds.top}px`,
-                  width: `${selectedLayer.bounds.right - selectedLayer.bounds.left}px`,
-                  height: `${selectedLayer.bounds.bottom - selectedLayer.bounds.top}px`,
-                  zIndex: 9999
-                }}
-              >
-                <div className="absolute -top-8 left-0 bg-crd-green text-black text-xs px-2 py-1 rounded font-medium">
-                  {selectedLayer.name}
-                </div>
-              </div>
-            )}
-          </div>
+          />
         </div>
 
-        {/* Overlay Instructions */}
-        <div className="absolute bottom-4 left-4 bg-black/70 text-white text-sm px-3 py-2 rounded backdrop-blur-sm">
-          <div className="flex items-center gap-2">
-            <MousePointer className="w-4 h-4" />
-            Click layers to select • Drag to pan • Use controls to zoom/rotate
+        {!imagesLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-slate-400">Loading images...</div>
           </div>
-        </div>
-
-        {/* View Mode Indicator */}
-        <div className="absolute top-4 right-4 bg-black/70 text-white text-sm px-3 py-2 rounded backdrop-blur-sm">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4" />
-            {viewMode === 'inspect' && 'Layer Inspection Mode'}
-            {viewMode === 'frame' && 'Frame Fitting Mode'}
-            {viewMode === 'build' && 'Frame Building Mode'}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
