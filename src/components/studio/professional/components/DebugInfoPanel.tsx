@@ -1,8 +1,12 @@
 
 import React from 'react';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Activity, Settings, Layers, Zap } from 'lucide-react';
+import { 
+  ProfessionalPanel,
+  ProfessionalCard,
+  ProfessionalStat 
+} from '@/components/ui/design-system/professional-components';
 
 interface DebugInfoPanelProps {
   selectedFrame: string;
@@ -37,19 +41,19 @@ export const DebugInfoPanel: React.FC<DebugInfoPanelProps> = ({
   ];
 
   return (
-    <div className="h-full flex flex-col bg-cardshow-bg-default">
-      {/* Header */}
-      <div className="p-4 border-b border-cardshow-gray-500">
-        <h2 className="text-lg font-semibold text-white">Live Debug Info</h2>
-        <p className="text-sm text-cardshow-gray-200 mt-1">Real-time creation parameters</p>
-      </div>
-
-      {/* Debug Information */}
-      <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+    <ProfessionalPanel
+      header={
+        <div>
+          <h2 className="text-lg font-semibold text-[#FFFFFF]">Live Debug Info</h2>
+          <p className="text-sm text-[#9CA3AF] mt-1">Real-time creation parameters</p>
+        </div>
+      }
+    >
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto bg-[#0A0A0B]">
         {/* System Status */}
-        <Card className="cardshow-card p-4">
-          <h3 className="text-white font-medium mb-3 flex items-center gap-2">
-            <Activity className="w-4 h-4 text-cardshow-collections" />
+        <ProfessionalCard variant="elevated" context="collections">
+          <h3 className="text-[#FFFFFF] font-medium mb-3 flex items-center gap-2">
+            <Activity className="w-4 h-4 text-[#22C55E]" />
             System Status
           </h3>
           <div className="space-y-2">
@@ -58,47 +62,50 @@ export const DebugInfoPanel: React.FC<DebugInfoPanelProps> = ({
               return (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <IconComponent className="w-3 h-3 text-cardshow-gray-300" />
-                    <span className="text-sm text-cardshow-gray-200">{item.label}</span>
+                    <IconComponent className="w-3 h-3 text-[#9CA3AF]" />
+                    <span className="text-sm text-[#E5E5E7]">{item.label}</span>
                   </div>
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge 
+                    variant="secondary" 
+                    className="text-xs bg-[#252526] text-[#E5E5E7] border border-[#404040]"
+                  >
                     {item.value}
                   </Badge>
                 </div>
               );
             })}
           </div>
-        </Card>
+        </ProfessionalCard>
 
         {/* Live Statistics */}
-        <Card className="cardshow-card p-4">
-          <h3 className="text-white font-medium mb-3">Live Statistics</h3>
+        <ProfessionalCard variant="elevated" context="cards">
+          <h3 className="text-[#FFFFFF] font-medium mb-3">Live Statistics</h3>
           <div className="grid grid-cols-2 gap-3">
             {liveStats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-lg font-bold text-cardshow-cards">{stat.value}</div>
-                <div className="text-xs text-cardshow-gray-300">{stat.metric}</div>
+                <div className="text-lg font-bold text-[#F97316]">{stat.value}</div>
+                <div className="text-xs text-[#9CA3AF]">{stat.metric}</div>
               </div>
             ))}
           </div>
-        </Card>
+        </ProfessionalCard>
 
         {/* Processing Log */}
-        <Card className="cardshow-card p-4">
-          <h3 className="text-white font-medium mb-3">Processing Log</h3>
+        <ProfessionalCard variant="elevated" context="professional">
+          <h3 className="text-[#FFFFFF] font-medium mb-3">Processing Log</h3>
           <div className="space-y-2 text-xs font-mono">
-            <div className="text-cardshow-collections">✓ Studio initialized</div>
-            <div className="text-cardshow-collections">✓ Frame system loaded</div>
-            <div className="text-cardshow-gray-300">○ Waiting for image upload...</div>
+            <div className="text-[#22C55E]">✓ Studio initialized</div>
+            <div className="text-[#22C55E]">✓ Frame system loaded</div>
+            <div className="text-[#9CA3AF]">○ Waiting for image upload...</div>
             {uploadedImage && (
               <>
-                <div className="text-cardshow-collections">✓ Image processed</div>
-                <div className="text-cardshow-collections">✓ Preview generated</div>
+                <div className="text-[#22C55E]">✓ Image processed</div>
+                <div className="text-[#22C55E]">✓ Preview generated</div>
               </>
             )}
           </div>
-        </Card>
+        </ProfessionalCard>
       </div>
-    </div>
+    </ProfessionalPanel>
   );
 };

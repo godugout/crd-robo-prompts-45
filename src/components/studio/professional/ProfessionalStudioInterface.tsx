@@ -3,6 +3,13 @@ import React, { useState } from 'react';
 import { CardPreviewPanel } from './components/CardPreviewPanel';
 import { DebugInfoPanel } from './components/DebugInfoPanel';
 import { StatsWorkflowPanel } from './components/StatsWorkflowPanel';
+import { 
+  ProfessionalLayout,
+  ThreeColumnLayout,
+  ProfessionalHeader 
+} from '@/components/ui/design-system/professional-layout';
+import { ProfessionalButton } from '@/components/ui/design-system/professional-components';
+import { Settings, Download, Share2 } from 'lucide-react';
 
 export const ProfessionalStudioInterface: React.FC = () => {
   const [selectedFrame, setSelectedFrame] = useState<string>('classic-sports');
@@ -30,47 +37,58 @@ export const ProfessionalStudioInterface: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-cardshow-bg-default">
-      {/* Header */}
-      <div className="border-b border-cardshow-gray-500 bg-cardshow-bg-elevated">
-        <div className="px-6 py-4">
-          <h1 className="text-2xl font-bold text-white">Professional Card Creation Studio</h1>
-          <p className="text-cardshow-gray-200 mt-1">Create professional-grade trading cards with advanced tools</p>
-        </div>
-      </div>
+    <ProfessionalLayout>
+      {/* Professional Header */}
+      <ProfessionalHeader
+        title="Professional Card Creation Studio"
+        subtitle="Create professional-grade trading cards with advanced tools"
+        actions={
+          <>
+            <ProfessionalButton variant="ghost" size="sm">
+              <Settings className="w-4 h-4" />
+              Settings
+            </ProfessionalButton>
+            <ProfessionalButton variant="secondary" size="sm">
+              <Download className="w-4 h-4" />
+              Export
+            </ProfessionalButton>
+            <ProfessionalButton variant="primary" size="sm" context="professional">
+              <Share2 className="w-4 h-4" />
+              Publish
+            </ProfessionalButton>
+          </>
+        }
+      />
 
       {/* Main 3-Column Layout */}
-      <div className="flex h-[calc(100vh-88px)]">
-        {/* Left Panel - Card Preview */}
-        <div className="w-1/3 border-r border-cardshow-gray-500 bg-cardshow-bg-elevated">
-          <CardPreviewPanel
-            selectedFrame={selectedFrame}
-            uploadedImage={uploadedImage}
-            onImageUpload={handleImageUpload}
-            onFrameSelect={handleFrameSelect}
-            rating={cardData.rating}
-          />
-        </div>
-
-        {/* Center Panel - Debug Info */}
-        <div className="w-1/3 border-r border-cardshow-gray-500">
-          <DebugInfoPanel
-            selectedFrame={selectedFrame}
-            uploadedImage={uploadedImage}
-            currentPhase={currentPhase}
-            cardData={cardData}
-          />
-        </div>
-
-        {/* Right Panel - Stats & Workflow */}
-        <div className="w-1/3 bg-cardshow-bg-elevated">
-          <StatsWorkflowPanel
-            cardData={cardData}
-            currentPhase={currentPhase}
-            onPhaseChange={setCurrentPhase}
-          />
-        </div>
+      <div className="h-[calc(100vh-88px)]">
+        <ThreeColumnLayout
+          leftPanel={
+            <CardPreviewPanel
+              selectedFrame={selectedFrame}
+              uploadedImage={uploadedImage}
+              onImageUpload={handleImageUpload}
+              onFrameSelect={handleFrameSelect}
+              rating={cardData.rating}
+            />
+          }
+          centerPanel={
+            <DebugInfoPanel
+              selectedFrame={selectedFrame}
+              uploadedImage={uploadedImage}
+              currentPhase={currentPhase}
+              cardData={cardData}
+            />
+          }
+          rightPanel={
+            <StatsWorkflowPanel
+              cardData={cardData}
+              currentPhase={currentPhase}
+              onPhaseChange={setCurrentPhase}
+            />
+          }
+        />
       </div>
-    </div>
+    </ProfessionalLayout>
   );
 };
