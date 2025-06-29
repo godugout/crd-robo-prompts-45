@@ -1,24 +1,23 @@
 
 import React, { useState, useMemo } from 'react';
+import { ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Eye, 
-  EyeOff, 
-  Search, 
-  Image, 
-  Type, 
-  Layers, 
-  Palette,
-  ChevronDown,
+import {
+  Eye,
+  EyeOff,
   ChevronRight,
+  ChevronDown,
+  Image,
+  Type,
+  Square,
+  Layers,
   Focus,
-  Frame,
-  Wand2
+  Palette,
+  Zap
 } from 'lucide-react';
 
 interface SimplifiedLayerInspectorProps {
@@ -44,355 +43,305 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
   focusMode = false,
   showBackground = true
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['all']));
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [flippedLayers, setFlippedLayers] = useState<Set<string>>(new Set());
 
-  // Filter and group layers
-  const filteredLayers = useMemo(() => {
-    return layers.filter(layer => 
-      layer.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [layers, searchTerm]);
+  // Get layer type icon
+  const getLayerIcon = (layer: ProcessedPSDLayer) => {
+    switch (layer.type) {
+      case 'text':
+        return <Type className="w-4 h-4 text-blue-400" />;
+      case 'image':
+        return <Image className="w-4 h-4 text-green-400" />;
+      case 'shape':
+        return <Square className="w-4 h-4 text-purple-400" />;
+      case 'group':
+        return <Layers className="w-4 h-4 text-orange-400" />;
+      default:
+        return <Square className="w-4 h-4 text-slate-400" />;
+    }
+  };
 
-  // Group layers by type for different view modes
-  const groupedLayers = useMemo(() => {
-    const groups = {
-      text: filteredLayers.filter(l => l.type === 'text'),
-      image: filteredLayers.filter(l => l.type === 'image'),
-      shape: filteredLayers.filter(l => l.type === 'shape'),
-      group: filteredLayers.filter(l => l.type === 'group'),
-      other: filteredLayers.filter(l => !['text', 'image', 'shape', 'group'].includes(l.type))
-    };
-    return groups;
-  }, [filteredLayers]);
+  // Calculate layer dimensions
+  const getLayerDimensions = (layer: ProcessedPSDLayer) => {
+    const width = layer.bounds.right - layer.bounds.left;
+    const height = layer.bounds.bottom - layer.bounds.top;
+    return { width, height };
+  };
+
+  // Get layer priority for different view modes
+  const getLayerPriority = (layer: ProcessedPSDLayer) => {
+    const { width, height } = getLayerDimensions(layer);
+    const area = width * height;
+    
+    if (viewMode === 'frame') {
+      // Prioritize larger layers and images for frame fitting
+      return layer.type === 'image' ? area * 2 : area;
+    } else if (viewMode === 'build') {
+      // Prioritize structural elements
+      return layer.type === 'shape' ? area * 1.5 : area;
+    }
+    return area; // Default inspect mode
+  };
+
+  // Sort layers by priority for current view mode
+  const sortedLayers = useMemo(() => {
+    const sorted = [...layers].sort((a, b) => {
+      const priorityA = getLayerPriority(a);
+      const priorityB = getLayerPriority(b);
+      return priorityB - priorityA;
+    });
+    return sorted;
+  }, [layers, viewMode]);
+
+  // Filter layers based on view mode
+  const filteredLayers = useMemo(() => {
+    if (viewMode === 'frame') {
+      // Show only image and shape layers for frame analysis
+      return sortedLayers.filter(layer => 
+        layer.type === 'image' || layer.type === 'shape'
+      );
+    } else if (viewMode === 'build') {
+      // Show structural elements for frame building
+      return sortedLayers.filter(layer => 
+        layer.type === 'shape' || layer.type === 'group' || layer.type === 'image'
+      );
+    }
+    return sortedLayers; // Show all in inspect mode
+  }, [sortedLayers, viewMode]);
+
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups(prev => {
+      const newExpanded = new Set(prev);
+      if (newExpanded.has(groupId)) {
+        newExpanded.delete(groupId);
+      } else {
+        newExpanded.add(groupId);
+      }
+      return newExpanded;
+    });
+  };
+
+  const handleFlipLayer = (layerId: string) => {
+    setFlippedLayers(prev => {
+      const newFlipped = new Set(prev);
+      if (newFlipped.has(layerId)) {
+        newFlipped.delete(layerId);
+      } else {
+        newFlipped.add(layerId);
+      }
+      onFlippedLayersChange?.(newFlipped);
+      return newFlipped;
+    });
+  };
 
   const selectedLayer = layers.find(layer => layer.id === selectedLayerId);
 
-  const toggleGroup = (groupName: string) => {
-    const newExpanded = new Set(expandedGroups);
-    if (newExpanded.has(groupName)) {
-      newExpanded.delete(groupName);
-    } else {
-      newExpanded.add(groupName);
-    }
-    setExpandedGroups(newExpanded);
-  };
-
-  const toggleLayerFlip = (layerId: string) => {
-    const newFlipped = new Set(flippedLayers);
-    if (newFlipped.has(layerId)) {
-      newFlipped.delete(layerId);
-    } else {
-      newFlipped.add(layerId);
-    }
-    setFlippedLayers(newFlipped);
-    onFlippedLayersChange?.(newFlipped);
-  };
-
-  const getLayerIcon = (layerType: string) => {
-    switch (layerType) {
-      case 'text': return <Type className="w-4 h-4" />;
-      case 'image': return <Image className="w-4 h-4" />;
-      case 'shape': return <Palette className="w-4 h-4" />;
-      case 'group': return <Layers className="w-4 h-4" />;
-      default: return <Layers className="w-4 h-4" />;
-    }
-  };
-
-  const getViewModeIcon = () => {
-    switch (viewMode) {
-      case 'inspect': return <Focus className="w-4 h-4" />;
-      case 'frame': return <Frame className="w-4 h-4" />;
-      case 'build': return <Wand2 className="w-4 h-4" />;
-      default: return <Focus className="w-4 h-4" />;
-    }
-  };
-
-  const getViewModeContent = () => {
-    switch (viewMode) {
-      case 'inspect':
-        return (
-          <div className="space-y-4">
-            <div className="text-sm text-slate-400">
-              Click layers to inspect their properties and content. Use focus mode to isolate selected layers.
-            </div>
-            {selectedLayer && (
-              <div className="bg-slate-800 rounded-lg p-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  {getLayerIcon(selectedLayer.type)}
-                  <span className="font-medium text-white">{selectedLayer.name}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-slate-400">Type:</span>
-                    <Badge variant="outline" className="ml-1 text-xs">
-                      {selectedLayer.type}
-                    </Badge>
-                  </div>
-                  <div>
-                    <span className="text-slate-400">Opacity:</span>
-                    <span className="ml-1 text-white">{Math.round((selectedLayer.opacity || 1) * 100)}%</span>
-                  </div>
-                </div>
-                {selectedLayer.bounds && (
-                  <div className="text-xs text-slate-400">
-                    Bounds: {selectedLayer.bounds.width} × {selectedLayer.bounds.height}px
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        );
-        
-      case 'frame':
-        return (
-          <div className="space-y-4">
-            <div className="text-sm text-slate-400">
-              Analyze how layers fit within frame boundaries. Select layers to optimize frame positioning.
-            </div>
-            {selectedLayer && (
-              <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-3">
-                <div className="text-yellow-400 text-sm font-medium mb-2">Frame Analysis</div>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Position:</span>
-                    <span className="text-white">
-                      {selectedLayer.bounds?.left || 0}, {selectedLayer.bounds?.top || 0}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Size:</span>
-                    <span className="text-white">
-                      {selectedLayer.bounds?.width || 0} × {selectedLayer.bounds?.height || 0}
-                    </span>
-                  </div>
-                  <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
-                    Optimized for frames
-                  </Badge>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-        
-      case 'build':
-        return (
-          <div className="space-y-4">
-            <div className="text-sm text-slate-400">
-              Generate custom CRD frames from selected layers. Flip layers to create CRD-branded elements.
-            </div>
-            {selectedLayer && (
-              <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-3">
-                <div className="text-purple-400 text-sm font-medium mb-2">CRD Frame Builder</div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => toggleLayerFlip(selectedLayer.id)}
-                  className={`w-full ${
-                    flippedLayers.has(selectedLayer.id)
-                      ? 'bg-crd-blue text-white border-crd-blue'
-                      : 'border-purple-500/30 text-purple-300'
-                  }`}
-                >
-                  {flippedLayers.has(selectedLayer.id) ? 'CRD Branded' : 'Make CRD Element'}
-                </Button>
-              </div>
-            )}
-          </div>
-        );
-        
-      default:
-        return null;
-    }
-  };
-
-  const renderLayerGroup = (groupName: string, groupLayers: ProcessedPSDLayer[]) => {
-    if (groupLayers.length === 0) return null;
-
-    const isExpanded = expandedGroups.has(groupName);
-    const groupIcon = {
-      text: <Type className="w-4 h-4" />,
-      image: <Image className="w-4 h-4" />,
-      shape: <Palette className="w-4 h-4" />,
-      group: <Layers className="w-4 h-4" />,
-      other: <Layers className="w-4 h-4" />
-    }[groupName];
-
-    return (
-      <div key={groupName} className="space-y-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => toggleGroup(groupName)}
-          className="w-full justify-start text-slate-300 hover:text-white hover:bg-slate-700 h-8"
-        >
-          {isExpanded ? <ChevronDown className="w-4 h-4 mr-2" /> : <ChevronRight className="w-4 h-4 mr-2" />}
-          {groupIcon}
-          <span className="ml-2 capitalize">{groupName}</span>
-          <Badge variant="outline" className="ml-auto text-xs">
-            {groupLayers.length}
-          </Badge>
-        </Button>
-        
-        {isExpanded && (
-          <div className="ml-4 space-y-1">
-            {groupLayers.map((layer) => (
-              <div
-                key={layer.id}
-                className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors group ${
-                  layer.id === selectedLayerId
-                    ? 'bg-crd-green text-black'
-                    : focusMode && selectedLayerId && layer.id !== selectedLayerId
-                    ? 'opacity-30'
-                    : 'hover:bg-slate-700 text-slate-300'
-                }`}
-                onClick={() => onLayerSelect(layer.id)}
-              >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onLayerToggle(layer.id);
-                  }}
-                  className="p-0 h-auto w-auto hover:bg-transparent"
-                >
-                  {hiddenLayers.has(layer.id) ? (
-                    <EyeOff className="w-4 h-4 text-slate-500" />
-                  ) : (
-                    <Eye className="w-4 h-4 text-slate-400 group-hover:text-white" />
-                  )}
-                </Button>
-                
-                {getLayerIcon(layer.type)}
-                
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{layer.name}</div>
-                  <div className="text-xs opacity-70">
-                    {layer.bounds ? `${layer.bounds.width} × ${layer.bounds.height}` : 'No bounds'}
-                  </div>
-                </div>
-                
-                {layer.semanticType && (
-                  <Badge variant="outline" className="text-xs">
-                    {layer.semanticType}
-                  </Badge>
-                )}
-                
-                {flippedLayers.has(layer.id) && (
-                  <Badge className="bg-crd-blue text-white text-xs">
-                    CRD
-                  </Badge>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div className="h-full flex flex-col bg-[#1a1f2e]">
-      {/* Header with mode indicator */}
+      {/* Mode-specific header */}
       <div className="p-4 border-b border-slate-700">
-        <div className="flex items-center gap-2 mb-3">
-          {getViewModeIcon()}
-          <span className="text-white font-medium">
-            {viewMode === 'inspect' && 'Layer Inspector'}
-            {viewMode === 'frame' && 'Frame Analysis'}
-            {viewMode === 'build' && 'CRD Builder'}
+        <div className="flex items-center gap-2 mb-2">
+          {viewMode === 'inspect' && <Focus className="w-4 h-4 text-blue-400" />}
+          {viewMode === 'frame' && <Square className="w-4 h-4 text-green-400" />}
+          {viewMode === 'build' && <Zap className="w-4 h-4 text-purple-400" />}
+          <span className="text-sm font-medium text-white">
+            {viewMode === 'inspect' && 'Layer Analysis'}
+            {viewMode === 'frame' && 'Frame Fitting'}
+            {viewMode === 'build' && 'Frame Construction'}
           </span>
         </div>
-        
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input
-            placeholder="Search layers..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-slate-800 border-slate-600 text-white"
-          />
+        <p className="text-xs text-slate-400">
+          {viewMode === 'inspect' && 'Explore and analyze individual layers'}
+          {viewMode === 'frame' && 'Optimize content for frame templates'}
+          {viewMode === 'build' && 'Generate custom CRD frame elements'}
+        </p>
+      </div>
+
+      {/* Layer count and filters */}
+      <div className="p-3 border-b border-slate-700">
+        <div className="flex items-center justify-between text-xs text-slate-400">
+          <span>{filteredLayers.length} layers</span>
+          <div className="flex items-center gap-2">
+            {focusMode && (
+              <Badge className="bg-blue-500/20 text-blue-400 text-xs">Focus</Badge>
+            )}
+            {!showBackground && (
+              <Badge className="bg-slate-600 text-slate-300 text-xs">No BG</Badge>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Mode-specific content */}
-      <div className="px-4 py-3 border-b border-slate-700">
-        {getViewModeContent()}
-      </div>
-
-      {/* Layer list */}
+      {/* Layers list */}
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-2">
-          {viewMode === 'inspect' ? (
-            // Flat list for inspection
-            <div className="space-y-1">
-              {filteredLayers.map((layer) => (
+        <div className="p-2 space-y-1">
+          {filteredLayers.map((layer) => {
+            const isSelected = layer.id === selectedLayerId;
+            const isVisible = !hiddenLayers.has(layer.id);
+            const isFlipped = flippedLayers.has(layer.id);
+            const { width, height } = getLayerDimensions(layer);
+
+            return (
+              <div key={layer.id} className="group">
                 <div
-                  key={layer.id}
-                  className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors group ${
-                    layer.id === selectedLayerId
-                      ? 'bg-crd-green text-black'
-                      : focusMode && selectedLayerId && layer.id !== selectedLayerId
-                      ? 'opacity-30'
-                      : 'hover:bg-slate-700 text-slate-300'
-                  }`}
+                  className={`
+                    flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all
+                    ${isSelected 
+                      ? 'bg-crd-blue/20 border border-crd-blue/40' 
+                      : 'hover:bg-slate-700/50'
+                    }
+                    ${!isVisible ? 'opacity-50' : ''}
+                  `}
                   onClick={() => onLayerSelect(layer.id)}
                 >
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onLayerToggle(layer.id);
-                    }}
-                    className="p-0 h-auto w-auto hover:bg-transparent"
-                  >
-                    {hiddenLayers.has(layer.id) ? (
-                      <EyeOff className="w-4 h-4 text-slate-500" />
-                    ) : (
-                      <Eye className="w-4 h-4 text-slate-400 group-hover:text-white" />
-                    )}
-                  </Button>
-                  
-                  {getLayerIcon(layer.type)}
-                  
+                  {/* Layer type icon */}
+                  <div className="flex-shrink-0">
+                    {getLayerIcon(layer)}
+                  </div>
+
+                  {/* Layer info */}
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">{layer.name}</div>
-                    <div className="text-xs opacity-70">
-                      {layer.bounds ? `${layer.bounds.width} × ${layer.bounds.height}` : 'No bounds'}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-white truncate">
+                        {layer.name}
+                      </span>
+                      
+                      {/* Layer type badge */}
+                      <Badge 
+                        variant="outline" 
+                        className="text-xs border-slate-600 text-slate-400"
+                      >
+                        {layer.type}
+                      </Badge>
+                    </div>
+                    
+                    {/* Layer dimensions */}
+                    <div className="text-xs text-slate-400 mt-1">
+                      {width}×{height}px
+                      {layer.opacity && layer.opacity < 1 && (
+                        <span className="ml-2">
+                          {Math.round(layer.opacity * 100)}% opacity
+                        </span>
+                      )}
                     </div>
                   </div>
-                  
-                  {layer.semanticType && (
-                    <Badge variant="outline" className="text-xs">
-                      {layer.semanticType}
-                    </Badge>
-                  )}
+
+                  {/* Layer controls */}
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Visibility toggle */}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-6 h-6 p-0 text-slate-400 hover:text-white"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onLayerToggle(layer.id);
+                      }}
+                    >
+                      {isVisible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                    </Button>
+
+                    {/* CRD flip button (for frame and build modes) */}
+                    {(viewMode === 'frame' || viewMode === 'build') && layer.type === 'image' && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className={`w-6 h-6 p-0 transition-colors ${
+                          isFlipped 
+                            ? 'text-crd-green bg-crd-green/20' 
+                            : 'text-slate-400 hover:text-crd-green'
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFlipLayer(layer.id);
+                        }}
+                        title="Convert to CRD branding"
+                      >
+                        <Palette className="w-3 h-3" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            // Grouped view for frame and build modes
-            <div className="space-y-2">
-              {Object.entries(groupedLayers).map(([groupName, groupLayers]) =>
-                renderLayerGroup(groupName, groupLayers)
-              )}
-            </div>
-          )}
+              </div>
+            );
+          })}
         </div>
       </ScrollArea>
 
-      {/* Footer stats */}
-      <div className="p-4 border-t border-slate-700 text-xs text-slate-400">
-        <div className="flex justify-between">
-          <span>{filteredLayers.length} layers</span>
-          <span>{hiddenLayers.size} hidden</span>
-          {focusMode && <span className="text-blue-400">Focus Mode</span>}
-        </div>
-      </div>
+      {/* Selected layer details */}
+      {selectedLayer && (
+        <>
+          <Separator />
+          <div className="p-4 bg-[#151922]">
+            <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+              {getLayerIcon(selectedLayer)}
+              Layer Details
+            </h3>
+            
+            <div className="space-y-3">
+              {/* Basic info */}
+              <div>
+                <div className="text-xs text-slate-400 mb-1">Name</div>
+                <div className="text-sm text-white font-medium">{selectedLayer.name}</div>
+              </div>
+
+              {/* Dimensions */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-xs text-slate-400 mb-1">Size</div>
+                  <div className="text-sm text-white">
+                    {getLayerDimensions(selectedLayer).width}×{getLayerDimensions(selectedLayer).height}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-slate-400 mb-1">Type</div>
+                  <div className="text-sm text-white capitalize">{selectedLayer.type}</div>
+                </div>
+              </div>
+
+              {/* Position */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-xs text-slate-400 mb-1">Position</div>
+                  <div className="text-sm text-white">
+                    {selectedLayer.bounds.left}, {selectedLayer.bounds.top}
+                  </div>
+                </div>
+                {selectedLayer.opacity && (
+                  <div>
+                    <div className="text-xs text-slate-400 mb-1">Opacity</div>
+                    <div className="text-sm text-white">
+                      {Math.round(selectedLayer.opacity * 100)}%
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Mode-specific analysis */}
+              {viewMode === 'frame' && selectedLayer.type === 'image' && (
+                <div className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                  <div className="text-xs text-green-400 mb-1">Frame Analysis</div>
+                  <div className="text-xs text-slate-300">
+                    Optimal for frame fitting • High priority content
+                  </div>
+                </div>
+              )}
+
+              {viewMode === 'build' && (
+                <div className="mt-4 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                  <div className="text-xs text-purple-400 mb-1">Build Potential</div>
+                  <div className="text-xs text-slate-300">
+                    {selectedLayer.type === 'shape' && 'Structural element • Good for frame construction'}
+                    {selectedLayer.type === 'image' && 'Content element • Can be enhanced with CRD branding'}
+                    {selectedLayer.type === 'text' && 'Typography element • Consider for frame labels'}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
