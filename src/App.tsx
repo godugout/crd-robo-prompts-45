@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -21,6 +20,8 @@ import CommunityHubPage from './pages/CommunityHubPage';
 import PSDPreviewPage from './pages/PSDPreviewPage';
 import SimplePSDAnalysisPage from './pages/SimplePSDAnalysisPage';
 import BulkPSDAnalysisPage from "./pages/BulkPSDAnalysisPage";
+import Labs from "./pages/Labs";
+import LabsPSDTools from "./pages/labs/LabsPSDTools";
 import Debug from "./pages/Debug";
 
 const queryClient = new QueryClient({
@@ -145,27 +146,43 @@ function App() {
                     </MainLayout>
                   } 
                 />
+                
+                {/* Labs routes - PSD Tools Archive */}
+                <Route path="/labs" element={<Labs />} />
                 <Route 
-                  path="/debug/psd-preview" 
+                  path="/labs/psd-tools" 
                   element={
-                    <MainLayout>
-                      <ProtectedRoute>
-                        <SimplePSDAnalysisPage />
-                      </ProtectedRoute>
-                    </MainLayout>
+                    <ProtectedRoute>
+                      <LabsPSDTools />
+                    </ProtectedRoute>
                   } 
                 />
                 <Route 
-                  path="/debug/psd-preview-advanced" 
+                  path="/labs/psd-tools/simple-analysis" 
                   element={
-                    <MainLayout>
-                      <ProtectedRoute>
-                        <PSDPreviewPage />
-                      </ProtectedRoute>
-                    </MainLayout>
+                    <ProtectedRoute>
+                      <SimplePSDAnalysisPage />
+                    </ProtectedRoute>
                   } 
                 />
-                <Route path="/debug/bulk-psd-analysis" element={<BulkPSDAnalysisPage />} />
+                <Route 
+                  path="/labs/psd-tools/advanced-preview" 
+                  element={
+                    <ProtectedRoute>
+                      <PSDPreviewPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/labs/psd-tools/bulk-analysis" 
+                  element={
+                    <ProtectedRoute>
+                      <BulkPSDAnalysisPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                {/* Legacy Debug routes - keep for backward compatibility but remove from nav */}
                 <Route path="/debug" element={<Debug />} />
               </Routes>
             </div>

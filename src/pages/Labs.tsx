@@ -10,11 +10,22 @@ import {
   Sparkles, 
   ArrowRight,
   Code,
-  Palette
+  Palette,
+  Layers
 } from 'lucide-react';
 
 const Labs: React.FC = () => {
   const experiments = [
+    {
+      id: 'psd-tools',
+      title: 'PSD Tools Archive',
+      description: 'Collection of experimental PSD processing and analysis tools',
+      status: 'Archive',
+      link: '/labs/psd-tools',
+      color: 'bg-indigo-500',
+      icon: Layers,
+      features: ['Advanced PSD Preview', 'Simple Analysis', 'Bulk Processing']
+    },
     {
       id: 'embedded-home',
       title: 'Embedded Card Creator',
@@ -79,7 +90,7 @@ const Labs: React.FC = () => {
                     <p className="text-crd-lightGray">The main card creation experience</p>
                   </div>
                 </div>
-                <Link to="/cards/enhanced">
+                <Link to="/create/enhanced">
                   <Button className="bg-crd-green hover:bg-crd-green/90 text-black">
                     Create Cards
                     <ArrowRight className="w-4 h-4 ml-2" />
@@ -104,6 +115,8 @@ const Labs: React.FC = () => {
                     className={
                       experiment.status === 'Active' 
                         ? 'border-green-500/50 text-green-400'
+                        : experiment.status === 'Archive'
+                        ? 'border-indigo-500/50 text-indigo-400'
                         : 'border-yellow-500/50 text-yellow-400'
                     }
                   >
