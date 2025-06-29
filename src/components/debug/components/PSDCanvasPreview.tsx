@@ -78,14 +78,10 @@ export const PSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
       ctx.lineWidth = selectedLayerId === layer.id ? 2 : 1;
       ctx.strokeRect(left, top, layerWidth, layerHeight);
 
-      // Draw layer thumbnail if available (check if thumbnail exists)
-      if (layer.thumbnail) {
-        const img = new Image();
-        img.onload = () => {
-          ctx.drawImage(img, left, top, layerWidth, layerHeight);
-        };
-        img.src = layer.thumbnail;
-      }
+      // Draw layer name as text overlay (since thumbnail is not available)
+      ctx.fillStyle = selectedLayerId === layer.id ? '#00ff00' : '#ff0000';
+      ctx.font = '12px Arial';
+      ctx.fillText(layer.name || 'Layer', left + 5, top + 15);
     });
   };
 
