@@ -119,7 +119,7 @@ export interface PSDProcessingState {
   success: boolean;
 }
 
-// Analysis types
+// Analysis types - Fixed duplicate complexity properties
 export interface LayerAnalysis {
   semantic: {
     category: 'player' | 'background' | 'stats' | 'logo' | 'effect' | 'border' | 'text' | 'image';
@@ -129,7 +129,7 @@ export interface LayerAnalysis {
     depth: number;
     parallaxFactor: number;
   };
-  complexity: {
+  complexityScore: {
     score: number;
     factors: {
       size: number;

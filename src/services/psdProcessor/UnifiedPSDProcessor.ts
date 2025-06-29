@@ -1,5 +1,4 @@
-
-import { Psd, Layer } from 'ag-psd';
+import { Psd, Layer, readPsd } from 'ag-psd';
 import { MediaManager } from '@/lib/storage/MediaManager';
 import { 
   EnhancedProcessedPSD, 
@@ -21,8 +20,7 @@ export class UnifiedPSDProcessor {
     try {
       // Read the PSD file
       const arrayBuffer = await file.arrayBuffer();
-      const psd = new Psd();
-      psd.parse(arrayBuffer);
+      const psd = readPsd(arrayBuffer);
       
       console.log('📋 PSD parsed successfully:', {
         width: psd.width,
@@ -165,7 +163,7 @@ export class UnifiedPSDProcessor {
             depth: i / layers.length,
             parallaxFactor: 1
           },
-          complexity: {
+          complexityScore: {
             score: 1,
             factors: {
               size: (layer.right || 0) - (layer.left || 0),

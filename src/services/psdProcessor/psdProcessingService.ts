@@ -36,11 +36,43 @@ export const processPSDLayers = (psd: Psd): PSDProcessingResult => {
       bounds,
       properties,
       hasRealImage: !!(layer.canvas || layer.imageData),
-      layerIndex: currentLayerIndex, // Add the layerIndex property
-      type: layer.type || 'layer',
+      layerIndex: currentLayerIndex,
+      type: layer.type || 'image',
       isVisible: properties.visible,
+      visible: properties.visible, // Add this for compatibility
       opacity: properties.opacity,
-      confidence: 0.8
+      blendMode: properties.blendMode,
+      dimensions: {
+        x: bounds.left,
+        y: bounds.top,
+        width: bounds.right - bounds.left,
+        height: bounds.bottom - bounds.top
+      },
+      effects: [],
+      confidence: 0.8,
+      analysis: {
+        isBackground: currentLayerIndex === 0,
+        isText: !!layer.text,
+        hasEffects: false,
+        complexity: 'simple',
+        semantic: {
+          category: layer.text ? 'text' : 'image',
+          importance: 'secondary'
+        },
+        spatial: {
+          depth: currentLayerIndex / 10,
+          parallaxFactor: 1
+        },
+        complexityScore: {
+          score: 1,
+          factors: {
+            size: bounds.right - bounds.left,
+            hasEffects: false,
+            hasRealContent: !!(layer.canvas || layer.imageData),
+            semanticImportance: 1
+          }
+        }
+      }
     };
   };
 
