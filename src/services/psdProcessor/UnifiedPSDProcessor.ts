@@ -1,21 +1,21 @@
 
 import { readPsd, Psd, Layer } from 'ag-psd';
 import { MediaManager } from '@/lib/storage/MediaManager';
-import { 
-  EnhancedProcessedPSD, 
-  ProcessedPSDLayer, 
-  ExtractedPSDImages, 
-  ExtractedLayerImage,
-  LayerBounds,
-  LayerProperties
-} from '@/types/psdTypes';
+import { EnhancedProcessedPSD, ProcessedPSDLayer, ExtractedPSDImages, ExtractedLayerImage } from '@/types/psdTypes';
 
 export class UnifiedPSDProcessor {
-  private static readonly BUCKET_NAME = 'psd-renders';
-  
-  /**
-   * Main entry point for processing PSD files
-   */
+  private canvas: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
+
+  constructor() {
+    this.canvas = document.createElement('canvas');
+    const context = this.canvas.getContext('2d');
+    if (!context) {
+      throw new Error('Failed to create canvas context');
+    }
+    this.ctx = context;
+  }
+
   static async processPSDFile(file: File): Promise<EnhancedProcessedPSD> {
     const processor = new UnifiedPSDProcessor();
     return processor.processPSDFile(file);
@@ -25,7 +25,7 @@ export class UnifiedPSDProcessor {
     try {
       console.log('🔄 Starting PSD processing for:', file.name);
       
-      // Parse PSD file
+      // Read PSD file
       const arrayBuffer = await file.arrayBuffer();
       const psd = readPsd(arrayBuffer);
       
@@ -40,28 +40,29 @@ export class UnifiedPSDProcessor {
       });
 
       // Process layers
-      const processedLayers = this.processLayers(psd);
-      
-      // Generate images from PSD
-      const extractedImages = await this.generateAndUploadImages(psd, file.name);
-      
-      // Create the enhanced processed PSD object
+      const processedLayers = this.extractLayers(psd);
+      console.log('✅ Extracted layers:', processedLayers.length);
+
+      // Generate images
+      const extractedImages = await this.extractAllImages(psd, file.name);
+      console.log('✅ Generated images:', extractedImages);
+
+      // Create enhanced processed PSD
       const enhancedPSD: EnhancedProcessedPSD = {
         id: `psd_${Date.now()}`,
         fileName: file.name,
-        width: psd.width || 0,
-        height: psd.height || 0,
+        width: psd.width || 800,
+        height: psd.height || 600,
         layers: processedLayers,
         totalLayers: processedLayers.length,
         flattenedImageUrl: extractedImages.flattenedImageUrl,
-        transparentFlattenedImageUrl: extractedImages.flattenedImageUrl,
         thumbnailUrl: extractedImages.thumbnailUrl,
         layerImages: extractedImages.layerImages,
         extractedImages,
         layerPreviews: new Map(),
         metadata: {
           documentName: file.name,
-          colorMode: 'RGB',
+          colorMode: psd.colorMode?.toString() || 'RGB',
           created: new Date().toISOString()
         }
       };
@@ -75,391 +76,319 @@ export class UnifiedPSDProcessor {
     }
   }
 
-  /**
-   * Process PSD layers into our standardized format
-   */
-  private processLayers(psd: Psd): ProcessedPSDLayer[] {
+  private extractLayers(psd: Psd): ProcessedPSDLayer[] {
     const layers: ProcessedPSDLayer[] = [];
     
-    if (!psd.children) {
-      console.warn('PSD has no layers');
-      return layers;
+    const processLayer = (layer: Layer, index: number, parentPath = '') => {
+      // Build layer path using name and index
+      const layerName = layer.name || `Layer ${index}`;
+      const layerPath = parentPath ? `${parentPath}/${layerName}` : layerName;
+      
+      const processedLayer: ProcessedPSDLayer = {
+        id: `layer_${index}_${Date.now()}`,
+        name: layerName,
+        bounds: {
+          left: layer.left || 0,
+          top: layer.top || 0,
+          right: layer.right || 0,
+          bottom: layer.bottom || 0
+        },
+        properties: {
+          opacity: (layer.opacity !== undefined ? layer.opacity : 255) / 255,
+          blendMode: layer.blendMode || 'normal',
+          visible: layer.hidden !== true,
+          locked: false
+        },
+        semanticType: this.inferSemanticType(layerName),
+        hasRealImage: !!(layer.canvas || layer.imageData),
+        layerIndex: index,
+        type: this.getLayerType(layer),
+        isVisible: layer.hidden !== true,
+        opacity: (layer.opacity !== undefined ? layer.opacity : 255) / 255,
+        confidence: 0.8
+      };
+
+      layers.push(processedLayer);
+
+      // Process child layers if they exist
+      if (layer.children) {
+        layer.children.forEach((childLayer, childIndex) => {
+          processLayer(childLayer, layers.length, layerPath);
+        });
+      }
+    };
+
+    // Process all layers
+    if (psd.children) {
+      psd.children.forEach((layer, index) => {
+        processLayer(layer, index);
+      });
     }
 
-    psd.children.forEach((layer, index) => {
-      const processedLayer = this.processLayer(layer, index);
-      if (processedLayer) {
-        layers.push(processedLayer);
-      }
-    });
-
-    console.log(`Processed ${layers.length} layers`);
     return layers;
   }
 
-  /**
-   * Process individual layer
-   */
-  private processLayer(layer: Layer, index: number): ProcessedPSDLayer | null {
-    try {
-      const bounds: LayerBounds = {
-        left: layer.left || 0,
-        top: layer.top || 0,
-        right: layer.right || layer.left || 0,
-        bottom: layer.bottom || layer.top || 0
-      };
-
-      const properties: LayerProperties = {
-        opacity: (layer.opacity ?? 255) / 255,
-        blendMode: layer.blendMode || 'normal',
-        visible: layer.hidden !== true, // ag-psd uses 'hidden' property, not 'visible'
-        locked: false // ag-psd doesn't have a 'locked' property, default to false
-      };
-
-      return {
-        id: `layer_${index}`,
-        name: layer.name || `Layer ${index + 1}`,
-        bounds,
-        properties,
-        hasRealImage: !!(layer.canvas || layer.imageData),
-        layerIndex: index,
-        type: this.determineLayerType(layer),
-        isVisible: properties.visible,
-        opacity: properties.opacity,
-        confidence: 0.8,
-        semanticType: this.inferSemanticType(layer.name || ''),
-        inferredDepth: this.calculateLayerDepth(index, bounds)
-      };
-    } catch (error) {
-      console.error(`Error processing layer ${index}:`, error);
-      return null;
-    }
-  }
-
-  /**
-   * Determine the type of layer
-   */
-  private determineLayerType(layer: Layer): 'text' | 'image' | 'group' | 'shape' | 'layer' {
+  private getLayerType(layer: Layer): 'text' | 'image' | 'group' | 'shape' | 'layer' {
     if (layer.text) return 'text';
-    if (layer.children) return 'group';
-    if (layer.vectorMask || layer.path) return 'shape';
+    if (layer.children && layer.children.length > 0) return 'group';
     if (layer.canvas || layer.imageData) return 'image';
     return 'layer';
   }
 
-  /**
-   * Infer semantic type from layer name
-   */
-  private inferSemanticType(layerName: string): 'player' | 'background' | 'stats' | 'logo' | 'effect' | 'border' | 'text' | 'image' {
+  private inferSemanticType(layerName: string): string {
     const name = layerName.toLowerCase();
     
-    if (name.includes('player') || name.includes('character')) return 'player';
     if (name.includes('background') || name.includes('bg')) return 'background';
-    if (name.includes('stats') || name.includes('number')) return 'stats';
+    if (name.includes('player') || name.includes('character') || name.includes('person')) return 'player';
+    if (name.includes('text') || name.includes('title') || name.includes('name')) return 'text';
     if (name.includes('logo') || name.includes('brand')) return 'logo';
-    if (name.includes('effect') || name.includes('glow')) return 'effect';
+    if (name.includes('stat') || name.includes('number') || name.includes('score')) return 'stats';
     if (name.includes('border') || name.includes('frame')) return 'border';
-    if (name.includes('text') || name.includes('title')) return 'text';
+    if (name.includes('effect') || name.includes('glow') || name.includes('shadow')) return 'effect';
     
     return 'image';
   }
 
-  /**
-   * Calculate layer depth for 3D reconstruction
-   */
-  private calculateLayerDepth(index: number, bounds: LayerBounds): number {
-    // Layers higher in the stack get higher depth values
-    const baseDepth = index * 0.1;
-    
-    // Larger layers tend to be backgrounds (lower depth)
-    const area = (bounds.right - bounds.left) * (bounds.bottom - bounds.top);
-    const sizeAdjustment = Math.max(0, 1 - (area / 1000000)) * 0.5;
-    
-    return baseDepth + sizeAdjustment;
-  }
-
-  /**
-   * Generate and upload all images from the PSD
-   */
-  private async generateAndUploadImages(psd: Psd, fileName: string): Promise<ExtractedPSDImages> {
+  private async extractAllImages(psd: Psd, fileName: string): Promise<ExtractedPSDImages> {
     try {
-      console.log('🖼️ Generating images from PSD...');
-      
+      console.log('🖼️ Starting image extraction...');
+
       // Generate flattened image
       const flattenedImageUrl = await this.generateFlattenedImage(psd, fileName);
-      
+      console.log('✅ Flattened image generated:', flattenedImageUrl);
+
       // Generate thumbnail
       const thumbnailUrl = await this.generateThumbnail(psd, fileName);
-      
-      // Extract individual layer images
+      console.log('✅ Thumbnail generated:', thumbnailUrl);
+
+      // Extract individual layers
       const layerImages = await this.extractLayerImages(psd, fileName);
-      
-      console.log('✅ Image generation completed');
-      
+      console.log('✅ Layer images extracted:', layerImages.length);
+
       return {
         flattenedImageUrl,
-        layerImages,
         thumbnailUrl,
+        layerImages,
         archiveUrls: {
-          originalPsd: '', // Could store original PSD if needed
-          layerArchive: '' // Could create zip of all layers
+          originalPsd: '', // Would be implemented for PSD file upload
+          layerArchive: '' // Would be implemented for layer archive
         }
       };
+
     } catch (error) {
-      console.error('❌ Image generation failed:', error);
-      throw new Error(`Image generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('❌ Image extraction failed:', error);
+      throw new Error(`Image extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  /**
-   * Generate flattened PNG image from PSD
-   */
   private async generateFlattenedImage(psd: Psd, fileName: string): Promise<string> {
     try {
-      console.log('🎨 Rendering flattened image...');
-      
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) {
-        throw new Error('Cannot get canvas context');
-      }
+      // Set canvas size
+      this.canvas.width = psd.width || 800;
+      this.canvas.height = psd.height || 600;
 
-      canvas.width = psd.width || 800;
-      canvas.height = psd.height || 600;
-      
-      // Fill with white background
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Clear canvas
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
       // If PSD has a composite image, use it
       if (psd.canvas) {
-        ctx.drawImage(psd.canvas, 0, 0);
+        this.ctx.drawImage(psd.canvas, 0, 0);
       } else {
-        // Render layers manually
-        await this.renderLayersToCanvas(ctx, psd, canvas.width, canvas.height);
+        // Render a placeholder or try to composite layers
+        this.renderPlaceholderCard();
       }
 
-      // Convert to blob and upload
-      const blob = await this.canvasToBlob(canvas, 'image/png');
-      const uploadResult = await MediaManager.uploadFile(blob, {
-        bucket: UnifiedPSDProcessor.BUCKET_NAME,
-        folder: 'flattened',
-        generateThumbnail: false
+      // Convert to blob
+      const blob = await this.canvasToBlob();
+      
+      // Convert blob to file for upload
+      const imageFile = this.blobToFile(blob, `${fileName}_flattened.png`);
+      
+      // Upload to storage
+      const uploadResult = await MediaManager.uploadFile(imageFile, {
+        folder: 'psd-renders',
+        optimize: true
       });
 
       if (!uploadResult) {
         throw new Error('Failed to upload flattened image');
       }
 
-      console.log('✅ Flattened image uploaded:', uploadResult.metadata.publicUrl);
       return uploadResult.metadata.publicUrl;
 
     } catch (error) {
       console.error('❌ Flattened image generation failed:', error);
-      // Return a fallback placeholder instead of throwing
-      return this.generatePlaceholderImage(psd.width || 800, psd.height || 600, 'Card Render');
+      throw error;
     }
   }
 
-  /**
-   * Generate thumbnail image
-   */
   private async generateThumbnail(psd: Psd, fileName: string): Promise<string> {
     try {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) {
-        throw new Error('Cannot get canvas context');
-      }
+      // Create thumbnail canvas (200x200)
+      const thumbCanvas = document.createElement('canvas');
+      const thumbCtx = thumbCanvas.getContext('2d');
+      if (!thumbCtx) throw new Error('Failed to create thumbnail context');
 
-      // Thumbnail size
-      const maxSize = 200;
-      const aspectRatio = (psd.width || 1) / (psd.height || 1);
+      thumbCanvas.width = 200;
+      thumbCanvas.height = 200;
+
+      // Calculate aspect ratio and scaling
+      const aspectRatio = (psd.width || 800) / (psd.height || 600);
+      let drawWidth = 200;
+      let drawHeight = 200;
       
       if (aspectRatio > 1) {
-        canvas.width = maxSize;
-        canvas.height = maxSize / aspectRatio;
+        drawHeight = 200 / aspectRatio;
       } else {
-        canvas.width = maxSize * aspectRatio;
-        canvas.height = maxSize;
+        drawWidth = 200 * aspectRatio;
       }
 
-      // Render thumbnail
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const offsetX = (200 - drawWidth) / 2;
+      const offsetY = (200 - drawHeight) / 2;
 
+      // Draw scaled version
       if (psd.canvas) {
-        ctx.drawImage(psd.canvas, 0, 0, canvas.width, canvas.height);
+        thumbCtx.drawImage(psd.canvas, offsetX, offsetY, drawWidth, drawHeight);
+      } else {
+        // Render placeholder thumbnail
+        thumbCtx.fillStyle = '#f0f0f0';
+        thumbCtx.fillRect(0, 0, 200, 200);
+        thumbCtx.fillStyle = '#666';
+        thumbCtx.font = '14px Arial';
+        thumbCtx.textAlign = 'center';
+        thumbCtx.fillText('PSD Thumbnail', 100, 100);
       }
 
-      const blob = await this.canvasToBlob(canvas, 'image/jpeg', 0.8);
-      const uploadResult = await MediaManager.uploadFile(blob, {
-        bucket: UnifiedPSDProcessor.BUCKET_NAME,
-        folder: 'thumbnails'
+      // Convert to blob
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        thumbCanvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error('Failed to create thumbnail blob'));
+        }, 'image/png');
       });
 
-      return uploadResult?.metadata.publicUrl || this.generatePlaceholderImage(canvas.width, canvas.height, 'Thumb');
+      // Convert blob to file for upload
+      const thumbFile = this.blobToFile(blob, `${fileName}_thumb.png`);
+
+      // Upload thumbnail
+      const uploadResult = await MediaManager.uploadFile(thumbFile, {
+        folder: 'psd-thumbnails',
+        optimize: true
+      });
+
+      if (!uploadResult) {
+        throw new Error('Failed to upload thumbnail');
+      }
+
+      return uploadResult.metadata.publicUrl;
 
     } catch (error) {
       console.error('❌ Thumbnail generation failed:', error);
-      return this.generatePlaceholderImage(200, 200, 'Thumbnail');
+      throw error;
     }
   }
 
-  /**
-   * Extract individual layer images
-   */
   private async extractLayerImages(psd: Psd, fileName: string): Promise<ExtractedLayerImage[]> {
     const layerImages: ExtractedLayerImage[] = [];
-    
-    if (!psd.children) {
-      return layerImages;
-    }
+
+    if (!psd.children) return layerImages;
 
     for (let i = 0; i < psd.children.length; i++) {
       const layer = psd.children[i];
       
       try {
-        if (layer.canvas && layer.canvas.width > 0 && layer.canvas.height > 0) {
-          const layerImage = await this.extractSingleLayerImage(layer, i, fileName);
-          if (layerImage) {
-            layerImages.push(layerImage);
+        if (layer.canvas && !layer.hidden) {
+          // Convert layer canvas to blob
+          const layerCanvas = document.createElement('canvas');
+          const layerCtx = layerCanvas.getContext('2d');
+          if (!layerCtx) continue;
+
+          layerCanvas.width = layer.canvas.width;
+          layerCanvas.height = layer.canvas.height;
+          layerCtx.drawImage(layer.canvas, 0, 0);
+
+          const blob = await new Promise<Blob>((resolve, reject) => {
+            layerCanvas.toBlob((blob) => {
+              if (blob) resolve(blob);
+              else reject(new Error('Failed to create layer blob'));
+            }, 'image/png');
+          });
+
+          // Convert blob to file for upload
+          const layerFile = this.blobToFile(blob, `${fileName}_layer_${i}.png`);
+
+          // Upload layer image
+          const uploadResult = await MediaManager.uploadFile(layerFile, {
+            folder: 'psd-layers',
+            optimize: true
+          });
+
+          if (uploadResult) {
+            layerImages.push({
+              id: `layer_${i}`,
+              name: layer.name || `Layer ${i}`,
+              imageUrl: uploadResult.metadata.publicUrl,
+              thumbnailUrl: uploadResult.metadata.publicUrl, // Same as full image for now
+              bounds: {
+                left: layer.left || 0,
+                top: layer.top || 0,
+                right: layer.right || layer.canvas.width,
+                bottom: layer.bottom || layer.canvas.height
+              },
+              width: layer.canvas.width,
+              height: layer.canvas.height,
+              properties: {
+                opacity: (layer.opacity !== undefined ? layer.opacity : 255) / 255,
+                blendMode: layer.blendMode || 'normal',
+                visible: !layer.hidden,
+                locked: false
+              }
+            });
           }
         }
       } catch (error) {
-        console.error(`Failed to extract layer ${i}:`, error);
+        console.warn(`Failed to extract layer ${i}:`, error);
       }
     }
 
-    console.log(`✅ Extracted ${layerImages.length} layer images`);
     return layerImages;
   }
 
-  /**
-   * Extract single layer image
-   */
-  private async extractSingleLayerImage(layer: Layer, index: number, fileName: string): Promise<ExtractedLayerImage | null> {
-    try {
-      if (!layer.canvas) return null;
-
-      const blob = await this.canvasToBlob(layer.canvas, 'image/png');
-      const uploadResult = await MediaManager.uploadFile(blob, {
-        bucket: UnifiedPSDProcessor.BUCKET_NAME,
-        folder: 'layers'
-      });
-
-      if (!uploadResult) return null;
-
-      const bounds: LayerBounds = {
-        left: layer.left || 0,
-        top: layer.top || 0,
-        right: layer.right || layer.left || 0,
-        bottom: layer.bottom || layer.top || 0
-      };
-
-      return {
-        id: `layer_${index}`,
-        name: layer.name || `Layer ${index + 1}`,
-        imageUrl: uploadResult.metadata.publicUrl,
-        thumbnailUrl: uploadResult.metadata.publicUrl, // Use same for now
-        bounds,
-        width: layer.canvas.width,
-        height: layer.canvas.height,
-        properties: {
-          opacity: (layer.opacity ?? 255) / 255,
-          blendMode: layer.blendMode || 'normal',
-          visible: layer.hidden !== true,
-          locked: false
-        }
-      };
-    } catch (error) {
-      console.error(`Failed to extract layer ${index}:`, error);
-      return null;
-    }
+  private renderPlaceholderCard(): void {
+    // Render a basic card placeholder
+    this.ctx.fillStyle = '#ffffff';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    // Add border
+    this.ctx.strokeStyle = '#cccccc';
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeRect(1, 1, this.canvas.width - 2, this.canvas.height - 2);
+    
+    // Add placeholder text
+    this.ctx.fillStyle = '#666666';
+    this.ctx.font = '24px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('PSD Card Render', this.canvas.width / 2, this.canvas.height / 2);
   }
 
-  /**
-   * Render layers manually to canvas
-   */
-  private async renderLayersToCanvas(ctx: CanvasRenderingContext2D, psd: Psd, width: number, height: number): Promise<void> {
-    if (!psd.children) return;
-
-    for (const layer of psd.children) {
-      if (layer.hidden === true || !layer.canvas) continue;
-
-      try {
-        ctx.globalAlpha = (layer.opacity ?? 255) / 255;
-        ctx.globalCompositeOperation = this.mapBlendMode(layer.blendMode || 'normal');
-        
-        ctx.drawImage(
-          layer.canvas,
-          layer.left || 0,
-          layer.top || 0
-        );
-      } catch (error) {
-        console.error('Error rendering layer:', error);
-      }
-    }
-
-    // Reset context
-    ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = 'source-over';
-  }
-
-  /**
-   * Map PSD blend modes to canvas composite operations
-   */
-  private mapBlendMode(blendMode: string): GlobalCompositeOperation {
-    const blendModeMap: Record<string, GlobalCompositeOperation> = {
-      'normal': 'source-over',
-      'multiply': 'multiply',
-      'screen': 'screen',
-      'overlay': 'overlay',
-      'softLight': 'soft-light',
-      'hardLight': 'hard-light',
-      'colorDodge': 'color-dodge',
-      'colorBurn': 'color-burn',
-      'darken': 'darken',
-      'lighten': 'lighten',
-      'difference': 'difference',
-      'exclusion': 'exclusion'
-    };
-
-    return blendModeMap[blendMode] || 'source-over';
-  }
-
-  /**
-   * Convert canvas to blob
-   */
-  private async canvasToBlob(canvas: HTMLCanvasElement, type: string = 'image/png', quality?: number): Promise<Blob> {
+  private async canvasToBlob(): Promise<Blob> {
     return new Promise((resolve, reject) => {
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            reject(new Error('Failed to create blob from canvas'));
-          }
-        },
-        type,
-        quality
-      );
+      this.canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error('Failed to convert canvas to blob'));
+        }
+      }, 'image/png');
     });
   }
 
-  /**
-   * Generate placeholder image URL
-   */
-  private generatePlaceholderImage(width: number, height: number, text: string): string {
-    return `data:image/svg+xml;base64,${btoa(`
-      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="100%" height="100%" fill="#f0f0f0"/>
-        <text x="50%" y="50%" text-anchor="middle" dy=".3em" font-family="Arial" font-size="16" fill="#666">
-          ${text}
-        </text>
-      </svg>
-    `)}`;
+  private blobToFile(blob: Blob, fileName: string): File {
+    return new File([blob], fileName, {
+      type: blob.type,
+      lastModified: Date.now()
+    });
   }
 }
+
+export const unifiedPSDProcessor = new UnifiedPSDProcessor();
