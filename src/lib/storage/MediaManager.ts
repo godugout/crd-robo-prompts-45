@@ -2,8 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL!,
-  import.meta.env.VITE_SUPABASE_ANON_KEY!
+  'https://wxlwhqlbxyuyujhqeyur.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4bHdocWxieHl1eXVqaHFleXVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgyMjAyNTMsImV4cCI6MjA1Mzc5NjI1M30.6TlBEqXOPZRgwhPrHQBYjMMVzmCTmCb-Q1-sNnFhVrc'
 );
 
 export interface UploadOptions {
@@ -39,6 +39,13 @@ export interface MediaFile {
 export interface CacheStats {
   size: number;
   keys: string[];
+}
+
+export interface GetFilesOptions {
+  bucket?: string;
+  userId?: string;
+  tags?: string[];
+  limit?: number;
 }
 
 class MediaManagerClass {
@@ -108,7 +115,9 @@ class MediaManagerClass {
     }
   }
 
-  async getFiles(bucket: string = this.DEFAULT_BUCKET): Promise<MediaFile[]> {
+  async getFiles(options: GetFilesOptions = {}): Promise<MediaFile[]> {
+    const { bucket = this.DEFAULT_BUCKET } = options;
+    
     try {
       const { data, error } = await supabase.storage
         .from(bucket)
