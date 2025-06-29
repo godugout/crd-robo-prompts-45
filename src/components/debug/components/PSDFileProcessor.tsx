@@ -18,10 +18,12 @@ import {
 
 interface PSDFileProcessorProps {
   onPSDProcessed: (psd: EnhancedProcessedPSD) => void;
+  onProcessingStart?: () => void;
 }
 
 export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
-  onPSDProcessed
+  onPSDProcessed,
+  onProcessingStart
 }) => {
   const [processingState, setProcessingState] = useState<PSDProcessingState>({
     isProcessing: false,
@@ -40,6 +42,12 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
     if (!file) return;
 
     console.log('🔄 Processing PSD file:', file.name);
+    
+    // Call the onProcessingStart callback if provided
+    if (onProcessingStart) {
+      onProcessingStart();
+    }
+    
     updateProcessingState({
       isProcessing: true,
       progress: 0,
@@ -106,7 +114,7 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
         stage: 'Processing failed'
       });
     }
-  }, [onPSDProcessed]);
+  }, [onPSDProcessed, onProcessingStart]);
 
   const resetState = () => {
     setProcessingState({
