@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { psdProcessingService } from '@/services/psdProcessor/psdProcessingService';
-import { processEnhancedPSD, EnhancedProcessedPSD } from '@/services/psdProcessor/enhancedPsdProcessingService';
+import { unifiedPSDProcessor } from '@/services/psdProcessor/unifiedPsdProcessor';
+import { EnhancedProcessedPSD } from '@/types/psdTypes';
+import { PSDErrorBoundary } from './PSDErrorBoundary';
 
 interface PSDFileProcessorProps {
   onPSDProcessed: (psd: EnhancedProcessedPSD) => void;
@@ -47,22 +48,18 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
       // Simulate progress updates
       const progressInterval = setInterval(() => {
         setProgress(prev => {
-          if (prev >= 70) {
+          if (prev >= 85) {
             clearInterval(progressInterval);
-            return 70;
+            return 85;
           }
-          return prev + 10;
+          return prev + 15;
         });
-      }, 200);
+      }, 300);
 
       console.log('Processing PSD file:', selectedFile.name);
       
-      // First process with basic processor
-      const basicProcessedPSD = await psdProcessingService.processPSDFile(selectedFile);
-      setProgress(80);
-      
-      // Then enhance with real image extraction
-      const enhancedProcessedPSD = await processEnhancedPSD(selectedFile, basicProcessedPSD);
+      // Use unified processor
+      const enhancedProcessedPSD = await unifiedPSDProcessor.processPSDFile(selectedFile);
       
       clearInterval(progressInterval);
       setProgress(100);
@@ -87,122 +84,125 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
   };
 
   return (
-    <Card className="border-gray-700 bg-gray-800/50">
-      <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
-          <FileText className="w-5 h-5" />
-          PSD File Processor
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* File Upload */}
-        <div className="space-y-4">
-          <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center">
-            <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
-            <div className="space-y-2">
-              <p className="text-gray-300">Select a PSD file to process</p>
-              <input
-                type="file"
-                accept=".psd"
-                onChange={handleFileSelect}
-                className="hidden"
-                id="psd-upload"
-              />
-              <label
-                htmlFor="psd-upload"
-                className="inline-block px-4 py-2 bg-crd-green text-black rounded-lg cursor-pointer hover:bg-crd-green/90 transition-colors"
-              >
-                Choose PSD File
-              </label>
+    <PSDErrorBoundary onReset={resetProcessor}>
+      <Card className="border-gray-700 bg-gray-800/50">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            PSD File Processor
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* File Upload */}
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center">
+              <Upload className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+              <div className="space-y-2">
+                <p className="text-gray-300">Select a PSD file to process</p>
+                <input
+                  type="file"
+                  accept=".psd"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  id="psd-upload"
+                />
+                <label
+                  htmlFor="psd-upload"
+                  className="inline-block px-4 py-2 bg-crd-green text-black rounded-lg cursor-pointer hover:bg-crd-green/90 transition-colors"
+                >
+                  Choose PSD File
+                </label>
+              </div>
             </div>
+
+            {selectedFile && (
+              <div className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-4 h-4 text-crd-green" />
+                  <span className="text-white">{selectedFile.name}</span>
+                  <span className="text-gray-400 text-sm">
+                    ({(selectedFile.size / 1024 / 1024).toFixed(1)} MB)
+                  </span>
+                </div>
+                <Button
+                  onClick={resetProcessor}
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-400 hover:text-white"
+                >
+                  Remove
+                </Button>
+              </div>
+            )}
           </div>
 
-          {selectedFile && (
-            <div className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <FileText className="w-4 h-4 text-crd-green" />
-                <span className="text-white">{selectedFile.name}</span>
-                <span className="text-gray-400 text-sm">
-                  ({(selectedFile.size / 1024 / 1024).toFixed(1)} MB)
-                </span>
-              </div>
+          {/* Processing Controls */}
+          <div className="flex gap-3">
+            <Button
+              onClick={processPSDFile}
+              disabled={!selectedFile || isProcessing}
+              className="bg-crd-green text-black hover:bg-crd-green/90 disabled:opacity-50"
+            >
+              {isProcessing ? 'Processing...' : 'Process PSD'}
+            </Button>
+            
+            {success && (
               <Button
                 onClick={resetProcessor}
-                variant="ghost"
-                size="sm"
-                className="text-gray-400 hover:text-white"
+                variant="outline"
+                className="border-gray-600 text-gray-300 hover:bg-gray-700"
               >
-                Remove
+                Process Another
               </Button>
-            </div>
-          )}
-        </div>
-
-        {/* Processing Controls */}
-        <div className="flex gap-3">
-          <Button
-            onClick={processPSDFile}
-            disabled={!selectedFile || isProcessing}
-            className="bg-crd-green text-black hover:bg-crd-green/90 disabled:opacity-50"
-          >
-            {isProcessing ? 'Processing...' : 'Process PSD'}
-          </Button>
-          
-          {success && (
-            <Button
-              onClick={resetProcessor}
-              variant="outline"
-              className="border-gray-600 text-gray-300 hover:bg-gray-700"
-            >
-              Process Another
-            </Button>
-          )}
-        </div>
-
-        {/* Progress */}
-        {isProcessing && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-300">
-                {progress < 80 ? 'Processing PSD...' : 'Extracting images...'}
-              </span>
-              <span className="text-gray-300">{progress}%</span>
-            </div>
-            <Progress value={progress} className="bg-gray-700" />
+            )}
           </div>
-        )}
 
-        {/* Status Messages */}
-        {error && (
-          <Alert className="border-red-700 bg-red-900/20">
-            <AlertCircle className="h-4 w-4 text-red-400" />
-            <AlertDescription className="text-red-300">
-              {error}
-            </AlertDescription>
-          </Alert>
-        )}
+          {/* Progress */}
+          {isProcessing && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-300">
+                  {progress < 50 ? 'Reading PSD file...' : 
+                   progress < 85 ? 'Extracting layers...' : 'Finalizing...'}
+                </span>
+                <span className="text-gray-300">{progress}%</span>
+              </div>
+              <Progress value={progress} className="bg-gray-700" />
+            </div>
+          )}
 
-        {success && (
-          <Alert className="border-green-700 bg-green-900/20">
-            <CheckCircle2 className="h-4 w-4 text-green-400" />
-            <AlertDescription className="text-green-300">
-              PSD file processed successfully! Layers extracted and optimized for web use.
-            </AlertDescription>
-          </Alert>
-        )}
+          {/* Status Messages */}
+          {error && (
+            <Alert className="border-red-700 bg-red-900/20">
+              <AlertCircle className="h-4 w-4 text-red-400" />
+              <AlertDescription className="text-red-300">
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
 
-        {/* Instructions */}
-        <div className="text-sm text-gray-400 space-y-2">
-          <p className="font-medium">Instructions:</p>
-          <ul className="list-disc list-inside space-y-1 ml-2">
-            <li>Upload a PSD file to extract its layers</li>
-            <li>Each layer will be converted to web-optimized PNG format</li>
-            <li>Layer properties (position, opacity, blend modes) will be preserved</li>
-            <li>Real images will be extracted and processed for preview</li>
-            <li>Use the extracted layers to create CRD frame elements</li>
-          </ul>
-        </div>
-      </CardContent>
-    </Card>
+          {success && (
+            <Alert className="border-green-700 bg-green-900/20">
+              <CheckCircle2 className="h-4 w-4 text-green-400" />
+              <AlertDescription className="text-green-300">
+                PSD file processed successfully! Layers extracted and optimized for web use.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Instructions */}
+          <div className="text-sm text-gray-400 space-y-2">
+            <p className="font-medium">Instructions:</p>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>Upload a PSD file to extract its layers</li>
+              <li>Each layer will be converted to web-optimized format</li>
+              <li>Layer properties and positioning will be preserved</li>
+              <li>Real images will be extracted for preview</li>
+              <li>Use the extracted layers to create CRD elements</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+    </PSDErrorBoundary>
   );
 };

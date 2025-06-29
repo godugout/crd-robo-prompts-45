@@ -1,11 +1,13 @@
 
 import React, { Component, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  onReset?: () => void;
 }
 
 interface State {
@@ -31,6 +33,11 @@ export class PSDErrorBoundary extends Component<Props, State> {
 
   handleRetry = () => {
     this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+    this.props.onReset?.();
+  };
+
+  handleGoHome = () => {
+    window.location.href = '/';
   };
 
   render() {
@@ -40,30 +47,55 @@ export class PSDErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="flex flex-col items-center justify-center h-full bg-slate-900 text-white p-8 rounded-lg border border-slate-700">
-          <AlertTriangle className="w-12 h-12 text-red-400 mb-4" />
-          <h3 className="text-xl font-semibold mb-2">PSD Preview Error</h3>
-          <p className="text-slate-400 text-center mb-4 max-w-md">
-            Something went wrong while rendering the PSD preview. This could be due to a complex PSD file or rendering issue.
-          </p>
-          
-          {this.state.error && (
-            <details className="mb-4 text-sm text-slate-500 max-w-lg">
-              <summary className="cursor-pointer hover:text-slate-300">Error Details</summary>
-              <pre className="mt-2 p-2 bg-slate-800 rounded text-xs overflow-auto max-h-32">
-                {this.state.error.message}
-              </pre>
-            </details>
-          )}
-          
-          <Button
-            onClick={this.handleRetry}
-            className="bg-slate-700 hover:bg-slate-600 text-white flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Try Again
-          </Button>
-        </div>
+        <Card className="max-w-2xl mx-auto mt-8 p-8 bg-red-50 border-red-200">
+          <div className="text-center">
+            <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-red-800 mb-2">PSD Processing Error</h2>
+            <p className="text-red-600 mb-6">
+              Something went wrong while processing your PSD file. This could be due to:
+            </p>
+            
+            <div className="text-left bg-white p-4 rounded-lg mb-6 border border-red-200">
+              <ul className="list-disc list-inside text-red-700 space-y-1">
+                <li>Complex PSD layer structures</li>
+                <li>Large file sizes or memory limitations</li>
+                <li>Unsupported PSD features</li>
+                <li>Corrupted layer data</li>
+              </ul>
+            </div>
+
+            {this.state.error && (
+              <details className="mb-6 text-left">
+                <summary className="cursor-pointer text-red-700 hover:text-red-800 font-medium">
+                  Technical Details
+                </summary>
+                <pre className="mt-2 p-3 bg-red-100 rounded text-xs overflow-auto max-h-32 text-red-800">
+                  {this.state.error.message}
+                  {this.state.error.stack && '\n\nStack trace:\n' + this.state.error.stack}
+                </pre>
+              </details>
+            )}
+            
+            <div className="flex gap-4 justify-center">
+              <Button
+                onClick={this.handleRetry}
+                className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Try Again
+              </Button>
+              
+              <Button
+                onClick={this.handleGoHome}
+                variant="outline"
+                className="border-red-300 text-red-700 hover:bg-red-50 flex items-center gap-2"
+              >
+                <Home className="w-4 h-4" />
+                Go Home
+              </Button>
+            </div>
+          </div>
+        </Card>
       );
     }
 
