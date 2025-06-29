@@ -1,8 +1,6 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { EnhancedProcessedPSD, ProcessedPSDLayer } from '@/types/psdTypes';
-import { Button } from '@/components/ui/button';
 import { Enhanced3DInspectCanvas } from './Enhanced3DInspectCanvas';
 
 interface PSDCanvasPreviewProps {
@@ -36,10 +34,22 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   // Use reordered layers if available, otherwise fall back to original layers
   const layersToRender = reorderedLayers || processedPSD.layers;
 
-  // Always call useEffect - this must be called before any conditional returns
+  // If we're in inspect mode, use the enhanced 3D canvas
+  if (viewMode === 'inspect') {
+    return (
+      <Enhanced3DInspectCanvas
+        processedPSD={processedPSD}
+        selectedLayerId={selectedLayerId}
+        hiddenLayers={hiddenLayers}
+        onLayerSelect={onLayerSelect}
+        reorderedLayers={reorderedLayers}
+      />
+    );
+  }
+
+  // For other modes, use traditional canvas rendering
   useEffect(() => {
-    // Only run canvas drawing logic if we're not in inspect mode
-    if (viewMode === 'inspect' || !processedPSD || !canvasRef.current) return;
+    if (!processedPSD || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -89,19 +99,6 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     });
   }, [processedPSD, selectedLayerId, hiddenLayers, showBackground, layersToRender, viewMode]);
 
-  // If we're in inspect mode, use the new 3D canvas
-  if (viewMode === 'inspect') {
-    return (
-      <Enhanced3DInspectCanvas
-        processedPSD={processedPSD}
-        selectedLayerId={selectedLayerId}
-        hiddenLayers={hiddenLayers}
-        onLayerSelect={onLayerSelect}
-        reorderedLayers={reorderedLayers}
-      />
-    );
-  }
-
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!processedPSD) return;
 
@@ -133,44 +130,20 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-[#1a1f2e] flex-shrink-0">
-        <h2 className="text-lg font-semibold text-white">
-          Canvas Preview ({viewMode})
-        </h2>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onFocusModeToggle}
-            className={focusMode ? 'bg-crd-green text-black hover:bg-crd-green/90' : ''}
-          >
-            {focusMode ? 'Disable Focus' : 'Enable Focus'}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onToggleBackground}
-            className={showBackground ? 'bg-crd-green text-black hover:bg-crd-green/90' : ''}
-          >
-            {showBackground ? 'Hide BG' : 'Show BG'}
-          </Button>
-        </div>
-      </div>
-      
-      <div className="flex-1 flex items-center justify-center overflow-hidden">
-        <Card className="bg-slate-800 border-slate-700 rounded-none flex-1 flex items-center justify-center">
-          <canvas
-            ref={canvasRef}
-            width={canvasSize.width}
-            height={canvasSize.height}
-            onClick={handleCanvasClick}
-            style={{
-              width: canvasSize.width,
-              height: canvasSize.height,
-              cursor: 'pointer'
-            }}
-          />
-        </Card>
+      <div className="flex-1 flex items-center justify-center overflow-hidden bg-[#0a0a0b] rounded">
+        <canvas
+          ref={canvasRef}
+          width={canvasSize.width}
+          height={canvasSize.height}
+          onClick={handleCanvasClick}
+          style={{
+            width: canvasSize.width,
+            height: canvasSize.height,
+            cursor: 'pointer',
+            maxWidth: '100%',
+            maxHeight: '100%'
+          }}
+        />
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ProcessedPSDLayer, EnhancedProcessedPSD } from '@/types/psdTypes';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { SimplifiedLayerInspector } from './components/SimplifiedLayerInspector';
 import { EnhancedPSDCanvasPreview } from './components/PSDCanvasPreview';
 import { LayerThumbnailView } from './components/LayerThumbnailView';
-import { ElementsModeView } from './components/ElementsModeView';
 import { FrameModeView } from './components/FrameModeView';
 import { CRDFrameBuilder } from './components/CRDFrameBuilder';
 import { SavePSDCardDialog } from './components/SavePSDCardDialog';
@@ -64,9 +64,9 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      {/* Layer Inspector */}
-      <div className="lg:col-span-1">
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 h-full">
+      {/* Layer Inspector - Compact sidebar */}
+      <div className="lg:col-span-1 h-full">
         <SimplifiedLayerInspector
           layers={reorderedLayers}
           selectedLayerId={selectedLayerId}
@@ -78,33 +78,58 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
         />
       </div>
 
-      {/* Main Content */}
-      <div className="lg:col-span-3">
-        <Card className="bg-[#1a1f2e] border-slate-700">
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="border-b border-slate-700">
-            <TabsList className="p-4 bg-transparent">
-              <TabsTrigger value="inspect" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white">
-                <Layers className="w-4 h-4 mr-2" />
-                Inspect
-              </TabsTrigger>
-              <TabsTrigger value="thumbnails" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white">
-                <Grid className="w-4 h-4 mr-2" />
-                Thumbnails
-              </TabsTrigger>
-              <TabsTrigger value="frame" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white">
-                <Frame className="w-4 h-4 mr-2" />
-                Frame
-              </TabsTrigger>
-              <TabsTrigger value="build" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white">
-                <Wrench className="w-4 h-4 mr-2" />
-                Build
-              </TabsTrigger>
-            </TabsList>
+      {/* Expanded Main Content Area */}
+      <div className="lg:col-span-4 h-full flex flex-col">
+        <Card className="bg-[#1a1f2e] border-slate-700 flex-1 flex flex-col">
+          {/* Compact Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="border-b border-slate-700 flex-shrink-0">
+            <div className="flex items-center justify-between p-3">
+              <TabsList className="bg-transparent">
+                <TabsTrigger value="inspect" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white text-xs px-3 py-1">
+                  <Layers className="w-3 h-3 mr-1" />
+                  Inspect
+                </TabsTrigger>
+                <TabsTrigger value="thumbnails" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white text-xs px-3 py-1">
+                  <Grid className="w-3 h-3 mr-1" />
+                  Thumbnails
+                </TabsTrigger>
+                <TabsTrigger value="frame" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white text-xs px-3 py-1">
+                  <Frame className="w-3 h-3 mr-1" />
+                  Frame
+                </TabsTrigger>
+                <TabsTrigger value="build" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white text-xs px-3 py-1">
+                  <Wrench className="w-3 h-3 mr-1" />
+                  Build
+                </TabsTrigger>
+              </TabsList>
+              
+              {/* Compact controls */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowBackground(!showBackground)}
+                  className="text-xs px-2 py-1"
+                >
+                  {showBackground ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                </Button>
+                <Button
+                  onClick={() => setShowSaveDialog(true)}
+                  className="bg-crd-green text-black hover:bg-crd-green/90 text-xs px-2 py-1"
+                  size="sm"
+                >
+                  <Save className="w-3 h-3 mr-1" />
+                  Save
+                </Button>
+                <Badge variant="secondary" className="text-xs">
+                  {processedPSD.width} × {processedPSD.height}
+                </Badge>
+              </div>
+            </div>
           </Tabs>
 
-          {/* Canvas Preview */}
-          <div className="p-4">
+          {/* Expanded Canvas Preview - Takes most of the space */}
+          <div className="flex-1 min-h-0">
             <EnhancedPSDCanvasPreview
               processedPSD={processedPSD}
               selectedLayerId={selectedLayerId}
@@ -118,86 +143,35 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ proces
               reorderedLayers={reorderedLayers}
             />
           </div>
-        </Card>
 
-        {/* Additional Controls */}
-        <div className="mt-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowBackground(!showBackground)}
-            >
-              {showBackground ? (
-                <>
-                  <EyeOff className="w-4 h-4 mr-2" />
-                  Hide Background
-                </>
-              ) : (
-                <>
-                  <Eye className="w-4 h-4 mr-2" />
-                  Show Background
-                </>
+          {/* Mode-Specific Views - Only for non-inspect modes */}
+          {activeTab !== 'inspect' && (
+            <div className="p-3 border-t border-slate-700 flex-shrink-0 max-h-48 overflow-y-auto">
+              {activeTab === 'thumbnails' && (
+                <LayerThumbnailView
+                  layers={reorderedLayers}
+                  selectedLayerId={selectedLayerId}
+                  hiddenLayers={hiddenLayers}
+                  onLayerSelect={handleLayerSelect}
+                  onLayerToggle={handleLayerToggle}
+                />
               )}
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setFocusMode(!focusMode)}
-            >
-              {focusMode ? 'Disable Focus' : 'Enable Focus'}
-            </Button>
-
-            <Button
-              onClick={() => setShowSaveDialog(true)}
-              className="bg-crd-green text-black hover:bg-crd-green/90"
-              size="sm"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Save to CRD Catalog
-            </Button>
-          </div>
-
-          <Badge variant="secondary">
-            {processedPSD.width} x {processedPSD.height}
-          </Badge>
-        </div>
-
-        {/* Mode-Specific Views */}
-        <div className="mt-6">
-          {activeTab === 'inspect' && (
-            <ElementsModeView
-              layers={reorderedLayers}
-              selectedLayerId={selectedLayerId}
-              hiddenLayers={hiddenLayers}
-              onLayerSelect={handleLayerSelect}
-              onLayerToggle={handleLayerToggle}
-            />
+              {activeTab === 'frame' && (
+                <FrameModeView
+                  layers={reorderedLayers}
+                  selectedLayerId={selectedLayerId}
+                  onLayerSelect={handleLayerSelect}
+                />
+              )}
+              {activeTab === 'build' && (
+                <CRDFrameBuilder
+                  selectedLayerId={selectedLayerId}
+                  hiddenLayers={hiddenLayers}
+                />
+              )}
+            </div>
           )}
-          {activeTab === 'thumbnails' && (
-            <LayerThumbnailView
-              layers={reorderedLayers}
-              selectedLayerId={selectedLayerId}
-              hiddenLayers={hiddenLayers}
-              onLayerSelect={handleLayerSelect}
-              onLayerToggle={handleLayerToggle}
-            />
-          )}
-          {activeTab === 'frame' && (
-            <FrameModeView
-              layers={reorderedLayers}
-              selectedLayerId={selectedLayerId}
-              onLayerSelect={handleLayerSelect}
-            />
-          )}
-          {activeTab === 'build' && (
-            <CRDFrameBuilder
-              selectedLayerId={selectedLayerId}
-              hiddenLayers={hiddenLayers}
-            />
-          )}
-        </div>
+        </Card>
       </div>
 
       {/* Save Dialog */}
