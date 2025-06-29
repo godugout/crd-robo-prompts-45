@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { PSDErrorBoundary } from './PSDErrorBoundary';
-import { unifiedPSDProcessor } from '@/services/psdProcessor/UnifiedPSDProcessor';
+import { UnifiedPSDProcessor } from '@/services/psdProcessor/UnifiedPSDProcessor';
 import { EnhancedProcessedPSD, PSDProcessingState } from '@/types/psdTypes';
 import { 
   Upload, 
@@ -35,53 +35,55 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
     setProcessingState(prev => ({ ...prev, ...updates }));
   };
 
-  const simulateProgress = useCallback((stage: string, duration: number = 2000) => {
-    updateProcessingState({ stage });
-    const steps = 20;
-    const increment = 100 / steps;
-    let currentProgress = 0;
-    
-    const interval = setInterval(() => {
-      currentProgress += increment;
-      updateProcessingState({ progress: Math.min(currentProgress, 100) });
-      
-      if (currentProgress >= 100) {
-        clearInterval(interval);
-      }
-    }, duration / steps);
-    
-    return interval;
-  }, []);
-
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
 
-    console.log('Processing PSD file:', file.name);
+    console.log('🔄 Processing PSD file:', file.name);
     updateProcessingState({
       isProcessing: true,
       progress: 0,
       error: null,
-      success: false
+      success: false,
+      stage: 'Starting PSD processing...'
     });
 
     try {
       // Stage 1: File validation
-      simulateProgress('Validating PSD file...', 1000);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      updateProcessingState({ 
+        progress: 10, 
+        stage: 'Validating PSD file...' 
+      });
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Stage 2: Parsing layers
-      updateProcessingState({ progress: 25 });
-      simulateProgress('Parsing PSD layers...', 1500);
+      // Stage 2: Parsing PSD structure
+      updateProcessingState({ 
+        progress: 25, 
+        stage: 'Parsing PSD structure...' 
+      });
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Stage 3: Processing with unified processor
-      updateProcessingState({ progress: 50, stage: 'Processing layers and extracting images...' });
+      updateProcessingState({ 
+        progress: 40, 
+        stage: 'Processing layers and extracting images...' 
+      });
       
-      const processedPSD = await unifiedPSDProcessor.processPSDFile(file);
+      // Use the static method to process the PSD file
+      const processedPSD = await UnifiedPSDProcessor.processPSDFile(file);
       
-      // Stage 4: Finalizing
-      updateProcessingState({ progress: 90, stage: 'Finalizing...' });
+      // Stage 4: Uploading images
+      updateProcessingState({ 
+        progress: 80, 
+        stage: 'Uploading rendered images...' 
+      });
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Stage 5: Finalizing
+      updateProcessingState({ 
+        progress: 95, 
+        stage: 'Finalizing...' 
+      });
       await new Promise(resolve => setTimeout(resolve, 500));
       
       updateProcessingState({ 
@@ -100,10 +102,11 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
       console.error('❌ PSD processing failed:', error);
       updateProcessingState({
         error: error instanceof Error ? error.message : 'Unknown error occurred',
-        isProcessing: false
+        isProcessing: false,
+        stage: 'Processing failed'
       });
     }
-  }, [onPSDProcessed, simulateProgress]);
+  }, [onPSDProcessed]);
 
   const resetState = () => {
     setProcessingState({
@@ -173,7 +176,7 @@ export const PSDFileProcessor: React.FC<PSDFileProcessorProps> = ({
                   Processing Complete!
                 </h3>
                 <p className="text-slate-400">
-                  Your PSD has been successfully processed and is ready for analysis.
+                  Your PSD has been successfully processed and rendered as a web-optimized card.
                 </p>
               </div>
             )}

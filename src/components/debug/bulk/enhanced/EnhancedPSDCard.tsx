@@ -1,10 +1,19 @@
-import React, { useState, useMemo } from 'react';
+
+import React from 'react';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 import { BulkPSDData } from '@/pages/BulkPSDAnalysisPage';
-import { Eye, Play, Layers, FileImage, Calendar, Ruler, Image } from 'lucide-react';
+import { EnhancedImage } from '@/components/media/EnhancedImage';
+import { 
+  Layers, 
+  Eye, 
+  Sparkles, 
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Loader2
+} from 'lucide-react';
 
 interface EnhancedPSDCardProps {
   psd: BulkPSDData;
@@ -19,214 +28,188 @@ export const EnhancedPSDCard: React.FC<EnhancedPSDCardProps> = ({
   onAnalyze,
   isSelected
 }) => {
-  const [imageError, setImageError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Get the best available image for preview
-  const previewImage = useMemo(() => {
-    const { processedPSD } = psd;
+  // Determine the best image to display
+  const getPreviewImage = (): { url: string; isProcessing: boolean } => {
+    const { enhancedProcessedPSD } = psd;
     
-    // Try flattened image first (this should be the main rendered card)
-    if (processedPSD.flattenedImageUrl && 
-        processedPSD.flattenedImageUrl !== 'url_to_flattened_image' &&
-        !processedPSD.flattenedImageUrl.includes('url_to_')) {
-      return processedPSD.flattenedImageUrl;
+    // Check if we have a real flattened image (not placeholder)
+    if (enhancedProcessedPSD.extractedImages?.flattenedImageUrl && 
+        !enhancedProcessedPSD.extractedImages.flattenedImageUrl.includes('placeholder')) {
+      console.log('✅ Using flattened image from extractedImages');
+      return { 
+        url: enhancedProcessedPSD.extractedImages.flattenedImageUrl, 
+        isProcessing: false 
+      };
     }
     
-    // Try transparent flattened version
-    if (processedPSD.transparentFlattenedImageUrl && 
-        processedPSD.transparentFlattenedImageUrl !== 'url_to_transparent_flattened_image' &&
-        !processedPSD.transparentFlattenedImageUrl.includes('url_to_')) {
-      return processedPSD.transparentFlattenedImageUrl;
+    // Check main flattened image URL
+    if (enhancedProcessedPSD.flattenedImageUrl && 
+        !enhancedProcessedPSD.flattenedImageUrl.includes('placeholder')) {
+      console.log('✅ Using main flattened image URL');
+      return { 
+        url: enhancedProcessedPSD.flattenedImageUrl, 
+        isProcessing: false 
+      };
     }
     
-    // Try thumbnail
-    if (processedPSD.thumbnailUrl && 
-        processedPSD.thumbnailUrl !== 'url_to_thumbnail' &&
-        !processedPSD.thumbnailUrl.includes('url_to_')) {
-      return processedPSD.thumbnailUrl;
+    // Check if we have layer images to show
+    if (enhancedProcessedPSD.extractedImages?.layerImages?.length > 0) {
+      const firstLayerImage = enhancedProcessedPSD.extractedImages.layerImages[0];
+      if (firstLayerImage.imageUrl && !firstLayerImage.imageUrl.includes('placeholder')) {
+        console.log('✅ Using first layer image as fallback');
+        return { 
+          url: firstLayerImage.imageUrl, 
+          isProcessing: false 
+        };
+      }
     }
     
-    // Try to find a layer with an actual image
-    const layerWithImage = processedPSD.layers.find(layer => 
-      layer.imageUrl && 
-      layer.hasRealImage &&
-      !layer.imageUrl.includes('url_to_')
-    );
-    
-    return layerWithImage?.imageUrl || null;
-  }, [psd.processedPSD]);
-
-  // Calculate visible layers count
-  const visibleLayersCount = useMemo(() => {
-    return psd.processedPSD.layers.filter(layer => layer.isVisible).length;
-  }, [psd.processedPSD.layers]);
-
-  // Get semantic layer breakdown
-  const layerBreakdown = useMemo(() => {
-    const breakdown: Record<string, number> = {};
-    psd.processedPSD.layers.forEach(layer => {
-      const type = layer.semanticType || 'unknown';
-      breakdown[type] = (breakdown[type] || 0) + 1;
-    });
-    return breakdown;
-  }, [psd.processedPSD.layers]);
-
-  const handleImageLoad = () => {
-    setIsLoading(false);
-    setImageError(false);
+    // Still processing if we only have placeholders
+    console.log('⚠️ Still processing - only placeholder URLs available');
+    return { 
+      url: '', 
+      isProcessing: true 
+    };
   };
 
-  const handleImageError = () => {
-    setIsLoading(false);
-    setImageError(true);
+  const { url: previewImageUrl, isProcessing } = getPreviewImage();
+  
+  // Determine processing status
+  const getProcessingStatus = () => {
+    if (isProcessing) {
+      return {
+        status: 'processing',
+        message: 'Rendering card...',
+        icon: <Loader2 className="w-4 h-4 animate-spin" />
+      };
+    }
+    
+    if (previewImageUrl) {
+      return {
+        status: 'complete',
+        message: 'Ready to view',
+        icon: <CheckCircle className="w-4 h-4 text-green-500" />
+      };
+    }
+    
+    return {
+      status: 'error',
+      message: 'Processing failed',
+      icon: <AlertCircle className="w-4 h-4 text-red-500" />
+    };
   };
+
+  const processingStatus = getProcessingStatus();
 
   return (
-    <TooltipProvider>
-      <Card className={`
-        bg-[#131316] border transition-all duration-300 cursor-pointer group
-        ${isSelected 
-          ? 'border-crd-green shadow-lg shadow-crd-green/20' 
-          : 'border-slate-700 hover:border-slate-600'
-        }
-      `}>
-        <div className="p-4 space-y-4">
-          {/* Header with filename and selection indicator */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-white font-medium text-sm truncate flex-1 mr-2">
-              {psd.fileName}
-            </h3>
-            {isSelected && (
-              <div className="w-2 h-2 bg-crd-green rounded-full animate-pulse" />
-            )}
+    <Card className={`bg-[#131316] border-slate-700 transition-all duration-200 hover:border-slate-600 ${
+      isSelected ? 'ring-2 ring-crd-green border-crd-green' : ''
+    }`}>
+      {/* Preview Area */}
+      <div className="aspect-[3/4] bg-slate-900 rounded-t-lg overflow-hidden relative">
+        {isProcessing ? (
+          <div className="w-full h-full flex flex-col items-center justify-center">
+            <Loader2 className="w-8 h-8 text-crd-blue animate-spin mb-3" />
+            <p className="text-sm text-slate-400 text-center px-4">
+              Processing PSD layers...
+            </p>
+            <p className="text-xs text-slate-500 mt-1">
+              Card render in progress
+            </p>
           </div>
-
-          {/* Image Preview */}
-          <div className="aspect-[3/4] bg-slate-800 rounded-lg overflow-hidden relative">
-            {previewImage && !imageError ? (
-              <>
-                {isLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-slate-800">
-                    <div className="text-center text-slate-500">
-                      <div className="w-8 h-8 border-2 border-crd-green border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                      <p className="text-xs">Loading card...</p>
-                    </div>
-                  </div>
-                )}
-                <img
-                  src={previewImage}
-                  alt={psd.fileName}
-                  className={`w-full h-full object-contain transition-opacity duration-300 ${
-                    isLoading ? 'opacity-0' : 'opacity-100'
-                  }`}
-                  onLoad={handleImageLoad}
-                  onError={handleImageError}
-                />
-              </>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="text-center text-slate-500">
-                  <FileImage className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-xs">
-                    {imageError ? 'Failed to load' : 'Processing...'}
-                  </p>
-                  {!imageError && (
-                    <p className="text-xs mt-1 opacity-75">
-                      Card render in progress
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-            
-            {/* Overlay with PSD info */}
-            <div className="absolute top-2 left-2 right-2 flex justify-between">
-              <Badge variant="secondary" className="text-xs bg-black/70 text-white border-none">
-                PSD
-              </Badge>
-              <Badge variant="secondary" className="text-xs bg-black/70 text-white border-none">
-                {visibleLayersCount}/{psd.processedPSD.totalLayers}
-              </Badge>
-            </div>
+        ) : previewImageUrl ? (
+          <EnhancedImage
+            src={previewImageUrl}
+            alt={psd.fileName}
+            className="w-full h-full object-contain"
+            loading="lazy"
+            onLoad={() => console.log('✅ Preview image loaded successfully')}
+            onError={() => console.error('❌ Preview image failed to load')}
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center">
+            <AlertCircle className="w-8 h-8 text-red-500 mb-3" />
+            <p className="text-sm text-red-400 text-center px-4">
+              Failed to process PSD
+            </p>
+            <p className="text-xs text-slate-500 mt-1">
+              Check console for details
+            </p>
           </div>
+        )}
+        
+        {/* Status Badge */}
+        <div className="absolute top-3 right-3">
+          <Badge 
+            variant={processingStatus.status === 'complete' ? 'default' : 'secondary'}
+            className={`
+              flex items-center gap-1 text-xs
+              ${processingStatus.status === 'processing' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : ''}
+              ${processingStatus.status === 'complete' ? 'bg-green-500/20 text-green-400 border-green-500/30' : ''}
+              ${processingStatus.status === 'error' ? 'bg-red-500/20 text-red-400 border-red-500/30' : ''}
+            `}
+          >
+            {processingStatus.icon}
+            {processingStatus.message}
+          </Badge>
+        </div>
+      </div>
 
-          {/* PSD Metadata */}
-          <div className="space-y-2">
-            {/* Dimensions */}
-            <div className="flex items-center gap-2">
-              <Ruler className="w-3 h-3 text-slate-400" />
-              <span className="text-xs text-slate-400">
-                {psd.processedPSD.width} × {psd.processedPSD.height}
-              </span>
-            </div>
-
-            {/* Upload date */}
-            <div className="flex items-center gap-2">
-              <Calendar className="w-3 h-3 text-slate-400" />
-              <span className="text-xs text-slate-400">
-                {new Date(psd.uploadedAt).toLocaleDateString()}
-              </span>
-            </div>
-
-            {/* Layer breakdown */}
-            <div className="flex items-center gap-2">
-              <Layers className="w-3 h-3 text-slate-400" />
-              <div className="flex gap-1 flex-wrap">
-                {Object.entries(layerBreakdown).slice(0, 3).map(([type, count]) => (
-                  <Badge key={type} variant="outline" className="text-xs px-1 py-0 border-slate-600 text-slate-300">
-                    {type}: {count}
-                  </Badge>
-                ))}
-                {Object.keys(layerBreakdown).length > 3 && (
-                  <Badge variant="outline" className="text-xs px-1 py-0 border-slate-600 text-slate-300">
-                    +{Object.keys(layerBreakdown).length - 3}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-2 pt-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onSelect(psd.id)}
-                  className={`flex-1 h-8 ${
-                    isSelected 
-                      ? 'bg-crd-green text-black border-crd-green hover:bg-crd-green/90' 
-                      : 'border-slate-600 hover:border-slate-500'
-                  }`}
-                >
-                  <Eye className="w-3 h-3" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{isSelected ? 'Selected' : 'Select for comparison'}</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onAnalyze(psd.id)}
-                  className="flex-1 h-8 border-slate-600 hover:border-crd-green hover:text-crd-green"
-                >
-                  <Play className="w-3 h-3" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Analyze PSD layers</p>
-              </TooltipContent>
-            </Tooltip>
+      {/* Card Content */}
+      <div className="p-4 space-y-3">
+        {/* Header */}
+        <div>
+          <h3 className="text-white font-medium text-sm truncate mb-1">
+            {psd.fileName.replace('.psd', '')}
+          </h3>
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <span>{psd.enhancedProcessedPSD.width} × {psd.enhancedProcessedPSD.height}px</span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <Layers className="w-3 h-3" />
+              {psd.enhancedProcessedPSD.layers.length} layers
+            </span>
           </div>
         </div>
-      </Card>
-    </TooltipProvider>
+
+        {/* Stats */}
+        <div className="flex items-center gap-3 text-xs">
+          <div className="flex items-center gap-1 text-slate-400">
+            <Clock className="w-3 h-3" />
+            <span>{new Date(psd.uploadedAt).toLocaleDateString()}</span>
+          </div>
+          
+          {psd.enhancedProcessedPSD.extractedImages?.layerImages?.length > 0 && (
+            <Badge variant="outline" className="text-xs">
+              {psd.enhancedProcessedPSD.extractedImages.layerImages.length} images
+            </Badge>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2 pt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onSelect(psd.id)}
+            className="flex-1 h-8 text-xs"
+            disabled={isProcessing}
+          >
+            <Eye className="w-3 h-3 mr-1" />
+            {isSelected ? 'Selected' : 'Select'}
+          </Button>
+          
+          <Button
+            size="sm"
+            onClick={() => onAnalyze(psd.id)}
+            className="flex-1 h-8 text-xs bg-crd-green text-black hover:bg-crd-green/90"
+            disabled={isProcessing}
+          >
+            <Sparkles className="w-3 h-3 mr-1" />
+            Analyze
+          </Button>
+        </div>
+      </div>
+    </Card>
   );
 };
