@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { EnhancedProcessedPSD, ProcessedPSDLayer } from '@/types/psdTypes';
@@ -35,6 +36,59 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   // Use reordered layers if available, otherwise fall back to original layers
   const layersToRender = reorderedLayers || processedPSD.layers;
 
+  // Always call useEffect - this must be called before any conditional returns
+  useEffect(() => {
+    // Only run canvas drawing logic if we're not in inspect mode
+    if (viewMode === 'inspect' || !processedPSD || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const containerWidth = canvas.parentElement?.offsetWidth || 800;
+    const containerHeight = canvas.parentElement?.offsetHeight || 600;
+
+    const aspectRatio = processedPSD.width / processedPSD.height;
+    let calculatedWidth = containerWidth;
+    let calculatedHeight = containerWidth / aspectRatio;
+
+    if (calculatedHeight > containerHeight) {
+      calculatedHeight = containerHeight;
+      calculatedWidth = containerHeight * aspectRatio;
+    }
+
+    setCanvasSize({ width: calculatedWidth, height: calculatedHeight });
+
+    canvas.width = processedPSD.width;
+    canvas.height = processedPSD.height;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (showBackground) {
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    layersToRender.forEach(layer => {
+      if (!layer.hasRealImage || hiddenLayers.has(layer.id)) return;
+
+      const img = new Image();
+      img.src = layer.imageUrl || '';
+      img.onload = () => {
+        if (!ctx) return;
+        ctx.globalAlpha = layer.opacity;
+        ctx.drawImage(
+          img,
+          layer.bounds.left,
+          layer.bounds.top,
+          layer.bounds.right - layer.bounds.left,
+          layer.bounds.bottom - layer.bounds.top
+        );
+        ctx.globalAlpha = 1;
+      };
+    });
+  }, [processedPSD, selectedLayerId, hiddenLayers, showBackground, layersToRender, viewMode]);
+
   // If we're in inspect mode, use the new 3D canvas
   if (viewMode === 'inspect') {
     return (
@@ -47,57 +101,6 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
       />
     );
   }
-
-  useEffect(() => {
-    if (processedPSD && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      const containerWidth = canvas.parentElement?.offsetWidth || 800;
-      const containerHeight = canvas.parentElement?.offsetHeight || 600;
-
-      const aspectRatio = processedPSD.width / processedPSD.height;
-      let calculatedWidth = containerWidth;
-      let calculatedHeight = containerWidth / aspectRatio;
-
-      if (calculatedHeight > containerHeight) {
-        calculatedHeight = containerHeight;
-        calculatedWidth = containerHeight * aspectRatio;
-      }
-
-      setCanvasSize({ width: calculatedWidth, height: calculatedHeight });
-
-      canvas.width = processedPSD.width;
-      canvas.height = processedPSD.height;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      if (showBackground) {
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-
-      layersToRender.forEach(layer => {
-        if (!layer.hasRealImage || hiddenLayers.has(layer.id)) return;
-
-        const img = new Image();
-        img.src = layer.imageUrl || '';
-        img.onload = () => {
-          if (!ctx) return;
-          ctx.globalAlpha = layer.opacity;
-          ctx.drawImage(
-            img,
-            layer.bounds.left,
-            layer.bounds.top,
-            layer.bounds.right - layer.bounds.left,
-            layer.bounds.bottom - layer.bounds.top
-          );
-          ctx.globalAlpha = 1;
-        };
-      });
-    }
-  }, [processedPSD, selectedLayerId, hiddenLayers, showBackground, layersToRender]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!processedPSD) return;
