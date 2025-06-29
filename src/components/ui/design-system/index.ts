@@ -1,3 +1,4 @@
+
 // Cardshow Design System - Main Export
 export { cardshowColors, colors } from './colors';
 export { designTokens, componentTokens } from './design-tokens';
@@ -22,6 +23,9 @@ export type {
 } from './colors';
 export type { DesignToken, ComponentToken } from './design-tokens';
 export type { LayerCategoryType } from './psd-tokens';
+
+// Import cardshowColors for utility functions
+import { cardshowColors } from './colors';
 
 // Design system utilities
 export const getContextColor = (context: 'collections' | 'cards' | 'shops' | 'currency') => {
