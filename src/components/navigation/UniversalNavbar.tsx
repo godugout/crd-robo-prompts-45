@@ -35,15 +35,15 @@ export const UniversalNavbar: React.FC = () => {
   );
 
   return (
-    <nav className="bg-crd-darkest border-b border-crd-mediumGray/20 sticky top-0 z-50">
+    <nav className="bg-nav-dark border-b border-white/10 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
             <div className="w-8 h-8 bg-crd-green rounded-lg flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-black" />
+              <Sparkles className="w-5 h-5 text-nav-dark" />
             </div>
-            <span className="text-xl font-bold text-white">CardShow</span>
+            <span className="text-xl font-bold text-nav-text">CardShow</span>
           </Link>
 
           {/* Navigation Links */}
@@ -59,8 +59,8 @@ export const UniversalNavbar: React.FC = () => {
                   className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                     isActive 
-                      ? "bg-crd-green text-black" 
-                      : "text-gray-300 hover:text-white hover:bg-white/10"
+                      ? "bg-crd-green/20 text-crd-green" 
+                      : "text-nav-secondary hover:text-nav-text hover:bg-white/10"
                   )}
                 >
                   <Icon className="w-4 h-4" />
@@ -74,7 +74,7 @@ export const UniversalNavbar: React.FC = () => {
           <div className="flex items-center gap-3">
             {user ? (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-gray-300">
+                <div className="flex items-center gap-2 text-nav-secondary">
                   <User className="w-4 h-4" />
                   <span className="text-sm">{user.email?.split('@')[0]}</span>
                 </div>
@@ -82,7 +82,7 @@ export const UniversalNavbar: React.FC = () => {
                   onClick={() => signOut()}
                   variant="outline"
                   size="sm"
-                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                  className="border-white/20 text-nav-text hover:bg-white/10 bg-transparent"
                 >
                   Sign Out
                 </Button>
@@ -93,7 +93,7 @@ export const UniversalNavbar: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                    className="border-white/20 text-nav-text hover:bg-white/10 bg-transparent"
                   >
                     Sign In
                   </Button>
@@ -101,7 +101,7 @@ export const UniversalNavbar: React.FC = () => {
                 <Link to="/auth/signup">
                   <Button
                     size="sm"
-                    className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
+                    className="bg-crd-green hover:bg-crd-green-hover text-nav-dark font-semibold"
                   >
                     Sign Up
                   </Button>
@@ -115,7 +115,7 @@ export const UniversalNavbar: React.FC = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-300 hover:text-white"
+              className="text-nav-secondary hover:text-nav-text"
             >
               <Settings className="w-5 h-5" />
             </Button>
@@ -123,7 +123,7 @@ export const UniversalNavbar: React.FC = () => {
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden border-t border-crd-mediumGray/20 py-3">
+        <div className="md:hidden border-t border-white/10 py-3">
           <div className="flex flex-wrap gap-2">
             {visibleItems.map((item) => {
               const Icon = item.icon;
@@ -136,8 +136,8 @@ export const UniversalNavbar: React.FC = () => {
                   className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                     isActive 
-                      ? "bg-crd-green text-black" 
-                      : "text-gray-300 hover:text-white hover:bg-white/10"
+                      ? "bg-crd-green/20 text-crd-green" 
+                      : "text-nav-secondary hover:text-nav-text hover:bg-white/10"
                   )}
                 >
                   <Icon className="w-4 h-4" />
