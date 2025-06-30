@@ -42,13 +42,13 @@ export const Hero: React.FC = () => {
           </Typography>
         </div>
         <div className="flex gap-4 mt-6">
-          <Link to="/cards/enhanced">
+          <Link to="/create/simple">
             <CRDButton 
               variant="primary"
               size="lg"
-              className="gap-3 text-lg font-extrabold px-6 py-4 rounded-[90px] max-md:px-5"
+              className="gap-3 text-lg font-extrabold px-6 py-4 rounded-[90px] max-md:px-5 bg-crd-green hover:bg-crd-green/90 text-black"
             >
-              Get started
+              Create Your First Card
             </CRDButton>
           </Link>
           {showOakFeatures && (
