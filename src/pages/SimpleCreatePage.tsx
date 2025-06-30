@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { SimpleCardCreator } from '@/components/creation/SimpleCardCreator';
+import { EnhancedCardCreator } from '@/components/creation/EnhancedCardCreator';
 
 const SimpleCreatePage: React.FC = () => {
-  return <SimpleCardCreator />;
+  return <EnhancedCardCreator />;
 };
 
 export default SimpleCreatePage;
