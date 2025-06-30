@@ -11,15 +11,15 @@
   --studio-border: #e2e8f0;
   --studio-border-muted: #f1f5f9;
   
-  /* Labs Theme (Dark) - Updated to avoid white/very light colors */
+  /* Labs Theme (Dark) - Updated to completely avoid white/light colors */
   --labs-bg-primary: #0a0a0b;
-  --labs-bg-secondary: #0f0f12;
-  --labs-bg-accent: #18181b;
+  --labs-bg-secondary: #111113;
+  --labs-bg-accent: #1a1a1d;
   --labs-text-primary: #e2e8f0;
   --labs-text-secondary: #94a3b8;
   --labs-text-muted: #64748b;
   --labs-border: #1f1f23;
-  --labs-border-muted: #27272a;
+  --labs-border-muted: #2a2a2e;
   
   /* Brand Colors (consistent across themes) */
   --brand-green: #4ade80;

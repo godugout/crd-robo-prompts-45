@@ -12,9 +12,9 @@ const buttonVariants = cva(
       variant: {
         default: "bg-crd-blue text-crd-white hover:bg-crd-blue/90",
         destructive: "bg-red-600 text-crd-white hover:bg-red-700",
-        outline: "border border-crd-mediumGray bg-transparent hover:bg-crd-mediumGray hover:text-crd-white text-crd-lightGray",
-        secondary: "bg-crd-lightGray text-black hover:bg-crd-lightGray/80",
-        ghost: "hover:bg-crd-mediumGray hover:text-crd-white text-crd-lightGray",
+        outline: "border theme-border theme-bg-secondary hover:theme-bg-accent theme-text-primary",
+        secondary: "theme-bg-accent theme-text-primary hover:theme-bg-accent/80",
+        ghost: "hover:theme-bg-accent theme-text-primary",
         link: "text-crd-blue underline-offset-4 hover:underline",
       },
       size: {
