@@ -5,6 +5,7 @@ import { EnhancedCardFrameFittingInterface } from './components/EnhancedCardFram
 import { CRDFrameBuilder } from './components/CRDFrameBuilder';
 import { SimplifiedLayerInspector } from './components/SimplifiedLayerInspector';
 import { EnhancedPSDCanvasPreview } from './components/EnhancedPSDCanvasPreview';
+import { EnhancedLayerVisualization } from './components/EnhancedLayerVisualization';
 import { findLargestLayerByVolume } from '@/utils/layerUtils';
 import { PSDButton } from '@/components/ui/design-system/PSDButton';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +13,8 @@ import {
   Search,
   Frame,
   Wand2,
-  Layers
+  Layers,
+  Palette
 } from 'lucide-react';
 
 interface PSDPreviewInterfaceProps {
@@ -22,34 +24,68 @@ interface PSDPreviewInterfaceProps {
 export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
   processedPSD
 }) => {
-  const [selectedLayerId, setSelectedLayerId] = useState<string>('');
+  const [selectedLayerIds, setSelectedLayerIds] = useState<Set<string>>(new Set());
   const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
   const [selectedFrame, setSelectedFrame] = useState('classic-sports');
-  const [activeTab, setActiveTab] = useState<'inspect' | 'frame' | 'build'>('inspect');
+  const [activeTab, setActiveTab] = useState<'inspect' | 'frame' | 'build' | 'visualize'>('visualize');
   const [generatedFrames, setGeneratedFrames] = useState<any[]>([]);
   const [flippedLayers, setFlippedLayers] = useState<Set<string>>(new Set());
   const [focusMode, setFocusMode] = useState(false);
   const [showBackground, setShowBackground] = useState(true);
+  const [showOriginal, setShowOriginal] = useState(true);
+  const [layerOrder, setLayerOrder] = useState<number[]>([]);
 
-  // Initialize with largest layer selected
+  // Initialize layer order and selection
   React.useEffect(() => {
-    if (processedPSD && !selectedLayerId) {
+    if (processedPSD && layerOrder.length === 0) {
+      setLayerOrder(processedPSD.layers.map((_, index) => index));
+      
+      // Auto-select the largest layer
       const largestLayerId = findLargestLayerByVolume(processedPSD.layers);
       if (largestLayerId) {
-        setSelectedLayerId(largestLayerId);
+        setSelectedLayerIds(new Set([largestLayerId]));
       }
     }
-  }, [processedPSD, selectedLayerId]);
+  }, [processedPSD, layerOrder.length]);
 
   const toggleLayerVisibility = (layerId: string) => {
-    setHiddenLayers((prevHiddenLayers) => {
-      const newHiddenLayers = new Set(prevHiddenLayers);
-      if (newHiddenLayers.has(layerId)) {
-        newHiddenLayers.delete(layerId);
+    setHiddenLayers((prev) => {
+      const newHidden = new Set(prev);
+      if (newHidden.has(layerId)) {
+        newHidden.delete(layerId);
       } else {
-        newHiddenLayers.add(layerId);
+        newHidden.add(layerId);
       }
-      return newHiddenLayers;
+      return newHidden;
+    });
+  };
+
+  const handleLayerSelect = (layerId: string, multiSelect = false) => {
+    setSelectedLayerIds((prev) => {
+      const newSelected = new Set(prev);
+      
+      if (multiSelect) {
+        if (newSelected.has(layerId)) {
+          newSelected.delete(layerId);
+        } else {
+          newSelected.add(layerId);
+        }
+      } else {
+        newSelected.clear();
+        newSelected.add(layerId);
+      }
+      
+      return newSelected;
+    });
+  };
+
+  const handleLayerReorder = (dragIndex: number, hoverIndex: number) => {
+    setLayerOrder((prev) => {
+      const newOrder = [...prev];
+      const draggedItem = newOrder[dragIndex];
+      newOrder.splice(dragIndex, 1);
+      newOrder.splice(hoverIndex, 0, draggedItem);
+      return newOrder;
     });
   };
 
@@ -69,12 +105,18 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
     setFlippedLayers(flipped);
   };
 
-  const selectedLayer = processedPSD.layers.find(layer => layer.id === selectedLayerId);
+  const selectedLayer = processedPSD.layers.find(layer => selectedLayerIds.has(layer.id));
   const visibleLayerCount = processedPSD.layers.length - hiddenLayers.size;
   const allFrames = [...generatedFrames];
 
-  // Tab configuration with unified mode system
+  // Tab configuration with new visualize mode
   const tabConfig = [
+    {
+      id: 'visualize' as const,
+      label: 'Layer Visualizer',
+      icon: Palette,
+      description: 'Interactive layer effects and multi-selection'
+    },
     {
       id: 'inspect' as const,
       label: 'Inspect Layers',
@@ -96,9 +138,9 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
   ];
 
   return (
-    <div className="h-full bg-[#0a0a0b] flex flex-col">
+    <div className="h-full bg-cardshow-dark flex flex-col">
       {/* Unified Tab Navigation */}
-      <div className="bg-[#1a1f2e] border-b border-slate-700 p-4 flex-shrink-0">
+      <div className="bg-cardshow-dark-100 border-b border-cardshow-dark-100 p-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {tabConfig.map((tab) => {
@@ -120,7 +162,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
             })}
             
             {generatedFrames.length > 0 && (
-              <Badge className="bg-crd-blue text-white ml-2">
+              <Badge className="bg-cardshow-blue text-white ml-2">
                 {generatedFrames.length} Generated
               </Badge>
             )}
@@ -128,24 +170,24 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
           
           {/* Status Indicators */}
           <div className="flex items-center gap-3">
-            <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-600">
+            <Badge variant="outline" className="bg-cardshow-dark text-cardshow-light-300 border-cardshow-dark-100">
               {visibleLayerCount} visible
             </Badge>
             
-            {selectedLayer && (
-              <Badge className="bg-crd-green text-black font-medium px-3 py-1">
-                Active: {selectedLayer.name}
+            {selectedLayerIds.size > 0 && (
+              <Badge className="bg-cardshow-green text-black font-medium px-3 py-1">
+                {selectedLayerIds.size} selected
               </Badge>
             )}
             
             {focusMode && (
-              <Badge className="bg-blue-500 text-white font-medium px-3 py-1">
+              <Badge className="bg-cardshow-primary text-white font-medium px-3 py-1">
                 Focus Mode
               </Badge>
             )}
             
             {flippedLayers.size > 0 && (
-              <Badge className="bg-crd-blue text-white font-medium px-3 py-1">
+              <Badge className="bg-cardshow-blue text-white font-medium px-3 py-1">
                 {flippedLayers.size} CRD Branded
               </Badge>
             )}
@@ -153,7 +195,7 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
         </div>
         
         {/* Tab Description */}
-        <div className="mt-2 text-sm text-slate-400">
+        <div className="mt-2 text-sm text-cardshow-light-700">
           {tabConfig.find(tab => tab.id === activeTab)?.description}
         </div>
       </div>
@@ -161,13 +203,26 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Canvas Area */}
-        <div className="flex-1">
+        <div className="flex-1 p-6">
+          {activeTab === 'visualize' && (
+            <EnhancedLayerVisualization
+              processedPSD={processedPSD}
+              selectedLayerIds={selectedLayerIds}
+              hiddenLayers={hiddenLayers}
+              showOriginal={showOriginal}
+              onLayerSelect={handleLayerSelect}
+              onLayerToggle={toggleLayerVisibility}
+              onLayerReorder={handleLayerReorder}
+              onToggleOriginal={() => setShowOriginal(!showOriginal)}
+            />
+          )}
+          
           {activeTab === 'inspect' && (
             <EnhancedPSDCanvasPreview
               processedPSD={processedPSD}
-              selectedLayerId={selectedLayerId}
+              selectedLayerId={Array.from(selectedLayerIds)[0] || ''}
               hiddenLayers={hiddenLayers}
-              onLayerSelect={setSelectedLayerId}
+              onLayerSelect={(id) => handleLayerSelect(id)}
               focusMode={focusMode}
               onFocusModeToggle={() => setFocusMode(!focusMode)}
               showBackground={showBackground}
@@ -179,9 +234,9 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
           {activeTab === 'frame' && (
             <EnhancedCardFrameFittingInterface
               processedPSD={processedPSD}
-              selectedLayerId={selectedLayerId}
+              selectedLayerId={Array.from(selectedLayerIds)[0] || ''}
               hiddenLayers={hiddenLayers}
-              onLayerSelect={setSelectedLayerId}
+              onLayerSelect={(id) => handleLayerSelect(id)}
               selectedFrame={selectedFrame}
               availableFrames={allFrames}
               onFrameSelect={setSelectedFrame}
@@ -191,40 +246,41 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
           {activeTab === 'build' && (
             <CRDFrameBuilder
               processedPSD={processedPSD}
-              selectedLayerId={selectedLayerId}
+              selectedLayerId={Array.from(selectedLayerIds)[0] || ''}
               onFrameGenerated={handleFrameGenerated}
             />
           )}
         </div>
 
-        {/* Enhanced Inspector Sidebar */}
-        <div className="w-80 bg-[#1a1f2e] border-l border-slate-700 flex flex-col">
-          <div className="p-4 border-b border-slate-700 flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <Layers className="w-5 h-5 text-crd-blue" />
-              <h2 className="text-lg font-semibold text-white">Layer Inspector</h2>
+        {/* Enhanced Inspector Sidebar - Only show for non-visualize tabs */}
+        {activeTab !== 'visualize' && (
+          <div className="w-80 bg-cardshow-dark-100 border-l border-cardshow-dark-100 flex flex-col">
+            <div className="p-4 border-b border-cardshow-dark-100 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <Layers className="w-5 h-5 text-cardshow-blue" />
+                <h2 className="text-lg font-semibold text-white">Layer Inspector</h2>
+              </div>
+              <p className="text-sm text-cardshow-light-700 mt-1">
+                {activeTab === 'inspect' && 'Interactive layer exploration and analysis'}
+                {activeTab === 'frame' && 'Frame fitting optimization and content analysis'}
+                {activeTab === 'build' && 'CRD frame generation and customization tools'}
+              </p>
             </div>
-            <p className="text-sm text-slate-400 mt-1">
-              {activeTab === 'inspect' && 'Interactive layer exploration and analysis'}
-              {activeTab === 'frame' && 'Frame fitting optimization and content analysis'}
-              {activeTab === 'build' && 'CRD frame generation and customization tools'}
-            </p>
+            
+            <div className="flex-1 overflow-hidden">
+              <SimplifiedLayerInspector
+                layers={processedPSD.layers}
+                selectedLayerId={Array.from(selectedLayerIds)[0] || ''}
+                hiddenLayers={hiddenLayers}
+                onLayerSelect={(id) => handleLayerSelect(id)}
+                onToggleVisibility={toggleLayerVisibility}
+                mode={activeTab}
+                flippedLayers={flippedLayers}
+                onFlippedLayersChange={handleFlippedLayersChange}
+              />
+            </div>
           </div>
-          
-          <div className="flex-1 overflow-hidden">
-            <SimplifiedLayerInspector
-              layers={processedPSD.layers}
-              selectedLayerId={selectedLayerId}
-              onLayerSelect={setSelectedLayerId}
-              hiddenLayers={hiddenLayers}
-              onLayerToggle={toggleLayerVisibility}
-              onFlippedLayersChange={handleFlippedLayersChange}
-              viewMode={activeTab}
-              focusMode={focusMode}
-              showBackground={showBackground}
-            />
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
