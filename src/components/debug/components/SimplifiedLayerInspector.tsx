@@ -51,36 +51,36 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
   return (
     <div className="h-full flex flex-col bg-[#1a1f2e]">
       {/* Header */}
-      <div className="p-4 border-b border-slate-700">
-        <div className="flex items-center justify-between mb-3">
+      <div className="p-3 border-b border-slate-700">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-slate-400" />
             <span className="text-sm font-medium text-slate-300">
               Layers ({visibleLayers.length}/{layers.length})
             </span>
           </div>
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className="text-xs text-slate-400 border-slate-500">
             {layersWithImages} with images
           </Badge>
         </div>
 
         {/* Mode-specific info */}
         {viewMode === 'frame' && (
-          <div className="text-xs text-slate-400 mb-2">
+          <div className="text-xs text-slate-400 mb-1">
             <Info className="w-3 h-3 inline mr-1" />
             Frame fitting analysis active
           </div>
         )}
         
         {viewMode === 'build' && (
-          <div className="text-xs text-slate-400 mb-2">
+          <div className="text-xs text-slate-400 mb-1">
             <RotateCcw className="w-3 h-3 inline mr-1" />
             CRD frame generation mode
           </div>
         )}
 
         {flippedLayers.size > 0 && (
-          <div className="text-xs text-blue-400 mb-2">
+          <div className="text-xs text-blue-400 mb-1">
             {flippedLayers.size} layers branded with CRD
           </div>
         )}
@@ -88,7 +88,7 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
 
       {/* Layer List */}
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1">
+        <div className="p-2 space-y-0.5">
           {layers.map((layer, index) => {
             const isSelected = layer.id === selectedLayerId;
             const isHidden = hiddenLayers.has(layer.id);
@@ -98,22 +98,34 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
             return (
               <Card
                 key={layer.id}
-                className={`p-3 cursor-pointer transition-all ${
+                className={`p-2 cursor-pointer transition-all ${
                   isSelected 
                     ? 'bg-crd-green/20 border-crd-green' 
                     : 'bg-slate-800/50 border-slate-700 hover:bg-slate-700/50'
                 } ${isHidden ? 'opacity-50' : ''}`}
                 onClick={() => onLayerSelect(layer.id)}
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-start gap-2">
+                  {/* Thumbnail */}
+                  {layer.thumbnailUrl && (
+                    <div className="flex-shrink-0">
+                      <img 
+                        src={layer.thumbnailUrl} 
+                        alt={layer.name}
+                        className="w-10 h-10 object-cover rounded border border-slate-600"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Layer Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-1 mb-1">
                       <span className="text-sm font-medium text-white truncate">
                         {layer.name}
                       </span>
                       {layer.semanticType && (
                         <Badge 
-                          className="text-xs px-1.5 py-0.5 text-white"
+                          className="text-xs px-1 py-0 text-white"
                           style={{ backgroundColor: semanticColor }}
                         >
                           {layer.semanticType}
@@ -121,7 +133,7 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
                       )}
                     </div>
                     
-                    <div className="text-xs text-slate-400 space-y-1">
+                    <div className="text-xs text-slate-400 space-y-0.5">
                       <div>
                         {layer.bounds.right - layer.bounds.left} × {layer.bounds.bottom - layer.bounds.top}px
                       </div>
@@ -134,6 +146,7 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
                     </div>
                   </div>
 
+                  {/* Controls */}
                   <div className="flex items-center gap-1">
                     {viewMode === 'build' && (
                       <Button
@@ -143,7 +156,7 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
                           e.stopPropagation();
                           handleFlipToggle(layer.id);
                         }}
-                        className={`w-8 h-8 p-0 ${
+                        className={`w-6 h-6 p-0 ${
                           isFlipped 
                             ? 'bg-blue-500 hover:bg-blue-600' 
                             : 'hover:bg-slate-600'
@@ -160,7 +173,7 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
                         e.stopPropagation();
                         onLayerToggle(layer.id);
                       }}
-                      className="w-8 h-8 p-0 hover:bg-slate-600"
+                      className="w-6 h-6 p-0 hover:bg-slate-600"
                     >
                       {isHidden ? (
                         <EyeOff className="w-3 h-3 text-slate-500" />
@@ -170,16 +183,6 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
                     </Button>
                   </div>
                 </div>
-
-                {layer.thumbnailUrl && (
-                  <div className="mt-2">
-                    <img 
-                      src={layer.thumbnailUrl} 
-                      alt={layer.name}
-                      className="w-full h-16 object-cover rounded border border-slate-600"
-                    />
-                  </div>
-                )}
               </Card>
             );
           })}
@@ -187,8 +190,8 @@ export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> =
       </ScrollArea>
 
       {/* Footer Stats */}
-      <div className="p-3 border-t border-slate-700">
-        <div className="text-xs text-slate-400 space-y-1">
+      <div className="p-2 border-t border-slate-700">
+        <div className="text-xs text-slate-400 space-y-0.5">
           <div>Selected: {layers.find(l => l.id === selectedLayerId)?.name || 'None'}</div>
           <div>Visible: {visibleLayers.length} / {layers.length} layers</div>
           {focusMode && <div className="text-blue-400">Focus mode active</div>}
