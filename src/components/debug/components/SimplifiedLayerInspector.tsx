@@ -1,202 +1,130 @@
 
-import React, { useState } from 'react';
-import { ProcessedPSDLayer } from '@/types/psdTypes';
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Eye, EyeOff, RotateCcw, Layers, Info } from 'lucide-react';
+import { ProcessedPSDLayer } from '@/types/psdTypes';
 import { getSemanticTypeColor } from '@/utils/semanticTypeColors';
+import { Eye, EyeOff, FlipHorizontal, Layers } from 'lucide-react';
 
-interface SimplifiedLayerInspectorProps {
+export interface SimplifiedLayerInspectorProps {
   layers: ProcessedPSDLayer[];
   selectedLayerId: string;
-  onLayerSelect: (layerId: string) => void;
   hiddenLayers: Set<string>;
-  onLayerToggle: (layerId: string) => void;
-  onFlippedLayersChange?: (flipped: Set<string>) => void;
-  viewMode?: 'inspect' | 'frame' | 'build';
-  focusMode?: boolean;
-  showBackground?: boolean;
+  onLayerSelect: (id: string) => void;
+  onToggleVisibility: (layerId: string) => void;
+  mode: 'inspect' | 'frame' | 'elements' | 'preview' | 'build';
+  flippedLayers: Set<string>;
+  onFlippedLayersChange: (flipped: Set<string>) => void;
 }
 
 export const SimplifiedLayerInspector: React.FC<SimplifiedLayerInspectorProps> = ({
   layers,
   selectedLayerId,
-  onLayerSelect,
   hiddenLayers,
-  onLayerToggle,
-  onFlippedLayersChange,
-  viewMode = 'inspect',
-  focusMode = false,
-  showBackground = true
+  onLayerSelect,
+  onToggleVisibility,
+  mode,
+  flippedLayers,
+  onFlippedLayersChange
 }) => {
-  const [flippedLayers, setFlippedLayers] = useState<Set<string>>(new Set());
-
-  const handleFlipToggle = (layerId: string) => {
+  const handleFlipLayer = (layerId: string) => {
     const newFlipped = new Set(flippedLayers);
     if (newFlipped.has(layerId)) {
       newFlipped.delete(layerId);
     } else {
       newFlipped.add(layerId);
     }
-    setFlippedLayers(newFlipped);
-    onFlippedLayersChange?.(newFlipped);
+    onFlippedLayersChange(newFlipped);
   };
 
-  const visibleLayers = layers.filter(layer => !hiddenLayers.has(layer.id));
-  const layersWithImages = layers.filter(layer => layer.hasRealImage).length;
-
   return (
-    <div className="h-full flex flex-col bg-[#1a1f2e]">
-      {/* Header */}
-      <div className="p-3 border-b border-slate-700">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-slate-400" />
-            <span className="text-sm font-medium text-slate-300">
-              Layers ({visibleLayers.length}/{layers.length})
-            </span>
-          </div>
-          <Badge variant="outline" className="text-xs text-slate-400 border-slate-500">
-            {layersWithImages} with images
-          </Badge>
-        </div>
-
-        {/* Mode-specific info */}
-        {viewMode === 'frame' && (
-          <div className="text-xs text-slate-400 mb-1">
-            <Info className="w-3 h-3 inline mr-1" />
-            Frame fitting analysis active
-          </div>
-        )}
-        
-        {viewMode === 'build' && (
-          <div className="text-xs text-slate-400 mb-1">
-            <RotateCcw className="w-3 h-3 inline mr-1" />
-            CRD frame generation mode
-          </div>
-        )}
-
-        {flippedLayers.size > 0 && (
-          <div className="text-xs text-blue-400 mb-1">
-            {flippedLayers.size} layers branded with CRD
-          </div>
-        )}
+    <Card className="bg-slate-800 border-slate-600 p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <Layers className="w-5 h-5 text-crd-green" />
+        <h3 className="text-lg font-semibold text-white">Layer Inspector</h3>
+        <Badge variant="secondary" className="ml-auto">
+          {layers.length} layers
+        </Badge>
       </div>
-
-      {/* Layer List */}
-      <ScrollArea className="flex-1">
-        <div className="p-2 space-y-0.5">
-          {layers.map((layer, index) => {
-            const isSelected = layer.id === selectedLayerId;
-            const isHidden = hiddenLayers.has(layer.id);
-            const isFlipped = flippedLayers.has(layer.id);
-            const semanticColor = getSemanticTypeColor(layer.semanticType);
-
-            return (
-              <Card
-                key={layer.id}
-                className={`p-2 cursor-pointer transition-all ${
-                  isSelected 
-                    ? 'bg-crd-green/20 border-crd-green' 
-                    : 'bg-slate-800/50 border-slate-700 hover:bg-slate-700/50'
-                } ${isHidden ? 'opacity-50' : ''}`}
-                onClick={() => onLayerSelect(layer.id)}
-              >
-                <div className="flex items-start gap-2">
-                  {/* Thumbnail */}
-                  {layer.thumbnailUrl && (
-                    <div className="flex-shrink-0">
-                      <img 
-                        src={layer.thumbnailUrl} 
-                        alt={layer.name}
-                        className="w-10 h-10 object-cover rounded border border-slate-600"
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Layer Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 mb-1">
-                      <span className="text-sm font-medium text-white truncate">
-                        {layer.name}
-                      </span>
-                      {layer.semanticType && (
-                        <Badge 
-                          className="text-xs px-1 py-0 text-white"
-                          style={{ backgroundColor: semanticColor }}
-                        >
-                          {layer.semanticType}
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    <div className="text-xs text-slate-400 space-y-0.5">
-                      <div>
-                        {layer.bounds.right - layer.bounds.left} × {layer.bounds.bottom - layer.bounds.top}px
-                      </div>
-                      {layer.hasRealImage && (
-                        <div className="text-green-400">Has image content</div>
-                      )}
-                      {layer.properties && (
-                        <div>Opacity: {Math.round(layer.properties.opacity * 100)}%</div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Controls */}
-                  <div className="flex items-center gap-1">
-                    {viewMode === 'build' && (
-                      <Button
-                        variant={isFlipped ? "default" : "ghost"}
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFlipToggle(layer.id);
-                        }}
-                        className={`w-6 h-6 p-0 ${
-                          isFlipped 
-                            ? 'bg-blue-500 hover:bg-blue-600' 
-                            : 'hover:bg-slate-600'
-                        }`}
-                      >
-                        <RotateCcw className="w-3 h-3" />
-                      </Button>
-                    )}
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onLayerToggle(layer.id);
+      
+      <div className="space-y-2 max-h-96 overflow-y-auto">
+        {layers.map((layer) => (
+          <div
+            key={layer.id}
+            className={`p-3 rounded-lg border cursor-pointer transition-all ${
+              selectedLayerId === layer.id
+                ? 'border-crd-green bg-crd-green/10'
+                : 'border-slate-600 bg-slate-700 hover:border-slate-500'
+            }`}
+            onClick={() => onLayerSelect(layer.id)}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-white font-medium truncate">
+                    {layer.name}
+                  </span>
+                  {layer.semanticType && (
+                    <Badge
+                      style={{
+                        backgroundColor: getSemanticTypeColor(layer.semanticType),
+                        color: 'black'
                       }}
-                      className="w-6 h-6 p-0 hover:bg-slate-600"
+                      className="text-xs"
                     >
-                      {isHidden ? (
-                        <EyeOff className="w-3 h-3 text-slate-500" />
-                      ) : (
-                        <Eye className="w-3 h-3 text-slate-300" />
-                      )}
-                    </Button>
-                  </div>
+                      {layer.semanticType}
+                    </Badge>
+                  )}
                 </div>
-              </Card>
-            );
-          })}
-        </div>
-      </ScrollArea>
-
-      {/* Footer Stats */}
-      <div className="p-2 border-t border-slate-700">
-        <div className="text-xs text-slate-400 space-y-0.5">
-          <div>Selected: {layers.find(l => l.id === selectedLayerId)?.name || 'None'}</div>
-          <div>Visible: {visibleLayers.length} / {layers.length} layers</div>
-          {focusMode && <div className="text-blue-400">Focus mode active</div>}
-        </div>
+                
+                <div className="text-xs text-slate-400">
+                  {Math.round(layer.bounds.right - layer.bounds.left)} × {Math.round(layer.bounds.bottom - layer.bounds.top)}
+                  {layer.properties?.opacity && (
+                    <span className="ml-2">
+                      {Math.round(layer.properties.opacity * 100)}% opacity
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-1 ml-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleVisibility(layer.id);
+                  }}
+                  className="w-8 h-8 p-0"
+                >
+                  {hiddenLayers.has(layer.id) ? (
+                    <EyeOff className="w-4 h-4 text-slate-500" />
+                  ) : (
+                    <Eye className="w-4 h-4 text-slate-300" />
+                  )}
+                </Button>
+                
+                {mode === 'build' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFlipLayer(layer.id);
+                    }}
+                    className={`w-8 h-8 p-0 ${
+                      flippedLayers.has(layer.id) ? 'text-crd-green' : 'text-slate-400'
+                    }`}
+                  >
+                    <FlipHorizontal className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
-    </div>
+    </Card>
   );
 };
