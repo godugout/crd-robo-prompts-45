@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -13,6 +14,7 @@ import AuthCallback from "./pages/auth/AuthCallback";
 import CardCreation from "./pages/CardCreation";
 import EnhancedCardCreationPage from "./pages/EnhancedCardCreationPage";
 import FunctionalCardCreationPage from "./pages/FunctionalCardCreationPage";
+import SimpleCreatePage from "./pages/SimpleCreatePage";
 import { EnhancedStudio } from "@/components/studio/EnhancedStudio";
 import Collections from './pages/Collections';
 import CreatorDashboardPage from './pages/CreatorDashboardPage';
@@ -78,6 +80,16 @@ function App() {
                         <MainLayout>
                           <ProtectedRoute>
                             <CardCreation />
+                          </ProtectedRoute>
+                        </MainLayout>
+                      } 
+                    />
+                    <Route 
+                      path="/create/simple" 
+                      element={
+                        <MainLayout>
+                          <ProtectedRoute>
+                            <SimpleCreatePage />
                           </ProtectedRoute>
                         </MainLayout>
                       } 
