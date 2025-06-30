@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -110,37 +110,40 @@ export const EnhancedCardCreator: React.FC = () => {
   const progress = ((currentPhase + 1) / PHASES.length) * 100;
 
   return (
-    <div className="min-h-screen theme-bg-primary">
-      {/* Header */}
-      <div className="border-b theme-border">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between mb-4">
+    <div className="min-h-screen bg-cardshow-dark">
+      {/* Header with CARDSHOW Design */}
+      <div className="border-b border-cardshow-dark-100">
+        <div className="max-w-7xl mx-auto px-8 py-6">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold theme-text-primary flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-crd-green" />
+              <h1 className="cardshow-hero-text flex items-center gap-3">
+                <Sparkles className="w-8 h-8 text-cardshow-primary" />
                 Enhanced Card Creator
               </h1>
-              <p className="theme-text-muted text-sm">Professional card creation with advanced effects</p>
+              <p className="cardshow-body-text mt-2">Professional card creation with advanced effects</p>
             </div>
-            <Badge className="bg-crd-green/20 text-crd-green border-crd-green/50">
+            <Badge className="bg-cardshow-primary/20 text-cardshow-primary border-cardshow-primary/50 px-4 py-2 text-sm font-semibold rounded-full">
               Phase {currentPhase + 1} of {PHASES.length}
             </Badge>
           </div>
 
-          {/* Progress Bar */}
-          <div className="space-y-2">
-            <Progress value={progress} className="h-2" />
-            <div className="flex justify-between text-xs theme-text-muted">
+          {/* Progress Bar - CARDSHOW Style */}
+          <div className="space-y-4">
+            <Progress 
+              value={progress} 
+              className="h-3 bg-cardshow-dark-100 rounded-full overflow-hidden"
+            />
+            <div className="grid grid-cols-5 gap-4">
               {PHASES.map((phase, index) => (
                 <div
                   key={phase.id}
-                  className={`flex flex-col items-center ${
-                    index === currentPhase ? 'text-crd-green font-medium' :
-                    completedPhases.has(index) ? 'text-green-400' : ''
+                  className={`text-center ${
+                    index === currentPhase ? 'text-cardshow-primary font-semibold' :
+                    completedPhases.has(index) ? 'text-cardshow-green' : 'text-cardshow-light-700'
                   }`}
                 >
-                  <span>{phase.name}</span>
-                  <span className="text-xs opacity-70">{phase.description}</span>
+                  <div className="cardshow-label-text">{phase.name}</div>
+                  <div className="text-xs text-cardshow-light-700 mt-1">{phase.description}</div>
                 </div>
               ))}
             </div>
@@ -149,34 +152,34 @@ export const EnhancedCardCreator: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <Card className="theme-bg-secondary theme-border min-h-[600px]">
+      <div className="max-w-7xl mx-auto px-8 py-12">
+        <Card className="cardshow-card min-h-[600px] p-8">
           {renderPhase()}
         </Card>
       </div>
 
-      {/* Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 theme-bg-secondary border-t theme-border">
-        <div className="max-w-6xl mx-auto px-6 py-4">
+      {/* Navigation - CARDSHOW Style */}
+      <div className="fixed bottom-0 left-0 right-0 bg-cardshow-dark-100 border-t border-cardshow-dark-100">
+        <div className="max-w-7xl mx-auto px-8 py-6">
           <div className="flex justify-between items-center">
             <Button
               variant="outline"
               onClick={handlePrevious}
               disabled={currentPhase === 0}
-              className="flex items-center gap-2"
+              className="cardshow-button-secondary bg-transparent border-cardshow-dark-100 text-cardshow-light hover:bg-cardshow-dark-100/50 px-6 py-3 rounded-full flex items-center gap-2"
             >
               <ChevronLeft className="w-4 h-4" />
               Previous
             </Button>
 
-            <div className="text-sm theme-text-muted">
+            <div className="cardshow-body-text">
               Step {currentPhase + 1}: {PHASES[currentPhase].name}
             </div>
 
             <Button
               onClick={handleNext}
               disabled={!canProceed() || currentPhase === PHASES.length - 1}
-              className="bg-crd-green hover:bg-crd-green/90 text-black font-medium flex items-center gap-2"
+              className="cardshow-button-primary px-6 py-3 rounded-full flex items-center gap-2"
             >
               Next
               <ChevronRight className="w-4 h-4" />

@@ -1,31 +1,47 @@
 
-/* Theme Variables */
+/* CARDSHOW Design System Theme Variables */
 :root {
-  /* Studio Theme (Light) */
-  --studio-bg-primary: #f8fafc;
-  --studio-bg-secondary: #ffffff;
-  --studio-bg-accent: #f1f5f9;
-  --studio-text-primary: #0f172a;
-  --studio-text-secondary: #475569;
-  --studio-text-muted: #64748b;
-  --studio-border: #e2e8f0;
-  --studio-border-muted: #f1f5f9;
+  /* CARDSHOW Background Colors */
+  --cardshow-bg-primary: #141416;
+  --cardshow-bg-secondary: #23262F;
+  --cardshow-bg-tertiary: #353945;
   
-  /* Labs Theme (Dark) - Updated to completely avoid white/light colors */
-  --labs-bg-primary: #0a0a0b;
-  --labs-bg-secondary: #111113;
-  --labs-bg-accent: #1a1a1d;
-  --labs-text-primary: #e2e8f0;
-  --labs-text-secondary: #94a3b8;
-  --labs-text-muted: #64748b;
-  --labs-border: #1f1f23;
-  --labs-border-muted: #2a2a2e;
+  /* CARDSHOW Text Colors */
+  --cardshow-text-primary: #FCFCFD;
+  --cardshow-text-secondary: #F4F5F6;
+  --cardshow-text-muted: #777E90;
+  --cardshow-text-disabled: #B1B5C3;
   
-  /* Brand Colors (consistent across themes) */
-  --brand-green: #4ade80;
-  --brand-blue: #3b82f6;
-  --brand-purple: #8b5cf6;
-  --brand-orange: #f59e0b;
+  /* CARDSHOW Brand Colors */
+  --cardshow-primary: #3772FF;
+  --cardshow-secondary: #F97316;
+  --cardshow-blue: #2D9CDB;
+  --cardshow-green: #27AE60;
+  --cardshow-orange: #EA6E48;
+  
+  /* CARDSHOW Border Colors */
+  --cardshow-border-primary: #353945;
+  --cardshow-border-secondary: #23262F;
+  
+  /* Studio Theme (Light) - Updated for CARDSHOW */
+  --studio-bg-primary: #FCFCFD;
+  --studio-bg-secondary: #F4F5F6;
+  --studio-bg-accent: #E6E8EC;
+  --studio-text-primary: #141416;
+  --studio-text-secondary: #23262F;
+  --studio-text-muted: #777E90;
+  --studio-border: #B1B5C3;
+  --studio-border-muted: #E6E8EC;
+  
+  /* Labs Theme (Dark) - CARDSHOW Dark Theme */
+  --labs-bg-primary: #141416;
+  --labs-bg-secondary: #23262F;
+  --labs-bg-accent: #353945;
+  --labs-text-primary: #FCFCFD;
+  --labs-text-secondary: #F4F5F6;
+  --labs-text-muted: #777E90;
+  --labs-border: #353945;
+  --labs-border-muted: #23262F;
 }
 
 /* Studio Theme */
@@ -40,7 +56,7 @@
   --border-muted: var(--studio-border-muted);
 }
 
-/* Labs Theme */
+/* Labs Theme - CARDSHOW Dark Theme */
 [data-theme="labs"] {
   --bg-primary: var(--labs-bg-primary);
   --bg-secondary: var(--labs-bg-secondary);
@@ -83,4 +99,87 @@
 
 .theme-border-muted {
   border-color: var(--border-muted);
+}
+
+/* CARDSHOW Specific Component Classes */
+.cardshow-card {
+  background-color: var(--cardshow-bg-secondary);
+  border: 1px solid var(--cardshow-bg-tertiary);
+  border-radius: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0px 64px 64px -48px rgba(31,47,70,0.12);
+}
+
+.cardshow-card:hover {
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.cardshow-button-primary {
+  background-color: var(--cardshow-primary);
+  color: var(--cardshow-text-primary);
+  font-weight: 800;
+  font-size: 1.125rem;
+  padding: 1rem 1.5rem;
+  border-radius: 5.625rem;
+  transition: all 0.3s ease;
+}
+
+.cardshow-button-primary:hover {
+  background-color: color-mix(in srgb, var(--cardshow-primary) 90%, transparent);
+}
+
+.cardshow-button-secondary {
+  background-color: var(--cardshow-green);
+  color: var(--cardshow-text-primary);
+  font-weight: 800;
+  font-size: 1.125rem;
+  padding: 1rem 1.5rem;
+  border-radius: 5.625rem;
+  transition: all 0.3s ease;
+}
+
+.cardshow-button-tertiary {
+  background-color: var(--cardshow-orange);
+  color: var(--cardshow-text-primary);
+  font-weight: 800;
+  font-size: 1.125rem;
+  padding: 1rem 1.5rem;
+  border-radius: 5.625rem;
+  transition: all 0.3s ease;
+}
+
+.cardshow-text-gradient {
+  background: linear-gradient(to right, var(--cardshow-primary), var(--cardshow-secondary));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* CARDSHOW Typography */
+.cardshow-hero-text {
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 3rem;
+  letter-spacing: -0.025em;
+  color: var(--cardshow-text-primary);
+}
+
+.cardshow-section-text {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--cardshow-text-primary);
+}
+
+.cardshow-body-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--cardshow-text-secondary);
+}
+
+.cardshow-label-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--cardshow-text-muted);
 }
