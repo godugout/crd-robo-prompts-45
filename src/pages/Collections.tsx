@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useHotCollections } from '@/hooks/useCollections';
@@ -58,10 +59,10 @@ const Collections: React.FC = () => {
     : fallbackCollections;
 
   return (
-    <div className="min-h-screen py-12">
+    <div className="min-h-screen py-12 theme-bg-primary theme-text-primary">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">Collections</h1>
+          <h1 className="text-2xl font-bold theme-text-primary">Collections</h1>
           <div className="space-x-2">
             <Button variant="outline" size="sm">
               <Filter className="w-4 h-4 mr-2" />
@@ -76,9 +77,9 @@ const Collections: React.FC = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {loading ? (
-            // Skeleton loading state
+            // Loading state
             Array(8).fill(0).map((_, i) => (
-              <Card key={i}>
+              <Card key={i} className="theme-bg-secondary theme-border">
                 <CardHeader>
                   <CardTitle>
                     <Skeleton className="h-5 w-4/5" />
@@ -93,9 +94,9 @@ const Collections: React.FC = () => {
           ) : (
             // Mapped collections
             collections.map((collection, index) => (
-              <Card key={index}>
+              <Card key={index} className="theme-bg-secondary theme-border hover:theme-bg-accent transition-colors">
                 <CardHeader>
-                  <CardTitle>{collection.title}</CardTitle>
+                  <CardTitle className="theme-text-primary">{collection.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <img
@@ -103,8 +104,8 @@ const Collections: React.FC = () => {
                     alt={collection.title}
                     className="w-full h-32 object-cover mb-4 rounded-md"
                   />
-                  <p className="text-sm text-gray-500">Owner: {collection.owner}</p>
-                  <p className="text-sm text-gray-500">Items: {collection.items}</p>
+                  <p className="text-sm theme-text-secondary">Owner: {collection.owner}</p>
+                  <p className="text-sm theme-text-secondary">Items: {collection.items}</p>
                 </CardContent>
               </Card>
             ))
