@@ -11,7 +11,6 @@ import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
 import AuthCallback from "./pages/auth/AuthCallback";
 import CardCreation from "./pages/CardCreation";
-import CardCreationTest from "./pages/CardCreationTest";
 import EnhancedCardCreationPage from "./pages/EnhancedCardCreationPage";
 import FunctionalCardCreationPage from "./pages/FunctionalCardCreationPage";
 import { EnhancedStudio } from "@/components/studio/EnhancedStudio";
@@ -76,16 +75,6 @@ function App() {
                     <MainLayout>
                       <ProtectedRoute>
                         <CardCreation />
-                      </ProtectedRoute>
-                    </MainLayout>
-                  } 
-                />
-                <Route 
-                  path="/create/test" 
-                  element={
-                    <MainLayout>
-                      <ProtectedRoute>
-                        <CardCreationTest />
                       </ProtectedRoute>
                     </MainLayout>
                   } 
