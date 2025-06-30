@@ -8,12 +8,22 @@ import { Wand2, Sparkles, Download } from 'lucide-react';
 interface CRDFrameBuilderProps {
   processedPSD: EnhancedProcessedPSD;
   selectedLayerId?: string;
+  hiddenLayers: Set<string>;
+  flippedLayers: Set<string>;
+  onLayerSelect: (layerId: string) => void;
+  onToggleVisibility: (layerId: string) => void;
+  onFlippedLayersChange: (flipped: Set<string>) => void;
   onFrameGenerated?: (svgContent: string) => void;
 }
 
 export const CRDFrameBuilder: React.FC<CRDFrameBuilderProps> = ({
   processedPSD,
   selectedLayerId,
+  hiddenLayers,
+  flippedLayers,
+  onLayerSelect,
+  onToggleVisibility,
+  onFlippedLayersChange,
   onFrameGenerated
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -61,6 +71,9 @@ export const CRDFrameBuilder: React.FC<CRDFrameBuilderProps> = ({
     }
   };
 
+  const visibleLayers = processedPSD.layers.filter(layer => !hiddenLayers.has(layer.id));
+  const flippedLayersCount = flippedLayers.size;
+
   return (
     <div className="h-full flex flex-col bg-[#0a0a0b]">
       <div className="flex-1 p-6 space-y-6">
@@ -73,6 +86,17 @@ export const CRDFrameBuilder: React.FC<CRDFrameBuilderProps> = ({
           <p className="text-slate-400 mb-6">
             Generate custom CRD frames based on your PSD layers and analysis
           </p>
+          
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="p-4 bg-slate-800 rounded-lg">
+              <h4 className="text-white font-medium mb-2">Visible Layers</h4>
+              <p className="text-2xl font-bold text-crd-green">{visibleLayers.length}</p>
+            </div>
+            <div className="p-4 bg-slate-800 rounded-lg">
+              <h4 className="text-white font-medium mb-2">Flipped Layers</h4>
+              <p className="text-2xl font-bold text-crd-green">{flippedLayersCount}</p>
+            </div>
+          </div>
           
           {selectedLayer && (
             <div className="mb-6 p-4 bg-slate-800 rounded-lg">
