@@ -4,8 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EnhancedProcessedPSD, ProcessedPSDLayer } from '@/types/psdTypes';
-import { EnhancedImage } from '@/components/media/EnhancedImage';
-import { Eye, EyeOff, Info, ZoomIn, CheckSquare, Square, Image, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Info, ZoomIn, CheckSquare, Square } from 'lucide-react';
 
 interface RealLayerPreviewGridProps {
   processedPSD: EnhancedProcessedPSD;
@@ -56,83 +55,14 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
     return { width, height };
   };
 
-  const getLayerImage = (layer: ProcessedPSDLayer): string | null => {
-    // Priority 1: Direct layer imageUrl
-    if (layer.imageUrl && layer.imageUrl.startsWith('http')) {
-      console.log(`✅ Using direct imageUrl for layer ${layer.name}`);
-      return layer.imageUrl;
-    }
-
-    // Priority 2: Thumbnail URL
-    if (layer.thumbnailUrl && layer.thumbnailUrl.startsWith('http')) {
-      console.log(`✅ Using thumbnailUrl for layer ${layer.name}`);
-      return layer.thumbnailUrl;
-    }
-
-    // Priority 3: Check extracted images
-    const extractedImage = processedPSD.extractedImages?.layerImages?.find(img => 
-      img.id === layer.id || img.name === layer.name
-    );
-    
-    if (extractedImage?.imageUrl && extractedImage.imageUrl.startsWith('http')) {
-      console.log(`✅ Using extracted image for layer ${layer.name}`);
-      return extractedImage.imageUrl;
-    }
-
-    console.log(`❌ No valid image found for layer ${layer.name}`);
-    return null;
-  };
-
-  // Filter layers to only show those with real images
-  const layersWithImages = processedPSD.layers.filter(layer => {
-    const hasImage = getLayerImage(layer) !== null;
-    if (hasImage) {
-      console.log(`Layer "${layer.name}" has image:`, getLayerImage(layer));
-    }
-    return hasImage;
-  });
-
-  console.log(`🔍 RealLayerPreviewGrid: Found ${layersWithImages.length} layers with images out of ${processedPSD.layers.length} total layers`);
-
-  if (layersWithImages.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <AlertCircle className="w-16 h-16 text-slate-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-white mb-2">No Layer Images Found</h3>
-        <p className="text-slate-400 mb-4">
-          The PSD layers couldn't be extracted as images. This might be due to:
-        </p>
-        <ul className="text-sm text-slate-500 text-left max-w-md mx-auto space-y-1">
-          <li>• Layers contain only adjustment or effect data</li>
-          <li>• Processing failed during image extraction</li>
-          <li>• Layers are empty or transparent</li>
-        </ul>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* Header Info */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Image className="w-5 h-5 text-crd-green" />
-          <h3 className="text-lg font-semibold text-white">
-            Layer Images ({layersWithImages.length})
-          </h3>
-        </div>
-        <Badge variant="outline" className="text-xs">
-          {layersWithImages.length} of {processedPSD.layers.length} layers have images
-        </Badge>
-      </div>
-
-      {/* Large Visual Layer Grid */}
+      {/* Large Visual Layer Grid - Optimized for Visibility */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {layersWithImages.map((layer) => {
+        {processedPSD.layers.map((layer) => {
           const dimensions = getLayerDimensions(layer);
           const isSelected = selectedLayers.has(layer.id);
           const isHidden = hiddenLayers.has(layer.id);
-          const imageUrl = getLayerImage(layer);
           
           return (
             <Card
@@ -143,23 +73,24 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
               onClick={() => onLayerSelect(layer.id)}
             >
               <div className="p-4">
-                {/* Large Layer Preview */}
+                {/* Large Layer Preview - Minimum 200x200px */}
                 <div className="aspect-square bg-slate-900 rounded-lg mb-4 overflow-hidden relative min-h-[200px]">
-                  {imageUrl ? (
-                    <EnhancedImage
-                      src={imageUrl}
+                  {layer.thumbnailUrl ? (
+                    <img
+                      src={layer.thumbnailUrl}
                       alt={layer.name}
                       className="w-full h-full object-contain"
-                      loading="lazy"
-                      onLoad={() => console.log(`✅ Layer image loaded: ${layer.name}`)}
-                      onError={() => console.error(`❌ Layer image failed to load: ${layer.name}`)}
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
                       <div className="text-center">
-                        <AlertCircle className="w-16 h-16 text-slate-500 mb-2" />
+                        <div className="w-16 h-16 bg-slate-600 rounded mb-2 flex items-center justify-center">
+                          <span className="text-slate-300 text-xs font-mono">
+                            {layer.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
                         <p className="text-slate-400 text-xs">
-                          No image extracted
+                          {dimensions.width} × {dimensions.height}
                         </p>
                       </div>
                     </div>
@@ -228,9 +159,11 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <Badge className="text-xs bg-green-500/20 text-green-400">
-                      Real Image
-                    </Badge>
+                    {layer.hasRealImage && (
+                      <Badge className="text-xs bg-green-500/20 text-green-400">
+                        Real Image
+                      </Badge>
+                    )}
                     {layer.semanticType && (
                       <Badge className={`text-xs bg-${layer.semanticType === 'player' ? 'emerald' : 
                         layer.semanticType === 'background' ? 'indigo' :
@@ -247,21 +180,11 @@ export const RealLayerPreviewGrid: React.FC<RealLayerPreviewGridProps> = ({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs">
-                    <div className="flex items-center gap-1">
-                      <span className="text-slate-400">Opacity:</span>
-                      <Badge variant="outline" className="text-xs">
-                        {Math.round(layer.properties.opacity * 100)}%
-                      </Badge>
-                    </div>
-                    {layer.inferredDepth !== undefined && (
-                      <div className="flex items-center gap-1">
-                        <span className="text-slate-400">Depth:</span>
-                        <Badge variant="outline" className="text-xs">
-                          {layer.inferredDepth.toFixed(1)}
-                        </Badge>
-                      </div>
-                    )}
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400 text-xs">Opacity:</span>
+                    <Badge variant="outline" className="text-xs">
+                      {Math.round(layer.properties.opacity * 100)}%
+                    </Badge>
                   </div>
                 </div>
               </div>

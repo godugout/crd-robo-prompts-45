@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { ProfessionalStudioInterface } from '@/components/studio/professional/ProfessionalStudioInterface';
+import { EnhancedCardCreator } from '@/components/creation/EnhancedCardCreator';
 
 const EnhancedCardCreationPage: React.FC = () => {
-  return <ProfessionalStudioInterface />;
+  return <EnhancedCardCreator />;
 };
 
 export default EnhancedCardCreationPage;

@@ -79,6 +79,7 @@ export const LogoUploader = () => {
           generateThumbnail={false}
           optimize={true}
           tags={['logo', 'brand']}
+          metadata={{ logoType: 'script', usage: 'primary' }}
           onUploadComplete={handleUploadComplete}
         >
           <div className="space-y-4">

@@ -11,16 +11,16 @@ import { cn } from '@/lib/utils';
 
 const navigationItems = [
   { href: '/', label: 'Home', icon: Home, public: true },
-  { href: '/create/enhanced', label: 'Create', icon: Plus, protected: true, featured: true },
+  { href: '/create/enhanced', label: 'Create', icon: Plus, protected: true },
   { href: '/studio', label: 'Studio', icon: Palette, protected: true },
   { href: '/collections', label: 'Collections', icon: Camera, public: true },
   { href: '/community', label: 'Community', icon: Users, public: true },
   { href: '/creator-dashboard', label: 'Dashboard', icon: Trophy, protected: true },
-  { href: '/labs', label: 'Labs', icon: Layers, protected: true }
+  { href: '/debug/psd-preview', label: 'PSD Analysis', icon: FileImage, protected: true }
 ];
 
 export const UniversalNavbar: React.FC = () => {
-  const { user, signOut, autoSignIn } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
 
   const isActivePath = (path: string) => {
@@ -28,10 +28,6 @@ export const UniversalNavbar: React.FC = () => {
       return location.pathname === '/';
     }
     return location.pathname.startsWith(path);
-  };
-
-  const handleSignInClick = async () => {
-    await autoSignIn();
   };
 
   const visibleItems = navigationItems.filter(item => 
@@ -64,16 +60,11 @@ export const UniversalNavbar: React.FC = () => {
                     "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                     isActive 
                       ? "bg-crd-green text-black" 
-                      : item.featured
-                      ? "text-crd-green hover:text-white hover:bg-crd-green/20 ring-1 ring-crd-green/30"
                       : "text-gray-300 hover:text-white hover:bg-white/10"
                   )}
                 >
                   <Icon className="w-4 h-4" />
                   {item.label}
-                  {item.featured && !isActive && (
-                    <div className="w-2 h-2 bg-crd-green rounded-full animate-pulse" />
-                  )}
                 </Link>
               );
             })}
@@ -98,14 +89,15 @@ export const UniversalNavbar: React.FC = () => {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Button
-                  onClick={handleSignInClick}
-                  variant="outline"
-                  size="sm"
-                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                >
-                  Sign In
-                </Button>
+                <Link to="/auth/signin">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                  >
+                    Sign In
+                  </Button>
+                </Link>
                 <Link to="/auth/signup">
                   <Button
                     size="sm"
@@ -145,8 +137,6 @@ export const UniversalNavbar: React.FC = () => {
                     "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                     isActive 
                       ? "bg-crd-green text-black" 
-                      : item.featured
-                      ? "text-crd-green hover:text-white hover:bg-crd-green/20"
                       : "text-gray-300 hover:text-white hover:bg-white/10"
                   )}
                 >

@@ -1,4 +1,3 @@
-
 import { Psd } from 'ag-psd';
 import { ProcessedPSDLayer, LayerBounds, LayerProperties } from '@/types/psdTypes';
 
@@ -28,51 +27,16 @@ export const processPSDLayers = (psd: Psd): PSDProcessingResult => {
       locked: layer.locked || false
     };
 
-    const currentLayerIndex = layerIndex++;
-
     return {
-      id: `layer_${currentLayerIndex}`,
-      name: layer.name || `Layer ${currentLayerIndex}`,
+      id: `layer_${layerIndex++}`,
+      name: layer.name || `Layer ${layerIndex}`,
       bounds,
       properties,
       hasRealImage: !!(layer.canvas || layer.imageData),
-      layerIndex: currentLayerIndex,
-      type: layer.type || 'image',
+      type: layer.type || 'layer',
       isVisible: properties.visible,
-      visible: properties.visible, // Add this for compatibility
       opacity: properties.opacity,
-      blendMode: properties.blendMode,
-      dimensions: {
-        x: bounds.left,
-        y: bounds.top,
-        width: bounds.right - bounds.left,
-        height: bounds.bottom - bounds.top
-      },
-      effects: [],
-      confidence: 0.8,
-      analysis: {
-        isBackground: currentLayerIndex === 0,
-        isText: !!layer.text,
-        hasEffects: false,
-        complexity: 'simple',
-        semantic: {
-          category: layer.text ? 'text' : 'image',
-          importance: 'secondary'
-        },
-        spatial: {
-          depth: currentLayerIndex / 10,
-          parallaxFactor: 1
-        },
-        complexityScore: {
-          score: 1,
-          factors: {
-            size: bounds.right - bounds.left,
-            hasEffects: false,
-            hasRealContent: !!(layer.canvas || layer.imageData),
-            semanticImportance: 1
-          }
-        }
-      }
+      confidence: 0.8
     };
   };
 

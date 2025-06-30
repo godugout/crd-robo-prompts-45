@@ -3,10 +3,9 @@ import { useState } from 'react';
 import { MediaManager, type UploadOptions } from '@/lib/storage/MediaManager';
 import { toast } from 'sonner';
 
-interface UseMediaUploadOptions extends UploadOptions {
+interface UseMediaUploadOptions extends Omit<UploadOptions, 'onProgress'> {
   onComplete?: (result: any) => void;
   onError?: (error: string) => void;
-  metadata?: Record<string, any>;
 }
 
 export const useMediaUpload = (options: UseMediaUploadOptions) => {

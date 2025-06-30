@@ -9,12 +9,8 @@ import { ProfileDropdown } from "./ProfileDropdown";
 import { Menu } from "lucide-react";
 
 export const NavActions = () => {
-  const { user, autoSignIn } = useAuth();
+  const { user } = useAuth();
   const { setNavigationStyle } = useNavigation();
-
-  const handleSignInClick = async () => {
-    await autoSignIn();
-  };
 
   return (
     <div className="flex items-center gap-4">
@@ -31,13 +27,14 @@ export const NavActions = () => {
       {user ? (
         <ProfileDropdown />
       ) : (
-        <CRDButton
-          variant="outline"
-          size="sm"
-          onClick={handleSignInClick}
-        >
-          Sign In
-        </CRDButton>
+        <Link to="/auth/signin">
+          <CRDButton
+            variant="outline"
+            size="sm"
+          >
+            Sign In
+          </CRDButton>
+        </Link>
       )}
     </div>
   );

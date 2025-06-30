@@ -7,27 +7,12 @@ export interface LayerBounds {
   bottom: number;
 }
 
-export interface LayerDimensions {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
 export interface LayerProperties {
   opacity: number;
   blendMode?: string;
   visible: boolean;
   locked?: boolean;
 }
-
-export interface LayerEffect {
-  type: string;
-  enabled: boolean;
-  parameters: Record<string, any>;
-}
-
-export type PSDLayerType = 'text' | 'image' | 'group' | 'shape' | 'adjustment' | 'smartObject';
 
 export interface ProcessedPSDLayer {
   id: string;
@@ -38,28 +23,12 @@ export interface ProcessedPSDLayer {
   hasRealImage: boolean;
   imageUrl?: string;
   thumbnailUrl?: string;
-  inferredDepth?: number;
-  layerIndex: number;
+  inferredDepth?: number; // Added missing property
   // Unified compatibility fields
-  type: PSDLayerType;
+  type: 'text' | 'image' | 'group' | 'shape' | 'layer';
   isVisible: boolean;
-  visible: boolean; // Keep both for compatibility
   opacity: number;
-  blendMode?: string;
-  dimensions: LayerDimensions;
-  effects: LayerEffect[];
   confidence?: number;
-  analysis: LayerAnalysis;
-}
-
-export interface PSDMetadata {
-  documentName: string;
-  colorMode: string;
-  bitDepth: number;
-  hasTransparency: boolean;
-  layerCount: number;
-  createdAt: Date;
-  fileSize: number;
 }
 
 export interface ExtractedLayerImage {
@@ -90,7 +59,11 @@ export interface ProcessedPSD {
   height: number;
   layers: ProcessedPSDLayer[];
   totalLayers: number;
-  metadata?: PSDMetadata;
+  metadata?: {
+    documentName?: string;
+    colorMode?: string;
+    created?: string;
+  };
   // Required fields for all PSD objects
   flattenedImageUrl: string;
   transparentFlattenedImageUrl?: string;
@@ -101,13 +74,6 @@ export interface ProcessedPSD {
 export interface EnhancedProcessedPSD extends ProcessedPSD {
   extractedImages: ExtractedPSDImages;
   layerPreviews: Map<string, string>;
-  analysis: {
-    totalLayers: number;
-    visibleLayers: number;
-    layerTypes: Record<PSDLayerType, number>;
-    complexity: 'simple' | 'moderate' | 'complex';
-    potentialElements: string[];
-  };
 }
 
 // Processing states
@@ -119,7 +85,7 @@ export interface PSDProcessingState {
   success: boolean;
 }
 
-// Analysis types - Fixed duplicate complexity properties
+// Analysis types
 export interface LayerAnalysis {
   semantic: {
     category: 'player' | 'background' | 'stats' | 'logo' | 'effect' | 'border' | 'text' | 'image';
@@ -129,7 +95,7 @@ export interface LayerAnalysis {
     depth: number;
     parallaxFactor: number;
   };
-  complexityScore: {
+  complexity: {
     score: number;
     factors: {
       size: number;
@@ -138,8 +104,4 @@ export interface LayerAnalysis {
       semanticImportance: number;
     };
   };
-  isBackground: boolean;
-  isText: boolean;
-  hasEffects: boolean;
-  complexity: 'simple' | 'moderate' | 'complex';
 }

@@ -1,10 +1,11 @@
+
 import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { BulkPSDData } from '@/pages/BulkPSDAnalysisPage';
-import { UnifiedPSDProcessor } from '@/services/psdProcessor/UnifiedPSDProcessor';
+import { unifiedPSDProcessor } from '@/services/psdProcessor/UnifiedPSDProcessor';
 import { EnhancedProcessedPSD, PSDProcessingState } from '@/types/psdTypes';
 import { 
   Upload, 
@@ -50,8 +51,7 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
       try {
         console.log(`Processing PSD ${i + 1}/${files.length}: ${file.name}`);
         
-        // Use the static method correctly
-        const enhancedProcessedPSD = await UnifiedPSDProcessor.processPSDFile(file);
+        const enhancedProcessedPSD = await unifiedPSDProcessor.processPSDFile(file);
         
         processedPSDs.push({
           id: `psd_${Date.now()}_${i}`,
