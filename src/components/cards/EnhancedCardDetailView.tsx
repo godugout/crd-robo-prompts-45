@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { convertToViewerCardData } from '@/components/viewer/types';
 import type { CardData as HookCardData } from '@/hooks/useCardData';
 import { CardDetailHeader } from './components/CardDetailHeader';
 import { CardDetailMainContent } from './components/CardDetailMainContent';
@@ -34,6 +34,48 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
     setIsBookmarked(!isBookmarked);
   };
 
+  // Convert CardData to viewer format - Fix TypeScript errors here
+  const universalCard = {
+    id: card.id || '',
+    title: card.title,
+    description: card.description,
+    image_url: card.image_url,
+    thumbnail_url: card.thumbnail_url,
+    rarity: card.rarity,
+    price: typeof card.price === 'number' ? card.price : (typeof card.price === 'string' ? parseFloat(card.price) || 0 : 0),
+    creator_name: card.creator_name,
+    creator_verified: card.creator_verified || false,
+    stock: 3,
+    tags: card.tags || []
+  };
+
+  // Create complete viewer card with all required properties
+  const viewerCard = {
+    id: universalCard.id,
+    title: universalCard.title,
+    description: universalCard.description,
+    image_url: universalCard.image_url,
+    rarity: universalCard.rarity as any,
+    tags: universalCard.tags,
+    visibility: 'public' as any,
+    is_public: true,
+    template_id: undefined,
+    collection_id: undefined,
+    team_id: undefined,
+    creator_attribution: {
+      creator_name: universalCard.creator_name,
+      creator_id: card.creator_id
+    },
+    publishing_options: {
+      marketplace_listing: false,
+      crd_catalog_inclusion: true,
+      print_available: false,
+      pricing: { currency: 'USD' },
+      distribution: { limited_edition: false }
+    },
+    design_metadata: {}
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-crd-darkest via-crd-darker to-crd-darkest relative overflow-hidden">
       {/* Animated background particles */}
@@ -51,7 +93,7 @@ export const EnhancedCardDetailView: React.FC<EnhancedCardDetailViewProps> = ({
           <CardDetailMainContent
             cardTitle={card.title}
             cardId={card.id || ''}
-            card={card}
+            viewerCard={viewerCard}
             onOpenViewer={onOpenViewer}
           />
 

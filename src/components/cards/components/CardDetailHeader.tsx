@@ -1,23 +1,26 @@
 
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 interface CardDetailHeaderProps {
   onGoBack: () => void;
 }
 
-export const CardDetailHeader: React.FC<CardDetailHeaderProps> = ({ onGoBack }) => {
+export const CardDetailHeader: React.FC<CardDetailHeaderProps> = ({
+  onGoBack
+}) => {
   return (
-    <div className="relative z-10 p-6 border-b border-crd-mediumGray/20">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <div className="relative z-10 p-4 md:p-6">
+      <div className="flex items-center justify-between mb-4">
         <Button
           variant="ghost"
+          size="sm"
           onClick={onGoBack}
-          className="text-crd-lightGray hover:text-white flex items-center gap-2"
+          className="bg-black/20 backdrop-blur-sm hover:bg-black/30 text-white border border-white/10"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Gallery
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
         </Button>
       </div>
     </div>

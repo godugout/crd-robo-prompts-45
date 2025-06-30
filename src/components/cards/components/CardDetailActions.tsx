@@ -1,7 +1,12 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Heart, Bookmark, Share2, Download } from 'lucide-react';
+import { 
+  Share, 
+  Download, 
+  Heart,
+  Bookmark
+} from 'lucide-react';
 
 interface CardDetailActionsProps {
   isLiked: boolean;
@@ -22,47 +27,84 @@ export const CardDetailActions: React.FC<CardDetailActionsProps> = ({
   onDownload,
   isMobile = false
 }) => {
+  if (isMobile) {
+    return (
+      <div className="grid grid-cols-3 gap-3 lg:hidden">
+        <Button 
+          variant="outline" 
+          className={`border-white/20 backdrop-blur-sm ${isLiked ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'text-white hover:bg-white/10'}`}
+          onClick={onLike}
+        >
+          <Heart className={`w-4 h-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
+          {isLiked ? 'Liked' : 'Like'}
+        </Button>
+        
+        <Button 
+          variant="outline"
+          className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
+          onClick={onShare}
+        >
+          <Share className="w-4 h-4 mr-2" />
+          Share
+        </Button>
+        
+        <Button 
+          variant="outline"
+          className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
+          onClick={onDownload}
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Save
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div className={`flex gap-3 ${isMobile ? 'justify-center' : ''}`}>
-      <Button
-        variant="outline"
-        onClick={onLike}
-        className={`border-crd-mediumGray/40 flex items-center gap-2 ${
-          isLiked ? 'text-red-400 border-red-400/40' : 'text-crd-lightGray hover:text-white'
-        }`}
-      >
-        <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-        {!isMobile && 'Like'}
-      </Button>
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          variant="outline"
+          onClick={onLike}
+          className={`border-white/20 backdrop-blur-sm ${
+            isLiked ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'text-white hover:bg-white/10'
+          }`}
+        >
+          <Heart className={`w-4 h-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
+          {isLiked ? 'Liked' : 'Like'}
+        </Button>
+        
+        <Button
+          variant="outline"
+          onClick={onBookmark}
+          className={`border-white/20 backdrop-blur-sm ${
+            isBookmarked ? 'bg-crd-green/20 text-crd-green border-crd-green/30' : 'text-white hover:bg-white/10'
+          }`}
+        >
+          <Bookmark className={`w-4 h-4 mr-2 ${isBookmarked ? 'fill-current' : ''}`} />
+          Save
+        </Button>
+      </div>
       
-      <Button
-        variant="outline"
-        onClick={onBookmark}
-        className={`border-crd-mediumGray/40 flex items-center gap-2 ${
-          isBookmarked ? 'text-crd-green border-crd-green/40' : 'text-crd-lightGray hover:text-white'
-        }`}
-      >
-        <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
-        {!isMobile && 'Save'}
-      </Button>
-      
-      <Button
-        variant="outline"
-        onClick={onShare}
-        className="border-crd-mediumGray/40 text-crd-lightGray hover:text-white flex items-center gap-2"
-      >
-        <Share2 className="w-4 h-4" />
-        {!isMobile && 'Share'}
-      </Button>
-      
-      <Button
-        variant="outline"
-        onClick={onDownload}
-        className="border-crd-mediumGray/40 text-crd-lightGray hover:text-white flex items-center gap-2"
-      >
-        <Download className="w-4 h-4" />
-        {!isMobile && 'Download'}
-      </Button>
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          variant="outline"
+          onClick={onShare}
+          className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
+        >
+          <Share className="w-4 h-4 mr-2" />
+          Share
+        </Button>
+        
+        <Button
+          variant="outline"
+          onClick={onDownload}
+          className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Save
+        </Button>
+      </div>
     </div>
   );
 };

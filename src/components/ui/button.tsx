@@ -10,11 +10,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-crd-green text-studio-text hover:bg-crd-green-hover shadow-studio-sm hover:shadow-studio-md",
-        destructive: "bg-red-600 text-white hover:bg-red-700",
-        outline: "border border-studio-border bg-studio-surface hover:bg-studio-bg hover:text-studio-text text-studio-text-secondary",
-        secondary: "bg-studio-bg text-studio-text hover:bg-gray-100 border border-studio-border",
-        ghost: "hover:bg-studio-bg hover:text-studio-text text-studio-text-secondary",
+        default: "bg-crd-blue text-crd-white hover:bg-crd-blue/90",
+        destructive: "bg-red-600 text-crd-white hover:bg-red-700",
+        outline: "border border-crd-mediumGray bg-transparent hover:bg-crd-mediumGray hover:text-crd-white text-crd-lightGray",
+        secondary: "bg-crd-lightGray text-black hover:bg-crd-lightGray/80",
+        ghost: "hover:bg-crd-mediumGray hover:text-crd-white text-crd-lightGray",
         link: "text-crd-blue underline-offset-4 hover:underline",
       },
       size: {

@@ -5,33 +5,25 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { useCardEditor } from '@/hooks/useCardEditor';
-import { useTags } from '@/components/memory/hooks/useTags';
 
 interface PropertiesSectionProps {
   cardEditor: ReturnType<typeof useCardEditor>;
 }
 
 export const PropertiesSection = ({ cardEditor }: PropertiesSectionProps) => {
-  const { cardData, updateCardField } = cardEditor;
-  
-  // Use the enhanced useTags hook for tag functionality
-  const { 
-    tags, 
-    handleTagInput, 
-    handlePaste, 
-    removeTag, 
-    hasMaxTags 
-  } = useTags(cardData.tags || [], { 
-    maxTags: 10,
-    onTagAdded: (tag: string) => {
-      const currentTags = cardData.tags || [];
-      updateCardField('tags', [...currentTags, tag]);
-    },
-    onTagRemoved: (tag: string) => {
-      const currentTags = cardData.tags || [];
-      updateCardField('tags', currentTags.filter(t => t !== tag));
+  const { cardData, updateCardField, tags, addTag, removeTag, hasMaxTags } = cardEditor;
+
+  const handleTagKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const input = e.currentTarget;
+      const value = input.value.trim();
+      if (value && !hasMaxTags && !tags.includes(value)) {
+        addTag(value);
+        input.value = '';
+      }
     }
-  });
+  };
 
   return (
     <div className="p-6 border-b border-editor-border">
@@ -44,15 +36,11 @@ export const PropertiesSection = ({ cardEditor }: PropertiesSectionProps) => {
           </Label>
           <Input
             id="tags-input"
-            onKeyDown={handleTagInput}
-            onPaste={handlePaste}
-            placeholder={hasMaxTags ? "Maximum tags reached" : "Add tags (press Enter or use commas to separate)"}
+            onKeyPress={handleTagKeyPress}
+            placeholder={hasMaxTags ? "Maximum tags reached" : "Add tags (press Enter)"}
             disabled={hasMaxTags}
             className="bg-editor-darker border-editor-border text-cardshow-white mt-1"
           />
-          <p className="text-xs text-cardshow-lightGray/70 mt-1">
-            Separate multiple tags with commas, semicolons, or paste from clipboard
-          </p>
           
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">

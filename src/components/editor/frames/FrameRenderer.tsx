@@ -8,8 +8,6 @@ import {
   DonrussRookieFrame,
   ChromeEditionFrame
 } from './EnhancedFrameTemplates';
-import { CRDFrameRenderer } from '../../frames/crd/CRDFrameRenderer';
-import { getCRDFrameById } from '@/data/crdFrames';
 
 interface FrameRendererProps {
   frameId: string;
@@ -30,21 +28,6 @@ export const FrameRenderer: React.FC<FrameRendererProps> = ({
   height,
   cardData
 }) => {
-  // Check if it's a CRD frame first
-  const crdFrame = getCRDFrameById(frameId);
-  if (crdFrame) {
-    return (
-      <CRDFrameRenderer
-        frame={crdFrame}
-        userImage={imageUrl}
-        width={width}
-        height={height}
-        interactive={false}
-      />
-    );
-  }
-
-  // Fallback to legacy frame components
   const frameComponents = {
     'classic-sports': ClassicSportsFrame,
     'holographic-modern': ModernHolographicFrame,

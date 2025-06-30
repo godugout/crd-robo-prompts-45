@@ -7,7 +7,7 @@ import { useCards } from "@/hooks/useCards";
 import { ImmersiveCardViewer } from "@/components/viewer/ImmersiveCardViewer";
 import { useGalleryActions } from "@/pages/Gallery/hooks/useGalleryActions";
 import { useCardConversion } from "@/pages/Gallery/hooks/useCardConversion";
-import { convertToViewerCardData } from "@/components/viewer/types";
+import { convertToUniversalCardData } from "@/components/viewer/types";
 
 export const EnhancedHero: React.FC = () => {
   const { containerPadding, isMobile } = useResponsiveLayout();
@@ -107,8 +107,8 @@ export const EnhancedHero: React.FC = () => {
       {/* Immersive Viewer */}
       {showImmersiveViewer && convertedCards.length > 0 && (
         <ImmersiveCardViewer
-          card={convertToViewerCardData(convertedCards[selectedCardIndex])}
-          cards={convertedCards.map(convertToViewerCardData)}
+          card={convertToUniversalCardData(convertedCards[selectedCardIndex])}
+          cards={convertedCards.map(convertToUniversalCardData)}
           currentCardIndex={selectedCardIndex}
           onCardChange={handleCardChange}
           isOpen={showImmersiveViewer}

@@ -1,12 +1,18 @@
 
 import React from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Heart, Bookmark, Share2, Download, Play } from 'lucide-react';
-import type { CardData as HookCardData } from '@/hooks/useCardData';
+import { 
+  MoreHorizontal,
+  Maximize2
+} from 'lucide-react';
+import { CardQuickFactsPanel } from './CardQuickFactsPanel';
+import { CardMetadataPanel } from './CardMetadataPanel';
+import { CardDetailActions } from './CardDetailActions';
+import type { CardData } from '@/hooks/useCardData';
 
 interface CardDetailSidebarProps {
-  card: HookCardData;
+  card: CardData;
   likeCount: number;
   isLiked: boolean;
   isBookmarked: boolean;
@@ -29,108 +35,60 @@ export const CardDetailSidebar: React.FC<CardDetailSidebarProps> = ({
   onOpenViewer
 }) => {
   return (
-    <div className="space-y-6">
-      {/* Action Buttons */}
-      <Card className="p-4 bg-crd-darker border-crd-mediumGray/20">
-        <div className="space-y-3">
-          <Button
-            onClick={onOpenViewer}
-            className="w-full bg-crd-green hover:bg-crd-green/90 text-black font-medium flex items-center justify-center gap-2"
-          >
-            <Play className="w-4 h-4" />
-            View in 3D
-          </Button>
-          
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant="outline"
-              onClick={onLike}
-              className={`border-crd-mediumGray/40 flex items-center gap-2 ${
-                isLiked ? 'text-red-400 border-red-400/40' : 'text-crd-lightGray hover:text-white'
-              }`}
-            >
-              <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-              {likeCount}
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={onBookmark}
-              className={`border-crd-mediumGray/40 flex items-center gap-2 ${
-                isBookmarked ? 'text-crd-green border-crd-green/40' : 'text-crd-lightGray hover:text-white'
-              }`}
-            >
-              <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant="outline"
-              onClick={onShare}
-              className="border-crd-mediumGray/40 text-crd-lightGray hover:text-white flex items-center gap-2"
-            >
-              <Share2 className="w-4 h-4" />
-              Share
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={onDownload}
-              className="border-crd-mediumGray/40 text-crd-lightGray hover:text-white flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Save
-            </Button>
-          </div>
-        </div>
-      </Card>
+    <div className="space-y-5">
+      {/* Card Title & Creator - Desktop Only */}
+      <div className="hidden lg:block">
+        <h1 className="text-4xl font-bold text-white mb-4 leading-tight">{card.title}</h1>
+      </div>
+      
+      {/* Quick Facts Panel */}
+      <CardQuickFactsPanel
+        card={card}
+        likeCount={likeCount}
+        isLiked={isLiked}
+        isBookmarked={isBookmarked}
+      />
 
-      {/* Card Stats */}
-      <Card className="p-4 bg-crd-darker border-crd-mediumGray/20">
-        <h3 className="font-semibold text-white mb-3">Card Stats</h3>
-        <div className="space-y-3">
-          <div className="flex justify-between">
-            <span className="text-crd-lightGray">Views</span>
-            <span className="text-white font-medium">1,234</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-crd-lightGray">Likes</span>
-            <span className="text-white font-medium">{likeCount}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-crd-lightGray">Shares</span>
-            <span className="text-white font-medium">42</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-crd-lightGray">Created</span>
-            <span className="text-white font-medium">
-              {card.created_at ? new Date(card.created_at).toLocaleDateString() : 'Unknown'}
-            </span>
-          </div>
-        </div>
+      {/* Actions - Desktop Only */}
+      <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10 hidden lg:block">
+        <CardContent className="p-4">
+          <h3 className="text-lg font-semibold text-white mb-4">Actions</h3>
+          <CardDetailActions
+            isLiked={isLiked}
+            isBookmarked={isBookmarked}
+            onLike={onLike}
+            onBookmark={onBookmark}
+            onShare={onShare}
+            onDownload={onDownload}
+          />
+        </CardContent>
       </Card>
+      
+      {/* Enhanced Metadata */}
+      <CardMetadataPanel card={card} />
 
-      {/* Creator Info */}
-      <Card className="p-4 bg-crd-darker border-crd-mediumGray/20">
-        <h3 className="font-semibold text-white mb-3">Creator</h3>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-crd-green to-crd-blue rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-sm">
-              {card.creator_name?.charAt(0) || 'U'}
-            </span>
+      {/* More Actions */}
+      <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10">
+        <CardContent className="p-4">
+          <h3 className="text-lg font-semibold text-white mb-3">More Actions</h3>
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              className="w-full justify-start border-white/20 text-crd-lightGray hover:bg-white/10 hover:text-white"
+            >
+              <MoreHorizontal className="w-4 h-4 mr-2" />
+              Add to Collection
+            </Button>
+            <Button
+              variant="outline"
+              onClick={onOpenViewer}
+              className="w-full justify-start border-white/20 text-crd-lightGray hover:bg-white/10 hover:text-white"
+            >
+              <Maximize2 className="w-4 h-4 mr-2" />
+              View in 3D
+            </Button>
           </div>
-          <div className="flex-1">
-            <p className="font-medium text-white">{card.creator_name || 'Unknown Creator'}</p>
-            <p className="text-sm text-crd-lightGray">Digital Artist</p>
-          </div>
-        </div>
-        <Button
-          variant="outline"
-          className="w-full mt-3 border-crd-mediumGray/40 text-crd-lightGray hover:text-white"
-        >
-          View Profile
-        </Button>
+        </CardContent>
       </Card>
     </div>
   );

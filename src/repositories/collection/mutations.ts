@@ -14,7 +14,7 @@ export const createCollection = async (params: CreateCollectionParams): Promise<
     .insert({
       title: params.title,
       description: params.description,
-      owner_id: params.owner_id,
+      owner_id: params.ownerId,
       visibility: params.visibility || 'private',
       app_id: appId
     })
@@ -24,7 +24,33 @@ export const createCollection = async (params: CreateCollectionParams): Promise<
   if (error) throw new Error(`Failed to create collection: ${error.message}`);
   if (!data) throw new Error('No data returned after creating collection');
 
-  return data as Collection;
+  // If cards are provided, add them to the collection
+  if (params.cards && params.cards.length > 0) {
+    const collectionItems = params.cards.map((cardId, index) => ({
+      collection_id: data.id,
+      memory_id: cardId,
+      display_order: index
+    }));
+    
+    const { error: itemsError } = await supabase
+      .from('collection_items')
+      .insert(collectionItems);
+      
+    if (itemsError) {
+      console.error('Failed to add cards to collection:', itemsError);
+    }
+  }
+
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    ownerId: data.owner_id,
+    visibility: data.visibility,
+    coverImageUrl: data.cover_image_url,
+    createdAt: data.created_at,
+    cardCount: params.cards?.length || 0
+  };
 };
 
 export const updateCollection = async (params: UpdateCollectionParams): Promise<Collection> => {
@@ -44,13 +70,13 @@ export const updateCollection = async (params: UpdateCollectionParams): Promise<
   if (error) throw new Error(`Failed to update collection: ${error.message}`);
   if (!data) throw new Error(`Collection not found: ${params.id}`);
 
-  return data as Collection;
+  return getCollectionById(params.id) as Promise<Collection>;
 };
 
 export const updateCollectionCards = async (collectionId: string, cardIds: string[]): Promise<void> => {
   // First, remove all existing items
   const { error: deleteError } = await supabase
-    .from('collection_cards')
+    .from('collection_items')
     .delete()
     .eq('collection_id', collectionId);
     
@@ -60,12 +86,12 @@ export const updateCollectionCards = async (collectionId: string, cardIds: strin
   if (cardIds.length > 0) {
     const collectionItems = cardIds.map((cardId, index) => ({
       collection_id: collectionId,
-      card_id: cardId,
+      memory_id: cardId,
       display_order: index
     }));
     
     const { error: insertError } = await supabase
-      .from('collection_cards')
+      .from('collection_items')
       .insert(collectionItems);
       
     if (insertError) throw new Error(`Failed to add cards to collection: ${insertError.message}`);
@@ -79,7 +105,7 @@ export const deleteCollection = async (id: string): Promise<void> => {
 
   // Delete all collection items first
   const { error: itemsError } = await supabase
-    .from('collection_cards')
+    .from('collection_items')
     .delete()
     .eq('collection_id', id);
     
