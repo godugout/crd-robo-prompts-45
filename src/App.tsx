@@ -6,10 +6,10 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { NavigationProvider } from '@/contexts/NavigationContext';
 import { OverlayProvider } from '@/components/overlay/OverlayProvider';
 import { OverlayManager } from '@/components/overlay/OverlayManager';
-import { NavigationManager } from '@/components/navigation/NavigationManager';
+import { UniversalNavbar } from '@/components/navigation/UniversalNavbar';
 
 // Pages
-import Home from '@/pages/Home';
+import Home from '@/pages/Index';
 import CardCreation from '@/pages/CardCreation';
 import CardCreationTest from '@/pages/CardCreationTest';
 import ModernPSDAnalysisPage from '@/pages/ModernPSDAnalysisPage';
@@ -22,7 +22,7 @@ function App() {
         <OverlayProvider>
           <Router>
             <div className="App">
-              <NavigationManager />
+              <UniversalNavbar />
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/create" element={<CardCreation />} />
