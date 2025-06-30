@@ -110,9 +110,9 @@ export const PersistentCardPreview: React.FC<PersistentCardPreviewProps> = ({
             }}
           >
             {/* Background/Original Image */}
-            {showOriginal && processedPSD.originalImageUrl && (
+            {showOriginal && processedPSD.flattenedImageUrl && (
               <img
-                src={processedPSD.originalImageUrl}
+                src={processedPSD.flattenedImageUrl}
                 alt="Original PSD"
                 className="absolute inset-0 w-full h-full object-contain rounded-lg"
               />
@@ -183,17 +183,25 @@ export const PersistentCardPreview: React.FC<PersistentCardPreviewProps> = ({
             >
               <Eye className="w-4 h-4" />
             </Button>
-            {mode === 'build' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {/* flip layer */}}
-                className="text-slate-300 border-slate-600"
-              >
-                <FlipHorizontal className="w-4 h-4" />
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {/* flip layer */}}
+              className="text-slate-300 border-slate-600"
+            >
+              <FlipHorizontal className="w-4 h-4" />
+            </Button>
           </>
+        )}
+        {mode === 'build' && selectedLayer && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {/* flip layer */}}
+            className="text-slate-300 border-slate-600"
+          >
+            <FlipHorizontal className="w-4 h-4" />
+          </Button>
         )}
       </div>
     </div>
