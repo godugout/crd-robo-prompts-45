@@ -1,0 +1,86 @@
+
+/* Theme Variables */
+:root {
+  /* Studio Theme (Light) */
+  --studio-bg-primary: #f8fafc;
+  --studio-bg-secondary: #ffffff;
+  --studio-bg-accent: #f1f5f9;
+  --studio-text-primary: #0f172a;
+  --studio-text-secondary: #475569;
+  --studio-text-muted: #64748b;
+  --studio-border: #e2e8f0;
+  --studio-border-muted: #f1f5f9;
+  
+  /* Labs Theme (Dark) */
+  --labs-bg-primary: #0a0a0b;
+  --labs-bg-secondary: #131316;
+  --labs-bg-accent: #1a1a1d;
+  --labs-text-primary: #ffffff;
+  --labs-text-secondary: #a1a1aa;
+  --labs-text-muted: #71717a;
+  --labs-border: #27272a;
+  --labs-border-muted: #3f3f46;
+  
+  /* Brand Colors (consistent across themes) */
+  --brand-green: #4ade80;
+  --brand-blue: #3b82f6;
+  --brand-purple: #8b5cf6;
+  --brand-orange: #f59e0b;
+}
+
+/* Studio Theme */
+[data-theme="studio"] {
+  --bg-primary: var(--studio-bg-primary);
+  --bg-secondary: var(--studio-bg-secondary);
+  --bg-accent: var(--studio-bg-accent);
+  --text-primary: var(--studio-text-primary);
+  --text-secondary: var(--studio-text-secondary);
+  --text-muted: var(--studio-text-muted);
+  --border-color: var(--studio-border);
+  --border-muted: var(--studio-border-muted);
+}
+
+/* Labs Theme */
+[data-theme="labs"] {
+  --bg-primary: var(--labs-bg-primary);
+  --bg-secondary: var(--labs-bg-secondary);
+  --bg-accent: var(--labs-bg-accent);
+  --text-primary: var(--labs-text-primary);
+  --text-secondary: var(--labs-text-secondary);
+  --text-muted: var(--labs-text-muted);
+  --border-color: var(--labs-border);
+  --border-muted: var(--labs-border-muted);
+}
+
+/* Apply theme variables to components */
+.theme-bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.theme-bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.theme-bg-accent {
+  background-color: var(--bg-accent);
+}
+
+.theme-text-primary {
+  color: var(--text-primary);
+}
+
+.theme-text-secondary {
+  color: var(--text-secondary);
+}
+
+.theme-text-muted {
+  color: var(--text-muted);
+}
+
+.theme-border {
+  border-color: var(--border-color);
+}
+
+.theme-border-muted {
+  border-color: var(--border-muted);
+}

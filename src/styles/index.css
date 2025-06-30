@@ -2,6 +2,7 @@
 /* Main entry point for all CSS files */
 @import './base.css';
 @import './theme.css';
+@import './themes.css';
 @import './components.css';
 @import './utilities.css';
 
