@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   Home, Plus, Palette, Users, Trophy, 
-  Camera, Layers, Sparkles, Settings, User, FileImage 
+  Camera, Layers, Sparkles, Settings, User, Beaker 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -16,7 +16,7 @@ const navigationItems = [
   { href: '/collections', label: 'Collections', icon: Camera, public: true },
   { href: '/community', label: 'Community', icon: Users, public: true },
   { href: '/creator-dashboard', label: 'Dashboard', icon: Trophy, protected: true },
-  { href: '/debug/psd-preview', label: 'PSD Analysis', icon: FileImage, protected: true }
+  { href: '/labs', label: 'Labs', icon: Beaker, protected: true }
 ];
 
 export const UniversalNavbar: React.FC = () => {

@@ -11,12 +11,14 @@ import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
 import AuthCallback from "./pages/auth/AuthCallback";
 import CardCreation from "./pages/CardCreation";
+import CardCreationTest from "./pages/CardCreationTest";
 import EnhancedCardCreationPage from "./pages/EnhancedCardCreationPage";
 import FunctionalCardCreationPage from "./pages/FunctionalCardCreationPage";
 import { EnhancedStudio } from "@/components/studio/EnhancedStudio";
 import Collections from './pages/Collections';
 import CreatorDashboardPage from './pages/CreatorDashboardPage';
 import CommunityHubPage from './pages/CommunityHubPage';
+import LabsPage from './pages/LabsPage';
 import PSDPreviewPage from './pages/PSDPreviewPage';
 import SimplePSDAnalysisPage from './pages/SimplePSDAnalysisPage';
 import BulkPSDAnalysisPage from "./pages/BulkPSDAnalysisPage";
@@ -79,6 +81,16 @@ function App() {
                   } 
                 />
                 <Route 
+                  path="/create/test" 
+                  element={
+                    <MainLayout>
+                      <ProtectedRoute>
+                        <CardCreationTest />
+                      </ProtectedRoute>
+                    </MainLayout>
+                  } 
+                />
+                <Route 
                   path="/create/enhanced" 
                   element={
                     <MainLayout>
@@ -131,6 +143,16 @@ function App() {
                   element={
                     <MainLayout>
                       <CommunityHubPage />
+                    </MainLayout>
+                  } 
+                />
+                <Route 
+                  path="/labs" 
+                  element={
+                    <MainLayout>
+                      <ProtectedRoute>
+                        <LabsPage />
+                      </ProtectedRoute>
                     </MainLayout>
                   } 
                 />
