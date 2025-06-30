@@ -1,532 +1,153 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import type { ImmersiveCardViewerProps, EnvironmentScene, LightingPreset, MaterialSettings } from './types';
-import { convertToViewerCardData } from './types';
-import { 
-  useEnhancedCardEffects, 
-  type EffectValues 
-} from './hooks/useEnhancedCardEffects';
-import { useCardEffects } from './hooks/useCardEffects';
-import { useDynamicCardBackMaterials } from './hooks/useDynamicCardBackMaterials';
-import { ViewerControls } from './components/ViewerControls';
-import { ProgressiveCustomizePanel } from './components/ProgressiveCustomizePanel';
-import { EnhancedCardContainer } from './components/EnhancedCardContainer';
-import { ExportOptionsDialog } from './components/ExportOptionsDialog';
-import { ConfigurationDetailsPanel } from './components/ConfigurationDetailsPanel';
-import { GestureHelpOverlay } from './components/GestureHelpOverlay';
-import { MobileCardLayout } from './components/MobileCardLayout';
-import { EnhancedMobileMainControlBar } from './components/EnhancedMobileMainControlBar';
-import { EnhancedMobileStudioPanel } from './components/EnhancedMobileStudioPanel';
-import { MobileInfoPanel } from './components/MobileInfoPanel';
-import { MobileCreateCardPanel } from './components/MobileCreateCardPanel';
-import { MobileFramesPanel } from './components/MobileFramesPanel';
-import { MobileShowcasePanel } from './components/MobileShowcasePanel';
+
+import React, { useState, useCallback } from 'react';
 import { EffectProvider } from './contexts/EffectContext';
+import type { CardData } from '@/hooks/useCardEditor';
 
-// New extracted components
-import { CardNavigationControls } from './components/CardNavigationControls';
-import { DesktopStudioToggle } from './components/DesktopStudioToggle';
-import { ViewerInfoPanel } from './components/ViewerInfoPanel';
-import { ViewerBackground } from './components/ViewerBackground';
-
-// New extracted hooks
-import { useCardNavigation } from './hooks/useCardNavigation';
-import { useViewerInteraction } from './hooks/useViewerInteraction';
-import { useViewerState } from './hooks/useViewerState';
-
-// Update the interface to support card navigation
-interface ExtendedImmersiveCardViewerProps extends ImmersiveCardViewerProps {
-  cards?: any[];
+interface ImmersiveCardViewerProps {
+  card: CardData;
+  cards?: CardData[];
   currentCardIndex?: number;
-  onCardChange?: (index: number) => void;
+  onCardChange?: (newIndex: number) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
+  onShare?: () => void;
+  onDownload?: () => void | Promise<void>;
+  allowRotation?: boolean;
+  showStats?: boolean;
+  ambient?: boolean;
+  className?: string;
 }
 
-export const ImmersiveCardViewer: React.FC<ExtendedImmersiveCardViewerProps> = ({
+export const ImmersiveCardViewer: React.FC<ImmersiveCardViewerProps> = ({
   card,
-  cards = [],
-  currentCardIndex = 0,
+  cards,
+  currentCardIndex,
   onCardChange,
   isOpen = true,
   onClose,
   onShare,
   onDownload,
-  allowRotation = true,
-  showStats = true,
-  ambient = true
+  allowRotation = false,
+  showStats = false,
+  ambient = false,
+  className = ""
 }) => {
-  const isMobile = useIsMobile();
-  
-  // Convert UniversalCardData to CardData for internal use
-  const viewerCard = convertToViewerCardData(card);
-  
-  console.log('ImmersiveCardViewer: Converting card data:', {
-    originalCard: {
-      id: card.id,
-      title: card.title,
-      image_url: card.image_url,
-      hasImage: !!card.image_url
-    },
-    convertedCard: {
-      id: viewerCard.id,
-      title: viewerCard.title,
-      image_url: viewerCard.image_url,
-      hasImage: !!viewerCard.image_url
-    }
-  });
-
-  // Use extracted hooks
-  const viewerState = useViewerState(isMobile);
-  const viewerInteraction = useViewerInteraction(allowRotation);
-  const cardNavigation = useCardNavigation({
-    cards,
-    currentCardIndex,
-    onCardChange,
-    setIsFlipped: viewerInteraction.setIsFlipped
-  });
-
-  // Enhanced effects state with atomic preset application
-  const enhancedEffectsHook = useEnhancedCardEffects();
-  const {
-    effectValues,
-    handleEffectChange,
-    resetEffect,
-    resetAllEffects,
-    applyPreset,
-    isApplyingPreset
-  } = enhancedEffectsHook;
-  
-  // Get dynamic material based on current effects
-  const { selectedMaterial } = useDynamicCardBackMaterials(effectValues);
-  
-  // Advanced settings - Updated for more professional defaults
-  const [selectedScene, setSelectedScene] = useState<EnvironmentScene>('studio');
-  const [selectedLighting, setSelectedLighting] = useState<LightingPreset>('studio');
-  const [overallBrightness, setOverallBrightness] = useState([100]);
-  const [interactiveLighting, setInteractiveLighting] = useState(true);
-  
-  // Material properties - More balanced defaults with transmission
-  const [materialSettings, setMaterialSettings] = useState<MaterialSettings>({
-    roughness: 0.40,
-    metalness: 0.45,
-    clearcoat: 0.60,
+  const [effectValues, setEffectValues] = useState({});
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isHovering, setIsHovering] = useState(false);
+  const [materialSettings] = useState({
+    metalness: 0.5,
+    roughness: 0.5,
+    clearcoat: 0.0,
     transmission: 0.0,
-    reflectivity: 0.40
+    reflectivity: 50
   });
 
-  // Add state for preset selection tracking
-  const [selectedPresetId, setSelectedPresetId] = useState<string>();
+  const handleEffectChange = useCallback(() => {}, []);
+  const resetEffect = useCallback(() => {}, []);
+  const resetAllEffects = useCallback(() => {}, []);
 
-  // Update the download handler to open export dialog
-  const handleDownloadClick = useCallback(() => {
-    viewerState.setShowExportDialog(true);
-  }, [viewerState]);
-
-  // Fix the share handler to pass the current card
-  const handleShareClick = useCallback(() => {
-    if (onShare) {
-      onShare(card);
-    }
-  }, [onShare, card]);
-
-  // Style generation hook - Create a component from SurfaceTexture element
-  const { getFrameStyles, getEnhancedEffectStyles, getEnvironmentStyle, SurfaceTexture } = useCardEffects({
-    card: viewerCard,
-    effectValues,
-    mousePosition: viewerInteraction.mousePosition,
-    showEffects: viewerInteraction.showEffects,
-    overallBrightness,
-    interactiveLighting,
-    selectedScene,
-    selectedLighting,
-    materialSettings,
-    zoom: viewerInteraction.zoom,
-    rotation: viewerInteraction.rotation,
-    isHovering: viewerInteraction.isHovering
-  });
-
-  const cardContainerRef = useRef<HTMLDivElement>(null);
-
-  // Create a proper component from the SurfaceTexture element
-  const SurfaceTextureComponent = React.useMemo(() => {
-    return React.memo(() => {
-      return SurfaceTexture;
-    });
-  }, [SurfaceTexture]);
-
-  // Enhanced combo application with atomic updates
-  const handleComboApplication = useCallback((combo: any) => {
-    console.log('🚀 Applying combo with atomic updates:', combo.id);
-    
-    // Apply preset atomically with all related state
-    applyPreset(combo.effects, combo.id);
-    
-    // Update preset selection
-    setSelectedPresetId(combo.id);
-    
-    // Apply any scene/lighting changes if specified
-    if (combo.scene) {
-      setSelectedScene(combo.scene);
-    }
-    if (combo.lighting) {
-      setSelectedLighting(combo.lighting);
-    }
-  }, [applyPreset]);
-
-  // Clear preset selection when manual effect changes are made
-  const handleManualEffectChange = useCallback((effectId: string, parameterId: string, value: number | boolean | string) => {
-    if (!isApplyingPreset) {
-      setSelectedPresetId(undefined);
-    }
-    handleEffectChange(effectId, parameterId, value);
-  }, [handleEffectChange, isApplyingPreset]);
-
-  // Mobile handlers
-  const handleCreateCardVariation = useCallback(async (variationType: string) => {
-    console.log('Creating card variation:', variationType, 'for card:', card);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  }, [card]);
-
-  // Handle applying a frame
-  const handleApplyFrame = useCallback((frameId: string) => {
-    viewerState.setSelectedFrameId(frameId);
-    viewerState.setShowFramesPanel(false);
-    console.log('Applying frame:', frameId);
-  }, [viewerState]);
-
-  const handleSelectShowcaseLayout = useCallback((layoutId: string) => {
-    viewerState.setSelectedShowcaseLayoutId(layoutId);
-    viewerState.setShowShowcasePanel(false);
-    console.log('Selecting showcase layout:', layoutId);
-  }, [viewerState]);
-
-  if (!isOpen) return null;
-
-  // Calculate effect intensity for context
-  const effectIntensity = Object.values(effectValues).map(effect => 
-    typeof effect.intensity === 'number' ? effect.intensity : 0
-  );
-
-  // Create effect context value
-  const effectContextValue = {
-    effectValues,
-    mousePosition: viewerInteraction.mousePosition,
-    isHovering: viewerInteraction.isHovering,
-    showEffects: viewerInteraction.showEffects,
-    materialSettings,
-    interactiveLighting,
-    effectIntensity,
-    handleEffectChange,
-    resetEffect,
-    resetAllEffects
-  };
-
-  // Mobile Layout with Enhanced Two-Level System
-  if (isMobile) {
-    return (
-      <EffectProvider value={effectContextValue}>
-        <div 
-          ref={viewerInteraction.containerRef}
-          className="fixed inset-0 z-50"
-          style={{
-            ...getEnvironmentStyle(),
-          }}
-          onMouseMove={viewerInteraction.handleMouseMove}
-          onMouseUp={viewerInteraction.handleDragEnd}
-          onMouseLeave={viewerInteraction.handleDragEnd}
-        >
-          <ViewerBackground
-            selectedScene={selectedScene}
-            mousePosition={viewerInteraction.mousePosition}
-            ambient={ambient}
-          />
-
-          <MobileCardLayout
-            bottomControls={
-              <EnhancedMobileMainControlBar
-                onCreateCardVariation={handleCreateCardVariation}
-                onApplyFrame={handleApplyFrame}
-                onSelectShowcaseLayout={handleSelectShowcaseLayout}
-              />
-            }
-            floatingControls={
-              <CardNavigationControls
-                hasMultipleCards={cardNavigation.hasMultipleCards}
-                currentCardIndex={currentCardIndex}
-                totalCards={cards.length}
-                canGoPrev={cardNavigation.canGoPrev}
-                canGoNext={cardNavigation.canGoNext}
-                onPreviousCard={cardNavigation.handlePreviousCard}
-                onNextCard={cardNavigation.handleNextCard}
-              />
-            }
-            infoPanel={
-              showStats && (
-                <MobileInfoPanel
-                  selectedMaterial={selectedMaterial}
-                  hasMultipleCards={cardNavigation.hasMultipleCards}
-                />
-              )
-            }
-            showInfoPanel={viewerState.showMobileInfo}
-            studioPanel={
-              <EnhancedMobileStudioPanel
-                selectedScene={selectedScene}
-                selectedLighting={selectedLighting}
-                effectValues={effectValues}
-                overallBrightness={overallBrightness}
-                interactiveLighting={interactiveLighting}
-                materialSettings={materialSettings}
-                isFullscreen={viewerState.isFullscreen}
-                onSceneChange={setSelectedScene}
-                onLightingChange={setSelectedLighting}
-                onEffectChange={handleManualEffectChange}
-                onResetAllEffects={resetAllEffects}
-                onBrightnessChange={setOverallBrightness}
-                onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
-                onMaterialSettingsChange={setMaterialSettings}
-                onToggleFullscreen={viewerState.toggleFullscreen}
-                onDownload={handleDownloadClick}
-                onShare={handleShareClick}
-                card={card}
-                selectedPresetId={selectedPresetId}
-                onPresetSelect={setSelectedPresetId}
-                onApplyCombo={handleComboApplication}
-                isApplyingPreset={isApplyingPreset}
-              />
-            }
-            createCardPanel={
-              <MobileCreateCardPanel
-                isVisible={viewerState.showCreateCardPanel}
-                onClose={() => viewerState.setShowCreateCardPanel(false)}
-                card={card}
-                onCreateVariation={handleCreateCardVariation}
-              />
-            }
-            framesPanel={
-              <MobileFramesPanel
-                isVisible={viewerState.showFramesPanel}
-                onClose={() => viewerState.setShowFramesPanel(false)}
-                onApplyFrame={handleApplyFrame}
-                selectedFrameId={viewerState.selectedFrameId}
-              />
-            }
-            showcasePanel={
-              <MobileShowcasePanel
-                isVisible={viewerState.showShowcasePanel}
-                onClose={() => viewerState.setShowShowcasePanel(false)}
-                onSelectLayout={handleSelectShowcaseLayout}
-                selectedLayoutId={viewerState.selectedShowcaseLayoutId}
-              />
-            }
-          >
-            {/* Enhanced Card Container with Full Gesture Support */}
-            <div ref={cardContainerRef}>
-              <EnhancedCardContainer
-                card={viewerCard}
-                isFlipped={viewerInteraction.isFlipped}
-                rotation={viewerInteraction.rotation}
-                zoom={viewerInteraction.zoom}
-                isDragging={viewerInteraction.isDragging}
-                frameStyles={getFrameStyles()}
-                enhancedEffectStyles={getEnhancedEffectStyles()}
-                SurfaceTexture={SurfaceTextureComponent}
-                onMouseDown={viewerInteraction.handleDragStart}
-                onMouseMove={viewerInteraction.handleDrag}
-                onMouseEnter={() => viewerInteraction.setIsHovering(true)}
-                onMouseLeave={() => viewerInteraction.setIsHovering(false)}
-                onClick={() => viewerInteraction.setIsFlipped(!viewerInteraction.isFlipped)}
-                onZoom={(delta) => viewerInteraction.setZoom(prev => Math.max(0.5, Math.min(3, prev + delta)))}
-                onRotationChange={viewerInteraction.setRotation}
-                onDoubleTap={() => {
-                  if (viewerInteraction.zoom <= 1) {
-                    viewerInteraction.setZoom(1.5);
-                  } else {
-                    viewerInteraction.setZoom(1);
-                  }
-                  viewerInteraction.setRotation({ x: 0, y: 0 });
-                }}
-                onLongPress={() => viewerInteraction.setIsFlipped(!viewerInteraction.isFlipped)}
-                onSwipeLeft={cardNavigation.handleNextCard}
-                onSwipeRight={cardNavigation.handlePreviousCard}
-                onReset={viewerInteraction.handleReset}
-              />
-            </div>
-          </MobileCardLayout>
-        </div>
-
-        {/* Export Options Dialog */}
-        <ExportOptionsDialog
-          isOpen={viewerState.showExportDialog}
-          onClose={() => viewerState.setShowExportDialog(false)}
-          cardTitle={card.title}
-          cardElementRef={cardContainerRef}
-        />
-
-        {/* Gesture Help Overlay */}
-        <GestureHelpOverlay
-          isVisible={viewerState.showGestureHelp}
-          onClose={() => viewerState.setShowGestureHelp(false)}
-        />
-      </EffectProvider>
-    );
+  if (!isOpen) {
+    return null;
   }
 
-  // Desktop Layout - Fixed for full background and centered card
   return (
-    <EffectProvider value={effectContextValue}>
-      <div 
-        ref={viewerInteraction.containerRef}
-        className="fixed inset-0 z-50 flex items-center justify-center"
-        style={{
-          ...getEnvironmentStyle(),
-        }}
-        onMouseMove={viewerInteraction.handleMouseMove}
-        onMouseUp={viewerInteraction.handleDragEnd}
-        onMouseLeave={viewerInteraction.handleDragEnd}
-      >
-        <ViewerBackground
-          selectedScene={selectedScene}
-          mousePosition={viewerInteraction.mousePosition}
-          ambient={ambient}
-        />
+    <div className={`fixed inset-0 z-50 bg-black/80 flex items-center justify-center ${className}`}>
+      <div className="relative w-full max-w-4xl h-full max-h-[90vh] bg-crd-darkest rounded-lg overflow-hidden">
+        {/* Close button */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 z-10 text-white hover:text-crd-green transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
 
-        {/* Settings Panel Toggle Button */}
-        <DesktopStudioToggle
-          showCustomizePanel={viewerState.showCustomizePanel}
-          onToggle={() => viewerState.setShowCustomizePanel(true)}
-        />
-
-        {/* Desktop Controls */}
-        <div className={`absolute bottom-4 left-4 z-20 transition-opacity duration-200 ${viewerInteraction.isHoveringControls ? 'opacity-100' : 'opacity-100'}`}>
-          <ViewerControls
-            showEffects={viewerInteraction.showEffects}
-            autoRotate={viewerInteraction.autoRotate}
-            onToggleEffects={() => viewerInteraction.setShowEffects(!viewerInteraction.showEffects)}
-            onToggleAutoRotate={() => viewerInteraction.setAutoRotate(!viewerInteraction.autoRotate)}
-            onReset={viewerInteraction.handleReset}
-            onZoomIn={() => viewerInteraction.handleZoom(0.1)}
-            onZoomOut={() => viewerInteraction.handleZoom(-0.1)}
-          />
-        </div>
-
-        {/* Card Navigation Controls */}
-        <CardNavigationControls
-          hasMultipleCards={cardNavigation.hasMultipleCards}
-          currentCardIndex={currentCardIndex}
-          totalCards={cards.length}
-          canGoPrev={cardNavigation.canGoPrev}
-          canGoNext={cardNavigation.canGoNext}
-          onPreviousCard={cardNavigation.handlePreviousCard}
-          onNextCard={cardNavigation.handleNextCard}
-        />
-
-        {/* Desktop Customize Panel */}
-        {viewerState.showCustomizePanel && (
-          <div className="absolute top-0 right-0 h-full w-80 z-30">
-            <ProgressiveCustomizePanel
-              selectedScene={selectedScene}
-              selectedLighting={selectedLighting}
-              effectValues={effectValues}
-              overallBrightness={overallBrightness}
-              interactiveLighting={interactiveLighting}
-              materialSettings={materialSettings}
-              isFullscreen={viewerState.isFullscreen}
-              onSceneChange={setSelectedScene}
-              onLightingChange={setSelectedLighting}
-              onEffectChange={handleManualEffectChange}
-              onResetAllEffects={resetAllEffects}
-              onBrightnessChange={setOverallBrightness}
-              onInteractiveLightingToggle={() => setInteractiveLighting(!interactiveLighting)}
-              onMaterialSettingsChange={setMaterialSettings}
-              onToggleFullscreen={viewerState.toggleFullscreen}
-              onDownload={handleDownloadClick}
-              onShare={handleShareClick}
-              onClose={() => {
-                if (onClose) {
-                  onClose();
-                } else {
-                  viewerState.setShowCustomizePanel(false);
-                }
-              }}
-              card={card}
-              selectedPresetId={selectedPresetId}
-              onPresetSelect={setSelectedPresetId}
-              onApplyCombo={handleComboApplication}
-              isApplyingPreset={isApplyingPreset}
-            />
+        {/* Card navigation */}
+        {cards && cards.length > 1 && onCardChange && (
+          <div className="absolute top-1/2 left-4 right-4 flex justify-between items-center z-10 pointer-events-none">
+            <button
+              onClick={() => onCardChange(Math.max(0, (currentCardIndex || 0) - 1))}
+              disabled={(currentCardIndex || 0) === 0}
+              className="pointer-events-auto bg-black/50 hover:bg-black/70 text-white p-2 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => onCardChange(Math.min(cards.length - 1, (currentCardIndex || 0) + 1))}
+              disabled={(currentCardIndex || 0) === cards.length - 1}
+              className="pointer-events-auto bg-black/50 hover:bg-black/70 text-white p-2 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
         )}
 
-        {/* Enhanced Card Container - Centered regardless of panels */}
-        <div ref={cardContainerRef} className="flex items-center justify-center w-full h-full">
-          <EnhancedCardContainer
-            card={viewerCard}
-            isFlipped={viewerInteraction.isFlipped}
-            rotation={viewerInteraction.rotation}
-            zoom={viewerInteraction.zoom}
-            isDragging={viewerInteraction.isDragging}
-            frameStyles={getFrameStyles()}
-            enhancedEffectStyles={getEnhancedEffectStyles()}
-            SurfaceTexture={SurfaceTextureComponent}
-            onMouseDown={viewerInteraction.handleDragStart}
-            onMouseMove={viewerInteraction.handleDrag}
-            onMouseEnter={() => viewerInteraction.setIsHovering(true)}
-            onMouseLeave={() => viewerInteraction.setIsHovering(false)}
-            onClick={() => viewerInteraction.setIsFlipped(!viewerInteraction.isFlipped)}
-            onZoom={(delta) => viewerInteraction.setZoom(prev => Math.max(0.5, Math.min(3, prev + delta)))}
-            onRotationChange={viewerInteraction.setRotation}
-            onDoubleTap={() => {
-              if (viewerInteraction.zoom <= 1) {
-                viewerInteraction.setZoom(1.5);
-              } else {
-                viewerInteraction.setZoom(1);
-              }
-              viewerInteraction.setRotation({ x: 0, y: 0 });
-            }}
-            onLongPress={() => viewerInteraction.setIsFlipped(!viewerInteraction.isFlipped)}
-            onSwipeLeft={cardNavigation.handleNextCard}
-            onSwipeRight={cardNavigation.handlePreviousCard}
-            onReset={viewerInteraction.handleReset}
-          />
-        </div>
+        <EffectProvider 
+          initialEffects={effectValues}
+          initialValues={{
+            effectValues,
+            mousePosition,
+            isHovering,
+            showEffects: true,
+            materialSettings,
+            interactiveLighting: false,
+            effectIntensity: [0]
+          }}
+        >
+          <div className="immersive-card-viewer h-full flex flex-col">
+            {/* Header with card info */}
+            <div className="p-6 border-b border-crd-mediumGray">
+              <h3 className="text-2xl font-bold text-white mb-2">{card.title}</h3>
+              {card.description && (
+                <p className="text-crd-lightGray">{card.description}</p>
+              )}
+              {showStats && (
+                <div className="flex gap-4 mt-3 text-sm">
+                  <span className="text-crd-green">Rarity: {card.rarity}</span>
+                  {card.tags && card.tags.length > 0 && (
+                    <span className="text-crd-lightGray">Tags: {card.tags.join(', ')}</span>
+                  )}
+                </div>
+              )}
+            </div>
 
-        {/* Configuration Details Panel */}
-        {!viewerState.showCustomizePanel && (
-          <div className="absolute top-4 left-4 z-10">
-            <ConfigurationDetailsPanel
-              effectValues={effectValues}
-              selectedScene={selectedScene}
-              selectedLighting={selectedLighting}
-              materialSettings={materialSettings}
-              overallBrightness={overallBrightness}
-              interactiveLighting={interactiveLighting}
-            />
+            {/* 3D View Area */}
+            <div className="flex-1 flex items-center justify-center p-8">
+              <div className="w-full max-w-md aspect-[3/4] bg-gradient-to-br from-crd-purple/20 to-crd-green/20 rounded-xl flex items-center justify-center">
+                <span className="text-crd-lightGray text-lg">Premium 3D View</span>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="p-6 border-t border-crd-mediumGray flex gap-3 justify-center">
+              {onShare && (
+                <button
+                  onClick={onShare}
+                  className="bg-crd-mediumGray hover:bg-crd-lightGray text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  Share
+                </button>
+              )}
+              {onDownload && (
+                <button
+                  onClick={onDownload}
+                  className="bg-crd-green hover:bg-crd-green/90 text-black px-4 py-2 rounded-lg transition-colors"
+                >
+                  Download
+                </button>
+              )}
+            </div>
           </div>
-        )}
-
-        {/* Info Panel */}
-        <ViewerInfoPanel
-          showStats={showStats}
-          isFlipped={viewerInteraction.isFlipped}
-          showCustomizePanel={viewerState.showCustomizePanel}
-          hasMultipleCards={cardNavigation.hasMultipleCards}
-          selectedMaterial={selectedMaterial}
-        />
+        </EffectProvider>
       </div>
-
-      {/* Export Options Dialog */}
-      <ExportOptionsDialog
-        isOpen={viewerState.showExportDialog}
-        onClose={() => viewerState.setShowExportDialog(false)}
-        cardTitle={card.title}
-        cardElementRef={cardContainerRef}
-      />
-
-      {/* Gesture Help Overlay */}
-      <GestureHelpOverlay
-        isVisible={viewerState.showGestureHelp}
-        onClose={() => viewerState.setShowGestureHelp(false)}
-      />
-    </EffectProvider>
+    </div>
   );
 };

@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
 export type CardVisibility = 'private' | 'public' | 'shared';
 
 export interface CreatorAttribution {

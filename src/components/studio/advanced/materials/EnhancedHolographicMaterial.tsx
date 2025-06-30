@@ -1,24 +1,32 @@
-import React, { useRef, useMemo, useEffect } from 'react';
+
+import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 interface EnhancedHolographicMaterialProps {
-  texture: THREE.Texture | null;
-  effects: {
-    holographic?: boolean;
-    metalness?: number;
-    roughness?: number;
-    chrome?: boolean;
-    crystal?: boolean;
-    vintage?: boolean;
-  };
+  texture?: THREE.Texture;
+  intensity?: number;
+  colorShift?: number;
+  animated?: boolean;
 }
 
 export const EnhancedHolographicMaterial: React.FC<EnhancedHolographicMaterialProps> = ({
   texture,
-  effects
+  intensity = 1.0,
+  colorShift = 0.5,
+  animated = true
 }) => {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
+
+  const uniforms = useMemo(() => ({
+    uTime: { value: 0 },
+    uHolographicIntensity: { value: intensity },
+    uColorShift: { value: colorShift },
+    uTexture: { value: texture },
+    uFresnelPower: { value: 2.0 },
+    uRainbowSpeed: { value: 1.0 },
+    uShimmerScale: { value: 10.0 }
+  }), [texture, intensity, colorShift]);
 
   const vertexShader = `
     varying vec2 vUv;
@@ -29,9 +37,11 @@ export const EnhancedHolographicMaterial: React.FC<EnhancedHolographicMaterialPr
     void main() {
       vUv = uv;
       vNormal = normalize(normalMatrix * normal);
+      
       vec4 worldPosition = modelMatrix * vec4(position, 1.0);
       vWorldPosition = worldPosition.xyz;
       vViewDirection = normalize(cameraPosition - worldPosition.xyz);
+      
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   `;
@@ -39,12 +49,11 @@ export const EnhancedHolographicMaterial: React.FC<EnhancedHolographicMaterialPr
   const fragmentShader = `
     uniform float uTime;
     uniform float uHolographicIntensity;
-    uniform float uMetalness;
-    uniform float uRoughness;
-    uniform bool uChrome;
-    uniform bool uCrystal;
-    uniform bool uVintage;
+    uniform float uColorShift;
     uniform sampler2D uTexture;
+    uniform float uFresnelPower;
+    uniform float uRainbowSpeed;
+    uniform float uShimmerScale;
     
     varying vec2 vUv;
     varying vec3 vNormal;
@@ -58,78 +67,32 @@ export const EnhancedHolographicMaterial: React.FC<EnhancedHolographicMaterialPr
     }
     
     void main() {
-      vec4 texColor = texture2D(uTexture, vUv);
-      vec3 finalColor = texColor.rgb;
+      vec4 baseColor = texture2D(uTexture, vUv);
       
-      // Fresnel effect for all materials
-      float fresnel = 1.0 - max(0.0, dot(vViewDirection, vNormal));
-      fresnel = pow(fresnel, 2.0);
+      // Fresnel effect
+      float fresnel = pow(1.0 - max(dot(vNormal, vViewDirection), 0.0), uFresnelPower);
       
-      // Holographic effect
-      if (uHolographicIntensity > 0.0) {
-        float angle = atan(vUv.y - 0.5, vUv.x - 0.5);
-        float rainbow = sin(angle * 6.0 + uTime * 2.0) * 0.5 + 0.5;
-        vec3 rainbowColor = hsv2rgb(vec3(rainbow, 0.8, 1.0));
-        finalColor = mix(finalColor, finalColor + rainbowColor * 0.7, uHolographicIntensity * fresnel);
-      }
+      // Rainbow holographic effect
+      float hue = vUv.x + vUv.y + uTime * uRainbowSpeed + uColorShift;
+      vec3 rainbow = hsv2rgb(vec3(fract(hue), 0.8, 1.0));
       
-      // Chrome effect
-      if (uChrome) {
-        vec3 reflection = reflect(-vViewDirection, vNormal);
-        float chromeEffect = dot(reflection, vec3(0.0, 1.0, 0.0)) * 0.5 + 0.5;
-        finalColor = mix(finalColor, vec3(0.8, 0.9, 1.0) * chromeEffect, 0.6);
-      }
+      // Shimmer effect
+      float shimmer = sin(vUv.x * uShimmerScale + uTime * 2.0) * 
+                     sin(vUv.y * uShimmerScale + uTime * 1.5) * 0.5 + 0.5;
       
-      // Crystal effect
-      if (uCrystal) {
-        float crystalPattern = sin(vUv.x * 20.0) * sin(vUv.y * 20.0) * 0.1 + 0.9;
-        finalColor *= crystalPattern;
-        finalColor += vec3(1.0) * fresnel * 0.3;
-      }
+      // Combine effects
+      vec3 holographicColor = rainbow * fresnel * shimmer;
+      vec3 finalColor = mix(baseColor.rgb, holographicColor, uHolographicIntensity * fresnel);
       
-      // Vintage effect
-      if (uVintage) {
-        finalColor = mix(finalColor, vec3(dot(finalColor, vec3(0.299, 0.587, 0.114))), 0.6);
-        finalColor *= vec3(1.1, 0.9, 0.7); // Sepia tint
-      }
-      
-      // Metallic shimmer
-      if (uMetalness > 0.0) {
-        float shimmer = sin(vUv.x * 30.0 + uTime * 3.0) * sin(vUv.y * 30.0 + uTime * 2.0) * 0.05 + 0.95;
-        finalColor *= mix(1.0, shimmer, uMetalness);
-      }
-      
-      gl_FragColor = vec4(finalColor, texColor.a);
+      gl_FragColor = vec4(finalColor, baseColor.a);
     }
   `;
 
-  const uniforms = useMemo(() => ({
-    uTime: { value: 0 },
-    uHolographicIntensity: { value: effects.holographic ? 0.5 : 0.0 },
-    uMetalness: { value: effects.metalness || 0.0 },
-    uRoughness: { value: effects.roughness || 0.5 },
-    uChrome: { value: effects.chrome || false },
-    uCrystal: { value: effects.crystal || false },
-    uVintage: { value: effects.vintage || false },
-    uTexture: { value: texture }
-  }), [texture, effects]);
-
   useFrame((state) => {
-    if (materialRef.current) {
+    if (materialRef.current && animated) {
       materialRef.current.uniforms.uTime.value = state.clock.elapsedTime;
-      materialRef.current.uniforms.uHolographicIntensity.value = effects.holographic ? 0.5 : 0.0;
-      materialRef.current.uniforms.uMetalness.value = effects.metalness || 0.0;
-      materialRef.current.uniforms.uChrome.value = effects.chrome || false;
-      materialRef.current.uniforms.uCrystal.value = effects.crystal || false;
-      materialRef.current.uniforms.uVintage.value = effects.vintage || false;
     }
   });
-
-  useEffect(() => {
-    if (materialRef.current && texture) {
-      materialRef.current.uniforms.uTexture.value = texture;
-    }
-  }, [texture]);
 
   return (
     <shaderMaterial
@@ -137,8 +100,8 @@ export const EnhancedHolographicMaterial: React.FC<EnhancedHolographicMaterialPr
       vertexShader={vertexShader}
       fragmentShader={fragmentShader}
       uniforms={uniforms}
-      transparent={true}
-      attach="material-4"
+      transparent
+      attach="material"
     />
   );
 };

@@ -1,13 +1,8 @@
 
-import React, { useMemo } from 'react';
+import React, { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { Mesh } from 'three';
 import type { CardData } from '@/types/card';
-import { useCardDimensions } from '../hooks/useCardDimensions';
-import { useCardRotation } from '../hooks/useCardRotation';
-import { useEffectMaterials } from '../hooks/useEffectMaterials';
-import { CardGeometry } from './CardGeometry';
-import { EffectLayers } from './EffectLayers';
-import { CardFrame } from './CardFrame';
-import { CARD_BACK_TEXTURE_URL, FALLBACK_FRONT_TEXTURE_URL } from '../constants/cardRenderer';
 
 interface Advanced3DCardRendererProps {
   card: CardData;
@@ -20,7 +15,7 @@ interface Advanced3DCardRendererProps {
     transmission: number;
     reflectivity: number;
   };
-  effectValues?: Record<string, Record<string, any>>;
+  effectValues?: Record<string, any>;
   selectedFrame?: string;
   frameConfig?: any;
 }
@@ -34,38 +29,28 @@ export const Advanced3DCardRenderer: React.FC<Advanced3DCardRendererProps> = ({
   selectedFrame,
   frameConfig
 }) => {
-  // Use custom hooks for optimized calculations
-  const cardDimensions = useCardDimensions();
-  const groupRef = useCardRotation(rotation);
-  const effectMaterials = useEffectMaterials(effectValues);
+  const meshRef = useRef<Mesh>(null);
 
-  // Memoize image URLs
-  const frontImageUrl = useMemo(() => {
-    if (!card?.image_url || typeof card.image_url !== 'string') {
-      return FALLBACK_FRONT_TEXTURE_URL;
+  useFrame((state) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x = rotation.x * 0.01;
+      meshRef.current.rotation.y = rotation.y * 0.01;
+      meshRef.current.scale.setScalar(zoom);
     }
-    return card.image_url;
-  }, [card?.image_url]);
+  });
 
   return (
-    <group ref={groupRef} scale={zoom} position={[0, 0, 0]}>
-      <CardGeometry
-        frontImageUrl={frontImageUrl}
-        backImageUrl={CARD_BACK_TEXTURE_URL}
-        dimensions={cardDimensions}
-        materialSettings={materialSettings}
-      />
-      
-      <EffectLayers
-        effectMaterials={effectMaterials}
-        dimensions={cardDimensions}
-      />
-      
-      <CardFrame
-        selectedFrame={selectedFrame}
-        dimensions={cardDimensions}
-        effectLayerCount={effectMaterials.length}
-      />
+    <group>
+      <mesh ref={meshRef} position={[0, 0, 0]}>
+        <planeGeometry args={[4, 5.6]} />
+        <meshStandardMaterial 
+          color="#ffffff"
+          metalness={materialSettings.metalness}
+          roughness={materialSettings.roughness}
+          transparent
+          opacity={0.9}
+        />
+      </mesh>
     </group>
   );
 };

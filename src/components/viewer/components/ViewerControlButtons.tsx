@@ -1,50 +1,65 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Settings, Maximize, Minimize } from 'lucide-react';
-import { useMobileControl } from '../context/MobileControlContext';
+import { Maximize2, Minimize2, RotateCcw, Box, Square } from 'lucide-react';
 
 interface ViewerControlButtonsProps {
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
+  is3DEnabled?: boolean;
+  onToggle3D?: () => void;
+  onReset?: () => void;
+  webgl3DSupported?: boolean;
 }
 
 export const ViewerControlButtons: React.FC<ViewerControlButtonsProps> = ({
   isFullscreen,
-  onToggleFullscreen
+  onToggleFullscreen,
+  is3DEnabled = false,
+  onToggle3D,
+  onReset,
+  webgl3DSupported = true
 }) => {
-  const { openPanel } = useMobileControl();
-
   return (
-    <>
-      {/* Studio Controls Button */}
-      <div className="absolute top-4 right-4 z-30">
+    <div className="absolute top-4 right-4 z-50 flex gap-2">
+      {/* 3D Toggle */}
+      {webgl3DSupported && onToggle3D && (
         <Button
-          variant="ghost"
+          variant={is3DEnabled ? "default" : "outline"}
           size="sm"
-          onClick={() => openPanel('studio')}
-          className="bg-black/20 backdrop-blur-sm hover:bg-black/30 text-white border border-white/10"
+          onClick={onToggle3D}
+          className={`${
+            is3DEnabled 
+              ? 'bg-crd-green text-black hover:bg-crd-green/90' 
+              : 'bg-black/50 text-white hover:bg-black/70 border-white/20'
+          }`}
         >
-          <Settings className="w-4 h-4 mr-2" />
-          Studio
+          {is3DEnabled ? <Box className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+          <span className="ml-1">{is3DEnabled ? '3D' : '2D'}</span>
         </Button>
-      </div>
+      )}
+
+      {/* Reset View */}
+      {onReset && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onReset}
+          className="bg-black/50 text-white hover:bg-black/70 border-white/20"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </Button>
+      )}
 
       {/* Fullscreen Toggle */}
-      <div className="absolute top-4 left-4 z-30">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onToggleFullscreen}
-          className="bg-black/20 backdrop-blur-sm hover:bg-black/30 text-white border border-white/10"
-        >
-          {isFullscreen ? (
-            <Minimize className="w-4 h-4" />
-          ) : (
-            <Maximize className="w-4 h-4" />
-          )}
-        </Button>
-      </div>
-    </>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onToggleFullscreen}
+        className="bg-black/50 text-white hover:bg-black/70 border-white/20"
+      >
+        {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+      </Button>
+    </div>
   );
 };

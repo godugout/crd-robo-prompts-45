@@ -1,64 +1,54 @@
 
 import React from 'react';
-import { Button as ShadcnButton, ButtonProps as ShadcnButtonProps } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background",
   {
     variants: {
       variant: {
-        // CRD Design System variants with proper text colors
-        primary: "bg-crd-blue text-white hover:bg-crd-blue/90",
-        secondary: "bg-crd-lightGray text-black hover:bg-crd-lightGray/90",
-        outline: "bg-transparent border border-crd-lightGray text-crd-lightGray hover:border-crd-lightGray hover:text-black hover:bg-crd-lightGray",
-        ghost: "bg-transparent text-crd-lightGray hover:bg-crd-mediumGray/20 hover:text-white",
-        action: "p-3 rounded-full border-2 border-crd-mediumGray bg-transparent hover:bg-crd-mediumGray/10 text-crd-lightGray hover:text-white",
-        // Standard variants
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        link: "text-primary underline-offset-4 hover:underline",
+        primary: "bg-crd-green text-black hover:bg-crd-green/90",
+        secondary: "bg-crd-mediumGray text-crd-white hover:bg-crd-lightGray",
+        outline: "border border-crd-mediumGray text-crd-white hover:bg-crd-mediumGray",
+        ghost: "text-crd-white hover:bg-crd-mediumGray",
       },
       size: {
+        sm: "h-8 px-3 text-xs",
         default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8", 
+        lg: "h-12 px-8 text-base",
         icon: "h-10 w-10",
-        "action-icon": "h-12 w-12",
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: "primary",
       size: "default",
     },
   }
 );
 
-export interface CRDButtonProps extends Omit<ShadcnButtonProps, 'variant' | 'size'>, VariantProps<typeof buttonVariants> {
+export interface CRDButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
   icon?: React.ReactNode;
 }
 
-export const CRDButton = React.forwardRef<HTMLButtonElement, CRDButtonProps>(
-  ({ className, variant, size, icon, children, asChild, ...props }, ref) => {
+const CRDButton = React.forwardRef<HTMLButtonElement, CRDButtonProps>(
+  ({ className, variant, size, asChild = false, icon, children, ...props }, ref) => {
     return (
-      <ShadcnButton
-        className={cn(buttonVariants({ variant, size }), className)}
+      <Button
+        className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        asChild={asChild}
         {...props}
       >
-        {asChild ? (
-          children
-        ) : (
-          <>
-            {icon && <span className="flex-shrink-0">{icon}</span>}
-            {children}
-          </>
-        )}
-      </ShadcnButton>
+        {icon && <span className="mr-2">{icon}</span>}
+        {children}
+      </Button>
     );
   }
 );
-
 CRDButton.displayName = "CRDButton";
+
+export { CRDButton, buttonVariants };

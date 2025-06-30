@@ -1,20 +1,22 @@
 
 import React from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
-import { Navbar } from '@/components/home/Navbar';
+import { UniversalNavbar } from '@/components/navigation/UniversalNavbar';
 
-export const MainLayout = () => {
-  const location = useLocation();
-  const isHomePage = location.pathname === '/';
-  
-  console.log('MainLayout rendering, path:', location.pathname, 'isHomePage:', isHomePage);
+interface MainLayoutProps {
+  children: React.ReactNode;
+  showNavbar?: boolean;
+}
 
+export const MainLayout: React.FC<MainLayoutProps> = ({ 
+  children, 
+  showNavbar = true 
+}) => {
   return (
-    <>
-      <Navbar />
-      <div className="outlet-container">
-        <Outlet />
-      </div>
-    </>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {showNavbar && <UniversalNavbar />}
+      <main className="flex-1">
+        {children}
+      </main>
+    </div>
   );
 };

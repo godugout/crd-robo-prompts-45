@@ -14,6 +14,8 @@ export const Interactive3DCardDemo = () => {
     description: 'Experience different 3D interaction modes with this demo card. Try switching between modes to see how each one feels!',
     rarity: 'epic',
     tags: ['demo', '3d', 'interactive'],
+    creator_id: 'demo-creator-id',
+    created_at: new Date().toISOString(),
     design_metadata: {},
     visibility: 'public',
     creator_attribution: {

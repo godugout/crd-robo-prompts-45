@@ -1,50 +1,35 @@
 
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Home, Image, Plus, FolderOpen, Palette } from "lucide-react";
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 export const NavLinks = () => {
   const location = useLocation();
-  
-  const isActive = (path: string) => location.pathname === path;
-  
+
+  const links = [
+    { href: '/create', label: 'Create' },
+    { href: '/studio', label: 'Studio' },
+    { href: '/collections', label: 'Collections' },
+    { href: '/community', label: 'Community' },
+    { href: '/creator-dashboard', label: 'Dashboard' }
+  ];
+
   return (
-    <div className="flex items-center gap-8">
-      <Link 
-        to="/" 
-        className={`nav-item ${isActive('/') ? 'active' : ''} flex items-center gap-2`}
-      >
-        <Home className="w-4 h-4" />
-        Home
-      </Link>
-      <Link 
-        to="/gallery" 
-        className={`nav-item ${isActive('/gallery') ? 'active' : ''} flex items-center gap-2`}
-      >
-        <Image className="w-4 h-4" />
-        Gallery
-      </Link>
-      <Link 
-        to="/cards/enhanced" 
-        className={`nav-item ${isActive('/cards/enhanced') ? 'active' : ''} flex items-center gap-2`}
-      >
-        <Plus className="w-4 h-4" />
-        Create
-      </Link>
-      <Link 
-        to="/collections" 
-        className={`nav-item ${isActive('/collections') ? 'active' : ''} flex items-center gap-2`}
-      >
-        <FolderOpen className="w-4 h-4" />
-        Collections
-      </Link>
-      <Link 
-        to="/studio" 
-        className={`nav-item premium-nav-item ${isActive('/studio') ? 'active' : ''} flex items-center gap-2`}
-      >
-        <Palette className="w-4 h-4" />
-        Studio
-      </Link>
-    </div>
+    <nav className="hidden md:flex items-center space-x-6">
+      {links.map((link) => (
+        <Link
+          key={link.href}
+          to={link.href}
+          className={cn(
+            "text-sm font-medium transition-colors hover:text-white px-3 py-2 rounded-md",
+            location.pathname === link.href 
+              ? "text-white bg-white/10" 
+              : "text-gray-300 hover:bg-white/5"
+          )}
+        >
+          {link.label}
+        </Link>
+      ))}
+    </nav>
   );
 };

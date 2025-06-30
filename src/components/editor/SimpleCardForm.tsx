@@ -8,10 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSimpleCardEditor } from '@/hooks/useSimpleCardEditor';
 import { useDropzone } from 'react-dropzone';
-import { uploadCardImage } from '@/lib/cardImageUploader';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import type { CardRarity } from '@/types/card';
+import { uploadCardImage } from '@/lib/cardImageUploader';
 
 export const SimpleCardForm = () => {
   const { user } = useAuth();
@@ -207,7 +207,7 @@ export const SimpleCardForm = () => {
           {/* Actions */}
           <div className="flex gap-3 pt-4">
             <Button 
-              onClick={saveCard} 
+              onClick={() => saveCard()} 
               disabled={isSaving || !cardData.title.trim()}
               className="flex-1"
             >

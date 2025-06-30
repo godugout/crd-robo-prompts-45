@@ -6,26 +6,14 @@ import type { Collection, CollectionListOptions, PaginatedCollections } from './
 export const getCollectionById = async (id: string): Promise<Collection | null> => {
   const { data, error } = await supabase
     .from('collections')
-    .select(`
-      *,
-      collection_cards(count)
-    `)
+    .select('*')
     .eq('id', id)
     .single();
 
   if (error) throw new Error(`Failed to fetch collection: ${error.message}`);
   if (!data) return null;
 
-  return {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    ownerId: data.owner_id,
-    visibility: data.visibility,
-    coverImageUrl: data.cover_image_url,
-    createdAt: data.created_at,
-    cardCount: data.collection_cards?.[0]?.count || 0
-  };
+  return data as Collection;
 };
 
 export const getUserCollections = async (userId: string, options: CollectionListOptions = {}): Promise<PaginatedCollections> => {
@@ -34,10 +22,7 @@ export const getUserCollections = async (userId: string, options: CollectionList
 
   let query = supabase
     .from('collections')
-    .select(`
-      *,
-      collection_cards(count)
-    `, { count: 'exact' })
+    .select('*', { count: 'exact' })
     .eq('owner_id', userId)
     .order('created_at', { ascending: false });
 
@@ -51,16 +36,7 @@ export const getUserCollections = async (userId: string, options: CollectionList
 
   if (error) throw new Error(`Failed to fetch user collections: ${error.message}`);
 
-  const collections: Collection[] = (data || []).map(item => ({
-    id: item.id,
-    title: item.title,
-    description: item.description,
-    ownerId: item.owner_id,
-    visibility: item.visibility,
-    coverImageUrl: item.cover_image_url,
-    createdAt: item.created_at,
-    cardCount: item.collection_cards?.[0]?.count || 0
-  }));
+  const collections: Collection[] = (data || []) as Collection[];
 
   return {
     collections,
@@ -74,10 +50,7 @@ export const getAllCollections = async (options: CollectionListOptions = {}): Pr
 
   let query = supabase
     .from('collections')
-    .select(`
-      *,
-      collection_cards(count)
-    `, { count: 'exact' })
+    .select('*', { count: 'exact' })
     .eq('visibility', 'public')
     .order('created_at', { ascending: false });
 
@@ -91,16 +64,7 @@ export const getAllCollections = async (options: CollectionListOptions = {}): Pr
 
   if (error) throw new Error(`Failed to fetch collections: ${error.message}`);
 
-  const collections: Collection[] = (data || []).map(item => ({
-    id: item.id,
-    title: item.title,
-    description: item.description,
-    ownerId: item.owner_id,
-    visibility: item.visibility,
-    coverImageUrl: item.cover_image_url,
-    createdAt: item.created_at,
-    cardCount: item.collection_cards?.[0]?.count || 0
-  }));
+  const collections: Collection[] = (data || []) as Collection[];
 
   return {
     collections,
@@ -111,24 +75,12 @@ export const getAllCollections = async (options: CollectionListOptions = {}): Pr
 export const getHotCollections = async (limit = 10): Promise<Collection[]> => {
   const { data, error } = await supabase
     .from('collections')
-    .select(`
-      *,
-      collection_cards(count)
-    `)
+    .select('*')
     .eq('visibility', 'public')
     .order('created_at', { ascending: false })
     .limit(limit);
 
   if (error) throw new Error(`Failed to fetch hot collections: ${error.message}`);
 
-  return (data || []).map(item => ({
-    id: item.id,
-    title: item.title,
-    description: item.description,
-    ownerId: item.owner_id,
-    visibility: item.visibility,
-    coverImageUrl: item.cover_image_url,
-    createdAt: item.created_at,
-    cardCount: item.collection_cards?.[0]?.count || 0
-  }));
+  return (data || []) as Collection[];
 };

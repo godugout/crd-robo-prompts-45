@@ -3,12 +3,16 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { ENHANCED_FRAME_TEMPLATES } from './templates';
+import { ENHANCED_FRAME_TEMPLATES } from '../../studio/frames/EnhancedFrameTemplates';
+import { FramePreviewRenderer } from '../../studio/frames/FramePreviewRenderer';
+import '../../studio/frames/FrameEffects.css';
 
 interface FramePreviewGridProps {
   selectedFrame?: string;
   onSelectFrame: (frameId: string) => void;
   searchQuery?: string;
+  uploadedImage?: string; // Add uploaded image prop
+  cardName?: string; // Add card name prop
 }
 
 const TEMPLATES_PER_PAGE = 4;
@@ -16,14 +20,11 @@ const TEMPLATES_PER_PAGE = 4;
 export const FramePreviewGrid: React.FC<FramePreviewGridProps> = ({
   selectedFrame,
   onSelectFrame,
-  searchQuery = ''
+  searchQuery = '',
+  uploadedImage,
+  cardName
 }) => {
   const [currentPage, setCurrentPage] = useState(0);
-
-  const frameComponents = ENHANCED_FRAME_TEMPLATES.reduce((acc, template) => {
-    acc[template.id] = template.preview_component;
-    return acc;
-  }, {} as Record<string, React.ComponentType<any>>);
 
   const filteredFrames = ENHANCED_FRAME_TEMPLATES.filter(frame =>
     frame.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -47,7 +48,6 @@ export const FramePreviewGrid: React.FC<FramePreviewGridProps> = ({
       {/* Frame Templates Grid - 2x2 layout */}
       <div className="grid grid-cols-2 gap-3">
         {currentFrames.map((frame) => {
-          const FrameComponent = frameComponents[frame.id];
           const isSelected = selectedFrame === frame.id;
           
           return (
@@ -62,15 +62,16 @@ export const FramePreviewGrid: React.FC<FramePreviewGridProps> = ({
             >
               <CardContent className="p-3">
                 {/* Frame Preview */}
-                <div className="aspect-[3/4] mb-3 relative overflow-hidden rounded-lg bg-gradient-to-br from-crd-mediumGray to-crd-lightGray">
-                  <div className="w-full h-full flex items-center justify-center">
-                    <FrameComponent 
-                      width={160}
-                      height={213}
-                      title={frame.name}
-                      subtitle=""
-                    />
-                  </div>
+                <div className="aspect-[3/4] mb-3 relative overflow-hidden rounded-lg">
+                  <FramePreviewRenderer
+                    template={frame}
+                    width={160}
+                    height={213}
+                    showContent={true}
+                    uploadedImage={uploadedImage}
+                    cardName={cardName}
+                    previewMode="interactive"
+                  />
                   
                   {/* Selection indicator */}
                   {isSelected && (
@@ -80,10 +81,15 @@ export const FramePreviewGrid: React.FC<FramePreviewGridProps> = ({
                   )}
                 </div>
 
-                {/* Frame Name */}
-                <h3 className="text-crd-white font-medium text-sm text-center">
-                  {frame.name}
-                </h3>
+                {/* Frame Name and Description */}
+                <div className="space-y-1">
+                  <h3 className="text-crd-white font-medium text-sm text-center">
+                    {frame.name}
+                  </h3>
+                  <p className="text-crd-lightGray text-xs text-center line-clamp-2">
+                    {frame.description}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           );
@@ -128,6 +134,15 @@ export const FramePreviewGrid: React.FC<FramePreviewGridProps> = ({
             Next
             <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
+        </div>
+      )}
+      
+      {/* Helpful tip when no image is uploaded */}
+      {!uploadedImage && (
+        <div className="bg-editor-tool p-3 rounded-lg border border-editor-border">
+          <p className="text-crd-lightGray text-sm text-center">
+            Upload an image to see how it looks in each frame design
+          </p>
         </div>
       )}
     </div>

@@ -1,240 +1,146 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Image, Video, File, X, Check, AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { MediaManager, type UploadOptions } from '@/lib/storage/MediaManager';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { Upload, Image, Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface MediaUploadZoneProps {
-  bucket: 'static-assets' | 'user-content' | 'card-assets';
+  bucket: string;
   folder?: string;
   maxFiles?: number;
   generateThumbnail?: boolean;
   optimize?: boolean;
   tags?: string[];
   metadata?: Record<string, any>;
-  onUploadComplete?: (files: any[]) => void;
-  onUploadProgress?: (progress: number) => void;
+  onUploadComplete: (files: any[]) => void;
   className?: string;
   children?: React.ReactNode;
 }
 
-interface UploadingFile {
-  file: File;
-  progress: number;
-  status: 'uploading' | 'success' | 'error';
-  error?: string;
-  result?: any;
-}
-
 export const MediaUploadZone: React.FC<MediaUploadZoneProps> = ({
   bucket,
-  folder,
-  maxFiles = 10,
-  generateThumbnail = true,
-  optimize = true,
-  tags = [],
-  metadata = {},
+  folder = '',
+  maxFiles = 1,
+  metadata,
   onUploadComplete,
-  onUploadProgress,
   className,
   children
 }) => {
-  const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
+  const { user } = useAuth();
+  const [uploading, setUploading] = useState(false);
+
+  const uploadFile = useCallback(async (file: File) => {
+    if (!user) {
+      toast.error('Please sign in to upload files');
+      return null;
+    }
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+    const filePath = folder ? `${folder}/${fileName}` : fileName;
+
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, file);
+
+    if (error) {
+      console.error('Upload error:', error);
+      throw error;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(filePath);
+
+    return {
+      path: data.path,
+      publicUrl,
+      metadata: {
+        originalName: file.name,
+        size: file.size,
+        type: file.type,
+        publicUrl,
+        ...metadata
+      }
+    };
+  }, [user, bucket, folder, metadata]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
 
-    setIsUploading(true);
-    const filesToUpload = acceptedFiles.slice(0, maxFiles);
+    setUploading(true);
     
-    // Initialize uploading files state
-    const initialFiles = filesToUpload.map(file => ({
-      file,
-      progress: 0,
-      status: 'uploading' as const
-    }));
-    
-    setUploadingFiles(initialFiles);
-
-    const uploadOptions: UploadOptions = {
-      bucket,
-      folder,
-      generateThumbnail,
-      optimize,
-      tags,
-      metadata
-    };
-
-    const results = [];
-
-    // Upload files one by one for better progress tracking
-    for (let i = 0; i < filesToUpload.length; i++) {
-      const file = filesToUpload[i];
+    try {
+      const uploadPromises = acceptedFiles.slice(0, maxFiles).map(uploadFile);
+      const results = await Promise.all(uploadPromises);
+      const successfulUploads = results.filter(Boolean);
       
-      try {
-        const result = await MediaManager.uploadFile(file, {
-          ...uploadOptions,
-          onProgress: (progress) => {
-            setUploadingFiles(prev => prev.map((item, index) => 
-              index === i ? { ...item, progress } : item
-            ));
-            
-            // Calculate overall progress
-            const overallProgress = ((i * 100) + progress) / filesToUpload.length;
-            onUploadProgress?.(overallProgress);
-          }
-        });
-
-        if (result) {
-          setUploadingFiles(prev => prev.map((item, index) => 
-            index === i ? { ...item, status: 'success', progress: 100, result } : item
-          ));
-          results.push(result);
-        } else {
-          setUploadingFiles(prev => prev.map((item, index) => 
-            index === i ? { ...item, status: 'error', error: 'Upload failed' } : item
-          ));
-        }
-      } catch (error) {
-        console.error('Upload error:', error);
-        setUploadingFiles(prev => prev.map((item, index) => 
-          index === i ? { 
-            ...item, 
-            status: 'error', 
-            error: error instanceof Error ? error.message : 'Upload failed' 
-          } : item
-        ));
+      if (successfulUploads.length > 0) {
+        onUploadComplete(successfulUploads);
+        toast.success(`${successfulUploads.length} file(s) uploaded successfully`);
       }
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error('Upload failed: ' + (error as Error).message);
+    } finally {
+      setUploading(false);
     }
+  }, [maxFiles, uploadFile, onUploadComplete]);
 
-    setIsUploading(false);
-    onUploadComplete?.(results);
-    
-    // Clear completed uploads after a delay
-    setTimeout(() => {
-      setUploadingFiles([]);
-    }, 3000);
-
-  }, [bucket, folder, maxFiles, generateThumbnail, optimize, tags, metadata, onUploadComplete, onUploadProgress]);
-
-  // Create proper accept object based on bucket type
-  const getAcceptTypes = () => {
-    const acceptTypes: Record<string, string[]> = {
-      'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.gif']
-    };
-    
-    if (bucket === 'user-content') {
-      acceptTypes['video/*'] = ['.mp4', '.webm'];
-    }
-    
-    return acceptTypes;
-  };
-
-  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    disabled: isUploading,
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp']
+    },
     maxFiles,
-    accept: getAcceptTypes()
+    disabled: uploading
   });
 
-  const getFileIcon = (file: File) => {
-    if (file.type.startsWith('image/')) return <Image className="w-4 h-4" />;
-    if (file.type.startsWith('video/')) return <Video className="w-4 h-4" />;
-    return <File className="w-4 h-4" />;
-  };
-
-  const getStatusIcon = (status: UploadingFile['status']) => {
-    switch (status) {
-      case 'success':
-        return <Check className="w-4 h-4 text-green-500" />;
-      case 'error':
-        return <AlertCircle className="w-4 h-4 text-red-500" />;
-      default:
-        return null;
-    }
-  };
-
   return (
-    <div className={cn('space-y-4', className)}>
-      {/* Drop Zone */}
-      <div
-        {...getRootProps()}
-        className={cn(
-          'border-2 border-dashed rounded-lg p-8 text-center transition-all cursor-pointer',
-          isDragActive && !isDragReject && 'border-crd-green bg-crd-green/10 scale-105',
-          isDragActive && isDragReject && 'border-red-500 bg-red-50',
-          !isDragActive && 'border-crd-mediumGray hover:border-crd-green/50 hover:bg-crd-darkGray/50',
-          isUploading && 'pointer-events-none opacity-50'
-        )}
-      >
-        <input {...getInputProps()} />
-        
-        {children || (
-          <div className="space-y-4">
-            <Upload className={cn(
-              'w-12 h-12 mx-auto transition-colors',
-              isDragActive && !isDragReject ? 'text-crd-green' : 'text-crd-lightGray'
-            )} />
-            
-            <div>
-              <h3 className="text-white text-lg font-medium mb-2">
-                {isDragActive && !isDragReject 
-                  ? 'Drop files here!' 
-                  : isDragActive && isDragReject
-                  ? 'File type not supported'
-                  : 'Drag & drop files here'
-                }
-              </h3>
-              <p className="text-crd-lightGray">
-                or click to browse your files
-              </p>
-            </div>
-            
-            <div className="text-sm text-crd-lightGray">
-              {bucket === 'static-assets' && 'PNG, JPG, WebP, SVG up to 50MB'}
-              {bucket === 'user-content' && 'Images & Videos up to 100MB'}
-              {bucket === 'card-assets' && 'PNG, JPG, WebP up to 50MB'}
-              {maxFiles > 1 && ` • Up to ${maxFiles} files`}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Upload Progress */}
-      {uploadingFiles.length > 0 && (
-        <Card className="p-4 bg-editor-dark border-editor-border">
-          <h4 className="text-white font-medium mb-3">
-            Uploading {uploadingFiles.length} file{uploadingFiles.length !== 1 ? 's' : ''}
-          </h4>
-          
-          <div className="space-y-3">
-            {uploadingFiles.map((item, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex items-center gap-3">
-                  {getFileIcon(item.file)}
-                  <span className="text-sm text-crd-lightGray flex-1 truncate">
-                    {item.file.name}
-                  </span>
-                  {getStatusIcon(item.status)}
-                </div>
-                
-                {item.status === 'uploading' && (
-                  <Progress value={item.progress} className="h-1" />
-                )}
-                
-                {item.status === 'error' && item.error && (
-                  <p className="text-xs text-red-400">{item.error}</p>
-                )}
+    <div
+      {...getRootProps()}
+      className={cn(
+        "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
+        isDragActive 
+          ? "border-crd-green bg-crd-green/10" 
+          : "border-crd-mediumGray hover:border-crd-green",
+        uploading && "opacity-50 cursor-not-allowed",
+        className
+      )}
+    >
+      <input {...getInputProps()} />
+      
+      {uploading ? (
+        <div className="flex flex-col items-center space-y-2">
+          <Loader2 className="w-8 h-8 text-crd-green animate-spin" />
+          <p className="text-white">Uploading...</p>
+        </div>
+      ) : children ? (
+        children
+      ) : (
+        <div className="flex flex-col items-center space-y-4">
+          {isDragActive ? (
+            <>
+              <Upload className="w-12 h-12 text-crd-green" />
+              <p className="text-white">Drop files here...</p>
+            </>
+          ) : (
+            <>
+              <Image className="w-12 h-12 text-crd-lightGray" />
+              <div>
+                <p className="text-white mb-1">
+                  Drag & drop files here, or click to select
+                </p>
+                <p className="text-crd-lightGray text-sm">
+                  PNG, JPG, WebP up to 50MB
+                </p>
               </div>
-            ))}
-          </div>
-        </Card>
+            </>
+          )}
+        </div>
       )}
     </div>
   );

@@ -1,57 +1,64 @@
 
-import React, { useState } from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Eye, Maximize, Download, Share2, ArrowRight, Sparkles } from 'lucide-react';
+import { Eye, Download, Share2, Sparkles, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
+import { useCardEditor } from '@/hooks/useCardEditor';
 import { toast } from 'sonner';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
-import { convertToUniversalCardData } from '@/components/viewer/types';
-import AdvancedCardRenderer from '@/components/renderer/AdvancedCardRenderer';
-import type { CardData } from '@/hooks/useCardEditor';
 
 interface PreviewTabProps {
-  selectedTemplate: string;
-  cardData?: CardData;
-  onContinueToEffects: () => void;
+  cardEditor: ReturnType<typeof useCardEditor>;
 }
 
-export const PreviewTab = ({ selectedTemplate, cardData, onContinueToEffects }: PreviewTabProps) => {
-  const [previewMode, setPreviewMode] = useState<'simple' | 'scene' | '3d'>('simple');
+export const PreviewTab: React.FC<PreviewTabProps> = ({ cardEditor }) => {
+  const [zoom, setZoom] = useState(100);
   const [showImmersiveViewer, setShowImmersiveViewer] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
 
-  const handleImmersiveView = () => {
-    if (cardData) {
-      setShowImmersiveViewer(true);
-    } else {
-      toast.error('No card data available for immersive view');
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
+  const handleResetZoom = () => setZoom(100);
+
+  const handleDownload = async () => {
+    try {
+      if (!previewRef.current) {
+        toast.error('Preview not found');
+        return;
+      }
+
+      const html2canvas = (await import('html2canvas')).default;
+      
+      const canvas = await html2canvas(previewRef.current, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+      });
+
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          toast.error('Failed to generate image');
+          return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${cardEditor.cardData.title.replace(/\s+/g, '_')}_preview.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        toast.success('Preview downloaded successfully!');
+      }, 'image/png');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download preview');
     }
   };
 
-  const handleExport = () => {
-    toast.success('Exporting high-resolution card...');
-  };
-
   const handleShare = () => {
-    toast.success('Generating share link...');
-  };
-
-  const handleDownloadCard = () => {
-    if (!cardData) return;
-    
-    const dataStr = JSON.stringify(cardData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${cardData.title.replace(/\s+/g, '_')}_card.json`;
-    link.click();
-    
-    URL.revokeObjectURL(url);
-    toast.success('Card exported successfully');
-  };
-
-  const handleShareCard = () => {
     const shareUrl = window.location.href;
     
     if (navigator.clipboard) {
@@ -63,113 +70,120 @@ export const PreviewTab = ({ selectedTemplate, cardData, onContinueToEffects }: 
     }
   };
 
+  const handleViewImmersive = () => {
+    if (!cardEditor.cardData.title?.trim()) {
+      toast.error('Please add a card title before viewing in immersive mode');
+      return;
+    }
+    setShowImmersiveViewer(true);
+  };
+
   return (
-    <ScrollArea className="h-full px-4">
-      <div className="space-y-6">
-        <div className="text-center">
-          <h3 className="text-white font-medium text-lg mb-2">Card Preview</h3>
-          <p className="text-crd-lightGray text-sm">
-            Review your card design with advanced visual effects
-          </p>
-        </div>
-
-        {/* Advanced Card Preview */}
-        <div className="space-y-4">
-          <h4 className="text-white font-medium text-sm uppercase tracking-wide">Advanced Preview</h4>
-          <div className="flex justify-center">
-            {cardData ? (
-              <AdvancedCardRenderer
-                card={cardData}
-                width={240}
-                height={336}
-                interactive={true}
-                showEffectControls={false}
-              />
-            ) : (
-              <div className="aspect-[3/4] w-60 bg-editor-dark rounded-xl border border-editor-border relative overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-20 h-20 bg-gradient-to-br from-crd-green to-crd-orange rounded-xl mb-4 mx-auto flex items-center justify-center">
-                      <span className="text-black font-bold text-lg">CARD</span>
-                    </div>
-                    <p className="text-crd-lightGray text-sm">Advanced Preview</p>
-                    <p className="text-crd-lightGray text-xs mt-1">Template: {selectedTemplate}</p>
-                  </div>
-                </div>
-              </div>
-            )}
+    <div className="h-full flex flex-col">
+      {/* Toolbar */}
+      <div className="p-4 border-b border-editor-border">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium text-crd-white">Card Preview</h3>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleZoomOut}
+              disabled={zoom <= 50}
+              className="text-crd-lightGray hover:text-white"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </Button>
+            <span className="text-xs text-crd-lightGray min-w-[40px] text-center">
+              {zoom}%
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleZoomIn}
+              disabled={zoom >= 200}
+              className="text-crd-lightGray hover:text-white"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleResetZoom}
+              className="text-crd-lightGray hover:text-white"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </Button>
           </div>
         </div>
 
-        {/* Immersive Viewer Options */}
-        <div className="space-y-4">
-          <h4 className="text-white font-medium text-sm uppercase tracking-wide">Immersive Viewer</h4>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { id: 'simple', name: 'Simple BG', color: 'from-gray-600 to-gray-800' },
-              { id: 'scene', name: 'Custom Scene', color: 'from-blue-600 to-purple-600' },
-              { id: '3d', name: '3D Environment', color: 'from-green-600 to-cyan-600' }
-            ].map((mode) => (
-              <div
-                key={mode.id}
-                className={`aspect-square rounded-lg cursor-pointer transition-all ${
-                  previewMode === mode.id ? 'ring-2 ring-crd-green scale-105' : 'hover:scale-102'
-                }`}
-                onClick={() => setPreviewMode(mode.id as any)}
-              >
-                <div className={`w-full h-full bg-gradient-to-br ${mode.color} rounded-lg flex items-center justify-center`}>
-                  <span className="text-white text-xs font-medium text-center">{mode.name}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Immersive View Button */}
-        <Button 
-          className="w-full bg-crd-purple hover:bg-crd-purple/90 text-white" 
-          onClick={handleImmersiveView}
-          disabled={!cardData}
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          Open Immersive Viewer
-        </Button>
-
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          <Button variant="outline" className="w-full border-editor-border text-white hover:bg-editor-border" onClick={handleExport}>
-            <Download className="w-4 h-4 mr-2" />
-            Export High Resolution
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleViewImmersive}
+            className="border-crd-mediumGray text-crd-lightGray hover:text-white hover:bg-crd-mediumGray/20"
+          >
+            <Sparkles className="w-3 h-3 mr-2" />
+            3D View
           </Button>
-          
-          <Button variant="outline" className="w-full border-editor-border text-white hover:bg-editor-border" onClick={handleShare}>
-            <Share2 className="w-4 h-4 mr-2" />
-            Share Preview
-          </Button>
-        </div>
-
-        {/* Continue Button */}
-        <div className="pt-4 border-t border-editor-border">
-          <Button className="w-full bg-crd-green hover:bg-crd-green/90 text-black font-medium" onClick={onContinueToEffects}>
-            Continue to Effects
-            <ArrowRight className="w-4 h-4 ml-2" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownload}
+            className="border-crd-mediumGray text-crd-lightGray hover:text-white hover:bg-crd-mediumGray/20"
+          >
+            <Download className="w-3 h-3 mr-2" />
+            Export
           </Button>
         </div>
       </div>
 
-      {/* Immersive Card Viewer */}
-      {showImmersiveViewer && cardData && (
+      {/* Preview Area */}
+      <div className="flex-1 p-4 bg-editor-darker">
+        <div className="h-full flex items-center justify-center">
+          <div
+            ref={previewRef}
+            className="card-preview bg-white rounded-lg shadow-lg transition-transform duration-200"
+            style={{
+              transform: `scale(${zoom / 100})`,
+              width: '300px',
+              height: '420px',
+              transformOrigin: 'center center'
+            }}
+          >
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg">
+              <div className="text-center p-4">
+                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                  {cardEditor.cardData.title}
+                </h3>
+                {cardEditor.cardData.description && (
+                  <p className="text-gray-600 text-sm">
+                    {cardEditor.cardData.description}
+                  </p>
+                )}
+                <div className="mt-3 text-xs text-gray-500">
+                  {cardEditor.cardData.rarity} • {cardEditor.cardData.tags?.join(', ') || 'No tags'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Immersive Viewer */}
+      {showImmersiveViewer && (
         <ImmersiveCardViewer
-          card={convertToUniversalCardData(cardData)}
+          card={cardEditor.cardData}
           isOpen={showImmersiveViewer}
           onClose={() => setShowImmersiveViewer(false)}
-          onShare={handleShareCard}
-          onDownload={handleDownloadCard}
+          onShare={handleShare}
+          onDownload={handleDownload}
           allowRotation={true}
           showStats={true}
           ambient={true}
         />
       )}
-    </ScrollArea>
+    </div>
   );
 };

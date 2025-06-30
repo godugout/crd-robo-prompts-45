@@ -1,389 +1,174 @@
 
-import React, { useState, useCallback } from 'react';
-import { CRDButton } from '@/components/ui/design-system/Button';
+import React, { useState, useRef, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Upload, Play, RotateCcw, Settings, Download } from 'lucide-react';
-import { toast } from 'sonner';
-import { improvedCardDetector } from '@/services/cardDetection/improvedCardDetection';
-import { DetectionDebugViewer } from './DetectionDebugViewer';
-import type { DetectedCard, DetectionDebugInfo } from '@/services/cardDetection/improvedCardDetection';
+import { Upload, Eye, Download, RotateCcw } from 'lucide-react';
 
-interface DetectionSettings {
-  sensitivity: number;
-  backgroundType: 'auto' | 'clean' | 'cluttered' | 'mixed';
-  cardCondition: 'auto' | 'raw' | 'sleeved' | 'graded' | 'cased';
-  minSize: number;
-  maxSize: number;
+interface DetectedCard {
+  id: string;
+  bounds: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  confidence: number;
 }
 
 export const CardDetectionTester: React.FC = () => {
-  const [image, setImage] = useState<HTMLImageElement | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [image, setImage] = useState<string | null>(null);
   const [detectedCards, setDetectedCards] = useState<DetectedCard[]>([]);
-  const [debugInfo, setDebugInfo] = useState<DetectionDebugInfo>({ 
-    processingTime: 0, 
-    strategiesUsed: [], 
-    totalCandidates: 0, 
-    processingSteps: [] 
-  });
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedCard, setSelectedCard] = useState<DetectedCard | null>(null);
-  const [showSettings, setShowSettings] = useState(false);
-  const [settings, setSettings] = useState<DetectionSettings>({
-    sensitivity: 70,
-    backgroundType: 'auto',
-    cardCondition: 'auto',
-    minSize: 5,
-    maxSize: 80
-  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
-      return;
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImage(e.target?.result as string);
+        setDetectedCards([]);
+      };
+      reader.readAsDataURL(file);
     }
-
-    if (file.size > 15 * 1024 * 1024) {
-      toast.error('Image file is too large. Please use an image smaller than 15MB.');
-      return;
-    }
-
-    setImageFile(file);
-    
-    const img = new Image();
-    img.onload = () => {
-      console.log('🖼️ Image loaded:', { width: img.width, height: img.height, file: file.name });
-      setImage(img);
-      toast.success('Image loaded! Click "Detect Cards" to analyze.');
-    };
-    img.onerror = () => {
-      console.error('❌ Failed to load image');
-      toast.error('Failed to load image');
-    };
-    img.src = URL.createObjectURL(file);
   }, []);
 
-  const runDetection = useCallback(async () => {
-    if (!image) {
-      toast.error('Please upload an image first');
-      return;
-    }
-
-    console.log('🚀 Starting improved card detection...');
+  const detectCards = useCallback(async () => {
+    if (!image) return;
+    
     setIsProcessing(true);
     
-    const detectionToast = toast.loading('🔍 Analyzing image with advanced detection...', {
-      description: 'Using multi-strategy algorithm for precise card detection'
-    });
-
-    try {
-      const result = await improvedCardDetector.detectCards(image);
-      
-      console.log('✅ Detection completed:', {
-        cardsFound: result.cards.length,
-        processingTime: result.debugInfo.processingTime,
-        strategies: result.debugInfo.strategiesUsed
-      });
-      
-      setDetectedCards(result.cards);
-      setDebugInfo(result.debugInfo);
-      setSelectedCard(null);
-      
-      toast.dismiss(detectionToast);
-      
-      if (result.cards.length > 0) {
-        toast.success(`🎯 Detected ${result.cards.length} potential cards!`, {
-          description: `Analysis completed in ${result.debugInfo.processingTime}ms`
-        });
-      } else {
-        toast.info('🤔 No cards detected in this image', {
-          description: 'Try adjusting detection settings or use a different image'
-        });
-      }
-    } catch (error) {
-      console.error('💥 Detection error:', error);
-      toast.dismiss(detectionToast);
-      toast.error('❌ Detection failed', {
-        description: 'Please check the console for details'
-      });
-    } finally {
+    // Simulate card detection
+    setTimeout(() => {
+      const mockCards: DetectedCard[] = [
+        { id: '1', bounds: { x: 50, y: 50, width: 200, height: 280 }, confidence: 0.95 },
+        { id: '2', bounds: { x: 300, y: 100, width: 200, height: 280 }, confidence: 0.88 }
+      ];
+      setDetectedCards(mockCards);
       setIsProcessing(false);
-      console.log('🏁 Detection process finished');
-    }
+    }, 2000);
   }, [image]);
 
-  const exportApprovedCards = useCallback(() => {
-    // This would implement exporting approved cards
-    toast.success('Export functionality coming soon!');
-  }, []);
-
   const reset = useCallback(() => {
-    console.log('🔄 Resetting detection tester...');
     setImage(null);
-    setImageFile(null);
     setDetectedCards([]);
-    setDebugInfo({ processingTime: 0, strategiesUsed: [], totalCandidates: 0, processingSteps: [] });
-    setSelectedCard(null);
-    setShowSettings(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   }, []);
 
   return (
-    <div className="space-y-6 p-6 bg-gray-950 min-h-screen">
-      {/* Header Controls */}
-      <Card className="p-6 bg-gray-900 border-gray-700">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h2 className="text-white text-xl font-bold mb-2">Advanced Card Detection Studio</h2>
-            <p className="text-gray-400">
-              Upload any image to detect trading cards with intelligent cropping and analysis.
-            </p>
-          </div>
-          
-          <div className="flex gap-2">
-            <CRDButton
-              variant="outline"
-              onClick={() => setShowSettings(!showSettings)}
-              className="border-crd-mediumGray text-crd-lightGray hover:text-crd-white"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </CRDButton>
-            
-            {detectedCards.length > 0 && (
-              <CRDButton
-                variant="outline"
-                onClick={exportApprovedCards}
-                className="border-green-600 text-green-400 hover:bg-green-600 hover:text-white"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </CRDButton>
-            )}
-          </div>
-        </div>
-        
-        {/* Detection Settings */}
-        {showSettings && (
-          <div className="mb-6 p-4 bg-gray-800 rounded-lg border border-gray-600">
-            <h3 className="text-white font-semibold mb-4">Detection Settings</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-sm text-gray-300 mb-2">
-                  Sensitivity: {settings.sensitivity}%
-                </label>
-                <input
-                  type="range"
-                  min="1"
-                  max="100"
-                  value={settings.sensitivity}
-                  onChange={(e) => setSettings(prev => ({ ...prev, sensitivity: parseInt(e.target.value) }))}
-                  className="w-full"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm text-gray-300 mb-2">Background Type</label>
-                <select
-                  value={settings.backgroundType}
-                  onChange={(e) => setSettings(prev => ({ ...prev, backgroundType: e.target.value as any }))}
-                  className="w-full bg-gray-700 text-white rounded border border-gray-600 px-3 py-2"
-                >
-                  <option value="auto">Auto-detect</option>
-                  <option value="clean">Clean background</option>
-                  <option value="cluttered">Cluttered background</option>
-                  <option value="mixed">Mixed background</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm text-gray-300 mb-2">Card Condition</label>
-                <select
-                  value={settings.cardCondition}
-                  onChange={(e) => setSettings(prev => ({ ...prev, cardCondition: e.target.value as any }))}
-                  className="w-full bg-gray-700 text-white rounded border border-gray-600 px-3 py-2"
-                >
-                  <option value="auto">Auto-detect</option>
-                  <option value="raw">Raw cards</option>
-                  <option value="sleeved">Sleeved cards</option>
-                  <option value="graded">Graded/slabbed</option>
-                  <option value="cased">In cases</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm text-gray-300 mb-2">
-                  Size Range: {settings.minSize}%-{settings.maxSize}%
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="range"
-                    min="1"
-                    max="50"
-                    value={settings.minSize}
-                    onChange={(e) => setSettings(prev => ({ ...prev, minSize: parseInt(e.target.value) }))}
-                    className="flex-1"
-                  />
-                  <input
-                    type="range"
-                    min="20"
-                    max="100"
-                    value={settings.maxSize}
-                    onChange={(e) => setSettings(prev => ({ ...prev, maxSize: parseInt(e.target.value) }))}
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Upload and Action Controls */}
-        <div className="flex flex-wrap gap-4">
-          <div>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-              id="image-upload"
-            />
-            <CRDButton variant="primary" asChild>
-              <label htmlFor="image-upload" className="cursor-pointer flex items-center">
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Image
-              </label>
-            </CRDButton>
-          </div>
-          
-          <CRDButton
-            variant="primary"
-            onClick={runDetection}
-            disabled={!image || isProcessing}
-            className="bg-crd-green hover:bg-crd-green/90"
-          >
-            {isProcessing ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                Detecting...
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 mr-2" />
-                Detect Cards
-              </>
-            )}
-          </CRDButton>
-          
-          <CRDButton
-            variant="outline"
-            onClick={reset}
-            disabled={isProcessing}
-            className="border-crd-mediumGray text-crd-lightGray hover:text-crd-white"
-          >
-            <RotateCcw className="w-4 h-4 mr-2" />
-            Reset
-          </CRDButton>
+    <div className="min-h-screen bg-crd-darkest p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">Card Detection Tester</h1>
+          <p className="text-crd-lightGray">Upload an image to test card detection algorithms</p>
         </div>
 
-        {/* File Info */}
-        {imageFile && (
-          <div className="mt-4 p-3 bg-gray-800 rounded border border-gray-600">
-            <div className="text-sm text-gray-300">
-              <strong>Loaded:</strong> {imageFile.name} 
-              <span className="ml-2 text-gray-400">
-                ({(imageFile.size / 1024 / 1024).toFixed(2)} MB)
-              </span>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Upload Section */}
+          <Card className="p-6 bg-crd-dark border-crd-mediumGray">
+            <h2 className="text-xl font-semibold text-white mb-4">Upload Image</h2>
+            
+            <div className="space-y-4">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full bg-crd-green hover:bg-crd-green/90 text-black"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Choose Image
+              </Button>
+
               {image && (
-                <span className="ml-2 text-gray-400">
-                  • {image.width}×{image.height}px
-                </span>
+                <div className="space-y-3">
+                  <Button
+                    onClick={detectCards}
+                    disabled={isProcessing}
+                    className="w-full bg-crd-blue hover:bg-crd-blue/90 text-white"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    {isProcessing ? 'Detecting...' : 'Detect Cards'}
+                  </Button>
+
+                  <Button
+                    onClick={reset}
+                    variant="outline"
+                    className="w-full border-crd-mediumGray text-crd-lightGray hover:text-white"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Reset
+                  </Button>
+                </div>
               )}
             </div>
-          </div>
-        )}
+          </Card>
 
-        {/* Processing Status */}
-        {isProcessing && (
-          <div className="mt-4 p-4 bg-blue-900/20 border border-blue-600 rounded">
-            <div className="flex items-center text-blue-400">
-              <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-3" />
-              <div>
-                <p className="font-medium">Advanced detection in progress...</p>
-                <p className="text-sm text-blue-300 mt-1">
-                  Running multi-strategy analysis for optimal card detection
-                </p>
+          {/* Results Section */}
+          <Card className="p-6 bg-crd-dark border-crd-mediumGray">
+            <h2 className="text-xl font-semibold text-white mb-4">Detection Results</h2>
+            
+            {image ? (
+              <div className="relative">
+                <img
+                  src={image}
+                  alt="Uploaded"
+                  className="w-full h-auto rounded-lg"
+                />
+                
+                {detectedCards.map((card) => (
+                  <div
+                    key={card.id}
+                    className="absolute border-2 border-crd-green bg-crd-green/10"
+                    style={{
+                      left: `${(card.bounds.x / 600) * 100}%`,
+                      top: `${(card.bounds.y / 400) * 100}%`,
+                      width: `${(card.bounds.width / 600) * 100}%`,
+                      height: `${(card.bounds.height / 400) * 100}%`,
+                    }}
+                  >
+                    <div className="absolute -top-6 left-0 bg-crd-green text-black px-2 py-1 rounded text-xs font-medium">
+                      {Math.round(card.confidence * 100)}%
+                    </div>
+                  </div>
+                ))}
               </div>
+            ) : (
+              <div className="text-center py-12 text-crd-lightGray">
+                <Upload className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Upload an image to see detection results</p>
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {detectedCards.length > 0 && (
+          <Card className="mt-6 p-6 bg-crd-dark border-crd-mediumGray">
+            <h2 className="text-xl font-semibold text-white mb-4">Detected Cards</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {detectedCards.map((card) => (
+                <div key={card.id} className="bg-crd-mediumGray p-4 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-white font-medium">Card {card.id}</span>
+                    <span className="text-crd-green text-sm">{Math.round(card.confidence * 100)}%</span>
+                  </div>
+                  <div className="text-sm text-crd-lightGray">
+                    <div>Position: {card.bounds.x}, {card.bounds.y}</div>
+                    <div>Size: {card.bounds.width} × {card.bounds.height}</div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          </Card>
         )}
-      </Card>
-
-      {/* Detection Results */}
-      {image && (
-        <DetectionDebugViewer
-          originalImage={image}
-          rectangles={detectedCards}
-          debugInfo={debugInfo}
-          onRectangleSelect={setSelectedCard}
-        />
-      )}
-
-      {/* Selected Card Details */}
-      {selectedCard && (
-        <Card className="p-4 bg-gray-900 border-gray-700">
-          <h3 className="text-white font-semibold mb-3">Selected Card Analysis</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
-            <div>
-              <div className="text-gray-400">Position</div>
-              <div className="text-white">{Math.round(selectedCard.x)}, {Math.round(selectedCard.y)}</div>
-            </div>
-            <div>
-              <div className="text-gray-400">Dimensions</div>
-              <div className="text-white">{Math.round(selectedCard.width)}×{Math.round(selectedCard.height)}</div>
-            </div>
-            <div>
-              <div className="text-gray-400">Confidence</div>
-              <div className="text-white">{(selectedCard.confidence * 100).toFixed(1)}%</div>
-            </div>
-            <div>
-              <div className="text-gray-400">Aspect Ratio</div>
-              <div className="text-white">{selectedCard.aspectRatio.toFixed(3)}</div>
-            </div>
-            <div>
-              <div className="text-gray-400">Background</div>
-              <div className="text-white capitalize">{selectedCard.backgroundType}</div>
-            </div>
-            <div>
-              <div className="text-gray-400">Condition</div>
-              <div className="text-white capitalize">{selectedCard.cardCondition}</div>
-            </div>
-          </div>
-          
-          <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <div className="text-gray-400">Edge Strength</div>
-              <div className="text-white">{(selectedCard.edgeStrength * 100).toFixed(1)}%</div>
-            </div>
-            <div>
-              <div className="text-gray-400">Geometry Score</div>
-              <div className="text-white">{(selectedCard.geometryScore * 100).toFixed(1)}%</div>
-            </div>
-          </div>
-          
-          <div className="mt-3">
-            <div className="text-gray-400 text-sm mb-1">Standard Card Comparison</div>
-            <div className="text-gray-300 text-sm">
-              Target Ratio: 0.714 • Difference: {Math.abs(selectedCard.aspectRatio - 0.714).toFixed(3)}
-              {Math.abs(selectedCard.aspectRatio - 0.714) < 0.1 && 
-                <span className="text-green-400 ml-2">✓ Excellent match!</span>
-              }
-            </div>
-          </div>
-        </Card>
-      )}
+      </div>
     </div>
   );
 };

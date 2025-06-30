@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase-client';
 import { LoadingState } from '@/components/common/LoadingState';
 import { CardGrid } from '@/components/cards/CardGrid';
 import { toast } from 'sonner';
+import type { Card, CardRarity } from '@/types/cards';
 
 interface Collection {
   id: string;
@@ -53,7 +54,7 @@ const CollectionDetail = () => {
 
   const { data: cards = [], isLoading: cardsLoading } = useQuery({
     queryKey: ['collection-cards', id],
-    queryFn: async () => {
+    queryFn: async (): Promise<Card[]> => {
       // Get cards that are in this collection
       const { data: collectionCards, error: collectionError } = await supabase
         .from('collection_cards')
@@ -79,7 +80,9 @@ const CollectionDetail = () => {
           rarity,
           price,
           tags,
-          creator_id
+          creator_id,
+          visibility,
+          is_public
         `)
         .in('id', cardIds);
       
@@ -109,12 +112,34 @@ const CollectionDetail = () => {
             creator_name,
             creator_verified,
             price: card.price ? card.price.toString() : undefined,
-            tags: card.tags || []
-          };
+            tags: card.tags || [],
+            rarity: (card.rarity as CardRarity) || 'common', // Fixed type casting
+            visibility: card.visibility || (card.is_public ? 'public' : 'private'),
+            edition_size: 1,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            verification_status: 'pending' as const,
+            creator_attribution: {},
+            print_metadata: {},
+            design_metadata: {}, // Added missing property
+            publishing_options: {
+              marketplace_listing: false,
+              crd_catalog_inclusion: true,
+              print_available: false
+            },
+            print_available: false,
+            crd_catalog_inclusion: true,
+            marketplace_listing: false,
+            shop_id: null,
+            collection_id: null,
+            team_id: null,
+            user_id: null,
+            template_id: null
+          } as Card;
         })
       );
       
-      return cardsWithCreators as CollectionCard[];
+      return cardsWithCreators;
     },
     enabled: !!id
   });
@@ -152,6 +177,21 @@ const CollectionDetail = () => {
       </div>
     );
   }
+
+  // Convert Card[] to the format expected by CardGrid
+  const cardGridData = cards.map(card => ({
+    id: card.id,
+    title: card.title,
+    description: card.description,
+    image_url: card.image_url,
+    thumbnail_url: card.thumbnail_url,
+    rarity: card.rarity,
+    price: card.price ? card.price.toString() : undefined, // Fixed price conversion
+    creator_name: card.creator_name,
+    creator_verified: (card as any).creator_verified,
+    creator_id: card.creator_id,
+    tags: card.tags
+  }));
 
   return (
     <div className="min-h-screen bg-crd-darkest">
@@ -221,7 +261,7 @@ const CollectionDetail = () => {
               Cards in this Collection
             </h2>
             <CardGrid 
-              cards={cards} 
+              cards={cardGridData} 
               loading={cardsLoading}
               viewMode="grid"
             />

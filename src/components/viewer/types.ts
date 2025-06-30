@@ -1,6 +1,6 @@
-
 export type EnvironmentScene = 'studio' | 'forest' | 'mountain' | 'cavern' | 'metropolis';
 export type LightingPreset = 'studio' | 'natural' | 'dramatic' | 'soft' | 'vibrant';
+export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 export interface MaterialSettings {
   metalness: number;
@@ -24,50 +24,97 @@ export interface EffectValues {
   gold?: { intensity: number; [key: string]: any };
 }
 
-// Main Card data interface - aligned with useCardEditor
+// Main Card data interface - aligned with useCardEditor and Enhanced3DCardViewer
 export interface CardData {
   id: string;
   title: string;
   description?: string;
   image_url?: string;
-  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+  rarity: CardRarity; // Use specific CardRarity type
   tags: string[]; // Required to match useCardEditor
   visibility: 'public' | 'private' | 'shared'; // Match useCardEditor exactly
   is_public: boolean;
   template_id?: string;
   collection_id?: string;
   team_id?: string;
+  created_at: string; // Required by Enhanced3DCardViewer
   creator_attribution: {
     creator_name?: string;
     creator_id?: string;
+    collaboration_type?: 'solo' | 'collaboration' | 'commission';
+    additional_credits?: Array<{
+      name: string;
+      role: string;
+    }>;
   };
   publishing_options: {
     marketplace_listing: boolean;
     crd_catalog_inclusion: boolean;
     print_available: boolean;
-    pricing: { currency: string };
-    distribution: { limited_edition: boolean };
+    pricing?: {
+      base_price?: number;
+      print_price?: number;
+      currency: string;
+    };
+    distribution?: {
+      limited_edition: boolean;
+      edition_size?: number;
+    };
   };
-  design_metadata: Record<string, any>;
+  design_metadata: Record<string, any>; // Required by useCardEditor
 }
 
+// Universal Card data interface for display components
 export interface UniversalCardData {
   id: string;
   title: string;
   description?: string;
   image_url?: string;
   thumbnail_url?: string;
-  rarity: string;
+  rarity: string; // Keep as string for flexibility with external data
   price?: number;
   creator_name?: string;
   creator_verified?: boolean;
+  creator_id?: string;
   stock?: number;
+  highest_bid?: number;
+  edition_size?: number;
   tags?: string[];
+  created_at?: string;
+  visibility?: 'public' | 'private' | 'shared';
+  is_public?: boolean;
+  creator_attribution?: {
+    creator_name?: string;
+    creator_id?: string;
+    collaboration_type?: 'solo' | 'collaboration' | 'commission';
+    additional_credits?: Array<{
+      name: string;
+      role: string;
+    }>;
+  };
+  publishing_options?: {
+    marketplace_listing: boolean;
+    crd_catalog_inclusion: boolean;
+    print_available: boolean;
+    pricing?: {
+      base_price?: number;
+      print_price?: number;
+      currency: string;
+    };
+    distribution?: {
+      limited_edition: boolean;
+      edition_size?: number;
+    };
+  };
+  design_metadata?: Record<string, any>;
 }
 
 // ImmersiveCardViewer props interface
 export interface ImmersiveCardViewerProps {
   card: UniversalCardData;
+  cards?: UniversalCardData[];
+  currentCardIndex?: number;
+  onCardChange?: (index: number) => void;
   isOpen?: boolean;
   onClose?: () => void;
   onShare?: (card?: UniversalCardData) => void;
@@ -119,28 +166,42 @@ export interface LightingPresetConfig {
   temperature?: number;
 }
 
-// Conversion functions
+// Helper function to normalize rarity to CardRarity type
+const normalizeRarity = (rarity: string): CardRarity => {
+  const validRarities: CardRarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+  const normalizedRarity = rarity.toLowerCase();
+  return validRarities.includes(normalizedRarity as CardRarity) 
+    ? normalizedRarity as CardRarity 
+    : 'common';
+};
+
+// Enhanced conversion functions with proper type handling
 export const convertToViewerCardData = (card: any): CardData => {
+  const currentTime = new Date().toISOString();
+  
   return {
     id: card.id || '',
     title: card.title || 'Untitled Card',
     description: card.description,
     image_url: card.image_url,
-    rarity: card.rarity || 'common',
+    rarity: normalizeRarity(card.rarity || 'common'), // Normalize to CardRarity
     tags: card.tags || [], // Ensure tags is always an array
     visibility: card.visibility === 'unlisted' ? 'public' : (card.visibility || 'public'), // Convert unlisted to public
     is_public: card.is_public !== false,
     template_id: card.template_id,
     collection_id: card.collection_id,
     team_id: card.team_id,
-    creator_attribution: {
-      creator_name: card.creator_name || card.creator_attribution?.creator_name,
-      creator_id: card.creator_id || card.creator_attribution?.creator_id
+    created_at: card.created_at || currentTime,
+    creator_attribution: card.creator_attribution || {
+      creator_name: card.creator_name || card.creator_id,
+      creator_id: card.creator_id,
+      collaboration_type: 'solo',
+      additional_credits: []
     },
     publishing_options: card.publishing_options || {
-      marketplace_listing: false,
-      crd_catalog_inclusion: true,
-      print_available: false,
+      marketplace_listing: card.marketplace_listing || false,
+      crd_catalog_inclusion: card.crd_catalog_inclusion !== false,
+      print_available: card.print_available || false,
       pricing: { currency: 'USD' },
       distribution: { limited_edition: false }
     },
@@ -155,12 +216,54 @@ export const convertToUniversalCardData = (card: any): UniversalCardData => {
     description: card.description,
     image_url: card.image_url,
     thumbnail_url: card.thumbnail_url,
-    rarity: card.rarity || 'common',
+    rarity: card.rarity || 'common', // Keep as string for UniversalCardData
     price: typeof card.price === 'number' ? card.price : 0,
     creator_name: card.creator_name || card.creator_attribution?.creator_name,
     creator_verified: card.creator_verified || false,
-    stock: card.stock || 0,
-    tags: card.tags || []
+    creator_id: card.creator_id,
+    stock: card.stock,
+    highest_bid: card.highest_bid,
+    edition_size: card.edition_size || 1,
+    tags: card.tags || [],
+    created_at: card.created_at,
+    visibility: card.visibility,
+    is_public: card.is_public,
+    creator_attribution: card.creator_attribution,
+    publishing_options: card.publishing_options,
+    design_metadata: card.design_metadata
+  };
+};
+
+// Conversion function specifically for UniversalCardData to CardData
+export const convertUniversalToCardData = (card: UniversalCardData): CardData => {
+  const currentTime = new Date().toISOString();
+  
+  return {
+    id: card.id,
+    title: card.title,
+    description: card.description,
+    image_url: card.image_url,
+    rarity: normalizeRarity(card.rarity), // Convert string rarity to CardRarity
+    tags: card.tags || [],
+    visibility: card.visibility || 'public',
+    is_public: card.is_public !== false,
+    template_id: undefined,
+    collection_id: undefined,
+    team_id: undefined,
+    created_at: card.created_at || currentTime,
+    creator_attribution: card.creator_attribution || {
+      creator_name: card.creator_name,
+      collaboration_type: 'solo',
+      additional_credits: []
+    },
+    publishing_options: card.publishing_options || {
+      marketplace_listing: false,
+      crd_catalog_inclusion: true,
+      print_available: false,
+      pricing: { currency: 'USD' },
+      distribution: { limited_edition: false }
+    },
+    design_metadata: card.design_metadata || {}
   };
 };
 

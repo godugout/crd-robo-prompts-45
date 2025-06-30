@@ -8,19 +8,30 @@ interface TagInputProps {
   tags: string[];
   onTagAdd: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   onTagRemove: (tag: string) => void;
+  onPaste?: (event: React.ClipboardEvent<HTMLInputElement>) => void;
   disabled?: boolean;
 }
 
-export const TagInput = ({ tags, onTagAdd, onTagRemove, disabled }: TagInputProps) => {
+export const TagInput = ({ 
+  tags, 
+  onTagAdd, 
+  onTagRemove, 
+  onPaste,
+  disabled 
+}: TagInputProps) => {
   return (
     <FormItem>
       <FormLabel>Tags</FormLabel>
       <div className="space-y-2">
         <Input
-          placeholder={disabled ? "Maximum tags reached" : "Add tags (press Enter or comma to add)"}
+          placeholder={disabled ? "Maximum tags reached" : "Add tags (press Enter or use commas to separate multiple tags)"}
           onKeyDown={onTagAdd}
+          onPaste={onPaste}
           disabled={disabled}
         />
+        <div className="text-xs text-muted-foreground">
+          Separate multiple tags with commas, semicolons, or paste from clipboard
+        </div>
         <div className="flex flex-wrap gap-2">
           {tags.map(tag => (
             <span
