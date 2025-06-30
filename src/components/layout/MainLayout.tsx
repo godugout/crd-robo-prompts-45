@@ -19,7 +19,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     <div className={cn(
       "min-h-screen transition-colors duration-300",
       theme === 'labs' 
-        ? "bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900" 
+        ? "bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900" 
         : "theme-bg-primary"
     )}>
       {showNavbar && <UniversalNavbar />}

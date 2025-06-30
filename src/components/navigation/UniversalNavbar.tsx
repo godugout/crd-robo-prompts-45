@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,9 +38,7 @@ export const UniversalNavbar: React.FC = () => {
   return (
     <nav className={cn(
       "sticky top-0 z-50 border-b transition-colors duration-300",
-      theme === 'labs' 
-        ? "bg-slate-900/80 backdrop-blur-md border-slate-700" 
-        : "theme-bg-secondary theme-border backdrop-blur-md"
+      "theme-bg-secondary theme-border backdrop-blur-md"
     )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -48,10 +47,7 @@ export const UniversalNavbar: React.FC = () => {
               <div className="w-8 h-8 bg-crd-green rounded-lg flex items-center justify-center">
                 <span className="text-black font-bold text-sm">C</span>
               </div>
-              <span className={cn(
-                "font-bold text-lg",
-                theme === 'labs' ? "text-white" : "theme-text-primary"
-              )}>
+              <span className="font-bold text-lg theme-text-primary">
                 CardShow
               </span>
             </Link>
@@ -70,12 +66,8 @@ export const UniversalNavbar: React.FC = () => {
                       className={cn(
                         "flex items-center space-x-2 h-10 px-3 transition-colors",
                         isActive 
-                          ? theme === 'labs'
-                            ? "bg-slate-800 text-crd-green" 
-                            : "bg-slate-100 text-crd-green"
-                          : theme === 'labs'
-                            ? "text-slate-300 hover:text-white hover:bg-slate-800"
-                            : "theme-text-secondary hover:theme-text-primary hover:bg-slate-100"
+                          ? "theme-bg-accent text-crd-green" 
+                          : "theme-text-secondary hover:theme-text-primary hover:theme-bg-accent"
                       )}
                     >
                       <Icon className="w-4 h-4" />
@@ -94,12 +86,7 @@ export const UniversalNavbar: React.FC = () => {
               <Button
                 variant="ghost"
                 onClick={handleSignOut}
-                className={cn(
-                  "flex items-center space-x-2",
-                  theme === 'labs' 
-                    ? "text-slate-300 hover:text-white" 
-                    : "theme-text-secondary hover:theme-text-primary"
-                )}
+                className="flex items-center space-x-2 theme-text-secondary hover:theme-text-primary"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sign Out</span>
@@ -108,12 +95,7 @@ export const UniversalNavbar: React.FC = () => {
               <Link to="/auth/signin">
                 <Button
                   variant="ghost"
-                  className={cn(
-                    "flex items-center space-x-2",
-                    theme === 'labs' 
-                      ? "text-slate-300 hover:text-white" 
-                      : "theme-text-secondary hover:theme-text-primary"
-                  )}
+                  className="flex items-center space-x-2 theme-text-secondary hover:theme-text-primary"
                 >
                   <LogIn className="w-4 h-4" />
                   <span>Sign In</span>
