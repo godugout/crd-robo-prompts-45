@@ -1,3 +1,4 @@
+
 import { LayerAnalysisData, LayerAnalysisResult, enhancedLayerAnalysisService } from './enhancedLayerAnalysisService';
 
 export interface PSDFile {
@@ -25,6 +26,7 @@ export interface ProcessedPSD {
 export interface ProcessedPSDLayer {
   id: string;
   name: string;
+  type?: string; // Added missing type property
   bounds: {
     top: number;
     left: number;
@@ -43,6 +45,8 @@ export interface ProcessedPSDLayer {
   };
   positionCategory?: 'header' | 'center' | 'footer' | 'overlay' | 'edge';
   analysisData?: LayerAnalysisResult;
+  inferredDepth?: number; // Added missing inferredDepth property
+  confidence?: number; // Added missing confidence property
 }
 
 export interface LayerBounds {
@@ -89,6 +93,26 @@ class PSDProcessingService {
     };
   }
 
+  // Add the missing processPSDFile method
+  async processPSDFile(file: File): Promise<ProcessedPSD> {
+    const fileId = `file-${Date.now()}-${Math.random()}`;
+    const fileSize = file.size;
+    
+    // Mock PSD file structure for now
+    const mockPSDFile: PSDFile = {
+      name: file.name,
+      width: 400,
+      height: 600,
+      layers: [
+        { name: 'Background', top: 0, left: 0, right: 400, bottom: 600, opacity: 255, visible: true },
+        { name: 'Player Image', top: 50, left: 50, right: 350, bottom: 450, opacity: 255, visible: true },
+        { name: 'Stats Panel', top: 450, left: 50, right: 350, bottom: 550, opacity: 255, visible: true },
+      ]
+    };
+
+    return this.processPSD(mockPSDFile, fileId, fileSize);
+  }
+
   private analyzeLayers(layers: ProcessedPSDLayer[]): {
     semanticTypeCounts: { [key: string]: number; };
     positionCategoryCounts: { [key: string]: number; };
@@ -123,6 +147,7 @@ class PSDProcessingService {
     const processedLayer: ProcessedPSDLayer = {
       id: `layer-${index}`,
       name: layer.name || `Layer ${index}`,
+      type: layer.type || 'image', // Set default type
       bounds: {
         top: layer.top || 0,
         left: layer.left || 0,
@@ -132,6 +157,8 @@ class PSDProcessingService {
       opacity: layer.opacity !== undefined ? layer.opacity / 255 : 1,
       visible: layer.visible !== false,
       imageData: layer.canvas ? layer.canvas.toDataURL() : undefined,
+      inferredDepth: Math.random() * 0.5 + 0.25, // Random depth between 0.25 and 0.75
+      confidence: Math.random() * 0.4 + 0.6, // Random confidence between 0.6 and 1.0
     };
 
     // Enhanced analysis

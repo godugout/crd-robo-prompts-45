@@ -68,7 +68,7 @@ export const CRDFrameBuilder: React.FC<CRDFrameBuilderProps> = ({
                 <span className="text-sm text-white">{layer.name}</span>
               </div>
               <Badge variant="secondary" className="text-xs">
-                {layer.type}
+                {layer.semanticType || 'unknown'}
               </Badge>
             </div>
           ))}
