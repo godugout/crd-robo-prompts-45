@@ -6,38 +6,25 @@ import { X } from 'lucide-react';
 
 interface TagInputProps {
   tags: string[];
-  onTagsChange: (tags: string[]) => void;
+  onTagAdd: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  onTagRemove: (tagToRemove: string) => void;
+  disabled?: boolean;
   placeholder?: string;
 }
 
 export const TagInput: React.FC<TagInputProps> = ({
   tags,
-  onTagsChange,
+  onTagAdd,
+  onTagRemove,
+  disabled = false,
   placeholder = "Add tags..."
 }) => {
-  const [inputValue, setInputValue] = useState('');
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && inputValue.trim()) {
-      e.preventDefault();
-      if (!tags.includes(inputValue.trim())) {
-        onTagsChange([...tags, inputValue.trim()]);
-      }
-      setInputValue('');
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    onTagsChange(tags.filter(tag => tag !== tagToRemove));
-  };
-
   return (
     <div className="space-y-2">
       <Input
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onKeyDown={handleKeyDown}
+        onKeyDown={onTagAdd}
         placeholder={placeholder}
+        disabled={disabled}
         className="bg-slate-800 border-slate-600"
       />
       {tags.length > 0 && (
@@ -47,7 +34,7 @@ export const TagInput: React.FC<TagInputProps> = ({
               {tag}
               <X
                 className="w-3 h-3 cursor-pointer hover:text-red-400"
-                onClick={() => removeTag(tag)}
+                onClick={() => onTagRemove(tag)}
               />
             </Badge>
           ))}
