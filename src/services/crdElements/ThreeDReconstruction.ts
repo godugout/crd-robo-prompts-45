@@ -167,7 +167,7 @@ export class ThreeDReconstructionSystem {
     // Simple environment setup
     scene.background = new THREE.Color(0x1a1a1a);
     
-    // Create and add hemisphere light properly
+    // Create hemisphere light and add it properly to the scene
     const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
     scene.add(hemisphereLight);
   }
