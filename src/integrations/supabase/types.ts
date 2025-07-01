@@ -419,6 +419,71 @@ export type Database = {
           },
         ]
       }
+      card_analysis_results: {
+        Row: {
+          analysis_type: string
+          card_id: string | null
+          confidence_score: number | null
+          created_at: string | null
+          extracted_data: Json
+          id: string
+          processing_time_ms: number | null
+        }
+        Insert: {
+          analysis_type: string
+          card_id?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          extracted_data?: Json
+          id?: string
+          processing_time_ms?: number | null
+        }
+        Update: {
+          analysis_type?: string
+          card_id?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          extracted_data?: Json
+          id?: string
+          processing_time_ms?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_analysis_results_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      card_brands: {
+        Row: {
+          created_at: string | null
+          founded_year: number | null
+          id: string
+          logo_url: string | null
+          metadata: Json | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          founded_year?: number | null
+          id?: string
+          logo_url?: string | null
+          metadata?: Json | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          founded_year?: number | null
+          id?: string
+          logo_url?: string | null
+          metadata?: Json | null
+          name?: string
+        }
+        Relationships: []
+      }
       card_downloads: {
         Row: {
           card_id: string
@@ -580,6 +645,7 @@ export type Database = {
           publishing_options: Json | null
           rarity: string
           shop_id: string | null
+          sports_metadata: Json | null
           tags: string[] | null
           team_id: string | null
           template_id: string | null
@@ -608,6 +674,7 @@ export type Database = {
           publishing_options?: Json | null
           rarity: string
           shop_id?: string | null
+          sports_metadata?: Json | null
           tags?: string[] | null
           team_id?: string | null
           template_id?: string | null
@@ -636,6 +703,7 @@ export type Database = {
           publishing_options?: Json | null
           rarity?: string
           shop_id?: string | null
+          sports_metadata?: Json | null
           tags?: string[] | null
           team_id?: string | null
           template_id?: string | null
@@ -4853,6 +4921,51 @@ export type Database = {
           },
         ]
       }
+      psd_reconstructed_cards: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          layer_count: number
+          original_psd_name: string
+          processing_metadata: Json | null
+          reconstruction_data: Json
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          layer_count?: number
+          original_psd_name: string
+          processing_metadata?: Json | null
+          reconstruction_data?: Json
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          layer_count?: number
+          original_psd_name?: string
+          processing_metadata?: Json | null
+          reconstruction_data?: Json
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       reactions: {
         Row: {
           card_id: string | null
@@ -5220,6 +5333,86 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sports_players: {
+        Row: {
+          birth_year: number | null
+          career_stats: Json | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          name: string
+          position: string | null
+          sport: string
+          team_id: string | null
+        }
+        Insert: {
+          birth_year?: number | null
+          career_stats?: Json | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          position?: string | null
+          sport: string
+          team_id?: string | null
+        }
+        Update: {
+          birth_year?: number | null
+          career_stats?: Json | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          position?: string | null
+          sport?: string
+          team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sports_players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "sports_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sports_teams: {
+        Row: {
+          city: string | null
+          colors: Json | null
+          created_at: string | null
+          id: string
+          league: string | null
+          logo_url: string | null
+          metadata: Json | null
+          name: string
+          sport: string
+        }
+        Insert: {
+          city?: string | null
+          colors?: Json | null
+          created_at?: string | null
+          id?: string
+          league?: string | null
+          logo_url?: string | null
+          metadata?: Json | null
+          name: string
+          sport: string
+        }
+        Update: {
+          city?: string | null
+          colors?: Json | null
+          created_at?: string | null
+          id?: string
+          league?: string | null
+          logo_url?: string | null
+          metadata?: Json | null
+          name?: string
+          sport?: string
+        }
+        Relationships: []
       }
       story_artifacts: {
         Row: {
