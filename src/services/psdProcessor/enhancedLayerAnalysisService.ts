@@ -1,5 +1,5 @@
-import { ProcessedPSDLayer, EnhancedProcessedPSD } from '@/types/psdTypes';
-import { getSemanticTypeColor } from '@/utils/semanticTypeColors';
+
+import { ProcessedPSDLayer } from './psdProcessingService';
 
 export interface LayerAnalysisResult {
   semanticType: ProcessedPSDLayer['semanticType'];

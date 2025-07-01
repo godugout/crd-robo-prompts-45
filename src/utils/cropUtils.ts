@@ -17,57 +17,46 @@ export const exportCroppedImage = async (
         return;
       }
 
-      // Get the crop rectangle properties
+      // Get crop rectangle bounds in image coordinates
       const cropBounds = cropRect.getBoundingRect();
-      const cropWidth = cropRect.width! * cropRect.scaleX!;
-      const cropHeight = cropRect.height! * cropRect.scaleY!;
-      const cropAngle = cropRect.angle || 0;
+      const imageBounds = originalImage.getBoundingRect();
+      
+      // Calculate the crop area relative to the original image
+      const relativeX = (cropBounds.left - imageBounds.left) / originalImage.scaleX!;
+      const relativeY = (cropBounds.top - imageBounds.top) / originalImage.scaleY!;
+      const relativeWidth = cropBounds.width / originalImage.scaleX!;
+      const relativeHeight = cropBounds.height / originalImage.scaleY!;
 
       // Set canvas size to the crop dimensions
-      tempCanvas.width = cropWidth;
-      tempCanvas.height = cropHeight;
+      tempCanvas.width = relativeWidth;
+      tempCanvas.height = relativeHeight;
 
       // Load the original image
       const img = new Image();
       img.crossOrigin = 'anonymous';
       
       img.onload = () => {
-        // Clear canvas with transparent background
+        // Clear canvas
         tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
         
-        // Calculate the transformation matrix
-        const centerX = cropWidth / 2;
-        const centerY = cropHeight / 2;
-        
-        // Save the context state
-        tempCtx.save();
-        
-        // Move to center, apply rotation, then move back
-        tempCtx.translate(centerX, centerY);
-        tempCtx.rotate((cropAngle * Math.PI) / 180);
-        tempCtx.translate(-centerX, -centerY);
+        // Apply rotation if needed
+        if (cropRect.angle && cropRect.angle !== 0) {
+          tempCtx.save();
+          tempCtx.translate(tempCanvas.width / 2, tempCanvas.height / 2);
+          tempCtx.rotate((cropRect.angle * Math.PI) / 180);
+          tempCtx.translate(-tempCanvas.width / 2, -tempCanvas.height / 2);
+        }
 
-        // Calculate the source coordinates on the original image
-        const imageBounds = originalImage.getBoundingRect();
-        const imageScale = originalImage.scaleX || 1;
-        
-        // Get the actual source coordinates from the original image
-        const sourceX = (cropRect.left! - imageBounds.left) / imageScale;
-        const sourceY = (cropRect.top! - imageBounds.top) / imageScale;
-        const sourceWidth = cropWidth / imageScale;
-        const sourceHeight = cropHeight / imageScale;
-
-        // Draw the image portion
+        // Draw the cropped portion
         tempCtx.drawImage(
           img,
-          Math.max(0, sourceX), Math.max(0, sourceY), 
-          Math.min(img.width - Math.max(0, sourceX), sourceWidth), 
-          Math.min(img.height - Math.max(0, sourceY), sourceHeight),
-          0, 0, cropWidth, cropHeight
+          relativeX, relativeY, relativeWidth, relativeHeight,
+          0, 0, tempCanvas.width, tempCanvas.height
         );
 
-        // Restore the context state
-        tempCtx.restore();
+        if (cropRect.angle && cropRect.angle !== 0) {
+          tempCtx.restore();
+        }
 
         // Convert to blob and create URL
         tempCanvas.toBlob((blob) => {

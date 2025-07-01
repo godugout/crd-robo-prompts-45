@@ -3,184 +3,137 @@ import React, { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { BulkPSDUploader } from '@/components/debug/bulk/BulkPSDUploader';
 import { PSDComparisonTable } from '@/components/debug/bulk/PSDComparisonTable';
-import { EnhancedPSDCard } from '@/components/debug/bulk/enhanced/EnhancedPSDCard';
-import { Card } from '@/components/ui/card';
+import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
 import { Button } from '@/components/ui/button';
-import { EnhancedProcessedPSD } from '@/types/psdTypes';
-import { 
-  Upload, 
-  BarChart3, 
-  Grid3X3,
-  Trash2,
-  FileSearch
-} from 'lucide-react';
+import { ArrowLeft, Database, GitCompare } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export interface BulkPSDData {
   id: string;
   fileName: string;
-  processedPSD: EnhancedProcessedPSD;
-  enhancedProcessedPSD: EnhancedProcessedPSD;
+  processedPSD: ProcessedPSD;
   uploadedAt: Date;
 }
 
 const BulkPSDAnalysisPage: React.FC = () => {
-  const [psdData, setPsdData] = useState<BulkPSDData[]>([]);
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const [selectedPSDs, setSelectedPSDs] = useState<Set<string>>(new Set());
+  const [processedPSDs, setProcessedPSDs] = useState<BulkPSDData[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handlePSDsProcessed = (newPSDs: BulkPSDData[]) => {
-    setPsdData(prev => [...prev, ...newPSDs]);
+    setProcessedPSDs(prev => [...prev, ...newPSDs]);
   };
 
   const handleRemovePSD = (id: string) => {
-    setPsdData(prev => prev.filter(psd => psd.id !== id));
-    setSelectedPSDs(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(id);
-      return newSet;
-    });
-  };
-
-  const handleSelectPSD = (id: string) => {
-    setSelectedPSDs(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  };
-
-  const handleAnalyzePSD = (id: string) => {
-    const psd = psdData.find(p => p.id === id);
-    if (psd) {
-      // Navigate to individual analysis
-      console.log('Analyzing PSD:', psd.fileName);
-    }
+    setProcessedPSDs(prev => prev.filter(psd => psd.id !== id));
   };
 
   const handleClearAll = () => {
-    setPsdData([]);
-    setSelectedPSDs(new Set());
+    setProcessedPSDs([]);
   };
 
   return (
     <MainLayout showNavbar={false}>
-      <div className="min-h-screen bg-[#0a0a0b] p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">
-              Bulk PSD Analysis
-            </h1>
-            <p className="text-slate-400">
-              Upload multiple PSD files for batch processing and comparative analysis
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="sm" asChild className="text-slate-400 hover:text-white">
+                  <Link to="/debug/psd-preview">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to PSD Preview
+                  </Link>
+                </Button>
+                <div className="h-6 w-px bg-slate-700" />
+                <div className="flex items-center gap-2">
+                  <GitCompare className="w-6 h-6 text-crd-green" />
+                  <h1 className="text-2xl font-bold text-white">Bulk PSD Analysis</h1>
+                </div>
+              </div>
+
+              {processedPSDs.length > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={handleClearAll}
+                  className="border-red-500 text-red-400 hover:bg-red-500/10"
+                >
+                  Clear All
+                </Button>
+              )}
+            </div>
+
+            <p className="text-slate-400 text-sm max-w-2xl">
+              Upload multiple PSD files to analyze and compare their layer structures, elements, and design patterns.
             </p>
           </div>
 
           {/* Upload Section */}
-          <div className="mb-6">
-            <BulkPSDUploader onPSDsProcessed={handlePSDsProcessed} />
+          <div className="mb-8">
+            <BulkPSDUploader
+              onPSDsProcessed={handlePSDsProcessed}
+              isUploading={isUploading}
+              setIsUploading={setIsUploading}
+            />
           </div>
 
-          {/* Analysis Results */}
-          {psdData.length > 0 && (
-            <div className="space-y-6">
-              {/* Controls */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-semibold text-white">
-                    Analysis Results ({psdData.length} files)
-                  </h2>
-                  {selectedPSDs.size > 0 && (
-                    <span className="text-sm text-slate-400">
-                      {selectedPSDs.size} selected
-                    </span>
-                  )}
-                </div>
-                
+          {/* Stats Overview */}
+          {processedPSDs.length > 0 && (
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-[#0a0f1b] border border-slate-800 rounded-lg p-4">
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant={viewMode === 'grid' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewMode('grid')}
-                    className={viewMode === 'grid' ? 'bg-crd-green text-black' : ''}
-                  >
-                    <Grid3X3 className="w-4 h-4 mr-2" />
-                    Grid
-                  </Button>
-                  <Button
-                    variant={viewMode === 'table' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewMode('table')}
-                    className={viewMode === 'table' ? 'bg-crd-green text-black' : ''}
-                  >
-                    <BarChart3 className="w-4 h-4 mr-2" />
-                    Table
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleClearAll}
-                    className="text-red-400 border-red-400 hover:bg-red-500/10"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Clear All
-                  </Button>
+                  <Database className="w-5 h-5 text-crd-green" />
+                  <span className="text-slate-400 text-sm">Total PSDs</span>
                 </div>
+                <p className="text-2xl font-bold text-white mt-1">{processedPSDs.length}</p>
+              </div>
+              
+              <div className="bg-[#0a0f1b] border border-slate-800 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400 text-sm">Total Layers</span>
+                </div>
+                <p className="text-2xl font-bold text-white mt-1">
+                  {processedPSDs.reduce((acc, psd) => acc + psd.processedPSD.totalLayers, 0)}
+                </p>
               </div>
 
-              {/* Content */}
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {psdData.map((psd) => (
-                    <EnhancedPSDCard
-                      key={psd.id}
-                      psd={psd}
-                      onSelect={handleSelectPSD}
-                      onAnalyze={handleAnalyzePSD}
-                      isSelected={selectedPSDs.has(psd.id)}
-                    />
-                  ))}
+              <div className="bg-[#0a0f1b] border border-slate-800 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400 text-sm">Avg Layers/PSD</span>
                 </div>
-              ) : (
-                <PSDComparisonTable
-                  psdData={psdData}
-                  onRemovePSD={handleRemovePSD}
-                />
-              )}
+                <p className="text-2xl font-bold text-white mt-1">
+                  {Math.round(processedPSDs.reduce((acc, psd) => acc + psd.processedPSD.totalLayers, 0) / processedPSDs.length)}
+                </p>
+              </div>
+
+              <div className="bg-[#0a0f1b] border border-slate-800 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400 text-sm">Unique Elements</span>
+                </div>
+                <p className="text-2xl font-bold text-white mt-1">
+                  {new Set(processedPSDs.flatMap(psd => 
+                    psd.processedPSD.layers.map(layer => layer.semanticType || 'unknown')
+                  )).size}
+                </p>
+              </div>
             </div>
           )}
 
+          {/* Comparison Table */}
+          {processedPSDs.length > 0 && (
+            <PSDComparisonTable
+              psdData={processedPSDs}
+              onRemovePSD={handleRemovePSD}
+            />
+          )}
+
           {/* Empty State */}
-          {psdData.length === 0 && (
-            <Card className="bg-[#131316] border-slate-700">
-              <div className="p-12 text-center">
-                <FileSearch className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                <h3 className="text-xl font-medium text-white mb-2">
-                  No PSD Files Uploaded
-                </h3>
-                <p className="text-slate-400 mb-6">
-                  Upload your PSD files above to begin bulk analysis and comparison
-                </p>
-                <div className="flex items-center justify-center gap-4 text-sm text-slate-500">
-                  <div className="flex items-center gap-2">
-                    <Upload className="w-4 h-4" />
-                    <span>Batch Upload</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4" />
-                    <span>Comparative Analysis</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Grid3X3 className="w-4 h-4" />
-                    <span>Visual Inspection</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
+          {processedPSDs.length === 0 && !isUploading && (
+            <div className="text-center py-16">
+              <GitCompare className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+              <h3 className="text-xl font-medium text-white mb-2">No PSDs Uploaded</h3>
+              <p className="text-slate-400">Upload multiple PSD files to start comparing their elements</p>
+            </div>
           )}
         </div>
       </div>

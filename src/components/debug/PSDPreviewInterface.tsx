@@ -1,212 +1,146 @@
-import React, { useState, useEffect } from 'react';
-import { ProcessedPSDLayer, EnhancedProcessedPSD } from '@/types/psdTypes';
+
+import React, { useState, useMemo } from 'react';
+import { ProcessedPSD } from '@/services/psdProcessor/psdProcessingService';
+import { PSDCanvasPreview } from './components/PSDCanvasPreview';
+import { PSDLayerInspector } from './components/PSDLayerInspector';
+import { CRDFrameBuilder } from './components/CRDFrameBuilder';
+import { layerGroupingService } from '@/services/psdProcessor/layerGroupingService';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { SimplifiedLayerInspector } from './components/SimplifiedLayerInspector';
-import { EnhancedPSDCanvasPreview } from './components/PSDCanvasPreview';
-import { LayerThumbnailView } from './components/LayerThumbnailView';
-import { ElementsModeView } from './components/ElementsModeView';
-import { FrameModeView } from './components/FrameModeView';
-import { CRDFrameBuilder } from './components/CRDFrameBuilder';
-import { SavePSDCardDialog } from './components/SavePSDCardDialog';
-import { Eye, EyeOff, Layers, Grid, Frame, Wrench, Save } from 'lucide-react';
-import { findLargestLayerByVolume } from '@/utils/layerUtils';
+import { Separator } from '@/components/ui/separator';
+import { 
+  Eye, 
+  EyeOff, 
+  Layers, 
+  Download, 
+  Share, 
+  Settings,
+  Palette,
+  Grid,
+  List,
+  Zap
+} from 'lucide-react';
 
 interface PSDPreviewInterfaceProps {
-  processedPSD: EnhancedProcessedPSD;
+  processedPSD: ProcessedPSD;
 }
 
-export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ processedPSD }) => {
-  const [activeTab, setActiveTab] = useState('inspect');
+export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
+  processedPSD
+}) => {
   const [selectedLayerId, setSelectedLayerId] = useState<string>('');
   const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
-  const [flippedLayers, setFlippedLayers] = useState<Set<string>>(new Set());
-  const [showBackground, setShowBackground] = useState(true);
-  const [focusMode, setFocusMode] = useState(false);
-  const [reorderedLayers, setReorderedLayers] = useState<ProcessedPSDLayer[]>(processedPSD.layers);
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [frameBuilderMode, setFrameBuilderMode] = useState(false);
+  
+  // Use the correct method name
+  const layerGroupingResult = useMemo(() => 
+    layerGroupingService.smartGroupLayers(processedPSD.layers), 
+    [processedPSD.layers]
+  );
 
-  useEffect(() => {
-    // Set initial selected layer to the largest layer by volume
-    const largestLayerId = findLargestLayerByVolume(processedPSD.layers);
-    if (largestLayerId) {
-      setSelectedLayerId(largestLayerId);
-    }
-  }, [processedPSD]);
-
-  const handleLayerSelect = (layerId: string) => {
-    setSelectedLayerId(layerId);
+  const toggleLayerVisibility = (layerId: string) => {
+    setHiddenLayers((prevHiddenLayers) => {
+      const newHiddenLayers = new Set(prevHiddenLayers);
+      if (newHiddenLayers.has(layerId)) {
+        newHiddenLayers.delete(layerId);
+      } else {
+        newHiddenLayers.add(layerId);
+      }
+      return newHiddenLayers;
+    });
   };
 
-  const handleLayerToggle = (layerId: string) => {
-    const newHiddenLayers = new Set(hiddenLayers);
-    if (newHiddenLayers.has(layerId)) {
-      newHiddenLayers.delete(layerId);
-    } else {
-      newHiddenLayers.add(layerId);
-    }
-    setHiddenLayers(newHiddenLayers);
+  const handleDownload = () => {
+    console.log('Download button clicked');
+    // Implement download logic here
   };
 
-  const handleFlippedLayersChange = (flipped: Set<string>) => {
-    setFlippedLayers(flipped);
+  const handleShare = () => {
+    console.log('Share button clicked');
+    // Implement share logic here
   };
 
-  const handleLayersReorder = (newLayers: ProcessedPSDLayer[]) => {
-    setReorderedLayers(newLayers);
+  const handleSettings = () => {
+    console.log('Settings button clicked');
+    // Implement settings logic here
   };
 
-  const getSelectedLayerIds = () => {
-    const visibleLayers = reorderedLayers.filter(layer => !hiddenLayers.has(layer.id));
-    return visibleLayers.map(layer => layer.id);
+  const handlePalette = () => {
+    console.log('Palette button clicked');
+    // Implement palette logic here
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      {/* Layer Inspector */}
-      <div className="lg:col-span-1">
-        <SimplifiedLayerInspector
-          layers={reorderedLayers}
-          selectedLayerId={selectedLayerId}
-          onLayerSelect={handleLayerSelect}
-          hiddenLayers={hiddenLayers}
-          onLayerToggle={handleLayerToggle}
-          onFlippedLayersChange={handleFlippedLayersChange}
-          onLayersReorder={handleLayersReorder}
-        />
-      </div>
-
-      {/* Main Content */}
-      <div className="lg:col-span-3">
-        <Card className="bg-[#1a1f2e] border-slate-700">
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="border-b border-slate-700">
-            <TabsList className="p-4 bg-transparent">
-              <TabsTrigger value="inspect" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white">
-                <Layers className="w-4 h-4 mr-2" />
-                Inspect
-              </TabsTrigger>
-              <TabsTrigger value="thumbnails" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white">
-                <Grid className="w-4 h-4 mr-2" />
-                Thumbnails
-              </TabsTrigger>
-              <TabsTrigger value="frame" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white">
-                <Frame className="w-4 h-4 mr-2" />
-                Frame
-              </TabsTrigger>
-              <TabsTrigger value="build" className="data-[state=active]:bg-slate-800 data-[state=active]:text-white">
-                <Wrench className="w-4 h-4 mr-2" />
-                Build
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          {/* Canvas Preview */}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+      {/* Canvas Preview */}
+      <div className="lg:col-span-2">
+        <Card className="bg-[#0a0f1b] border-slate-800 h-full">
+          <div className="p-4 border-b border-slate-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Palette className="w-5 h-5 text-crd-green" />
+                <h3 className="text-lg font-semibold text-white">Canvas Preview</h3>
+                <Badge variant="outline" className="text-xs">
+                  {processedPSD.width} × {processedPSD.height}px
+                </Badge>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={frameBuilderMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFrameBuilderMode(!frameBuilderMode)}
+                  className="text-xs"
+                >
+                  <Grid className="w-4 h-4 mr-1" />
+                  {frameBuilderMode ? 'Exit Builder' : 'Frame Builder'}
+                </Button>
+                
+                <Button variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-1" />
+                  Export
+                </Button>
+              </div>
+            </div>
+          </div>
+          
           <div className="p-4">
-            <EnhancedPSDCanvasPreview
-              processedPSD={processedPSD}
-              selectedLayerId={selectedLayerId}
-              hiddenLayers={hiddenLayers}
-              onLayerSelect={handleLayerSelect}
-              focusMode={focusMode}
-              onFocusModeToggle={() => setFocusMode(!focusMode)}
-              showBackground={showBackground}
-              onToggleBackground={() => setShowBackground(!showBackground)}
-              viewMode={activeTab as 'inspect' | 'frame' | 'build'}
-              reorderedLayers={reorderedLayers}
-            />
+            {frameBuilderMode ? (
+              <CRDFrameBuilder
+                layers={processedPSD.layers}
+                layerGroups={layerGroupingResult.groups}
+                selectedLayerId={selectedLayerId}
+                onLayerSelect={setSelectedLayerId}
+                hiddenLayers={hiddenLayers}
+                onLayerToggle={toggleLayerVisibility}
+              />
+            ) : (
+              <PSDCanvasPreview
+                processedPSD={processedPSD}
+                selectedLayerId={selectedLayerId}
+                hiddenLayers={hiddenLayers}
+                layerGroups={layerGroupingResult.groups}
+                onLayerSelect={setSelectedLayerId}
+                frameBuilderMode={frameBuilderMode}
+              />
+            )}
           </div>
         </Card>
-
-        {/* Additional Controls */}
-        <div className="mt-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowBackground(!showBackground)}
-            >
-              {showBackground ? (
-                <>
-                  <EyeOff className="w-4 h-4 mr-2" />
-                  Hide Background
-                </>
-              ) : (
-                <>
-                  <Eye className="w-4 h-4 mr-2" />
-                  Show Background
-                </>
-              )}
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setFocusMode(!focusMode)}
-            >
-              {focusMode ? 'Disable Focus' : 'Enable Focus'}
-            </Button>
-
-            <Button
-              onClick={() => setShowSaveDialog(true)}
-              className="bg-crd-green text-black hover:bg-crd-green/90"
-              size="sm"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Save to CRD Catalog
-            </Button>
-          </div>
-
-          <Badge variant="secondary">
-            {processedPSD.width} x {processedPSD.height}
-          </Badge>
-        </div>
-
-        {/* Mode-Specific Views */}
-        <div className="mt-6">
-          {activeTab === 'inspect' && (
-            <ElementsModeView
-              layers={reorderedLayers}
-              selectedLayerId={selectedLayerId}
-              hiddenLayers={hiddenLayers}
-              onLayerSelect={handleLayerSelect}
-              onLayerToggle={handleLayerToggle}
-            />
-          )}
-          {activeTab === 'thumbnails' && (
-            <LayerThumbnailView
-              layers={reorderedLayers}
-              selectedLayerId={selectedLayerId}
-              hiddenLayers={hiddenLayers}
-              onLayerSelect={handleLayerSelect}
-              onLayerToggle={handleLayerToggle}
-            />
-          )}
-          {activeTab === 'frame' && (
-            <FrameModeView
-              layers={reorderedLayers}
-              selectedLayerId={selectedLayerId}
-              onLayerSelect={handleLayerSelect}
-            />
-          )}
-          {activeTab === 'build' && (
-            <CRDFrameBuilder
-              selectedLayerId={selectedLayerId}
-              hiddenLayers={hiddenLayers}
-            />
-          )}
-        </div>
       </div>
 
-      {/* Save Dialog */}
-      <SavePSDCardDialog
-        isOpen={showSaveDialog}
-        onClose={() => setShowSaveDialog(false)}
-        processedPSD={processedPSD}
-        selectedLayerIds={getSelectedLayerIds()}
-      />
+      {/* Layer Inspector */}
+      <div className="space-y-4">
+        <PSDLayerInspector
+          layers={processedPSD.layers}
+          layerGroups={layerGroupingResult.groups}
+          selectedLayerId={selectedLayerId}
+          onLayerSelect={setSelectedLayerId}
+          hiddenLayers={hiddenLayers}
+          onLayerToggle={toggleLayerVisibility}
+        />
+      </div>
     </div>
   );
 };
