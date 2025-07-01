@@ -1,26 +1,17 @@
 
-export type SemanticType = 'text' | 'image' | 'border' | 'background' | 'player' | 'stats' | 'logo' | 'effect';
-
-export const getSemanticTypeColor = (type?: string): string => {
-  if (!type) return '#64748b'; // slate-500
+export const getSemanticTypeColor = (semanticType?: string): string => {
+  if (!semanticType) return '#64748b'; // slate-500
   
-  const colors: Record<string, string> = {
+  const colorMap: Record<string, string> = {
     'player': '#10b981', // emerald-500
     'background': '#6366f1', // indigo-500
-    'stats': '#06b6d4', // cyan-500
-    'logo': '#ec4899', // pink-500
-    'border': '#f59e0b', // amber-500
-    'text': '#3b82f6', // blue-500
-    'image': '#8b5cf6', // violet-500
-    'effect': '#8b5cf6' // violet-500
+    'stats': '#f59e0b', // amber-500
+    'logo': '#ef4444', // red-500
+    'effect': '#8b5cf6', // violet-500
+    'border': '#06b6d4', // cyan-500
+    'text': '#ec4899', // pink-500
+    'image': '#22c55e', // green-500
   };
-  return colors[type] || '#64738b';
-};
-
-export const getValidSemanticTypes = (): SemanticType[] => {
-  return ['text', 'image', 'border', 'background', 'player', 'stats', 'logo', 'effect'];
-};
-
-export const isValidSemanticType = (type: string): type is SemanticType => {
-  return getValidSemanticTypes().includes(type as SemanticType);
+  
+  return colorMap[semanticType.toLowerCase()] || '#64748b';
 };

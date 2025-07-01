@@ -1,51 +1,52 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import React, { ReactNode } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface ToolbarButtonProps {
-  icon: React.ReactNode;
+  icon: ReactNode;
   tooltip: string;
   active?: boolean;
+  onClick?: () => void;
   disabled?: boolean;
-  badge?: number;
-  onClick: () => void;
+  badge?: string | number;
 }
 
-export const ToolbarButton: React.FC<ToolbarButtonProps> = ({
-  icon,
-  tooltip,
-  active = false,
+export const ToolbarButton = ({ 
+  icon, 
+  tooltip, 
+  active = false, 
+  onClick, 
   disabled = false,
-  badge,
-  onClick
-}) => {
+  badge
+}: ToolbarButtonProps) => {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "h-8 w-8 p-1.5 relative",
-            active ? "bg-editor-tool text-white" : "text-gray-400 hover:text-white",
-            disabled && "opacity-50 cursor-not-allowed"
-          )}
-          onClick={onClick}
-          disabled={disabled}
-        >
-          {icon}
-          {badge && (
-            <span className="absolute -top-1 -right-1 bg-crd-orange text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-              {badge}
-            </span>
-          )}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{tooltip}</p>
-      </TooltipContent>
-    </Tooltip>
+    <div className="relative">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={`h-8 w-8 p-1.5 ${
+              active 
+                ? 'bg-editor-tool text-white' 
+                : 'text-gray-400 hover:text-white'
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={onClick}
+            disabled={disabled}
+          >
+            {icon}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="py-1 px-2 text-xs">
+          {tooltip}
+        </TooltipContent>
+      </Tooltip>
+      {badge !== undefined && (
+        <span className="absolute -top-1 -right-1 bg-crd-orange text-white text-[10px] rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
+          {badge}
+        </span>
+      )}
+    </div>
   );
 };

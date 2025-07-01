@@ -4921,51 +4921,6 @@ export type Database = {
           },
         ]
       }
-      psd_reconstructed_cards: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          image_url: string
-          layer_count: number
-          original_psd_name: string
-          processing_metadata: Json | null
-          reconstruction_data: Json
-          thumbnail_url: string | null
-          title: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          image_url: string
-          layer_count?: number
-          original_psd_name: string
-          processing_metadata?: Json | null
-          reconstruction_data?: Json
-          thumbnail_url?: string | null
-          title: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          image_url?: string
-          layer_count?: number
-          original_psd_name?: string
-          processing_metadata?: Json | null
-          reconstruction_data?: Json
-          thumbnail_url?: string | null
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       reactions: {
         Row: {
           card_id: string | null

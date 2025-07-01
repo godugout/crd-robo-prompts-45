@@ -1,24 +1,33 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { EnhancedProcessedPSD, ProcessedPSDLayer } from '@/types/psdTypes';
+import { ProcessedPSDLayer } from '@/types/psdTypes';
 import { Button } from '@/components/ui/button';
 
 interface FrameModeViewProps {
-  processedPSD: EnhancedProcessedPSD;
+  layers: ProcessedPSDLayer[];
   selectedLayerId: string;
-  hiddenLayers: Set<string>;
   onLayerSelect: (layerId: string) => void;
-  onToggleVisibility: (layerId: string) => void;
 }
 
 export const FrameModeView: React.FC<FrameModeViewProps> = ({
-  processedPSD,
+  layers,
   selectedLayerId,
-  hiddenLayers,
-  onLayerSelect,
-  onToggleVisibility
+  onLayerSelect
 }) => {
+  const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
+
+  const toggleLayerVisibility = (layerId: string) => {
+    setHiddenLayers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(layerId)) {
+        newSet.delete(layerId);
+      } else {
+        newSet.add(layerId);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <div className="space-y-4">
       <Card className="bg-slate-800 border-slate-700 p-4">
@@ -29,7 +38,7 @@ export const FrameModeView: React.FC<FrameModeViewProps> = ({
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {processedPSD.layers.map(layer => {
+        {layers.map(layer => {
           const isSelected = layer.id === selectedLayerId;
           const isHidden = hiddenLayers.has(layer.id);
 
@@ -47,11 +56,11 @@ export const FrameModeView: React.FC<FrameModeViewProps> = ({
                 </h4>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="w-6 h-6 p-0"
+                  size="icon"
+                  className="w-6 h-6"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onToggleVisibility(layer.id);
+                    toggleLayerVisibility(layer.id);
                   }}
                 >
                   {isHidden ? 'Show' : 'Hide'}

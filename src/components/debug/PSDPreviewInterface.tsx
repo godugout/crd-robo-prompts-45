@@ -1,39 +1,48 @@
-
-import React, { useState, useCallback } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SimplifiedLayerInspector } from './components/SimplifiedLayerInspector';
-import { PersistentCardPreview } from './components/PersistentCardPreview';
-import { ElementsModeView } from './components/ElementsModeView';
-import { FrameModeView } from './components/FrameModeView';
-import { PreviewModeView } from './components/PreviewModeView';
+import React, { useState, useMemo } from 'react';
+import { EnhancedProcessedPSD } from '@/types/psdTypes';
+import { EnhancedCardFrameFittingInterface } from './components/EnhancedCardFrameFittingInterface';
 import { CRDFrameBuilder } from './components/CRDFrameBuilder';
-import { EnhancedProcessedPSD, ProcessedPSDLayer } from '@/types/psdTypes';
-import { Eye, EyeOff, Layers, Frame, Play, Wrench, Settings } from 'lucide-react';
-
-type ViewMode = 'inspect' | 'frame' | 'elements' | 'preview' | 'build';
+import { SimplifiedLayerInspector } from './components/SimplifiedLayerInspector';
+import { EnhancedPSDCanvasPreview } from './components/EnhancedPSDCanvasPreview';
+import { findLargestLayerByVolume } from '@/utils/layerUtils';
+import { PSDButton } from '@/components/ui/design-system/PSDButton';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Search,
+  Frame,
+  Wand2,
+  Layers
+} from 'lucide-react';
 
 interface PSDPreviewInterfaceProps {
   processedPSD: EnhancedProcessedPSD;
 }
 
-export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({ 
-  processedPSD 
+export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
+  processedPSD
 }) => {
-  const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
+  const [selectedLayerId, setSelectedLayerId] = useState<string>('');
   const [hiddenLayers, setHiddenLayers] = useState<Set<string>>(new Set());
-  const [selectedLayers, setSelectedLayers] = useState<Set<string>>(new Set());
-  const [showOriginal, setShowOriginal] = useState(false);
-  const [mode, setMode] = useState<ViewMode>('inspect');
+  const [selectedFrame, setSelectedFrame] = useState('classic-sports');
+  const [activeTab, setActiveTab] = useState<'inspect' | 'frame' | 'build'>('inspect');
+  const [generatedFrames, setGeneratedFrames] = useState<any[]>([]);
   const [flippedLayers, setFlippedLayers] = useState<Set<string>>(new Set());
+  const [focusMode, setFocusMode] = useState(false);
+  const [showBackground, setShowBackground] = useState(true);
+  const [reorderedLayers, setReorderedLayers] = useState<ProcessedPSDLayer[]>(processedPSD.layers);
 
-  const handleLayerSelect = useCallback((layerId: string) => {
-    setSelectedLayerId(layerId);
-  }, []);
+  // Initialize with largest layer selected and set initial layer order
+  React.useEffect(() => {
+    if (processedPSD && !selectedLayerId) {
+      const largestLayerId = findLargestLayerByVolume(processedPSD.layers);
+      if (largestLayerId) {
+        setSelectedLayerId(largestLayerId);
+      }
+      setReorderedLayers(processedPSD.layers);
+    }
+  }, [processedPSD, selectedLayerId]);
 
-  const handleLayerToggle = useCallback((layerId: string) => {
+  const toggleLayerVisibility = (layerId: string) => {
     setHiddenLayers((prevHiddenLayers) => {
       const newHiddenLayers = new Set(prevHiddenLayers);
       if (newHiddenLayers.has(layerId)) {
@@ -43,141 +52,190 @@ export const PSDPreviewInterface: React.FC<PSDPreviewInterfaceProps> = ({
       }
       return newHiddenLayers;
     });
-  }, []);
-
-  const handleToggleOriginal = () => {
-    setShowOriginal(!showOriginal);
   };
 
+  const handleFrameGenerated = (svgContent: string) => {
+    const newFrame = {
+      id: `generated-${Date.now()}`,
+      name: `Generated Frame ${generatedFrames.length + 1}`,
+      category: 'AI Generated',
+      svgContent
+    };
+    setGeneratedFrames(prev => [...prev, newFrame]);
+    setSelectedFrame(newFrame.id);
+    setActiveTab('frame');
+  };
+
+  const handleFlippedLayersChange = (flipped: Set<string>) => {
+    setFlippedLayers(flipped);
+  };
+
+  const handleLayersReorder = (newLayers: ProcessedPSDLayer[]) => {
+    setReorderedLayers(newLayers);
+  };
+
+  const selectedLayer = reorderedLayers.find(layer => layer.id === selectedLayerId);
+  const visibleLayerCount = reorderedLayers.length - hiddenLayers.size;
+  const allFrames = [...generatedFrames];
+
+  // Create enhanced PSD with reordered layers for canvas preview
+  const enhancedPSDWithReorderedLayers = {
+    ...processedPSD,
+    layers: reorderedLayers
+  };
+
+  // Tab configuration with unified mode system
+  const tabConfig = [
+    {
+      id: 'inspect' as const,
+      label: 'Inspect Layers',
+      icon: Search,
+      description: 'Analyze and explore PSD layers'
+    },
+    {
+      id: 'frame' as const,
+      label: 'Frame Analysis',
+      icon: Frame,
+      description: 'Fit content to existing frames'
+    },
+    {
+      id: 'build' as const,
+      label: 'Build Frames',
+      icon: Wand2,
+      description: 'Generate custom CRD frames'
+    }
+  ];
+
   return (
-    <div className="h-screen bg-[#0a0a0b] flex flex-col">
-      {/* Compact Header */}
-      <div className="bg-slate-800 border-b border-slate-700 p-4">
+    <div className="h-full bg-[#0a0a0b] flex flex-col">
+      {/* Unified Tab Navigation */}
+      <div className="bg-[#1a1f2e] border-b border-slate-700 p-4 flex-shrink-0">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-bold text-white">
-              {processedPSD.fileName}
-            </h2>
-            <div className="flex items-center gap-2 text-sm text-slate-300">
-              <span>{processedPSD.width} × {processedPSD.height}px</span>
-              <Badge variant="secondary">{processedPSD.layers.length} layers</Badge>
-            </div>
+          <div className="flex items-center gap-2">
+            {tabConfig.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              
+              return (
+                <PSDButton
+                  key={tab.id}
+                  variant={isActive ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setActiveTab(tab.id)}
+                  className="flex items-center gap-2"
+                >
+                  <Icon className="w-4 h-4" />
+                  {tab.label}
+                </PSDButton>
+              );
+            })}
+            
+            {generatedFrames.length > 0 && (
+              <Badge className="bg-crd-blue text-white ml-2">
+                {generatedFrames.length} Generated
+              </Badge>
+            )}
           </div>
           
-          <Button
-            variant={showOriginal ? "default" : "outline"}
-            size="sm"
-            onClick={handleToggleOriginal}
-            className="flex items-center gap-2"
-          >
-            {showOriginal ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-            Original
-          </Button>
+          {/* Status Indicators */}
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-600">
+              {visibleLayerCount} visible
+            </Badge>
+            
+            {selectedLayer && (
+              <Badge className="bg-crd-green text-black font-medium px-3 py-1">
+                Active: {selectedLayer.name}
+              </Badge>
+            )}
+            
+            {focusMode && (
+              <Badge className="bg-blue-500 text-white font-medium px-3 py-1">
+                Focus Mode
+              </Badge>
+            )}
+            
+            {flippedLayers.size > 0 && (
+              <Badge className="bg-crd-blue text-white font-medium px-3 py-1">
+                {flippedLayers.size} CRD Branded
+              </Badge>
+            )}
+          </div>
+        </div>
+        
+        {/* Tab Description */}
+        <div className="mt-2 text-sm text-slate-400">
+          {tabConfig.find(tab => tab.id === activeTab)?.description}
         </div>
       </div>
 
-      {/* Main Layout with Persistent Preview */}
+      {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left: Always Visible Card Preview */}
-        <div className="w-1/2 bg-slate-900 flex items-center justify-center p-6">
-          <PersistentCardPreview
-            processedPSD={processedPSD}
-            selectedLayerId={selectedLayerId}
-            hiddenLayers={hiddenLayers}
-            flippedLayers={flippedLayers}
-            showOriginal={showOriginal}
-            mode={mode}
-            onLayerSelect={handleLayerSelect}
-          />
+        {/* Canvas Area */}
+        <div className="flex-1">
+          {activeTab === 'inspect' && (
+            <EnhancedPSDCanvasPreview
+              processedPSD={enhancedPSDWithReorderedLayers}
+              selectedLayerId={selectedLayerId}
+              hiddenLayers={hiddenLayers}
+              onLayerSelect={setSelectedLayerId}
+              focusMode={focusMode}
+              onFocusModeToggle={() => setFocusMode(!focusMode)}
+              showBackground={showBackground}
+              onToggleBackground={() => setShowBackground(!showBackground)}
+              viewMode="inspect"
+            />
+          )}
+          
+          {activeTab === 'frame' && (
+            <EnhancedCardFrameFittingInterface
+              processedPSD={enhancedPSDWithReorderedLayers}
+              selectedLayerId={selectedLayerId}
+              hiddenLayers={hiddenLayers}
+              onLayerSelect={setSelectedLayerId}
+              selectedFrame={selectedFrame}
+              availableFrames={allFrames}
+              onFrameSelect={setSelectedFrame}
+            />
+          )}
+          
+          {activeTab === 'build' && (
+            <CRDFrameBuilder
+              processedPSD={enhancedPSDWithReorderedLayers}
+              selectedLayerId={selectedLayerId}
+              onFrameGenerated={handleFrameGenerated}
+            />
+          )}
         </div>
 
-        {/* Right: Dynamic Interface Based on Mode */}
-        <div className="w-1/2 bg-[#1a1f2e] flex flex-col">
-          {/* Mode Tabs */}
-          <Tabs value={mode} onValueChange={(value: ViewMode) => setMode(value)} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-5 bg-slate-800 border-b border-slate-700 rounded-none">
-              <TabsTrigger value="inspect" className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                Inspect
-              </TabsTrigger>
-              <TabsTrigger value="frame" className="flex items-center gap-2">
-                <Frame className="w-4 h-4" />
-                Frame
-              </TabsTrigger>
-              <TabsTrigger value="elements" className="flex items-center gap-2">
-                <Layers className="w-4 h-4" />
-                Elements
-              </TabsTrigger>
-              <TabsTrigger value="preview" className="flex items-center gap-2">
-                <Play className="w-4 h-4" />
-                Preview
-              </TabsTrigger>
-              <TabsTrigger value="build" className="flex items-center gap-2">
-                <Wrench className="w-4 h-4" />
-                Build
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Dynamic Content Area */}
-            <div className="flex-1 overflow-hidden">
-              <TabsContent value="inspect" className="h-full m-0 p-0">
-                <div className="h-full p-4">
-                  <SimplifiedLayerInspector
-                    layers={processedPSD.layers}
-                    selectedLayerId={selectedLayerId}
-                    hiddenLayers={hiddenLayers}
-                    onLayerSelect={handleLayerSelect}
-                    onToggleVisibility={handleLayerToggle}
-                    mode={mode}
-                    flippedLayers={flippedLayers}
-                    onFlippedLayersChange={setFlippedLayers}
-                  />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="frame" className="h-full m-0 p-0">
-                <FrameModeView 
-                  processedPSD={processedPSD}
-                  selectedLayerId={selectedLayerId}
-                  hiddenLayers={hiddenLayers}
-                  onLayerSelect={handleLayerSelect}
-                  onToggleVisibility={handleLayerToggle}
-                />
-              </TabsContent>
-
-              <TabsContent value="elements" className="h-full m-0 p-0">
-                <ElementsModeView 
-                  processedPSD={processedPSD}
-                  selectedLayerId={selectedLayerId}
-                  hiddenLayers={hiddenLayers}
-                  onLayerSelect={handleLayerSelect}
-                  onToggleVisibility={handleLayerToggle}
-                />
-              </TabsContent>
-
-              <TabsContent value="preview" className="h-full m-0 p-0">
-                <PreviewModeView 
-                  processedPSD={processedPSD}
-                  selectedLayerId={selectedLayerId}
-                  hiddenLayers={hiddenLayers}
-                  onLayerSelect={handleLayerSelect}
-                  onToggleVisibility={handleLayerToggle}
-                />
-              </TabsContent>
-
-              <TabsContent value="build" className="h-full m-0 p-0">
-                <CRDFrameBuilder 
-                  processedPSD={processedPSD}
-                  selectedLayerId={selectedLayerId}
-                  hiddenLayers={hiddenLayers}
-                  flippedLayers={flippedLayers}
-                  onLayerSelect={handleLayerSelect}
-                  onToggleVisibility={handleLayerToggle}
-                  onFlippedLayersChange={setFlippedLayers}
-                />
-              </TabsContent>
+        {/* Enhanced Inspector Sidebar */}
+        <div className="w-80 bg-[#1a1f2e] border-l border-slate-700 flex flex-col">
+          <div className="p-4 border-b border-slate-700 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <Layers className="w-5 h-5 text-crd-blue" />
+              <h2 className="text-lg font-semibold text-white">Layer Inspector</h2>
             </div>
-          </Tabs>
+            <p className="text-sm text-slate-400 mt-1">
+              {activeTab === 'inspect' && 'Interactive layer exploration and analysis'}
+              {activeTab === 'frame' && 'Frame fitting optimization and content analysis'}
+              {activeTab === 'build' && 'CRD frame generation and customization tools'}
+            </p>
+          </div>
+          
+          <div className="flex-1 overflow-hidden">
+            <SimplifiedLayerInspector
+              layers={processedPSD.layers}
+              selectedLayerId={selectedLayerId}
+              onLayerSelect={setSelectedLayerId}
+              hiddenLayers={hiddenLayers}
+              onLayerToggle={toggleLayerVisibility}
+              onFlippedLayersChange={handleFlippedLayersChange}
+              viewMode={activeTab}
+              focusMode={focusMode}
+              showBackground={showBackground}
+              onLayersReorder={handleLayersReorder}
+            />
+          </div>
         </div>
       </div>
     </div>

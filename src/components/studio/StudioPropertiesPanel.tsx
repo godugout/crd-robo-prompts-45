@@ -1,40 +1,62 @@
 
-import React from 'react';
-import { Card } from '@/components/ui/card';
-import { X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
+import { useCardEditor, CardData } from '@/hooks/useCardEditor';
+import { EditorPropertiesPanel } from '@/components/editor/EditorPropertiesPanel';
+
+interface CardForEditing {
+  id: string;
+  cardData: CardData;
+}
+
+const EditorPanelForSelectedCard: React.FC<{ cardForEditing: CardForEditing }> = ({ cardForEditing }) => {
+  const cardEditor = useCardEditor({ initialData: cardForEditing.cardData });
+
+  useEffect(() => {
+    // This effect syncs any change in the editor back to the whiteboard view
+    window.dispatchEvent(new CustomEvent('cardUpdated', { 
+      detail: { cardId: cardForEditing.id, cardData: cardEditor.cardData } 
+    }));
+  }, [cardEditor.cardData, cardForEditing.id]);
+
+  return <EditorPropertiesPanel cardEditor={cardEditor} />;
+}
 
 interface StudioPropertiesPanelProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const StudioPropertiesPanel: React.FC<StudioPropertiesPanelProps> = ({
-  isOpen,
-  onClose
-}) => {
-  if (!isOpen) return null;
+export const StudioPropertiesPanel: React.FC<StudioPropertiesPanelProps> = ({ isOpen, onClose }) => {
+  const [cardForEditing, setCardForEditing] = useState<{id: string, cardData: CardData} | null>(null);
 
+  useEffect(() => {
+    const handleCardSelected = (event: CustomEvent) => {
+      if (event.detail && event.detail.card) {
+        setCardForEditing({ id: event.detail.card.id, cardData: event.detail.card.cardData });
+      } else {
+        setCardForEditing(null);
+      }
+    };
+
+    window.addEventListener('cardSelectedForEditing', handleCardSelected as EventListener);
+    return () => {
+      window.removeEventListener('cardSelectedForEditing', handleCardSelected as EventListener);
+    };
+  }, []);
+
+  if (!isOpen) {
+    return null;
+  }
+
+  if (cardForEditing) {
+    return <EditorPanelForSelectedCard key={cardForEditing.id} cardForEditing={cardForEditing} />;
+  }
+  
   return (
-    <div className="w-80 bg-[#2a2a2a] border-l border-[#3a3a3a] flex flex-col">
-      <div className="p-4 border-b border-[#3a3a3a] flex items-center justify-between">
-        <h3 className="text-white font-medium">Properties</h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className="text-white hover:bg-[#3a3a3a]"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      </div>
-      
-      <div className="flex-1 p-4">
-        <Card className="bg-[#1a1a1a] border-[#3a3a3a] p-4">
-          <p className="text-sm text-gray-400">
-            Select an element to see its properties
-          </p>
-        </Card>
+    <div className="w-96 bg-editor-dark border-l border-editor-border overflow-y-auto rounded-xl">
+      <div className="p-6">
+        <h2 className="text-white text-xl font-semibold mb-6">Card Properties</h2>
+        <p className="text-gray-400">Select a card on the whiteboard to edit its properties.</p>
       </div>
     </div>
   );

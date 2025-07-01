@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { EnhancedProcessedPSD, ProcessedPSDLayer } from '@/types/psdTypes';
+import { ProcessedPSDLayer } from '@/types/psdTypes';
 import { Badge } from '@/components/ui/badge';
 import { LayerThumbnailView } from './LayerThumbnailView';
 import { PSDButton } from '@/components/ui/design-system/PSDButton';
@@ -14,11 +13,11 @@ type SortOption = 'name' | 'type' | 'opacity' | 'size' | 'semantic' | 'position'
 type SortDirection = 'asc' | 'desc';
 
 interface ElementsModeViewProps {
-  processedPSD: EnhancedProcessedPSD;
+  layers: ProcessedPSDLayer[];
   selectedLayerId: string;
   hiddenLayers: Set<string>;
   onLayerSelect: (layerId: string) => void;
-  onToggleVisibility: (layerId: string) => void;
+  onLayerToggle: (layerId: string) => void;
 }
 
 const sortOptions = [
@@ -31,17 +30,15 @@ const sortOptions = [
 ];
 
 export const ElementsModeView: React.FC<ElementsModeViewProps> = ({
-  processedPSD,
+  layers,
   selectedLayerId,
   hiddenLayers,
   onLayerSelect,
-  onToggleVisibility
+  onLayerToggle
 }) => {
   const [sortBy, setSortBy] = useState<SortOption>('position');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [showSortDropdown, setShowSortDropdown] = useState(false);
-
-  const layers = processedPSD.layers;
 
   const sortedLayers = [...layers].sort((a, b) => {
     let aValue: any;
@@ -142,7 +139,7 @@ export const ElementsModeView: React.FC<ElementsModeViewProps> = ({
         selectedLayerId={selectedLayerId}
         hiddenLayers={hiddenLayers}
         onLayerSelect={onLayerSelect}
-        onLayerToggle={onToggleVisibility}
+        onLayerToggle={onLayerToggle}
       />
     </div>
   );
