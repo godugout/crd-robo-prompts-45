@@ -6,9 +6,12 @@ import { useNavigate } from 'react-router-dom';
 import { ProcessedPSDLayer } from '@/services/psdProcessor/psdProcessingService';
 
 export interface BulkPSDData {
+  id: string;
   fileId: string;
   fileName: string;
   layers: ProcessedPSDLayer[];
+  processedPSD?: any;
+  uploadedAt?: Date;
   analysisSummary: {
     semanticTypeCounts: { [key: string]: number };
     positionCategoryCounts: { [key: string]: number };

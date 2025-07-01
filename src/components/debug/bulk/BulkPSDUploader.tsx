@@ -103,9 +103,16 @@ export const BulkPSDUploader: React.FC<BulkPSDUploaderProps> = ({
 
         completedPSDs.push({
           id: uploadFile.id,
+          fileId: uploadFile.id,
           fileName: uploadFile.file.name,
+          layers: processedPSD.layers || [],
           processedPSD,
-          uploadedAt: new Date()
+          uploadedAt: new Date(),
+          analysisSummary: {
+            semanticTypeCounts: {},
+            positionCategoryCounts: {},
+            materialHintCounts: {}
+          }
         });
 
       } catch (error) {

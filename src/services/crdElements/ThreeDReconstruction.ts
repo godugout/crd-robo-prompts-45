@@ -164,10 +164,10 @@ export class ThreeDReconstructionSystem {
   }
 
   setupInteractiveLighting(scene: THREE.Scene): void {
-    // Simple environment setup without RGBELoader
+    // Simple environment setup
     scene.background = new THREE.Color(0x1a1a1a);
     
-    // Add basic environment lighting
+    // Add basic environment lighting - fix the type error by directly adding to scene
     const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
     scene.add(hemisphereLight);
   }
