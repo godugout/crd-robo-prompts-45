@@ -13,6 +13,7 @@ interface PSDCanvasPreviewProps {
   showBackground: boolean;
   onToggleBackground: () => void;
   viewMode: 'inspect' | 'frame' | 'build';
+  reorderedLayers?: ProcessedPSDLayer[];
 }
 
 export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
@@ -24,10 +25,14 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   onFocusModeToggle,
   showBackground,
   onToggleBackground,
-  viewMode
+  viewMode,
+  reorderedLayers
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+
+  // Use reordered layers if available, otherwise fall back to original layers
+  const layersToRender = reorderedLayers || processedPSD.layers;
 
   useEffect(() => {
     if (processedPSD && canvasRef.current) {
@@ -59,7 +64,7 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
 
-      processedPSD.layers.forEach(layer => {
+      layersToRender.forEach(layer => {
         if (!layer.hasRealImage || hiddenLayers.has(layer.id)) return;
 
         const img = new Image();
@@ -78,7 +83,7 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
         };
       });
     }
-  }, [processedPSD, selectedLayerId, hiddenLayers, showBackground]);
+  }, [processedPSD, selectedLayerId, hiddenLayers, showBackground, layersToRender]);
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!processedPSD) return;
@@ -93,8 +98,8 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     const y = (e.clientY - rect.top) * scaleY;
 
     // Iterate through layers in reverse to find the top-most clicked layer
-    for (let i = processedPSD.layers.length - 1; i >= 0; i--) {
-      const layer = processedPSD.layers[i];
+    for (let i = layersToRender.length - 1; i >= 0; i--) {
+      const layer = layersToRender[i];
       if (hiddenLayers.has(layer.id)) continue; // Skip hidden layers
 
       const left = layer.bounds.left;
@@ -113,7 +118,7 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-[#1a1f2e] flex-shrink-0">
         <h2 className="text-lg font-semibold text-white">
-          Canvas Preview
+          Canvas Preview ({viewMode})
         </h2>
         <div className="flex items-center space-x-2">
           <Button
@@ -153,3 +158,6 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
     </div>
   );
 };
+
+// Keep the old export for backward compatibility
+export const PSDCanvasPreview = EnhancedPSDCanvasPreview;

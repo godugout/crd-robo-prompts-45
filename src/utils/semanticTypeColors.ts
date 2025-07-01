@@ -1,4 +1,6 @@
 
+export type SemanticType = 'player' | 'background' | 'stats' | 'logo' | 'effect' | 'border' | 'text' | 'image';
+
 export const getSemanticTypeColor = (semanticType?: string): string => {
   if (!semanticType) return '#64748b'; // slate-500
   
@@ -14,4 +16,9 @@ export const getSemanticTypeColor = (semanticType?: string): string => {
   };
   
   return colorMap[semanticType.toLowerCase()] || '#64748b';
+};
+
+export const isValidSemanticType = (type: string): type is SemanticType => {
+  const validTypes: SemanticType[] = ['player', 'background', 'stats', 'logo', 'effect', 'border', 'text', 'image'];
+  return validTypes.includes(type as SemanticType);
 };

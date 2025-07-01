@@ -1,6 +1,5 @@
-
 import { ProcessedPSDLayer, EnhancedProcessedPSD, LayerAnalysis } from '@/types/psdTypes';
-import { getSemanticTypeColor, isValidSemanticType } from '@/utils/semanticTypeColors';
+import { getSemanticTypeColor, isValidSemanticType, SemanticType } from '@/utils/semanticTypeColors';
 
 export interface LayerInsights {
   totalLayers: number;
