@@ -12,10 +12,6 @@ import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
 import AuthCallback from "./pages/auth/AuthCallback";
 import CardCreation from "./pages/CardCreation";
-import EnhancedCardCreationPage from "./pages/EnhancedCardCreationPage";
-import FunctionalCardCreationPage from "./pages/FunctionalCardCreationPage";
-import SimpleCreatePage from "./pages/SimpleCreatePage";
-import { EnhancedStudio } from "@/components/studio/EnhancedStudio";
 import Collections from './pages/Collections';
 import CreatorDashboardPage from './pages/CreatorDashboardPage';
 import CommunityHubPage from './pages/CommunityHubPage';
@@ -23,6 +19,7 @@ import LabsPage from './pages/LabsPage';
 import PSDPreviewPage from './pages/PSDPreviewPage';
 import SimplePSDAnalysisPage from './pages/SimplePSDAnalysisPage';
 import BulkPSDAnalysisPage from "./pages/BulkPSDAnalysisPage";
+import UnifiedVisualAnalysisPage from "./pages/UnifiedVisualAnalysisPage";
 import Debug from "./pages/Debug";
 import { NavigationProvider } from "@/contexts/NavigationContext";
 
@@ -85,46 +82,6 @@ function App() {
                       } 
                     />
                     <Route 
-                      path="/create/simple" 
-                      element={
-                        <MainLayout>
-                          <ProtectedRoute>
-                            <SimpleCreatePage />
-                          </ProtectedRoute>
-                        </MainLayout>
-                      } 
-                    />
-                    <Route 
-                      path="/create/enhanced" 
-                      element={
-                        <MainLayout>
-                          <ProtectedRoute>
-                            <EnhancedCardCreationPage />
-                          </ProtectedRoute>
-                        </MainLayout>
-                      } 
-                    />
-                    <Route 
-                      path="/create/functional" 
-                      element={
-                        <MainLayout>
-                          <ProtectedRoute>
-                            <FunctionalCardCreationPage />
-                          </ProtectedRoute>
-                        </MainLayout>
-                      } 
-                    />
-                    <Route 
-                      path="/studio" 
-                      element={
-                        <MainLayout>
-                          <ProtectedRoute>
-                            <EnhancedStudio />
-                          </ProtectedRoute>
-                        </MainLayout>
-                      } 
-                    />
-                    <Route 
                       path="/collections" 
                       element={
                         <MainLayout>
@@ -181,6 +138,7 @@ function App() {
                       } 
                     />
                     <Route path="/debug/bulk-psd-analysis" element={<BulkPSDAnalysisPage />} />
+                    <Route path="/debug/unified-analysis" element={<UnifiedVisualAnalysisPage />} />
                     <Route path="/debug" element={<Debug />} />
                   </Routes>
                 </div>
