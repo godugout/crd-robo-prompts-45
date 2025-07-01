@@ -33,7 +33,7 @@ const CardCreation: React.FC = () => {
               </p>
               <Button 
                 className="w-full bg-crd-green text-black hover:bg-crd-green/90"
-                onClick={() => window.location.href = '/studio'}
+                onClick={() => window.location.href = '/labs'}
               >
                 Launch Studio
                 <ArrowRight className="w-4 h-4 ml-2" />

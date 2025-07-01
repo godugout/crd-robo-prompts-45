@@ -92,7 +92,7 @@ export const EnhancedHero: React.FC = () => {
           )}
 
           {/* Primary CTA */}
-          <Link to="/cards/enhanced">
+          <Link to="/create">
             <CRDButton 
               variant="primary"
               size="lg"

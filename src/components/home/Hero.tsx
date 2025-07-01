@@ -42,7 +42,7 @@ export const Hero: React.FC = () => {
           </Typography>
         </div>
         <div className="flex gap-4 mt-6">
-          <Link to="/create/simple">
+          <Link to="/create">
             <CRDButton 
               variant="primary"
               size="lg"
