@@ -1,408 +1,309 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, Layers, Cube, Wand2, Download, Play } from 'lucide-react';
-import { PSDProcessor, PSDDocument, LayerAnalysis } from '@/services/crdElements/PSDProcessor';
+import { Upload, FileImage, Box, Layers, Sparkles, Chrome, Wand2 } from 'lucide-react';
+import { PSDProcessor } from '@/services/crdElements/PSDProcessor';
 import { ThreeDReconstructionSystem } from '@/services/crdElements/ThreeDReconstruction';
 import { CardCustomizationEngine } from '@/services/crdElements/LayerCustomization';
-import * as THREE from 'three';
 
 interface CRDElementsInterfaceProps {
-  onCardCreated?: (cardData: any) => void;
+  onCardCreated: (cardData: any) => void;
 }
 
 export const CRDElementsInterface: React.FC<CRDElementsInterfaceProps> = ({
   onCardCreated
 }) => {
-  const [psdDocument, setPsdDocument] = useState<PSDDocument | null>(null);
-  const [layerAnalysis, setLayerAnalysis] = useState<LayerAnalysis[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [processingStep, setProcessingStep] = useState('');
-  const [progress, setProgress] = useState(0);
-  const [selectedLayer, setSelectedLayer] = useState<string>('');
-  const [threeDScene, setThreeDScene] = useState<THREE.Scene | null>(null);
-  
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const psdProcessor = useRef(new PSDProcessor());
-  const reconstructionSystem = useRef(new ThreeDReconstructionSystem());
-  const customizationEngine = useRef<CardCustomizationEngine | null>(null);
+  const [currentStep, setCurrentStep] = useState<'upload' | 'processing' | 'customization' | 'complete'>('upload');
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [processingProgress, setProcessingProgress] = useState(0);
+  const [psdData, setPsdData] = useState<any>(null);
+  const [reconstructedCard, setReconstructedCard] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
     if (!file.name.toLowerCase().endsWith('.psd')) {
       alert('Please upload a PSD file');
       return;
     }
 
-    setIsProcessing(true);
-    setProgress(0);
-
+    setUploadedFile(file);
+    setCurrentStep('processing');
+    
+    // Simulate processing steps
+    const processor = new PSDProcessor();
+    
     try {
-      // Step 1: Parse PSD
-      setProcessingStep('Parsing PSD file...');
-      setProgress(20);
-      const document = await psdProcessor.current.parsePSD(file);
-      setPsdDocument(document);
-
-      // Step 2: Analyze layers
-      setProcessingStep('Analyzing layers with AI...');
-      setProgress(40);
-      const analysis = await psdProcessor.current.analyzeLayers(document.layers);
-      setLayerAnalysis(analysis);
-
-      // Step 3: Generate 3D scene
-      setProcessingStep('Reconstructing 3D elements...');
-      setProgress(60);
-      const scene = psdProcessor.current.generate3DScene(document.layers, analysis);
-      setThreeDScene(scene);
-
-      // Step 4: Initialize customization engine
-      setProcessingStep('Preparing customization tools...');
-      setProgress(80);
-      customizationEngine.current = new CardCustomizationEngine(document);
-
-      setProcessingStep('Complete!');
-      setProgress(100);
+      setProcessingProgress(25);
+      const psdDocument = await processor.parsePSD(file);
       
-      // Auto-select first important layer
-      const importantLayer = analysis.find(a => a.semantic.importance === 'primary');
-      if (importantLayer) {
-        const layerIndex = analysis.indexOf(importantLayer);
-        setSelectedLayer(document.layers[layerIndex].id);
-      }
-
+      setProcessingProgress(50);
+      const analysis = await processor.analyzeLayers(psdDocument.layers);
+      
+      setProcessingProgress(75);
+      const reconstructionSystem = new ThreeDReconstructionSystem();
+      const scene = processor.generate3DScene(psdDocument.layers, analysis);
+      
+      setProcessingProgress(100);
+      
+      setPsdData({ document: psdDocument, analysis, scene });
+      setCurrentStep('customization');
+      
     } catch (error) {
-      console.error('Error processing PSD:', error);
-      alert('Error processing PSD file. Please try again.');
-    } finally {
-      setIsProcessing(false);
+      console.error('PSD processing failed:', error);
+      alert('Failed to process PSD file. Please try again.');
+      setCurrentStep('upload');
     }
   };
 
-  const handleLayerCustomization = (layerId: string, customization: any) => {
-    if (!customizationEngine.current) return;
-
-    switch (customization.type) {
-      case 'style':
-        customizationEngine.current.adjustStyle(layerId, customization.data);
-        break;
-      case 'effect':
-        customizationEngine.current.applyEffect(layerId, customization.data);
-        break;
-      case 'animation':
-        customizationEngine.current.animateLayer(layerId, customization.data);
-        break;
-    }
-  };
-
-  const generateCardVariation = () => {
-    if (!customizationEngine.current) return;
-    
-    const variation = customizationEngine.current.generateVariation(Date.now());
-    console.log('Generated variation:', variation);
-  };
-
-  const exportCard = () => {
-    if (!psdDocument || !threeDScene) return;
-    
+  const handleCustomizationComplete = () => {
     const cardData = {
-      title: psdDocument.name.replace('.psd', ''),
-      layers: psdDocument.layers,
-      analysis: layerAnalysis,
-      scene: threeDScene.toJSON(),
-      customizations: customizationEngine.current
+      id: `crd-${Date.now()}`,
+      name: uploadedFile?.name || 'Untitled Card',
+      layers: psdData?.document?.layers || [],
+      effects: ['holographic', 'depth'],
+      created: new Date().toISOString()
     };
     
-    onCardCreated?.(cardData);
+    setReconstructedCard(cardData);
+    setCurrentStep('complete');
+    onCardCreated(cardData);
   };
 
-  return (
-    <div className="w-full max-w-7xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold text-white">CRD Elements</h1>
-        <p className="text-crd-lightGray text-lg">
-          Advanced PSD processing with AI-powered 3D reconstruction and dynamic customization
+  const renderUploadStep = () => (
+    <Card className="w-full max-w-2xl mx-auto bg-black/30 border-gray-800">
+      <CardHeader>
+        <CardTitle className="text-white flex items-center gap-2">
+          <Upload className="w-5 h-5 text-crd-green" />
+          Upload PSD File
+        </CardTitle>
+        <p className="text-gray-400">
+          Upload your layered PSD file to begin advanced 3D reconstruction
         </p>
-      </div>
-
-      {/* File Upload */}
-      {!psdDocument && (
-        <Card className="bg-[#1a1d26] border-slate-700">
-          <div className="p-8">
-            <div className="border-2 border-dashed border-crd-green/30 rounded-xl p-12 text-center hover:border-crd-green/50 transition-colors">
-              <Upload className="w-16 h-16 text-crd-green mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Upload Your PSD File</h3>
-              <p className="text-crd-lightGray mb-4">
-                Upload a layered PSD file to begin the advanced processing workflow
-              </p>
-              <input
-                type="file"
-                accept=".psd"
-                onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
-                className="hidden"
-                id="psd-upload"
-              />
-              <Button 
-                onClick={() => document.getElementById('psd-upload')?.click()}
-                className="bg-crd-green text-black hover:bg-crd-green/90"
-              >
-                Choose PSD File
-              </Button>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Processing */}
-      {isProcessing && (
-        <Card className="bg-[#1a1d26] border-slate-700">
-          <div className="p-6">
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 border-4 border-crd-green border-t-transparent rounded-full animate-spin mx-auto" />
-              <h3 className="text-lg font-semibold text-white">{processingStep}</h3>
-              <Progress value={progress} className="w-full max-w-md mx-auto" />
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Main Interface */}
-      {psdDocument && !isProcessing && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Layer Inspector */}
-          <Card className="bg-[#1a1d26] border-slate-700">
-            <div className="p-4 border-b border-slate-700">
-              <div className="flex items-center gap-2">
-                <Layers className="w-5 h-5 text-crd-green" />
-                <h3 className="font-semibold text-white">Layer Inspector</h3>
-                <Badge variant="outline">{psdDocument.layers.length} layers</Badge>
-              </div>
-            </div>
-            <div className="p-4 space-y-2 max-h-96 overflow-y-auto">
-              {psdDocument.layers.map((layer, index) => {
-                const analysis = layerAnalysis[index];
-                return (
-                  <div
-                    key={layer.id}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                      selectedLayer === layer.id 
-                        ? 'bg-crd-green/20 border border-crd-green' 
-                        : 'bg-slate-800 hover:bg-slate-700'
-                    }`}
-                    onClick={() => setSelectedLayer(layer.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-white font-medium">{layer.name}</span>
-                      <Badge variant="secondary" className="text-xs">
-                        {analysis?.semantic.category}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-xs">
-                        {analysis?.semantic.importance}
-                      </Badge>
-                      <span className="text-xs text-crd-lightGray">
-                        Depth: {analysis?.spatial.depth.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-
-          {/* 3D Preview */}
-          <Card className="bg-[#1a1d26] border-slate-700">
-            <div className="p-4 border-b border-slate-700">
-              <div className="flex items-center gap-2">
-                <Cube className="w-5 h-5 text-crd-green" />
-                <h3 className="font-semibold text-white">3D Preview</h3>
-              </div>
-            </div>
-            <div className="p-4">
-              <div className="aspect-square bg-slate-900 rounded-lg flex items-center justify-center">
-                <canvas 
-                  ref={canvasRef}
-                  className="w-full h-full rounded-lg"
-                  style={{ maxWidth: '100%', maxHeight: '100%' }}
-                />
-              </div>
-              <div className="flex gap-2 mt-4">
-                <Button size="sm" variant="outline">
-                  <Play className="w-4 h-4 mr-2" />
-                  Animate
-                </Button>
-                <Button size="sm" variant="outline" onClick={generateCardVariation}>
-                  <Wand2 className="w-4 h-4 mr-2" />
-                  Generate Variation
-                </Button>
-              </div>
-            </div>
-          </Card>
-
-          {/* Customization Tools */}
-          <Card className="bg-[#1a1d26] border-slate-700">
-            <div className="p-4 border-b border-slate-700">
-              <div className="flex items-center gap-2">
-                <Wand2 className="w-5 h-5 text-crd-green" />
-                <h3 className="font-semibold text-white">Customization</h3>
-              </div>
-            </div>
-            <div className="p-4">
-              <Tabs defaultValue="effects" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="effects">Effects</TabsTrigger>
-                  <TabsTrigger value="style">Style</TabsTrigger>
-                  <TabsTrigger value="animation">Animation</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="effects" className="space-y-4">
-                  <div className="space-y-2">
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => handleLayerCustomization(selectedLayer, {
-                        type: 'effect',
-                        data: { type: 'holographic', intensity: 0.8, parameters: {} }
-                      })}
-                    >
-                      Holographic Effect
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => handleLayerCustomization(selectedLayer, {
-                        type: 'effect',
-                        data: { type: 'metallic', intensity: 0.6, parameters: {} }
-                      })}
-                    >
-                      Metallic Finish
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => handleLayerCustomization(selectedLayer, {
-                        type: 'effect',
-                        data: { type: 'glow', intensity: 0.5, parameters: {} }
-                      })}
-                    >
-                      Glow Effect
-                    </Button>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="style" className="space-y-4">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm text-crd-lightGray mb-2 block">Hue</label>
-                      <input 
-                        type="range" 
-                        min="0" 
-                        max="360" 
-                        className="w-full"
-                        onChange={(e) => handleLayerCustomization(selectedLayer, {
-                          type: 'style',
-                          data: { hue: parseInt(e.target.value) }
-                        })}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-crd-lightGray mb-2 block">Saturation</label>
-                      <input 
-                        type="range" 
-                        min="0" 
-                        max="2" 
-                        step="0.1" 
-                        className="w-full"
-                        onChange={(e) => handleLayerCustomization(selectedLayer, {
-                          type: 'style',
-                          data: { saturation: parseFloat(e.target.value) }
-                        })}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-crd-lightGray mb-2 block">Brightness</label>
-                      <input 
-                        type="range" 
-                        min="0" 
-                        max="2" 
-                        step="0.1" 
-                        className="w-full"
-                        onChange={(e) => handleLayerCustomization(selectedLayer, {
-                          type: 'style',
-                          data: { brightness: parseFloat(e.target.value) }
-                        })}
-                      />
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="animation" className="space-y-4">
-                  <div className="space-y-2">
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => handleLayerCustomization(selectedLayer, {
-                        type: 'animation',
-                        data: { type: 'fade', duration: 1000, easing: 'ease-in-out', loop: true }
-                      })}
-                    >
-                      Fade Animation
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => handleLayerCustomization(selectedLayer, {
-                        type: 'animation',
-                        data: { type: 'slide', duration: 800, easing: 'ease-out', loop: false }
-                      })}
-                    >
-                      Slide Animation
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => handleLayerCustomization(selectedLayer, {
-                        type: 'animation',
-                        data: { type: 'rotate', duration: 2000, easing: 'linear', loop: true }
-                      })}
-                    >
-                      Rotate Animation
-                    </Button>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </Card>
+      </CardHeader>
+      <CardContent>
+        <div 
+          className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-crd-green transition-colors"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <FileImage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-white mb-2">Click to select your PSD file</p>
+          <p className="text-gray-400 text-sm">Supports layered Photoshop files up to 100MB</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".psd"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
         </div>
-      )}
+      </CardContent>
+    </Card>
+  );
 
-      {/* Export */}
-      {psdDocument && !isProcessing && (
-        <Card className="bg-[#1a1d26] border-slate-700">
-          <div className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-2">Export Your Creation</h3>
-                <p className="text-crd-lightGray">
-                  Generate your enhanced 3D card with all customizations applied
-                </p>
+  const renderProcessingStep = () => (
+    <Card className="w-full max-w-2xl mx-auto bg-black/30 border-gray-800">
+      <CardHeader>
+        <CardTitle className="text-white flex items-center gap-2">
+          <Wand2 className="w-5 h-5 text-crd-green animate-spin" />
+          Processing PSD File
+        </CardTitle>
+        <p className="text-gray-400">
+          Analyzing layers and reconstructing 3D structure...
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Progress value={processingProgress} className="w-full" />
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <Badge variant={processingProgress >= 25 ? "default" : "secondary"}>
+              {processingProgress >= 25 ? '✓' : '○'}
+            </Badge>
+            <span className="text-gray-300">Layer Extraction</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant={processingProgress >= 50 ? "default" : "secondary"}>
+              {processingProgress >= 50 ? '✓' : '○'}
+            </Badge>
+            <span className="text-gray-300">AI Analysis</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant={processingProgress >= 75 ? "default" : "secondary"}>
+              {processingProgress >= 75 ? '✓' : '○'}
+            </Badge>
+            <span className="text-gray-300">3D Reconstruction</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant={processingProgress >= 100 ? "default" : "secondary"}>
+              {processingProgress >= 100 ? '✓' : '○'}
+            </Badge>
+            <span className="text-gray-300">Finalization</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderCustomizationStep = () => (
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      <Card className="bg-black/30 border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Layers className="w-5 h-5 text-crd-green" />
+            Layer Customization
+          </CardTitle>
+          <p className="text-gray-400">
+            Customize individual layers and apply advanced effects
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Layer List */}
+            <div className="space-y-3">
+              <h3 className="text-white font-medium">Detected Layers</h3>
+              {psdData?.document?.layers?.map((layer: any, index: number) => (
+                <div key={layer.id} className="flex items-center justify-between p-3 bg-gray-800 rounded">
+                  <div>
+                    <span className="text-white text-sm">{layer.name}</span>
+                    <p className="text-gray-400 text-xs">{layer.type}</p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    Z: {layer.properties.zIndex}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+            
+            {/* Effects Panel */}
+            <div className="space-y-3">
+              <h3 className="text-white font-medium">Available Effects</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <Button variant="outline" className="flex items-center gap-2 text-white border-gray-600">
+                  <Sparkles className="w-4 h-4" />
+                  Holographic
+                </Button>
+                <Button variant="outline" className="flex items-center gap-2 text-white border-gray-600">
+                  <Chrome className="w-4 h-4" />
+                  Metallic
+                </Button>
+                <Button variant="outline" className="flex items-center gap-2 text-white border-gray-600">
+                  <Box className="w-4 h-4" />
+                  Crystal
+                </Button>
+                <Button variant="outline" className="flex items-center gap-2 text-white border-gray-600">
+                  <Layers className="w-4 h-4" />
+                  Parallax
+                </Button>
               </div>
-              <Button 
-                onClick={exportCard}
-                className="bg-crd-green text-black hover:bg-crd-green/90"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Export Card
-              </Button>
             </div>
           </div>
-        </Card>
-      )}
+          
+          <div className="mt-6 flex justify-end">
+            <Button 
+              onClick={handleCustomizationComplete}
+              className="bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
+            >
+              Complete Card Creation
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderCompleteStep = () => (
+    <Card className="w-full max-w-2xl mx-auto bg-black/30 border-gray-800">
+      <CardHeader>
+        <CardTitle className="text-white flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-crd-green" />
+          Card Created Successfully!
+        </CardTitle>
+        <p className="text-gray-400">
+          Your 3D reconstructed card is ready
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="bg-gray-800 rounded-lg p-4">
+          <h3 className="text-white font-medium mb-2">
+            {reconstructedCard?.name}
+          </h3>
+          <p className="text-gray-400 text-sm mb-3">
+            Layers: {reconstructedCard?.layers?.length || 0}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {reconstructedCard?.effects?.map((effect: string) => (
+              <Badge key={effect} variant="secondary" className="text-xs">
+                {effect}
+              </Badge>
+            ))}
+          </div>
+        </div>
+        
+        <div className="flex gap-3">
+          <Button 
+            onClick={() => {
+              setCurrentStep('upload');
+              setUploadedFile(null);
+              setPsdData(null);
+              setReconstructedCard(null);
+              setProcessingProgress(0);
+            }}
+            variant="outline"
+            className="flex-1 border-gray-600 text-white"
+          >
+            Create Another
+          </Button>
+          <Button 
+            className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black font-semibold"
+          >
+            View in Gallery
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="min-h-screen p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Progress Indicator */}
+        <div className="mb-8">
+          <div className="flex items-center justify-center space-x-4 mb-4">
+            {['upload', 'processing', 'customization', 'complete'].map((step, index) => {
+              const isActive = currentStep === step;
+              const isCompleted = ['upload', 'processing', 'customization', 'complete'].indexOf(currentStep) > index;
+              
+              return (
+                <div key={step} className="flex items-center">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                    isActive ? 'bg-crd-green text-black' : 
+                    isCompleted ? 'bg-crd-green/30 text-crd-green' : 
+                    'bg-gray-700 text-gray-400'
+                  }`}>
+                    {index + 1}
+                  </div>
+                  {index < 3 && (
+                    <div className={`w-16 h-0.5 ${
+                      isCompleted ? 'bg-crd-green' : 'bg-gray-700'
+                    }`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Step Content */}
+        {currentStep === 'upload' && renderUploadStep()}
+        {currentStep === 'processing' && renderProcessingStep()}
+        {currentStep === 'customization' && renderCustomizationStep()}
+        {currentStep === 'complete' && renderCompleteStep()}
+      </div>
     </div>
   );
 };

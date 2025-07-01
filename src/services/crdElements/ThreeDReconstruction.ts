@@ -164,11 +164,12 @@ export class ThreeDReconstructionSystem {
   }
 
   setupInteractiveLighting(scene: THREE.Scene): void {
-    const hdrLoader = new THREE.RGBELoader();
-    // Note: In a real implementation, you'd load an actual HDR environment map
-    
-    scene.environment = new THREE.CubeTexture();
+    // Simple environment setup without RGBELoader
     scene.background = new THREE.Color(0x1a1a1a);
+    
+    // Add basic environment lighting
+    const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
+    scene.add(hemisphereLight);
   }
 }
 

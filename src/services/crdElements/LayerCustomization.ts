@@ -20,7 +20,7 @@ export interface StyleAdjustment {
 export interface Content {
   type: 'image' | 'text' | 'vector';
   data: string | ArrayBuffer;
-  metadata?: Record<string, any>;
+  // Remove metadata property as it doesn't exist in PSDLayer content type
 }
 
 export interface CardEffect {
@@ -81,8 +81,7 @@ export class CardCustomizationEngine implements LayerCustomizer {
 
     layer.content = {
       data: newContent.data,
-      format: this.getFormatFromContent(newContent),
-      metadata: newContent.metadata
+      format: this.getFormatFromContent(newContent)
     };
 
     this.updateState();
