@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { EnhancedProcessedPSD, ProcessedPSDLayer } from '@/types/psdTypes';
@@ -29,31 +30,41 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   reorderedLayers
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0, scale: 1 });
 
   // Use reordered layers if available, otherwise fall back to original layers
   const layersToRender = reorderedLayers || processedPSD.layers;
 
   useEffect(() => {
-    if (processedPSD && canvasRef.current) {
+    if (processedPSD && canvasRef.current && containerRef.current) {
       const canvas = canvasRef.current;
+      const container = containerRef.current;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      const containerWidth = canvas.parentElement?.offsetWidth || 800;
-      const containerHeight = canvas.parentElement?.offsetHeight || 600;
+      // Calculate available space with padding
+      const padding = 40;
+      const containerRect = container.getBoundingClientRect();
+      const availableWidth = containerRect.width - (padding * 2);
+      const availableHeight = containerRect.height - (padding * 2);
 
-      const aspectRatio = processedPSD.width / processedPSD.height;
-      let calculatedWidth = containerWidth;
-      let calculatedHeight = containerWidth / aspectRatio;
+      // Calculate scale to fit the PSD with padding
+      const scaleX = availableWidth / processedPSD.width;
+      const scaleY = availableHeight / processedPSD.height;
+      const scale = Math.min(scaleX, scaleY, 1); // Don't scale up beyond 100%
 
-      if (calculatedHeight > containerHeight) {
-        calculatedHeight = containerHeight;
-        calculatedWidth = containerHeight * aspectRatio;
-      }
+      // Calculate final canvas dimensions
+      const displayWidth = processedPSD.width * scale;
+      const displayHeight = processedPSD.height * scale;
 
-      setCanvasSize({ width: calculatedWidth, height: calculatedHeight });
+      setCanvasSize({ 
+        width: displayWidth, 
+        height: displayHeight, 
+        scale 
+      });
 
+      // Set actual canvas resolution to PSD dimensions for crisp rendering
       canvas.width = processedPSD.width;
       canvas.height = processedPSD.height;
 
@@ -68,6 +79,7 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
         if (!layer.hasRealImage || hiddenLayers.has(layer.id)) return;
 
         const img = new Image();
+        img.crossOrigin = 'anonymous';
         img.src = layer.imageUrl || '';
         img.onload = () => {
           if (!ctx) return;
@@ -117,9 +129,19 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-[#1a1f2e] flex-shrink-0">
-        <h2 className="text-lg font-semibold text-white">
-          Canvas Preview ({viewMode})
-        </h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg font-semibold text-white">
+            Canvas Preview ({viewMode})
+          </h2>
+          {processedPSD && (
+            <div className="text-sm text-slate-400">
+              {processedPSD.width} × {processedPSD.height}px 
+              {canvasSize.scale < 1 && (
+                <span className="ml-2">• {Math.round(canvasSize.scale * 100)}% scale</span>
+              )}
+            </div>
+          )}
+        </div>
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
@@ -140,18 +162,23 @@ export const EnhancedPSDCanvasPreview: React.FC<PSDCanvasPreviewProps> = ({
         </div>
       </div>
       
-      <div className="flex-1 flex items-center justify-center overflow-hidden">
-        <Card className="bg-slate-800 border-slate-700 rounded-none flex-1 flex items-center justify-center">
+      <div 
+        ref={containerRef}
+        className="flex-1 flex items-center justify-center overflow-hidden p-5 bg-slate-900"
+      >
+        <Card className="bg-slate-800 border-slate-700 rounded-lg p-4 shadow-xl">
           <canvas
             ref={canvasRef}
-            width={canvasSize.width}
-            height={canvasSize.height}
             onClick={handleCanvasClick}
             style={{
               width: canvasSize.width,
               height: canvasSize.height,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              maxWidth: '100%',
+              maxHeight: '100%',
+              imageRendering: 'pixelated'
             }}
+            className="rounded border border-slate-600"
           />
         </Card>
       </div>
