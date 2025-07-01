@@ -1,4 +1,3 @@
-
 import { ProcessedPSDLayer } from './psdProcessingService';
 
 export interface LayerAnalysisData {
@@ -12,6 +11,21 @@ export interface LayerAnalysisData {
   threeDReadiness: number; // 0-1 score
   relationships: string[]; // IDs of related layers
   extractionQuality: 'excellent' | 'good' | 'fair' | 'poor';
+  suggestedFrameRole: string;
+}
+
+// Add the missing LayerAnalysisResult type for backward compatibility
+export interface LayerAnalysisResult {
+  layerId: string;
+  confidence: number;
+  semanticType: string;
+  positionCategory: string;
+  materialHints: string[];
+  analysisReason: string;
+  frameElementPotential: string;
+  threeDReadiness: number;
+  relationships: string[];
+  extractionQuality: string;
   suggestedFrameRole: string;
 }
 
@@ -46,6 +60,23 @@ class EnhancedLayerAnalysisService {
       relationships: this.findRelatedLayers(layer),
       extractionQuality: this.assessExtractionQuality(layer),
       suggestedFrameRole: this.suggestFrameRole(layer, semanticType, positionCategory)
+    };
+  }
+
+  // Convert LayerAnalysisData to LayerAnalysisResult for backward compatibility
+  convertToAnalysisResult(data: LayerAnalysisData): LayerAnalysisResult {
+    return {
+      layerId: data.id,
+      confidence: data.confidence,
+      semanticType: data.semanticType,
+      positionCategory: data.positionCategory,
+      materialHints: data.materialHints,
+      analysisReason: data.analysisReason,
+      frameElementPotential: data.frameElementPotential,
+      threeDReadiness: data.threeDReadiness,
+      relationships: data.relationships,
+      extractionQuality: data.extractionQuality,
+      suggestedFrameRole: data.suggestedFrameRole
     };
   }
 
