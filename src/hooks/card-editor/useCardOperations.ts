@@ -85,24 +85,28 @@ export const useCardOperations = (
         return false;
       }
 
+      // Comprehensive validation
+      const validation = validateCardData({ ...cardData, id: cardId });
+      if (!validation.isValid) {
+        console.error('Card validation failed:', validation.errors);
+        toast.error(`Validation failed: ${validation.errors.join(', ')}`);
+        return false;
+      }
+
       // Clean and prepare the card data for saving
       const cardToSave = {
         id: cardId,
         title: cardData.title.trim(),
         description: cardData.description?.trim() || '',
         creator_id: user.id, // Ensure this is set to the authenticated user's ID
-        design_metadata: {
-          ...(cardData.design_metadata || {}),
-          // Store frame ID as string in design_metadata instead of template_id
-          frameId: cardData.template_id || null
-        },
+        design_metadata: cardData.design_metadata || {},
         image_url: cardData.image_url || null,
         thumbnail_url: cardData.thumbnail_url || null,
         rarity: cardData.rarity || 'common',
         tags: cardData.tags || [],
         is_public: cardData.is_public || false,
-        // Set template_id to null since we're storing frame info in design_metadata
-        template_id: null,
+        // Only include template_id if it's a valid UUID, otherwise set to null
+        template_id: (cardData.template_id && isValidUUID(cardData.template_id)) ? cardData.template_id : null,
         // Only include shop_id if it's a valid UUID, otherwise set to null
         shop_id: (cardData.shop_id && isValidUUID(cardData.shop_id)) ? cardData.shop_id : null,
         // Only include collection_id if it's a valid UUID, otherwise set to null
@@ -130,8 +134,7 @@ export const useCardOperations = (
         userId: user.id, 
         isAuthenticated: !!user,
         title: cardToSave.title,
-        creator_id: cardToSave.creator_id,
-        frameId: cardToSave.design_metadata.frameId
+        creator_id: cardToSave.creator_id
       });
 
       const { error } = await supabase
@@ -149,7 +152,7 @@ export const useCardOperations = (
       }
       
       setLastSaved(new Date());
-      toast.success('Card saved successfully!');
+      toast.success('Card saved successfully');
       return true;
     } catch (error) {
       console.error('Error saving card:', error);

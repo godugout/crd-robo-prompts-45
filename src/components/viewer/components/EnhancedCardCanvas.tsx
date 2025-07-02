@@ -102,19 +102,22 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
     typeof effect.intensity === 'number' ? effect.intensity : 0
   );
 
+  // Create effect context value
+  const effectContextValue = {
+    effectValues,
+    mousePosition,
+    isHovering,
+    showEffects: true,
+    materialSettings,
+    interactiveLighting,
+    effectIntensity,
+    handleEffectChange: () => {},
+    resetEffect: () => {},
+    resetAllEffects: () => {}
+  };
+
   return (
-    <EffectProvider 
-      initialEffects={effectValues}
-      initialValues={{
-        effectValues,
-        mousePosition,
-        isHovering,
-        showEffects: true,
-        materialSettings,
-        interactiveLighting,
-        effectIntensity
-      }}
-    >
+    <EffectProvider value={effectContextValue}>
       <div
         ref={canvasRef}
         className="relative flex items-center justify-center overflow-hidden"
@@ -181,23 +184,35 @@ export const EnhancedCardCanvas: React.FC<EnhancedCardCanvasProps> = ({
             transformStyle: 'preserve-3d'
           }}
         >
-          {/* Card Content Placeholder */}
+          {/* Card Front */}
           <div
-            className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden bg-white"
+            className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden"
             style={{
               backfaceVisibility: 'hidden',
               transform: 'rotateY(0deg)'
             }}
           >
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-              <div className="text-center">
-                <h3 className="text-xl font-bold text-gray-800 mb-2">{card.title}</h3>
-                <p className="text-gray-600">Enhanced 3D Card</p>
-              </div>
-            </div>
+            <EnhancedCardContainer
+              card={card}
+              isFlipped={false}
+              rotation={rotation}
+              zoom={1}
+              isDragging={isDragging}
+              frameStyles={frameStyles}
+              enhancedEffectStyles={enhancedEffectStyles}
+              SurfaceTexture={SurfaceTextureComponent}
+              onMouseDown={() => setIsDragging(true)}
+              onMouseMove={onMouseMove}
+              onMouseEnter={onMouseEnter}
+              onMouseLeave={() => {
+                setIsDragging(false);
+                onMouseLeave();
+              }}
+              onClick={handleCardClick}
+            />
           </div>
 
-          {/* Card Back */}
+          {/* Card Back - with environment-aware styling */}
           <div
             className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl backface-hidden"
             style={{

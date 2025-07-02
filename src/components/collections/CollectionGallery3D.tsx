@@ -3,6 +3,7 @@ import React from 'react';
 import { Gallery3D } from '@/components/3d/gallery/Gallery3D';
 import { useCollectionCards } from '@/hooks/collections/useCollectionQueries';
 import { use3DQualitySettings } from '@/hooks/use3DQualitySettings';
+import { Enhanced3DCardViewer } from '@/components/3d/enhanced/Enhanced3DCardViewer';
 import type { Collection } from '@/types/collections';
 import type { Card } from '@/types/cards';
 
@@ -22,44 +23,34 @@ export const CollectionGallery3D: React.FC<CollectionGallery3DProps> = ({
   
   // Extract cards from collection cards and properly map to Card type
   const cards: Card[] = collectionCards?.map(cc => {
-    // Handle both direct card objects and collection_card objects with nested card
-    const cardData = (cc as any).card || cc;
-    
+    const card = cc.card;
     return {
-      id: cardData.id || '',
-      title: cardData.title || 'Untitled Card',
-      description: cardData.description || '',
-      image_url: cardData.image_url,
-      thumbnail_url: cardData.thumbnail_url,
-      rarity: (cardData.rarity as any) || 'common',
-      tags: cardData.tags || [],
-      creator_id: cardData.creator_id || '',
-      creator_name: cardData.creator_name || 'Unknown Creator',
-      created_at: cardData.created_at || new Date().toISOString(),
-      updated_at: cardData.updated_at || new Date().toISOString(),
-      collection_id: cardData.collection_id,
-      team_id: cardData.team_id,
-      user_id: cardData.user_id,
-      price: cardData.price,
-      edition_size: cardData.edition_size || 1,
-      verification_status: cardData.verification_status,
-      print_metadata: cardData.print_metadata || {},
-      template_id: cardData.template_id,
-      creator_attribution: cardData.creator_attribution || {
-        creator_name: cardData.creator_name || 'Unknown Creator'
-      },
-      publishing_options: cardData.publishing_options || {
-        marketplace_listing: cardData.marketplace_listing || false,
-        crd_catalog_inclusion: cardData.crd_catalog_inclusion !== false,
-        print_available: cardData.print_available || false
-      },
-      print_available: cardData.print_available,
-      crd_catalog_inclusion: cardData.crd_catalog_inclusion,
-      marketplace_listing: cardData.marketplace_listing,
-      shop_id: cardData.shop_id,
-      design_metadata: cardData.design_metadata || {},
-      is_public: cardData.is_public,
-      visibility: cardData.visibility || (cardData.is_public ? 'public' : 'private')
+      id: card.id,
+      title: card.title,
+      description: card.description || '',
+      image_url: card.image_url,
+      thumbnail_url: card.thumbnail_url,
+      rarity: card.rarity || 'common',
+      tags: card.tags || [],
+      creator_id: card.creator_id || '',
+      created_at: card.created_at || new Date().toISOString(),
+      updated_at: card.updated_at || new Date().toISOString(),
+      collection_id: card.collection_id,
+      team_id: card.team_id,
+      user_id: card.user_id,
+      price: card.price,
+      edition_size: card.edition_size || 1,
+      verification_status: card.verification_status,
+      print_metadata: card.print_metadata || {},
+      template_id: card.template_id,
+      creator_attribution: card.creator_attribution || {},
+      publishing_options: card.publishing_options || {},
+      print_available: card.print_available,
+      crd_catalog_inclusion: card.crd_catalog_inclusion,
+      marketplace_listing: card.marketplace_listing,
+      shop_id: card.shop_id,
+      design_metadata: card.design_metadata || {},
+      is_public: card.is_public
     };
   }).filter(Boolean) || [];
   

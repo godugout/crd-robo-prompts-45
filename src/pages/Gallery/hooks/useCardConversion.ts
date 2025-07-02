@@ -14,7 +14,6 @@ interface Card {
   is_public?: boolean;
   creator_attribution?: Record<string, any>;
   publishing_options?: Record<string, any>;
-  created_at?: string;
 }
 
 export const useCardConversion = () => {
@@ -27,8 +26,6 @@ export const useCardConversion = () => {
       thumbnail_url: card.thumbnail_url,
       rarity: (card.rarity as CardRarity) || 'common',
       tags: card.tags || [],
-      creator_id: card.creator_id,
-      created_at: card.created_at || new Date().toISOString(),
       design_metadata: card.design_metadata || {},
       visibility: card.is_public ? 'public' : 'private',
       is_public: card.is_public || false,

@@ -13,7 +13,6 @@ import { CollectionStats } from './CollectionStats';
 import { CollectionActivityView } from './CollectionActivity';
 import { CollectionCommentsView } from './CollectionComments';
 import { Eye, Heart, Share2, Settings, Edit, Users } from 'lucide-react';
-import type { CardRarity } from '@/types/cards';
 
 interface CollectionDetailViewProps {
   collectionId: string;
@@ -177,33 +176,28 @@ export const CollectionDetailView: React.FC<CollectionDetailViewProps> = ({
                   title: collectionCard.card?.title || 'Unknown Card',
                   image_url: collectionCard.card?.image_url,
                   thumbnail_url: collectionCard.card?.thumbnail_url,
-                  rarity: (collectionCard.card?.rarity as CardRarity) || 'common', // Fixed type casting
+                  rarity: collectionCard.card?.rarity || 'common',
                   description: collectionCard.card?.description,
                   tags: [],
                   creator_id: '',
                   created_at: '',
                   updated_at: '',
                   edition_size: 1,
-                  price: 0,
-                  verification_status: 'verified' as const,
+                  price: null,
+                  verification_status: 'verified',
                   collection_id: null,
                   team_id: null,
                   user_id: null,
                   print_metadata: {},
                   template_id: null,
                   creator_attribution: {},
-                  publishing_options: {
-                    marketplace_listing: false,
-                    crd_catalog_inclusion: true,
-                    print_available: false
-                  },
+                  publishing_options: {},
                   print_available: false,
                   crd_catalog_inclusion: true,
                   marketplace_listing: false,
                   shop_id: null,
                   design_metadata: {},
-                  is_public: false,
-                  visibility: 'private' as const
+                  is_public: false
                 };
 
                 return (

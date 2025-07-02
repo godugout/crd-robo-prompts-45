@@ -1,5 +1,5 @@
 
-export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
+export type CardRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 export type CardVisibility = 'private' | 'public' | 'shared';
 

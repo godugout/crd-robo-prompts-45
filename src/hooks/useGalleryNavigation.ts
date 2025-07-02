@@ -1,85 +1,106 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 interface NavigationState {
-  currentPosition: THREE.Vector3;
-  targetPosition: THREE.Vector3;
-  isAnimating: boolean;
-  selectedCardId?: string;
+  cameraPosition: THREE.Vector3;
+  cameraTarget: THREE.Vector3;
+  currentCardId: string | null;
+  searchQuery: string;
+  isNavigating: boolean;
 }
 
 export const useGalleryNavigation = () => {
   const [navigationState, setNavigationState] = useState<NavigationState>({
-    currentPosition: new THREE.Vector3(0, 5, 10),
-    targetPosition: new THREE.Vector3(0, 5, 10),
-    isAnimating: false
+    cameraPosition: new THREE.Vector3(0, 5, 10),
+    cameraTarget: new THREE.Vector3(0, 0, 0),
+    currentCardId: null,
+    searchQuery: '',
+    isNavigating: false
   });
-
+  
+  const keyboardHandlerRef = useRef<(event: KeyboardEvent) => void>();
+  
   const navigateToCard = useCallback((cardId: string) => {
     setNavigationState(prev => ({
       ...prev,
-      selectedCardId: cardId,
-      isAnimating: true
+      currentCardId: cardId,
+      isNavigating: true
     }));
+    
+    // Animation would be handled by the Three.js scene
+    setTimeout(() => {
+      setNavigationState(prev => ({
+        ...prev,
+        isNavigating: false
+      }));
+    }, 1000);
   }, []);
-
+  
   const navigateToPosition = useCallback((position: THREE.Vector3, target?: THREE.Vector3) => {
     setNavigationState(prev => ({
       ...prev,
-      targetPosition: position,
-      isAnimating: true
+      cameraPosition: position,
+      cameraTarget: target || prev.cameraTarget,
+      isNavigating: true
+    }));
+    
+    setTimeout(() => {
+      setNavigationState(prev => ({
+        ...prev,
+        isNavigating: false
+      }));
+    }, 1000);
+  }, []);
+  
+  const setSearchQuery = useCallback((query: string) => {
+    setNavigationState(prev => ({
+      ...prev,
+      searchQuery: query
     }));
   }, []);
-
+  
   const enableKeyboardNavigation = useCallback(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      const moveDistance = 2;
-      let newPosition = navigationState.currentPosition.clone();
-
-      switch (event.key) {
+    keyboardHandlerRef.current = (event: KeyboardEvent) => {
+      switch (event.code) {
+        case 'KeyW':
         case 'ArrowUp':
-        case 'w':
-          newPosition.z -= moveDistance;
+          // Move forward
           break;
+        case 'KeyS':
         case 'ArrowDown':
-        case 's':
-          newPosition.z += moveDistance;
+          // Move backward
           break;
+        case 'KeyA':
         case 'ArrowLeft':
-        case 'a':
-          newPosition.x -= moveDistance;
+          // Move left
           break;
+        case 'KeyD':
         case 'ArrowRight':
-        case 'd':
-          newPosition.x += moveDistance;
+          // Move right
           break;
-        case ' ':
-          newPosition.y += moveDistance;
+        case 'Space':
           event.preventDefault();
+          // Center view
+          navigateToPosition(new THREE.Vector3(0, 5, 10), new THREE.Vector3(0, 0, 0));
           break;
-        case 'Shift':
-          newPosition.y -= moveDistance;
-          break;
-      }
-
-      if (newPosition !== navigationState.currentPosition) {
-        navigateToPosition(newPosition);
       }
     };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [navigationState.currentPosition, navigateToPosition]);
-
+    
+    window.addEventListener('keydown', keyboardHandlerRef.current);
+  }, [navigateToPosition]);
+  
   const disableKeyboardNavigation = useCallback(() => {
-    // Cleanup handled by enableKeyboardNavigation return function
+    if (keyboardHandlerRef.current) {
+      window.removeEventListener('keydown', keyboardHandlerRef.current);
+    }
   }, []);
-
+  
   return {
     navigationState,
     navigateToCard,
     navigateToPosition,
+    setSearchQuery,
     enableKeyboardNavigation,
     disableKeyboardNavigation
   };

@@ -1,52 +1,59 @@
 
 import * as THREE from 'three';
 
-export const createEnergyGlowShader = () => {
-  const uniforms = {
-    uTime: { value: 0 },
-    uTexture: { value: null },
-    uGlowColor: { value: new THREE.Color('#00ffff') },
-    uGlowIntensity: { value: 1.0 }
-  };
-
-  const vertexShader = `
+export const EnergyGlowShader = {
+  vertexShader: `
     varying vec2 vUv;
     varying vec3 vNormal;
-    varying vec3 vPosition;
+    varying vec3 vWorldPosition;
     
     void main() {
       vUv = uv;
       vNormal = normalize(normalMatrix * normal);
-      vPosition = position;
+      
+      vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+      vWorldPosition = worldPosition.xyz;
+      
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
-  `;
-
-  const fragmentShader = `
+  `,
+  
+  fragmentShader: `
     uniform float uTime;
-    uniform sampler2D uTexture;
+    uniform float uIntensity;
     uniform vec3 uGlowColor;
-    uniform float uGlowIntensity;
+    uniform sampler2D uTexture;
     
     varying vec2 vUv;
     varying vec3 vNormal;
-    varying vec3 vPosition;
+    varying vec3 vWorldPosition;
     
     void main() {
-      vec4 baseColor = texture2D(uTexture, vUv);
+      vec4 texColor = texture2D(uTexture, vUv);
       
-      // Energy glow effect
-      float glow = sin(vUv.x * 10.0 + uTime * 2.0) * sin(vUv.y * 10.0 + uTime * 1.5) * 0.5 + 0.5;
-      vec3 energy = uGlowColor * glow * uGlowIntensity;
+      // Pulsating energy effect
+      float pulse = sin(uTime * 4.0) * 0.3 + 0.7;
       
-      vec3 finalColor = baseColor.rgb + energy * 0.3;
+      // Distance from center for radial glow
+      float centerDist = distance(vUv, vec2(0.5));
+      float radialGlow = 1.0 - smoothstep(0.0, 0.7, centerDist);
       
-      gl_FragColor = vec4(finalColor, baseColor.a);
+      // Energy waves
+      float waves = sin(centerDist * 20.0 - uTime * 8.0) * 0.5 + 0.5;
+      waves *= radialGlow;
+      
+      // Combine effects
+      vec3 energyEffect = uGlowColor * waves * pulse * uIntensity;
+      vec3 finalColor = texColor.rgb + energyEffect;
+      
+      gl_FragColor = vec4(finalColor, texColor.a);
     }
-  `;
-
-  return { uniforms, vertexShader, fragmentShader };
+  `,
+  
+  uniforms: {
+    uTime: { value: 0.0 },
+    uIntensity: { value: 0.5 },
+    uGlowColor: { value: new THREE.Vector3(0.0, 1.0, 1.0) },
+    uTexture: { value: null }
+  }
 };
-
-// Export as EnergyGlowShader for compatibility
-export const EnergyGlowShader = createEnergyGlowShader();

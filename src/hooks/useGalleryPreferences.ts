@@ -1,12 +1,12 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
+import type { LayoutType } from './useGalleryLayout';
 
-export interface GalleryPreferences {
-  layout: 'grid' | 'circle' | 'spiral';
+interface GalleryPreferences {
+  layout: LayoutType;
   autoRotate: boolean;
   quality: 'low' | 'medium' | 'high' | 'ultra';
-  showConnections: boolean;
-  particleEffects: boolean;
+  enableParticles: boolean;
   viewHistory: Array<{
     cardId: string;
     timestamp: number;
@@ -14,33 +14,35 @@ export interface GalleryPreferences {
   }>;
 }
 
+const defaultPreferences: GalleryPreferences = {
+  layout: 'grid',
+  autoRotate: false,
+  quality: 'high',
+  enableParticles: true,
+  viewHistory: []
+};
+
 export const useGalleryPreferences = () => {
-  const [preferences, setPreferences] = useState<GalleryPreferences>({
-    layout: 'grid',
-    autoRotate: false,
-    quality: 'high',
-    showConnections: true,
-    particleEffects: true,
-    viewHistory: []
+  const [preferences, setPreferences] = useState<GalleryPreferences>(() => {
+    try {
+      const saved = localStorage.getItem('galleryPreferences');
+      return saved ? { ...defaultPreferences, ...JSON.parse(saved) } : defaultPreferences;
+    } catch {
+      return defaultPreferences;
+    }
   });
 
-  useEffect(() => {
-    // Load from localStorage
-    const saved = localStorage.getItem('gallery-preferences');
-    if (saved) {
+  const updatePreferences = useCallback((newPreferences: Partial<GalleryPreferences>) => {
+    setPreferences(prev => {
+      const updated = { ...prev, ...newPreferences };
       try {
-        setPreferences(JSON.parse(saved));
+        localStorage.setItem('galleryPreferences', JSON.stringify(updated));
       } catch (error) {
-        console.warn('Failed to load gallery preferences:', error);
+        console.warn('Failed to save gallery preferences:', error);
       }
-    }
+      return updated;
+    });
   }, []);
-
-  const updatePreferences = (newPreferences: Partial<GalleryPreferences>) => {
-    const updated = { ...preferences, ...newPreferences };
-    setPreferences(updated);
-    localStorage.setItem('gallery-preferences', JSON.stringify(updated));
-  };
 
   return {
     preferences,

@@ -164,7 +164,6 @@ export const Gallery3D: React.FC<Gallery3DProps> = ({
         {/* Main gallery scene */}
         <Suspense fallback={null}>
           <GalleryScene
-            collection={collection}
             cards={cards}
             cardPositions={cardPositions}
             selectedCard={selectedCard}
