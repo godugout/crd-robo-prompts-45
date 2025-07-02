@@ -49,7 +49,15 @@ export const GalleryScene: React.FC<GallerySceneProps> = ({
       return (
         <group key={card.id} position={[position.x, position.y, position.z]}>
           <Card3D
-            card={card}
+            card={{
+              ...card,
+              rarity: card.rarity as 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary',
+              visibility: 'public' as 'private' | 'public' | 'shared',
+              design_metadata: card.design_metadata || {},
+              creator_attribution: card.creator_attribution || {},
+              publishing_options: card.publishing_options || {},
+              verification_status: (card.verification_status as 'pending' | 'verified' | 'rejected') || 'pending'
+            }}
             quality={quality}
             interactive={true}
             onClick={() => onCardSelect(card)}

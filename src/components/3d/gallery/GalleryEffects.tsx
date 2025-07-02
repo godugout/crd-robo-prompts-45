@@ -88,11 +88,11 @@ export const GalleryEffects: React.FC<GalleryEffectsProps> = ({
       </points>
       
       {/* Layout-specific effects */}
-      {layoutType === 'spiral' && quality !== 'low' && (
+      {layoutType === 'spiral' && (quality === 'high' || quality === 'ultra') && (
         <SpiralTrail cardCount={cardCount} />
       )}
       
-      {layoutType === 'circle' && quality !== 'low' && (
+      {layoutType === 'circle' && (quality === 'high' || quality === 'ultra') && (
         <CircleGlow cardCount={cardCount} />
       )}
     </group>
