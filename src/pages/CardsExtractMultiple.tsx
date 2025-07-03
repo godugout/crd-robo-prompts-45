@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Upload, Search, CheckSquare, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useMultiCardExtraction } from '@/hooks/useMultiCardExtraction';
+import { StudioLayoutWrapper, StudioHeader, StudioButton } from '@/components/studio/shared';
 import { toast } from 'sonner';
 
 const CardsExtractMultiple: React.FC = () => {
@@ -94,35 +95,25 @@ const CardsExtractMultiple: React.FC = () => {
   const PhaseIcon = phaseInfo.icon;
 
   return (
-    <div className="min-h-screen bg-crd-darkest">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/cards')}
-              className="text-crd-lightGray hover:text-white"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Cards
-            </Button>
-            <div className="h-6 w-px bg-crd-mediumGray" />
-            <div>
-              <h1 className="text-3xl font-bold text-white">{phaseInfo.title}</h1>
-              <p className="text-crd-lightGray mt-1">{phaseInfo.description}</p>
+    <StudioLayoutWrapper>
+      <div className="flex-1 flex flex-col">
+        <StudioHeader
+          title={phaseInfo.title}
+          subtitle={phaseInfo.description}
+          onBack={() => navigate('/cards')}
+          backLabel="Back to Cards"
+          actions={
+            <div className="flex items-center gap-2 text-white">
+              <PhaseIcon className="w-5 h-5" />
+              <span className="text-sm font-medium capitalize">{currentPhase}</span>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-2 text-crd-lightGray">
-            <PhaseIcon className="w-5 h-5" />
-            <span className="text-sm font-medium capitalize">{currentPhase}</span>
-          </div>
-        </div>
+          }
+        />
+        
+        <div className="flex-1 overflow-y-auto p-6">
 
-        {/* Progress Indicator */}
-        <Card className="bg-crd-dark border-crd-mediumGray mb-8">
+          {/* Progress Indicator */}
+          <Card className="bg-[#1a1a1a]/80 border-[#4a4a4a] mb-8 max-w-7xl mx-auto">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               {['upload', 'detect', 'review', 'complete'].map((phase, index) => {
@@ -158,8 +149,8 @@ const CardsExtractMultiple: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Main Content Area */}
-        <Card className="bg-crd-dark border-crd-mediumGray">
+          {/* Main Content Area */}
+          <Card className="bg-[#1a1a1a]/80 border-[#4a4a4a] max-w-7xl mx-auto">
           <CardContent className="p-8">
             {currentPhase === 'upload' && (
               <div className="text-center py-12">
@@ -181,27 +172,25 @@ const CardsExtractMultiple: React.FC = () => {
                     id="image-upload"
                     disabled={isProcessing}
                   />
-                  <Button
-                    variant="default"
+                  <StudioButton
+                    variant="primary"
                     size="lg"
-                    asChild
                     disabled={isProcessing}
-                    className="bg-crd-green hover:bg-crd-green/90 text-black w-full"
+                    className="w-full"
+                    onClick={() => document.getElementById('image-upload')?.click()}
                   >
-                    <label htmlFor="image-upload" className="cursor-pointer">
-                      {isProcessing ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-5 h-5 mr-2" />
-                          Choose Image
-                        </>
-                      )}
-                    </label>
-                  </Button>
+                    {isProcessing ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-5 h-5 mr-2" />
+                        Choose Image
+                      </>
+                    )}
+                  </StudioButton>
                 </div>
               </div>
             )}
@@ -227,14 +216,14 @@ const CardsExtractMultiple: React.FC = () => {
                 </p>
 
                 {!isProcessing && (
-                  <Button
+                  <StudioButton
                     onClick={handleRunDetection}
-                    className="bg-crd-green hover:bg-crd-green/90 text-black"
+                    variant="primary"
                     size="lg"
+                    icon={<Search className="w-5 h-5" />}
                   >
-                    <Search className="w-5 h-5 mr-2" />
                     Detect Cards
-                  </Button>
+                  </StudioButton>
                 )}
               </div>
             )}
@@ -254,21 +243,20 @@ const CardsExtractMultiple: React.FC = () => {
                 </div>
 
                 <div className="flex justify-center gap-4 mt-8">
-                  <Button
-                    variant="outline"
+                  <StudioButton
                     onClick={resetSession}
-                    className="border-crd-mediumGray text-crd-lightGray hover:text-white"
+                    variant="outline"
                   >
                     Start Over
-                  </Button>
-                  <Button
+                  </StudioButton>
+                  <StudioButton
                     onClick={handleSaveCards}
                     disabled={selectedCards.length === 0}
-                    className="bg-crd-green hover:bg-crd-green/90 text-black"
+                    variant="primary"
+                    icon={<Save className="w-4 h-4" />}
                   >
-                    <Save className="w-4 h-4 mr-2" />
                     Save Selected Cards ({selectedCards.length})
-                  </Button>
+                  </StudioButton>
                 </div>
               </div>
             )}
@@ -285,26 +273,26 @@ const CardsExtractMultiple: React.FC = () => {
                 </p>
 
                 <div className="flex justify-center gap-4">
-                  <Button
+                  <StudioButton
                     onClick={resetSession}
-                    className="bg-crd-green hover:bg-crd-green/90 text-black"
+                    variant="primary"
                   >
                     Extract More Cards
-                  </Button>
-                  <Button
-                    variant="outline"
+                  </StudioButton>
+                  <StudioButton
                     onClick={() => navigate('/gallery')}
-                    className="border-crd-mediumGray text-crd-lightGray hover:text-white"
+                    variant="outline"
                   >
                     View Collection
-                  </Button>
+                  </StudioButton>
                 </div>
               </div>
             )}
           </CardContent>
-        </Card>
+          </Card>
+        </div>
       </div>
-    </div>
+    </StudioLayoutWrapper>
   );
 };
 

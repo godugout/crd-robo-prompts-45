@@ -132,7 +132,7 @@ export const RightSidebar = ({ cardEditor: providedCardEditor }: RightSidebarPro
   };
   
   return (
-    <div className="w-80 h-full bg-editor-dark border-l border-editor-border overflow-y-auto">
+    <div className="w-96 h-full bg-[#1a1a1a] border-l border-[#4a4a4a] overflow-y-auto">
       <CardDetailsSection cardEditor={cardEditor} />
       <PropertiesSection cardEditor={cardEditor} />
       <RaritySection cardEditor={cardEditor} />

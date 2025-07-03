@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, Eye } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { useCardEditor } from '@/hooks/useCardEditor';
 import { EditorCanvas } from '@/components/editor/EditorCanvas';
 import { RightSidebar } from '@/components/editor/RightSidebar';
+import { StudioLayoutWrapper, StudioHeader, StudioButton } from '@/components/studio/shared';
 import type { UserCard } from '@/hooks/useUserCards';
 
 interface CardEditModeProps {
@@ -43,47 +43,36 @@ export const CardEditMode: React.FC<CardEditModeProps> = ({
   };
 
   return (
-    <div className="h-screen bg-editor-dark text-white flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-editor-border">
-        <div className="flex items-center gap-4">
-          <Button
-            onClick={onCancel}
-            variant="ghost" 
-            size="sm"
-            className="text-white hover:bg-editor-border"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to View
-          </Button>
-          <div>
-            <h1 className="text-xl font-semibold">Edit Card</h1>
-            <p className="text-sm text-crd-lightGray">Make changes to your card</p>
-          </div>
-        </div>
-        
-        <div className="flex gap-2">
-          <Button
-            onClick={handleSaveAndExit}
-            disabled={cardEditor.isSaving}
-            className="bg-crd-green hover:bg-crd-green/90 text-black"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {cardEditor.isSaving ? 'Saving...' : 'Save & Exit'}
-          </Button>
-        </div>
-      </div>
+    <StudioLayoutWrapper>
+      <div className="flex-1 flex flex-col">
+        <StudioHeader
+          title="Edit Card"
+          subtitle="Make changes to your card"
+          onBack={onCancel}
+          backLabel="Back to View"
+          actions={
+            <StudioButton
+              onClick={handleSaveAndExit}
+              disabled={cardEditor.isSaving}
+              variant="primary"
+              icon={<Save className="w-4 h-4" />}
+            >
+              {cardEditor.isSaving ? 'Saving...' : 'Save & Exit'}
+            </StudioButton>
+          }
+        />
 
-      {/* Main Editor */}
-      <div className="flex-1 flex">
+        {/* Main Editor */}
         <div className="flex-1 flex">
-          <EditorCanvas 
-            zoom={1} 
-            cardEditor={cardEditor}
-          />
+          <div className="flex-1 flex">
+            <EditorCanvas 
+              zoom={1} 
+              cardEditor={cardEditor}
+            />
+          </div>
+          <RightSidebar cardEditor={cardEditor} />
         </div>
-        <RightSidebar cardEditor={cardEditor} />
       </div>
-    </div>
+    </StudioLayoutWrapper>
   );
 };

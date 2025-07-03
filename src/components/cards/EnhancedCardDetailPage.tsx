@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
-  ArrowLeft, 
   Edit, 
   Globe, 
   Lock, 
@@ -20,6 +19,7 @@ import {
 } from 'lucide-react';
 import { CachedImage } from '@/components/common/CachedImage';
 import { ImmersiveCardViewer } from '@/components/viewer/ImmersiveCardViewer';
+import { StudioLayoutWrapper, StudioHeader, StudioButton } from '@/components/studio/shared';
 import type { UserCard } from '@/hooks/useUserCards';
 
 interface EnhancedCardDetailPageProps {
@@ -71,64 +71,43 @@ export const EnhancedCardDetailPage: React.FC<EnhancedCardDetailPageProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-crd-darkest via-crd-darker to-crd-darkest">
-      {/* Header with consistent exit button position */}
-      <div className="relative z-10 p-4 md:p-6">
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onGoBack}
-            className="bg-black/20 backdrop-blur-sm hover:bg-black/30 text-white border border-white/10"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
+    <StudioLayoutWrapper>
+      <div className="flex-1 flex flex-col">
+        <StudioHeader
+          title={card.title}
+          subtitle={`Card by ${card.creator_name || 'Unknown Creator'}`}
+          onBack={onGoBack}
+          backLabel="Back to Gallery"
+          actions={
+            isOwner ? (
+              <div className="flex gap-2">
+                <StudioButton
+                  onClick={onEdit}
+                  variant="primary"
+                  icon={<Edit className="w-4 h-4" />}
+                >
+                  Edit Card
+                </StudioButton>
+                <StudioButton
+                  onClick={onToggleVisibility}
+                  variant="outline"
+                  icon={card.is_public ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                  className={card.is_public ? 'text-crd-green border-crd-green' : 'text-yellow-400 border-yellow-400'}
+                >
+                  {card.is_public ? 'Public' : 'Private'}
+                </StudioButton>
+              </div>
+            ) : undefined
+          }
+        />
 
-          {/* Owner Controls */}
-          {isOwner && (
-            <div className="flex gap-2">
-              <Button
-                onClick={onEdit}
-                className="bg-crd-green hover:bg-crd-green/90 text-black"
-                size="sm"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Card
-              </Button>
-              <Button
-                onClick={onToggleVisibility}
-                variant="outline"
-                size="sm"
-                className={`border-white/20 ${
-                  card.is_public 
-                    ? 'text-crd-green hover:bg-crd-green/10' 
-                    : 'text-yellow-400 hover:bg-yellow-400/10'
-                }`}
-              >
-                {card.is_public ? (
-                  <>
-                    <Globe className="w-4 h-4 mr-2" />
-                    Public
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-4 h-4 mr-2" />
-                    Private
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Card Preview */}
-          <div className="space-y-4">
-            <Card className="bg-editor-dark/50 backdrop-blur-sm border-white/10 overflow-hidden">
+        {/* Main Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-7xl mx-auto px-4 md:px-6 pb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Card Preview */}
+            <div className="space-y-4">
+              <Card className="bg-[#1a1a1a]/80 backdrop-blur-sm border-[#4a4a4a] overflow-hidden">
               <div className="aspect-[2.5/3.5] relative group">
                 {card.image_url ? (
                   <CachedImage
@@ -157,27 +136,28 @@ export const EnhancedCardDetailPage: React.FC<EnhancedCardDetailPageProps> = ({
 
             {/* Quick Actions */}
             <div className="flex gap-2">
-              <Button
+              <StudioButton
                 onClick={() => setShowStudioViewer(true)}
-                className="flex-1 bg-crd-green hover:bg-crd-green/90 text-black"
+                variant="primary"
+                className="flex-1"
+                icon={<Eye className="w-4 h-4" />}
               >
-                <Eye className="w-4 h-4 mr-2" />
                 View in Studio
-              </Button>
-              <Button
+              </StudioButton>
+              <StudioButton
                 onClick={onShare}
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10"
+                icon={<Share2 className="w-4 h-4" />}
               >
-                <Share2 className="w-4 h-4" />
-              </Button>
-              <Button
+                Share
+              </StudioButton>
+              <StudioButton
                 onClick={onDownload}
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10"
+                icon={<Download className="w-4 h-4" />}
               >
-                <Download className="w-4 h-4" />
-              </Button>
+                Download
+              </StudioButton>
             </div>
           </div>
 
@@ -203,7 +183,7 @@ export const EnhancedCardDetailPage: React.FC<EnhancedCardDetailPageProps> = ({
             </div>
 
             {/* Creator Info */}
-            <Card className="bg-editor-dark/30 backdrop-blur-sm border-white/10">
+            <Card className="bg-[#1a1a1a]/50 backdrop-blur-sm border-[#4a4a4a]">
               <CardContent className="p-4">
                 <h3 className="text-lg font-semibold text-white mb-3">Creator</h3>
                 <div className="flex items-center gap-3">
@@ -224,7 +204,7 @@ export const EnhancedCardDetailPage: React.FC<EnhancedCardDetailPageProps> = ({
             </Card>
 
             {/* Card Stats */}
-            <Card className="bg-editor-dark/30 backdrop-blur-sm border-white/10">
+            <Card className="bg-[#1a1a1a]/50 backdrop-blur-sm border-[#4a4a4a]">
               <CardContent className="p-4">
                 <h3 className="text-lg font-semibold text-white mb-4">Card Details</h3>
                 <div className="space-y-3">
@@ -254,7 +234,7 @@ export const EnhancedCardDetailPage: React.FC<EnhancedCardDetailPageProps> = ({
 
             {/* Tags */}
             {card.tags && card.tags.length > 0 && (
-              <Card className="bg-editor-dark/30 backdrop-blur-sm border-white/10">
+              <Card className="bg-[#1a1a1a]/50 backdrop-blur-sm border-[#4a4a4a]">
                 <CardContent className="p-4">
                   <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
                     <Tag className="w-4 h-4" />
@@ -272,41 +252,35 @@ export const EnhancedCardDetailPage: React.FC<EnhancedCardDetailPageProps> = ({
             )}
 
             {/* Social Actions */}
-            <Card className="bg-editor-dark/30 backdrop-blur-sm border-white/10">
+            <Card className="bg-[#1a1a1a]/50 backdrop-blur-sm border-[#4a4a4a]">
               <CardContent className="p-4">
                 <h3 className="text-lg font-semibold text-white mb-4">Actions</h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    variant="outline"
+                  <StudioButton
                     onClick={() => setIsLiked(!isLiked)}
-                    className={`border-white/20 ${
-                      isLiked 
-                        ? 'text-red-400 border-red-400 bg-red-400/10' 
-                        : 'text-crd-lightGray hover:text-white'
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
-                    Like
-                  </Button>
-                  
-                  <Button
                     variant="outline"
-                    onClick={() => setIsBookmarked(!isBookmarked)}
-                    className={`border-white/20 ${
-                      isBookmarked 
-                        ? 'text-crd-green border-crd-green bg-crd-green/10' 
-                        : 'text-crd-lightGray hover:text-white'
-                    }`}
+                    className={isLiked ? 'text-red-400 border-red-400 bg-red-400/10' : ''}
+                    icon={<Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />}
                   >
-                    <Bookmark className={`w-4 h-4 mr-2 ${isBookmarked ? 'fill-current' : ''}`} />
+                    Like
+                  </StudioButton>
+                  
+                  <StudioButton
+                    onClick={() => setIsBookmarked(!isBookmarked)}
+                    variant="outline"
+                    className={isBookmarked ? 'text-crd-green border-crd-green bg-crd-green/10' : ''}
+                    icon={<Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />}
+                  >
                     Save
-                  </Button>
+                  </StudioButton>
                 </div>
               </CardContent>
             </Card>
           </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </StudioLayoutWrapper>
   );
 };
