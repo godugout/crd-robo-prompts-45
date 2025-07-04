@@ -216,33 +216,40 @@ export class ImprovedCardDetector {
 
   private findRectangularRegions(edges: number[], width: number, height: number): Partial<DetectedCard>[] {
     const rectangles: Partial<DetectedCard>[] = [];
-    const threshold = 50;
+    const threshold = 30; // Lower threshold to catch more cards
     
-    // Simplified rectangle detection to prevent stack overflow
-    // Use larger steps and fewer iterations
-    const stepX = Math.max(10, Math.floor(width / 20));
-    const stepY = Math.max(10, Math.floor(height / 20));
-    const stepW = Math.max(20, Math.floor(width / 10));
-    const stepH = Math.max(20, Math.floor(height / 10));
+    console.log('🔍 Scanning image dimensions:', { width, height });
     
-    for (let y = 10; y < height - 100; y += stepY) {
-      for (let x = 10; x < width - 80; x += stepX) {
-        // Only test a few common card sizes to reduce iterations
-        const commonSizes = [
-          { w: 80, h: 112 },   // Small card
-          { w: 120, h: 168 },  // Medium card  
-          { w: 160, h: 224 },  // Large card
+    // Better grid-based scanning to cover the entire image evenly
+    const stepX = Math.max(5, Math.floor(width / 40));  // More frequent sampling
+    const stepY = Math.max(5, Math.floor(height / 30)); 
+    
+    console.log('📐 Using scan steps:', { stepX, stepY });
+    
+    // Scan the entire image more thoroughly
+    for (let y = 5; y < height - 50; y += stepY) {
+      for (let x = 5; x < width - 40; x += stepX) {
+        // Test multiple card sizes at each position
+        const cardSizes = [
+          { w: Math.floor(width * 0.08), h: Math.floor(width * 0.08 * 1.4) },  // 8% of width
+          { w: Math.floor(width * 0.12), h: Math.floor(width * 0.12 * 1.4) },  // 12% of width
+          { w: Math.floor(width * 0.15), h: Math.floor(width * 0.15 * 1.4) },  // 15% of width
+          { w: Math.floor(width * 0.18), h: Math.floor(width * 0.18 * 1.4) },  // 18% of width
         ];
         
-        for (const size of commonSizes) {
-          if (x + size.w >= width || y + size.h >= height) continue;
+        for (const size of cardSizes) {
+          // Skip if card would go outside image bounds
+          if (x + size.w >= width - 5 || y + size.h >= height - 5) continue;
           
           const aspectRatio = size.w / size.h;
-          if (aspectRatio < 0.5 || aspectRatio > 1.0) continue;
+          // More lenient aspect ratio for trading cards (0.6 to 0.85)
+          if (aspectRatio < 0.55 || aspectRatio > 0.9) continue;
           
           const edgeScore = this.calculateRectangleEdgeScore(x, y, size.w, size.h, edges, width);
           
           if (edgeScore > threshold) {
+            console.log('✅ Found candidate at:', { x, y, w: size.w, h: size.h, score: edgeScore });
+            
             rectangles.push({
               x, y, width: size.w, height: size.h,
               aspectRatio,
@@ -260,6 +267,7 @@ export class ImprovedCardDetector {
       }
     }
     
+    console.log('🎯 Total candidates found:', rectangles.length);
     return rectangles;
   }
 
