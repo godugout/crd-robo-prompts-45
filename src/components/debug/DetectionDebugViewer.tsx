@@ -288,7 +288,7 @@ export const DetectionDebugViewer: React.FC<DetectionDebugViewerProps> = ({
             </div>
           </div>
           
-          <div className="border border-gray-700 rounded-lg overflow-auto max-h-96">
+          <div className="border border-gray-700 rounded-lg overflow-auto" style={{ maxHeight: 'calc(100vh - 300px)', minHeight: '600px' }}>
             <canvas
               ref={canvasRef}
               onClick={handleCanvasClick}
