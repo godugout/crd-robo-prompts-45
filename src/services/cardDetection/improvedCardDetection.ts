@@ -50,6 +50,16 @@ export class ImprovedCardDetector {
       processingSteps: []
     };
 
+    // Calculate scale factor for coordinate conversion
+    const maxDim = DETECTION_CONFIG.MAX_IMAGE_DIMENSION;
+    const scaleFactor = Math.min(maxDim / image.width, maxDim / image.height, 1);
+    
+    console.log('🔍 Image processing scale:', { 
+      originalSize: { width: image.width, height: image.height },
+      scaleFactor,
+      processedSize: { width: image.width * scaleFactor, height: image.height * scaleFactor }
+    });
+
     // Prepare image
     this.prepareImage(image);
     
@@ -91,11 +101,30 @@ export class ImprovedCardDetector {
 
     // Merge and filter candidates
     const mergeStepStart = Date.now();
-    const finalCards = this.mergeAndFilterCandidates(allCandidates);
+    const filteredCards = this.mergeAndFilterCandidates(allCandidates);
     debugInfo.processingSteps.push({
       step: 'Merge & Filter',
-      candidatesFound: finalCards.length,
+      candidatesFound: filteredCards.length,
       timeMs: Date.now() - mergeStepStart
+    });
+
+    // Scale coordinates back to original image size
+    const finalCards = filteredCards.map(card => ({
+      ...card,
+      x: card.x / scaleFactor,
+      y: card.y / scaleFactor,
+      width: card.width / scaleFactor,
+      height: card.height / scaleFactor,
+      corners: card.corners.map(corner => ({
+        x: corner.x / scaleFactor,
+        y: corner.y / scaleFactor
+      }))
+    }));
+
+    console.log('📐 Coordinate scaling applied:', {
+      scaleFactor,
+      beforeScaling: filteredCards.length > 0 ? { x: filteredCards[0].x, y: filteredCards[0].y } : 'none',
+      afterScaling: finalCards.length > 0 ? { x: finalCards[0].x, y: finalCards[0].y } : 'none'
     });
 
     debugInfo.totalCandidates = allCandidates.length;
