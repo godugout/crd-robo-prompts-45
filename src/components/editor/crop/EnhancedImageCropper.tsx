@@ -2,16 +2,19 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Canvas as FabricCanvas, Rect, FabricImage, Line } from 'fabric';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { CropControls } from './CropControls';
 import { CompactCropControls } from './CompactCropControls';
 import { useCropState } from './useCropState';
 import { exportCroppedImage } from '@/utils/cropUtils';
 import { toast } from 'sonner';
+import { RotateCw } from 'lucide-react';
 
 interface EnhancedImageCropperProps {
   imageUrl: string;
   onCropComplete: (croppedImageUrl: string) => void;
   aspectRatio?: number;
+  orientation?: 'portrait' | 'landscape';
   className?: string;
   compact?: boolean;
 }
@@ -19,10 +22,14 @@ interface EnhancedImageCropperProps {
 export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
   imageUrl,
   onCropComplete,
-  aspectRatio = 2.5 / 3.5,
+  aspectRatio,
+  orientation: initialOrientation = 'portrait',
   className = "",
   compact = false
 }) => {
+  const [orientation, setOrientation] = useState<'portrait' | 'landscape'>(initialOrientation);
+  // Always enforce 2.5:3.5 trading card aspect ratio
+  const tradingCardAspectRatio = orientation === 'landscape' ? 3.5 / 2.5 : 2.5 / 3.5;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [fabricImage, setFabricImage] = useState<FabricImage | null>(null);
@@ -90,9 +97,15 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
       fabricCanvas.add(img);
       setFabricImage(img);
 
-      // Create initial crop rectangle
-      const cropWidth = Math.min(img.getScaledWidth() * 0.8, 300);
-      const cropHeight = cropWidth / aspectRatio;
+      // Create initial crop rectangle based on orientation
+      let cropWidth, cropHeight;
+      if (orientation === 'landscape') {
+        cropHeight = Math.min(img.getScaledHeight() * 0.8, 200);
+        cropWidth = cropHeight * tradingCardAspectRatio;
+      } else {
+        cropWidth = Math.min(img.getScaledWidth() * 0.8, 300);
+        cropHeight = cropWidth / tradingCardAspectRatio;
+      }
 
       const rect = new Rect({
         left: img.left! + (img.getScaledWidth() - cropWidth) / 2,
@@ -124,9 +137,9 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
       });
 
       rect.on('scaling', () => {
-        // Maintain aspect ratio during scaling
+        // Maintain trading card aspect ratio during scaling
         const newWidth = rect.getScaledWidth();
-        const newHeight = newWidth / aspectRatio;
+        const newHeight = newWidth / tradingCardAspectRatio;
         
         rect.set({
           height: rect.height! * (newHeight / rect.getScaledHeight()),
@@ -154,7 +167,7 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
       console.error('Failed to load image:', error);
       toast.error('Failed to load image');
     });
-  }, [fabricCanvas, imageUrl, aspectRatio]);
+  }, [fabricCanvas, imageUrl, tradingCardAspectRatio, orientation]);
 
   const addGridOverlay = (rect: Rect) => {
     if (!fabricCanvas) return;
@@ -230,12 +243,12 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
     const maxHeight = imgBounds.height * 0.9;
     
     let newWidth, newHeight;
-    if (maxWidth / aspectRatio <= maxHeight) {
+    if (maxWidth / tradingCardAspectRatio <= maxHeight) {
       newWidth = maxWidth;
-      newHeight = maxWidth / aspectRatio;
+      newHeight = maxWidth / tradingCardAspectRatio;
     } else {
       newHeight = maxHeight;
-      newWidth = maxHeight * aspectRatio;
+      newWidth = maxHeight * tradingCardAspectRatio;
     }
 
     const scale = newWidth / cropRect.width!;
@@ -252,7 +265,7 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
     updateCropSize(newWidth, newHeight);
     updateCropPosition(cropRect.left!, cropRect.top!);
     updateCropRotation(0);
-  }, [cropRect, fabricImage, fabricCanvas, aspectRatio]);
+  }, [cropRect, fabricImage, fabricCanvas, tradingCardAspectRatio]);
 
   const handleApplyCrop = useCallback(async () => {
     if (!fabricCanvas || !cropRect || !fabricImage) {
@@ -290,8 +303,31 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
     fabricCanvas?.renderAll();
   }, [cropState, cropRect, fabricCanvas]);
 
+  const handleOrientationToggle = useCallback(() => {
+    setOrientation(prev => prev === 'portrait' ? 'landscape' : 'portrait');
+  }, []);
+
   return (
     <div className={`space-y-4 ${className}`}>
+      {/* Orientation Controls */}
+      <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-white text-sm">Trading Card Orientation:</span>
+          <Button
+            onClick={handleOrientationToggle}
+            variant="outline"
+            size="sm"
+            className="border-editor-border text-crd-lightGray hover:text-white hover:border-crd-green/50"
+          >
+            <RotateCw className="w-4 h-4 mr-1" />
+            {orientation === 'portrait' ? 'Portrait (2.5:3.5)' : 'Landscape (3.5:2.5)'}
+          </Button>
+          <Badge variant="outline" className="text-xs text-crd-lightGray border-editor-border">
+            Fixed Ratio
+          </Badge>
+        </div>
+      </div>
+
       <div className="flex justify-center">
         <canvas ref={canvasRef} className="border border-gray-300 rounded-lg shadow-lg" />
       </div>
@@ -322,7 +358,7 @@ export const EnhancedImageCropper: React.FC<EnhancedImageCropperProps> = ({
             canRedo={canRedo}
             onUndo={undo}
             onRedo={redo}
-            aspectRatio={aspectRatio}
+            aspectRatio={tradingCardAspectRatio}
           />
         )
       )}
