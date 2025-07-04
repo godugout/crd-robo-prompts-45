@@ -218,31 +218,43 @@ export class ImprovedCardDetector {
     const rectangles: Partial<DetectedCard>[] = [];
     const threshold = 50;
     
-    // Simple rectangle detection using edge map
-    for (let y = 10; y < height - 10; y += 5) {
-      for (let x = 10; x < width - 10; x += 5) {
-        for (let w = 50; w < width - x; w += 10) {
-          for (let h = 70; h < height - y; h += 10) {
-            const aspectRatio = w / h;
-            
-            if (aspectRatio < 0.5 || aspectRatio > 1.0) continue;
-            
-            const edgeScore = this.calculateRectangleEdgeScore(x, y, w, h, edges, width);
-            
-            if (edgeScore > threshold) {
-              rectangles.push({
-                x, y, width: w, height: h,
-                aspectRatio,
-                confidence: Math.min(edgeScore / 100, 1.0),
-                angle: 0,
-                corners: [
-                  { x, y },
-                  { x: x + w, y },
-                  { x: x + w, y: y + h },
-                  { x, y: y + h }
-                ]
-              });
-            }
+    // Simplified rectangle detection to prevent stack overflow
+    // Use larger steps and fewer iterations
+    const stepX = Math.max(10, Math.floor(width / 20));
+    const stepY = Math.max(10, Math.floor(height / 20));
+    const stepW = Math.max(20, Math.floor(width / 10));
+    const stepH = Math.max(20, Math.floor(height / 10));
+    
+    for (let y = 10; y < height - 100; y += stepY) {
+      for (let x = 10; x < width - 80; x += stepX) {
+        // Only test a few common card sizes to reduce iterations
+        const commonSizes = [
+          { w: 80, h: 112 },   // Small card
+          { w: 120, h: 168 },  // Medium card  
+          { w: 160, h: 224 },  // Large card
+        ];
+        
+        for (const size of commonSizes) {
+          if (x + size.w >= width || y + size.h >= height) continue;
+          
+          const aspectRatio = size.w / size.h;
+          if (aspectRatio < 0.5 || aspectRatio > 1.0) continue;
+          
+          const edgeScore = this.calculateRectangleEdgeScore(x, y, size.w, size.h, edges, width);
+          
+          if (edgeScore > threshold) {
+            rectangles.push({
+              x, y, width: size.w, height: size.h,
+              aspectRatio,
+              confidence: Math.min(edgeScore / 100, 1.0),
+              angle: 0,
+              corners: [
+                { x, y },
+                { x: x + size.w, y },
+                { x: x + size.w, y: y + size.h },
+                { x, y: y + size.h }
+              ]
+            });
           }
         }
       }
