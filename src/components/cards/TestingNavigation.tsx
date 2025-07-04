@@ -73,7 +73,7 @@ export const TestingNavigation = () => {
                   </p>
                   
                   <div className="relative z-20">
-                    <Link to="/cards/backup">
+                    <Link to="/cards/enhanced">
                       <Button className="w-full bg-blue-500 text-white hover:bg-blue-600 group-hover:translate-x-1 transition-transform">
                         Test Original Version
                         <ArrowRight className="w-4 h-4 ml-2" />

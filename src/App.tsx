@@ -21,7 +21,7 @@ import OakMemoryCreator from '@/pages/OakMemoryCreator';
 import { AuthPage } from '@/components/auth/AuthPage';
 import { CardCreationFlow } from '@/components/editor/CardCreationFlow';
 import { OrganizedCardStudio } from '@/components/studio/enhanced/OrganizedCardStudio';
-import { SimplifiedCardCreationHubBackup } from '@/components/cards/SimplifiedCardCreationHubBackup';
+
 import { TestingNavigation } from '@/components/cards/TestingNavigation';
 
 function App() {
@@ -43,7 +43,6 @@ function App() {
             
             {/* NEW ROUTES FOR TESTING */}
             <Route path="cards/enhanced" element={<OrganizedCardStudio />} />
-            <Route path="cards/backup" element={<SimplifiedCardCreationHubBackup />} />
             <Route path="cards/test" element={<TestingNavigation />} />
             
             <Route path="cards/extract-multiple" element={<CardsExtractMultiple />} />
