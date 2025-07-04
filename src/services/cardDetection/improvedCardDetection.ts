@@ -245,50 +245,65 @@ export class ImprovedCardDetector {
 
   private findRectangularRegions(edges: number[], width: number, height: number): Partial<DetectedCard>[] {
     const rectangles: Partial<DetectedCard>[] = [];
-    const threshold = 30; // Lower threshold to catch more cards
+    const threshold = 25; // Slightly lower threshold to catch more cards
     
     console.log('🔍 Scanning image dimensions:', { width, height });
     
-    // Better grid-based scanning to cover the entire image evenly
-    const stepX = Math.max(5, Math.floor(width / 40));  // More frequent sampling
-    const stepY = Math.max(5, Math.floor(height / 30)); 
+    // Calculate expected card dimensions based on trading card aspect ratio (2.5:3.5 = 0.714)
+    const tradingCardAspectRatio = 2.5 / 3.5; // ~0.714
+    const expectedCardWidths = [
+      Math.floor(width * 0.06),   // 6% of width - smaller cards
+      Math.floor(width * 0.08),   // 8% of width
+      Math.floor(width * 0.10),   // 10% of width  
+      Math.floor(width * 0.12),   // 12% of width
+      Math.floor(width * 0.15),   // 15% of width - larger cards
+    ];
     
-    console.log('📐 Using scan steps:', { stepX, stepY });
+    // Much smaller, adaptive step sizes for thorough coverage
+    const stepX = Math.max(3, Math.floor(width / 80));  // Much denser sampling
+    const stepY = Math.max(3, Math.floor(height / 60)); 
     
-    // Scan the entire image more thoroughly
-    for (let y = 5; y < height - 50; y += stepY) {
-      for (let x = 5; x < width - 40; x += stepX) {
-        // Test multiple card sizes at each position
-        const cardSizes = [
-          { w: Math.floor(width * 0.08), h: Math.floor(width * 0.08 * 1.4) },  // 8% of width
-          { w: Math.floor(width * 0.12), h: Math.floor(width * 0.12 * 1.4) },  // 12% of width
-          { w: Math.floor(width * 0.15), h: Math.floor(width * 0.15 * 1.4) },  // 15% of width
-          { w: Math.floor(width * 0.18), h: Math.floor(width * 0.18 * 1.4) },  // 18% of width
-        ];
-        
-        for (const size of cardSizes) {
+    console.log('📐 Using scan steps:', { stepX, stepY, tradingCardAspectRatio });
+    console.log('🎯 Expected card widths:', expectedCardWidths);
+    
+    // Scan the entire image with minimal margins
+    for (let y = 10; y < height - 20; y += stepY) {
+      for (let x = 10; x < width - 20; x += stepX) {
+        // Test each expected card width with proper trading card aspect ratio
+        for (const cardWidth of expectedCardWidths) {
+          const cardHeight = Math.floor(cardWidth / tradingCardAspectRatio);
+          
           // Skip if card would go outside image bounds
-          if (x + size.w >= width - 5 || y + size.h >= height - 5) continue;
+          if (x + cardWidth >= width - 10 || y + cardHeight >= height - 10) continue;
           
-          const aspectRatio = size.w / size.h;
-          // More lenient aspect ratio for trading cards (0.6 to 0.85)
-          if (aspectRatio < 0.55 || aspectRatio > 0.9) continue;
+          const aspectRatio = cardWidth / cardHeight;
           
-          const edgeScore = this.calculateRectangleEdgeScore(x, y, size.w, size.h, edges, width);
+          // Strict aspect ratio check for trading cards (0.714 ± 0.05)
+          if (Math.abs(aspectRatio - tradingCardAspectRatio) > 0.05) continue;
+          
+          const edgeScore = this.calculateRectangleEdgeScore(x, y, cardWidth, cardHeight, edges, width);
           
           if (edgeScore > threshold) {
-            console.log('✅ Found candidate at:', { x, y, w: size.w, h: size.h, score: edgeScore });
+            console.log('✅ Found candidate at:', { 
+              x, y, 
+              w: cardWidth, 
+              h: cardHeight, 
+              score: edgeScore,
+              aspectRatio: aspectRatio.toFixed(3)
+            });
             
             rectangles.push({
-              x, y, width: size.w, height: size.h,
+              x, y, 
+              width: cardWidth, 
+              height: cardHeight,
               aspectRatio,
-              confidence: Math.min(edgeScore / 100, 1.0),
+              confidence: Math.min(edgeScore / 80, 1.0), // Adjusted confidence calculation
               angle: 0,
               corners: [
                 { x, y },
-                { x: x + size.w, y },
-                { x: x + size.w, y: y + size.h },
-                { x, y: y + size.h }
+                { x: x + cardWidth, y },
+                { x: x + cardWidth, y: y + cardHeight },
+                { x, y: y + cardHeight }
               ]
             });
           }
