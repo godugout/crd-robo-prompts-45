@@ -23,7 +23,7 @@ export const SimplifiedCardCreationHubBackup = () => {
       description: 'Place your photo behind beautiful frame overlays with clickable regions for easy customization',
       icon: Scissors,
       color: 'from-green-500 to-emerald-600',
-      href: '/cards/create?mode=cutout',
+      href: '/cards/enhanced?mode=cutout',
       recommended: true
     },
     {
@@ -32,7 +32,7 @@ export const SimplifiedCardCreationHubBackup = () => {
       description: 'Upload an existing card or photo and apply professional styling',
       icon: Upload,
       color: 'from-blue-500 to-cyan-600',
-      href: '/cards/create?mode=upload-style'
+      href: '/cards/enhanced?mode=upload-style'
     },
     {
       id: 'design-scratch',
@@ -40,7 +40,7 @@ export const SimplifiedCardCreationHubBackup = () => {
       description: 'Create a completely custom card with full creative control',
       icon: Paintbrush,
       color: 'from-purple-500 to-pink-600',
-      href: '/cards/create?mode=design-scratch'
+      href: '/cards/enhanced?mode=design-scratch'
     },
     {
       id: 'remix',
@@ -48,7 +48,7 @@ export const SimplifiedCardCreationHubBackup = () => {
       description: 'Start with a template and customize it to make it your own',
       icon: Layers,
       color: 'from-orange-500 to-red-600',
-      href: '/cards/create?mode=remix'
+      href: '/cards/enhanced?mode=remix'
     }
   ];
 

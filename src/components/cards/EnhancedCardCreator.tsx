@@ -57,7 +57,7 @@ export const EnhancedCardCreator: React.FC = () => {
       ...cardData,
       selectedFrame,
     }));
-    navigate('/cards/create');
+    navigate('/cards/enhanced');
     toast.success('Opening card in studio...');
   };
 

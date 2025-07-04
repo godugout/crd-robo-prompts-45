@@ -69,7 +69,7 @@ export const CardsGrid: React.FC<CardsGridProps> = ({
       return;
     }
     
-    navigate(`/cards/create?template=${card.id}`);
+    navigate(`/cards/enhanced?template=${card.id}`);
     toast.success(`Opening "${card.title}" for editing`);
   };
 

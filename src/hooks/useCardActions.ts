@@ -11,7 +11,7 @@ export const useCardActions = () => {
   };
 
   const handleRemix = (card: UniversalCardData) => {
-    navigate(`/cards/create?template=${card.id}`);
+    navigate(`/cards/enhanced?template=${card.id}`);
     toast.success(`Starting remix of "${card.title}"`);
   };
 

@@ -14,17 +14,7 @@ export const CardCreationFlow = () => {
     fullUrl: location.pathname + location.search
   });
   
-  // Force the enhanced layout for /cards/create with any mode
-  if (location.pathname === '/cards/create') {
-    console.log('FORCING EmbeddedCardCreator for /cards/create - Enhanced Layout');
-    return (
-      <FlowErrorBoundary flowName="Card Creator">
-        <div className="min-h-screen bg-crd-darkest">
-          <EmbeddedCardCreator />
-        </div>
-      </FlowErrorBoundary>
-    );
-  }
+  // This component now only handles /cards route
   
   // Show hub for /cards only
   if (location.pathname === '/cards') {

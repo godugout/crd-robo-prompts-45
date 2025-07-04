@@ -40,7 +40,6 @@ function App() {
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Index />} />
             <Route path="cards" element={<CardCreationFlow />} />
-            <Route path="cards/create" element={<CardCreationFlow />} />
             
             {/* NEW ROUTES FOR TESTING */}
             <Route path="cards/enhanced" element={<OrganizedCardStudio />} />

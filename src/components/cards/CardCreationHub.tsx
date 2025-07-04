@@ -31,7 +31,7 @@ const CREATION_OPTIONS: CreationOption[] = [
     title: 'Quick Create',
     description: 'Simple card creation with AI assistance',
     icon: Zap,
-    route: '/cards/create',
+    route: '/cards/enhanced',
     color: 'bg-crd-green',
     difficulty: 'Beginner',
     features: ['AI photo analysis', 'Auto templates', 'One-click export']
@@ -61,7 +61,7 @@ const CREATION_OPTIONS: CreationOption[] = [
     title: 'Collaborative Project',
     description: 'Work on cards with your team',
     icon: Users,
-    route: '/cards/create?mode=collaborative',
+    route: '/cards/enhanced?mode=collaborative',
     color: 'bg-orange-500',
     difficulty: 'Intermediate',
     features: ['Real-time editing', 'Team reviews', 'Version control']
@@ -154,7 +154,7 @@ export const CardCreationHub = () => {
             <Button
               variant="outline"
               className="border-editor-border text-white hover:bg-editor-border h-auto p-4 flex flex-col items-start"
-              onClick={() => navigate('/cards/create')}
+              onClick={() => navigate('/cards/enhanced')}
             >
               <Camera className="w-5 h-5 mb-2 text-crd-green" />
               <div className="text-left">

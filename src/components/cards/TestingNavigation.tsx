@@ -98,9 +98,9 @@ export const TestingNavigation = () => {
                 /cards (Hub)
               </Button>
             </Link>
-            <Link to="/cards/create">
+            <Link to="/cards/enhanced">
               <Button variant="outline" className="text-gray-300 border-gray-600 hover:bg-gray-800">
-                /cards/create (Flow)
+                /cards/enhanced (Studio)
               </Button>
             </Link>
           </div>
