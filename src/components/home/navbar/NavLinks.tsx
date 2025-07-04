@@ -15,7 +15,6 @@ export const NavLinks = () => {
         className={`nav-item ${isActive('/') ? 'active' : ''} flex items-center gap-2`}
       >
         <Home className="w-4 h-4" />
-        Home
       </Link>
       <Link 
         to="/gallery" 
