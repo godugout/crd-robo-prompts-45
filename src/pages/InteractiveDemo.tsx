@@ -218,27 +218,74 @@ export const InteractiveDemo: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Card Viewer - Main Display */}
           <div className="lg:col-span-2">
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <Card className="border-border bg-card backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+                <CardTitle className="flex items-center justify-between text-foreground">
                   <span>3D Card Viewer</span>
-                  <Badge variant="outline">
-                    {currentCard.title} - {currentCard.rarity}
+                  <Badge variant="outline" className="text-foreground border-border bg-background">
+                    {currentCard.title} - <span className="capitalize">{currentCard.rarity}</span>
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="aspect-[4/3] bg-gradient-to-br from-secondary/20 to-secondary/40 rounded-lg overflow-hidden">
-                  <EnhancedCardViewer
-                    card={currentCard}
-                    selectedFrame={selectedFrame}
-                    cardDetails={{
-                      id: currentCard.id || '1',
-                      title: currentCard.title,
-                      rarity: currentCard.rarity,
-                      created_at: new Date().toISOString()
-                    }}
-                  />
+                <div className="aspect-[4/3] bg-gradient-to-br from-background/80 to-secondary/20 rounded-lg overflow-hidden border border-border/20">
+                  {/* Simple 3D Card Display using Canvas */}
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-background via-secondary/10 to-background">
+                    <div className="relative max-w-xs transform transition-transform hover:scale-105">
+                      {/* Card Container with Frame Effect */}
+                      <div className={`relative ${
+                        selectedFrame === 'GRADED_CASE' ? 'p-8 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-2xl' :
+                        selectedFrame === 'PREMIUM_CASE' ? 'p-6 bg-gradient-to-br from-gold-800/20 to-gold-900/20 rounded-lg shadow-xl border-2 border-yellow-500/30' :
+                        selectedFrame === 'THICK_BORDER' ? 'p-4 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg shadow-lg' :
+                        'p-2 bg-gradient-to-br from-gray-600 to-gray-700 rounded shadow-md'
+                      }`}>
+                        {/* Card Image */}
+                        <div className="relative">
+                          <img
+                            src={currentCard.image_url}
+                            alt={currentCard.title}
+                            className="w-full h-auto rounded-lg shadow-lg"
+                            style={{
+                              filter: `
+                                ${effectValues.holographic?.intensity ? `hue-rotate(${effectValues.holographic.intensity * 3.6}deg) saturate(${1 + effectValues.holographic.intensity / 100})` : ''}
+                                ${effectValues.chrome?.intensity ? `brightness(${1 + effectValues.chrome.intensity / 200}) contrast(${1 + effectValues.chrome.intensity / 100})` : ''}
+                                ${effectValues.gold?.intensity ? `sepia(${effectValues.gold.intensity / 2}%) saturate(${1 + effectValues.gold.intensity / 50}) hue-rotate(30deg)` : ''}
+                              `.trim()
+                            }}
+                          />
+                          
+                          {/* Effect Overlays */}
+                          {effectValues.holographic?.intensity > 0 && (
+                            <div 
+                              className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/20 to-green-500/20 rounded-lg mix-blend-overlay"
+                              style={{ opacity: effectValues.holographic.intensity / 100 }}
+                            />
+                          )}
+                          
+                          {effectValues.chrome?.intensity > 0 && (
+                            <div 
+                              className="absolute inset-0 bg-gradient-to-br from-gray-300/30 via-white/20 to-gray-400/30 rounded-lg mix-blend-hard-light"
+                              style={{ opacity: effectValues.chrome.intensity / 100 }}
+                            />
+                          )}
+                          
+                          {effectValues.gold?.intensity > 0 && (
+                            <div 
+                              className="absolute inset-0 bg-gradient-to-br from-yellow-400/30 via-yellow-300/20 to-yellow-600/30 rounded-lg mix-blend-multiply"
+                              style={{ opacity: effectValues.gold.intensity / 100 }}
+                            />
+                          )}
+                        </div>
+                        
+                        {/* Frame Labels */}
+                        {selectedFrame === 'GRADED_CASE' && (
+                          <div className="absolute top-2 left-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                            PSA 10
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -247,9 +294,9 @@ export const InteractiveDemo: React.FC = () => {
           {/* Controls Panel */}
           <div className="space-y-6">
             {/* Card Selection */}
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <Card className="border-border bg-card backdrop-blur-sm">
               <CardHeader>
-                <CardTitle>Card Selection</CardTitle>
+                <CardTitle className="text-foreground">Card Selection</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 gap-3">
@@ -258,11 +305,11 @@ export const InteractiveDemo: React.FC = () => {
                       key={card.id}
                       variant={index === currentCardIndex ? "default" : "outline"}
                       onClick={() => setCurrentCardIndex(index)}
-                      className="justify-start text-left"
+                      className="justify-start text-left h-auto p-3"
                     >
                       <div>
-                        <div className="font-medium">{card.title}</div>
-                        <div className="text-xs text-muted-foreground">{card.rarity}</div>
+                        <div className="font-medium text-foreground">{card.title}</div>
+                        <div className="text-xs text-muted-foreground capitalize">{card.rarity}</div>
                       </div>
                     </Button>
                   ))}
@@ -271,9 +318,9 @@ export const InteractiveDemo: React.FC = () => {
             </Card>
 
             {/* Frame Selection */}
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <Card className="border-border bg-card backdrop-blur-sm">
               <CardHeader>
-                <CardTitle>Frame Type</CardTitle>
+                <CardTitle className="text-foreground">Frame Type</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -282,10 +329,10 @@ export const InteractiveDemo: React.FC = () => {
                       key={frame.key}
                       variant={selectedFrame === frame.key ? "default" : "outline"}
                       onClick={() => setSelectedFrame(frame.key)}
-                      className="w-full justify-start text-left"
+                      className="w-full justify-start text-left h-auto p-3"
                     >
                       <div>
-                        <div className="font-medium">{frame.name}</div>
+                        <div className="font-medium text-foreground">{frame.name}</div>
                         <div className="text-xs text-muted-foreground">{frame.description}</div>
                       </div>
                     </Button>
@@ -295,9 +342,9 @@ export const InteractiveDemo: React.FC = () => {
             </Card>
 
             {/* Effect Presets */}
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <Card className="border-border bg-card backdrop-blur-sm">
               <CardHeader>
-                <CardTitle>Effect Presets</CardTitle>
+                <CardTitle className="text-foreground">Effect Presets</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -306,11 +353,11 @@ export const InteractiveDemo: React.FC = () => {
                       key={preset.name}
                       variant="outline"
                       onClick={() => applyPreset(preset)}
-                      className="w-full justify-start text-left gap-3"
+                      className="w-full justify-start text-left gap-3 h-auto p-3 hover:bg-accent"
                     >
-                      <preset.icon className="w-4 h-4" />
+                      <preset.icon className="w-4 h-4 text-primary" />
                       <div>
-                        <div className="font-medium">{preset.name}</div>
+                        <div className="font-medium text-foreground">{preset.name}</div>
                         <div className="text-xs text-muted-foreground">{preset.description}</div>
                       </div>
                     </Button>
@@ -320,20 +367,20 @@ export const InteractiveDemo: React.FC = () => {
             </Card>
 
             {/* Custom Effect Controls */}
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <Card className="border-border bg-card backdrop-blur-sm">
               <CardHeader>
-                <CardTitle>Custom Effects</CardTitle>
+                <CardTitle className="text-foreground">Custom Effects</CardTitle>
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="holographic" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="holographic">Holographic</TabsTrigger>
-                    <TabsTrigger value="metallic">Metallic</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 bg-muted">
+                    <TabsTrigger value="holographic" className="text-foreground">Holographic</TabsTrigger>
+                    <TabsTrigger value="metallic" className="text-foreground">Metallic</TabsTrigger>
                   </TabsList>
                   
-                  <TabsContent value="holographic" className="space-y-4">
+                  <TabsContent value="holographic" className="space-y-4 mt-4">
                     <div>
-                      <label className="text-sm font-medium">Holographic Intensity</label>
+                      <label className="text-sm font-medium text-foreground">Holographic Intensity</label>
                       <Slider
                         value={[effectValues.holographic?.intensity || 0]}
                         onValueChange={([value]) => handleEffectChange('holographic', { intensity: value })}
@@ -341,12 +388,15 @@ export const InteractiveDemo: React.FC = () => {
                         step={1}
                         className="mt-2"
                       />
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Current: {effectValues.holographic?.intensity || 0}%
+                      </div>
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="metallic" className="space-y-4">
+                  <TabsContent value="metallic" className="space-y-4 mt-4">
                     <div>
-                      <label className="text-sm font-medium">Chrome Intensity</label>
+                      <label className="text-sm font-medium text-foreground">Chrome Intensity</label>
                       <Slider
                         value={[effectValues.chrome?.intensity || 0]}
                         onValueChange={([value]) => handleEffectChange('chrome', { intensity: value })}
@@ -354,9 +404,12 @@ export const InteractiveDemo: React.FC = () => {
                         step={1}
                         className="mt-2"
                       />
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Current: {effectValues.chrome?.intensity || 0}%
+                      </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium">Gold Intensity</label>
+                      <label className="text-sm font-medium text-foreground">Gold Intensity</label>
                       <Slider
                         value={[effectValues.gold?.intensity || 0]}
                         onValueChange={([value]) => handleEffectChange('gold', { intensity: value })}
@@ -364,6 +417,9 @@ export const InteractiveDemo: React.FC = () => {
                         step={1}
                         className="mt-2"
                       />
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Current: {effectValues.gold?.intensity || 0}%
+                      </div>
                     </div>
                   </TabsContent>
                 </Tabs>
