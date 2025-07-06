@@ -9,7 +9,30 @@ export const CARD_CONSTANTS = {
   
   // Layer offsets for effects
   EFFECT_LAYER_OFFSET: 0.001,
-  FRAME_LAYER_OFFSET_MULTIPLIER: 1.05,
+  FRAME_LAYER_OFFSET_MULTIPLIER: 1.3,
+  
+  // Frame types and their sizing
+  FRAME_TYPES: {
+    THIN_BORDER: { multiplier: 1.15, depth: 0.01, name: 'Thin Border' },
+    THICK_BORDER: { multiplier: 1.25, depth: 0.02, name: 'Thick Border' },
+    GRADED_CASE: { multiplier: 1.4, depth: 0.08, name: 'Graded Case' },
+    PREMIUM_CASE: { multiplier: 1.5, depth: 0.12, name: 'Premium Case' }
+  },
+  
+  // Layer ordering system
+  LAYER_ORDER: {
+    CARD_BASE: 0,
+    EFFECT_BASE: 1,
+    HOLOGRAPHIC: 2,
+    METALLIC: 3,
+    PRISMATIC: 4,
+    SPECIAL: 5,
+    FRAME_BACK: 6,
+    FRAME_FRONT: 7,
+    CASE_INTERIOR: 8,
+    CASE_GLASS: 9,
+    PROTECTIVE_COATING: 10
+  },
   
   // Performance settings
   MIN_CARD_SIZE: {

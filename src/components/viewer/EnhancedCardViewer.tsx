@@ -299,6 +299,8 @@ const EnhancedCardViewerContent: React.FC<EnhancedCardViewerProps> = ({
                   materialSettings={materialSettings}
                   selectedFrame={selectedFrame}
                   frameConfig={frameConfig}
+                  quality="high"
+                  mousePosition={mousePosition}
                 />
               </EffectProvider>
             </Canvas>

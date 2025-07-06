@@ -3,6 +3,7 @@ import React, { useMemo, Suspense } from 'react';
 import type { CardData } from '@/types/card';
 import { Advanced3DCardRenderer } from './Advanced3DCardRenderer';
 import { useEffectContext } from '../contexts/EffectContext';
+import { detectWebGLCapabilities } from '../../3d/utils/webglDetection';
 
 interface Enhanced3DCardMeshProps {
   card: CardData;
@@ -17,6 +18,8 @@ interface Enhanced3DCardMeshProps {
   };
   selectedFrame?: string;
   frameConfig?: any;
+  quality?: 'low' | 'medium' | 'high' | 'ultra';
+  mousePosition?: { x: number; y: number };
 }
 
 // Simplified fallback component
@@ -47,11 +50,31 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
     reflectivity: 50
   },
   selectedFrame,
-  frameConfig
+  frameConfig,
+  quality = 'high',
+  mousePosition = { x: 0, y: 0 }
 }) => {
   // Get effect values from context
   const effectContext = useEffectContext();
   const effectValues = effectContext?.effectValues || {};
+  
+  // Auto-detect quality based on device capabilities
+  const deviceCapabilities = useMemo(() => {
+    const caps = detectWebGLCapabilities();
+    return {
+      supportsWebGL2: caps.version >= 2,
+      maxTextureSize: caps.maxTextureSize,
+      fragmentShaderPrecision: caps.performanceScore > 70 ? 'highp' as const : 
+                              caps.performanceScore > 40 ? 'mediump' as const : 'lowp' as const
+    };
+  }, []);
+  
+  const adaptiveQuality = useMemo(() => {
+    if (!deviceCapabilities.supportsWebGL2) return 'low';
+    if (deviceCapabilities.maxTextureSize < 2048) return 'medium';
+    if (deviceCapabilities.fragmentShaderPrecision === 'lowp') return 'medium';
+    return quality;
+  }, [quality, deviceCapabilities]);
 
   // Validate and sanitize inputs once
   const safeInputs = useMemo(() => ({
@@ -91,6 +114,8 @@ export const Enhanced3DCardMesh: React.FC<Enhanced3DCardMeshProps> = ({
         effectValues={effectValues}
         selectedFrame={selectedFrame}
         frameConfig={frameConfig}
+        quality={adaptiveQuality}
+        mousePosition={mousePosition}
       />
     </Suspense>
   );
