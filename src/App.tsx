@@ -18,6 +18,7 @@ import CardDetail from '@/pages/CardDetail';
 import CardsExtractMultiple from '@/pages/CardsExtractMultiple';
 import CollectionDetail from '@/pages/CollectionDetail';
 import OakMemoryCreator from '@/pages/OakMemoryCreator';
+import { InteractiveDemo } from '@/pages/InteractiveDemo';
 import { AuthPage } from '@/components/auth/AuthPage';
 import { CardCreationFlow } from '@/components/editor/CardCreationFlow';
 import { OrganizedCardStudio } from '@/components/studio/enhanced/OrganizedCardStudio';
@@ -52,6 +53,7 @@ function App() {
             <Route path="collection/:id" element={<CollectionDetail />} />
             <Route path="studio" element={<Studio />} />
             <Route path="gallery" element={<Gallery />} />
+            <Route path="demo" element={<InteractiveDemo />} />
             <Route path="auth" element={<AuthPage />} />
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<AccountSettings />} />

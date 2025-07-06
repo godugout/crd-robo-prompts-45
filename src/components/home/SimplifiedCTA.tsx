@@ -78,6 +78,15 @@ export const SimplifiedCTA: React.FC = () => {
                   Create New Card
                 </CRDButton>
               </Link>
+              <Link to="/demo">
+                <CRDButton 
+                  variant="outline" 
+                  size="lg"
+                  className="px-8 py-4 rounded-[90px] border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
+                >
+                  Try Interactive Demo
+                </CRDButton>
+              </Link>
               <Link to="/profile">
                 <CRDButton 
                   variant="secondary" 
@@ -97,6 +106,15 @@ export const SimplifiedCTA: React.FC = () => {
                   className="px-8 py-4 rounded-[90px]"
                 >
                   Get Started Free
+                </CRDButton>
+              </Link>
+              <Link to="/demo">
+                <CRDButton 
+                  variant="outline" 
+                  size="lg"
+                  className="px-8 py-4 rounded-[90px] border-crd-green text-crd-green hover:bg-crd-green hover:text-black"
+                >
+                  Try Interactive Demo
                 </CRDButton>
               </Link>
               <Link to="/gallery">

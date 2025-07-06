@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Image, Plus, FolderOpen, Palette } from "lucide-react";
+import { Home, Image, Plus, FolderOpen, Palette, Play } from "lucide-react";
 
 export const NavLinks = () => {
   const location = useLocation();
@@ -22,6 +22,13 @@ export const NavLinks = () => {
       >
         <Image className="w-4 h-4" />
         Gallery
+      </Link>
+      <Link 
+        to="/demo" 
+        className={`nav-item ${isActive('/demo') ? 'active' : ''} flex items-center gap-2`}
+      >
+        <Play className="w-4 h-4" />
+        Demo
       </Link>
       <Link 
         to="/cards/enhanced" 
